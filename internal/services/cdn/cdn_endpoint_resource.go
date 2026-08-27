@@ -11,6 +11,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -21,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCdnEndpoint() *pluginsdk.Resource {
@@ -226,18 +226,19 @@ func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM CDN EndPoint creation.")
-
 	id := parse.NewEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("profile_name").(string), d.Get("name").(string))
-	existing, err := endpointsClient.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-		}
-	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_cdn_endpoint", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := endpointsClient.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
+		if err != nil {
+			if !response.WasNotFound(existing.Response.Response) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.Response.Response) {
+			return tf.ImportAsExistsError("azurerm_cdn_endpoint", id.ID())
+		}
 	}
 
 	location := location.Normalize(d.Get("location").(string))
@@ -269,8 +270,7 @@ func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if _, ok := d.GetOk("geo_filter"); ok {
-		geoFilters := expandCdnEndpointGeoFilters(d)
-		endpoint.GeoFilters = geoFilters
+		endpoint.GeoFilters = expandCdnEndpointGeoFilters(d)
 	}
 
 	if v, ok := d.GetOk("is_compression_enabled"); ok {
@@ -335,8 +335,6 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM CDN EndPoint update.")
-
 	id, err := parse.EndpointID(d.Id())
 	if err != nil {
 		return err
@@ -355,10 +353,7 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	// call 'PATCH' if the only thing that has changed are the tags, else
 	// call the 'PUT' instead. https://learn.microsoft.com/rest/api/cdn/endpoints/update?tabs=HTTP
 	// see issue #22326 for more details.
-	updateTypePATCH := !d.HasChanges("is_http_allowed", "is_https_allowed", "querystring_caching_behaviour", "origin_path",
-		"probe_path", "optimization_type", "origin_host_header", "content_types_to_compress", "geo_filter",
-		"is_compression_enabled", "probe_path", "geo_filter", "optimization_type", "global_delivery_rule",
-		"delivery_rule")
+	updateTypePATCH := !d.HasChangesExcept("tags")
 
 	if updateTypePATCH {
 		log.Printf("[INFO] No changes detected using PATCH for Azure ARM CDN EndPoint update.")
@@ -404,8 +399,7 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		if _, ok := d.GetOk("geo_filter"); ok {
-			geoFilters := expandCdnEndpointGeoFilters(d)
-			endpoint.GeoFilters = geoFilters
+			endpoint.GeoFilters = expandCdnEndpointGeoFilters(d)
 		}
 
 		if v, ok := d.GetOk("is_compression_enabled"); ok {
@@ -476,7 +470,7 @@ func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -499,11 +493,7 @@ func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("probe_path", props.ProbePath)
 		d.Set("optimization_type", string(props.OptimizationType))
 
-		compressionEnabled := false
-		if v := props.IsCompressionEnabled; v != nil {
-			compressionEnabled = *v
-		}
-		d.Set("is_compression_enabled", compressionEnabled)
+		d.Set("is_compression_enabled", pointer.From(props.IsCompressionEnabled))
 
 		contentTypes := flattenAzureRMCdnEndpointContentTypes(props.ContentTypesToCompress)
 		if err := d.Set("content_types_to_compress", contentTypes); err != nil {
@@ -592,11 +582,6 @@ func flattenCdnEndpointGeoFilters(input *[]cdn.GeoFilter) []interface{} {
 
 	if filters := input; filters != nil {
 		for _, filter := range *filters {
-			relativePath := ""
-			if filter.RelativePath != nil {
-				relativePath = *filter.RelativePath
-			}
-
 			outputCodes := make([]interface{}, 0)
 			if codes := filter.CountryCodes; codes != nil {
 				for _, code := range *codes {
@@ -607,7 +592,7 @@ func flattenCdnEndpointGeoFilters(input *[]cdn.GeoFilter) []interface{} {
 			results = append(results, map[string]interface{}{
 				"action":        string(filter.Action),
 				"country_codes": outputCodes,
-				"relative_path": relativePath,
+				"relative_path": pointer.From(filter.RelativePath),
 			})
 		}
 	}
@@ -677,11 +662,6 @@ func flattenAzureRMCdnEndpointOrigin(input *[]cdn.DeepCreatedOrigin) []interface
 
 	if list := input; list != nil {
 		for _, i := range *list {
-			name := ""
-			if i.Name != nil {
-				name = *i.Name
-			}
-
 			hostName := ""
 			httpPort := 80
 			httpsPort := 443
@@ -698,7 +678,7 @@ func flattenAzureRMCdnEndpointOrigin(input *[]cdn.DeepCreatedOrigin) []interface
 			}
 
 			results = append(results, map[string]interface{}{
-				"name":       name,
+				"name":       pointer.From(i.Name),
 				"host_name":  hostName,
 				"http_port":  httpPort,
 				"https_port": httpsPort,

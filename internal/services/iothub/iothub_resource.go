@@ -14,10 +14,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -31,7 +33,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
@@ -594,6 +595,7 @@ func resourceIotHub() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
+				Default:  "1.2",
 				ValidateFunc: validation.StringInSlice([]string{
 					"1.2",
 				}, false),
@@ -654,26 +656,27 @@ func resourceIotHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	locks.ByName(id.Name, IothubResourceName)
 	defer locks.UnlockByName(id.Name, IothubResourceName)
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_iothub", id.ID())
 		}
-		res, err := client.CheckNameAvailability(ctx, devices.OperationInputs{Name: &id.Name})
-		if err != nil {
-			return fmt.Errorf("an error occurred checking if the IoTHub name was unique: %+v", err)
-		}
+	}
 
-		if !*res.NameAvailable {
-			if _, err = client.Get(ctx, id.ResourceGroup, id.Name); err == nil {
-				return fmt.Errorf("an IoTHub already exists with the name %q - please choose an alternate name: %s", id.Name, string(res.Reason))
-			}
+	res, err := client.CheckNameAvailability(ctx, devices.OperationInputs{Name: &id.Name})
+	if err != nil {
+		return fmt.Errorf("an error occurred checking if the IoTHub name was unique: %+v", err)
+	}
+
+	if !*res.NameAvailable {
+		if _, err = client.Get(ctx, id.ResourceGroup, id.Name); err == nil {
+			return fmt.Errorf("an IoTHub already exists with the name %q - please choose an alternate name: %s", id.Name, string(res.Reason))
 		}
 	}
 
@@ -776,11 +779,11 @@ func resourceIotHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of %q: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceIotHubRead(d, meta)
 }
@@ -961,7 +964,7 @@ func resourceIotHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		Refresh: func() (result interface{}, state string, err error) {
 			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.Response.Response) {
 					return resp, strconv.Itoa(resp.StatusCode), nil
 				}
 				return resp, strconv.Itoa(resp.StatusCode), err
@@ -994,7 +997,7 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	hub, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(hub.Response) {
+		if response.WasNotFound(hub.Response.Response) {
 			log.Printf("[DEBUG] %s was not found!", id)
 			d.SetId("")
 			return nil
@@ -1153,7 +1156,7 @@ func expandIoTHubRoutes(d *pluginsdk.ResourceData) *[]devices.RouteProperties {
 			Name:          &name,
 			Source:        source,
 			Condition:     &condition,
-			EndpointNames: utils.ExpandStringSlice(endpointNamesRaw),
+			EndpointNames: helpers.ExpandStringSlice(endpointNamesRaw),
 			IsEnabled:     &isEnabled,
 		})
 	}
@@ -1177,7 +1180,7 @@ func expandIoTHubEnrichments(d *pluginsdk.ResourceData) *[]devices.EnrichmentPro
 		enrichmentProperties = append(enrichmentProperties, devices.EnrichmentProperties{
 			Key:           &key,
 			Value:         &value,
-			EndpointNames: utils.ExpandStringSlice(endpointNamesRaw),
+			EndpointNames: helpers.ExpandStringSlice(endpointNamesRaw),
 		})
 	}
 
@@ -1391,7 +1394,7 @@ func expandIoTHubFallbackRoute(d *pluginsdk.ResourceData) *devices.FallbackRoute
 	return &devices.FallbackRouteProperties{
 		Source:        &source,
 		Condition:     &condition,
-		EndpointNames: utils.ExpandStringSlice(fallbackRouteMap["endpoint_names"].([]interface{})),
+		EndpointNames: helpers.ExpandStringSlice(fallbackRouteMap["endpoint_names"].([]interface{})),
 		IsEnabled:     &isEnabled,
 	}
 }
@@ -1537,17 +1540,9 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				}
 				output["authentication_type"] = authenticationType
 
-				connectionStr := ""
-				if container.ConnectionString != nil {
-					connectionStr = *container.ConnectionString
-				}
-				output["connection_string"] = connectionStr
+				output["connection_string"] = pointer.From(container.ConnectionString)
 
-				endpointUri := ""
-				if container.EndpointURI != nil {
-					endpointUri = *container.EndpointURI
-				}
-				output["endpoint_uri"] = endpointUri
+				output["endpoint_uri"] = pointer.From(container.EndpointURI)
 
 				identityId := ""
 				if container.Identity != nil && container.Identity.UserAssignedIdentity != nil {
@@ -1592,23 +1587,11 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				}
 				output["authentication_type"] = authenticationType
 
-				connectionStr := ""
-				if queue.ConnectionString != nil {
-					connectionStr = *queue.ConnectionString
-				}
-				output["connection_string"] = connectionStr
+				output["connection_string"] = pointer.From(queue.ConnectionString)
 
-				endpointUri := ""
-				if queue.EndpointURI != nil {
-					endpointUri = *queue.EndpointURI
-				}
-				output["endpoint_uri"] = endpointUri
+				output["endpoint_uri"] = pointer.From(queue.EndpointURI)
 
-				entityPath := ""
-				if queue.EntityPath != nil {
-					entityPath = *queue.EntityPath
-				}
-				output["entity_path"] = entityPath
+				output["entity_path"] = pointer.From(queue.EntityPath)
 
 				identityId := ""
 				if queue.Identity != nil && queue.Identity.UserAssignedIdentity != nil {
@@ -1640,23 +1623,11 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				}
 				output["authentication_type"] = authenticationType
 
-				connectionStr := ""
-				if topic.ConnectionString != nil {
-					connectionStr = *topic.ConnectionString
-				}
-				output["connection_string"] = connectionStr
+				output["connection_string"] = pointer.From(topic.ConnectionString)
 
-				endpointUri := ""
-				if topic.EndpointURI != nil {
-					endpointUri = *topic.EndpointURI
-				}
-				output["endpoint_uri"] = endpointUri
+				output["endpoint_uri"] = pointer.From(topic.EndpointURI)
 
-				entityPath := ""
-				if topic.EntityPath != nil {
-					entityPath = *topic.EntityPath
-				}
-				output["entity_path"] = entityPath
+				output["entity_path"] = pointer.From(topic.EntityPath)
 
 				identityId := ""
 				if topic.Identity != nil && topic.Identity.UserAssignedIdentity != nil {
@@ -1688,23 +1659,11 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				}
 				output["authentication_type"] = authenticationType
 
-				connectionStr := ""
-				if eventHub.ConnectionString != nil {
-					connectionStr = *eventHub.ConnectionString
-				}
-				output["connection_string"] = connectionStr
+				output["connection_string"] = pointer.From(eventHub.ConnectionString)
 
-				endpointUri := ""
-				if eventHub.EndpointURI != nil {
-					endpointUri = *eventHub.EndpointURI
-				}
-				output["endpoint_uri"] = endpointUri
+				output["endpoint_uri"] = pointer.From(eventHub.EndpointURI)
 
-				entityPath := ""
-				if eventHub.EntityPath != nil {
-					entityPath = *eventHub.EntityPath
-				}
-				output["entity_path"] = entityPath
+				output["entity_path"] = pointer.From(eventHub.EntityPath)
 
 				identityId := ""
 				if eventHub.Identity != nil && eventHub.Identity.UserAssignedIdentity != nil {
@@ -1800,7 +1759,7 @@ func flattenIoTHubFallbackRoute(input *devices.RoutingProperties) []interface{} 
 		output["source"] = *source
 	}
 
-	output["endpoint_names"] = utils.FlattenStringSlice(route.EndpointNames)
+	output["endpoint_names"] = helpers.FlattenStringSlice(route.EndpointNames)
 
 	return []interface{}{output}
 }

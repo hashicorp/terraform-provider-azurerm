@@ -54,7 +54,7 @@ func testAccKeyVaultMHSMKey_complete(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -194,6 +194,32 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
 `, r.template(data), data.RandomString)
 }
 
+func (r KeyVaultMHSMKeyTestResource) completeUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
+  name           = "acctestHSMK-%[2]s"
+  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
+  key_type       = "EC-HSM"
+  curve          = "P-521"
+  key_opts       = ["sign"]
+
+  not_before_date = "2020-01-02T01:02:03Z"
+  expiration_date = "2021-01-02T01:02:03Z"
+
+  depends_on = [
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.test,
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.test1
+  ]
+}
+`, r.template(data), data.RandomString)
+}
+
 func (r KeyVaultMHSMKeyTestResource) softDeleteRecovery(data acceptance.TestData, purge bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -242,6 +268,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctest%[1]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7

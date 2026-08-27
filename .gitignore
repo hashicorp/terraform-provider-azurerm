@@ -60,8 +60,12 @@ tf.zip
 # do not upload GitHub Copilot specific folders and copilot instruction files
 .github/instructions
 .github/prompts
+.github/skills
 .github/copilot-instructions.md
 
 # do not upload .bob instructions
 .bob
 AGENTS.md
+
+# golangci-lint custom binary with plugins, built by make golangci-with-modules
+scripts/golangci-with-modules

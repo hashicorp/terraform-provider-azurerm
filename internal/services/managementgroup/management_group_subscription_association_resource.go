@@ -100,7 +100,9 @@ func resourceManagementGroupSubscriptionAssociationCreate(d *pluginsdk.ResourceD
 		if props.Children != nil {
 			for _, v := range *props.Children {
 				if v.Type != nil && *v.Type == managementgroups.ManagementGroupChildTypeSubscriptions && v.Name != nil && strings.EqualFold(*v.Name, id.SubscriptionId) {
-					return tf.ImportAsExistsError("azurerm_management_group_subscription_association", id.ID())
+					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError("azurerm_management_group_subscription_association", id.ID())
+					}
 				}
 			}
 		}

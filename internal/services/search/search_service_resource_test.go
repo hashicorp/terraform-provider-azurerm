@@ -28,6 +28,7 @@ func TestAccSearchService_basicSku(t *testing.T) {
 			Config: r.basic(data, "basic"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("endpoint").Exists(),
 				check.That(data.ResourceName).Key("semantic_search_sku").HasValue(""),
 			),
 		},
@@ -204,7 +205,7 @@ func TestAccSearchService_skuUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data, "standard2"),
+			Config: r.basic(data, "basic"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

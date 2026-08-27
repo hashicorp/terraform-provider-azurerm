@@ -47,6 +47,7 @@ func (Registration) Resources() []sdk.Resource {
 		DataFactoryCredentialServicePrincipalResource{},
 		DataFactoryCredentialUserAssignedManagedIdentityResource{},
 		DataFactoryCustomerManagedKeyResource{},
+		LinkedServiceSqlManagedInstanceResource{},
 	}
 }
 
@@ -59,7 +60,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	resources := map[string]*pluginsdk.Resource{
+	return map[string]*pluginsdk.Resource{
 		"azurerm_data_factory":                                       resourceDataFactory(),
 		"azurerm_data_factory_data_flow":                             resourceDataFactoryDataFlow(),
 		"azurerm_data_factory_flowlet_data_flow":                     resourceDataFactoryFlowletDataFlow(),
@@ -107,8 +108,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_data_factory_trigger_schedule":                      resourceDataFactoryTriggerSchedule(),
 		"azurerm_data_factory_trigger_tumbling_window":               resourceDataFactoryTriggerTumblingWindow(),
 	}
-
-	return resources
 }
 
 func (r Registration) Actions() []func() action.Action {

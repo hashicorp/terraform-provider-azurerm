@@ -155,14 +155,16 @@ func (r MachineLearningDataStoreDataLakeGen2) Create() sdk.ResourceFunc {
 
 			id := datastore.NewDataStoreID(subscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_machine_learning_datastore_datalake_gen2", id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError("azurerm_machine_learning_datastore_datalake_gen2", id.ID())
+				}
 			}
 
 			containerId, err := commonids.ParseStorageContainerID(model.StorageContainerID)
@@ -182,7 +184,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Create() sdk.ResourceFunc {
 				Filesystem:                    containerId.ContainerName,
 				Endpoint:                      pointer.To(metadata.Client.Storage.StorageDomainSuffix),
 				Description:                   pointer.To(model.Description),
-				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataIdentity)),
+				ServiceDataAccessAuthIdentity: pointer.ToEnum[datastore.ServiceDataAccessAuthIdentity](model.ServiceDataIdentity),
 				Tags:                          pointer.To(model.Tags),
 			}
 
@@ -206,8 +208,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Create() sdk.ResourceFunc {
 			props.Credentials = creds
 			datastoreRaw.Properties = props
 
-			_, err = client.CreateOrUpdate(ctx, id, datastoreRaw, datastore.CreateOrUpdateOperationOptions{SkipValidation: pointer.To(true)})
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id, datastoreRaw, datastore.CreateOrUpdateOperationOptions{SkipValidation: pointer.To(true)}); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -248,7 +249,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Update() sdk.ResourceFunc {
 				AccountName:                   containerId.StorageAccountName,
 				Filesystem:                    containerId.ContainerName,
 				Description:                   pointer.To(state.Description),
-				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(state.ServiceDataIdentity)),
+				ServiceDataAccessAuthIdentity: pointer.ToEnum[datastore.ServiceDataAccessAuthIdentity](state.ServiceDataIdentity),
 				Tags:                          pointer.To(state.Tags),
 			}
 
@@ -272,8 +273,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Update() sdk.ResourceFunc {
 			props.Credentials = creds
 			datastoreRaw.Properties = props
 
-			_, err = client.CreateOrUpdate(ctx, *id, datastoreRaw, datastore.CreateOrUpdateOperationOptions{SkipValidation: pointer.To(true)})
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, *id, datastoreRaw, datastore.CreateOrUpdateOperationOptions{SkipValidation: pointer.To(true)}); err != nil {
 				return fmt.Errorf("creating/updating %s: %+v", id, err)
 			}
 
@@ -315,16 +315,26 @@ func (r MachineLearningDataStoreDataLakeGen2) Read() sdk.ResourceFunc {
 				serviceDataIdentity = string(*v)
 			}
 			model.ServiceDataIdentity = serviceDataIdentity
+
 			var storageAccount *storageAccountHelper.AccountDetails
-			// try to get storage account from the storage subscription if subscription exists otherwise delegate to the default subscription
-			if data.SubscriptionId != nil && *data.SubscriptionId != "" {
-				storageAccount, err = storageClient.FindAccount(ctx, *data.SubscriptionId, data.AccountName)
+			if containerIdRaw := metadata.ResourceData.Get("storage_container_id").(string); containerIdRaw != "" {
+				containerId, err := commonids.ParseStorageContainerID(containerIdRaw)
+				if err != nil {
+					return err
+				}
+
+				storageAccount, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
+				if err != nil {
+					return fmt.Errorf("retrieving Account %q for Data Lake Gen2 File System %q: %s", data.AccountName, data.Filesystem, err)
+				}
 			} else {
+				// In the case of import, we cannot rely on having a value for `storage_container_id` so we need to fallback on listing the accounts to search.
 				storageAccount, err = storageClient.FindAccount(ctx, subscriptionId, data.AccountName)
+				if err != nil {
+					return fmt.Errorf("retrieving Account %q for Data Lake Gen2 File System %q: %s", data.AccountName, data.Filesystem, err)
+				}
 			}
-			if err != nil {
-				return fmt.Errorf("retrieving Account %q for Data Lake Gen2 File System %q: %s", data.AccountName, data.Filesystem, err)
-			}
+
 			if storageAccount == nil {
 				return fmt.Errorf("unable to locate Storage Account %q", data.AccountName)
 			}
@@ -345,11 +355,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Read() sdk.ResourceFunc {
 				}
 			}
 
-			desc := ""
-			if v := data.Description; v != nil {
-				desc = *v
-			}
-			model.Description = desc
+			model.Description = pointer.From(data.Description)
 
 			if data.Tags != nil {
 				model.Tags = *data.Tags

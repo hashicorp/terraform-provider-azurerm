@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serversecurityalertpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serversecurityalertpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -20,8 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
-
-// TODO 4.0 - consider/investigate inlining this within the mssql_server resource now that it exists.
 
 func resourceMsSqlServerSecurityAlertPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -68,7 +66,7 @@ func resourceMsSqlServerSecurityAlertPolicy() *pluginsdk.Resource {
 				},
 			},
 
-			"email_account_admins": {
+			"email_account_admins_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -121,8 +119,6 @@ func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for mssql server security alert policy creation")
-
 	payload := serversecurityalertpolicies.ServerSecurityAlertPolicy{}
 	resourceGroupName := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
@@ -134,7 +130,6 @@ func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, met
 
 	var disabledAlerts *[]string
 	var emailAddresses *[]string
-	var emailAdmins *bool
 	var retentionDays *int64
 	var storageAccountAccessKey *string
 	var storageEndpoint *string
@@ -157,12 +152,7 @@ func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, met
 	}
 	props.EmailAddresses = emailAddresses
 
-	// NOTE: The API defaults to 'true' for the 'EmailAccountAdmins'
-	// property, the provider defaults to 'false'...
-	if v, ok := d.GetOk("email_account_admins"); ok {
-		emailAdmins = pointer.To(v.(bool))
-	}
-	props.EmailAccountAdmins = emailAdmins
+	props.EmailAccountAdmins = pointer.To(d.Get("email_account_admins_enabled").(bool))
 
 	if v, ok := d.GetOk("retention_days"); ok {
 		retentionDays = pointer.To(int64(v.(int)))
@@ -182,8 +172,8 @@ func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, met
 	payload.Properties = props
 	serverId := commonids.NewSqlServerID(subscriptionId, resourceGroupName, serverName)
 
-	err := client.CreateOrUpdateThenPoll(ctx, serverId, payload)
-	if err != nil {
+	// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
+	if err := client.CreateOrUpdateThenPoll(ctx, serverId, payload); err != nil {
 		return fmt.Errorf("creating mssql server security alert policy: %+v", err)
 	}
 
@@ -212,8 +202,6 @@ func resourceMsSqlServerSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta 
 	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] reading mssql server security alert policy")
 
 	id, err := parse.ServerSecurityAlertPolicyID(d.Id())
 	if err != nil {
@@ -257,11 +245,7 @@ func resourceMsSqlServerSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta 
 	}
 	d.Set("disabled_alerts", disabledAlerts)
 
-	var emailAdmins bool
-	if props.EmailAccountAdmins != nil {
-		emailAdmins = *props.EmailAccountAdmins
-	}
-	d.Set("email_account_admins", emailAdmins)
+	d.Set("email_account_admins_enabled", props.EmailAccountAdmins)
 
 	emailAddresses := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
 	if props.EmailAddresses != nil {
@@ -279,11 +263,7 @@ func resourceMsSqlServerSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta 
 	}
 	d.Set("retention_days", retentionDays)
 
-	var storageEndpoint string
-	if props.StorageEndpoint != nil {
-		storageEndpoint = *props.StorageEndpoint
-	}
-	d.Set("storage_endpoint", storageEndpoint)
+	d.Set("storage_endpoint", pointer.From(props.StorageEndpoint))
 
 	// NOTE: 'storage_account_access_key' field is not returned by the API
 	// so we need to pull it from the state...
@@ -300,8 +280,6 @@ func resourceMsSqlServerSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, met
 	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for mssql server security alert policy update")
 
 	id, err := parse.ServerSecurityAlertPolicyID(d.Id())
 	if err != nil {
@@ -355,12 +333,8 @@ func resourceMsSqlServerSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, met
 		props.EmailAddresses = pointer.To(emailAddresses)
 	}
 
-	if d.HasChange("email_account_admins") {
-		var emailAdmins *bool
-		if v, ok := d.GetOk("email_account_admins"); ok {
-			emailAdmins = pointer.To(v.(bool))
-		}
-		props.EmailAccountAdmins = emailAdmins
+	if d.HasChange("email_account_admins_enabled") {
+		props.EmailAccountAdmins = pointer.To(d.Get("email_account_admins_enabled").(bool))
 	}
 
 	if d.HasChange("retention_days") {
@@ -387,8 +361,7 @@ func resourceMsSqlServerSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, met
 
 	payload.Properties = props
 
-	err = client.CreateOrUpdateThenPoll(ctx, serverId, payload)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, serverId, payload); err != nil {
 		return fmt.Errorf("updating mssql server security alert policy: %+v", err)
 	}
 
@@ -399,8 +372,6 @@ func resourceMsSqlServerSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, met
 	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] deleting mssql server security alert policy")
 
 	id, err := parse.ServerSecurityAlertPolicyID(d.Id())
 	if err != nil {
@@ -415,8 +386,7 @@ func resourceMsSqlServerSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, met
 
 	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
 
-	err = client.CreateOrUpdateThenPoll(ctx, serverId, disabledPolicy)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, serverId, disabledPolicy); err != nil {
 		return fmt.Errorf("updating mssql server security alert policy: %+v", err)
 	}
 

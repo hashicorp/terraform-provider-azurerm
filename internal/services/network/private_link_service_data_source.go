@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/privatelinkservices"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourcePrivateLinkService() *pluginsdk.Resource {
@@ -44,8 +44,7 @@ func dataSourcePrivateLinkService() *pluginsdk.Resource {
 				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_proxy_protocol": {
+			"proxy_protocol_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -125,15 +124,16 @@ func dataSourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{
 
 		if props := model.Properties; props != nil {
 			d.Set("alias", props.Alias)
-			d.Set("enable_proxy_protocol", props.EnableProxyProtocol)
+
+			d.Set("proxy_protocol_enabled", props.EnableProxyProtocol)
 
 			if autoApproval := props.AutoApproval; autoApproval != nil {
-				if err := d.Set("auto_approval_subscription_ids", utils.FlattenStringSlice(autoApproval.Subscriptions)); err != nil {
+				if err := d.Set("auto_approval_subscription_ids", helpers.FlattenStringSlice(autoApproval.Subscriptions)); err != nil {
 					return fmt.Errorf("setting `auto_approval_subscription_ids`: %+v", err)
 				}
 			}
 			if visibility := props.Visibility; visibility != nil {
-				if err := d.Set("visibility_subscription_ids", utils.FlattenStringSlice(visibility.Subscriptions)); err != nil {
+				if err := d.Set("visibility_subscription_ids", helpers.FlattenStringSlice(visibility.Subscriptions)); err != nil {
 					return fmt.Errorf("setting `visibility_subscription_ids`: %+v", err)
 				}
 			}

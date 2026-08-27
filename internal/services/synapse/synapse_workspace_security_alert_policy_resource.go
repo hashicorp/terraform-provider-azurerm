@@ -10,13 +10,13 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSynapseWorkspaceSecurityAlertPolicy() *pluginsdk.Resource {
@@ -120,6 +120,8 @@ func resourceSynapseWorkspaceSecurityAlertPolicyCreateUpdate(d *pluginsdk.Resour
 		return err
 	}
 
+	// TODO: import check?
+
 	id := parse.NewWorkspaceSecurityAlertPolicyID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, "Default")
 
 	alertPolicy := expandServerSecurityAlertPolicy(d)
@@ -129,11 +131,13 @@ func resourceSynapseWorkspaceSecurityAlertPolicyCreateUpdate(d *pluginsdk.Resour
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceSynapseWorkspaceSecurityAlertPolicyRead(d, meta)
 }
@@ -150,7 +154,7 @@ func resourceSynapseWorkspaceSecurityAlertPolicyRead(d *pluginsdk.ResourceData, 
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] synapse %s does not exist - removing from state", id)
 			d.SetId("")
 			return nil

@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name application_insights_workbook_template -properties "name,resource_group_name" -service-package-name applicationinsights -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 package applicationinsights
 
@@ -164,18 +164,20 @@ func (r ApplicationInsightsWorkbookTemplateResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.AppInsights.WorkbookTemplateClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := workbooktemplates.NewWorkbookTemplateID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.WorkbookTemplatesGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.WorkbookTemplatesGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			var templateDataValue interface{}
-			err = json.Unmarshal([]byte(model.TemplateData), &templateDataValue)
-			if err != nil {
+			if err := json.Unmarshal([]byte(model.TemplateData), &templateDataValue); err != nil {
 				return err
 			}
 
@@ -263,8 +265,7 @@ func (r ApplicationInsightsWorkbookTemplateResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("template_data") {
 				var templateDataValue interface{}
-				err := json.Unmarshal([]byte(model.TemplateData), &templateDataValue)
-				if err != nil {
+				if err := json.Unmarshal([]byte(model.TemplateData), &templateDataValue); err != nil {
 					return err
 				}
 

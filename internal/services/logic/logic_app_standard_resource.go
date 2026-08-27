@@ -16,47 +16,48 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type LogicAppResource struct{}
 
 type LogicAppResourceModel struct {
-	Name                       string                                     `tfschema:"name"`
-	ResourceGroupName          string                                     `tfschema:"resource_group_name"`
-	Location                   string                                     `tfschema:"location"`
-	AppServicePlanId           string                                     `tfschema:"app_service_plan_id"`
-	AppSettings                map[string]string                          `tfschema:"app_settings"`
-	UseExtensionBundle         bool                                       `tfschema:"use_extension_bundle"`
-	BundleVersion              string                                     `tfschema:"bundle_version"`
-	ClientAffinityEnabled      bool                                       `tfschema:"client_affinity_enabled"`
-	ClientCertificateMode      string                                     `tfschema:"client_certificate_mode"`
-	Enabled                    bool                                       `tfschema:"enabled"`
-	FtpPublishBasicAuthEnabled bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
-	HTTPSOnly                  bool                                       `tfschema:"https_only"`
-	Identity                   []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	SCMPublishBasicAuthEnabled bool                                       `tfschema:"scm_publish_basic_authentication_enabled"`
-	SiteConfig                 []helpers.LogicAppSiteConfig               `tfschema:"site_config"`
-	ConnectionStrings          []helpers.ConnectionString                 `tfschema:"connection_string"`
-	StorageAccountName         string                                     `tfschema:"storage_account_name"`
-	StorageAccountAccessKey    string                                     `tfschema:"storage_account_access_key"`
-	PublicNetworkAccess        string                                     `tfschema:"public_network_access"`
-	StorageAccountShareName    string                                     `tfschema:"storage_account_share_name"`
-	Version                    string                                     `tfschema:"version"`
-	VNETContentShareEnabled    bool                                       `tfschema:"vnet_content_share_enabled"`
-	VirtualNetworkSubnetId     string                                     `tfschema:"virtual_network_subnet_id"`
-	Tags                       map[string]string                          `tfschema:"tags"`
+	Name                        string                                     `tfschema:"name"`
+	ResourceGroupName           string                                     `tfschema:"resource_group_name"`
+	Location                    string                                     `tfschema:"location"`
+	AppServicePlanId            string                                     `tfschema:"app_service_plan_id"`
+	AppSettings                 map[string]string                          `tfschema:"app_settings"`
+	UseExtensionBundle          bool                                       `tfschema:"use_extension_bundle"`
+	BundleVersion               string                                     `tfschema:"bundle_version"`
+	ClientAffinityEnabled       bool                                       `tfschema:"client_affinity_enabled"`
+	ClientCertificateMode       string                                     `tfschema:"client_certificate_mode"`
+	Enabled                     bool                                       `tfschema:"enabled"`
+	FtpPublishBasicAuthEnabled  bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
+	HTTPSOnly                   bool                                       `tfschema:"https_only"`
+	Identity                    []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	KeyvaultReferenceIdentityId string                                     `tfschema:"key_vault_reference_identity_id"`
+	SCMPublishBasicAuthEnabled  bool                                       `tfschema:"scm_publish_basic_authentication_enabled"`
+	SiteConfig                  []helpers.LogicAppSiteConfig               `tfschema:"site_config"`
+	ConnectionStrings           []helpers.ConnectionString                 `tfschema:"connection_string"`
+	StorageAccountName          string                                     `tfschema:"storage_account_name"`
+	StorageAccountAccessKey     string                                     `tfschema:"storage_account_access_key"`
+	StorageKeyVaultSecretID     string                                     `tfschema:"storage_key_vault_secret_id"`
+	PublicNetworkAccess         string                                     `tfschema:"public_network_access"`
+	StorageAccountShareName     string                                     `tfschema:"storage_account_share_name"`
+	Version                     string                                     `tfschema:"version"`
+	VNETContentShareEnabled     bool                                       `tfschema:"vnet_content_share_enabled"`
+	VirtualNetworkSubnetId      string                                     `tfschema:"virtual_network_subnet_id"`
+	Tags                        map[string]string                          `tfschema:"tags"`
 
 	CustomDomainVerificationId  string                           `tfschema:"custom_domain_verification_id"`
 	DefaultHostname             string                           `tfschema:"default_hostname"`
@@ -70,7 +71,6 @@ var (
 	logicAppStdKind   = "functionapp,workflowapp"
 	logicAppLinuxKind = "functionapp,linux,container,workflowapp"
 
-	storageConnectionStringFmt           = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s"
 	storageAppSettingName                = "AzureWebJobsStorage"
 	contentShareAppSettingName           = "WEBSITE_CONTENTSHARE"
 	contentFileConnStringAppSettingName  = "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"
@@ -81,7 +81,7 @@ var (
 )
 
 func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -94,8 +94,9 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"app_service_plan_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: commonids.ValidateAppServicePlanID,
 		},
 
 		"app_settings": {
@@ -200,16 +201,46 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"storage_account_name": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
+			Optional:     true,
 			ValidateFunc: storageValidate.StorageAccountName,
+			RequiredWith: []string{
+				"storage_account_access_key",
+			},
+			ExactlyOneOf: []string{
+				"storage_account_name",
+				"storage_key_vault_secret_id",
+			},
 		},
 
 		"storage_account_access_key": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.NoZeroValues,
+			RequiredWith: []string{
+				"storage_account_name",
+			},
+			ConflictsWith: []string{
+				"storage_key_vault_secret_id",
+			},
+		},
+
+		"storage_key_vault_secret_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
+			ExactlyOneOf: []string{
+				"storage_account_name",
+				"storage_key_vault_secret_id",
+			},
+		},
+
+		// Once this property is set, it can not be removed while identity is UserAssigned.
+		// tracked on https://github.com/Azure/azure-rest-api-specs/issues/37553
+		"key_vault_reference_identity_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		},
 
 		"public_network_access": {
@@ -247,20 +278,6 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.FivePointOh() {
-		s["client_certificate_mode"].Default = nil
-		s["public_network_access"].Default = nil
-		s["public_network_access"].Computed = true
-		s["site_config"].Elem.(*pluginsdk.Resource).Schema["ip_restriction"].Elem.(*pluginsdk.Resource).Schema["headers"].Elem.(*pluginsdk.Resource).Schema["x_forwarded_host"].DiffSuppressFunc = suppress.ListOrder
-		s["site_config"].Elem.(*pluginsdk.Resource).Schema["ip_restriction"].Elem.(*pluginsdk.Resource).Schema["headers"].Elem.(*pluginsdk.Resource).Schema["x_forwarded_for"].DiffSuppressFunc = suppress.ListOrder
-		s["site_config"].Elem.(*pluginsdk.Resource).Schema["ip_restriction"].Elem.(*pluginsdk.Resource).Schema["headers"].Elem.(*pluginsdk.Resource).Schema["x_azure_fdid"].DiffSuppressFunc = suppress.ListOrder
-		s["site_config"].Elem.(*pluginsdk.Resource).Schema["scm_ip_restriction"].Elem.(*pluginsdk.Resource).Schema["headers"].Elem.(*pluginsdk.Resource).Schema["x_forwarded_host"].DiffSuppressFunc = suppress.ListOrder
-		s["site_config"].Elem.(*pluginsdk.Resource).Schema["scm_ip_restriction"].Elem.(*pluginsdk.Resource).Schema["headers"].Elem.(*pluginsdk.Resource).Schema["x_forwarded_for"].DiffSuppressFunc = suppress.ListOrder
-		s["site_config"].Elem.(*pluginsdk.Resource).Schema["scm_ip_restriction"].Elem.(*pluginsdk.Resource).Schema["headers"].Elem.(*pluginsdk.Resource).Schema["x_azure_fdid"].DiffSuppressFunc = suppress.ListOrder
-	}
-
-	return s
 }
 
 func (r LogicAppResource) Attributes() map[string]*pluginsdk.Schema {
@@ -318,6 +335,45 @@ func (r LogicAppResource) ResourceType() string {
 	return "azurerm_logic_app_standard"
 }
 
+func (r LogicAppResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			// If `key_vault_reference_identity_id` is not set in config, check if ForceNew is needed
+			if metadata.ResourceDiff.GetRawConfig().GetAttr("key_vault_reference_identity_id").IsNull() {
+				// If it was previously set and identity is purely UserAssigned, ForceNew is required
+				// because the API does not support unsetting this property
+				old, _ := metadata.ResourceDiff.GetChange("key_vault_reference_identity_id")
+				if old.(string) != "" {
+					identityType := metadata.ResourceDiff.Get("identity.0.type").(string)
+					if strings.EqualFold(identityType, "UserAssigned") {
+						if err := metadata.ResourceDiff.ForceNew("key_vault_reference_identity_id"); err != nil {
+							return err
+						}
+					}
+				}
+				return nil
+			}
+
+			keyVaultReferenceIdentityId := metadata.ResourceDiff.Get("key_vault_reference_identity_id").(string)
+			if keyVaultReferenceIdentityId == "" {
+				return nil
+			}
+
+			identityIdsRaw := metadata.ResourceDiff.Get("identity.0.identity_ids").(*pluginsdk.Set)
+			identityIds := identityIdsRaw.List()
+
+			for _, id := range identityIds {
+				if strings.EqualFold(id.(string), keyVaultReferenceIdentityId) {
+					return nil
+				}
+			}
+
+			return fmt.Errorf("`key_vault_reference_identity_id` must be an identity assigned to this resource in the `identity` block, got `%s`", keyVaultReferenceIdentityId)
+		},
+	}
+}
+
 func (r LogicAppResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -341,15 +397,18 @@ func (r LogicAppResource) Create() sdk.ResourceFunc {
 			}
 
 			id := commonids.NewAppServiceID(subscriptionId, data.ResourceGroupName, data.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_logic_app_standard", id.ID())
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError("azurerm_logic_app_standard", id.ID())
+				}
 			}
 
 			servicePlanId, err := commonids.ParseAppServicePlanID(data.AppServicePlanId)
@@ -451,38 +510,19 @@ func (r LogicAppResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(data.Tags),
 			}
 
-			if !features.FivePointOh() {
-				// if a user is still using `site_config.public_network_access_enabled` we should be setting `public_network_access` for them
-				publicNetworkAccess := reconcilePNA(metadata)
-				if v := siteEnvelope.Properties.SiteConfig.PublicNetworkAccess; v != nil && *v == helpers.PublicNetworkAccessDisabled {
-					publicNetworkAccess = helpers.PublicNetworkAccessDisabled
-				}
-				// conversely if `public_network_access` has been set it should take precedence, and we should be propagating the value for that to `site_config.public_network_access_enabled`
-				switch publicNetworkAccess {
-				case helpers.PublicNetworkAccessDisabled:
-					siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
-				case helpers.PublicNetworkAccessEnabled:
-					siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessEnabled)
-				}
-				siteEnvelope.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
-			}
-
-			if !features.FivePointOh() {
-				if data.ClientCertificateMode != "" {
-					siteEnvelope.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](data.ClientCertificateMode)
-				}
-			} else {
-				siteEnvelope.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](data.ClientCertificateMode)
-			}
+			siteEnvelope.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](data.ClientCertificateMode)
 
 			if data.VirtualNetworkSubnetId != "" {
 				siteEnvelope.Properties.VirtualNetworkSubnetId = pointer.To(data.VirtualNetworkSubnetId)
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, siteEnvelope); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
+			if data.KeyvaultReferenceIdentityId != "" {
+				siteEnvelope.Properties.KeyVaultReferenceIdentity = pointer.To(data.KeyvaultReferenceIdentityId)
 			}
 
+			if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, siteEnvelope, metadata.SetIDCallback(&id)); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
 			metadata.SetID(id)
 
 			if !data.FtpPublishBasicAuthEnabled {
@@ -571,14 +611,10 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 					state.VirtualNetworkSubnetId = pointer.From(props.VirtualNetworkSubnetId)
 					state.VNETContentShareEnabled = pointer.From(props.VnetContentShareEnabled)
 					state.PublicNetworkAccess = pointer.From(props.PublicNetworkAccess)
-					// Note this is a bug - the Service defaults to `Required` regardless of the Enabled value
-					if !features.FivePointOh() {
-						if pointer.From(props.ClientCertEnabled) {
-							state.ClientCertificateMode = pointer.FromEnum(props.ClientCertMode)
-						}
-					} else {
-						state.ClientCertificateMode = pointer.FromEnum(props.ClientCertMode)
+					if kvRefId := pointer.From(props.KeyVaultReferenceIdentity); !strings.EqualFold(kvRefId, "SystemAssigned") {
+						state.KeyvaultReferenceIdentityId = kvRefId
 					}
+					state.ClientCertificateMode = pointer.FromEnum(props.ClientCertMode)
 				}
 			}
 
@@ -592,19 +628,10 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 
 				connectionString := appSettings[storageAppSettingName]
 
-				for _, part := range strings.Split(connectionString, ";") {
-					if strings.HasPrefix(part, "AccountName") {
-						accountNameParts := strings.Split(part, "AccountName=")
-						if len(accountNameParts) > 1 {
-							state.StorageAccountName = accountNameParts[1]
-						}
-					}
-					if strings.HasPrefix(part, "AccountKey") {
-						accountKeyParts := strings.Split(part, "AccountKey=")
-						if len(accountKeyParts) > 1 {
-							state.StorageAccountAccessKey = accountKeyParts[1]
-						}
-					}
+				if strings.HasPrefix(connectionString, "@Microsoft.KeyVault") {
+					state.StorageKeyVaultSecretID = strings.TrimPrefix(strings.TrimSuffix(connectionString, ")"), "@Microsoft.KeyVault(SecretUri=")
+				} else {
+					state.StorageAccountName, state.StorageAccountAccessKey = helpers.ParseWebJobsStorageString(connectionString)
 				}
 
 				if v, ok := appSettings[functionVersionAppSettingName]; ok {
@@ -693,8 +720,6 @@ func (r LogicAppResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting Linux %s", *id)
-
 			delOptions := webapps.DeleteOperationOptions{
 				DeleteMetrics:         pointer.To(true),
 				DeleteEmptyServerFarm: pointer.To(false),
@@ -758,7 +783,15 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 			}
 			existingSiteConfig.AppSettings = pointer.To(currentAppSettings)
 
-			if metadata.ResourceData.HasChanges("site_config", "app_settings", "version", "storage_account_name", "storage_account_access_key") {
+			// lintignore:R019 // deliberate subset: only the fields that require rebuilding site_config; the remaining attributes are applied elsewhere in the update
+			if metadata.ResourceData.HasChanges(
+				"site_config",
+				"app_settings",
+				"version",
+				"storage_account_name",
+				"storage_account_access_key",
+				"storage_key_vault_secret_id",
+			) {
 				existingSiteConfig, err = expandLogicAppStandardSiteConfigForUpdate(data.SiteConfig, metadata, existingSiteConfig)
 				if err != nil {
 					return fmt.Errorf("expanding site_config update for %s: %v", *id, err)
@@ -776,12 +809,7 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("app_service_plan_id") {
-				planId, err := commonids.ParseLogicAppIdInsensitively(metadata.ResourceData.Id())
-				if err != nil {
-					return err
-				}
-
-				siteEnvelope.ServerFarmId = pointer.To(planId.ID())
+				siteEnvelope.ServerFarmId = pointer.To(data.AppServicePlanId)
 			}
 
 			if metadata.ResourceData.HasChange("enabled") {
@@ -804,14 +832,8 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("public_network_access") {
 				if strings.EqualFold(data.PublicNetworkAccess, helpers.PublicNetworkAccessEnabled) {
 					siteEnvelope.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessEnabled)
-					if !features.FivePointOh() {
-						siteEnvelope.SiteConfig.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessEnabled)
-					}
 				} else {
 					siteEnvelope.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
-					if !features.FivePointOh() {
-						siteEnvelope.SiteConfig.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
-					}
 				}
 			}
 
@@ -839,6 +861,10 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 				}
 
 				existing.Model.Identity = expandedIdentity
+			}
+
+			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") && data.KeyvaultReferenceIdentityId != "" {
+				siteEnvelope.KeyVaultReferenceIdentity = pointer.To(data.KeyvaultReferenceIdentityId)
 			}
 
 			existing.Model.Properties = pointer.To(siteEnvelope)
@@ -889,20 +915,22 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 	}
 }
 
-var _ sdk.ResourceWithUpdate = &LogicAppResource{}
+var (
+	_ sdk.ResourceWithUpdate        = LogicAppResource{}
+	_ sdk.ResourceWithCustomizeDiff = LogicAppResource{}
+)
 
 func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([]webapps.NameValuePair, error) {
 	appKindPropName := "APP_KIND"
 	appKindPropValue := "workflowApp"
 
-	storageAccount := d.StorageAccountName
-	accountKey := d.StorageAccountAccessKey
-	storageConnection := fmt.Sprintf(
-		"DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s",
-		storageAccount,
-		accountKey,
-		endpointSuffix,
-	)
+	var storageConnection string
+	if d.StorageKeyVaultSecretID != "" {
+		storageConnection = fmt.Sprintf(helpers.StorageStringFmtKV, d.StorageKeyVaultSecretID)
+	} else {
+		storageConnection = fmt.Sprintf(helpers.StorageStringFmt, d.StorageAccountName, d.StorageAccountAccessKey, endpointSuffix)
+	}
+
 	functionVersion := d.Version
 
 	contentShare := strings.ToLower(d.Name) + "-content"
@@ -958,6 +986,7 @@ func flattenLogicAppStandardSiteConfig(input *webapps.SiteConfig) []helpers.Logi
 	result.PreWarmedInstanceCount = pointer.From(input.PreWarmedInstanceCount)
 	result.IpRestriction = helpers.FlattenIpRestrictions(input.IPSecurityRestrictions)
 	result.SCMIPRestriction = helpers.FlattenIpRestrictions(input.ScmIPSecurityRestrictions)
+	result.SCMIpRestrictionDefaultAction = pointer.FromEnum(input.ScmIPSecurityRestrictionsDefaultAction)
 
 	result.SCMUseMainIpRestriction = pointer.From(input.ScmIPSecurityRestrictionsUseMain)
 
@@ -983,9 +1012,7 @@ func flattenLogicAppStandardSiteConfig(input *webapps.SiteConfig) []helpers.Logi
 
 	result.VNETRouteAllEnabled = pointer.From(input.VnetRouteAllEnabled)
 
-	if !features.FivePointOh() {
-		result.PublicNetworkAccessEnabled = strings.EqualFold(pointer.From(input.PublicNetworkAccess), helpers.PublicNetworkAccessEnabled)
-	}
+	result.IpRestrictionDefaultAction = pointer.FromEnum(input.IPSecurityRestrictionsDefaultAction)
 
 	results = append(results, result)
 	return results
@@ -1013,17 +1040,9 @@ func flattenLogicAppStandardIpRestriction(input *[]webapps.IPSecurityRestriction
 			}
 		}
 
-		subnetId := ""
-		if subnetIdRaw := v.VnetSubnetResourceId; subnetIdRaw != nil {
-			subnetId = *subnetIdRaw
-		}
-		restriction["virtual_network_subnet_id"] = subnetId
+		restriction["virtual_network_subnet_id"] = pointer.From(v.VnetSubnetResourceId)
 
-		name := ""
-		if nameRaw := v.Name; nameRaw != nil {
-			name = *nameRaw
-		}
-		restriction["name"] = name
+		restriction["name"] = pointer.From(v.Name)
 
 		priority := 0
 		if priorityRaw := v.Priority; priorityRaw != nil {
@@ -1031,11 +1050,7 @@ func flattenLogicAppStandardIpRestriction(input *[]webapps.IPSecurityRestriction
 		}
 		restriction["priority"] = priority
 
-		action := ""
-		if actionRaw := v.Action; actionRaw != nil {
-			action = *actionRaw
-		}
-		restriction["action"] = action
+		restriction["action"] = pointer.From(v.Action)
 
 		if headers := v.Headers; headers != nil {
 			restriction["headers"] = flattenHeaders(*headers)
@@ -1060,6 +1075,7 @@ func expandLogicAppStandardSiteConfigForCreate(d []helpers.LogicAppSiteConfig, m
 	siteConfig.FunctionsRuntimeScaleMonitoringEnabled = pointer.To(config.RuntimeScaleMonitoringEnabled)
 	siteConfig.Use32BitWorkerProcess = pointer.To(config.Use32BitWorkerProcess)
 	siteConfig.WebSocketsEnabled = pointer.To(config.WebSocketsEnabled)
+	siteConfig.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](config.SCMIpRestrictionDefaultAction)
 
 	if config.LinuxFxVersion != "" {
 		siteConfig.LinuxFxVersion = pointer.To(config.LinuxFxVersion)
@@ -1106,9 +1122,8 @@ func expandLogicAppStandardSiteConfigForCreate(d []helpers.LogicAppSiteConfig, m
 	siteConfig.VnetRouteAllEnabled = pointer.To(config.VNETRouteAllEnabled)
 
 	siteConfig.PublicNetworkAccess = pointer.To(metadata.ResourceData.Get("public_network_access").(string))
-	if !features.FivePointOh() {
-		siteConfig.PublicNetworkAccess = pointer.To(reconcilePNA(metadata))
-	}
+
+	siteConfig.IPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](config.IpRestrictionDefaultAction)
 
 	return siteConfig, nil
 }
@@ -1161,6 +1176,10 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 		siteConfig.ScmIPSecurityRestrictions = ipr
 	}
 
+	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction_default_action") {
+		siteConfig.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](config.SCMIpRestrictionDefaultAction)
+	}
+
 	if metadata.ResourceData.HasChange("site_config.0.scm_min_tls_version") {
 		siteConfig.ScmMinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](config.SCMMinTLSVersion)
 	}
@@ -1197,11 +1216,15 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 		siteConfig.NetFrameworkVersion = pointer.To(config.DotnetFrameworkVersion)
 	}
 
-	if !features.FivePointOh() && metadata.ResourceData.HasChanges("site_config.0.public_network_access_enabled") {
-		siteConfig.PublicNetworkAccess = pointer.To(reconcilePNA(metadata))
-	}
-
-	if metadata.ResourceData.HasChanges("app_settings", "storage_account_name", "storage_account_share_name", "storage_account_access_key", "version") {
+	// lintignore:R019 // deliberate subset: only the fields that feed the app_settings merge; the remaining attributes do not affect it
+	if metadata.ResourceData.HasChanges(
+		"app_settings",
+		"storage_account_name",
+		"storage_account_share_name",
+		"storage_account_access_key",
+		"version",
+		"storage_key_vault_secret_id",
+	) {
 		o, n := metadata.ResourceData.GetChange("app_settings")
 
 		appSettings := make([]webapps.NameValuePair, 0)
@@ -1210,6 +1233,10 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 		}
 
 		siteConfig.AppSettings = mergeAppSettings(appSettings, o.(map[string]interface{}), n.(map[string]interface{}), metadata)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.ip_restriction_default_action") {
+		siteConfig.IPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](config.IpRestrictionDefaultAction)
 	}
 
 	return siteConfig, nil
@@ -1248,13 +1275,18 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]inte
 	oMap := f(old)
 	cMap := f(new)
 
-	if metadata.ResourceData.HasChanges("storage_account_name", "storage_account_access_key") {
+	if metadata.ResourceData.HasChange("storage_key_vault_secret_id") && metadata.ResourceData.Get("storage_key_vault_secret_id").(string) != "" {
+		kvRef := fmt.Sprintf(helpers.StorageStringFmtKV, metadata.ResourceData.Get("storage_key_vault_secret_id").(string))
+		eMap[storageAppSettingName] = kvRef
+		eMap[contentFileConnStringAppSettingName] = kvRef
+	} else if metadata.ResourceData.HasChanges("storage_account_name", "storage_account_access_key") {
 		accountName := metadata.ResourceData.Get("storage_account_name").(string)
 		accountAccessKey := metadata.ResourceData.Get("storage_account_access_key").(string)
 		suffix, _ := metadata.Client.Account.Environment.Storage.DomainSuffix()
 
-		eMap[storageAppSettingName] = fmt.Sprintf(storageConnectionStringFmt, accountName, accountAccessKey, *suffix)
-		eMap[contentFileConnStringAppSettingName] = fmt.Sprintf(storageConnectionStringFmt, accountName, accountAccessKey, *suffix)
+		conn := fmt.Sprintf(helpers.StorageStringFmt, accountName, accountAccessKey, *suffix)
+		eMap[storageAppSettingName] = conn
+		eMap[contentFileConnStringAppSettingName] = conn
 	}
 
 	if metadata.ResourceData.HasChange("storage_account_share_name") {
@@ -1306,28 +1338,4 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]inte
 	}
 
 	return pointer.To(expandAppSettings(eMap))
-}
-
-func reconcilePNA(d sdk.ResourceMetaData) string {
-	pna := ""
-	scPNASet := false
-	d.ResourceData.GetRawConfig().AsValueMap()["public_network_access"].IsNull()
-	if !d.ResourceData.GetRawConfig().AsValueMap()["public_network_access"].IsNull() { // is top level set, takes precedence
-		pna = d.ResourceData.Get("public_network_access").(string)
-	}
-	if sc := d.ResourceData.GetRawConfig().AsValueMap()["site_config"]; !sc.IsNull() {
-		if len(sc.AsValueSlice()) > 0 && !sc.AsValueSlice()[0].AsValueMap()["public_network_access_enabled"].IsNull() {
-			scPNASet = true
-		}
-	}
-	if pna == "" && scPNASet { // if not, or it's empty, is site_config value set
-		pnaBool := d.ResourceData.Get("site_config.0.public_network_access_enabled").(bool)
-		if pnaBool {
-			pna = helpers.PublicNetworkAccessEnabled
-		} else {
-			pna = helpers.PublicNetworkAccessDisabled
-		}
-	}
-
-	return pna
 }

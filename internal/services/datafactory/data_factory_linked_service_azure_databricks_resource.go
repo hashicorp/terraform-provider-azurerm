@@ -10,7 +10,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/workspaces"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -19,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
@@ -58,12 +58,11 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
 			},
 
 			// Authentication types
-			"msi_work_space_resource_id": {
-				// TODO: rename this to `msi_workspace_id` in v4.0
+			"msi_workspace_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: workspaces.ValidateWorkspaceID,
-				ExactlyOneOf: []string{"access_token", "msi_work_space_resource_id", "key_vault_password"},
+				ExactlyOneOf: []string{"access_token", "msi_workspace_id", "key_vault_password"},
 			},
 
 			"access_token": {
@@ -71,7 +70,7 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				ExactlyOneOf: []string{"access_token", "msi_work_space_resource_id", "key_vault_password"},
+				ExactlyOneOf: []string{"access_token", "msi_workspace_id", "key_vault_password"},
 			},
 
 			"key_vault_password": {
@@ -80,21 +79,20 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						// TODO use LinkedServiceDataSetName and NestedItemName validate here and in other linked service resources
 						"linked_service_name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validate.LinkedServiceDatasetName,
 						},
 
 						"secret_name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validate.LinkedServiceDatasetName,
 						},
 					},
 				},
-				ExactlyOneOf: []string{"access_token", "msi_work_space_resource_id", "key_vault_password"},
+				ExactlyOneOf: []string{"access_token", "msi_workspace_id", "key_vault_password"},
 			},
 
 			"description": {
@@ -270,22 +268,24 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 	id := parse.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory Databricks %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+			if err != nil {
+				if !response.WasNotFound(existing.Response.Response) {
+					return fmt.Errorf("checking for presence of existing Data Factory Databricks %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_azure_databricks", id.ID())
+			if !response.WasNotFound(existing.Response.Response) {
+				return tf.ImportAsExistsError("azurerm_data_factory_linked_service_azure_databricks", id.ID())
+			}
 		}
 	}
 
 	var databricksProperties *datafactory.AzureDatabricksLinkedServiceTypeProperties
 
 	// Check if the MSI authentication block is set
-	msiAuth := d.Get("msi_work_space_resource_id").(string)
+	msiAuth := d.Get("msi_workspace_id")
 	accessTokenAuth := d.Get("access_token").(string)
 	accessTokenKeyVaultAuth := d.Get("key_vault_password").([]interface{})
 
@@ -440,7 +440,7 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, m
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -461,7 +461,7 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, m
 		d.Set("adb_domain", props.Domain)
 
 		if props.Authentication != nil && props.Authentication == "MSI" {
-			d.Set("msi_work_space_resource_id", props.WorkspaceResourceID)
+			d.Set("msi_workspace_id", props.WorkspaceResourceID)
 		} else if accessToken := props.AccessToken; accessToken != nil {
 			// We only process AzureKeyVaultSecreReference because a string based access token is masked with asterisks in the GET response
 			// so we can't set it
@@ -583,9 +583,9 @@ func resourceDataFactoryLinkedServiceDatabricksDelete(d *pluginsdk.ResourceData,
 		return err
 	}
 
-	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(response) {
+		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting Data Factory Databricks %s: %+v", *id, err)
 		}
 	}

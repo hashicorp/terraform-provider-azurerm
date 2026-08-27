@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -18,7 +19,6 @@ import (
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
@@ -149,17 +149,19 @@ func (r IotHubFileUploadResource) Create() sdk.ResourceFunc {
 
 			iotHub, err := client.Get(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
-				if utils.ResponseWasNotFound(iotHub.Response) {
+				if response.WasNotFound(iotHub.Response.Response) {
 					return fmt.Errorf("%q was not found", id)
 				}
 
 				return fmt.Errorf("retrieving %q: %+v", id, err)
 			}
 
-			if iotHub.Properties != nil && iotHub.Properties.MessagingEndpoints != nil {
-				if storageEndpoint, ok := iotHub.Properties.StorageEndpoints["$default"]; ok {
-					if storageEndpoint.ConnectionString != nil && *storageEndpoint.ConnectionString != "" && storageEndpoint.ContainerName != nil && *storageEndpoint.ContainerName != "" {
-						return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				if iotHub.Properties != nil && iotHub.Properties.MessagingEndpoints != nil {
+					if storageEndpoint, ok := iotHub.Properties.StorageEndpoints["$default"]; ok {
+						if storageEndpoint.ConnectionString != nil && *storageEndpoint.ConnectionString != "" && storageEndpoint.ContainerName != nil && *storageEndpoint.ContainerName != "" {
+							return metadata.ResourceRequiresImport(r.ResourceType(), id)
+						}
 					}
 				}
 			}
@@ -202,11 +204,12 @@ func (r IotHubFileUploadResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %q: %+v", id, err)
 			}
 
+			metadata.SetID(id)
+
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting for the completion of the creation of %q: %+v", id, err)
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 		Timeout: 30 * time.Minute,
@@ -225,7 +228,7 @@ func (r IotHubFileUploadResource) Read() sdk.ResourceFunc {
 
 			iotHub, err := client.Get(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
-				if utils.ResponseWasNotFound(iotHub.Response) {
+				if response.WasNotFound(iotHub.Response.Response) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %q: %+v", id, err)
@@ -306,7 +309,7 @@ func (r IotHubFileUploadResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("checking for presence of existing %q: %+v", id, err)
 				}
 			}
@@ -409,7 +412,7 @@ func (r IotHubFileUploadResource) Delete() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("checking for presence of existing %q: %+v", id, err)
 				}
 			}

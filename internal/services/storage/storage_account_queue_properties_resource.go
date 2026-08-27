@@ -13,14 +13,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/queue/queues"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_account_queue_properties -service-package-name storage -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id" -test-name "corsOnly"
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id "storage_account_id" -test-name "corsOnly"
 
 type AccountQueuePropertiesResource struct{}
 
@@ -572,6 +572,9 @@ func (s AccountQueuePropertiesResource) Update() sdk.ResourceFunc {
 						})
 					}
 
+					if props.Cors == nil {
+						props.Cors = &queues.Cors{}
+					}
 					props.Cors.CorsRule = corsRules
 				} else {
 					props.Cors = pointer.To(defaultCorsProperties)

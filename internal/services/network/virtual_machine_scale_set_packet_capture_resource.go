@@ -13,14 +13,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkwatchers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/packetcaptures"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVirtualMachineScaleSetPacketCapture() *pluginsdk.Resource {
@@ -202,15 +203,17 @@ func resourceVirtualMachineScaleSetPacketCaptureCreate(d *pluginsdk.ResourceData
 	totalBytesPerSession := d.Get("maximum_bytes_per_session").(int)
 	timeLimitInSeconds := d.Get("maximum_capture_duration_in_seconds").(int)
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_virtual_machine_scale_set_packet_capture", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_virtual_machine_scale_set_packet_capture", id.ID())
+		}
 	}
 
 	storageLocation := expandVirtualMachineScaleSetPacketCaptureStorageLocation(d.Get("storage_location").([]interface{}))
@@ -230,7 +233,7 @@ func resourceVirtualMachineScaleSetPacketCaptureCreate(d *pluginsdk.ResourceData
 		payload.Properties.Scope = expandVirtualMachineScaleSetPacketCaptureMachineScope(v.([]interface{}))
 	}
 
-	if err := client.CreateThenPoll(ctx, id, payload); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -353,7 +356,7 @@ func expandVirtualMachineScaleSetPacketCaptureFilters(input []interface{}) *[]pa
 		filters = append(filters, packetcaptures.PacketCaptureFilter{
 			LocalIPAddress:  pointer.To(localIPAddress),
 			LocalPort:       pointer.To(localPort),
-			Protocol:        pointer.To(packetcaptures.PcProtocol(protocol)),
+			Protocol:        pointer.ToEnum[packetcaptures.PcProtocol](protocol),
 			RemoteIPAddress: pointer.To(remoteIPAddress),
 			RemotePort:      pointer.To(remotePort),
 		})
@@ -394,11 +397,11 @@ func expandVirtualMachineScaleSetPacketCaptureMachineScope(input []interface{}) 
 	output := &packetcaptures.PacketCaptureMachineScope{}
 
 	if exclude := raw["exclude_instance_ids"].([]interface{}); len(exclude) > 0 {
-		output.Exclude = utils.ExpandStringSlice(exclude)
+		output.Exclude = helpers.ExpandStringSlice(exclude)
 	}
 
 	if include := raw["include_instance_ids"].([]interface{}); len(include) > 0 {
-		output.Include = utils.ExpandStringSlice(include)
+		output.Include = helpers.ExpandStringSlice(include)
 	}
 
 	return output

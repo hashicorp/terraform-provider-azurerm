@@ -69,7 +69,9 @@ func (r Registration) Resources() []sdk.Resource {
 }
 
 func (r Registration) Actions() []func() action.Action {
-	return []func() action.Action{}
+	return []func() action.Action{
+		newWebAppSetSlotDistributionAction,
+	}
 }
 
 func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
@@ -85,5 +87,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		&ServicePlanResourceList{},
+	}
 }

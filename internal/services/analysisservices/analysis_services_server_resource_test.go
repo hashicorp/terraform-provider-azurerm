@@ -93,15 +93,7 @@ func TestAccAnalysisServicesServer_firewallSettings(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.firewallSettings1(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("ipv4_firewall_rule.#").HasValue("0"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.firewallSettings2(data, false),
+			Config: r.firewallSettingsSingleRule(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ipv4_firewall_rule.#").HasValue("1"),
@@ -109,10 +101,41 @@ func TestAccAnalysisServicesServer_firewallSettings(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.firewallSettings3(data, true),
+			Config: r.firewallSettingsNoRules(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ipv4_firewall_rule.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.firewallSettingsSingleRule(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ipv4_firewall_rule.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.firewallSettingsMultipleRules(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ipv4_firewall_rule.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.firewallSettingsMultipleRules(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ipv4_firewall_rule.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.firewallSettingsRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -120,7 +143,7 @@ func TestAccAnalysisServicesServer_firewallSettings(t *testing.T) {
 }
 
 // ARM_ACC_EMAIL1 and ARM_ACC_EMAIL2 must be set and existing emails in the tenant's AD to work properly
-func TestAccAzureRMAnalysisServicesServer_adminUsers(t *testing.T) {
+func TestAccAnalysisServicesServer_adminUsers(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 
 	const ArmAccAdminEmail1 = "ARM_ACCTEST_ADMIN_EMAIL1"
@@ -155,7 +178,7 @@ func TestAccAzureRMAnalysisServicesServer_adminUsers(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAnalysisServicesServer_serverFullName(t *testing.T) {
+func TestAccAnalysisServicesServer_serverFullName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 	r := AnalysisServicesServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -170,7 +193,7 @@ func TestAccAzureRMAnalysisServicesServer_serverFullName(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAnalysisServicesServer_backupBlobContainerUri(t *testing.T) {
+func TestAccAnalysisServicesServer_backupBlobContainerUri(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 	r := AnalysisServicesServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -185,7 +208,7 @@ func TestAccAzureRMAnalysisServicesServer_backupBlobContainerUri(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAnalysisServicesServer_suspended(t *testing.T) {
+func TestAccAnalysisServicesServer_suspended(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 	r := AnalysisServicesServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -300,7 +323,7 @@ resource "azurerm_analysis_services_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, connectionMode)
 }
 
-func (t AnalysisServicesServerResource) firewallSettings1(data acceptance.TestData, enablePowerBIService bool) string {
+func (t AnalysisServicesServerResource) firewallSettingsNoRules(data acceptance.TestData, enablePowerBIService bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -321,7 +344,7 @@ resource "azurerm_analysis_services_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enablePowerBIService)
 }
 
-func (t AnalysisServicesServerResource) firewallSettings2(data acceptance.TestData, enablePowerBIService bool) string {
+func (t AnalysisServicesServerResource) firewallSettingsSingleRule(data acceptance.TestData, enablePowerBIService bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -348,7 +371,7 @@ resource "azurerm_analysis_services_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enablePowerBIService)
 }
 
-func (t AnalysisServicesServerResource) firewallSettings3(data acceptance.TestData, enablePowerBIService bool) string {
+func (t AnalysisServicesServerResource) firewallSettingsMultipleRules(data acceptance.TestData, enablePowerBIService bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -379,6 +402,26 @@ resource "azurerm_analysis_services_server" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enablePowerBIService)
+}
+
+func (t AnalysisServicesServerResource) firewallSettingsRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-analysis-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_analysis_services_server" "test" {
+  name                = "acctestass%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "B1"
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (t AnalysisServicesServerResource) adminUsers(data acceptance.TestData, adminUsers []string) string {
@@ -444,7 +487,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "assbackup"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -474,7 +517,7 @@ resource "azurerm_analysis_services_server" "test" {
 
   backup_blob_container_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}${data.azurerm_storage_account_blob_container_sas.test.sas}"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
 func (t AnalysisServicesServerResource) scale(data acceptance.TestData) string {

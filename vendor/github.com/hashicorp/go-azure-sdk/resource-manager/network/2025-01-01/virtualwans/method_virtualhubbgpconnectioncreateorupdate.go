@@ -63,9 +63,20 @@ func (c VirtualWANsClient) VirtualHubBgpConnectionCreateOrUpdate(ctx context.Con
 
 // VirtualHubBgpConnectionCreateOrUpdateThenPoll performs VirtualHubBgpConnectionCreateOrUpdate then polls until it's completed
 func (c VirtualWANsClient) VirtualHubBgpConnectionCreateOrUpdateThenPoll(ctx context.Context, id commonids.VirtualHubBGPConnectionId, input BgpConnection) error {
+	return c.VirtualHubBgpConnectionCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// VirtualHubBgpConnectionCreateOrUpdateCallbackThenPoll performs VirtualHubBgpConnectionCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c VirtualWANsClient) VirtualHubBgpConnectionCreateOrUpdateCallbackThenPoll(ctx context.Context, id commonids.VirtualHubBGPConnectionId, input BgpConnection, callback func() error) error {
 	result, err := c.VirtualHubBgpConnectionCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing VirtualHubBgpConnectionCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

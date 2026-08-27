@@ -10,13 +10,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
@@ -180,14 +180,16 @@ func (r DataFactoryDatasetAzureSQLTableResource) Create() sdk.ResourceFunc {
 
 			id := parse.NewDataSetID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, data.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+				if err != nil {
+					if !response.WasNotFound(existing.Response.Response) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.Response.Response) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			azureSqlDatasetProperties := datafactory.AzureSQLTableDatasetTypeProperties{
@@ -377,7 +379,7 @@ func (DataFactoryDatasetAzureSQLTableResource) Read() sdk.ResourceFunc {
 
 			resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.Response.Response) {
 					return metadata.MarkAsGone(id)
 				}
 
@@ -442,9 +444,9 @@ func (DataFactoryDatasetAzureSQLTableResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+			resp, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 			if err != nil {
-				if !utils.ResponseWasNotFound(response) {
+				if !response.WasNotFound(resp.Response) {
 					return fmt.Errorf("deleting %s: %+v", *id, err)
 				}
 			}

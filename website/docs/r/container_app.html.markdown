@@ -156,6 +156,8 @@ A `custom_scale_rule` block supports the following:
 
 * `authentication` - (Optional) Zero or more `authentication` blocks as defined below.
 
+* `ìdentity_id`- (Optional) Resource ID for the System or User Assigned Managed identity to use when executing the scale rule.
+
 ---
 
 A `http_scale_rule` block supports the following:
@@ -262,7 +264,7 @@ A `container` block supports the following:
 
 A `liveness_probe` block supports the following:
 
-* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.
+* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.
 
 * `header` - (Optional) A `header` block as detailed below.
 
@@ -304,7 +306,7 @@ An `env` block supports the following:
 
 A `readiness_probe` block supports the following:
 
-* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.
+* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `48`. Defaults to `3`.
 
 * `header` - (Optional) A `header` block as detailed below.
 
@@ -336,7 +338,7 @@ A `header` block supports the following:
 
 A `startup_probe` block supports the following:
 
-* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.
+* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `240`. Defaults to `3`.
 
 * `header` - (Optional) A `header` block as detailed below.
 

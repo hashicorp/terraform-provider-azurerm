@@ -97,13 +97,16 @@ func (r ManagerSecurityAdminConfigurationResource) Create() sdk.ResourceFunc {
 			}
 
 			id := securityadminconfigurations.NewSecurityAdminConfigurationID(networkManagerId.SubscriptionId, networkManagerId.ResourceGroupName, networkManagerId.NetworkManagerName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			conf := securityadminconfigurations.SecurityAdminConfiguration{
@@ -140,10 +143,6 @@ func (r ManagerSecurityAdminConfigurationResource) Update() sdk.ResourceFunc {
 			var model ManagerSecurityAdminConfigurationModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			existing, err := client.Get(ctx, *id)
@@ -232,10 +231,9 @@ func (r ManagerSecurityAdminConfigurationResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id, securityadminconfigurations.DeleteOperationOptions{
+			if err = client.DeleteThenPoll(ctx, *id, securityadminconfigurations.DeleteOperationOptions{
 				Force: pointer.To(true),
-			})
-			if err != nil {
+			}); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

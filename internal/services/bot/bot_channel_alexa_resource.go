@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
@@ -72,14 +71,15 @@ func resourceBotChannelAlexaCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	defer cancel()
 
 	id := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameAlexaChannel))
-	if d.IsNewResource() {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ChannelName)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_bot_channel_alexa", id.ID())
 		}
 	}
@@ -100,6 +100,8 @@ func resourceBotChannelAlexaCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	// Issue: https://github.com/Azure/azure-rest-api-specs/issues/15298
 	// There is a long running issue on updating the Alexa Channel.
 	// The Bot Channel API cannot update Skill ID immediately after the Alexa Channel is created.
@@ -117,7 +119,6 @@ func resourceBotChannelAlexaCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceBotChannelAlexaRead(d, meta)
 }
 
@@ -133,7 +134,7 @@ func resourceBotChannelAlexaRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameAlexaChannel))
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
@@ -179,8 +180,7 @@ func resourceBotChannelAlexaUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Kind:     botservice.KindBot,
 	}
 
-	_, err = client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameAlexaChannel, channel)
-	if err != nil {
+	if _, err = client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameAlexaChannel, channel); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
@@ -228,7 +228,7 @@ func botChannelAlexaStateRefreshFunc(ctx context.Context, client *botservice.Cha
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ChannelName)
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
+			if !response.WasNotFound(resp.Response.Response) {
 				return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 		}

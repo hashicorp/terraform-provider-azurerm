@@ -10,10 +10,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxcertificate"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	keyvaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -61,7 +61,7 @@ func (m CertificateResource) Arguments() map[string]*pluginsdk.Schema {
 		"key_vault_secret_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: keyvaultValidate.NestedItemIdWithOptionalVersion,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
 		},
 	}
 }
@@ -81,24 +81,27 @@ func (m CertificateResource) ResourceType() string {
 func (m CertificateResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Nginx.NginxCertificate
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Nginx.NginxCertificate
 
 			var model CertificateModel
-			if err := meta.Decode(&model); err != nil {
+			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
 			deployID, _ := nginxdeployment.ParseNginxDeploymentID(model.NginxDeploymentId)
 
-			subscriptionID := meta.Client.Account.SubscriptionId
+			subscriptionID := metadata.Client.Account.SubscriptionId
 			id := nginxcertificate.NewCertificateID(subscriptionID, deployID.ResourceGroupName, deployID.NginxDeploymentName, model.Name)
-			existing, err := client.CertificatesGet(ctx, id)
-			if !response.WasNotFound(existing.HttpResponse) {
-				if err != nil {
-					return fmt.Errorf("retreiving %s: %v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.CertificatesGet(ctx, id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					if err != nil {
+						return fmt.Errorf("retreiving %s: %v", id, err)
+					}
+					return metadata.ResourceRequiresImport(m.ResourceType(), id)
 				}
-				return meta.ResourceRequiresImport(m.ResourceType(), id)
 			}
 
 			req := nginxcertificate.NginxCertificate{
@@ -109,12 +112,11 @@ func (m CertificateResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.CertificatesCreateOrUpdateThenPoll(ctx, id, req)
-			if err != nil {
+			if err := client.CertificatesCreateOrUpdateCallbackThenPoll(ctx, id, req, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
-			meta.SetID(id)
+			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -158,8 +160,7 @@ func (m CertificateResource) Update() sdk.ResourceFunc {
 				upd.Properties.KeyVaultSecretId = pointer.To(model.KeyVaultSecretId)
 			}
 
-			err = client.CertificatesCreateOrUpdateThenPoll(ctx, *id, *upd)
-			if err != nil {
+			if err = client.CertificatesCreateOrUpdateThenPoll(ctx, *id, *upd); err != nil {
 				return fmt.Errorf("updating %s: %v", id, err)
 			}
 			return nil

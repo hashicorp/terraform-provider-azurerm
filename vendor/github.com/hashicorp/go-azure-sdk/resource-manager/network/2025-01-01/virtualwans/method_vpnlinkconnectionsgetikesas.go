@@ -58,9 +58,20 @@ func (c VirtualWANsClient) VpnLinkConnectionsGetIkeSas(ctx context.Context, id V
 
 // VpnLinkConnectionsGetIkeSasThenPoll performs VpnLinkConnectionsGetIkeSas then polls until it's completed
 func (c VirtualWANsClient) VpnLinkConnectionsGetIkeSasThenPoll(ctx context.Context, id VpnLinkConnectionId) error {
+	return c.VpnLinkConnectionsGetIkeSasCallbackThenPoll(ctx, id, nil)
+}
+
+// VpnLinkConnectionsGetIkeSasCallbackThenPoll performs VpnLinkConnectionsGetIkeSas, runs the optional callback function, then polls until it's completed
+func (c VirtualWANsClient) VpnLinkConnectionsGetIkeSasCallbackThenPoll(ctx context.Context, id VpnLinkConnectionId, callback func() error) error {
 	result, err := c.VpnLinkConnectionsGetIkeSas(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing VpnLinkConnectionsGetIkeSas: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

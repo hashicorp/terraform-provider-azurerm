@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -56,7 +57,7 @@ var hdInsightKafkaClusterKafkaManagementNodeDefinition = HDInsightNodeDefinition
 }
 
 func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceHDInsightKafkaClusterCreate,
 		Read:   resourceHDInsightKafkaClusterRead,
 		Update: hdinsightClusterUpdate("Kafka", resourceHDInsightKafkaClusterRead),
@@ -189,8 +190,6 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 			"extension": SchemaHDInsightsExtension(),
 		},
 	}
-
-	return resource
 }
 
 func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -245,15 +244,17 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("failure expanding `roles`: %+v", err)
 	}
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for the presence of an existing Kafka %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for the presence of an existing Kafka %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_hdinsight_kafka_cluster", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_hdinsight_kafka_cluster", id.ID())
+		}
 	}
 
 	kafkaRestProperty := expandKafkaRestProxyProperty(d.Get("rest_proxy").([]interface{}))
@@ -316,7 +317,7 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	if err := client.CreateThenPoll(ctx, id, payload); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating Kafka %s: %+v", id, err)
 	}
 
@@ -519,20 +520,10 @@ func flattenKafkaRestProxyProperty(input *clusters.KafkaRestProperties) []interf
 
 	groupInfo := input.ClientGroupInfo
 
-	groupId := ""
-	if groupInfo.GroupId != nil {
-		groupId = *groupInfo.GroupId
-	}
-
-	groupName := ""
-	if groupInfo.GroupName != nil {
-		groupName = *groupInfo.GroupName
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"security_group_id":   groupId,
-			"security_group_name": groupName,
+			"security_group_id":   pointer.From(groupInfo.GroupId),
+			"security_group_name": pointer.From(groupInfo.GroupName),
 		},
 	}
 }

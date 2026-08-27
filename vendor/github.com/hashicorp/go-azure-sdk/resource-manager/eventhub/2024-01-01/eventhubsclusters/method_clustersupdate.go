@@ -63,9 +63,20 @@ func (c EventHubsClustersClient) ClustersUpdate(ctx context.Context, id ClusterI
 
 // ClustersUpdateThenPoll performs ClustersUpdate then polls until it's completed
 func (c EventHubsClustersClient) ClustersUpdateThenPoll(ctx context.Context, id ClusterId, input Cluster) error {
+	return c.ClustersUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ClustersUpdateCallbackThenPoll performs ClustersUpdate, runs the optional callback function, then polls until it's completed
+func (c EventHubsClustersClient) ClustersUpdateCallbackThenPoll(ctx context.Context, id ClusterId, input Cluster, callback func() error) error {
 	result, err := c.ClustersUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ClustersUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

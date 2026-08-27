@@ -6,35 +6,35 @@ package network
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkinterfaces"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type networkInterfaceIPConfigurationLockingDetails struct {
-	subnetNamesToLock         []string
-	virtualNetworkNamesToLock []string
+	subnetIdsToLock         []string
+	virtualNetworkIdsToLock []string
 }
 
 func (details networkInterfaceIPConfigurationLockingDetails) lock() {
-	locks.MultipleByName(&details.virtualNetworkNamesToLock, VirtualNetworkResourceName)
-	locks.MultipleByName(&details.subnetNamesToLock, SubnetResourceName)
+	locks.MultipleByID(&details.virtualNetworkIdsToLock)
+	locks.MultipleByID(&details.subnetIdsToLock)
 }
 
 func (details networkInterfaceIPConfigurationLockingDetails) unlock() {
-	locks.UnlockMultipleByName(&details.subnetNamesToLock, SubnetResourceName)
-	locks.UnlockMultipleByName(&details.virtualNetworkNamesToLock, VirtualNetworkResourceName)
+	locks.UnlockMultipleByID(&details.subnetIdsToLock)
+	locks.UnlockMultipleByID(&details.virtualNetworkIdsToLock)
 }
 
 func determineResourcesToLockFromIPConfiguration(input *[]networkinterfaces.NetworkInterfaceIPConfiguration) (*networkInterfaceIPConfigurationLockingDetails, error) {
 	if input == nil {
 		return &networkInterfaceIPConfigurationLockingDetails{
-			subnetNamesToLock:         []string{},
-			virtualNetworkNamesToLock: []string{},
+			subnetIdsToLock:         []string{},
+			virtualNetworkIdsToLock: []string{},
 		}, nil
 	}
 
-	subnetNamesToLock := make([]string, 0)
-	virtualNetworkNamesToLock := make([]string, 0)
+	subnetIdsToLock := make([]string, 0)
+	virtualNetworkIdsToLock := make([]string, 0)
 
 	for _, config := range *input {
 		if config.Properties == nil || config.Properties.Subnet == nil || config.Properties.Subnet.Id == nil {
@@ -46,20 +46,19 @@ func determineResourcesToLockFromIPConfiguration(input *[]networkinterfaces.Netw
 			return nil, err
 		}
 
-		virtualNetworkName := id.VirtualNetworkName
-		subnetName := id.SubnetName
+		vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
 
-		if !utils.SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
-			virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
+		if !helpers.SliceContainsValue(virtualNetworkIdsToLock, vnetId.ID()) {
+			virtualNetworkIdsToLock = append(virtualNetworkIdsToLock, vnetId.ID())
 		}
 
-		if !utils.SliceContainsValue(subnetNamesToLock, subnetName) {
-			subnetNamesToLock = append(subnetNamesToLock, subnetName)
+		if !helpers.SliceContainsValue(subnetIdsToLock, id.ID()) {
+			subnetIdsToLock = append(subnetIdsToLock, id.ID())
 		}
 	}
 
 	return &networkInterfaceIPConfigurationLockingDetails{
-		subnetNamesToLock:         subnetNamesToLock,
-		virtualNetworkNamesToLock: virtualNetworkNamesToLock,
+		subnetIdsToLock:         subnetIdsToLock,
+		virtualNetworkIdsToLock: virtualNetworkIdsToLock,
 	}, nil
 }

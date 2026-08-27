@@ -12,13 +12,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/identityprovider"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmApiManagementIdentityProviderAADB2C() *pluginsdk.Resource {
@@ -133,13 +133,15 @@ func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *pluginsdk.Res
 	id := identityprovider.NewIdentityProviderID(meta.(*clients.Client).Account.SubscriptionId, resourceGroup, serviceName, identityprovider.IdentityProviderTypeAadBTwoC)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id.String(), err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id.String(), err)
+				}
+			} else {
+				return tf.ImportAsExistsError("azurerm_api_management_identity_provider_aadb2c", id.ID())
 			}
-		} else {
-			return tf.ImportAsExistsError("azurerm_api_management_identity_provider_aadb2c", id.ID())
 		}
 	}
 
@@ -149,7 +151,7 @@ func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *pluginsdk.Res
 			ClientLibrary:            pointer.To(clientLibrary),
 			ClientSecret:             clientSecret,
 			Type:                     pointer.To(identityprovider.IdentityProviderTypeAadBTwoC),
-			AllowedTenants:           utils.ExpandStringSlice([]interface{}{allowedTenant}),
+			AllowedTenants:           helpers.ExpandStringSlice([]interface{}{allowedTenant}),
 			SigninTenant:             pointer.To(signinTenant),
 			Authority:                pointer.To(authority),
 			SignupPolicyName:         pointer.To(signupPolicy),

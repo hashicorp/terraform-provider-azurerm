@@ -7,10 +7,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineextensions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetextensions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetextensions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -30,7 +30,7 @@ func protectedSettingsFromKeyVaultSchema(conflictsWithProtectedSettings bool) *p
 				"secret_url": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: keyVaultValidate.NestedItemId,
+					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
 				},
 
 				"source_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
@@ -89,10 +89,7 @@ func flattenProtectedSettingsFromKeyVault(input *virtualmachineextensions.KeyVau
 		return []interface{}{}
 	}
 
-	sourceVaultId := ""
-	if input.SourceVault.Id != nil {
-		sourceVaultId = *input.SourceVault.Id
-	}
+	sourceVaultId := pointer.From(input.SourceVault.Id)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -107,10 +104,7 @@ func flattenProtectedSettingsFromKeyVaultVMSS(input *virtualmachinescalesets.Key
 		return []interface{}{}
 	}
 
-	sourceVaultId := ""
-	if input.SourceVault.Id != nil {
-		sourceVaultId = *input.SourceVault.Id
-	}
+	sourceVaultId := pointer.From(input.SourceVault.Id)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -125,10 +119,7 @@ func flattenProtectedSettingsFromKeyVaultOldVMSSExtension(input *virtualmachines
 		return nil
 	}
 
-	sourceVaultId := ""
-	if input.SourceVault.Id != nil {
-		sourceVaultId = *input.SourceVault.Id
-	}
+	sourceVaultId := pointer.From(input.SourceVault.Id)
 
 	return []interface{}{
 		map[string]interface{}{

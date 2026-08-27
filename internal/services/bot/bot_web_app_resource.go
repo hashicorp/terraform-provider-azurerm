@@ -11,8 +11,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
@@ -20,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
@@ -43,7 +44,7 @@ func resourceBotWebApp() *pluginsdk.Resource {
 
 			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.Response.Response) {
 					return nil, fmt.Errorf("the Web App Bot %q was not found in Resource Group %q", id.Name, id.ResourceGroup)
 				}
 
@@ -90,6 +91,31 @@ func resourceBotWebApp() *pluginsdk.Resource {
 				ForceNew:     true,
 				Required:     true,
 				ValidateFunc: validation.IsUUID,
+			},
+
+			"microsoft_app_type": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(botservice.MsaAppTypeMultiTenant),
+					string(botservice.MsaAppTypeSingleTenant),
+					string(botservice.MsaAppTypeUserAssignedMSI),
+				}, false),
+			},
+
+			"microsoft_app_tenant_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsUUID,
+			},
+
+			"microsoft_app_user_assigned_identity_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 			},
 
 			"display_name": {
@@ -152,14 +178,15 @@ func resourceBotWebAppCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	defer cancel()
 
 	resourceId := parse.NewBotServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.Name)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of creating Web App Bot %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_bot_web_app", resourceId.ID())
 		}
 	}
@@ -174,10 +201,11 @@ func resourceBotWebAppCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 			DisplayName:                       pointer.To(displayName),
 			Endpoint:                          pointer.To(d.Get("endpoint").(string)),
 			MsaAppID:                          pointer.To(d.Get("microsoft_app_id").(string)),
+			MsaAppType:                        botservice.MsaAppType(d.Get("microsoft_app_type").(string)),
 			DeveloperAppInsightKey:            pointer.To(d.Get("developer_app_insights_key").(string)),
 			DeveloperAppInsightsAPIKey:        pointer.To(d.Get("developer_app_insights_api_key").(string)),
 			DeveloperAppInsightsApplicationID: pointer.To(d.Get("developer_app_insights_application_id").(string)),
-			LuisAppIds:                        utils.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
+			LuisAppIds:                        helpers.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
 			LuisKey:                           pointer.To(d.Get("luis_key").(string)),
 		},
 		Location: pointer.To(d.Get("location").(string)),
@@ -186,6 +214,14 @@ func resourceBotWebAppCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		},
 		Kind: botservice.KindSdk,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("microsoft_app_tenant_id"); ok {
+		bot.Properties.MsaAppTenantID = pointer.To(v.(string))
+	}
+
+	if v, ok := d.GetOk("microsoft_app_user_assigned_identity_id"); ok {
+		bot.Properties.MsaAppMSIResourceID = pointer.To(v.(string))
 	}
 
 	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.Name, bot); err != nil {
@@ -208,7 +244,7 @@ func resourceBotWebAppRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] Web App Bot %q was not found in Resource Group %q - removing from state", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
@@ -227,6 +263,9 @@ func resourceBotWebAppRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if props := resp.Properties; props != nil {
 		d.Set("microsoft_app_id", props.MsaAppID)
+		d.Set("microsoft_app_type", string(props.MsaAppType))
+		d.Set("microsoft_app_tenant_id", pointer.From(props.MsaAppTenantID))
+		d.Set("microsoft_app_user_assigned_identity_id", pointer.From(props.MsaAppMSIResourceID))
 		d.Set("endpoint", props.Endpoint)
 		d.Set("display_name", props.DisplayName)
 		d.Set("developer_app_insights_key", props.DeveloperAppInsightKey)
@@ -257,10 +296,11 @@ func resourceBotWebAppUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 			DisplayName:                       pointer.To(displayName),
 			Endpoint:                          pointer.To(d.Get("endpoint").(string)),
 			MsaAppID:                          pointer.To(d.Get("microsoft_app_id").(string)),
+			MsaAppType:                        botservice.MsaAppType(d.Get("microsoft_app_type").(string)),
 			DeveloperAppInsightKey:            pointer.To(d.Get("developer_app_insights_key").(string)),
 			DeveloperAppInsightsAPIKey:        pointer.To(d.Get("developer_app_insights_api_key").(string)),
 			DeveloperAppInsightsApplicationID: pointer.To(d.Get("developer_app_insights_application_id").(string)),
-			LuisAppIds:                        utils.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
+			LuisAppIds:                        helpers.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
 			LuisKey:                           pointer.To(d.Get("luis_key").(string)),
 		},
 		Location: pointer.To(d.Get("location").(string)),
@@ -269,6 +309,14 @@ func resourceBotWebAppUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 		},
 		Kind: botservice.KindSdk,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("microsoft_app_tenant_id"); ok {
+		bot.Properties.MsaAppTenantID = pointer.To(v.(string))
+	}
+
+	if v, ok := d.GetOk("microsoft_app_user_assigned_identity_id"); ok {
+		bot.Properties.MsaAppMSIResourceID = pointer.To(v.(string))
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, bot); err != nil {

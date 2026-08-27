@@ -6,7 +6,6 @@ package automation
 import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -27,9 +26,10 @@ func (r Registration) DataSources() []sdk.DataSource {
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	resources := []sdk.Resource{
+	return []sdk.Resource{
 		AutomationConnectionTypeResource{},
 		AutomationRuntimeEnvironmentResource{},
+		AutomationRuntimeEnvironmentPackageResource{},
 		HybridRunbookWorkerGroupResource{},
 		HybridRunbookWorkerResource{},
 		PowerShell72ModuleResource{},
@@ -37,12 +37,6 @@ func (r Registration) Resources() []sdk.Resource {
 		SourceControlResource{},
 		WatcherResource{},
 	}
-
-	if !features.FivePointOh() {
-		resources = append(resources, SoftwareUpdateConfigurationResource{})
-	}
-
-	return resources
 }
 
 func (r Registration) AssociatedGitHubLabel() string {
@@ -115,5 +109,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		AutomationAccountListResource{},
+	}
 }

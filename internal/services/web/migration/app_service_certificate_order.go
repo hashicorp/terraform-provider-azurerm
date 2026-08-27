@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/certificateregistration/2023-12-01/appservicecertificateorders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -153,10 +154,8 @@ func (AppServiceCertificateOrderResourceV0ToV1) UpgradeFunc() pluginsdk.StateUpg
 			return rawState, fmt.Errorf("parsing ID %q to upgrade: %+v", oldIdRaw, err)
 		}
 
-		appServiceCertOrderId := parse.NewCertificateOrderID(oldId.SubscriptionId, oldId.ResourceGroup, oldId.CertificateOrderName)
-		newId := appServiceCertOrderId.ID()
-
-		rawState["id"] = newId
+		appServiceCertOrderId := appservicecertificateorders.NewCertificateOrderID(oldId.SubscriptionId, oldId.ResourceGroup, oldId.CertificateOrderName)
+		rawState["id"] = appServiceCertOrderId.ID()
 		return rawState, nil
 	}
 }

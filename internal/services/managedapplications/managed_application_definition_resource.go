@@ -56,7 +56,7 @@ func resourceManagedApplicationDefinition() *pluginsdk.Resource {
 			"display_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ApplicationDefinitionDisplayName,
+				ValidateFunc: validation.StringLenBetween(4, 60),
 			},
 
 			"lock_level": {
@@ -102,7 +102,7 @@ func resourceManagedApplicationDefinition() *pluginsdk.Resource {
 			"description": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.ApplicationDefinitionDescription,
+				ValidateFunc: validation.StringLenBetween(0, 200),
 			},
 
 			"main_template": {
@@ -139,14 +139,16 @@ func resourceManagedApplicationDefinitionCreate(d *pluginsdk.ResourceData, meta 
 
 	id := applicationdefinitions.NewApplicationDefinitionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("failed to check for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("failed to check for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_managed_application_definition", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_managed_application_definition", id.ID())
+		}
 	}
 
 	parameters := applicationdefinitions.ApplicationDefinition{

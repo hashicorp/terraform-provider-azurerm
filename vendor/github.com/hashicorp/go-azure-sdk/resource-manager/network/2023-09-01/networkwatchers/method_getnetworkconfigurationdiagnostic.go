@@ -62,9 +62,20 @@ func (c NetworkWatchersClient) GetNetworkConfigurationDiagnostic(ctx context.Con
 
 // GetNetworkConfigurationDiagnosticThenPoll performs GetNetworkConfigurationDiagnostic then polls until it's completed
 func (c NetworkWatchersClient) GetNetworkConfigurationDiagnosticThenPoll(ctx context.Context, id NetworkWatcherId, input NetworkConfigurationDiagnosticParameters) error {
+	return c.GetNetworkConfigurationDiagnosticCallbackThenPoll(ctx, id, input, nil)
+}
+
+// GetNetworkConfigurationDiagnosticCallbackThenPoll performs GetNetworkConfigurationDiagnostic, runs the optional callback function, then polls until it's completed
+func (c NetworkWatchersClient) GetNetworkConfigurationDiagnosticCallbackThenPoll(ctx context.Context, id NetworkWatcherId, input NetworkConfigurationDiagnosticParameters, callback func() error) error {
 	result, err := c.GetNetworkConfigurationDiagnostic(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing GetNetworkConfigurationDiagnostic: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

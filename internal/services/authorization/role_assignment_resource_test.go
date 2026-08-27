@@ -215,7 +215,7 @@ func TestAccRoleAssignment_condition(t *testing.T) {
 	})
 }
 
-func TestAccRoleAssignment_implicitCondition(t *testing.T) {
+func TestAccRoleAssignment_conditionUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	id := uuid.New().String()
 
@@ -223,7 +223,35 @@ func TestAccRoleAssignment_implicitCondition(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.implicitConditionVersion(id),
+			Config: r.noConditionNoDescription(id),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("skip_service_principal_aad_check"),
+		{
+			Config: r.condition(id),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("skip_service_principal_aad_check"),
+		{
+			Config: r.noConditionNoDescription(id),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("skip_service_principal_aad_check"),
+		{
+			Config: r.conditionImplicitVersion(id),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("skip_service_principal_aad_check"),
+		{
+			Config: r.noConditionNoDescription(id),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -273,6 +301,20 @@ func TestAccRoleAssignment_resourceGroupScoped(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.resourceGroupScoped(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("skip_service_principal_aad_check"),
+	})
+}
+
+func TestAccRoleAssignment_applicationGroupScoped(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
+	r := RoleAssignmentResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.applicationGroupScoped(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -497,7 +539,7 @@ resource "azurerm_role_assignment" "test" {
   name                 = "%s"
   scope                = data.azurerm_subscription.current.id
   role_definition_name = "Reader"
-  principal_id         = azuread_service_principal.test.id
+  principal_id         = azuread_service_principal.test.object_id
 }
 `, rInt, roleAssignmentID)
 }
@@ -525,7 +567,7 @@ resource "azurerm_role_assignment" "test" {
   name                             = "%s"
   scope                            = data.azurerm_subscription.current.id
   role_definition_name             = "Reader"
-  principal_id                     = azuread_service_principal.test.id
+  principal_id                     = azuread_service_principal.test.object_id
   skip_service_principal_aad_check = true
 }
 `, rInt, roleAssignmentID)
@@ -606,7 +648,7 @@ resource "azurerm_role_assignment" "test" {
 `, groupId)
 }
 
-func (RoleAssignmentResource) implicitConditionVersion(groupId string) string {
+func (RoleAssignmentResource) conditionImplicitVersion(groupId string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -619,13 +661,33 @@ data "azurerm_client_config" "test" {
 }
 
 resource "azurerm_role_assignment" "test" {
-
   name                 = "%s"
   scope                = data.azurerm_subscription.primary.id
   role_definition_name = "Monitoring Reader"
   principal_id         = data.azurerm_client_config.test.object_id
   description          = "Monitoring Reader except "
   condition            = "@Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringEqualsIgnoreCase 'foo_storage_container'"
+}
+`, groupId)
+}
+
+func (RoleAssignmentResource) noConditionNoDescription(groupId string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "primary" {
+}
+
+data "azurerm_client_config" "test" {
+}
+
+resource "azurerm_role_assignment" "test" {
+  name                 = "%s"
+  scope                = data.azurerm_subscription.primary.id
+  role_definition_name = "Monitoring Reader"
+  principal_id         = data.azurerm_client_config.test.object_id
 }
 `, groupId)
 }
@@ -672,6 +734,48 @@ resource "azurerm_role_assignment" "test" {
   scope                = azurerm_resource_group.test.id
   role_definition_name = "Reader"
   principal_id         = data.azurerm_client_config.test.object_id
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (RoleAssignmentResource) applicationGroupScoped(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "test" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-vdesktop-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_desktop_host_pool" "test" {
+  name                = "acctestHP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  type                = "Pooled"
+  load_balancer_type  = "BreadthFirst"
+}
+
+resource "azurerm_virtual_desktop_application_group" "test" {
+  name                         = "acctestAG-%[1]d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  type                         = "Desktop"
+  default_desktop_display_name = "Acceptance Test"
+  host_pool_id                 = azurerm_virtual_desktop_host_pool.test.id
+
+  depends_on = [azurerm_virtual_desktop_host_pool.test]
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_virtual_desktop_application_group.test.id
+  role_definition_name = "Desktop Virtualization User"
+  principal_id         = data.azurerm_client_config.test.object_id
+
+  depends_on = [azurerm_virtual_desktop_application_group.test]
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
