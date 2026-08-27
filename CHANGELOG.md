@@ -20,6 +20,7 @@ FEATURES:
 * **New List Resource**: `azurerm_cognitive_deployment` [GH-33149]
 
 BUG FIXES:
+* `azurerm_eventhub_namespace` -  prevent `network_rulesets.x.default_action` being set to `Deny`  `ip_rule` or `virtual_network_rule` is not specified [GH-33216]
 * Data Source: `azurerm_app_configuration_key` - now correctly sets `tags` into state [GH-33182]
 
 ## 5.2.0 (August 20, 2026)
