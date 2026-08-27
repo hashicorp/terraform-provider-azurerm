@@ -321,12 +321,11 @@ resource "azurerm_security_center_subscription_pricing" "test" {
 `
 }
 
+// the plans used here are deliberately not managed by any other test in this file, since pricing is a subscription level singleton
 func (SecurityCenterSubscriptionPricingResource) multiplePricingResources() string {
 	return `
 provider "azurerm" {
-	features {
-		skip_import_check_on_create_and_allow_overwriting_existing_resources = true
-	}
+  features {}
 }
 
 resource "azurerm_security_center_subscription_pricing" "test_sql_servers" {
