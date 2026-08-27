@@ -1980,10 +1980,14 @@ func ContainerAppReadinessProbeSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"transport": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForScheme(), true),
-					Description:  "Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.",
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"TCP",
+						string(containerapps.SchemeHTTP),
+						string(containerapps.SchemeHTTPS),
+					}, true),
+					Description: "Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.",
 				},
 
 				"port": {
@@ -2258,10 +2262,14 @@ func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"transport": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForScheme(), false),
-					Description:  "Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.",
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"TCP",
+						string(containerapps.SchemeHTTP),
+						string(containerapps.SchemeHTTPS),
+					}, false),
+					Description: "Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.",
 				},
 
 				"port": {
@@ -2519,10 +2527,14 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"transport": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForScheme(), false),
-					Description:  "Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.",
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"TCP",
+						string(containerapps.SchemeHTTP),
+						string(containerapps.SchemeHTTPS),
+					}, false),
+					Description: "Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.",
 				},
 
 				"port": {

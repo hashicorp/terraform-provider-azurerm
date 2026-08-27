@@ -63,11 +63,15 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"ip_address_type": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      string(containerinstance.ContainerGroupIPAddressTypePublic),
-				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForContainerGroupIPAddressType(), false),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(containerinstance.ContainerGroupIPAddressTypePublic),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containerinstance.ContainerGroupIPAddressTypePublic),
+					string(containerinstance.ContainerGroupIPAddressTypePrivate),
+					"None",
+				}, false),
 			},
 
 			"os_type": {

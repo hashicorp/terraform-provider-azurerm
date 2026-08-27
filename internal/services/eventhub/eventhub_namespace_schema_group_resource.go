@@ -58,10 +58,14 @@ func resourceEventHubNamespaceSchemaRegistry() *pluginsdk.Resource {
 			},
 
 			"schema_type": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice(schemaregistry.PossibleValuesForSchemaType(), false),
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(schemaregistry.SchemaTypeUnknown),
+					string(schemaregistry.SchemaTypeAvro),
+					"Json",
+				}, false),
 			},
 		},
 	}
