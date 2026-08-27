@@ -19,8 +19,7 @@ func (MachineLearningDataStoreFileShareV0ToV1) UpgradeFunc() pluginsdk.StateUpgr
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		if v, ok := rawState["storage_fileshare_id"].(string); ok && v != "" {
 			if id, err := storageparse.StorageShareResourceManagerID(v); err == nil {
-				newID := fileshares.NewShareID(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName, id.FileshareName).ID()
-				rawState["storage_fileshare_id"] = newID
+				rawState["storage_fileshare_id"] = fileshares.NewShareID(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName, id.FileshareName).ID()
 			}
 		}
 

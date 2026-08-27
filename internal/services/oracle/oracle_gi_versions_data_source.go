@@ -85,7 +85,7 @@ func (d GiVersionsDataSource) Read() sdk.ResourceFunc {
 
 			options := giversions.ListByLocationOperationOptions{}
 			if state.Shape != "" {
-				options.Shape = pointer.To(giversions.SystemShapes(state.Shape))
+				options.Shape = pointer.ToEnum[giversions.SystemShapes](state.Shape)
 			}
 			if state.Zone != "" {
 				options.Zone = &state.Zone

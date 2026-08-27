@@ -264,31 +264,11 @@ func flattenAzureRmDnsSrvRecords(records *[]recordsets.SrvRecord) []map[string]i
 
 	if records != nil {
 		for _, record := range *records {
-			port := int64(0)
-			if record.Port != nil {
-				port = *record.Port
-			}
-
-			priority := int64(0)
-			if record.Priority != nil {
-				priority = *record.Priority
-			}
-
-			target := ""
-			if record.Target != nil {
-				target = *record.Target
-			}
-
-			weight := int64(0)
-			if record.Weight != nil {
-				weight = *record.Weight
-			}
-
 			results = append(results, map[string]interface{}{
-				"port":     port,
-				"priority": priority,
-				"target":   target,
-				"weight":   weight,
+				"port":     pointer.From(record.Port),
+				"priority": pointer.From(record.Priority),
+				"target":   pointer.From(record.Target),
+				"weight":   pointer.From(record.Weight),
 			})
 		}
 	}

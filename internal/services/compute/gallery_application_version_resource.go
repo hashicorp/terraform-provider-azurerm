@@ -344,11 +344,7 @@ func (r GalleryApplicationVersionResource) Read() sdk.ResourceFunc {
 						state.EndOfLifeDate = d.Format(time.RFC3339)
 					}
 
-					excludeFromLatest := false
-					if props.PublishingProfile.ExcludeFromLatest != nil {
-						excludeFromLatest = *props.PublishingProfile.ExcludeFromLatest
-					}
-					state.ExcludeFromLatest = excludeFromLatest
+					state.ExcludeFromLatest = pointer.From(props.PublishingProfile.ExcludeFromLatest)
 
 					state.ConfigFile = ""
 					state.PackageFile = ""
@@ -565,7 +561,7 @@ func expandGalleryApplicationVersionTargetRegion(input []TargetRegion) *[]galler
 		targetRegion := galleryapplicationversions.TargetRegion{
 			Name:                 location.Normalize(item.Name),
 			RegionalReplicaCount: pointer.To(item.RegionalReplicaCount),
-			StorageAccountType:   pointer.To(galleryapplicationversions.StorageAccountType(item.StorageAccountType)),
+			StorageAccountType:   pointer.ToEnum[galleryapplicationversions.StorageAccountType](item.StorageAccountType),
 		}
 
 		if item.ExcludeFromLatest {

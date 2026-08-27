@@ -10,15 +10,17 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -281,7 +283,7 @@ func dataSourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface
 
 	cert, err := client.GetCertificate(ctx, *keyVaultBaseUri, name, version)
 	if err != nil {
-		if utils.ResponseWasNotFound(cert.Response) {
+		if response.WasNotFound(cert.Response.Response) {
 			return fmt.Errorf("a Certificate named %q was not found in Key Vault at URI %q", name, *keyVaultBaseUri)
 		}
 
@@ -378,13 +380,9 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *kv.CertificatePolicy) 
 	policy := make(map[string]interface{})
 
 	if params := input.IssuerParameters; params != nil {
-		var name string
-		if params.Name != nil {
-			name = *params.Name
-		}
 		policy["issuer_parameters"] = []interface{}{
 			map[string]interface{}{
-				"name": name,
+				"name": pointer.From(params.Name),
 			},
 		}
 	}
@@ -449,13 +447,9 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *kv.CertificatePolicy) 
 
 	// secret properties
 	if props := input.SecretProperties; props != nil {
-		var contentType string
-		if props.ContentType != nil {
-			contentType = *props.ContentType
-		}
 		policy["secret_properties"] = []interface{}{
 			map[string]interface{}{
-				"content_type": contentType,
+				"content_type": pointer.From(props.ContentType),
 			},
 		}
 	}
@@ -481,9 +475,9 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *kv.CertificatePolicy) 
 		sanOutputs := make([]interface{}, 0)
 		if san := props.SubjectAlternativeNames; san != nil {
 			sanOutputs = append(sanOutputs, map[string]interface{}{
-				"emails":    utils.FlattenStringSlice(san.Emails),
-				"dns_names": utils.FlattenStringSlice(san.DNSNames),
-				"upns":      utils.FlattenStringSlice(san.Upns),
+				"emails":    helpers.FlattenStringSlice(san.Emails),
+				"dns_names": helpers.FlattenStringSlice(san.DNSNames),
+				"upns":      helpers.FlattenStringSlice(san.Upns),
 			})
 		}
 
@@ -492,7 +486,7 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *kv.CertificatePolicy) 
 				"key_usage":                 usages,
 				"subject":                   subject,
 				"validity_in_months":        validityInMonths,
-				"extended_key_usage":        utils.FlattenStringSlice(props.Ekus),
+				"extended_key_usage":        helpers.FlattenStringSlice(props.Ekus),
 				"subject_alternative_names": sanOutputs,
 			},
 		}

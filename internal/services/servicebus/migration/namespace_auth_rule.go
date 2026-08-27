@@ -15,7 +15,7 @@ var _ pluginsdk.StateUpgrade = ServicebusNamespaceAuthRuleV0ToV1{}
 type ServicebusNamespaceAuthRuleV0ToV1 struct{}
 
 func (ServicebusNamespaceAuthRuleV0ToV1) Schema() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -82,7 +82,6 @@ func (ServicebusNamespaceAuthRuleV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Sensitive: true,
 		},
 	}
-	return s
 }
 
 func (ServicebusNamespaceAuthRuleV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {

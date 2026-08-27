@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -40,7 +39,7 @@ var _ sdk.ResourceWithStateMigration = KeyVaultManagedHSMRoleAssignmentResource{
 type KeyVaultManagedHSMRoleAssignmentResource struct{}
 
 func (r KeyVaultManagedHSMRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"managed_hsm_id": {
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,
@@ -76,8 +75,6 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Arguments() map[string]*plugin
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
-
-	return s
 }
 
 func (r KeyVaultManagedHSMRoleAssignmentResource) Attributes() map[string]*pluginsdk.Schema {
@@ -149,7 +146,7 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Create() sdk.ResourceFunc {
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, endpoint.BaseURI(), config.Scope, config.Name)
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					if err != nil {
 						return fmt.Errorf("retrieving %s: %v", id.ID(), err)
 					}
@@ -203,7 +200,7 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Read() sdk.ResourceFunc {
 
 			resp, err := client.Get(ctx, id.BaseURI(), id.Scope, id.RoleAssignmentName)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.Response.Response) {
 					return metadata.MarkAsGone(id)
 				}
 

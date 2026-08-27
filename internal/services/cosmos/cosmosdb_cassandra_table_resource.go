@@ -368,14 +368,8 @@ func flattenTableSchemaColumns(input *[]cosmosdb.Column) []interface{} {
 	columns := make([]interface{}, 0)
 
 	for _, v := range *input {
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
-		typeStr := ""
-		if v.Type != nil {
-			typeStr = *v.Type
-		}
+		name := pointer.From(v.Name)
+		typeStr := pointer.From(v.Type)
 		columns = append(columns, map[string]interface{}{
 			"name": name,
 			"type": typeStr,
@@ -393,12 +387,8 @@ func flattenTableSchemaPartitionKeys(input *[]cosmosdb.CassandraPartitionKey) []
 	keys := make([]interface{}, 0)
 
 	for _, v := range *input {
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
 		keys = append(keys, map[string]interface{}{
-			"name": name,
+			"name": pointer.From(v.Name),
 		})
 	}
 
@@ -413,14 +403,8 @@ func flattenTableSchemaClusterKeys(input *[]cosmosdb.ClusterKey) []interface{} {
 	keys := make([]interface{}, 0)
 
 	for _, v := range *input {
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
-		orderBy := ""
-		if v.OrderBy != nil {
-			orderBy = *v.OrderBy
-		}
+		name := pointer.From(v.Name)
+		orderBy := pointer.From(v.OrderBy)
 		keys = append(keys, map[string]interface{}{
 			"name":     name,
 			"order_by": orderBy,

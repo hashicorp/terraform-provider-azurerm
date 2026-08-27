@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverdevopsaudit"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serverdevopsaudit"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -201,8 +201,7 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicyDelete(d *pluginsdk.Resour
 		},
 	}
 
-	err = client.SettingsCreateOrUpdateThenPoll(ctx, serverId, params)
-	if err != nil {
+	if err = client.SettingsCreateOrUpdateThenPoll(ctx, serverId, params); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

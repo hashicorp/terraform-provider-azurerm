@@ -338,8 +338,6 @@ A `os_disk` block supports the following:
 
 ~> **Note:** `vtpm_enabled` must be set to `true` when `security_encryption_type` is specified.
 
-~> **Note:** `encryption_at_host_enabled` cannot be set to `true` when `security_encryption_type` is set to `DiskWithVMGuestState`.
-
 * `write_accelerator_enabled` - (Optional) Should Write Accelerator be Enabled for this OS Disk? Defaults to `false`.
 
 -> **Note:** This requires that the `storage_account_type` is set to `Premium_LRS` and that `caching` is set to `None`.
