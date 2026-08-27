@@ -755,37 +755,22 @@ func TestAccStorageAccount_zonalMigration(t *testing.T) {
 			Config: r.zonalMigration(data, "ZRS", false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("account_replication_type").HasValue("LRS"),
 				check.That(data.ResourceName).Key("account_replication_type_migration_in_progress").HasValue("true"),
+				check.That(data.ResourceName).Key("account_replication_type_migrating_to").HasValue("ZRS"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.zonalMigration(data, "ZRS", true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("account_replication_type").HasValue("LRS"),
 				check.That(data.ResourceName).Key("account_replication_type_migration_in_progress").HasValue("true"),
+				check.That(data.ResourceName).Key("account_replication_type_migrating_to").HasValue("ZRS"),
 			),
 		},
-	})
-}
-
-func TestAccStorageAccount_zonalMigrationInProgressBlocksReplicationTypeChange(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-	r := StorageAccountResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.zonalMigration(data, "LRS", false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config: r.zonalMigration(data, "ZRS", false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("account_replication_type_migration_in_progress").HasValue("true"),
-			),
-		},
+		data.ImportStep(),
 		{
 			Config:      r.zonalMigration(data, "GRS", false),
 			ExpectError: regexp.MustCompile("a migration from `LRS` to `ZRS` is in progress"),
