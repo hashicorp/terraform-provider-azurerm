@@ -1279,16 +1279,16 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 	storageType := servers.StorageType(d.Get("storage_type").(string))
 	storage.Type = pointer.To(storageType)
 
-	if tier := d.Get("storage_tier").(string); tier != "" {
-		storage.Tier = pointer.ToEnum[servers.AzureManagedDiskPerformanceTier](tier)
+	if v, ok := d.GetOk("storage_tier"); ok {
+		storage.Tier = pointer.ToEnum[servers.AzureManagedDiskPerformanceTier](v.(string))
 	}
 
-	if iops := d.Get("storage_iops").(int); iops > 0 {
-		storage.Iops = pointer.To(int64(iops))
+	if v, ok := d.GetOk("storage_iops"); ok {
+		storage.Iops = pointer.To(int64(v.(int)))
 	}
 
-	if throughput := d.Get("storage_throughput").(int); throughput > 0 {
-		storage.Throughput = pointer.To(int64(throughput))
+	if v, ok := d.GetOk("storage_throughput"); ok {
+		storage.Throughput = pointer.To(int64(v.(int)))
 	}
 
 	return &storage
