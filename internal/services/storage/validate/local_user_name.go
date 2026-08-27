@@ -4,17 +4,11 @@
 package validate
 
 import (
-	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func LocalUserName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-	if !regexp.MustCompile(`^[a-z0-9]{3,64}$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"%s must be between 3 and 64 characters in length, use numbers and lower-case letters only: %q", k, value,
-		))
-	}
-
-	return warnings, errors
+func LocalUserName(v interface{}, k string) ([]string, []error) {
+	return validation.StringMatch(regexp.MustCompile(`^[a-z0-9]{3,64}$`), "must be between 3 and 64 characters in length, use numbers and lower-case letters only")(v, k)
 }

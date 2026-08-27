@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
@@ -100,10 +99,10 @@ func (s SpringCloudAcceleratorResource) Create() sdk.ResourceFunc {
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.ApplicationAcceleratorName)
-				if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+				if err != nil && !response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)
 				}
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					return metadata.ResourceRequiresImport(s.ResourceType(), id)
 				}
 			}
@@ -140,7 +139,7 @@ func (s SpringCloudAcceleratorResource) Read() sdk.ResourceFunc {
 
 			resp, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.ApplicationAcceleratorName)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.Response.Response) {
 					return metadata.MarkAsGone(id)
 				}
 

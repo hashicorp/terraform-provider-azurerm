@@ -713,8 +713,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if authRaw, ok := d.GetOk("authentication"); ok {
-		authConfig := expandFlexibleServerAuthConfig(authRaw.([]interface{}))
-		parameters.Properties.AuthConfig = authConfig
+		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfig(authRaw.([]interface{}))
 	}
 
 	identity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))

@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -51,7 +50,7 @@ var (
 // Arguments ...
 // skip `assignable_scopes` field support as https://github.com/Azure/azure-rest-api-specs/issues/23045
 func (r KeyVaultMHSMRoleDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -134,8 +133,6 @@ func (r KeyVaultMHSMRoleDefinitionResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
-
-	return s
 }
 
 func (r KeyVaultMHSMRoleDefinitionResource) Attributes() map[string]*pluginsdk.Schema {
@@ -215,7 +212,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) Create() sdk.ResourceFunc {
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id.BaseURI(), id.Scope, id.ManagedHSMName)
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					if err != nil {
 						return fmt.Errorf("checking for the existence of an existing %q: %+v", id, err)
 					}

@@ -33,7 +33,7 @@ import (
 )
 
 func resourceContainerGroup() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceContainerGroupCreate,
 		Read:   resourceContainerGroupRead,
 		Delete: resourceContainerGroupDelete,
@@ -519,8 +519,6 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			return nil
 		},
 	}
-
-	return resource
 }
 
 func containerVolumeSchema() *pluginsdk.Schema {
@@ -1124,11 +1122,9 @@ func expandContainerSecurityContext(input []interface{}) *containerinstance.Secu
 
 	raw := input[0].(map[string]interface{})
 
-	output := &containerinstance.SecurityContextDefinition{
+	return &containerinstance.SecurityContextDefinition{
 		Privileged: pointer.To(raw["privilege_enabled"].(bool)),
 	}
-
-	return output
 }
 
 func flattenContainerSecurityContext(input *containerinstance.SecurityContextDefinition) []interface{} {
@@ -1278,8 +1274,7 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 				val[protocol] = true
 				cgpMap[p.Port] = val
 			} else {
-				protoMap := map[containerinstance.ContainerGroupNetworkProtocol]bool{protocol: true}
-				cgpMap[p.Port] = protoMap
+				cgpMap[p.Port] = map[containerinstance.ContainerGroupNetworkProtocol]bool{protocol: true}
 			}
 		}
 
@@ -1580,8 +1575,7 @@ func flattenContainerProbeHttpHeaders(input *[]containerinstance.HTTPHeader) map
 	output := map[string]interface{}{}
 	for _, header := range *input {
 		name := pointer.From(header.Name)
-		value := pointer.From(header.Value)
-		output[name] = value
+		output[name] = pointer.From(header.Value)
 	}
 	return output
 }
@@ -1792,8 +1786,7 @@ func flattenContainerVolume(containerConfig map[string]interface{}, containersCo
 				cv := cvr.(map[string]interface{})
 				rawName := cv["name"].(string)
 				if vm.Name == rawName {
-					storageAccountKey := cv["storage_account_key"].(string)
-					volumeConfig["storage_account_key"] = storageAccountKey
+					volumeConfig["storage_account_key"] = cv["storage_account_key"].(string)
 					volumeConfig["secret"] = cv["secret"]
 				}
 			}
@@ -1814,8 +1807,7 @@ func flattenContainerSecureEnvironmentVariables(input *[]containerinstance.Envir
 
 	for _, envVar := range *input {
 		if envVar.Value == nil {
-			envVarValue := d.Get(fmt.Sprintf("%s.%d.secure_environment_variables.%s", rootPropName, oldContainerIndex, envVar.Name))
-			output[envVar.Name] = envVarValue
+			output[envVar.Name] = d.Get(fmt.Sprintf("%s.%d.secure_environment_variables.%s", rootPropName, oldContainerIndex, envVar.Name))
 		}
 	}
 
@@ -1934,8 +1926,7 @@ func expandContainerGroupDiagnostics(input []interface{}) *containerinstance.Con
 		metadataMap := analyticsV["metadata"].(map[string]interface{})
 		metadata := make(map[string]string)
 		for k, v := range metadataMap {
-			strValue := v.(string)
-			metadata[k] = strValue
+			metadata[k] = v.(string)
 		}
 
 		logAnalytics.Metadata = &metadata

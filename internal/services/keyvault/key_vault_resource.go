@@ -34,7 +34,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	dataplane "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -442,8 +441,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if d.HasChange("access_policy") {
 		policiesRaw := d.Get("access_policy").([]interface{})
-		accessPolicies := expandAccessPolicies(policiesRaw)
-		update.Properties.AccessPolicies = accessPolicies
+		update.Properties.AccessPolicies = expandAccessPolicies(policiesRaw)
 	}
 
 	if d.HasChange("enabled_for_deployment") {
@@ -676,7 +674,7 @@ func resourceKeyVaultFlatten(ctx context.Context, managementClient *dataplane.Ba
 		// to ignore the error if the data plane call fails.
 		contacts, err := managementClient.GetCertificateContacts(ctx, d.Get("vault_uri").(string))
 		if err != nil {
-			if publicNetworkAccessEnabled && (!utils.ResponseWasForbidden(contacts.Response) && !utils.ResponseWasNotFound(contacts.Response)) {
+			if publicNetworkAccessEnabled && (!response.WasForbidden(contacts.Response.Response) && !response.WasNotFound(contacts.Response.Response)) {
 				return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
 			}
 		}

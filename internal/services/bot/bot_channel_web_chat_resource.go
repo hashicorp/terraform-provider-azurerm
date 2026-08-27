@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -18,12 +19,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 func resourceBotChannelWebChat() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceBotChannelWebChatCreate,
 		Read:   resourceBotChannelWebChatRead,
 		Delete: resourceBotChannelWebChatDelete,
@@ -85,8 +85,6 @@ func resourceBotChannelWebChat() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
 func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -100,11 +98,11 @@ func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ChannelName)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			// The Bot WebChat Channel would be created by default while creating Bot Registrations Channel.
 			// So if the channel includes `Default Site`, it means it's default channel and delete it.
 			// So if the channel includes other site, it means it's user custom channel and throws conflict error.
@@ -163,7 +161,7 @@ func resourceBotChannelWebChatRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameWebChatChannel))
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] %s was not found - removing from state", id)
 			d.SetId("")
 			return nil

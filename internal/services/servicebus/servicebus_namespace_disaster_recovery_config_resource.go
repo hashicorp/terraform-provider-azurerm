@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/disasterrecoveryconfigs"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -57,9 +57,10 @@ func resourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 			},
 
 			"partner_namespace_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: azure.ValidateResourceIDOrEmpty, // nolint: staticcheck
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				// TODO: check to see if empty values should be allowed (the previous validator permitted them)
+				ValidateFunc: validation.Any(validation.StringIsEmpty, namespaces.ValidateNamespaceID),
 			},
 
 			"alias_authorization_rule_id": {

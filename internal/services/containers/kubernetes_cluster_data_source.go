@@ -27,7 +27,7 @@ import (
 )
 
 func dataSourceKubernetesCluster() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceKubernetesClusterRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -739,8 +739,6 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
-
-	return resource
 }
 
 func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {

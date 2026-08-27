@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/flowlogs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkwatchers"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -140,9 +140,10 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 						},
 
 						"workspace_resource_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceIDOrEmpty, // nolint: staticcheck
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							// TODO: check to see if empty values should be allowed (the previous validator permitted them)
+							ValidateFunc: validation.Any(validation.StringIsEmpty, workspaces.ValidateWorkspaceID),
 						},
 
 						"interval_in_minutes": {
@@ -255,11 +256,9 @@ func resourceNetworkWatcherFlowLogCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if version, ok := d.GetOk("version"); ok {
-		format := &flowlogs.FlowLogFormatParameters{
+		parameters.Properties.Format = &flowlogs.FlowLogFormatParameters{
 			Version: pointer.To(int64(version.(int))),
 		}
-
-		parameters.Properties.Format = format
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
