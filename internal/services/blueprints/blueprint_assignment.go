@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/assignment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -30,24 +29,6 @@ func blueprintAssignmentCreateStateRefreshFunc(ctx context.Context, client *assi
 		}
 
 		return resp, string(state), nil
-	}
-}
-
-func blueprintAssignmentDeleteStateRefreshFunc(ctx context.Context, client *assignment.AssignmentClient, id assignment.ScopedBlueprintAssignmentId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return resp, "NotFound", nil
-			} else {
-				return nil, "", fmt.Errorf("unable to retrieve Blueprint Assignment %s: %+v", id.String(), err)
-			}
-		}
-
-		if resp.Model == nil || resp.Model.Properties.ProvisioningState == nil {
-			return resp, "nil", errors.New("blueprint Assignment Model or ProvisioningState is nil")
-		}
-		return resp, string(*resp.Model.Properties.ProvisioningState), nil
 	}
 }
 

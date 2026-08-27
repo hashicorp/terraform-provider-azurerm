@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -22,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	billingValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -458,42 +460,23 @@ func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, id parse.ScopedRoleAs
 			return pluginsdk.NonRetryableError(fmt.Errorf("creation of %s did not return an id value", id))
 		}
 
-		stateConf := &pluginsdk.StateChangeConf{
-			Pending: []string{
-				"pending",
-			},
-			Target: []string{
-				"ready",
-			},
-			Refresh:                   roleAssignmentCreateStateRefreshFunc(ctx, roleAssignmentsClient, id),
-			MinTimeout:                5 * time.Second,
-			ContinuousTargetOccurence: 5,
-			Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
+		pollerOpts := &custompollers.EventualConsistencyPollerOptions{
+			Interval:              5 * time.Second,
+			RetryErrorStatusCodes: []int{http.StatusNotFound},
 		}
-
-		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-			return pluginsdk.NonRetryableError(fmt.Errorf("failed waiting for Role Assignment %s to finish replicating: %+v", id, err))
-		}
-
-		return nil
-	}
-}
-
-func roleAssignmentCreateStateRefreshFunc(ctx context.Context, client *roleassignments.RoleAssignmentsClient, id parse.ScopedRoleAssignmentId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
 		options := roleassignments.DefaultGetOperationOptions()
 		if id.TenantId != "" {
 			options.TenantId = pointer.To(id.TenantId)
 		}
-
-		resp, err := client.Get(ctx, id.ScopedId, options)
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return resp, "pending", nil
-			}
-			return resp, "failed", err
+		poller := custompollers.NewEventualConsistencyPoller(5, func(pollerCtx context.Context) (*http.Response, error) {
+			resp, err := roleAssignmentsClient.Get(pollerCtx, id.ScopedId, options)
+			return resp.HttpResponse, err
+		}, pollerOpts)
+		if err := poller.PollUntilDone(ctx); err != nil {
+			return pluginsdk.NonRetryableError(fmt.Errorf("failed waiting for Role Assignment %s to finish replicating: %+v", id, err))
 		}
-		return resp, "ready", nil
+
+		return nil
 	}
 }
 

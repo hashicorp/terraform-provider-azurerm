@@ -4,9 +4,10 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"strconv"
+	"net/http"
 	"strings"
 	"time"
 
@@ -25,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -1846,25 +1848,14 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 	if !response.WasNotFound(virtualMachine.HttpResponse) {
 		log.Printf("[INFO] Windows %s still exists, waiting on vm to be deleted", id)
 
-		deleteWait := &pluginsdk.StateChangeConf{
-			Pending:    []string{"200"},
-			Target:     []string{"404"},
-			MinTimeout: 30 * time.Second,
-			Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
-			Refresh: func() (interface{}, string, error) {
-				log.Printf("[INFO] checking on state of Windows %s", id)
-				resp, err := client.Get(ctx, *id, virtualmachines.DefaultGetOperationOptions())
-				if err != nil {
-					if response.WasNotFound(resp.HttpResponse) {
-						return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil
-					}
-					return nil, "nil", fmt.Errorf("polling for the status of Windows %s: %v", id, err)
-				}
-				return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil
-			},
-		}
-
-		if _, err := deleteWait.WaitForStateContext(ctx); err != nil {
+		poller := custompollers.NewEventualConsistencyPoller(1, func(pollerCtx context.Context) (*http.Response, error) {
+			resp, err := client.Get(pollerCtx, *id, virtualmachines.DefaultGetOperationOptions())
+			return resp.HttpResponse, err
+		}, &custompollers.EventualConsistencyPollerOptions{
+			Interval:         30 * time.Second,
+			TargetStatusCode: pointer.To(http.StatusNotFound),
+		})
+		if err := poller.PollUntilDone(ctx); err != nil {
 			return fmt.Errorf("waiting for the deletion of Windows %s: %v", id, err)
 		}
 	}

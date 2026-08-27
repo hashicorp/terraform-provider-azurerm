@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"sort"
 	"strings"
 	"time"
@@ -24,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
@@ -735,31 +737,15 @@ func applyGeoReplicationLocations(ctx context.Context, meta interface{}, registr
 			}
 
 			// Following can be removed once https://github.com/Azure/azure-rest-api-specs/issues/18934 is resolved. Otherwise, the create right after delete will always fail.
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("context is missing a timeout")
-			}
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending: []string{"InProgress"},
-				Target:  []string{"NotFound"},
-				Refresh: func() (interface{}, string, error) {
-					resp, err := replicationClient.Get(ctx, id)
-					if err != nil {
-						if response.WasNotFound(resp.HttpResponse) {
-							return resp, "NotFound", nil
-						}
-
-						return nil, "Error", err
-					}
-
-					return resp, "InProgress", nil
-				},
-				ContinuousTargetOccurence: 5,
-				PollInterval:              5 * time.Second,
-				Timeout:                   time.Until(deadline),
-			}
-			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("additional waiting for deletion of %s: %+v", id, err)
+			poller := custompollers.NewEventualConsistencyPoller(5, func(pollerCtx context.Context) (*http.Response, error) {
+				resp, err := replicationClient.Get(pollerCtx, id)
+				return resp.HttpResponse, err
+			}, &custompollers.EventualConsistencyPollerOptions{
+				Interval:         5 * time.Second,
+				TargetStatusCode: pointer.To(http.StatusNotFound),
+			})
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 			}
 		}
 
