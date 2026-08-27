@@ -170,7 +170,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/data-plane v0.20260811.1225050
+# github.com/hashicorp/go-azure-sdk/data-plane v0.20260819.1085932
 ## explicit; go 1.26.5
 github.com/hashicorp/go-azure-sdk/data-plane/batch/2022-01-01-15-0/jobs
 github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4
