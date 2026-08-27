@@ -309,10 +309,14 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			},
 
 			"version": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForServerVersion(), false),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(servers.ServerVersionFivePointSeven),
+					string(servers.ServerVersionEightPointZeroPointTwoOne),
+					string(validate.ServerVersionEightPointFour),
+				}, false),
 			},
 
 			"zone": commonschema.ZoneSingleOptionalComputed(),
