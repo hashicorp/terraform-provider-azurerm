@@ -4,8 +4,9 @@
 package privatedns
 
 import (
+	"context"
 	"fmt"
-	"log"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -18,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -208,32 +210,11 @@ func resourcePrivateDnsZoneVirtualNetworkLinkDelete(d *pluginsdk.ResourceData, m
 
 	// whilst the Delete above returns a Future, the Azure API's broken such that even though it's marked as "gone"
 	// it's still kicking around - so we have to poll until this is actually gone
-	log.Printf("[DEBUG] Waiting for %s to be deleted", *id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{"Available"},
-		Target:  []string{"NotFound"},
-		Refresh: func() (interface{}, string, error) {
-			log.Printf("[DEBUG] Checking to see if %s is still available", *id)
-			resp, err := client.Get(ctx, *id)
-			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
-					log.Printf("[DEBUG] %s was not found", *id)
-					return "NotFound", "NotFound", nil
-				}
-
-				return "", "error", err
-			}
-
-			log.Printf("[DEBUG] %s still exists", *id)
-			return "Available", "Available", nil
-		},
-		Delay:                     30 * time.Second,
-		PollInterval:              10 * time.Second,
-		ContinuousTargetOccurence: 10,
-		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(10, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, *id)
+		return resp.HttpResponse, err
+	}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
