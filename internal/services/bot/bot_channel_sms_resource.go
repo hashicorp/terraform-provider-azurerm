@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
@@ -95,11 +94,11 @@ func resourceBotChannelSMSCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName, id.ChannelType)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_bot_channel_sms", id.ID())
 		}
 	}
@@ -139,7 +138,7 @@ func resourceBotChannelSMSRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	resp, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName, string(botservice.ChannelNameSmsChannel))
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] %s was not found - removing from state", id)
 			d.SetId("")
 			return nil

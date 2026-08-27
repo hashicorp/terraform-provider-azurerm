@@ -10,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSynapseIntegrationRuntimeSelfHosted() *pluginsdk.Resource {
@@ -99,11 +99,11 @@ func resourceSynapseIntegrationRuntimeSelfHostedCreateUpdate(d *pluginsdk.Resour
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, "")
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return tf.ImportAsExistsError("azurerm_synapse_integration_runtime_self_hosted", id.ID())
 			}
 		}
@@ -146,7 +146,7 @@ func resourceSynapseIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceData, 
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -167,7 +167,7 @@ func resourceSynapseIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceData, 
 
 	respKey, err := authKeysClient.List(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(respKey.Response) {
+		if response.WasNotFound(respKey.Response.Response) {
 			d.SetId("")
 			return nil
 		}

@@ -12,6 +12,7 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
@@ -20,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -139,7 +139,7 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	resp, err := client.GetKey(ctx, *keyVaultBaseUri, name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			return fmt.Errorf("key %q was not found in Key Vault at URI %q", name, *keyVaultBaseUri)
 		}
 

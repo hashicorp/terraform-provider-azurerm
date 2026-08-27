@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceSynapseWorkspace() *pluginsdk.Resource {
@@ -62,7 +62,7 @@ func dataSourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{})
 	id := workspaces.NewWorkspaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	resp, err := client.Get(ctx, id.ResourceGroupName, id.WorkspaceName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)

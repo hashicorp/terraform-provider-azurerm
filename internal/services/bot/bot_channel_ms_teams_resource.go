@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
@@ -101,11 +100,11 @@ func resourceBotChannelMsTeamsCreate(d *pluginsdk.ResourceData, meta interface{}
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, resourceId.ResourceGroupName, resourceId.BotServiceName, resourceId.ChannelType)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for the presence of existing MS Teams Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroupName, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_bot_channel_ms_teams", resourceId.ID())
 		}
 	}
@@ -149,7 +148,7 @@ func resourceBotChannelMsTeamsRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	resp, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName, string(botservice.ChannelNameMsTeamsChannel))
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] MS Teams Channel for Bot %q (Resource Group %q) was not found - removing from state!", id.BotServiceName, id.ResourceGroupName)
 			d.SetId("")
 			return nil
