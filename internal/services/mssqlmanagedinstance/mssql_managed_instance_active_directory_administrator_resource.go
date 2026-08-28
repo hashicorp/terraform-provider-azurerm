@@ -138,8 +138,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Create() sdk.R
 				},
 			}
 
-			err = aadAuthOnlyClient.CreateOrUpdateThenPoll(ctx, *managedInstanceId, aadAuthOnlyParams)
-			if err != nil {
+			if err = aadAuthOnlyClient.CreateOrUpdateThenPoll(ctx, *managedInstanceId, aadAuthOnlyParams); err != nil {
 				return fmt.Errorf("setting `azuread_authentication_only` for %s: %+v", id, err)
 			}
 
@@ -179,8 +178,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Update() sdk.R
 				},
 			}
 
-			err = client.CreateOrUpdateThenPoll(ctx, *managedInstanceId, parameters)
-			if err != nil {
+			if err = client.CreateOrUpdateThenPoll(ctx, *managedInstanceId, parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -190,8 +188,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Update() sdk.R
 				},
 			}
 
-			err = aadAuthOnlyClient.CreateOrUpdateThenPoll(ctx, *managedInstanceId, aadAuthOnlyProperties)
-			if err != nil {
+			if err = aadAuthOnlyClient.CreateOrUpdateThenPoll(ctx, *managedInstanceId, aadAuthOnlyProperties); err != nil {
 				return fmt.Errorf("setting `azuread_authentication_only` for %s: %+v", id, err)
 			}
 
@@ -278,13 +275,11 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Delete() sdk.R
 				},
 			}
 
-			err = aadAuthOnlyClient.CreateOrUpdateThenPoll(ctx, managedInstanceId, aadAuthOnlyParams)
-			if err != nil {
+			if err = aadAuthOnlyClient.CreateOrUpdateThenPoll(ctx, managedInstanceId, aadAuthOnlyParams); err != nil {
 				return fmt.Errorf("disabling `azuread_authentication_only` for %s: %+v", id, err)
 			}
 
-			err = client.DeleteThenPoll(ctx, managedInstanceId)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, managedInstanceId); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

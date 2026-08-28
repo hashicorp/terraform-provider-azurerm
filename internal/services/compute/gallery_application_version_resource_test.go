@@ -275,6 +275,11 @@ func (r GalleryApplicationVersionResource) Exists(ctx context.Context, client *c
 
 func (r GalleryApplicationVersionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest-compute-%[2]d"
   location = "%[1]s"

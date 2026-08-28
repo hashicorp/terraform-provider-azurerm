@@ -4,9 +4,10 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"strconv"
+	"net/http"
 	"strings"
 	"time"
 
@@ -25,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -228,13 +230,10 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"disk_controller_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachines.DiskControllerTypesNVMe),
-					string(virtualmachines.DiskControllerTypesSCSI),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForDiskControllerTypes(), false),
 			},
 
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
@@ -256,13 +255,10 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 
 			"eviction_policy": {
 				// only applicable when `priority` is set to `Spot`
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachines.VirtualMachineEvictionPolicyTypesDeallocate),
-					string(virtualmachines.VirtualMachineEvictionPolicyTypesDelete),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForVirtualMachineEvictionPolicyTypes(), false),
 			},
 
 			"extensions_time_budget": {
@@ -301,27 +297,20 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"patch_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachines.WindowsVMGuestPatchModeAutomaticByOS),
-					string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform),
-					string(virtualmachines.WindowsVMGuestPatchModeManual),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForWindowsVMGuestPatchMode(), false),
 				ConflictsWith: []string{
 					"os_managed_disk_id",
 				},
 			},
 
 			"patch_assessment_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachines.WindowsPatchAssessmentModeAutomaticByPlatform),
-					string(virtualmachines.WindowsPatchAssessmentModeImageDefault),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForWindowsPatchAssessmentMode(), false),
 				ConflictsWith: []string{
 					"os_managed_disk_id",
 				},
@@ -571,7 +560,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 				GalleryApplications: expandVirtualMachineGalleryApplication(d.Get("gallery_application").([]interface{})),
 			},
 			HardwareProfile: &virtualmachines.HardwareProfile{
-				VMSize: pointer.To(virtualmachines.VirtualMachineSizeTypes(size)),
+				VMSize: pointer.ToEnum[virtualmachines.VirtualMachineSizeTypes](size),
 			},
 			NetworkProfile: &virtualmachines.NetworkProfile{
 				NetworkInterfaces: &networkInterfaceIds,
@@ -684,9 +673,9 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		params.Properties.OsProfile.WindowsConfiguration.PatchSettings = &virtualmachines.PatchSettings{
-			PatchMode:         pointer.To(virtualmachines.WindowsVMGuestPatchMode(patchMode)),
+			PatchMode:         pointer.ToEnum[virtualmachines.WindowsVMGuestPatchMode](patchMode),
 			EnableHotpatching: pointer.To(hotPatch),
-			AssessmentMode:    pointer.To(virtualmachines.WindowsPatchAssessmentMode(assessmentMode)),
+			AssessmentMode:    pointer.ToEnum[virtualmachines.WindowsPatchAssessmentMode](assessmentMode),
 		}
 
 		if d.Get("bypass_platform_safety_checks_on_user_schedule_enabled").(bool) {
@@ -710,7 +699,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 				params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings = &virtualmachines.WindowsVMGuestPatchAutomaticByPlatformSettings{}
 			}
 
-			params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings.RebootSetting = pointer.To(virtualmachines.WindowsVMGuestPatchAutomaticByPlatformRebootSetting(v.(string)))
+			params.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings.RebootSetting = pointer.ToEnum[virtualmachines.WindowsVMGuestPatchAutomaticByPlatformRebootSetting](v.(string))
 		}
 
 		if v, ok := d.GetOk("custom_data"); ok {
@@ -733,7 +722,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	params.Properties.StorageProfile.OsDisk = osDisk
 
 	if diskControllerType, ok := d.GetOk("disk_controller_type"); ok {
-		params.Properties.StorageProfile.DiskControllerType = pointer.To(virtualmachines.DiskControllerTypes(diskControllerType.(string)))
+		params.Properties.StorageProfile.DiskControllerType = pointer.ToEnum[virtualmachines.DiskControllerTypes](diskControllerType.(string))
 	}
 
 	if v, ok := d.GetOk("availability_set_id"); ok {
@@ -818,7 +807,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 
-		params.Properties.EvictionPolicy = pointer.To(virtualmachines.VirtualMachineEvictionPolicyTypes(evictionPolicyRaw.(string)))
+		params.Properties.EvictionPolicy = pointer.ToEnum[virtualmachines.VirtualMachineEvictionPolicyTypes](evictionPolicyRaw.(string))
 	} else if priority == virtualmachines.VirtualMachinePriorityTypesSpot {
 		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
@@ -1260,7 +1249,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			update.Properties.OsProfile.WindowsConfiguration.PatchSettings = &virtualmachines.PatchSettings{}
 		}
 
-		update.Properties.OsProfile.WindowsConfiguration.PatchSettings.PatchMode = pointer.To(virtualmachines.WindowsVMGuestPatchMode(d.Get("patch_mode").(string)))
+		update.Properties.OsProfile.WindowsConfiguration.PatchSettings.PatchMode = pointer.ToEnum[virtualmachines.WindowsVMGuestPatchMode](d.Get("patch_mode").(string))
 	}
 
 	if d.HasChange("patch_assessment_mode") {
@@ -1283,7 +1272,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			update.Properties.OsProfile.WindowsConfiguration.PatchSettings = &virtualmachines.PatchSettings{}
 		}
 
-		update.Properties.OsProfile.WindowsConfiguration.PatchSettings.AssessmentMode = pointer.To(virtualmachines.WindowsPatchAssessmentMode(assessmentMode))
+		update.Properties.OsProfile.WindowsConfiguration.PatchSettings.AssessmentMode = pointer.ToEnum[virtualmachines.WindowsPatchAssessmentMode](assessmentMode)
 	}
 
 	isPatchModeAutomaticByPlatform := d.Get("patch_mode") == string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform)
@@ -1339,7 +1328,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 				update.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings = &virtualmachines.WindowsVMGuestPatchAutomaticByPlatformSettings{}
 			}
 
-			update.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings.RebootSetting = pointer.To(virtualmachines.WindowsVMGuestPatchAutomaticByPlatformRebootSetting(rebootSetting))
+			update.Properties.OsProfile.WindowsConfiguration.PatchSettings.AutomaticByPlatformSettings.RebootSetting = pointer.ToEnum[virtualmachines.WindowsVMGuestPatchAutomaticByPlatformRebootSetting](rebootSetting)
 		}
 	}
 
@@ -1473,7 +1462,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			update.Properties.StorageProfile = &virtualmachines.StorageProfile{}
 		}
 
-		update.Properties.StorageProfile.DiskControllerType = pointer.To(virtualmachines.DiskControllerTypes(d.Get("disk_controller_type").(string)))
+		update.Properties.StorageProfile.DiskControllerType = pointer.ToEnum[virtualmachines.DiskControllerTypes](d.Get("disk_controller_type").(string))
 	}
 
 	if d.HasChange("os_disk") {
@@ -1567,7 +1556,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		update.Properties.HardwareProfile = &virtualmachines.HardwareProfile{
-			VMSize: pointer.To(virtualmachines.VirtualMachineSizeTypes(vmSize)),
+			VMSize: pointer.ToEnum[virtualmachines.VirtualMachineSizeTypes](vmSize),
 		}
 	}
 
@@ -1709,8 +1698,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			},
 		}
 
-		err := disksClient.UpdateThenPoll(ctx, id, update)
-		if err != nil {
+		if err := disksClient.UpdateThenPoll(ctx, id, update); err != nil {
 			return fmt.Errorf("resizing OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.DiskName, id.ResourceGroupName, err)
 		}
 
@@ -1739,8 +1727,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 				},
 			}
 
-			err = disksClient.UpdateThenPoll(ctx, id, update)
-			if err != nil {
+			if err = disksClient.UpdateThenPoll(ctx, id, update); err != nil {
 				return fmt.Errorf("updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.DiskName, id.ResourceGroupName, err)
 			}
 		} else {
@@ -1848,25 +1835,14 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 	if !response.WasNotFound(virtualMachine.HttpResponse) {
 		log.Printf("[INFO] Windows %s still exists, waiting on vm to be deleted", id)
 
-		deleteWait := &pluginsdk.StateChangeConf{
-			Pending:    []string{"200"},
-			Target:     []string{"404"},
-			MinTimeout: 30 * time.Second,
-			Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
-			Refresh: func() (interface{}, string, error) {
-				log.Printf("[INFO] checking on state of Windows %s", id)
-				resp, err := client.Get(ctx, *id, virtualmachines.DefaultGetOperationOptions())
-				if err != nil {
-					if response.WasNotFound(resp.HttpResponse) {
-						return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil
-					}
-					return nil, "nil", fmt.Errorf("polling for the status of Windows %s: %v", id, err)
-				}
-				return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil
-			},
-		}
-
-		if _, err := deleteWait.WaitForStateContext(ctx); err != nil {
+		poller := custompollers.NewEventualConsistencyPoller(1, func(pollerCtx context.Context) (*http.Response, error) {
+			resp, err := client.Get(pollerCtx, *id, virtualmachines.DefaultGetOperationOptions())
+			return resp.HttpResponse, err
+		}, &custompollers.EventualConsistencyPollerOptions{
+			Interval:         30 * time.Second,
+			TargetStatusCode: pointer.To(http.StatusNotFound),
+		})
+		if err := poller.PollUntilDone(ctx); err != nil {
 			return fmt.Errorf("waiting for the deletion of Windows %s: %v", id, err)
 		}
 	}

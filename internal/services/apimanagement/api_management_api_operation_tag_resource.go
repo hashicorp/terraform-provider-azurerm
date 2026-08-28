@@ -44,7 +44,7 @@ func resourceApiManagementApiOperationTag() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: apioperation.ValidateOperationID,
+				ValidateFunc: validation.AsGeneratedID(apioperation.ParseOperationIDInsensitively),
 			},
 
 			"name": {

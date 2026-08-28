@@ -28,15 +28,9 @@ func flattenEndpointCustomHeaderConfig(input *[]trafficmanagers.EndpointProperti
 		return result
 	}
 	for _, header := range *input {
-		name := ""
-		if header.Name != nil {
-			name = *header.Name
-		}
+		name := pointer.From(header.Name)
 
-		value := ""
-		if header.Value != nil {
-			value = *header.Value
-		}
+		value := pointer.From(header.Value)
 		result = append(result, map[string]interface{}{
 			"name":  name,
 			"value": value,
@@ -72,15 +66,9 @@ func flattenEndpointSubnetConfig(input *[]trafficmanagers.EndpointPropertiesSubn
 		return result
 	}
 	for _, subnet := range *input {
-		first := ""
-		if subnet.First != nil {
-			first = *subnet.First
-		}
+		first := pointer.From(subnet.First)
 
-		last := ""
-		if subnet.Last != nil {
-			last = *subnet.Last
-		}
+		last := pointer.From(subnet.Last)
 		scope := 0
 		if subnet.Scope != nil {
 			scope = int(*subnet.Scope)

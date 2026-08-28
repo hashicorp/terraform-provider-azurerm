@@ -23,7 +23,7 @@ import (
 )
 
 func resourceDataFactoryPipeline() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceDataFactoryPipelineCreateUpdate,
 		Read:   resourceDataFactoryPipelineRead,
 		Update: resourceDataFactoryPipelineCreateUpdate,
@@ -111,8 +111,6 @@ func resourceDataFactoryPipeline() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
 func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

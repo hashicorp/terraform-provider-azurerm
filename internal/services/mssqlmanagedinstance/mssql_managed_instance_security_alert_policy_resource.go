@@ -332,8 +332,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyDelete(d *pluginsdk.Resource
 		},
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, managedInstanceId, disabledPolicy)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, managedInstanceId, disabledPolicy); err != nil {
 		return fmt.Errorf("updating managed instance security alert policy: %v", err)
 	}
 

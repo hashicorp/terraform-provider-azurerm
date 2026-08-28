@@ -60,13 +60,9 @@ func resourceApiManagementApiVersionSet() *pluginsdk.Resource {
 			},
 
 			"versioning_scheme": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(apiversionset.VersioningSchemeHeader),
-					string(apiversionset.VersioningSchemeQuery),
-					string(apiversionset.VersioningSchemeSegment),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(apiversionset.PossibleValuesForVersioningScheme(), false),
 			},
 
 			"description": {

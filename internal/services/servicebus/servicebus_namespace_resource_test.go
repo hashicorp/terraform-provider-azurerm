@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -229,31 +228,6 @@ func TestAccAzureRMServiceBusNamespace_publicNetworkAccessUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
-			),
-		},
-	})
-}
-
-func TestAccAzureRMServiceBusNamespace_minimumTLSUpdate(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skipf("Skipping since the only possible value in 5.0 for `minimum_tls_version` is `1.2`, we can not test updating it.")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	r := ServicebusNamespaceResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.2"),
-			),
-		},
-		{
-			Config: r.minimumTLSUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.1"),
 			),
 		},
 	})
@@ -680,27 +654,6 @@ resource "azurerm_servicebus_namespace" "test" {
   resource_group_name           = azurerm_resource_group.test.name
   sku                           = "Basic"
   public_network_access_enabled = false
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (ServicebusNamespaceResource) minimumTLSUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  minimum_tls_version = "1.1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

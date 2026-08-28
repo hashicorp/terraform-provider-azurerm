@@ -9,23 +9,22 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		DeprecationMessage: features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_gateway_route_config` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."),
+		DeprecationMessage: "Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_gateway_route_config` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.",
 
 		Create: resourceSpringCloudGatewayRouteConfigCreateUpdate,
 		Read:   resourceSpringCloudGatewayRouteConfigRead,
@@ -203,11 +202,11 @@ func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.RouteConfigName)
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)
 				}
 			}
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return tf.ImportAsExistsError("azurerm_spring_cloud_gateway_route_config", id.ID())
 			}
 		}
@@ -261,7 +260,7 @@ func resourceSpringCloudGatewayRouteConfigRead(d *pluginsdk.ResourceData, meta i
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.RouteConfigName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] appplatform %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -348,39 +347,15 @@ func flattenGatewayRouteConfigGatewayAPIRouteArray(input *[]appplatform.GatewayA
 	}
 
 	for _, item := range *input {
-		var description string
-		if item.Description != nil {
-			description = *item.Description
-		}
-		var order int32
-		if item.Order != nil {
-			order = *item.Order
-		}
-		var ssoEnabled bool
-		if item.SsoEnabled != nil {
-			ssoEnabled = *item.SsoEnabled
-		}
-		var title string
-		if item.Title != nil {
-			title = *item.Title
-		}
-		var tokenRelay bool
-		if item.TokenRelay != nil {
-			tokenRelay = *item.TokenRelay
-		}
-		var uri string
-		if item.URI != nil {
-			uri = *item.URI
-		}
 		results = append(results, map[string]interface{}{
-			"description":            description,
+			"description":            pointer.From(item.Description),
 			"filters":                helpers.FlattenStringSlice(item.Filters),
-			"order":                  order,
+			"order":                  pointer.From(item.Order),
 			"predicates":             helpers.FlattenStringSlice(item.Predicates),
-			"sso_validation_enabled": ssoEnabled,
-			"title":                  title,
-			"token_relay":            tokenRelay,
-			"uri":                    uri,
+			"sso_validation_enabled": pointer.From(item.SsoEnabled),
+			"title":                  pointer.From(item.Title),
+			"token_relay":            pointer.From(item.TokenRelay),
+			"uri":                    pointer.From(item.URI),
 			"classification_tags":    helpers.FlattenStringSlice(item.Tags),
 		})
 	}
@@ -403,14 +378,9 @@ func flattenGatewayRouteConfigOpenApi(input *appplatform.GatewayRouteConfigOpenA
 		return []interface{}{}
 	}
 
-	uri := ""
-	if input.URI != nil {
-		uri = *input.URI
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"uri": uri,
+			"uri": pointer.From(input.URI),
 		},
 	}
 }

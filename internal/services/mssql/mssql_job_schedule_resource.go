@@ -158,7 +158,7 @@ func (r MsSqlJobScheduleResource) Create() sdk.ResourceFunc {
 			}
 
 			schedule.Enabled = pointer.To(config.Enabled)
-			schedule.Type = pointer.To(jobs.JobScheduleType(config.Type))
+			schedule.Type = pointer.ToEnum[jobs.JobScheduleType](config.Type)
 
 			if config.EndTime != "" {
 				schedule.EndTime = pointer.To(config.EndTime)
@@ -275,7 +275,7 @@ func (MsSqlJobScheduleResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("type") {
-				schedule.Type = pointer.To(jobs.JobScheduleType(config.Type))
+				schedule.Type = pointer.ToEnum[jobs.JobScheduleType](config.Type)
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *jobId, *existing.Model); err != nil {

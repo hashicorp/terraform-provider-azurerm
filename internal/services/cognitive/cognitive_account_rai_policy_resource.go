@@ -217,7 +217,7 @@ func (r CognitiveAccountRaiPolicyResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.Mode != "" {
-				raiPolicy.Properties.Mode = pointer.To(raipolicies.RaiPolicyMode(model.Mode))
+				raiPolicy.Properties.Mode = pointer.ToEnum[raipolicies.RaiPolicyMode](model.Mode)
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id, raiPolicy); err != nil {
@@ -313,7 +313,7 @@ func (r CognitiveAccountRaiPolicyResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("mode") {
-				payload.Properties.Mode = pointer.To(raipolicies.RaiPolicyMode(model.Mode))
+				payload.Properties.Mode = pointer.ToEnum[raipolicies.RaiPolicyMode](model.Mode)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -369,11 +369,11 @@ func expandRaiPolicyContentFilters(filters []AccountRaiPolicyContentFilter) *[]r
 			Name:     pointer.To(filter.Name),
 			Enabled:  pointer.To(filter.FilterEnabled),
 			Blocking: pointer.To(filter.BlockEnabled),
-			Source:   pointer.To(raipolicies.RaiPolicyContentSource(filter.Source)),
+			Source:   pointer.ToEnum[raipolicies.RaiPolicyContentSource](filter.Source),
 		}
 
 		if filter.SeverityThreshold != "" {
-			f.SeverityThreshold = pointer.To(raipolicies.ContentLevel(filter.SeverityThreshold))
+			f.SeverityThreshold = pointer.ToEnum[raipolicies.ContentLevel](filter.SeverityThreshold)
 		}
 
 		contentFilters = append(contentFilters, f)

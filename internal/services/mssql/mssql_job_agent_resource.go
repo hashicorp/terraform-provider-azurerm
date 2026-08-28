@@ -117,11 +117,11 @@ func resourceMsSqlJobAgentCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	jobAgentIdentity, err := expandMsSqlJobAgentIdentity(d.Get("identity").([]interface{}))
+	expandedIdentity, err := expandJobAgentIdentity(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
-	params.Identity = jobAgentIdentity
+	params.Identity = expandedIdentity
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, params, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -157,11 +157,11 @@ func resourceMsSqlJobAgentUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	params := existing.Model
 
 	if d.HasChanges("identity") {
-		jobAgentIdentity, err := expandMsSqlJobAgentIdentity(d.Get("identity").([]interface{}))
+		expandedIdentity, err := expandJobAgentIdentity(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
-		params.Identity = jobAgentIdentity
+		params.Identity = expandedIdentity
 	}
 
 	if d.HasChanges("sku") {
@@ -174,36 +174,11 @@ func resourceMsSqlJobAgentUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		params.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, *params)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, id, *params); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	return resourceMsSqlJobAgentRead(d, meta)
-}
-
-func expandMsSqlJobAgentIdentity(input []interface{}) (*jobagents.JobAgentIdentity, error) {
-	expandedIdentity, err := identity.ExpandUserAssignedMap(input)
-	if err != nil {
-		return nil, err
-	}
-
-	jobAgentIdentity := &jobagents.JobAgentIdentity{
-		Type: jobagents.JobAgentIdentityTypeNone,
-	}
-	if expandedIdentity.Type == identity.TypeUserAssigned {
-		jobAgentIdentity.Type = jobagents.JobAgentIdentityTypeUserAssigned
-		userAssignedIdentities := make(map[string]jobagents.JobAgentUserAssignedIdentity, len(expandedIdentity.IdentityIds))
-		for id, details := range expandedIdentity.IdentityIds {
-			userAssignedIdentities[id] = jobagents.JobAgentUserAssignedIdentity{
-				ClientId:    details.ClientId,
-				PrincipalId: details.PrincipalId,
-			}
-		}
-		jobAgentIdentity.UserAssignedIdentities = &userAssignedIdentities
-	}
-
-	return jobAgentIdentity, nil
 }
 
 func resourceMsSqlJobAgentRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -237,26 +212,7 @@ func resourceMssqlJobAgentSetFlatten(d *pluginsdk.ResourceData, id *jobagents.Jo
 			d.Set("database_id", props.DatabaseId)
 		}
 
-		var identityValue *identity.UserAssignedMap
-		if model.Identity != nil {
-			identityValue = &identity.UserAssignedMap{
-				Type:        identity.TypeNone,
-				IdentityIds: map[string]identity.UserAssignedIdentityDetails{},
-			}
-			if model.Identity.Type == jobagents.JobAgentIdentityTypeUserAssigned {
-				identityValue.Type = identity.TypeUserAssigned
-				if userAssignedIdentities := model.Identity.UserAssignedIdentities; userAssignedIdentities != nil {
-					for id, details := range *userAssignedIdentities {
-						identityValue.IdentityIds[id] = identity.UserAssignedIdentityDetails{
-							ClientId:    details.ClientId,
-							PrincipalId: details.PrincipalId,
-						}
-					}
-				}
-			}
-		}
-
-		flattenedIdentity, err := identity.FlattenUserAssignedMap(identityValue)
+		flattenedIdentity, err := flattenJobAgentIdentity(model.Identity)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
@@ -283,10 +239,59 @@ func resourceMsSqlJobAgentDelete(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
+}
+
+func expandJobAgentIdentity(input []interface{}) (*jobagents.JobAgentIdentity, error) {
+	expanded, err := identity.ExpandUserAssignedMap(input)
+	if err != nil {
+		return nil, err
+	}
+	if expanded == nil || expanded.Type == identity.TypeNone {
+		return nil, nil
+	}
+
+	result := &jobagents.JobAgentIdentity{
+		Type: jobagents.JobAgentIdentityType(string(expanded.Type)),
+	}
+
+	if len(expanded.IdentityIds) > 0 {
+		uai := make(map[string]jobagents.JobAgentUserAssignedIdentity, len(expanded.IdentityIds))
+		for id := range expanded.IdentityIds {
+			uai[id] = jobagents.JobAgentUserAssignedIdentity{}
+		}
+		result.UserAssignedIdentities = &uai
+	}
+
+	return result, nil
+}
+
+func flattenJobAgentIdentity(input *jobagents.JobAgentIdentity) ([]interface{}, error) {
+	if input == nil {
+		result, err := identity.FlattenUserAssignedMap(&identity.UserAssignedMap{Type: identity.TypeNone})
+		if err != nil {
+			return nil, err
+		}
+		return *result, nil
+	}
+
+	identityIds := make(map[string]identity.UserAssignedIdentityDetails)
+	if input.UserAssignedIdentities != nil {
+		for id := range *input.UserAssignedIdentities {
+			identityIds[id] = identity.UserAssignedIdentityDetails{}
+		}
+	}
+
+	result, err := identity.FlattenUserAssignedMap(&identity.UserAssignedMap{
+		Type:        identity.Type(string(input.Type)),
+		IdentityIds: identityIds,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return *result, nil
 }

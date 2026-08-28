@@ -440,14 +440,16 @@ func parseServerCreateMode(input string) (*ServerCreateMode, error) {
 type ServerNetworkAccessFlag string
 
 const (
-	ServerNetworkAccessFlagDisabled ServerNetworkAccessFlag = "Disabled"
-	ServerNetworkAccessFlagEnabled  ServerNetworkAccessFlag = "Enabled"
+	ServerNetworkAccessFlagDisabled           ServerNetworkAccessFlag = "Disabled"
+	ServerNetworkAccessFlagEnabled            ServerNetworkAccessFlag = "Enabled"
+	ServerNetworkAccessFlagSecuredByPerimeter ServerNetworkAccessFlag = "SecuredByPerimeter"
 )
 
 func PossibleValuesForServerNetworkAccessFlag() []string {
 	return []string{
 		string(ServerNetworkAccessFlagDisabled),
 		string(ServerNetworkAccessFlagEnabled),
+		string(ServerNetworkAccessFlagSecuredByPerimeter),
 	}
 }
 
@@ -466,8 +468,9 @@ func (s *ServerNetworkAccessFlag) UnmarshalJSON(bytes []byte) error {
 
 func parseServerNetworkAccessFlag(input string) (*ServerNetworkAccessFlag, error) {
 	vals := map[string]ServerNetworkAccessFlag{
-		"disabled": ServerNetworkAccessFlagDisabled,
-		"enabled":  ServerNetworkAccessFlagEnabled,
+		"disabled":           ServerNetworkAccessFlagDisabled,
+		"enabled":            ServerNetworkAccessFlagEnabled,
+		"securedbyperimeter": ServerNetworkAccessFlagSecuredByPerimeter,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
