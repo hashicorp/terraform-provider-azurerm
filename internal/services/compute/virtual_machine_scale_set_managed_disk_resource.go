@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -139,7 +140,7 @@ func (r VirtualMachineScaleSetManagedDiskResource) Arguments() map[string]*plugi
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ManagedDiskName,
+			ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9]([-._a-zA-Z0-9]{0,78}[a-zA-Z0-9_])?$`), "must be between 1 and 80 characters long, must start with a letter or number, must end with a letter, number or underscore, and may only contain letters, numbers, underscores, periods or hyphens"),
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
