@@ -11,13 +11,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-07-01-preview/privatelinkscopesapis"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMonitorPrivateLinkScope() *pluginsdk.Resource {
@@ -100,7 +100,7 @@ func resourceMonitorPrivateLinkScopeCreateUpdate(d *pluginsdk.ResourceData, meta
 	parameters := privatelinkscopesapis.AzureMonitorPrivateLinkScope{
 		Name:     &name,
 		Location: "Global",
-		Tags:     utils.ExpandPtrMapStringString(d.Get("tags").(map[string]interface{})),
+		Tags:     helpers.ExpandPtrMapStringString(d.Get("tags").(map[string]interface{})),
 		Properties: privatelinkscopesapis.AzureMonitorPrivateLinkScopeProperties{
 			AccessModeSettings: privatelinkscopesapis.AccessModeSettings{
 				IngestionAccessMode: ingestionAccessMode,
@@ -142,7 +142,7 @@ func resourceMonitorPrivateLinkScopeRead(d *pluginsdk.ResourceData, meta interfa
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		if err = d.Set("tags", utils.FlattenPtrMapStringString(model.Tags)); err != nil {
+		if err = d.Set("tags", helpers.FlattenPtrMapStringString(model.Tags)); err != nil {
 			return err
 		}
 
@@ -164,8 +164,7 @@ func resourceMonitorPrivateLinkScopeDelete(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	err = client.PrivateLinkScopesDeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.PrivateLinkScopesDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

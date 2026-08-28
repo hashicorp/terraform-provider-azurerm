@@ -181,16 +181,16 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		Properties: backupvaultresources.BackupVault{
 			StorageSettings: []backupvaultresources.StorageSetting{
 				{
-					DatastoreType: pointer.To(backupvaultresources.StorageSettingStoreTypes(d.Get("datastore_type").(string))),
-					Type:          pointer.To(backupvaultresources.StorageSettingTypes(d.Get("redundancy").(string))),
+					DatastoreType: pointer.ToEnum[backupvaultresources.StorageSettingStoreTypes](d.Get("datastore_type").(string)),
+					Type:          pointer.ToEnum[backupvaultresources.StorageSettingTypes](d.Get("redundancy").(string)),
 				},
 			},
 			SecuritySettings: &backupvaultresources.SecuritySettings{
 				SoftDeleteSettings: &backupvaultresources.SoftDeleteSettings{
-					State: pointer.To(backupvaultresources.SoftDeleteState(d.Get("soft_delete").(string))),
+					State: pointer.ToEnum[backupvaultresources.SoftDeleteState](d.Get("soft_delete").(string)),
 				},
 				ImmutabilitySettings: &backupvaultresources.ImmutabilitySettings{
-					State: pointer.To(backupvaultresources.ImmutabilityState(d.Get("immutability").(string))),
+					State: pointer.ToEnum[backupvaultresources.ImmutabilityState](d.Get("immutability").(string)),
 				},
 			},
 		},

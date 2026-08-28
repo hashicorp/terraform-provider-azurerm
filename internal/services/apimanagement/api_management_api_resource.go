@@ -28,7 +28,7 @@ import (
 )
 
 func resourceApiManagementApi() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceApiManagementApiCreate,
 		Read:   resourceApiManagementApiRead,
 		Update: resourceApiManagementApiUpdate,
@@ -76,13 +76,8 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(api.ProtocolHTTP),
-						string(api.ProtocolHTTPS),
-						string(api.ProtocolWs),
-						string(api.ProtocolWss),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(api.PossibleValuesForProtocol(), false),
 				},
 			},
 
@@ -101,15 +96,10 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 
 			// Optional
 			"api_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(api.ApiTypeGraphql),
-					string(api.ApiTypeHTTP),
-					string(api.ApiTypeSoap),
-					string(api.ApiTypeWebsocket),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(api.PossibleValuesForApiType(), false),
 			},
 
 			"contact": {
@@ -259,7 +249,7 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 			"source_api_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.ApiID,
+				ValidateFunc: validation.AsGeneratedID(api.ParseApiIDInsensitively),
 			},
 
 			"oauth2_authorization": {
@@ -299,11 +289,8 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(api.BearerTokenSendingMethodsAuthorizationHeader),
-									string(api.BearerTokenSendingMethodsQuery),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(api.PossibleValuesForBearerTokenSendingMethods(), false),
 							},
 						},
 					},
@@ -359,8 +346,6 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 			}),
 		),
 	}
-
-	return resource
 }
 
 func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -426,12 +411,10 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{})
 	authenticationSettings := &api.AuthenticationSettingsContract{}
 
 	oAuth2AuthorizationSettingsRaw := d.Get("oauth2_authorization").([]interface{})
-	oAuth2AuthorizationSettings := expandApiManagementOAuth2AuthenticationSettingsContract(oAuth2AuthorizationSettingsRaw)
-	authenticationSettings.OAuth2 = oAuth2AuthorizationSettings
+	authenticationSettings.OAuth2 = expandApiManagementOAuth2AuthenticationSettingsContract(oAuth2AuthorizationSettingsRaw)
 
 	openIDAuthorizationSettingsRaw := d.Get("openid_authentication").([]interface{})
-	openIDAuthorizationSettings := expandApiManagementOpenIDAuthenticationSettingsContract(openIDAuthorizationSettingsRaw)
-	authenticationSettings.Openid = openIDAuthorizationSettings
+	authenticationSettings.Openid = expandApiManagementOpenIDAuthenticationSettingsContract(openIDAuthorizationSettingsRaw)
 
 	contactInfoRaw := d.Get("contact").([]interface{})
 	contactInfo := expandApiManagementApiContact(contactInfoRaw)
@@ -639,16 +622,14 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 	if d.HasChange("oauth2_authorization") {
 		authenticationSettings := &api.AuthenticationSettingsContract{}
 		oAuth2AuthorizationSettingsRaw := d.Get("oauth2_authorization").([]interface{})
-		oAuth2AuthorizationSettings := expandApiManagementOAuth2AuthenticationSettingsContract(oAuth2AuthorizationSettingsRaw)
-		authenticationSettings.OAuth2 = oAuth2AuthorizationSettings
+		authenticationSettings.OAuth2 = expandApiManagementOAuth2AuthenticationSettingsContract(oAuth2AuthorizationSettingsRaw)
 		prop.AuthenticationSettings = authenticationSettings
 	}
 
 	if d.HasChange("openid_authentication") {
 		authenticationSettings := &api.AuthenticationSettingsContract{}
 		openIDAuthorizationSettingsRaw := d.Get("openid_authentication").([]interface{})
-		openIDAuthorizationSettings := expandApiManagementOpenIDAuthenticationSettingsContract(openIDAuthorizationSettingsRaw)
-		authenticationSettings.Openid = openIDAuthorizationSettings
+		authenticationSettings.Openid = expandApiManagementOpenIDAuthenticationSettingsContract(openIDAuthorizationSettingsRaw)
 		prop.AuthenticationSettings = authenticationSettings
 	}
 
@@ -818,7 +799,7 @@ func expandApiManagementApiImport(importVs []interface{}, apiType api.ApiType, s
 		Properties: &api.ApiCreateOrUpdateProperties{
 			Type:    pointer.To(apiType),
 			ApiType: pointer.To(soapApiType),
-			Format:  pointer.To(api.ContentFormat(contentFormat)),
+			Format:  pointer.ToEnum[api.ContentFormat](contentFormat),
 			Value:   pointer.To(contentValue),
 			Path:    path,
 		},

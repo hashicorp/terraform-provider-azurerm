@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContainerRegistryTaskResource struct{}
@@ -145,7 +145,7 @@ type ContainerRegistryTaskModel struct {
 func userDataStateFunc(v interface{}) string {
 	switch s := v.(type) {
 	case string:
-		return utils.Base64EncodeIfNot(s)
+		return helpers.Base64EncodeIfNot(s)
 	default:
 		return ""
 	}
@@ -998,7 +998,7 @@ func expandRegistryTaskBaseImageTrigger(triggers []BaseImageTrigger) *tasks.Base
 		out.UpdateTriggerEndpoint = &trigger.UpdateTriggerEndpoint
 	}
 	if trigger.UpdateTriggerPayloadType != "" {
-		out.UpdateTriggerPayloadType = pointer.To(tasks.UpdateTriggerPayloadType(trigger.UpdateTriggerPayloadType))
+		out.UpdateTriggerPayloadType = pointer.ToEnum[tasks.UpdateTriggerPayloadType](trigger.UpdateTriggerPayloadType)
 	}
 	return out
 }
@@ -1283,7 +1283,7 @@ func flattenRegistryTaskFileTaskStep(step tasks.TaskStepProperties, model Contai
 
 func expandRegistryTaskEncodedTaskStep(step EncodedTaskStep) tasks.EncodedTaskStep {
 	out := tasks.EncodedTaskStep{
-		EncodedTaskContent: utils.Base64EncodeIfNot(step.TaskContent),
+		EncodedTaskContent: helpers.Base64EncodeIfNot(step.TaskContent),
 		Values:             expandRegistryTaskValues(step.Values, step.SecretValues),
 	}
 	if step.ContextPath != "" {
@@ -1293,7 +1293,7 @@ func expandRegistryTaskEncodedTaskStep(step EncodedTaskStep) tasks.EncodedTaskSt
 		out.ContextAccessToken = &step.ContextAccessToken
 	}
 	if step.ValueContent != "" {
-		out.EncodedValuesContent = pointer.To(utils.Base64EncodeIfNot(step.ValueContent))
+		out.EncodedValuesContent = pointer.To(helpers.Base64EncodeIfNot(step.ValueContent))
 	}
 	return out
 }
@@ -1447,10 +1447,10 @@ func expandRegistryTaskPlatform(input []Platform) *tasks.PlatformProperties {
 		Os: tasks.OS(platform.OS),
 	}
 	if arch := platform.Architecture; arch != "" {
-		out.Architecture = pointer.To(tasks.Architecture(arch))
+		out.Architecture = pointer.ToEnum[tasks.Architecture](arch)
 	}
 	if variant := platform.Variant; variant != "" {
-		out.Variant = pointer.To(tasks.Variant(variant))
+		out.Variant = pointer.ToEnum[tasks.Variant](variant)
 	}
 	return out
 }
@@ -1512,7 +1512,7 @@ func expandSourceRegistryCredential(input []SourceRegistryCredential) *tasks.Sou
 		return nil
 	}
 
-	return &tasks.SourceRegistryCredentials{LoginMode: pointer.To(tasks.SourceRegistryLoginMode(input[0].LoginMode))}
+	return &tasks.SourceRegistryCredentials{LoginMode: pointer.ToEnum[tasks.SourceRegistryLoginMode](input[0].LoginMode)}
 }
 
 func flattenSourceRegistryCredential(input *tasks.SourceRegistryCredentials) []SourceRegistryCredential {

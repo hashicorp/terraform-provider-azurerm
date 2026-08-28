@@ -258,7 +258,7 @@ func resourceVirtualDesktopHostPoolCreate(d *pluginsdk.ResourceData, meta interf
 			LoadBalancerType:              hostpool.LoadBalancerType(d.Get("load_balancer_type").(string)),
 			PersonalDesktopAssignmentType: &personalDesktopAssignmentType,
 			PreferredAppGroupType:         hostpool.PreferredAppGroupType(d.Get("preferred_app_group_type").(string)),
-			PublicNetworkAccess:           pointer.To(hostpool.HostpoolPublicNetworkAccess(d.Get("public_network_access").(string))),
+			PublicNetworkAccess:           pointer.ToEnum[hostpool.HostpoolPublicNetworkAccess](d.Get("public_network_access").(string)),
 			AgentUpdate:                   expandAgentUpdateCreate(d.Get("scheduled_agent_updates").([]interface{})),
 			VMTemplate:                    &vmTemplate,
 		},
@@ -333,7 +333,7 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 		}
 
 		if d.HasChange("public_network_access") {
-			payload.Properties.PublicNetworkAccess = pointer.To(hostpool.HostpoolPublicNetworkAccess(d.Get("public_network_access").(string)))
+			payload.Properties.PublicNetworkAccess = pointer.ToEnum[hostpool.HostpoolPublicNetworkAccess](d.Get("public_network_access").(string))
 		}
 
 		if d.HasChange("start_vm_on_connect") {
@@ -509,8 +509,7 @@ func expandAgentUpdatePatch(input []interface{}) *hostpool.AgentUpdatePatchPrope
 	updatesDefault := hostpool.SessionHostComponentUpdateTypeDefault
 
 	useSessionHostLocalTime := *pointer.To(raw["use_session_host_timezone"].(bool))
-	updateScheduleTimeZone := pointer.To(raw["timezone"].(string))
-	props.MaintenanceWindowTimeZone = updateScheduleTimeZone
+	props.MaintenanceWindowTimeZone = pointer.To(raw["timezone"].(string))
 	props.UseSessionHostLocalTime = &useSessionHostLocalTime
 
 	if raw["enabled"].(bool) {

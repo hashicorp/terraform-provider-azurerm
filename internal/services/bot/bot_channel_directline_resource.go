@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
@@ -160,11 +159,11 @@ func resourceBotChannelDirectlineCreate(d *pluginsdk.ResourceData, meta interfac
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, resourceId.ChannelName)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of existing Directline Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			// a "Default Site" site gets created and returned.. so let's check it's not just that
 			if props := existing.Properties; props != nil {
 				directLineChannel, ok := props.AsDirectLineChannel()
@@ -214,7 +213,7 @@ func resourceBotChannelDirectlineRead(d *pluginsdk.ResourceData, meta interface{
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameBasicChannelChannelNameDirectLineChannel))
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] Directline Channel for Bot %q (Resource Group %q) was not found - removing from state!", id.ResourceGroup, id.BotServiceName)
 			d.SetId("")
 			return nil
@@ -366,11 +365,7 @@ func flattenDirectlineSites(input []botservice.DirectLineSite) []interface{} {
 		}
 		site["user_upload_enabled"] = userUploadEnabled
 
-		var endpointParametersEnabled bool
-		if v := element.IsEndpointParametersEnabled; v != nil {
-			endpointParametersEnabled = *v
-		}
-		site["endpoint_parameters_enabled"] = endpointParametersEnabled
+		site["endpoint_parameters_enabled"] = pointer.From(element.IsEndpointParametersEnabled)
 
 		storageEnabled := true
 		if v := element.IsNoStorageEnabled; v != nil {
