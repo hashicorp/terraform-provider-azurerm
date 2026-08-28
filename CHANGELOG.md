@@ -1,6 +1,7 @@
 ## 5.4.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_postgresql_flexible_server` - add new arguments `storage_type`, `storage_iops`, and `storage_throughput` which allows choice of the new "Premium V2 LRS" storage type [GH-32121]
 
 FEATURES:
 
