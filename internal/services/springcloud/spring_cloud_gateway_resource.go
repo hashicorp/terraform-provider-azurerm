@@ -173,14 +173,8 @@ func (s SpringCloudGatewayResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(appplatform.ApmTypeAppDynamics),
-					string(appplatform.ApmTypeApplicationInsights),
-					string(appplatform.ApmTypeDynatrace),
-					string(appplatform.ApmTypeElasticAPM),
-					string(appplatform.ApmTypeNewRelic),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice(appplatform.PossibleValuesForApmType(), false),
 			},
 		},
 

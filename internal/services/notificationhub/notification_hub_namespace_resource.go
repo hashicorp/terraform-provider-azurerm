@@ -62,13 +62,9 @@ func resourceNotificationHubNamespace() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(namespaces.SkuNameBasic),
-					string(namespaces.SkuNameFree),
-					string(namespaces.SkuNameStandard),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForSkuName(), false),
 			},
 
 			"enabled": {
@@ -79,13 +75,10 @@ func resourceNotificationHubNamespace() *pluginsdk.Resource {
 			},
 
 			"namespace_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(namespaces.NamespaceTypeMessaging),
-					string(namespaces.NamespaceTypeNotificationHub),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForNamespaceType(), false),
 			},
 
 			"zone_redundancy_enabled": {

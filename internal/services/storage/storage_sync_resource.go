@@ -63,13 +63,10 @@ func resourceStorageSync() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"incoming_traffic_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(storagesyncservicesresource.IncomingTrafficPolicyAllowAllTraffic),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(storagesyncservicesresource.IncomingTrafficPolicyAllowAllTraffic),
-					string(storagesyncservicesresource.IncomingTrafficPolicyAllowVirtualNetworksOnly),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(storagesyncservicesresource.IncomingTrafficPolicyAllowAllTraffic),
+				ValidateFunc: validation.StringInSlice(storagesyncservicesresource.PossibleValuesForIncomingTrafficPolicy(), false),
 			},
 
 			"registered_servers": {

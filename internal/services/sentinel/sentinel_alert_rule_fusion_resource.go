@@ -99,12 +99,7 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice(
-												[]string{
-													string(alertrules.AlertSeverityHigh),
-													string(alertrules.AlertSeverityMedium),
-													string(alertrules.AlertSeverityLow),
-													string(alertrules.AlertSeverityInformational),
-												},
+												alertrules.PossibleValuesForAlertSeverity(),
 												false,
 											),
 										},

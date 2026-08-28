@@ -132,21 +132,9 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"event_source": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(automations.EventSourceAlerts),
-								string(automations.EventSourceAssessments),
-								string(automations.EventSourceAssessmentsSnapshot),
-								string(automations.EventSourceRegulatoryComplianceAssessment),
-								string(automations.EventSourceRegulatoryComplianceAssessmentSnapshot),
-								string(automations.EventSourceSecureScoreControls),
-								string(automations.EventSourceSecureScoreControlsSnapshot),
-								string(automations.EventSourceSecureScores),
-								string(automations.EventSourceSecureScoresSnapshot),
-								string(automations.EventSourceSubAssessments),
-								string(automations.EventSourceSubAssessmentsSnapshot),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(automations.PossibleValuesForEventSource(), false),
 						},
 
 						"rule_set": {
@@ -168,29 +156,14 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 													Required: true,
 												},
 												"operator": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(automations.OperatorContains),
-														string(automations.OperatorEndsWith),
-														string(automations.OperatorEquals),
-														string(automations.OperatorGreaterThan),
-														string(automations.OperatorGreaterThanOrEqualTo),
-														string(automations.OperatorLesserThan),
-														string(automations.OperatorLesserThanOrEqualTo),
-														string(automations.OperatorNotEquals),
-														string(automations.OperatorStartsWith),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(automations.PossibleValuesForOperator(), false),
 												},
 												"property_type": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(automations.PropertyTypeInteger),
-														string(automations.PropertyTypeString),
-														string(automations.PropertyTypeBoolean),
-														string(automations.PropertyTypeNumber),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(automations.PossibleValuesForPropertyType(), false),
 												},
 											},
 										},
