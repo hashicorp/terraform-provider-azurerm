@@ -91,7 +91,7 @@ func resourceIotSecuritySolution() *pluginsdk.Resource {
 							Required: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(security.PossibleAdditionalWorkspaceDataTypeValues())), false),
+								ValidateFunc: validation.StringInEnumSlice(security.PossibleAdditionalWorkspaceDataTypeValues(), false),
 							},
 						},
 
@@ -109,7 +109,7 @@ func resourceIotSecuritySolution() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(security.PossibleDataSourceValues())), false),
+					ValidateFunc: validation.StringInEnumSlice(security.PossibleDataSourceValues(), false),
 				},
 			},
 

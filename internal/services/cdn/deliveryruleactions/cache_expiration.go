@@ -19,7 +19,7 @@ func CacheExpiration() *pluginsdk.Resource {
 			"behavior": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(cdn.PossibleCacheBehaviorValues())), false),
+				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleCacheBehaviorValues(), false),
 			},
 
 			"duration": {

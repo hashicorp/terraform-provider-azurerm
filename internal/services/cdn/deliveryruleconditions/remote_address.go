@@ -19,7 +19,7 @@ func RemoteAddress() *pluginsdk.Resource {
 			"operator": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(cdn.PossibleRemoteAddressOperatorValues())), false),
+				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleRemoteAddressOperatorValues(), false),
 			},
 
 			"negate_condition": {

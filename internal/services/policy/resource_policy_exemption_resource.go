@@ -63,7 +63,7 @@ func resourceArmResourcePolicyExemption() *pluginsdk.Resource {
 			"exemption_category": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(policy.PossibleExemptionCategoryValues())), false),
+				ValidateFunc: validation.StringInEnumSlice(policy.PossibleExemptionCategoryValues(), false),
 			},
 
 			"policy_assignment_id": {

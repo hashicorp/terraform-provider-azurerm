@@ -19,7 +19,7 @@ func URLPath() *pluginsdk.Resource {
 			"operator": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(cdn.PossibleURLPathOperatorValues())), false),
+				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleURLPathOperatorValues(), false),
 			},
 
 			"negate_condition": {
@@ -43,7 +43,7 @@ func URLPath() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(cdn.PossibleTransformValues())), false),
+					ValidateFunc: validation.StringInEnumSlice(cdn.PossibleTransformValues(), false),
 				},
 			},
 		},

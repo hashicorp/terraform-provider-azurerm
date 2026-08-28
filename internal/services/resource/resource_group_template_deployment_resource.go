@@ -60,7 +60,7 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 			"deployment_mode": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(resources.PossibleDeploymentModeValues())), false),
+				ValidateFunc: validation.StringInEnumSlice(resources.PossibleDeploymentModeValues(), false),
 			},
 
 			"template_content": {

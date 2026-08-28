@@ -313,7 +313,7 @@ func resourceArmPolicyDefinitionSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(policy.PossibleTypeValues())), false),
+			ValidateFunc: validation.StringInEnumSlice(policy.PossibleTypeValues(), false),
 		},
 
 		"mode": {

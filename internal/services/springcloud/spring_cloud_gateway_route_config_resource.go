@@ -80,7 +80,7 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 			"protocol": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(appplatform.PossibleGatewayRouteConfigProtocolValues())), false),
+				ValidateFunc: validation.StringInEnumSlice(appplatform.PossibleGatewayRouteConfigProtocolValues(), false),
 			},
 
 			"spring_cloud_app_id": {

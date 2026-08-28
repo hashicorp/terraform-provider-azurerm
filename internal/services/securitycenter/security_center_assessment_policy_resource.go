@@ -57,7 +57,7 @@ func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      string(security.SeverityMedium),
-				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(security.PossibleSeverityValues())), false),
+				ValidateFunc: validation.StringInEnumSlice(security.PossibleSeverityValues(), false),
 			},
 
 			// API would return `Unknown` when `categories` isn't set.
@@ -83,7 +83,7 @@ func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
 			"implementation_effort": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(security.PossibleImplementationEffortValues())), false),
+				ValidateFunc: validation.StringInEnumSlice(security.PossibleImplementationEffortValues(), false),
 			},
 
 			"remediation_description": {
@@ -113,7 +113,7 @@ func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
 			"user_impact": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(security.PossibleUserImpactValues())), false),
+				ValidateFunc: validation.StringInEnumSlice(security.PossibleUserImpactValues(), false),
 			},
 
 			"name": {

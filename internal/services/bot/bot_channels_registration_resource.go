@@ -82,7 +82,7 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(botservice.PossibleSkuNameValues())), false),
+				ValidateFunc: validation.StringInEnumSlice(botservice.PossibleSkuNameValues(), false),
 			},
 
 			"microsoft_app_id": {
@@ -96,7 +96,7 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(botservice.PossibleMsaAppTypeValues())), false),
+				ValidateFunc: validation.StringInEnumSlice(botservice.PossibleMsaAppTypeValues(), false),
 			},
 
 			"microsoft_app_tenant_id": {

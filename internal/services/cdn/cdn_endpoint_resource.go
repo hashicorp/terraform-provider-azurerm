@@ -126,7 +126,7 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      string(cdn.QueryStringCachingBehaviorIgnoreQueryString),
-				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(cdn.PossibleQueryStringCachingBehaviorValues())), false),
+				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleQueryStringCachingBehaviorValues(), false),
 			},
 
 			"content_types_to_compress": {
@@ -179,7 +179,7 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 			"optimization_type": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(cdn.PossibleOptimizationTypeValues())), false),
+				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleOptimizationTypeValues(), false),
 			},
 
 			"fqdn": {

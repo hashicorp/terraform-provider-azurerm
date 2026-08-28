@@ -105,7 +105,7 @@ func resourceIothubEndpointStorageContainerSchema() map[string]*pluginsdk.Schema
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(devices.AuthenticationTypeKeyBased),
-			ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(devices.PossibleAuthenticationTypeValues())), false),
+			ValidateFunc: validation.StringInEnumSlice(devices.PossibleAuthenticationTypeValues(), false),
 		},
 
 		"identity_id": {
@@ -142,7 +142,7 @@ func resourceIothubEndpointStorageContainerSchema() map[string]*pluginsdk.Schema
 			ForceNew:         true,
 			Default:          string(devices.EncodingAvro),
 			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     validation.StringInSlice(pointer.FromEnumSlice(pointer.To(devices.PossibleEncodingValues())), true),
+			ValidateFunc:     validation.StringInEnumSlice(devices.PossibleEncodingValues(), true),
 		},
 
 		"subscription_id": {

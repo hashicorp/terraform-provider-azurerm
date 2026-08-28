@@ -145,7 +145,7 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      string(appplatform.BackendProtocolDefault),
-							ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(appplatform.PossibleBackendProtocolValues())), false),
+							ValidateFunc: validation.StringInEnumSlice(appplatform.PossibleBackendProtocolValues(), false),
 						},
 
 						"read_timeout_in_seconds": {
@@ -166,7 +166,7 @@ func resourceSpringCloudApp() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      string(appplatform.SessionAffinityNone),
-							ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(appplatform.PossibleSessionAffinityValues())), false),
+							ValidateFunc: validation.StringInEnumSlice(appplatform.PossibleSessionAffinityValues(), false),
 						},
 
 						"session_cookie_max_age": {

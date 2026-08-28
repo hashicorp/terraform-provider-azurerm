@@ -115,7 +115,7 @@ func resourceIotHub() *pluginsdk.Resource {
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(devices.PossibleIotHubSkuValues())), false),
+							ValidateFunc: validation.StringInEnumSlice(devices.PossibleIotHubSkuValues(), false),
 						},
 
 						"capacity": {
@@ -187,7 +187,7 @@ func resourceIotHub() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      string(devices.AuthenticationTypeKeyBased),
-							ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(devices.PossibleAuthenticationTypeValues())), false),
+							ValidateFunc: validation.StringInEnumSlice(devices.PossibleAuthenticationTypeValues(), false),
 						},
 						"identity_id": {
 							Type:         pluginsdk.TypeString,
@@ -249,7 +249,7 @@ func resourceIotHub() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      string(devices.AuthenticationTypeKeyBased),
-							ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(devices.PossibleAuthenticationTypeValues())), false),
+							ValidateFunc: validation.StringInEnumSlice(devices.PossibleAuthenticationTypeValues(), false),
 						},
 
 						"identity_id": {
@@ -316,7 +316,7 @@ func resourceIotHub() *pluginsdk.Resource {
 							ForceNew:         true,
 							Default:          string(devices.EncodingAvro),
 							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
-							ValidateFunc:     validation.StringInSlice(pointer.FromEnumSlice(pointer.To(devices.PossibleEncodingValues())), false),
+							ValidateFunc:     validation.StringInEnumSlice(devices.PossibleEncodingValues(), false),
 						},
 
 						"file_name_format": {
@@ -478,7 +478,7 @@ func resourceIotHub() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      string(devices.DefaultActionDeny),
-							ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(devices.PossibleDefaultActionValues())), false),
+							ValidateFunc: validation.StringInEnumSlice(devices.PossibleDefaultActionValues(), false),
 						},
 						"apply_to_builtin_eventhub_endpoint": {
 							Type:     pluginsdk.TypeBool,
@@ -504,7 +504,7 @@ func resourceIotHub() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Default:      string(devices.NetworkRuleIPActionAllow),
-										ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(devices.PossibleNetworkRuleIPActionValues())), false),
+										ValidateFunc: validation.StringInEnumSlice(devices.PossibleNetworkRuleIPActionValues(), false),
 									},
 								},
 							},

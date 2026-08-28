@@ -59,7 +59,7 @@ func RequestHeader() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(cdn.PossibleTransformValues())), false),
+					ValidateFunc: validation.StringInEnumSlice(cdn.PossibleTransformValues(), false),
 				},
 			},
 		},

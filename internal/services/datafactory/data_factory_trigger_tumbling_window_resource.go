@@ -60,7 +60,7 @@ func resourceDataFactoryTriggerTumblingWindow() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(datafactory.PossibleTumblingWindowFrequencyValues())), false),
+				ValidateFunc: validation.StringInEnumSlice(datafactory.PossibleTumblingWindowFrequencyValues(), false),
 			},
 
 			"interval": {

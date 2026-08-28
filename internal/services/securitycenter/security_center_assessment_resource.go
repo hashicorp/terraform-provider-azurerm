@@ -65,7 +65,7 @@ func resourceSecurityCenterAssessment() *pluginsdk.Resource {
 						"code": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(security.PossibleAssessmentStatusCodeValues())), false),
+							ValidateFunc: validation.StringInEnumSlice(security.PossibleAssessmentStatusCodeValues(), false),
 						},
 
 						"cause": {

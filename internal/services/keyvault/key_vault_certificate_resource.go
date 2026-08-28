@@ -124,7 +124,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Computed:     true,
-										ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(kv.PossibleJSONWebKeyCurveNameValues())), false),
+										ValidateFunc: validation.StringInEnumSlice(kv.PossibleJSONWebKeyCurveNameValues(), false),
 									},
 									"exportable": {
 										Type:     pluginsdk.TypeBool,
@@ -175,7 +175,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 												"action_type": {
 													Type:         pluginsdk.TypeString,
 													Required:     true,
-													ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(kv.PossibleCertificatePolicyActionValues())), false),
+													ValidateFunc: validation.StringInEnumSlice(kv.PossibleCertificatePolicyActionValues(), false),
 												},
 											},
 										},
@@ -236,7 +236,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 										Required: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(kv.PossibleKeyUsageTypeValues())), false),
+											ValidateFunc: validation.StringInEnumSlice(kv.PossibleKeyUsageTypeValues(), false),
 										},
 									},
 									"subject": {

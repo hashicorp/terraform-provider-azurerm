@@ -80,7 +80,7 @@ func resourceSynapseIntegrationRuntimeAzure() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      string(synapse.DataFlowComputeTypeGeneral),
-				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(synapse.PossibleDataFlowComputeTypeValues())), false),
+				ValidateFunc: validation.StringInEnumSlice(synapse.PossibleDataFlowComputeTypeValues(), false),
 			},
 
 			"core_count": {

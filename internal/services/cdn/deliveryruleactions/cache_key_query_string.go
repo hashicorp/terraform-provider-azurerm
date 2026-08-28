@@ -18,7 +18,7 @@ func CacheKeyQueryString() *pluginsdk.Resource {
 			"behavior": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(cdn.PossibleQueryStringBehaviorValues())), false),
+				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleQueryStringBehaviorValues(), false),
 			},
 
 			"parameters": {

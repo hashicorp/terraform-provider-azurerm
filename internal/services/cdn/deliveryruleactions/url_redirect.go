@@ -19,14 +19,14 @@ func URLRedirect() *pluginsdk.Resource {
 			"redirect_type": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(cdn.PossibleRedirectTypeValues())), false),
+				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleRedirectTypeValues(), false),
 			},
 
 			"protocol": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      string(cdn.DestinationProtocolMatchRequest),
-				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(cdn.PossibleDestinationProtocolValues())), false),
+				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleDestinationProtocolValues(), false),
 			},
 
 			"hostname": {

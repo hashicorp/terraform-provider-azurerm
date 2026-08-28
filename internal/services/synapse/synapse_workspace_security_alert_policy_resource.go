@@ -87,7 +87,7 @@ func resourceSynapseWorkspaceSecurityAlertPolicy() *pluginsdk.Resource {
 			"policy_state": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(synapse.PossibleSecurityAlertPolicyStateValues())), false),
+				ValidateFunc: validation.StringInEnumSlice(synapse.PossibleSecurityAlertPolicyStateValues(), false),
 			},
 
 			"storage_account_access_key": {

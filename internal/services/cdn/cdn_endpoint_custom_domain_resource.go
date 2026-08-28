@@ -74,12 +74,12 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 						"certificate_type": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(cdn.PossibleCertificateTypeValues())), false),
+							ValidateFunc: validation.StringInEnumSlice(cdn.PossibleCertificateTypeValues(), false),
 						},
 						"protocol_type": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(cdn.PossibleProtocolTypeValues())), false),
+							ValidateFunc: validation.StringInEnumSlice(cdn.PossibleProtocolTypeValues(), false),
 						},
 						"tls_version": {
 							Type:     pluginsdk.TypeString,

@@ -59,13 +59,13 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 			"node_size_family": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(synapse.PossibleNodeSizeFamilyValues())), false),
+				ValidateFunc: validation.StringInEnumSlice(synapse.PossibleNodeSizeFamilyValues(), false),
 			},
 
 			"node_size": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(synapse.PossibleNodeSizeValues())), false),
+				ValidateFunc: validation.StringInEnumSlice(synapse.PossibleNodeSizeValues(), false),
 			},
 
 			"cache_size": {

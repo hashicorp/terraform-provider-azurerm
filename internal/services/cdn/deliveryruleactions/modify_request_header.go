@@ -18,7 +18,7 @@ func ModifyRequestHeader() *pluginsdk.Resource {
 			"action": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(cdn.PossibleHeaderActionValues())), false),
+				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleHeaderActionValues(), false),
 			},
 
 			"name": {

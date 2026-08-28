@@ -51,7 +51,7 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 			"tier": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(security.PossiblePricingTierValues())), false),
+				ValidateFunc: validation.StringInEnumSlice(security.PossiblePricingTierValues(), false),
 			},
 
 			"resource_type": {

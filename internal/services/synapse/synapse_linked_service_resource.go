@@ -67,7 +67,7 @@ func resourceSynapseLinkedService() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(artifacts.PossibleTypeBasicLinkedServiceValues())), false),
+				ValidateFunc: validation.StringInEnumSlice(artifacts.PossibleTypeBasicLinkedServiceValues(), false),
 			},
 
 			"type_properties_json": {
