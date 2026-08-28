@@ -243,7 +243,7 @@ func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			AutoDeleteTopicWithLastSubscription:  pointer.To(d.Get("auto_delete_topic_with_last_subscription").(bool)),
 			DisableLocalAuth:                     pointer.To(!d.Get("local_auth_enabled").(bool)),
 			InboundIPRules:                       inboundIPRules,
-			InputSchema:                          pointer.To(domains.InputSchema(d.Get("input_schema").(string))),
+			InputSchema:                          pointer.ToEnum[domains.InputSchema](d.Get("input_schema").(string)),
 			InputSchemaMapping:                   expandDomainInputMapping(d),
 			PublicNetworkAccess:                  pointer.To(publicNetworkAccess),
 		},
@@ -617,7 +617,7 @@ func expandDomainInboundIPRules(input []interface{}) *[]domains.InboundIPRule {
 	for _, item := range input {
 		rawRule := item.(map[string]interface{})
 		rules = append(rules, domains.InboundIPRule{
-			Action: pointer.To(domains.IPActionType(rawRule["action"].(string))),
+			Action: pointer.ToEnum[domains.IPActionType](rawRule["action"].(string)),
 			IPMask: pointer.To(rawRule["ip_mask"].(string)),
 		})
 	}

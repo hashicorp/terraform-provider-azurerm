@@ -178,7 +178,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 								for ia, approver := range stage.PrimaryApprovers {
 									primaryApprovers[ia] = rolemanagementpolicies.UserSet{
 										Id:       pointer.To(approver.ID),
-										UserType: pointer.To(rolemanagementpolicies.UserType(approver.Type)),
+										UserType: pointer.ToEnum[rolemanagementpolicies.UserType](approver.Type),
 									}
 								}
 
@@ -438,7 +438,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 
 func expandNotificationSettings(rule rolemanagementpolicies.RoleManagementPolicyNotificationRule, data RoleManagementPolicyNotificationSettings, recipientChange bool) rolemanagementpolicies.RoleManagementPolicyRule {
 	if pointer.From(rule.NotificationLevel) != rolemanagementpolicies.NotificationLevel(data.NotificationLevel) {
-		rule.NotificationLevel = pointer.To(rolemanagementpolicies.NotificationLevel(data.NotificationLevel))
+		rule.NotificationLevel = pointer.ToEnum[rolemanagementpolicies.NotificationLevel](data.NotificationLevel)
 	}
 
 	if pointer.From(rule.IsDefaultRecipientsEnabled) != data.DefaultRecipients {

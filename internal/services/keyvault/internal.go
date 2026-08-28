@@ -12,11 +12,11 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type deleteAndPurgeNestedItem interface {
@@ -34,7 +34,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 
 	log.Printf("[DEBUG] Deleting %s..", description)
 	if resp, err := helper.DeleteNestedItem(ctx); err != nil {
-		if utils.ResponseWasNotFound(resp) {
+		if response.WasNotFound(resp.Response) {
 			return nil
 		}
 
@@ -47,7 +47,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 		Refresh: func() (interface{}, string, error) {
 			item, err := helper.NestedItemHasBeenDeleted(ctx)
 			if err != nil {
-				if utils.ResponseWasNotFound(item) {
+				if response.WasNotFound(item.Response) {
 					return item, "NotFound", nil
 				}
 
@@ -71,7 +71,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 	}
 
 	log.Printf("[DEBUG] Purging %s..", description)
-	err := pluginsdk.Retry(time.Until(timeout), func() *pluginsdk.RetryError {
+	if err := pluginsdk.Retry(time.Until(timeout), func() *pluginsdk.RetryError {
 		_, err := helper.PurgeNestedItem(ctx)
 		if err == nil {
 			return nil
@@ -80,8 +80,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 			return pluginsdk.RetryableError(fmt.Errorf("%s is currently being deleted, retrying", description))
 		}
 		return pluginsdk.NonRetryableError(fmt.Errorf("purging of %s : %+v", description, err))
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
 
@@ -92,7 +91,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 		Refresh: func() (interface{}, string, error) {
 			item, err := helper.NestedItemHasBeenPurged(ctx)
 			if err != nil {
-				if utils.ResponseWasNotFound(item) {
+				if response.WasNotFound(item.Response) {
 					return item, "NotFound", nil
 				}
 

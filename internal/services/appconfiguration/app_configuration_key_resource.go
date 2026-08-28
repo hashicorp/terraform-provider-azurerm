@@ -13,6 +13,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores"
@@ -25,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
@@ -190,7 +190,7 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 				kv, err := client.GetKeyValue(ctx, model.Key, model.Label, "", "", "", []appconfiguration.KeyValueFields{})
 				if err != nil {
 					if v, ok := err.(autorest.DetailedError); ok {
-						if !utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
+						if !response.WasNotFound(v.Response) {
 							return fmt.Errorf("checking for presence of existing %s: %+v", nestedItemId, err)
 						}
 					} else {
@@ -297,7 +297,7 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 			kv, err := client.GetKeyValue(ctx, nestedItemId.Key, nestedItemId.Label, "", "", "", []appconfiguration.KeyValueFields{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
-					if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
+					if response.WasNotFound(v.Response) {
 						return metadata.MarkAsGone(nestedItemId)
 					}
 				} else {
@@ -321,8 +321,7 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 			} else {
 				var ref VaultKeyReference
 				refBytes := []byte(pointer.From(kv.Value))
-				err := json.Unmarshal(refBytes, &ref)
-				if err != nil {
+				if err := json.Unmarshal(refBytes, &ref); err != nil {
 					return fmt.Errorf("while unmarshalling vault reference: %+v", err)
 				}
 

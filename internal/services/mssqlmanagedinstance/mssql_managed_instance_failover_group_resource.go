@@ -61,7 +61,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) ModelObject() interface{} {
 }
 
 func (r MsSqlManagedInstanceFailoverGroupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ManagedInstanceFailoverGroupID
+	return instancefailovergroups.ValidateInstanceFailoverGroupID
 }
 
 func (r MsSqlManagedInstanceFailoverGroupResource) Arguments() map[string]*pluginsdk.Schema {
@@ -215,7 +215,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Create() sdk.ResourceFunc {
 							PartnerManagedInstanceId: pointer.To(partnerId.ID()),
 						},
 					},
-					SecondaryType: pointer.To(instancefailovergroups.SecondaryInstanceType(model.SecondaryType)),
+					SecondaryType: pointer.ToEnum[instancefailovergroups.SecondaryInstanceType](model.SecondaryType),
 				},
 			}
 
@@ -291,7 +291,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 							PartnerManagedInstanceId: pointer.To(partnerId.ID()),
 						},
 					},
-					SecondaryType: pointer.To(instancefailovergroups.SecondaryInstanceType(state.SecondaryType)),
+					SecondaryType: pointer.ToEnum[instancefailovergroups.SecondaryInstanceType](state.SecondaryType),
 				},
 			}
 
@@ -302,8 +302,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			err = client.CreateOrUpdateThenPoll(ctx, *id, parameters)
-			if err != nil {
+			if err = client.CreateOrUpdateThenPoll(ctx, *id, parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -366,13 +365,8 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 					}
 
 					for _, partnerRegion := range props.PartnerRegions {
-						var location string
-						if partnerRegion.Location != nil {
-							location = *partnerRegion.Location
-						}
-
 						model.PartnerRegion = append(model.PartnerRegion, MsSqlManagedInstancePartnerRegionModel{
-							Location: location,
+							Location: pointer.From(partnerRegion.Location),
 							Role:     string(pointer.From(partnerRegion.ReplicationRole)),
 						})
 					}
@@ -410,8 +404,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

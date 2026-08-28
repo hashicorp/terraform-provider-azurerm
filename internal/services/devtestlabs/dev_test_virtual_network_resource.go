@@ -258,16 +258,14 @@ func resourceArmDevTestVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("subnet") {
-		subnets := expandDevTestVirtualNetworkSubnets(d.Get("subnet").([]interface{}), subscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
-		payload.Properties.SubnetOverrides = subnets
+		payload.Properties.SubnetOverrides = expandDevTestVirtualNetworkSubnets(d.Get("subnet").([]interface{}), subscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
 	}
 
 	if d.HasChange("tags") {
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, *id, *payload)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -297,8 +295,7 @@ func resourceArmDevTestVirtualNetworkDelete(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
@@ -336,8 +333,8 @@ func expandDevTestVirtualNetworkSubnets(input []interface{}, subscriptionId, res
 		subnet := virtualnetworks.SubnetOverride{
 			ResourceId:                         pointer.To(subnetId.ID()),
 			LabSubnetName:                      pointer.To(name),
-			UsePublicIPAddressPermission:       pointer.To(virtualnetworks.UsagePermissionType(v["use_public_ip_address"].(string))),
-			UseInVMCreationPermission:          pointer.To(virtualnetworks.UsagePermissionType(v["use_in_virtual_machine_creation"].(string))),
+			UsePublicIPAddressPermission:       pointer.ToEnum[virtualnetworks.UsagePermissionType](v["use_public_ip_address"].(string)),
+			UseInVMCreationPermission:          pointer.ToEnum[virtualnetworks.UsagePermissionType](v["use_in_virtual_machine_creation"].(string)),
 			SharedPublicIPAddressConfiguration: expandDevTestVirtualNetworkSubnetIpAddressConfiguration(v["shared_public_ip_address"].([]interface{})),
 		}
 		results = append(results, subnet)
@@ -366,7 +363,7 @@ func expandDevTestVirtualNetworkSubnetAllowedPorts(input []interface{}) *[]virtu
 
 		allowedPort := virtualnetworks.Port{
 			BackendPort:       pointer.To(int64(v["backend_port"].(int))),
-			TransportProtocol: pointer.To(virtualnetworks.TransportProtocol(v["transport_protocol"].(string))),
+			TransportProtocol: pointer.ToEnum[virtualnetworks.TransportProtocol](v["transport_protocol"].(string)),
 		}
 		results = append(results, allowedPort)
 	}

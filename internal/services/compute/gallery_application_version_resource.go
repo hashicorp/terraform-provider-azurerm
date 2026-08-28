@@ -6,6 +6,7 @@ package compute
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -15,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -344,11 +346,7 @@ func (r GalleryApplicationVersionResource) Read() sdk.ResourceFunc {
 						state.EndOfLifeDate = d.Format(time.RFC3339)
 					}
 
-					excludeFromLatest := false
-					if props.PublishingProfile.ExcludeFromLatest != nil {
-						excludeFromLatest = *props.PublishingProfile.ExcludeFromLatest
-					}
-					state.ExcludeFromLatest = excludeFromLatest
+					state.ExcludeFromLatest = pointer.From(props.PublishingProfile.ExcludeFromLatest)
 
 					state.ConfigFile = ""
 					state.PackageFile = ""
@@ -456,32 +454,12 @@ func (r GalleryApplicationVersionResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
-			timeout, _ := ctx.Deadline()
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending: []string{"Exists"},
-				Target:  []string{"NotFound"},
-				Refresh: func() (interface{}, string, error) {
-					// Whilst the Gallery Application Version is deleted quickly, it appears it's not actually finished replicating at this time
-					// so the deletion of the parent Gallery Application fails with "can not delete until nested resources are deleted"
-					// ergo we need to poll on this for a bit, see https://github.com/Azure/azure-rest-api-specs/issues/19686
-					res, err := client.Get(ctx, *id, galleryapplicationversions.DefaultGetOperationOptions())
-					if err != nil {
-						if response.WasNotFound(res.HttpResponse) {
-							return "NotFound", "NotFound", nil
-						}
-
-						return nil, "", fmt.Errorf("polling to check if the %s has been deleted: %+v", *id, err)
-					}
-
-					return res, "Exists", nil
-				},
-				MinTimeout:                10 * time.Second,
-				ContinuousTargetOccurence: 10,
-				Timeout:                   time.Until(timeout),
-			}
-
-			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for %s to be deleted: %+v", *id, err)
+			poller := custompollers.NewEventualConsistencyPoller(10, func(pollerCtx context.Context) (*http.Response, error) {
+				resp, err := client.Get(pollerCtx, *id, galleryapplicationversions.DefaultGetOperationOptions())
+				return resp.HttpResponse, err
+			}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("polling for deletion of %s: %+v", id, err)
 			}
 
 			return nil
@@ -565,7 +543,7 @@ func expandGalleryApplicationVersionTargetRegion(input []TargetRegion) *[]galler
 		targetRegion := galleryapplicationversions.TargetRegion{
 			Name:                 location.Normalize(item.Name),
 			RegionalReplicaCount: pointer.To(item.RegionalReplicaCount),
-			StorageAccountType:   pointer.To(galleryapplicationversions.StorageAccountType(item.StorageAccountType)),
+			StorageAccountType:   pointer.ToEnum[galleryapplicationversions.StorageAccountType](item.StorageAccountType),
 		}
 
 		if item.ExcludeFromLatest {

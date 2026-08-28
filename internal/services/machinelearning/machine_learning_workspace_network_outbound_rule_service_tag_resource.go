@@ -44,7 +44,7 @@ func (r WorkspaceNetworkOutboundRuleServiceTag) IDValidationFunc() pluginsdk.Sch
 }
 
 func (r WorkspaceNetworkOutboundRuleServiceTag) Arguments() map[string]*pluginsdk.Schema {
-	arguments := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -154,7 +154,6 @@ func (r WorkspaceNetworkOutboundRuleServiceTag) Arguments() map[string]*pluginsd
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
-	return arguments
 }
 
 func (r WorkspaceNetworkOutboundRuleServiceTag) Attributes() map[string]*pluginsdk.Schema {

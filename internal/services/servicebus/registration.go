@@ -51,7 +51,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	resources := map[string]*pluginsdk.Resource{
+	return map[string]*pluginsdk.Resource{
 		"azurerm_servicebus_namespace":                          resourceServiceBusNamespace(),
 		"azurerm_servicebus_namespace_disaster_recovery_config": resourceServiceBusNamespaceDisasterRecoveryConfig(),
 		"azurerm_servicebus_namespace_authorization_rule":       resourceServiceBusNamespaceAuthorizationRule(),
@@ -62,8 +62,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_servicebus_topic_authorization_rule":           resourceServiceBusTopicAuthorizationRule(),
 		"azurerm_servicebus_topic":                              resourceServiceBusTopic(),
 	}
-
-	return resources
 }
 
 // DataSources returns the typed DataSources supported by this service
