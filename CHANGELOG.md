@@ -1,6 +1,7 @@
 ## 5.7.0 (Unreleased)
 
 ENHANCEMENTS:
+* Data Source: `azurerm_private_link_service` - export attributes `fqdns` and `destination_ip_address` [GH-33191]
 
 FEATURES:
 
