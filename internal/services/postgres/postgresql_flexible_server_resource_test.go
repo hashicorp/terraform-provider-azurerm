@@ -416,6 +416,32 @@ func TestAccPostgresqlFlexibleServer_replica(t *testing.T) {
 	})
 }
 
+func TestAccPostgresqlFlexibleServer_replicaWithCluster(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+
+	t.Skip("skipping as elastic cluster support requires a subscription with cluster feature enabled and is region-restricted")
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cluster(data, 2),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			PreConfig: func() { time.Sleep(15 * time.Minute) },
+			Config:    r.replicaWithCluster(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_postgresql_flexible_server.replica").ExistsInAzure(r),
+			),
+			ExpectNonEmptyPlan: false,
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+	})
+}
+
 func TestAccPostgresqlFlexibleServer_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
@@ -1492,6 +1518,21 @@ resource "azurerm_postgresql_flexible_server" "replica" {
   source_server_id    = azurerm_postgresql_flexible_server.test.id
 }
 `, r.basic(data), data.RandomInteger)
+}
+
+func (r PostgresqlFlexibleServerResource) replicaWithCluster(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server" "replica" {
+  name                = "acctest-fs-replica-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  zone                = "2"
+  create_mode         = "Replica"
+  source_server_id    = azurerm_postgresql_flexible_server.test.id
+}
+`, r.cluster(data, 2), data.RandomInteger)
 }
 
 func (r PostgresqlFlexibleServerResource) updateReplicationRole(data acceptance.TestData) string {
