@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskaccesses"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetvms"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetvms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -29,7 +29,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_machine_scale_set_managed_disk -service-package-name compute -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name "empty"
+//go:generate go run ../../tools/generator-tests resourceidentity -test-name "empty"
 
 type VirtualMachineScaleSetManagedDiskResource struct{}
 
@@ -249,7 +249,7 @@ func (r VirtualMachineScaleSetManagedDiskResource) Arguments() map[string]*plugi
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
-			//       https://github.com/Azure/azure-rest-api-specs/issues/14192
+			//    https://github.com/Azure/azure-rest-api-specs/issues/14192
 			DiffSuppressFunc: suppress.CaseDifference,
 			ValidateFunc:     diskaccesses.ValidateDiskAccessID,
 		},
@@ -258,7 +258,7 @@ func (r VirtualMachineScaleSetManagedDiskResource) Arguments() map[string]*plugi
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
-			//       https://github.com/Azure/azure-rest-api-specs/issues/8132
+			//    https://github.com/Azure/azure-rest-api-specs/issues/8132
 			DiffSuppressFunc: suppress.CaseDifference,
 			ValidateFunc:     validate.DiskEncryptionSetID,
 			ConflictsWith:    []string{"secure_vm_disk_encryption_set_id"},
@@ -301,7 +301,7 @@ func (r VirtualMachineScaleSetManagedDiskResource) Arguments() map[string]*plugi
 			Optional: true,
 			// NOTE: O+C when the disk is created from a source (`Copy`, `Restore`, `FromImage` or `Import`) the size is inherited from that source, so Azure computes this when it is omitted
 			Computed:     true,
-			ValidateFunc: validate.ManagedDiskSizeGB,
+			ValidateFunc: validation.IntBetween(0, 65536),
 		},
 
 		"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
