@@ -301,9 +301,6 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForWindowsVMGuestPatchMode(), false),
-				ConflictsWith: []string{
-					"os_managed_disk_id",
-				},
 			},
 
 			"patch_assessment_mode": {
@@ -311,9 +308,6 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForWindowsPatchAssessmentMode(), false),
-				ConflictsWith: []string{
-					"os_managed_disk_id",
-				},
 			},
 
 			"hotpatching_enabled": {
@@ -876,6 +870,35 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	d.SetId(id.ID())
+
+	if osDiskIsImported {
+		patchSettings := virtualmachines.PatchSettings{}
+		shouldUpdatePatchSettings := false
+		if !d.GetRawConfig().AsValueMap()["patch_mode"].IsNull() {
+			patchSettings.PatchMode = pointer.ToEnum[virtualmachines.WindowsVMGuestPatchMode](patchMode)
+			shouldUpdatePatchSettings = true
+		}
+		if !d.GetRawConfig().AsValueMap()["patch_assessment_mode"].IsNull() {
+			patchSettings.AssessmentMode = pointer.ToEnum[virtualmachines.WindowsPatchAssessmentMode](assessmentMode)
+			shouldUpdatePatchSettings = true
+		}
+
+		if shouldUpdatePatchSettings {
+			update := virtualmachines.VirtualMachineUpdate{
+				Properties: &virtualmachines.VirtualMachineProperties{
+					OsProfile: &virtualmachines.OSProfile{
+						WindowsConfiguration: &virtualmachines.WindowsConfiguration{
+							PatchSettings: &patchSettings,
+						},
+					},
+				},
+			}
+			if err := client.UpdateThenPoll(ctx, id, update, virtualmachines.DefaultUpdateOperationOptions()); err != nil {
+				return fmt.Errorf("updating patch settings for Windows %s: %+v", id, err)
+			}
+		}
+	}
+
 	return resourceWindowsVirtualMachineRead(d, meta)
 }
 
