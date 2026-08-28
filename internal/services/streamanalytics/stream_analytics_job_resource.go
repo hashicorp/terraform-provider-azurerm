@@ -188,10 +188,13 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 			},
 
 			"sku_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      string(streamingjobs.SkuNameStandard),
-				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForSkuName(), false),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(streamingjobs.SkuNameStandard),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(streamingjobs.SkuNameStandard),
+					"StandardV2", // missing from swagger as described here https://github.com/Azure/azure-rest-api-specs/issues/27506
+				}, false),
 			},
 
 			"tags": commonschema.Tags(),
