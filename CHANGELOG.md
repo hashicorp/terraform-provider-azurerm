@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 FEATURES:
+* New List Resource: azurerm_availability_set [GH-33241]
 
 BUG FIXES:
 
