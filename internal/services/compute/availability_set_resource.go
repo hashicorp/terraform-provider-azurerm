@@ -183,10 +183,14 @@ func resourceAvailabilitySetRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourceAvailabilitySetFlatten(d, id, resp.Model)
+}
+
+func resourceAvailabilitySetFlatten(d *pluginsdk.ResourceData, id *commonids.AvailabilitySetId, model *availabilitysets.AvailabilitySet) error {
 	d.Set("name", id.AvailabilitySetName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 		managed := false
 		if model.Sku != nil && model.Sku.Name != nil {
