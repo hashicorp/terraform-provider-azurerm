@@ -283,53 +283,62 @@ func (r ApplicationInsightsWorkbookResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state := ApplicationInsightsWorkbookModel{
-				Name:              id.WorkbookName,
-				ResourceGroupName: id.ResourceGroupName,
-				Location:          location.Normalize(model.Location),
-			}
-
-			identityValue, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
-			if err != nil {
-				return fmt.Errorf("flattening `identity`: %+v", err)
-			}
-
-			if err := metadata.ResourceData.Set("identity", identityValue); err != nil {
-				return fmt.Errorf("setting `identity`: %+v", err)
-			}
-
-			if properties := model.Properties; properties != nil {
-				state.Category = properties.Category
-
-				if properties.Description != nil {
-					state.Description = *properties.Description
-				}
-
-				state.DisplayName = properties.DisplayName
-
-				state.DataJson = properties.SerializedData
-
-				if properties.SourceId != nil {
-					state.SourceId = *properties.SourceId
-				}
-
-				if properties.StorageUri != nil {
-					state.StorageContainerId = *properties.StorageUri
-				}
-			}
-
-			if model.Tags != nil {
-				// The backend returns a tags with key `hidden-title` by default. Since it has the same value with `display_name` and will cause inconsistency with user's configuration, remove it as a workaround.
-				delete(*model.Tags, "hidden-title")
-				state.Tags = *model.Tags
-			}
-
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-				return err
-			}
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r ApplicationInsightsWorkbookResource) flatten(metadata sdk.ResourceMetaData, id *workbooks.WorkbookId, model *workbooks.Workbook) error {
+	state := ApplicationInsightsWorkbookModel{
+		Name:              id.WorkbookName,
+		ResourceGroupName: id.ResourceGroupName,
+		Location:          location.Normalize(model.Location),
+	}
+
+	identityValue, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+
+	if err := metadata.ResourceData.Set("identity", identityValue); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
+	if properties := model.Properties; properties != nil {
+		state.Category = properties.Category
+
+		if properties.Description != nil {
+			state.Description = *properties.Description
+		}
+
+		state.DisplayName = properties.DisplayName
+
+		state.DataJson = properties.SerializedData
+
+		if properties.SourceId != nil {
+			state.SourceId = *properties.SourceId
+		}
+
+		if properties.StorageUri != nil {
+			state.StorageContainerId = *properties.StorageUri
+		}
+	}
+
+	if model.Tags != nil {
+		// The backend returns a tags with key `hidden-title` by default. Since it has the same value with `display_name` and will cause inconsistency with user's configuration, remove it as a workaround.
+		delete(*model.Tags, "hidden-title")
+		state.Tags = *model.Tags
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r ApplicationInsightsWorkbookResource) Delete() sdk.ResourceFunc {
