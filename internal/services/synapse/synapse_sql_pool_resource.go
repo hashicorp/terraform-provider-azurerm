@@ -97,13 +97,10 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 			},
 
 			"storage_account_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(synapse.StorageAccountTypeLRS),
-					string(synapse.StorageAccountTypeGRS),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(synapse.PossibleStorageAccountTypeValues())), false),
 			},
 
 			"create_mode": {

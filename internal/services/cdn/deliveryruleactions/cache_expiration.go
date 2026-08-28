@@ -17,13 +17,9 @@ func CacheExpiration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"behavior": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.CacheBehaviorBypassCache),
-					string(cdn.CacheBehaviorOverride),
-					string(cdn.CacheBehaviorSetIfMissing),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(cdn.PossibleCacheBehaviorValues())), false),
 			},
 
 			"duration": {

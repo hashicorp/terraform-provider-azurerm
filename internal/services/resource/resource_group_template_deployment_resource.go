@@ -58,12 +58,9 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"deployment_mode": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(resources.DeploymentModeComplete),
-					string(resources.DeploymentModeIncremental),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(resources.PossibleDeploymentModeValues())), false),
 			},
 
 			"template_content": {

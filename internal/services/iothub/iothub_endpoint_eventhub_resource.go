@@ -74,13 +74,10 @@ func resourceIothubEndpointEventHubSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"authentication_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(devices.AuthenticationTypeKeyBased),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(devices.AuthenticationTypeKeyBased),
-				string(devices.AuthenticationTypeIdentityBased),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(devices.AuthenticationTypeKeyBased),
+			ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(devices.PossibleAuthenticationTypeValues())), false),
 		},
 
 		"identity_id": {

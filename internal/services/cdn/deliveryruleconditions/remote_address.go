@@ -17,13 +17,9 @@ func RemoteAddress() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"operator": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.RemoteAddressOperatorAny),
-					string(cdn.RemoteAddressOperatorGeoMatch),
-					string(cdn.RemoteAddressOperatorIPMatch),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(cdn.PossibleRemoteAddressOperatorValues())), false),
 			},
 
 			"negate_condition": {

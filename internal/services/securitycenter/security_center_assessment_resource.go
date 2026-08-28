@@ -63,13 +63,9 @@ func resourceSecurityCenterAssessment() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"code": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(security.Healthy),
-								string(security.NotApplicable),
-								string(security.Unhealthy),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(security.PossibleAssessmentStatusCodeValues())), false),
 						},
 
 						"cause": {

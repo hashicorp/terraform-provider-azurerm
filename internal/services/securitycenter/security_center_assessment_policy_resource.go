@@ -54,14 +54,10 @@ func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
 			},
 
 			"severity": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(security.SeverityMedium),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(security.SeverityLow),
-					string(security.SeverityMedium),
-					string(security.SeverityHigh),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(security.SeverityMedium),
+				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(security.PossibleSeverityValues())), false),
 			},
 
 			// API would return `Unknown` when `categories` isn't set.
@@ -85,13 +81,9 @@ func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
 			},
 
 			"implementation_effort": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(security.ImplementationEffortLow),
-					string(security.ImplementationEffortModerate),
-					string(security.ImplementationEffortHigh),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(security.PossibleImplementationEffortValues())), false),
 			},
 
 			"remediation_description": {
@@ -119,13 +111,9 @@ func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
 			},
 
 			"user_impact": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(security.UserImpactLow),
-					string(security.UserImpactModerate),
-					string(security.UserImpactHigh),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(security.PossibleUserImpactValues())), false),
 			},
 
 			"name": {

@@ -310,15 +310,10 @@ func resourceArmPolicyDefinitionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"policy_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(policy.TypeBuiltIn),
-				string(policy.TypeCustom),
-				string(policy.TypeNotSpecified),
-				string(policy.TypeStatic),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(policy.PossibleTypeValues())), false),
 		},
 
 		"mode": {

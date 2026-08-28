@@ -72,20 +72,14 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"certificate_type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cdn.CertificateTypeShared),
-								string(cdn.CertificateTypeDedicated),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(cdn.PossibleCertificateTypeValues())), false),
 						},
 						"protocol_type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cdn.ProtocolTypeServerNameIndication),
-								string(cdn.ProtocolTypeIPBased),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(pointer.FromEnumSlice(pointer.To(cdn.PossibleProtocolTypeValues())), false),
 						},
 						"tls_version": {
 							Type:     pluginsdk.TypeString,
