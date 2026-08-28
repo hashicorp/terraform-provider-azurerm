@@ -32,14 +32,44 @@ func TestAccLinuxVirtualMachineScaleSet_scalingCapacityReservationGroupId(t *tes
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
-			Config: r.scalingCapacityReservationGroupId(data),
+			Config: r.scalingCapacityReservationGroupId(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
+		{
+			Config: r.scalingCapacityReservationGroupId(data, "azurerm_capacity_reservation_group.test.id"),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config:   r.scalingCapacityReservationGroupId(data, "azurerm_capacity_reservation_group.test2.id"),
+			PlanOnly: true,
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+		},
+		{
+			Config:   r.scalingCapacityReservationGroupId(data, ""),
+			PlanOnly: true,
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+		},
 	})
 }
 
@@ -47,7 +77,7 @@ func TestAccLinuxVirtualMachineScaleSet_scalingCapacityReservationGroupIdZonal(t
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.scalingCapacityReservationGroupIdZonal(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -67,6 +97,24 @@ func TestAccLinuxVirtualMachineScaleSet_scalingCapacityReservationGroupIdZonal(t
 			),
 		},
 		data.ImportStep("admin_password"),
+		{
+			Config:   r.scalingCapacityReservationGroupIdZonal(data, "azurerm_capacity_reservation_group.test2.id"),
+			PlanOnly: true,
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+		},
+		{
+			Config:   r.scalingCapacityReservationGroupIdZonal(data, ""),
+			PlanOnly: true,
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+		},
 	})
 }
 
@@ -415,7 +463,12 @@ resource "azurerm_monitor_autoscale_setting" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) scalingCapacityReservationGroupId(data acceptance.TestData) string {
+func (r LinuxVirtualMachineScaleSetResource) scalingCapacityReservationGroupId(data acceptance.TestData, crgId string) string {
+	crgText := ""
+	if crgId != "" {
+		crgText = fmt.Sprintf("capacity_reservation_group_id = %s", crgId)
+	}
+
 	return fmt.Sprintf(`
 %[1]s
 
@@ -434,20 +487,34 @@ resource "azurerm_capacity_reservation" "test" {
   }
 }
 
-resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%[2]d"
+resource "azurerm_capacity_reservation_group" "test2" {
+  name                = "acctest-ccrg2-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
+}
 
+resource "azurerm_capacity_reservation" "test2" {
+  name                          = "acctest-ccr2-%[2]d"
+  capacity_reservation_group_id = azurerm_capacity_reservation_group.test2.id
+  sku {
+    name     = "Standard_F2"
+    capacity = 1
+  }
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                            = "acctestvmss-%[2]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  sku                             = "Standard_F2"
+  instances                       = 1
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssword1234!"
   disable_password_authentication = false
+  single_placement_group          = false
+  platform_fault_domain_count     = 3
 
-  single_placement_group        = false
-  platform_fault_domain_count   = 3
-  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
+  %[3]s
 
   source_image_reference {
     publisher = "Canonical"
@@ -474,15 +541,16 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   depends_on = [
     azurerm_capacity_reservation.test,
+    azurerm_capacity_reservation.test2,
   ]
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, crgText)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) scalingCapacityReservationGroupIdZonal(data acceptance.TestData, crg string) string {
 	crgText := ""
 	if crg != "" {
-		crgText = fmt.Sprintf("capacity_reservation_group_id = %s", crg)
+		crgText = fmt.Sprintf("capacity_reservation_group_id = %s\n  single_placement_group = false", crg)
 	}
 	return fmt.Sprintf(`
 %[1]s
@@ -504,6 +572,23 @@ resource "azurerm_capacity_reservation" "test" {
   zone = "3"
 }
 
+resource "azurerm_capacity_reservation_group" "test2" {
+  name                = "acctest-ccrg2-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  zones               = ["3"]
+}
+
+resource "azurerm_capacity_reservation" "test2" {
+  name                          = "acctest-ccr2-%[2]d"
+  capacity_reservation_group_id = azurerm_capacity_reservation_group.test2.id
+  sku {
+    name     = "Standard_D2s_v3"
+    capacity = 1
+  }
+  zone = "3"
+}
+
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                            = "acctestvmss-%[2]d"
   resource_group_name             = azurerm_resource_group.test.name
@@ -514,10 +599,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   admin_password                  = "P@ssword1234!"
   zones                           = ["3"]
   disable_password_authentication = false
+  platform_fault_domain_count     = 1
 
-  single_placement_group      = false
-  platform_fault_domain_count = 1
-%[3]s
+  %[3]s
+
   source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
@@ -543,6 +628,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   depends_on = [
     azurerm_capacity_reservation.test,
+    azurerm_capacity_reservation.test2,
   ]
 }
 `, r.template(data), data.RandomInteger, crgText)

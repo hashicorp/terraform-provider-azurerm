@@ -788,10 +788,14 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 			}
 			// capacityReservation is not exposed on the PATCH update model, so it can only be set via PUT, which preserves the write-only values omitted from the GET model
 			existing.Model.Properties.VirtualMachineProfile.CapacityReservation = capacityReservation
+
+			// singlePlacementGroup must be false before the API will accept a capacity reservation, and this
+			// PUT runs ahead of the PATCH in performUpdate that would otherwise carry the change
+			existing.Model.Properties.SinglePlacementGroup = pointer.To(d.Get("single_placement_group").(bool))
 		}
 
 		if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
-			return fmt.Errorf("identity / capacity reservation group for Linux %s: %+v", id, err)
+			return fmt.Errorf("updating identity / capacity reservation group for Linux %s: %+v", id, err)
 		}
 	}
 

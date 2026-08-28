@@ -722,10 +722,15 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
 			capacityReservation.CapacityReservationGroup.Id = pointer.To(v.(string))
 		}
-		existing.Model.Properties.VirtualMachineProfile.CapacityReservation = capacityReservation
 		// capacityReservation is not exposed on the PATCH update model, so it can only be set via PUT, which preserves the write-only values omitted from the GET model
+		existing.Model.Properties.VirtualMachineProfile.CapacityReservation = capacityReservation
+
+		// singlePlacementGroup must be false before the API will accept a capacity reservation, and this
+		// PUT runs ahead of the PATCH in performUpdate that would otherwise carry the change
+		existing.Model.Properties.SinglePlacementGroup = pointer.To(d.Get("single_placement_group").(bool))
+
 		if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
-			return fmt.Errorf("updating Windows %s: %+v", id, err)
+			return fmt.Errorf("updating capacity reservation group for Windows %s: %+v", id, err)
 		}
 	}
 
