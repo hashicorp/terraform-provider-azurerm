@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2025-09-01/users` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2026-06-01/users` Documentation
 
-The `users` SDK allows for interaction with Azure Resource Manager `mongocluster` (API Version `2025-09-01`).
+The `users` SDK allows for interaction with Azure Resource Manager `mongocluster` (API Version `2026-06-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2025-09-01/users"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2026-06-01/users"
 ```
 
 
