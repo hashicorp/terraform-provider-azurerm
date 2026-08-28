@@ -168,13 +168,10 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"default_action": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  registries.DefaultActionAllow,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(registries.DefaultActionAllow),
-								string(registries.DefaultActionDeny),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      registries.DefaultActionAllow,
+							ValidateFunc: validation.StringInSlice(registries.PossibleValuesForDefaultAction(), false),
 						},
 
 						"ip_rule": {
@@ -185,11 +182,9 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"action": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(registries.ActionAllow),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(registries.PossibleValuesForAction(), false),
 									},
 									"ip_range": {
 										Type:         pluginsdk.TypeString,
@@ -252,13 +247,10 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			},
 
 			"network_rule_bypass_option": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(registries.NetworkRuleBypassOptionsAzureServices),
-					string(registries.NetworkRuleBypassOptionsNone),
-				}, false),
-				Default: string(registries.NetworkRuleBypassOptionsAzureServices),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(registries.PossibleValuesForNetworkRuleBypassOptions(), false),
+				Default:      string(registries.NetworkRuleBypassOptionsAzureServices),
 			},
 
 			"network_rule_bypass_for_tasks_enabled": {

@@ -92,12 +92,10 @@ func (r EventGridNamespaceResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validate.CIDR,
 					},
 					"action": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(namespaces.IPActionTypeAllow),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(namespaces.IPActionTypeAllow),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(namespaces.IPActionTypeAllow),
+						ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForIPActionType(), false),
 					},
 				},
 			},

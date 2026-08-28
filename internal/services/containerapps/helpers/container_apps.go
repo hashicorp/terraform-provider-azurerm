@@ -275,14 +275,10 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 				},
 
 				"client_certificate_mode": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(containerapps.IngressClientCertificateModeAccept),
-						string(containerapps.IngressClientCertificateModeRequire),
-						string(containerapps.IngressClientCertificateModeIgnore),
-					}, false),
-					Description: "Client certificate mode for mTLS authentication. Ignore indicates server drops client certificate on forwarding. Accept indicates server forwards client certificate but does not require a client certificate. Require indicates server requires a client certificate.",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForIngressClientCertificateMode(), false),
+					Description:  "Client certificate mode for mTLS authentication. Ignore indicates server drops client certificate on forwarding. Accept indicates server forwards client certificate but does not require a client certificate. Require indicates server requires a client certificate.",
 				},
 			},
 		},
@@ -840,14 +836,11 @@ func ContainerDaprSchema() *pluginsdk.Schema {
 				},
 
 				"app_protocol": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(containerapps.AppProtocolHTTP),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(containerapps.AppProtocolHTTP),
-						string(containerapps.AppProtocolGrpc),
-					}, false),
-					Description: "The protocol for the app. Possible values include `http` and `grpc`. Defaults to `http`.",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(containerapps.AppProtocolHTTP),
+					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForAppProtocol(), false),
+					Description:  "The protocol for the app. Possible values include `http` and `grpc`. Defaults to `http`.",
 				},
 			},
 		},

@@ -73,13 +73,9 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(namespaces.SkuNameBasic),
-					string(namespaces.SkuNameStandard),
-					string(namespaces.SkuNamePremium),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForSkuName(), false),
 			},
 
 			"capacity": {
@@ -118,12 +114,9 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"default_action": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(networkrulesets.DefaultActionAllow),
-								string(networkrulesets.DefaultActionDeny),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(networkrulesets.PossibleValuesForDefaultAction(), false),
 						},
 
 						"public_network_access_enabled": {
@@ -175,12 +168,10 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 									},
 
 									"action": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										Default:  string(networkrulesets.NetworkRuleIPActionAllow),
-										ValidateFunc: validation.StringInSlice([]string{
-											string(networkrulesets.NetworkRuleIPActionAllow),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Default:      string(networkrulesets.NetworkRuleIPActionAllow),
+										ValidateFunc: validation.StringInSlice(networkrulesets.PossibleValuesForNetworkRuleIPAction(), false),
 									},
 								},
 							},
