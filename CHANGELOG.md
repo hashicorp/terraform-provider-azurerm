@@ -1,6 +1,9 @@
 ## 5.4.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `azurerm_mongo_cluster` - update API version to `2026-06-01` [GH-33195]
+* dependencies: `azurerm_mongo_cluster_firewall_rule` - update API version to `2026-06-01` [GH-33195]
+* dependencies: `azurerm_mongo_cluster_user` - update API version to `2026-06-01` [GH-33195]
 * `azurerm_postgresql_flexible_server` - add new arguments `storage_type`, `storage_iops`, and `storage_throughput` which allows choice of the new "Premium V2 LRS" storage type [GH-32121]
 
 FEATURES:
