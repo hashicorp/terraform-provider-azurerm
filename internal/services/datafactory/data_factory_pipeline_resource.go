@@ -13,13 +13,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/pipelines"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDataFactoryPipeline() *pluginsdk.Resource {
@@ -80,7 +80,7 @@ func resourceDataFactoryPipeline() *pluginsdk.Resource {
 			"activities_json": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				StateFunc:        utils.NormalizeJson,
+				StateFunc:        helpers.NormalizeJson,
 				DiffSuppressFunc: suppressJsonOrderingDifference,
 			},
 
@@ -104,9 +104,10 @@ func resourceDataFactoryPipeline() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"moniter_metrics_after_duration": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+			"monitor_metrics_after_duration": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 	}
@@ -126,15 +127,17 @@ func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	id := pipelines.NewPipelineID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, pipelines.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id, pipelines.DefaultGetOperationOptions())
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_data_factory_pipeline", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_data_factory_pipeline", id.ID())
+			}
 		}
 	}
 
@@ -187,7 +190,7 @@ func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta int
 		payload.Properties.Concurrency = pointer.To(int64(v.(int)))
 	}
 
-	if v, ok := d.GetOk("moniter_metrics_after_duration"); ok {
+	if v, ok := d.GetOk("monitor_metrics_after_duration"); ok {
 		payload.Properties.Policy = &pipelines.PipelinePolicy{
 			ElapsedTimeMetric: &pipelines.PipelineElapsedTimeMetricPolicy{
 				Duration: pointer.To(v),
@@ -258,7 +261,8 @@ func resourceDataFactoryPipelineRead(d *pluginsdk.ResourceData, meta interface{}
 				elapsedTimeMetricDuration = v
 			}
 		}
-		d.Set("moniter_metrics_after_duration", elapsedTimeMetricDuration)
+
+		d.Set("monitor_metrics_after_duration", elapsedTimeMetricDuration)
 
 		if folder := props.Folder; folder != nil {
 			d.Set("folder", pointer.From(folder.Name))

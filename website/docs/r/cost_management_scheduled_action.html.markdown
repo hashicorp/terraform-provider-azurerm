@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `email_addresses` - (Required) Specifies a list of email addresses that will receive the Scheduled Action.
 
-* `email_subject` - (Required) Subject of the email. Length is limited to 70 characters.
+* `email_subject` - (Required) Subject of the email. Length is limited to 50 characters.
 
 * `end_date` - (Required) The end date and time of the Scheduled Action (UTC).
 

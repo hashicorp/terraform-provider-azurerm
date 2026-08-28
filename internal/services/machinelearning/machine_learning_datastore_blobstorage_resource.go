@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
+	storageAccountHelper "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -159,14 +160,16 @@ func (r MachineLearningDataStoreBlobStorage) Create() sdk.ResourceFunc {
 
 			id := datastore.NewDataStoreID(subscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_machine_learning_datastore_blobstorage", id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError("azurerm_machine_learning_datastore_blobstorage", id.ID())
+				}
 			}
 
 			containerId, err := commonids.ParseStorageContainerID(model.StorageContainerID)
@@ -184,7 +187,7 @@ func (r MachineLearningDataStoreBlobStorage) Create() sdk.ResourceFunc {
 				Endpoint:                      pointer.To(metadata.Client.Storage.StorageDomainSuffix),
 				ContainerName:                 pointer.To(containerId.ContainerName),
 				Description:                   pointer.To(model.Description),
-				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataAuthIdentity)),
+				ServiceDataAccessAuthIdentity: pointer.ToEnum[datastore.ServiceDataAccessAuthIdentity](model.ServiceDataAuthIdentity),
 				IsDefault:                     pointer.To(model.IsDefault),
 				Tags:                          pointer.To(model.Tags),
 			}
@@ -260,7 +263,7 @@ func (r MachineLearningDataStoreBlobStorage) Update() sdk.ResourceFunc {
 				AccountName:                   pointer.To(containerId.StorageAccountName),
 				ContainerName:                 pointer.To(containerId.ContainerName),
 				Description:                   pointer.To(state.Description),
-				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(state.ServiceDataAuthIdentity)),
+				ServiceDataAccessAuthIdentity: pointer.ToEnum[datastore.ServiceDataAccessAuthIdentity](state.ServiceDataAuthIdentity),
 				IsDefault:                     pointer.To(state.IsDefault),
 				Tags:                          pointer.To(state.Tags),
 			}
@@ -338,10 +341,24 @@ func (r MachineLearningDataStoreBlobStorage) Read() sdk.ResourceFunc {
 			}
 			model.ServiceDataAuthIdentity = serviceDataAuth
 
-			storageAccount, err := storageClient.FindAccount(ctx, subscriptionId, *data.AccountName)
-			if err != nil {
-				return fmt.Errorf("retrieving Account %q for Container %q: %s", *data.AccountName, *data.ContainerName, err)
+			var storageAccount *storageAccountHelper.AccountDetails
+			if containerIdRaw := metadata.ResourceData.Get("storage_container_id").(string); containerIdRaw != "" {
+				containerId, err := commonids.ParseStorageContainerID(containerIdRaw)
+				if err != nil {
+					return err
+				}
+				storageAccount, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
+				if err != nil {
+					return fmt.Errorf("retrieving Account %q for Container %q: %s", *data.AccountName, *data.ContainerName, err)
+				}
+			} else {
+				// In the case of import, we cannot rely on having a value for `storage_container_id` so we need to fallback on listing the accounts to search.
+				storageAccount, err = storageClient.FindAccount(ctx, subscriptionId, *data.AccountName)
+				if err != nil {
+					return fmt.Errorf("retrieving Account %q for Container %q: %s", *data.AccountName, *data.ContainerName, err)
+				}
 			}
+
 			if storageAccount == nil {
 				return fmt.Errorf("unable to locate Storage Account %q", *data.AccountName)
 			}
@@ -362,11 +379,7 @@ func (r MachineLearningDataStoreBlobStorage) Read() sdk.ResourceFunc {
 				}
 			}
 
-			desc := ""
-			if v := data.Description; v != nil {
-				desc = *v
-			}
-			model.Description = desc
+			model.Description = pointer.From(data.Description)
 
 			if data.Tags != nil {
 				model.Tags = *data.Tags

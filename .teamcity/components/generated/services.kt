@@ -94,7 +94,6 @@ var services = mapOf(
         "nginx" to "Nginx",
         "notificationhub" to "Notification Hub",
         "oracle" to "Oracle",
-        "orbital" to "Orbital",
         "paloalto" to "Palo Alto",
         "policy" to "Policy",
         "portal" to "Portal",
@@ -107,7 +106,6 @@ var services = mapOf(
         "recoveryservices" to "Recovery Services",
         "redhatopenshift" to "Red Hat OpenShift",
         "redis" to "Redis",
-        "redisenterprise" to "Redis Enterprise",
         "relay" to "Relay",
         "resource" to "Resources",
         "search" to "Search",
@@ -131,7 +129,6 @@ var services = mapOf(
         "codesigning" to "Trusted Signing",
         "vmware" to "VMware",
         "videoindexer" to "VideoIndexer",
-        "voiceservices" to "Voice Services",
         "web" to "Web",
         "workloads" to "Workloads"
 )

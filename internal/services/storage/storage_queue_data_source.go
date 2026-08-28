@@ -7,14 +7,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/storagequeues"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storagequeues"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
@@ -22,7 +18,7 @@ import (
 )
 
 func dataSourceStorageQueue() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceStorageQueueRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -49,94 +45,14 @@ func dataSourceStorageQueue() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["storage_account_name"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validate.StorageAccountName,
-			ExactlyOneOf: []string{"storage_account_id", "storage_account_name"},
-			Deprecated:   "the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider.",
-		}
-
-		r.Schema["storage_account_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: commonids.ValidateStorageAccountID,
-			ExactlyOneOf: []string{"storage_account_id", "storage_account_name"},
-		}
-
-		r.Schema["resource_manager_id"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "the `resource_manager_id` property has been deprecated in favour of `id` and will be removed in version 5.0 of the Provider.",
-		}
-	}
-
-	return r
 }
 
 func dataSourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	queueClient := meta.(*clients.Client).Storage.ResourceManager.StorageQueues
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	queueName := d.Get("name").(string)
-
-	if !features.FivePointOh() {
-		if accountName := d.Get("storage_account_name").(string); accountName != "" {
-			storageClient := meta.(*clients.Client).Storage
-			account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
-			if err != nil {
-				return fmt.Errorf("retrieving Storage Account %q for Queue %q: %v", accountName, queueName, err)
-			}
-			if account == nil {
-				return fmt.Errorf("locating Storage Account %q for Queue %q", accountName, queueName)
-			}
-
-			queuesDataPlaneClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-			if err != nil {
-				return fmt.Errorf("building Queues Client: %v", err)
-			}
-
-			// Determine the queue endpoint, so we can build a data plane ID
-			endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeQueue)
-			if err != nil {
-				return fmt.Errorf("determining Queue endpoint: %v", err)
-			}
-
-			// Parse the queue endpoint as a data plane account ID
-			accountId, err := accounts.ParseAccountID(pointer.From(endpoint), storageClient.StorageDomainSuffix)
-			if err != nil {
-				return err
-			}
-
-			id := queues.NewQueueID(*accountId, queueName)
-
-			props, err := queuesDataPlaneClient.Get(ctx, queueName)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %v", id, err)
-			}
-
-			d.SetId(id.ID())
-
-			d.Set("name", queueName)
-			d.Set("storage_account_name", accountName)
-
-			if props != nil {
-				if err = d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
-					return fmt.Errorf("setting `metadata`: %v", err)
-				}
-			}
-
-			resourceManagerId := parse.NewStorageQueueResourceManagerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, account.StorageAccountId.StorageAccountName, "default", queueName)
-			d.Set("resource_manager_id", resourceManagerId.ID())
-			d.Set("url", id.ID())
-
-			return nil
-		}
-	}
 
 	accountId, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
@@ -177,10 +93,6 @@ func dataSourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("parsing Account ID: %v", err)
 	}
 	d.Set("url", queues.NewQueueID(*accountDpId, id.QueueName).ID())
-
-	if !features.FivePointOh() {
-		d.Set("resource_manager_id", id.ID())
-	}
 
 	d.SetId(id.ID())
 

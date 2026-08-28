@@ -10,13 +10,16 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/deployments"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/cognitiveservicesaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/deployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "subscription_id:cognitive_account_id,resource_group_name:cognitive_account_id,account_name:cognitive_account_id" -test-expect-non-empty
 
 type cognitiveDeploymentModel struct {
 	Name                     string                 `tfschema:"name"`
@@ -44,7 +47,14 @@ type DeploymentSkuModel struct {
 
 type CognitiveDeploymentResource struct{}
 
-var _ sdk.Resource = CognitiveDeploymentResource{}
+var (
+	_ sdk.Resource             = CognitiveDeploymentResource{}
+	_ sdk.ResourceWithIdentity = CognitiveDeploymentResource{}
+)
+
+func (r CognitiveDeploymentResource) Identity() resourceids.ResourceId {
+	return &deployments.DeploymentId{}
+}
 
 func (r CognitiveDeploymentResource) ResourceType() string {
 	return "azurerm_cognitive_deployment"
@@ -131,16 +141,10 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"tier": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(deployments.SkuTierFree),
-							string(deployments.SkuTierBasic),
-							string(deployments.SkuTierStandard),
-							string(deployments.SkuTierPremium),
-							string(deployments.SkuTierEnterprise),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringInSlice(deployments.PossibleValuesForSkuTier(), false),
 					},
 
 					"size": {
@@ -166,20 +170,18 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"rai_policy_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C `raiPolicyName` has default value when `rai_policy_name` is not set. So, `O+C` is required otherwise it will incur difference.
+			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"version_upgrade_option": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(deployments.DeploymentModelVersionUpgradeOptionOnceNewDefaultVersionAvailable),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(deployments.DeploymentModelVersionUpgradeOptionOnceCurrentVersionExpired),
-				string(deployments.DeploymentModelVersionUpgradeOptionOnceNewDefaultVersionAvailable),
-				string(deployments.DeploymentModelVersionUpgradeOptionNoAutoUpgrade),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(deployments.DeploymentModelVersionUpgradeOptionOnceNewDefaultVersionAvailable),
+			ValidateFunc: validation.StringInSlice(deployments.PossibleValuesForDeploymentModelVersionUpgradeOption(), false),
 		},
 	}
 }
@@ -207,13 +209,16 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 			defer locks.UnlockByID(accountId.ID())
 
 			id := deployments.NewDeploymentID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.AccountName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := &deployments.Deployment{
@@ -237,12 +242,12 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 
 			properties.Sku = expandDeploymentSkuModel(model.Sku)
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, *properties, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 	}
 }
@@ -292,7 +297,7 @@ func (r CognitiveDeploymentResource) Update() sdk.ResourceFunc {
 				properties.Properties.Model.Version = pointer.To(model.Model[0].Version)
 			}
 
-			properties.Properties.VersionUpgradeOption = pointer.To(deployments.DeploymentModelVersionUpgradeOption(model.VersionUpgradeOption))
+			properties.Properties.VersionUpgradeOption = pointer.ToEnum[deployments.DeploymentModelVersionUpgradeOption](model.VersionUpgradeOption)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -324,29 +329,36 @@ func (r CognitiveDeploymentResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
+			if resp.Model == nil {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state := cognitiveDeploymentModel{
-				Name:               id.DeploymentName,
-				CognitiveAccountId: cognitiveservicesaccounts.NewAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName).ID(),
-			}
-
-			if properties := model.Properties; properties != nil {
-				state.Model = flattenDeploymentModelModel(properties.Model)
-
-				state.DynamicThrottlingEnabled = pointer.From(properties.DynamicThrottlingEnabled)
-				state.RaiPolicyName = pointer.From(properties.RaiPolicyName)
-				state.VersionUpgradeOption = string(pointer.From(properties.VersionUpgradeOption))
-			}
-			if sku := flattenDeploymentSkuModel(model.Sku); sku != nil {
-				state.Sku = sku
-			}
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r CognitiveDeploymentResource) flatten(metadata sdk.ResourceMetaData, id *deployments.DeploymentId, model *deployments.Deployment) error {
+	state := cognitiveDeploymentModel{
+		Name:               id.DeploymentName,
+		CognitiveAccountId: cognitiveservicesaccounts.NewAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName).ID(),
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	if properties := model.Properties; properties != nil {
+		state.Model = flattenDeploymentModelModel(properties.Model)
+
+		state.DynamicThrottlingEnabled = pointer.From(properties.DynamicThrottlingEnabled)
+		state.RaiPolicyName = pointer.From(properties.RaiPolicyName)
+		state.VersionUpgradeOption = string(pointer.From(properties.VersionUpgradeOption))
+	}
+	if sku := flattenDeploymentSkuModel(model.Sku); sku != nil {
+		state.Sku = sku
+	}
+	return metadata.Encode(&state)
 }
 
 func (r CognitiveDeploymentResource) Delete() sdk.ResourceFunc {
@@ -421,29 +433,15 @@ func expandDeploymentSkuModel(inputList []DeploymentSkuModel) *deployments.Sku {
 }
 
 func flattenDeploymentModelModel(input *deployments.DeploymentModel) []DeploymentModelModel {
-	var outputList []DeploymentModelModel
+	outputList := make([]DeploymentModelModel, 0, 1)
 	if input == nil {
 		return outputList
 	}
 
 	output := DeploymentModelModel{}
-	format := ""
-	if input.Format != nil {
-		format = *input.Format
-	}
-	output.Format = format
-
-	name := ""
-	if input.Name != nil {
-		name = *input.Name
-	}
-	output.Name = name
-
-	version := ""
-	if input.Version != nil {
-		version = *input.Version
-	}
-	output.Version = version
+	output.Format = pointer.From(input.Format)
+	output.Name = pointer.From(input.Name)
+	output.Version = pointer.From(input.Version)
 
 	return append(outputList, output)
 }

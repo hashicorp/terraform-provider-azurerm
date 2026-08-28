@@ -20,22 +20,20 @@ type SystemOrUserAssignedList struct {
 	IdentityIds []string `json:"userAssignedIdentities" tfschema:"identity_ids"`
 }
 
-func (s *SystemOrUserAssignedList) MarshalJSON() ([]byte, error) {
+func (s SystemOrUserAssignedList) MarshalJSON() ([]byte, error) {
 	// we use a custom marshal function here since we can only send the Type / UserAssignedIdentities field
 	identityType := TypeNone
 	userAssignedIdentityIds := []string{}
 
-	if s != nil {
-		if s.Type == TypeSystemAssigned {
-			identityType = TypeSystemAssigned
-		}
-		if s.Type == TypeUserAssigned {
-			identityType = TypeUserAssigned
-		}
+	if s.Type == TypeSystemAssigned {
+		identityType = TypeSystemAssigned
+	}
+	if s.Type == TypeUserAssigned {
+		identityType = TypeUserAssigned
+	}
 
-		if identityType != TypeNone {
-			userAssignedIdentityIds = s.IdentityIds
-		}
+	if identityType != TypeNone {
+		userAssignedIdentityIds = s.IdentityIds
 	}
 
 	out := map[string]interface{}{

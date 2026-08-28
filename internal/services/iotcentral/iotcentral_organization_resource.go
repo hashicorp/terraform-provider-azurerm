@@ -84,6 +84,8 @@ func (r IotCentralOrganizationResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			// TODO: import check
+
 			app, err := client.AppsClient.Get(ctx, *appId)
 			if err != nil || app.Model == nil {
 				return fmt.Errorf("checking for the presence of existing %q: %+v", appId, err)
@@ -126,9 +128,6 @@ func (r IotCentralOrganizationResource) Read() sdk.ResourceFunc {
 			}
 
 			appId := apps.NewIotAppID(id.SubscriptionId, id.ResourceGroup, id.IotAppName)
-			if err != nil {
-				return err
-			}
 
 			app, err := client.AppsClient.Get(ctx, appId)
 			if err != nil || app.Model == nil {
@@ -180,9 +179,6 @@ func (r IotCentralOrganizationResource) Update() sdk.ResourceFunc {
 			}
 
 			appId := apps.NewIotAppID(id.SubscriptionId, id.ResourceGroup, id.IotAppName)
-			if err != nil {
-				return err
-			}
 
 			app, err := client.AppsClient.Get(ctx, appId)
 			if err != nil || app.Model == nil {
@@ -232,9 +228,6 @@ func (r IotCentralOrganizationResource) Delete() sdk.ResourceFunc {
 			}
 
 			appId := apps.NewIotAppID(id.SubscriptionId, id.ResourceGroup, id.IotAppName)
-			if err != nil {
-				return err
-			}
 
 			app, err := client.AppsClient.Get(ctx, appId)
 			if err != nil || app.Model == nil {

@@ -6,7 +6,6 @@ package storagemover_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -19,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type StorageMoverAgentTestResource struct{}
+type StorageMoverAgentResource struct{}
 
 func TestAccStorageMoverAgent_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover_agent", "test")
-	r := StorageMoverAgentTestResource{}
+	r := StorageMoverAgentResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -37,7 +36,7 @@ func TestAccStorageMoverAgent_basic(t *testing.T) {
 
 func TestAccStorageMoverAgent_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover_agent", "test")
-	r := StorageMoverAgentTestResource{}
+	r := StorageMoverAgentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,7 +51,7 @@ func TestAccStorageMoverAgent_requiresImport(t *testing.T) {
 
 func TestAccStorageMoverAgent_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover_agent", "test")
-	r := StorageMoverAgentTestResource{}
+	r := StorageMoverAgentResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -66,7 +65,7 @@ func TestAccStorageMoverAgent_complete(t *testing.T) {
 
 func TestAccStorageMoverAgent_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover_agent", "test")
-	r := StorageMoverAgentTestResource{}
+	r := StorageMoverAgentResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -85,7 +84,7 @@ func TestAccStorageMoverAgent_update(t *testing.T) {
 	})
 }
 
-func (r StorageMoverAgentTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r StorageMoverAgentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := agents.ParseAgentID(state.ID)
 	if err != nil {
 		return nil, err
@@ -102,7 +101,8 @@ func (r StorageMoverAgentTestResource) Exists(ctx context.Context, clients *clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r StorageMoverAgentTestResource) template(data acceptance.TestData) string {
+func (r StorageMoverAgentResource) template(data acceptance.TestData) string {
+	clientData := data.Client()
 	randomUUID, _ := uuid.GenerateUUID()
 	return fmt.Sprintf(`
 
@@ -209,8 +209,8 @@ resource "azurerm_linux_virtual_machine" "test" {
       uuid                = "%[3]s"
       location            = azurerm_resource_group.test.location
       tenant_id           = data.azurerm_client_config.current.tenant_id
-      client_id           = data.azurerm_client_config.current.client_id
-      client_secret       = "%[4]s"
+      client_id           = "%[4]s"
+      client_secret       = "%[5]s"
       subscription_id     = data.azurerm_client_config.current.subscription_id
     })
     destination = "/home/adminuser/install_arc_agent.sh"
@@ -224,6 +224,18 @@ resource "azurerm_linux_virtual_machine" "test" {
       "bash /home/adminuser/install_arc_agent.sh",
     ]
   }
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uai-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_resource_group.test.id
+  role_definition_name = "Contributor"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
 }
 
 resource "azurerm_storage_mover" "test" {
@@ -244,10 +256,10 @@ data "azurerm_arc_machine" "test" {
 }
 
 
-`, data.RandomInteger, data.Locations.Primary, randomUUID, os.Getenv("ARM_CLIENT_SECRET"))
+`, data.RandomInteger, data.Locations.Primary, randomUUID, clientData.Default.ClientID, clientData.Default.ClientSecret)
 }
 
-func (r StorageMoverAgentTestResource) basic(data acceptance.TestData) string {
+func (r StorageMoverAgentResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 
@@ -271,7 +283,7 @@ resource "azurerm_storage_mover_agent" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r StorageMoverAgentTestResource) requiresImport(data acceptance.TestData) string {
+func (r StorageMoverAgentResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -287,7 +299,7 @@ resource "azurerm_storage_mover_agent" "import" {
 `, config)
 }
 
-func (r StorageMoverAgentTestResource) complete(data acceptance.TestData) string {
+func (r StorageMoverAgentResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 
@@ -312,7 +324,7 @@ resource "azurerm_storage_mover_agent" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r StorageMoverAgentTestResource) update(data acceptance.TestData) string {
+func (r StorageMoverAgentResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 

@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
@@ -18,6 +19,7 @@ import (
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -199,15 +201,17 @@ func (r RoleAssignmentMarketplaceResource) Create() sdk.ResourceFunc {
 				options.TenantId = &tenantId
 			}
 
-			existing, err := roleAssignmentsClient.Get(ctx, id.ScopedId, options)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := roleAssignmentsClient.Get(ctx, id.ScopedId, options)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				}
 			}
 
 			properties := roleassignments.RoleAssignmentCreateParameters{
@@ -364,46 +368,23 @@ func retryMarketplaceRoleAssignmentsClient(ctx context.Context, metadata sdk.Res
 			return pluginsdk.NonRetryableError(fmt.Errorf("creation of Role Assignment %s did not return an id value", id))
 		}
 
-		deadline, ok := ctx.Deadline()
-		if !ok {
-			return pluginsdk.NonRetryableError(fmt.Errorf("could not retrieve context deadline for %s", metadata.ResourceData.Id()))
+		pollerOpts := &custompollers.EventualConsistencyPollerOptions{
+			Interval:              5 * time.Second,
+			RetryErrorStatusCodes: []int{http.StatusNotFound},
 		}
-
-		stateConf := &pluginsdk.StateChangeConf{
-			Pending: []string{
-				"pending",
-			},
-			Target: []string{
-				"ready",
-			},
-			Refresh:                   marketplaceRoleAssignmentCreateStateRefreshFunc(ctx, roleAssignmentsClient, id),
-			MinTimeout:                5 * time.Second,
-			ContinuousTargetOccurence: 5,
-			Timeout:                   time.Until(deadline),
-		}
-
-		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-			return pluginsdk.NonRetryableError(fmt.Errorf("failed waiting for Role Assignment %s to finish replicating: %+v", id, err))
-		}
-
-		return nil
-	}
-}
-
-func marketplaceRoleAssignmentCreateStateRefreshFunc(ctx context.Context, client *roleassignments.RoleAssignmentsClient, id parse.ScopedRoleAssignmentId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
 		options := roleassignments.DefaultGetByIdOperationOptions()
 		if id.TenantId != "" {
 			options.TenantId = &id.TenantId
 		}
 
-		resp, err := client.GetById(ctx, commonids.NewScopeID(id.ScopedId.ID()), options)
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return resp, "pending", nil
-			}
-			return resp, "failed", err
+		poller := custompollers.NewEventualConsistencyPoller(5, func(pollerCtx context.Context) (*http.Response, error) {
+			resp, err := roleAssignmentsClient.GetById(pollerCtx, commonids.NewScopeID(id.ScopedId.ID()), options)
+			return resp.HttpResponse, err
+		}, pollerOpts)
+		if err := poller.PollUntilDone(ctx); err != nil {
+			return pluginsdk.NonRetryableError(fmt.Errorf("failed waiting for Role Assignment %s to finish replicating: %+v", id, err))
 		}
-		return resp, "ready", nil
+
+		return nil
 	}
 }

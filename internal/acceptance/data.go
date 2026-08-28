@@ -9,7 +9,10 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -189,4 +192,27 @@ func randStringFromCharSet(strlen int, charSet string) string {
 		result[i] = charSet[rand.Intn(len(charSet))]
 	}
 	return string(result)
+}
+
+func currentProviderRelease() string {
+	_, b, _, _ := runtime.Caller(0)
+	repoRoot := filepath.Join(filepath.Dir(b), "..", "..")
+	versionFile := filepath.Join(repoRoot, "version", "VERSION")
+
+	data, err := os.ReadFile(versionFile)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to read version file at %s: %s", versionFile, err))
+	}
+
+	return strings.TrimSpace(string(data))
+}
+
+func providerRelease(ver ...string) string {
+	if len(ver) > 0 {
+		if ver[0] != "" {
+			return ver[0]
+		}
+	}
+
+	return currentProviderRelease()
 }

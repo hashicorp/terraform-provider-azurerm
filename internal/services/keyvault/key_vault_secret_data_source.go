@@ -7,15 +7,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceKeyVaultSecret() *pluginsdk.Resource {
@@ -31,7 +32,7 @@ func dataSourceKeyVaultSecret() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: keyVaultValidate.NestedItemName,
+				ValidateFunc: keyvault.ValidateNestedItemName,
 			},
 
 			"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
@@ -102,14 +103,14 @@ func dataSourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	resp, err := client.GetSecret(ctx, *keyVaultBaseUri, name, version)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			return fmt.Errorf("KeyVault Secret %q (KeyVault URI %q) does not exist", name, *keyVaultBaseUri)
 		}
 		return fmt.Errorf("making Read request on Azure KeyVault Secret %s: %+v", name, err)
 	}
 
 	// the version may have changed, so parse the updated id
-	secretId, err := parse.ParseNestedItemID(*resp.ID)
+	secretId, err := keyvault.ParseNestedItemID(pointer.From(resp.ID), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
 	if err != nil {
 		return err
 	}

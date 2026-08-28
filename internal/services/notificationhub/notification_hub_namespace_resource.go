@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2023-09-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -121,15 +122,17 @@ func resourceNotificationHubNamespaceCreate(d *pluginsdk.ResourceData, meta inte
 
 	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_notification_hub_namespace", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_notification_hub_namespace", id.ID())
+		}
 	}
 
 	zoneRedundancy := namespaces.ZoneRedundancyPreferenceDisabled
@@ -152,7 +155,7 @@ func resourceNotificationHubNamespaceCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if v, ok := d.GetOk("replication_region"); ok {
-		parameters.Properties.ReplicationRegion = pointer.To(namespaces.ReplicationRegion(location.Normalize(v.(string))))
+		parameters.Properties.ReplicationRegion = pointer.ToEnum[namespaces.ReplicationRegion](location.Normalize(v.(string)))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -160,17 +163,15 @@ func resourceNotificationHubNamespaceCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	log.Printf("[DEBUG] Waiting for %s to be created..", id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"404"},
-		Target:                    []string{"200"},
-		Refresh:                   notificationHubNamespaceStateRefreshFunc(ctx, client, id),
-		MinTimeout:                15 * time.Second,
-		ContinuousTargetOccurence: 10,
-	}
-
-	stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(10, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, id)
+		return resp.HttpResponse, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:              15 * time.Second,
+		TargetStatusCode:      pointer.To(http.StatusOK),
+		RetryErrorStatusCodes: []int{http.StatusNotFound},
+	})
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %ss to finish replicating: %+v", id, err)
 	}
 
@@ -190,7 +191,7 @@ func resourceNotificationHubNamespaceUpdate(d *pluginsdk.ResourceData, meta inte
 
 	parameters := namespaces.NamespacePatchParameters{
 		Properties: &namespaces.NamespaceProperties{
-			NamespaceType: pointer.To(namespaces.NamespaceType(d.Get("namespace_type").(string))),
+			NamespaceType: pointer.ToEnum[namespaces.NamespaceType](d.Get("namespace_type").(string)),
 			Enabled:       pointer.To(d.Get("enabled").(bool)),
 		},
 	}
@@ -275,24 +276,4 @@ func resourceNotificationHubNamespaceDelete(d *pluginsdk.ResourceData, meta inte
 	}
 
 	return nil
-}
-
-func notificationHubNamespaceStateRefreshFunc(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, id)
-		statusCode := "dropped connection"
-		if resp.HttpResponse != nil {
-			statusCode = strconv.Itoa(resp.HttpResponse.StatusCode)
-		}
-
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return nil, statusCode, nil
-			}
-
-			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
-		}
-
-		return resp, statusCode, nil
-	}
 }

@@ -72,11 +72,17 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "example" {
-  name                                           = "subnetname-1"
-  resource_group_name                            = azurerm_resource_group.example.name
-  virtual_network_name                           = azurerm_virtual_network.example.name
-  address_prefixes                               = ["10.0.2.0/24"]
-  service_endpoints                              = ["Microsoft.Sql", "Microsoft.Storage"]
+  name                 = "subnetname-1"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.2.0/24"]
+  service_endpoint {
+    service = "Microsoft.Sql"
+  }
+
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
   enforce_private_link_endpoint_network_policies = true
 }
 
@@ -199,4 +205,4 @@ terraform import azurerm_mssql_server_microsoft_support_auditing_policy.example 
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Sql` - 2023-08-01-preview
+* `Microsoft.Sql` - 2025-01-01

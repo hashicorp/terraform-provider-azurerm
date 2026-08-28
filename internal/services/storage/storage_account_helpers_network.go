@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -69,7 +69,7 @@ func expandAccountNetworkRuleBypass(input []interface{}) *storageaccounts.Bypass
 	for _, item := range input {
 		output = append(output, item.(string))
 	}
-	return pointer.To(storageaccounts.Bypass(strings.Join(output, ", ")))
+	return pointer.ToEnum[storageaccounts.Bypass](strings.Join(output, ", "))
 }
 
 func flattenAccountNetworkRuleBypass(input *storageaccounts.Bypass) []interface{} {

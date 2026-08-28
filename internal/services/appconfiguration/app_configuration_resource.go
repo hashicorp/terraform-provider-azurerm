@@ -27,6 +27,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -300,19 +301,20 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM App Configuration creation.")
-
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	resourceId := configurationstores.NewConfigurationStoreID(subscriptionId, resourceGroup, name)
-	existing, err := client.Get(ctx, resourceId)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", resourceId, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, resourceId)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", resourceId, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_app_configuration", resourceId.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_app_configuration", resourceId.ID())
+		}
 	}
 
 	location := location.Normalize(d.Get("location").(string))
@@ -330,7 +332,6 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 			}
 			// if the soft deleted is not found, skip the recovering
 		} else {
-			log.Printf("[DEBUG] Soft Deleted App Configuration exists, marked for recover")
 			recoverSoftDeleted = true
 		}
 	}
@@ -347,7 +348,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		},
 		Properties: &configurationstores.ConfigurationStoreProperties{
 			DataPlaneProxy: &configurationstores.DataPlaneProxyProperties{
-				AuthenticationMode:    pointer.To(configurationstores.AuthenticationMode(d.Get("data_plane_proxy_authentication_mode").(string))),
+				AuthenticationMode:    pointer.ToEnum[configurationstores.AuthenticationMode](d.Get("data_plane_proxy_authentication_mode").(string)),
 				PrivateLinkDelegation: &privLinkDelegation,
 			},
 			EnablePurgeProtection: pointer.To(d.Get("purge_protection_enabled").(bool)),
@@ -378,7 +379,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 	parameters.Identity = identity
 
-	if err := client.CreateThenPoll(ctx, resourceId, parameters); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, resourceId, parameters, sdk.SetIDCallback(meta, &resourceId, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", resourceId, err)
 	}
 
@@ -415,7 +416,6 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM App Configuration update.")
 	id, err := configurationstores.ParseConfigurationStoreID(d.Id())
 	if err != nil {
 		return err
@@ -462,7 +462,7 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if props.DataPlaneProxy == nil {
 			props.DataPlaneProxy = &configurationstores.DataPlaneProxyProperties{}
 		}
-		props.DataPlaneProxy.AuthenticationMode = pointer.To(configurationstores.AuthenticationMode(d.Get("data_plane_proxy_authentication_mode").(string)))
+		props.DataPlaneProxy.AuthenticationMode = pointer.ToEnum[configurationstores.AuthenticationMode](d.Get("data_plane_proxy_authentication_mode").(string))
 	}
 
 	if d.HasChange("data_plane_proxy_private_link_delegation_enabled") {
@@ -513,10 +513,7 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		newValue := d.Get("purge_protection_enabled").(bool)
-		oldValue := false
-		if existing.Model.Properties.EnablePurgeProtection != nil {
-			oldValue = *existing.Model.Properties.EnablePurgeProtection
-		}
+		oldValue := pointer.From(existing.Model.Properties.EnablePurgeProtection)
 
 		if oldValue && !newValue {
 			return fmt.Errorf("updating %s: once Purge Protection has been Enabled it's not possible to disable it", *id)
@@ -641,11 +638,7 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 			d.Set("local_auth_enabled", localAuthEnabled)
 
-			purgeProtectionEnabled := false
-			if props.EnablePurgeProtection != nil {
-				purgeProtectionEnabled = *props.EnablePurgeProtection
-			}
-			d.Set("purge_protection_enabled", purgeProtectionEnabled)
+			d.Set("purge_protection_enabled", pointer.From(props.EnablePurgeProtection))
 
 			softDeleteRetentionDays := 0
 			if props.SoftDeleteRetentionInDays != nil {
@@ -715,10 +708,7 @@ func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %q: `properties` was nil", *id)
 	}
 
-	purgeProtectionEnabled := false
-	if ppe := existing.Model.Properties.EnablePurgeProtection; ppe != nil {
-		purgeProtectionEnabled = *ppe
-	}
+	purgeProtectionEnabled := pointer.From(existing.Model.Properties.EnablePurgeProtection)
 	softDeleteEnabled := false
 	if sde := existing.Model.Properties.SoftDeleteRetentionInDays; sde != nil && *sde > 0 {
 		softDeleteEnabled = true
@@ -918,27 +908,11 @@ func flattenAppConfigurationAccessKeys(values []configurationstores.ApiKey) flat
 }
 
 func flattenAppConfigurationAccessKey(input configurationstores.ApiKey) []interface{} {
-	connectionString := ""
-
-	if input.ConnectionString != nil {
-		connectionString = *input.ConnectionString
-	}
-
-	id := ""
-	if input.Id != nil {
-		id = *input.Id
-	}
-
-	secret := ""
-	if input.Value != nil {
-		secret = *input.Value
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"connection_string": connectionString,
-			"id":                id,
-			"secret":            secret,
+			"connection_string": pointer.From(input.ConnectionString),
+			"id":                pointer.From(input.Id),
+			"secret":            pointer.From(input.Value),
 		},
 	}
 }
@@ -1021,7 +995,6 @@ func resourceConfigurationStoreNameAvailabilityRefreshFunc(ctx context.Context, 
 
 func deleteReplicas(ctx context.Context, replicaClient *replicas.ReplicasClient, operationClient *operations.OperationsClient, configurationStoreReplicaIds []replicas.ReplicaId) error {
 	for _, configurationStoreReplicaId := range configurationStoreReplicaIds {
-		log.Printf("[DEBUG] Deleting Replica %q", configurationStoreReplicaId)
 		if err := replicaClient.DeleteThenPoll(ctx, configurationStoreReplicaId); err != nil {
 			return fmt.Errorf("deleting replica %q: %+v", configurationStoreReplicaId, err)
 		}

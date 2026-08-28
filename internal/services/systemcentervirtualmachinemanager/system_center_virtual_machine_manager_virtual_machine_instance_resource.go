@@ -366,14 +366,16 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Create(
 
 			id := parse.NewSystemCenterVirtualMachineManagerVirtualMachineInstanceID(model.ScopedResourceId)
 
-			existing, err := client.Get(ctx, commonids.NewScopeID(id.Scope))
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, commonids.NewScopeID(id.Scope))
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := virtualmachineinstances.VirtualMachineInstance{
@@ -408,11 +410,11 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Create(
 				parameters.Properties.AvailabilitySets = availabilitySets
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, commonids.NewScopeID(id.Scope), parameters); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, commonids.NewScopeID(id.Scope), parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -513,7 +515,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Update(
 				parameters.Properties.AvailabilitySets = availabilitySets
 			}
 
-			needToRestart := metadata.ResourceData.HasChange("hardware") || metadata.ResourceData.HasChange("network_interface") || metadata.ResourceData.HasChange("storage_disk")
+			needToRestart := metadata.ResourceData.HasChanges("hardware", "network_interface", "storage_disk")
 
 			if needToRestart {
 				if err := client.StopThenPoll(ctx, commonids.NewScopeID(id.Scope), virtualmachineinstances.StopVirtualMachineOptions{
@@ -604,7 +606,7 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfil
 
 	// As TF always sets bool value to false when it isn't set, so it has to use d.GetRawConfig() to determine whether it is set in the tf config
 	if v := d.GetRawConfig().AsValueMap()["hardware"].AsValueSlice()[0].AsValueMap()["limit_cpu_for_migration_enabled"]; !v.IsNull() {
-		result.LimitCPUForMigration = pointer.To(virtualmachineinstances.LimitCPUForMigration(strconv.FormatBool(hardwareProfile.LimitCpuForMigrationEnabled)))
+		result.LimitCPUForMigration = pointer.ToEnum[virtualmachineinstances.LimitCPUForMigration](strconv.FormatBool(hardwareProfile.LimitCpuForMigrationEnabled))
 	}
 
 	if v := hardwareProfile.CpuCount; v != 0 {
@@ -613,7 +615,7 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfil
 
 	dynamicMemoryEnabled := hardwareProfile.DynamicMemoryMaxInMb != 0 || hardwareProfile.DynamicMemoryMinInMb != 0
 
-	result.DynamicMemoryEnabled = pointer.To(virtualmachineinstances.DynamicMemoryEnabled(strconv.FormatBool(dynamicMemoryEnabled)))
+	result.DynamicMemoryEnabled = pointer.ToEnum[virtualmachineinstances.DynamicMemoryEnabled](strconv.FormatBool(dynamicMemoryEnabled))
 
 	if v := hardwareProfile.DynamicMemoryMaxInMb; v != 0 {
 		result.DynamicMemoryMaxMB = pointer.To(v)
@@ -642,15 +644,15 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfa
 		}
 
 		if ipv4AddressType := v.Ipv4AddressType; ipv4AddressType != "" {
-			networkInterface.IPv4AddressType = pointer.To(virtualmachineinstances.AllocationMethod(ipv4AddressType))
+			networkInterface.IPv4AddressType = pointer.ToEnum[virtualmachineinstances.AllocationMethod](ipv4AddressType)
 		}
 
 		if ipv6AddressType := v.Ipv6AddressType; ipv6AddressType != "" {
-			networkInterface.IPv6AddressType = pointer.To(virtualmachineinstances.AllocationMethod(ipv6AddressType))
+			networkInterface.IPv6AddressType = pointer.ToEnum[virtualmachineinstances.AllocationMethod](ipv6AddressType)
 		}
 
 		if macAddressType := v.MacAddressType; macAddressType != "" {
-			networkInterface.MacAddressType = pointer.To(virtualmachineinstances.AllocationMethod(macAddressType))
+			networkInterface.MacAddressType = pointer.ToEnum[virtualmachineinstances.AllocationMethod](macAddressType)
 		}
 
 		if vnetId := v.VirtualNetworkId; vnetId != "" {
@@ -781,7 +783,7 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfil
 
 	// As TF always sets bool value to false when it isn't set, so it has to use d.GetRawConfig() to determine whether it is set in the tf config
 	if v := d.GetRawConfig().AsValueMap()["hardware"].AsValueSlice()[0].AsValueMap()["limit_cpu_for_migration_enabled"]; !v.IsNull() {
-		result.LimitCPUForMigration = pointer.To(virtualmachineinstances.LimitCPUForMigration(strconv.FormatBool(hardwareProfile.LimitCpuForMigrationEnabled)))
+		result.LimitCPUForMigration = pointer.ToEnum[virtualmachineinstances.LimitCPUForMigration](strconv.FormatBool(hardwareProfile.LimitCpuForMigrationEnabled))
 	}
 
 	if v := hardwareProfile.CpuCount; v != 0 {
@@ -790,7 +792,7 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfil
 
 	dynamicMemoryEnabled := hardwareProfile.DynamicMemoryMaxInMb != 0 || hardwareProfile.DynamicMemoryMinInMb != 0
 
-	result.DynamicMemoryEnabled = pointer.To(virtualmachineinstances.DynamicMemoryEnabled(strconv.FormatBool(dynamicMemoryEnabled)))
+	result.DynamicMemoryEnabled = pointer.ToEnum[virtualmachineinstances.DynamicMemoryEnabled](strconv.FormatBool(dynamicMemoryEnabled))
 
 	if v := hardwareProfile.DynamicMemoryMaxInMb; v != 0 {
 		result.DynamicMemoryMaxMB = pointer.To(v)
@@ -819,15 +821,15 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfa
 		}
 
 		if ipv4AddressType := v.Ipv4AddressType; ipv4AddressType != "" {
-			networkInterface.IPv4AddressType = pointer.To(virtualmachineinstances.AllocationMethod(ipv4AddressType))
+			networkInterface.IPv4AddressType = pointer.ToEnum[virtualmachineinstances.AllocationMethod](ipv4AddressType)
 		}
 
 		if ipv6AddressType := v.Ipv6AddressType; ipv6AddressType != "" {
-			networkInterface.IPv6AddressType = pointer.To(virtualmachineinstances.AllocationMethod(ipv6AddressType))
+			networkInterface.IPv6AddressType = pointer.ToEnum[virtualmachineinstances.AllocationMethod](ipv6AddressType)
 		}
 
 		if macAddressType := v.MacAddressType; macAddressType != "" {
-			networkInterface.MacAddressType = pointer.To(virtualmachineinstances.AllocationMethod(macAddressType))
+			networkInterface.MacAddressType = pointer.ToEnum[virtualmachineinstances.AllocationMethod](macAddressType)
 		}
 
 		if vnetId := v.VirtualNetworkId; vnetId != "" {

@@ -12,7 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/objectreplicationpolicyoperationgroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/objectreplicationpolicyoperationgroup"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -20,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // TODO: @tombuildsstuff: this wants a state migration to move the ID to `{id1}|{id2}` to match other resources
@@ -101,6 +101,12 @@ func resourceStorageObjectReplication() *pluginsdk.Resource {
 				},
 			},
 
+			"metrics_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"source_object_replication_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -131,23 +137,25 @@ func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta inte
 	srcId := objectreplicationpolicyoperationgroup.NewObjectReplicationPolicyID(srcAccount.SubscriptionId, srcAccount.ResourceGroupName, srcAccount.StorageAccountName, "default")
 	dstId := objectreplicationpolicyoperationgroup.NewObjectReplicationPolicyID(dstAccount.SubscriptionId, dstAccount.ResourceGroupName, dstAccount.StorageAccountName, "default")
 
-	resp, err := client.ObjectReplicationPoliciesList(ctx, *dstAccount)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for present of existing Storage Object Replication for destination %q): %+v", dstAccount, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := client.ObjectReplicationPoliciesList(ctx, *dstAccount)
+		if err != nil {
+			if response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for present of existing Storage Object Replication for destination %q): %+v", dstAccount, err)
+			}
 		}
-	}
-	if resp.Model != nil {
-		for _, existing := range *resp.Model {
-			if existing.Name != nil && *existing.Name != "" {
-				if prop := existing.Properties; prop != nil && (
-				// Storage allows either a storage account name (only when allowCrossTenantReplication of the SA is false) or a full resource id (both cases).
-				// We should check for both cases.
-				(prop.SourceAccount == srcAccount.StorageAccountName && prop.DestinationAccount == dstAccount.StorageAccountName) ||
-					(strings.EqualFold(prop.SourceAccount, srcAccount.ID()) && strings.EqualFold(prop.DestinationAccount, dstAccount.ID()))) {
-					srcId.ObjectReplicationPolicyId = *existing.Name
-					dstId.ObjectReplicationPolicyId = *existing.Name
-					return tf.ImportAsExistsError("azurerm_storage_object_replication", parse.NewObjectReplicationID(srcId, dstId).ID())
+		if resp.Model != nil {
+			for _, existing := range *resp.Model {
+				if existing.Name != nil && *existing.Name != "" {
+					if prop := existing.Properties; prop != nil && (
+					// Storage allows either a storage account name (only when allowCrossTenantReplication of the SA is false) or a full resource id (both cases).
+					// We should check for both cases.
+					(prop.SourceAccount == srcAccount.StorageAccountName && prop.DestinationAccount == dstAccount.StorageAccountName) ||
+						(strings.EqualFold(prop.SourceAccount, srcAccount.ID()) && strings.EqualFold(prop.DestinationAccount, dstAccount.ID()))) {
+						srcId.ObjectReplicationPolicyId = *existing.Name
+						dstId.ObjectReplicationPolicyId = *existing.Name
+						return tf.ImportAsExistsError("azurerm_storage_object_replication", parse.NewObjectReplicationID(srcId, dstId).ID())
+					}
 				}
 			}
 		}
@@ -158,6 +166,9 @@ func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta inte
 			SourceAccount:      srcAccount.ID(),
 			DestinationAccount: dstAccount.ID(),
 			Rules:              expandArmObjectReplicationRuleArray(d.Get("rules").(*pluginsdk.Set).List()),
+			Metrics: &objectreplicationpolicyoperationgroup.ObjectReplicationPolicyPropertiesMetrics{
+				Enabled: pointer.To(d.Get("metrics_enabled").(bool)),
+			},
 		},
 	}
 
@@ -213,6 +224,9 @@ func resourceStorageObjectReplicationUpdate(d *pluginsdk.ResourceData, meta inte
 			SourceAccount:      srcAccount.ID(),
 			DestinationAccount: dstAccount.ID(),
 			Rules:              expandArmObjectReplicationRuleArray(d.Get("rules").(*pluginsdk.Set).List()),
+			Metrics: &objectreplicationpolicyoperationgroup.ObjectReplicationPolicyPropertiesMetrics{
+				Enabled: pointer.To(d.Get("metrics_enabled").(bool)),
+			},
 		},
 	}
 
@@ -278,6 +292,13 @@ func resourceStorageObjectReplicationRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("destination_object_replication_id", id.Dst.ID())
 		}
 	}
+
+	if model := srcResp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("metrics_enabled", props.Metrics != nil && pointer.From(props.Metrics.Enabled))
+		}
+	}
+
 	return nil
 }
 
@@ -318,7 +339,7 @@ func expandArmObjectReplicationRuleArray(input []interface{}) *[]objectreplicati
 		}
 
 		if f, ok := v["filter_out_blobs_with_prefix"]; ok {
-			result.Filters.PrefixMatch = utils.ExpandStringSlice(f.(*pluginsdk.Set).List())
+			result.Filters.PrefixMatch = helpers.ExpandStringSlice(f.(*pluginsdk.Set).List())
 		}
 
 		results = append(results, result)
@@ -347,10 +368,7 @@ func flattenObjectReplicationRules(input *[]objectreplicationpolicyoperationgrou
 		destinationContainer := item.DestinationContainer
 		sourceContainer := item.SourceContainer
 
-		var ruleId string
-		if item.RuleId != nil {
-			ruleId = *item.RuleId
-		}
+		ruleId := pointer.From(item.RuleId)
 
 		var minCreationTime string
 		if item.Filters != nil && item.Filters.MinCreationTime != nil {
@@ -359,7 +377,7 @@ func flattenObjectReplicationRules(input *[]objectreplicationpolicyoperationgrou
 
 		var prefix []interface{}
 		if item.Filters != nil && item.Filters.PrefixMatch != nil {
-			prefix = utils.FlattenStringSlice(item.Filters.PrefixMatch)
+			prefix = helpers.FlattenStringSlice(item.Filters.PrefixMatch)
 		}
 
 		v := map[string]interface{}{
