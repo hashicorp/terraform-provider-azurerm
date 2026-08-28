@@ -1,6 +1,7 @@
 ## 5.6.0 (Unreleased)
 
 ENHANCEMENTS:
+* Data Source: `azurerm_api_management_workspace` - export the `description` attribute [GH-33205]
 
 FEATURES:
 
