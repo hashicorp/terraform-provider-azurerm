@@ -150,27 +150,19 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 							}, false),
 						},
 						"target": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(iotdpsresource.IPFilterTargetTypeAll),
-								string(iotdpsresource.IPFilterTargetTypeServiceApi),
-								string(iotdpsresource.IPFilterTargetTypeDeviceApi),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(iotdpsresource.PossibleValuesForIPFilterTargetType(), false),
 						},
 					},
 				},
 			},
 
 			"allocation_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(iotdpsresource.AllocationPolicyHashed),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(iotdpsresource.AllocationPolicyHashed),
-					string(iotdpsresource.AllocationPolicyGeoLatency),
-					string(iotdpsresource.AllocationPolicyStatic),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(iotdpsresource.AllocationPolicyHashed),
+				ValidateFunc: validation.StringInSlice(iotdpsresource.PossibleValuesForAllocationPolicy(), false),
 			},
 
 			"data_residency_enabled": {

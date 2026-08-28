@@ -114,15 +114,10 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			},
 
 			"create_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(servers.CreateModeDefault),
-					string(servers.CreateModeGeoRestore),
-					string(servers.CreateModePointInTimeRestore),
-					string(servers.CreateModeReplica),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForCreateMode(), false),
 			},
 
 			"customer_managed_key": {
