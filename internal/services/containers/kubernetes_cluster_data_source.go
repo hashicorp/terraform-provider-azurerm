@@ -421,6 +421,29 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"workload_autoscaler_profile": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"keda_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"vertical_pod_autoscaler_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"workload_identity_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"kube_admin_config": {
 				Type:      pluginsdk.TypeList,
 				Computed:  true,
@@ -835,6 +858,17 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			if err := d.Set("key_management_service", flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile)); err != nil {
 				return fmt.Errorf("setting `key_management_service`: %+v", err)
 			}
+
+			workloadAutoscalerProfile := flattenKubernetesClusterWorkloadAutoscalerProfile(props.WorkloadAutoScalerProfile)
+			if err := d.Set("workload_autoscaler_profile", workloadAutoscalerProfile); err != nil {
+				return fmt.Errorf("setting `workload_autoscaler_profile`: %+v", err)
+			}
+
+			workloadIdentityEnabled := false
+			if props.SecurityProfile != nil && props.SecurityProfile.WorkloadIdentity != nil {
+				workloadIdentityEnabled = pointer.From(props.SecurityProfile.WorkloadIdentity.Enabled)
+			}
+			d.Set("workload_identity_enabled", workloadIdentityEnabled)
 
 			if err := d.Set("service_mesh_profile", flattenKubernetesClusterAzureServiceMeshProfile(props.ServiceMeshProfile)); err != nil {
 				return fmt.Errorf("setting `service_mesh_profile`: %+v", err)
