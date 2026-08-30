@@ -123,12 +123,10 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"storage_container_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(webapps.FunctionsDeploymentStorageTypeBlobContainer),
-			}, false),
-			Description: "The type of the storage container where the function app's code is hosted. Only `blobContainer` is supported currently.",
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFunctionsDeploymentStorageType(), false),
+			Description:  "The type of the storage container where the function app's code is hosted. Only `blobContainer` is supported currently.",
 		},
 
 		"storage_container_endpoint": {
@@ -138,13 +136,9 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"storage_authentication_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(webapps.AuthenticationTypeSystemAssignedIdentity),
-				string(webapps.AuthenticationTypeStorageAccountConnectionString),
-				string(webapps.AuthenticationTypeUserAssignedIdentity),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForAuthenticationType(), false),
 		},
 
 		"storage_access_key": {
@@ -160,16 +154,9 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"runtime_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(webapps.RuntimeNameDotnetNegativeisolated),
-				string(webapps.RuntimeNameJava),
-				string(webapps.RuntimeNameNode),
-				string(webapps.RuntimeNamePowershell),
-				string(webapps.RuntimeNamePython),
-				string(webapps.RuntimeNameCustom),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForRuntimeName(), false),
 		},
 
 		"runtime_version": {
@@ -244,15 +231,11 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"client_certificate_mode": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  webapps.ClientCertModeOptional,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(webapps.ClientCertModeOptional),
-				string(webapps.ClientCertModeRequired),
-				string(webapps.ClientCertModeOptionalInteractiveUser),
-			}, false),
-			Description: "The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser` ",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      webapps.ClientCertModeOptional,
+			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForClientCertMode(), false),
+			Description:  "The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser` ",
 		},
 
 		"client_certificate_exclusion_paths": {
@@ -521,7 +504,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 					HTTPSOnly:         pointer.To(functionAppFlexConsumption.HttpsOnly),
 					FunctionAppConfig: flexFunctionAppConfig,
 					ClientCertEnabled: pointer.To(functionAppFlexConsumption.ClientCertEnabled),
-					ClientCertMode:    pointer.To(webapps.ClientCertMode(functionAppFlexConsumption.ClientCertMode)),
+					ClientCertMode:    pointer.ToEnum[webapps.ClientCertMode](functionAppFlexConsumption.ClientCertMode),
 				},
 			}
 
@@ -851,7 +834,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
-				model.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(state.ClientCertMode))
+				model.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](state.ClientCertMode)
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {

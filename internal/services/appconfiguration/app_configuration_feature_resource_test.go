@@ -494,6 +494,11 @@ resource "azurerm_app_configuration_feature" "test" {
   name                   = "acctest-ackey-%d/Label/AppConfigurationKey/Label/"
   label                  = "/Key/AppConfigurationKey/Label/acctest-ackeylabel-%[2]d"
   enabled                = true
+
+  tags = {
+    environment = "development"
+    hello       = "world"
+  }
 }
 `, t.template(data), data.RandomInteger)
 }

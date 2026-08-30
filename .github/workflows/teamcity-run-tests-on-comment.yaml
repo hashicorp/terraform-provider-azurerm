@@ -1,6 +1,17 @@
 ---
 name: TeamCity Run Tests on Comment
 
+# Lets maintainers trigger TeamCity acceptance test runs by commenting
+# '/test [-b] [-f] [-s service] <TestPrefix>' on a PR. Verifies terraform-azure team
+# membership (or the allow-list) before dispatching via katbyte/tctest.
+# -f/-force bypasses the max-builds-per-pr limit.
+#
+# SECURITY: tctest's captured stderr is only ever analyzed to pick a canned failure
+# message - it is never included in the comment body, since comment bodies bypass the
+# secret masking applied to workflow logs (e.g. TCTEST_SERVER appearing in an HTTP
+# error URL). tctest is invoked without --wait, so it never fetches TeamCity build
+# logs and no build/test output can ever be echoed back onto a public PR.
+
 on:
   issue_comment:
     types: [created]
@@ -93,7 +104,7 @@ jobs:
       TCTEST_FILEREGEX: 'internal/services/[a-z]*/[_a-zA-Z]*(resource|data_source)'
       TCTEST_SKIP_QUEUE: 'true'
       TCTEST_TOKEN_TC: ${{ secrets.TCTEST_TOKEN_TC }}
-      TCTEST_BUILDTYPEID: TF_AzureRM_AZURERM_SERVICE_PUBLIC
+      TCTEST_BUILD_TYPE_ID: TF_AzureRM_AZURERM_SERVICE_PUBLIC
       TCTEST_REPO: terraform-providers/terraform-provider-azurerm
     steps:
       - name: Setup Go
@@ -101,24 +112,18 @@ jobs:
         with:
           go-version: '1.26'
 
-      - name: Get tctest version
-        id: tctest-version
-        run: |
-          LATEST_RELEASE=$(curl -s https://api.github.com/repos/katbyte/tctest/releases/latest | grep "tag_name" | cut -d '"' -f 4)
-          echo "version=${LATEST_RELEASE}" >> $GITHUB_OUTPUT
-          echo "Latest tctest release: $LATEST_RELEASE"
-
       - name: Cache tctest binary
         id: cache-tctest
         uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: ~/go/bin/tctest
-          key: tctest-${{ runner.os }}-${{ steps.tctest-version.outputs.version }}
+          # keep this key in sync with the pinned version installed below
+          key: tctest-${{ runner.os }}-v1.2.0
 
       - name: Install tctest
         if: steps.cache-tctest.outputs.cache-hit != 'true'
         run: |
-          go install github.com/katbyte/tctest@latest
+          go install github.com/katbyte/tctest@v1.2.0
 
       - name: Get PR commit SHA
         id: get-pr-sha
@@ -138,9 +143,15 @@ jobs:
 
       - name: Run tctest
         id: run-tctest
+        env:
+          # Passed via env rather than interpolated into the script to prevent
+          # shell injection from untrusted comment text (OpenSSF Dangerous-Workflow)
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          # tctest reads GITHUB_TOKEN for its GitHub API calls - without it, test
+          # discovery runs unauthenticated (60 req/hr per runner IP) and hits 403s
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           PR_NUMBER=${{ github.event.issue.number }}
-          COMMENT_BODY="${{ github.event.comment.body }}"
           PR_SHA="${{ steps.get-pr-sha.outputs.sha }}"
 
           # Parse flags from comment
@@ -149,19 +160,32 @@ jobs:
 
           # Initialize default values
           beta=false
+          force=false
           service=""
 
           # Parse flags using getopts
-          # Convert FLAGS_STRING to array for getopts
-          eval set -- $FLAGS_STRING
+          # Split FLAGS_STRING on whitespace WITHOUT eval - eval would execute
+          # command substitutions embedded in the (untrusted) comment text
+          read -ra FLAGS <<< "$FLAGS_STRING"
 
-          while getopts ":bs:" opt; do
+          # getopts only handles single-char flags, so map the long spellings to -f
+          for i in "${!FLAGS[@]}"; do
+            case "${FLAGS[$i]}" in
+              -force|--force) FLAGS[$i]="-f" ;;
+            esac
+          done
+
+          set -- "${FLAGS[@]}"
+
+          while getopts ":bfs:" opt; do
             case "$opt" in
               b) beta=true ;;
+              f) force=true ;;
               s) service="$OPTARG" ;;
               *)
-                echo "Usage: /test [-b] [-s service_name]"
+                echo "Usage: /test [-b] [-f] [-s service_name]"
                 echo "  -b: Test beta version"
+                echo "  -f: Force - bypass the max-builds-per-pr limit"
                 echo "  -s: Specify service name"
                 exit 1
                 ;;
@@ -171,25 +195,48 @@ jobs:
           echo "Running tctest for PR #${PR_NUMBER}"
           echo "PR commit SHA: ${PR_SHA}"
           echo "Beta version: ${beta}"
+          echo "Force: ${force}"
           echo "Service: ${service:-all}"
 
-          service_flag=()
+          extra_flags=()
           if [ "$service" != "" ]; then
-            service_flag=(--service "$service")
+            extra_flags+=(--service "$service")
+          fi
+          if [ "$force" = true ]; then
+            extra_flags+=(--max-builds-per-pr 0)
           fi
 
           builds='[]'
+          err_log=$(mktemp)
+
+          # Always publish captured stderr so the failure comment can say why tctest failed,
+          # even when a failing run_tctest exits the script via set -e
+          finish() {
+            {
+              echo "errors<<TCTEST_ERR_EOF"
+              cat "$err_log"
+              echo "TCTEST_ERR_EOF"
+            } >> "$GITHUB_OUTPUT"
+          }
+          trap finish EXIT
 
           run_tctest() {
-            local out
-            out=$(tctest pr "${PR_NUMBER}" -c -q --reappend-split-character --properties "TRACKING_ID=${PR_SHA}" "$@" --json)
+            local out rc=0 err
+            err=$(mktemp)
+            out=$(tctest pr "${PR_NUMBER}" -c -q --reappend-split-character --build-type-id-add-service-suffix --properties "TRACKING_ID=${PR_SHA}" "$@" --json 2>"$err") || rc=$?
+            cat "$err" >&2
+            cat "$err" >> "$err_log"
+            rm -f "$err"
+            if [ "$rc" -ne 0 ]; then
+              exit "$rc"
+            fi
             echo "$out"
             builds=$(printf '%s\n%s\n' "$builds" "${out:-[]}" | jq -s 'add')
           }
 
-          run_tctest "${service_flag[@]}"
+          run_tctest "${extra_flags[@]}"
           if [ "$beta" = true ]; then
-            run_tctest "${service_flag[@]}" --buildtypeid TF_AzureRM_AZURERM_BETA_VERSION_SERVICE_PUBLIC
+            run_tctest "${extra_flags[@]}" --build-type-id TF_AzureRM_AZURERM_BETA_VERSION_SERVICE_PUBLIC
           fi
 
           {
@@ -212,6 +259,36 @@ jobs:
               comment_id: context.payload.comment.id,
               content: 'rocket'
             });
+
+            // hide previous /test failure comments now that a run has succeeded
+            try {
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                per_page: 100
+              });
+              const failures = comments.filter(c =>
+                c.user?.type === 'Bot' &&
+                c.body?.startsWith('❌') &&
+                (c.body.includes('TeamCity') || c.body.includes('would trigger builds'))
+              );
+              for (const c of failures) {
+                await github.graphql(
+                  `mutation($id: ID!) {
+                    minimizeComment(input: { subjectId: $id, classifier: OUTDATED }) {
+                      minimizedComment { isMinimized }
+                    }
+                  }`,
+                  { id: c.node_id }
+                );
+              }
+              if (failures.length > 0) {
+                core.info(`Minimized ${failures.length} previous failure comment(s)`);
+              }
+            } catch (error) {
+              core.warning(`Unable to minimize previous failure comments: ${error.message}`);
+            }
 
             let builds = [];
             try {
@@ -237,14 +314,44 @@ jobs:
       - name: Comment on failure
         if: failure()
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          TCTEST_ERRORS: ${{ steps.run-tctest.outputs.errors }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            // strip ANSI colour codes from captured tctest stderr
+            const errors = (process.env.TCTEST_ERRORS || '').replace(/\u001b\[[0-9;]*m/g, '').trim();
+
+            let body;
+            // matchers are deliberately loose so minor rewording in tctest doesn't
+            // silently drop us back to the generic failure comment
+            const limit = errors.match(/would trigger (\d+)\b.*?\bexceeding\b.*?\blimit of (\d+)/i);
+            if (limit) {
+              body = `❌ This would trigger builds on **${limit[1]}** services, exceeding the limit of ${limit[2]}.\n\n` +
+                `Re-run with \`/test -f\` (or \`/test -force\`) to run them anyway.`;
+            } else if (/merge conflict/i.test(errors)) {
+              body = '❌ This PR has merge conflicts — TeamCity tests cannot run until they are resolved.\n\n' +
+                'Merge the base branch (or rebase), then comment `/test` again.';
+            } else if (/rate limit/i.test(errors)) {
+              body = '❌ Test discovery hit the GitHub API rate limit.\n\n' +
+                'Wait a few minutes and comment `/test` again.';
+            } else if (errors.includes('no builds were triggered')) {
+              body = '❌ No TeamCity builds were triggered — no acceptance tests could be discovered from this PR\'s changed files.\n\n' +
+                'If this PR does have acceptance tests, re-run with an explicit prefix, e.g. `/test TestAccFoo`.';
+            } else {
+              // unrecognized error: never post raw stderr (comment bodies bypass the
+              // secret masking that workflow logs get) - point at the logs instead
+              body = '❌ Failed to trigger TeamCity tests.';
+            }
+            body += `\n\nSee the [workflow logs](${runUrl}) for details.`;
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: '❌ Failed to trigger TeamCity tests. Please check the workflow logs for details.'
+              body
             });
 
   unauthorized-comment:

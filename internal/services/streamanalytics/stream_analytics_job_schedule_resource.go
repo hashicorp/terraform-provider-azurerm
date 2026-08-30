@@ -43,13 +43,9 @@ func (r JobScheduleResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"start_mode": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(streamingjobs.OutputStartModeCustomTime),
-				string(streamingjobs.OutputStartModeJobStartTime),
-				string(streamingjobs.OutputStartModeLastOutputEventTime),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForOutputStartMode(), false),
 		},
 
 		"start_time": {
@@ -168,15 +164,9 @@ func (r JobScheduleResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					startTime := ""
-					if v := props.OutputStartTime; v != nil {
-						startTime = *v
-					}
+					startTime := pointer.From(props.OutputStartTime)
 
-					lastOutputTime := ""
-					if v := props.LastOutputEventTime; v != nil {
-						lastOutputTime = *v
-					}
+					lastOutputTime := pointer.From(props.LastOutputEventTime)
 
 					startMode := ""
 					if v := props.OutputStartMode; v != nil {

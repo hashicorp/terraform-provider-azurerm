@@ -80,7 +80,7 @@ func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) IDValidationFunc(
 }
 
 func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) Arguments() map[string]*pluginsdk.Schema {
-	arguments := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -255,7 +255,6 @@ func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) Arguments() map[s
 			ValidateFunc: validate.BackupPolicyMySQLFlexibleServerTimeZone(),
 		},
 	}
-	return arguments
 }
 
 func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) Attributes() map[string]*pluginsdk.Schema {

@@ -27,6 +27,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ipampools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -36,7 +37,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity
@@ -134,12 +134,9 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"enforcement": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(virtualnetworks.VirtualNetworkEncryptionEnforcementDropUnencrypted),
-							string(virtualnetworks.VirtualNetworkEncryptionEnforcementAllowUnencrypted),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(virtualnetworks.PossibleValuesForVirtualNetworkEncryptionEnforcement(), false),
 					},
 				},
 			},
@@ -541,7 +538,7 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			if payload.Properties.AddressSpace == nil {
 				payload.Properties.AddressSpace = &virtualnetworks.AddressSpace{}
 			}
-			payload.Properties.AddressSpace.AddressPrefixes = utils.ExpandStringSlice(v)
+			payload.Properties.AddressSpace.AddressPrefixes = helpers.ExpandStringSlice(v)
 		} else {
 			payload.Properties.AddressSpace.AddressPrefixes = nil
 		}
@@ -600,7 +597,7 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			payload.Properties.DhcpOptions = &virtualnetworks.DhcpOptions{}
 		}
 
-		payload.Properties.DhcpOptions.DnsServers = utils.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
+		payload.Properties.DhcpOptions.DnsServers = helpers.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
 	}
 
 	if d.HasChange("flow_timeout_in_minutes") {
@@ -625,7 +622,7 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("private_endpoint_vnet_policies") {
-		payload.Properties.PrivateEndpointVNetPolicies = pointer.To(virtualnetworks.PrivateEndpointVNetPolicies(d.Get("private_endpoint_vnet_policies").(string)))
+		payload.Properties.PrivateEndpointVNetPolicies = pointer.ToEnum[virtualnetworks.PrivateEndpointVNetPolicies](d.Get("private_endpoint_vnet_policies").(string))
 	}
 
 	if d.HasChange("tags") {
@@ -736,7 +733,7 @@ func expandVirtualNetworkEncryption(input []interface{}) *virtualnetworks.Virtua
 	attr := input[0].(map[string]interface{})
 	return &virtualnetworks.VirtualNetworkEncryption{
 		Enabled:     true,
-		Enforcement: pointer.To(virtualnetworks.VirtualNetworkEncryptionEnforcement(attr["enforcement"].(string))),
+		Enforcement: pointer.ToEnum[virtualnetworks.VirtualNetworkEncryptionEnforcement](attr["enforcement"].(string)),
 	}
 }
 
@@ -775,13 +772,8 @@ func expandVirtualNetworkSubnets(ctx context.Context, client virtualnetworks.Vir
 			addressPrefixes = append(addressPrefixes, prefix.(string))
 		}
 
-		if len(addressPrefixes) == 1 {
-			subnetObj.Properties.AddressPrefix = pointer.To(addressPrefixes[0])
-			subnetObj.Properties.AddressPrefixes = nil
-		} else {
-			subnetObj.Properties.AddressPrefixes = pointer.To(addressPrefixes)
-			subnetObj.Properties.AddressPrefix = nil
-		}
+		subnetObj.Properties.AddressPrefixes = pointer.To(addressPrefixes)
+		subnetObj.Properties.AddressPrefix = nil
 
 		privateEndpointNetworkPolicies := virtualnetworks.VirtualNetworkPrivateEndpointNetworkPolicies(subnet["private_endpoint_network_policies"].(string))
 		privateLinkServiceNetworkPolicies := virtualnetworks.VirtualNetworkPrivateLinkServiceNetworkPoliciesDisabled
@@ -853,11 +845,7 @@ func expandVirtualNetworkProperties(ctx context.Context, client virtualnetworks.
 				addressPrefixes = append(addressPrefixes, prefix.(string))
 			}
 
-			if len(addressPrefixes) == 1 {
-				subnetObj.Properties.AddressPrefix = pointer.To(addressPrefixes[0])
-			} else {
-				subnetObj.Properties.AddressPrefixes = pointer.To(addressPrefixes)
-			}
+			subnetObj.Properties.AddressPrefixes = pointer.To(addressPrefixes)
 
 			privateEndpointNetworkPolicies := virtualnetworks.VirtualNetworkPrivateEndpointNetworkPolicies(subnet["private_endpoint_network_policies"].(string))
 			privateLinkServiceNetworkPolicies := virtualnetworks.VirtualNetworkPrivateLinkServiceNetworkPoliciesDisabled
@@ -900,14 +888,14 @@ func expandVirtualNetworkProperties(ctx context.Context, client virtualnetworks.
 	properties := &virtualnetworks.VirtualNetworkPropertiesFormat{
 		AddressSpace: &virtualnetworks.AddressSpace{},
 		DhcpOptions: &virtualnetworks.DhcpOptions{
-			DnsServers: utils.ExpandStringSlice(d.Get("dns_servers").([]interface{})),
+			DnsServers: helpers.ExpandStringSlice(d.Get("dns_servers").([]interface{})),
 		},
-		PrivateEndpointVNetPolicies: pointer.To(virtualnetworks.PrivateEndpointVNetPolicies(d.Get("private_endpoint_vnet_policies").(string))),
+		PrivateEndpointVNetPolicies: pointer.ToEnum[virtualnetworks.PrivateEndpointVNetPolicies](d.Get("private_endpoint_vnet_policies").(string)),
 		Subnets:                     &subnets,
 	}
 
 	if v, ok := d.GetOk("address_space"); ok {
-		properties.AddressSpace.AddressPrefixes = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
+		properties.AddressSpace.AddressPrefixes = helpers.ExpandStringSlice(v.(*pluginsdk.Set).List())
 	}
 
 	if v, ok := d.GetOk("ddos_protection_plan"); ok {
@@ -936,7 +924,7 @@ func expandVirtualNetworkProperties(ctx context.Context, client virtualnetworks.
 			encryptionConf := vList[0].(map[string]interface{})
 			properties.Encryption = &virtualnetworks.VirtualNetworkEncryption{
 				Enabled:     true,
-				Enforcement: pointer.To(virtualnetworks.VirtualNetworkEncryptionEnforcement(encryptionConf["enforcement"].(string))),
+				Enforcement: pointer.ToEnum[virtualnetworks.VirtualNetworkEncryptionEnforcement](encryptionConf["enforcement"].(string)),
 			}
 		}
 	}
@@ -1220,10 +1208,7 @@ func flattenVirtualNetworkSubnetServiceEndpointPolicies(input *[]virtualnetworks
 	}
 
 	for _, policy := range *input {
-		id := ""
-		if policy.Id != nil {
-			id = *policy.Id
-		}
+		id := pointer.From(policy.Id)
 		output = append(output, id)
 	}
 	return output

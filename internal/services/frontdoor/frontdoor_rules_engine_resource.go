@@ -185,13 +185,9 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"header_action_type": {
-													Type: pluginsdk.TypeString,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(frontdoors.HeaderActionTypeAppend),
-														string(frontdoors.HeaderActionTypeDelete),
-														string(frontdoors.HeaderActionTypeOverwrite),
-													}, false),
-													Optional: true,
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.StringInSlice(frontdoors.PossibleValuesForHeaderActionType(), false),
+													Optional:     true,
 												},
 
 												"header_name": {
@@ -216,13 +212,9 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"header_action_type": {
-													Type: pluginsdk.TypeString,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(frontdoors.HeaderActionTypeAppend),
-														string(frontdoors.HeaderActionTypeDelete),
-														string(frontdoors.HeaderActionTypeOverwrite),
-													}, false),
-													Optional: true,
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.StringInSlice(frontdoors.PossibleValuesForHeaderActionType(), false),
+													Optional:     true,
 												},
 
 												"header_name": {
@@ -304,12 +296,10 @@ func expandFrontDoorRulesEngineAction(input []interface{}) frontdoors.RulesEngin
 	requestHeaderActions := ruleAction["request_header"].([]interface{})
 	responseHeaderActions := ruleAction["response_header"].([]interface{})
 
-	frontdoorRulesEngineRuleAction := frontdoors.RulesEngineAction{
+	return frontdoors.RulesEngineAction{
 		RequestHeaderActions:  expandHeaderAction(requestHeaderActions),
 		ResponseHeaderActions: expandHeaderAction(responseHeaderActions),
 	}
-
-	return frontdoorRulesEngineRuleAction
 }
 
 func expandHeaderAction(input []interface{}) *[]frontdoors.HeaderAction {

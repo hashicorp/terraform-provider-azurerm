@@ -59,13 +59,8 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true, // Defaults to storageaccounts.BypassAzureServices in the API, but schema does not support defaults for lists/sets.
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(storageaccounts.BypassAzureServices),
-						string(storageaccounts.BypassLogging),
-						string(storageaccounts.BypassMetrics),
-						string(storageaccounts.BypassNone),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForBypass(), false),
 				},
 				Set: pluginsdk.HashString,
 			},
@@ -91,12 +86,9 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 			},
 
 			"default_action": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(storageaccounts.DefaultActionAllow),
-					string(storageaccounts.DefaultActionDeny),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForDefaultAction(), false),
 			},
 
 			"private_link_access": {

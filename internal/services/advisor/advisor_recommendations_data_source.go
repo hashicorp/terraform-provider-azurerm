@@ -32,14 +32,8 @@ func dataSourceAdvisorRecommendations() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(getrecommendations.CategoryHighAvailability),
-						string(getrecommendations.CategorySecurity),
-						string(getrecommendations.CategoryPerformance),
-						string(getrecommendations.CategoryCost),
-						string(getrecommendations.CategoryOperationalExcellence),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(getrecommendations.PossibleValuesForCategory(), false),
 				},
 			},
 
@@ -161,7 +155,7 @@ func dataSourceAdvisorRecommendationsRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("setting `recommendations`: %+v", err)
 	}
 
-	d.SetId("avdisor/recommendations/" + time.Now().UTC().String())
+	d.SetId(fmt.Sprintf("advisor/recommendations/%s/%d", id.SubscriptionId, pluginsdk.HashString(strings.Join(filterList, " and "))))
 
 	return nil
 }

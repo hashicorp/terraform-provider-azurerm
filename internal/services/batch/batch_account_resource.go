@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -33,7 +32,7 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceBatchAccount() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceBatchAccountCreate,
 		Read:   resourceBatchAccountRead,
 		Update: resourceBatchAccountUpdate,
@@ -68,12 +67,9 @@ func resourceBatchAccount() *pluginsdk.Resource {
 			},
 
 			"storage_account_authentication_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(batchaccount.AutoStorageAuthenticationModeStorageKeys),
-					string(batchaccount.AutoStorageAuthenticationModeBatchAccountManagedIdentity),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(batchaccount.PossibleValuesForAutoStorageAuthenticationMode(), false),
 				RequiredWith: []string{"storage_account_id"},
 			},
 
@@ -91,23 +87,16 @@ func resourceBatchAccount() *pluginsdk.Resource {
 				// its default which is to return all three values
 				Computed: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(batchaccount.AuthenticationModeSharedKey),
-						string(batchaccount.AuthenticationModeAAD),
-						string(batchaccount.AuthenticationModeTaskAuthenticationToken),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(batchaccount.PossibleValuesForAuthenticationMode(), false),
 				},
 			},
 
 			"pool_allocation_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(batchaccount.PoolAllocationModeBatchService),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(batchaccount.PoolAllocationModeBatchService),
-					string(batchaccount.PoolAllocationModeUserSubscription),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(batchaccount.PoolAllocationModeBatchService),
+				ValidateFunc: validation.StringInSlice(batchaccount.PossibleValuesForPoolAllocationMode(), false),
 			},
 
 			"public_network_access_enabled": {
@@ -190,12 +179,6 @@ func resourceBatchAccount() *pluginsdk.Resource {
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&batchaccount.BatchAccountId{}),
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["encryption"].Elem.(*pluginsdk.Resource).Schema["key_vault_key_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
-	}
-
-	return resource
 }
 
 func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -285,7 +268,7 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		parameters.Properties.AutoStorage = &batchaccount.AutoStorageBaseProperties{
 			StorageAccountId:   storageAccountId,
-			AuthenticationMode: pointer.To(batchaccount.AutoStorageAuthenticationMode(authMode)),
+			AuthenticationMode: pointer.ToEnum[batchaccount.AutoStorageAuthenticationMode](authMode),
 		}
 	}
 
@@ -465,7 +448,7 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	if storageAccountId != "" {
 		parameters.Properties.AutoStorage = &batchaccount.AutoStorageBaseProperties{
 			StorageAccountId:   storageAccountId,
-			AuthenticationMode: pointer.To(batchaccount.AutoStorageAuthenticationMode(authMode)),
+			AuthenticationMode: pointer.ToEnum[batchaccount.AutoStorageAuthenticationMode](authMode),
 		}
 	}
 
@@ -652,13 +635,10 @@ func resourceBatchAccountEndpointAccessProfileSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"default_action": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  batchaccount.EndpointAccessDefaultActionDeny,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(batchaccount.EndpointAccessDefaultActionAllow),
-						string(batchaccount.EndpointAccessDefaultActionDeny),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      batchaccount.EndpointAccessDefaultActionDeny,
+					ValidateFunc: validation.StringInSlice(batchaccount.PossibleValuesForEndpointAccessDefaultAction(), false),
 				},
 
 				"ip_rule": {
@@ -673,12 +653,10 @@ func resourceBatchAccountEndpointAccessProfileSchema() *pluginsdk.Schema {
 							},
 
 							"action": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								Default:  string(batchaccount.IPRuleActionAllow),
-								ValidateFunc: validation.StringInSlice([]string{
-									string(batchaccount.IPRuleActionAllow),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								Default:      string(batchaccount.IPRuleActionAllow),
+								ValidateFunc: validation.StringInSlice(batchaccount.PossibleValuesForIPRuleAction(), false),
 							},
 						},
 					},

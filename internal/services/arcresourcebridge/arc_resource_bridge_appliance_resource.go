@@ -55,24 +55,18 @@ func (r ArcResourceBridgeApplianceResource) Arguments() map[string]*schema.Schem
 		"location": commonschema.Location(),
 
 		"distro": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(appliances.DistroAKSEdge),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(appliances.PossibleValuesForDistro(), false),
 		},
 
 		"identity": commonschema.SystemAssignedIdentityRequiredForceNew(),
 
 		"infrastructure_provider": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(appliances.ProviderHCI),
-				string(appliances.ProviderSCVMM),
-				string(appliances.ProviderVMWare),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(appliances.PossibleValuesForProvider(), false),
 		},
 
 		"public_key_base64": {
