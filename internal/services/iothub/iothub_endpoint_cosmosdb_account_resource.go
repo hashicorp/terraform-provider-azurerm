@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -19,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
@@ -180,7 +180,7 @@ func (r IotHubEndpointCosmosDBAccountResource) Create() sdk.ResourceFunc {
 
 			iothub, err := client.Get(ctx, iotHubId.ResourceGroup, iotHubId.Name)
 			if err != nil {
-				if utils.ResponseWasNotFound(iothub.Response) {
+				if response.WasNotFound(iothub.Response.Response) {
 					return fmt.Errorf("%q was not found", iotHubId)
 				}
 
@@ -293,7 +293,7 @@ func (r IotHubEndpointCosmosDBAccountResource) Read() sdk.ResourceFunc {
 
 			iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 			if err != nil {
-				if utils.ResponseWasNotFound(iothub.Response) {
+				if response.WasNotFound(iothub.Response.Response) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %q: %+v", id, err)
@@ -362,7 +362,7 @@ func (r IotHubEndpointCosmosDBAccountResource) Update() sdk.ResourceFunc {
 
 			iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 			if err != nil {
-				if utils.ResponseWasNotFound(iothub.Response) {
+				if response.WasNotFound(iothub.Response.Response) {
 					return fmt.Errorf("%q was not found", id)
 				}
 
@@ -466,7 +466,7 @@ func (r IotHubEndpointCosmosDBAccountResource) Delete() sdk.ResourceFunc {
 
 			iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 			if err != nil {
-				if utils.ResponseWasNotFound(iothub.Response) {
+				if response.WasNotFound(iothub.Response.Response) {
 					return fmt.Errorf("%q was not found", id)
 				}
 				return fmt.Errorf("retrieving %q: %+v", id, err)

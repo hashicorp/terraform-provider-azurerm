@@ -14,18 +14,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 func resourceBotChannelMsTeams() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceBotChannelMsTeamsCreate,
 		Read:   resourceBotChannelMsTeamsRead,
 		Delete: resourceBotChannelMsTeamsDelete,
@@ -81,24 +79,6 @@ func resourceBotChannelMsTeams() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["calling_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"enable_calling"},
-		}
-		resource.Schema["enable_calling"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"calling_enabled"},
-			Deprecated:    "The property `enable_calling` is deprecated in favour of `calling_enabled` and will be removed in version 5.0 of the AzureRM Provider.",
-		}
-	}
-
-	return resource
 }
 
 func resourceBotChannelMsTeamsCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -112,11 +92,11 @@ func resourceBotChannelMsTeamsCreate(d *pluginsdk.ResourceData, meta interface{}
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, resourceId.ChannelName)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for the presence of existing MS Teams Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_bot_channel_ms_teams", resourceId.ID())
 		}
 	}
@@ -133,13 +113,6 @@ func resourceBotChannelMsTeamsCreate(d *pluginsdk.ResourceData, meta interface{}
 		},
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
-	}
-
-	if !features.FivePointOh() {
-		if v, ok := d.GetOk("enable_calling"); ok {
-			channel, _ := channel.Properties.AsMsTeamsChannel()
-			channel.Properties.EnableCalling = pointer.To(v.(bool))
-		}
 	}
 
 	if v, ok := d.GetOk("calling_web_hook"); ok {
@@ -167,7 +140,7 @@ func resourceBotChannelMsTeamsRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameMsTeamsChannel))
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] MS Teams Channel for Bot %q (Resource Group %q) was not found - removing from state!", id.BotServiceName, id.ResourceGroup)
 			d.SetId("")
 			return nil
@@ -186,9 +159,6 @@ func resourceBotChannelMsTeamsRead(d *pluginsdk.ResourceData, meta interface{}) 
 				d.Set("calling_web_hook", channelProps.CallingWebhook)
 				d.Set("deployment_environment", channelProps.DeploymentEnvironment)
 				d.Set("calling_enabled", channelProps.EnableCalling)
-				if !features.FivePointOh() {
-					d.Set("enable_calling", channelProps.EnableCalling)
-				}
 			}
 		}
 	}
@@ -219,13 +189,6 @@ func resourceBotChannelMsTeamsUpdate(d *pluginsdk.ResourceData, meta interface{}
 		},
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
-	}
-
-	if !features.FivePointOh() {
-		if v, ok := d.GetOk("enable_calling"); ok {
-			channel, _ := channel.Properties.AsMsTeamsChannel()
-			channel.Properties.EnableCalling = pointer.To(v.(bool))
-		}
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameMsTeamsChannel, channel); err != nil {

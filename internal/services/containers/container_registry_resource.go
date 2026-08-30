@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"sort"
 	"strings"
 	"time"
@@ -24,7 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
@@ -34,234 +35,7 @@ import (
 )
 
 func resourceContainerRegistry() *pluginsdk.Resource {
-	schema := map[string]*pluginsdk.Schema{
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: containerValidate.ContainerRegistryName,
-		},
-
-		"resource_group_name": commonschema.ResourceGroupName(),
-
-		"location": commonschema.Location(),
-
-		"sku": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(registries.SkuNameBasic),
-				string(registries.SkuNameStandard),
-				string(registries.SkuNamePremium),
-			}, false),
-		},
-
-		"admin_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"georeplications": {
-			// Don't make this a TypeSet since TypeSet has bugs when there is a nested property using `StateFunc`.
-			// See: https://github.com/hashicorp/terraform-plugin-sdk/issues/160
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			ConfigMode: pluginsdk.SchemaConfigModeAuto,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"location": commonschema.LocationWithoutForceNew(),
-
-					"global_endpoint_routing_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
-					},
-
-					"zone_redundancy_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-
-					"tags": commonschema.Tags(),
-				},
-			},
-		},
-
-		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		},
-
-		"login_server": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"admin_username": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"admin_password": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
-
-		"encryption": {
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			MaxItems:   1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"identity_client_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.IsUUID,
-					},
-					"key_vault_key_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
-					},
-				},
-			},
-		},
-
-		"network_rule_set": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true,
-			// ConfigModeAttr ensures we can set this to an empty array for Premium -> Basic
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			MaxItems:   1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"default_action": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  registries.DefaultActionAllow,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(registries.DefaultActionAllow),
-							string(registries.DefaultActionDeny),
-						}, false),
-					},
-
-					"ip_rule": {
-						Type:       pluginsdk.TypeSet,
-						Optional:   true,
-						Computed:   true,
-						ConfigMode: pluginsdk.SchemaConfigModeAttr,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"action": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(registries.ActionAllow),
-									}, false),
-								},
-								"ip_range": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validate.CIDR,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-
-		"quarantine_policy_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-		},
-
-		"retention_policy_in_days": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			ValidateFunc: validation.IntBetween(0, 365),
-		},
-
-		"export_policy_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		},
-
-		"azuread_authentication_as_arm_policy_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		},
-
-		"zone_redundancy_enabled": {
-			Type:     pluginsdk.TypeBool,
-			ForceNew: true,
-			Optional: true,
-			Default:  false,
-		},
-
-		"anonymous_pull_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-		},
-
-		"data_endpoint_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-		},
-
-		"data_endpoint_host_names": {
-			Type:     pluginsdk.TypeSet,
-			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		},
-
-		"network_rule_bypass_option": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(registries.NetworkRuleBypassOptionsAzureServices),
-				string(registries.NetworkRuleBypassOptionsNone),
-			}, false),
-			Default: string(registries.NetworkRuleBypassOptionsAzureServices),
-		},
-
-		"network_rule_bypass_for_tasks_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"role_assignment_mode": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringInSlice(registries.PossibleValuesForRoleAssignmentMode(), false),
-			Default:      registries.RoleAssignmentModeLegacyRegistryPermissions,
-		},
-
-		"tags": commonschema.Tags(),
-	}
-
-	if !features.FivePointOh() {
-		schema["trust_policy_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Deprecated: "the `trust_policy_enabled` property is deprecated by the service and will be removed in v5.0 of the AzureRM Provider",
-			Optional:   true,
-			Default:    false,
-		}
-	}
-
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceContainerRegistryCreate,
 		Read:   resourceContainerRegistryRead,
 		Update: resourceContainerRegistryUpdate,
@@ -285,7 +59,215 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: schema,
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: containerValidate.ContainerRegistryName,
+			},
+
+			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"location": commonschema.Location(),
+
+			"sku": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(registries.SkuNameBasic),
+					string(registries.SkuNameStandard),
+					string(registries.SkuNamePremium),
+				}, false),
+			},
+
+			"admin_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"georeplications": {
+				// Don't make this a TypeSet since TypeSet has bugs when there is a nested property using `StateFunc`.
+				// See: https://github.com/hashicorp/terraform-plugin-sdk/issues/160
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				ConfigMode: pluginsdk.SchemaConfigModeAuto,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"location": commonschema.LocationWithoutForceNew(),
+
+						"global_endpoint_routing_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
+
+						"zone_redundancy_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"tags": commonschema.Tags(),
+					},
+				},
+			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"login_server": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"admin_username": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"admin_password": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+			"encryption": {
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				MaxItems:   1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"identity_client_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+						"key_vault_key_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
+						},
+					},
+				},
+			},
+
+			"network_rule_set": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				// ConfigModeAttr ensures we can set this to an empty array for Premium -> Basic
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				MaxItems:   1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"default_action": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      registries.DefaultActionAllow,
+							ValidateFunc: validation.StringInSlice(registries.PossibleValuesForDefaultAction(), false),
+						},
+
+						"ip_rule": {
+							Type:       pluginsdk.TypeSet,
+							Optional:   true,
+							Computed:   true,
+							ConfigMode: pluginsdk.SchemaConfigModeAttr,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"action": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(registries.PossibleValuesForAction(), false),
+									},
+									"ip_range": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validate.CIDR,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
+			"quarantine_policy_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"retention_policy_in_days": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(0, 365),
+			},
+
+			"export_policy_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"azuread_authentication_as_arm_policy_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"zone_redundancy_enabled": {
+				Type:     pluginsdk.TypeBool,
+				ForceNew: true,
+				Optional: true,
+				Default:  false,
+			},
+
+			"anonymous_pull_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"data_endpoint_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"data_endpoint_host_names": {
+				Type:     pluginsdk.TypeSet,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"network_rule_bypass_option": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(registries.PossibleValuesForNetworkRuleBypassOptions(), false),
+				Default:      string(registries.NetworkRuleBypassOptionsAzureServices),
+			},
+
+			"network_rule_bypass_for_tasks_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"role_assignment_mode": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(registries.PossibleValuesForRoleAssignmentMode(), false),
+				Default:      registries.RoleAssignmentModeLegacyRegistryPermissions,
+			},
+
+			"tags": commonschema.Tags(),
+		},
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			sku := d.Get("sku").(string)
@@ -317,20 +299,6 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			retentionPolicyEnabled, ok := d.GetOk("retention_policy_in_days")
 			if ok && retentionPolicyEnabled.(int) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
 				return errors.New("an ACR retention policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset `retention_policy_in_days`")
-			}
-
-			if !features.FivePointOh() {
-				trustPolicyEnabled, ok := d.GetOk("trust_policy_enabled")
-				if ok && trustPolicyEnabled.(bool) {
-					if !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-						return errors.New("an ACR trust policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset `trust_policy_enabled` or set `trust_policy_enabled = false`")
-					}
-
-					// Can't enable `trustPolicy` for new creation.
-					if d.GetRawState().IsNull() {
-						return errors.New("`trust_policy_enabled` cannot be enabled as it is deprecated by the service")
-					}
-				}
 			}
 
 			exportPolicyEnabled := d.Get("export_policy_enabled").(bool)
@@ -371,42 +339,9 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				return fmt.Errorf("`data_endpoint_enabled` can only be applied when using the Premium Sku")
 			}
 
-			if !features.FivePointOh() {
-				if rawConfig := d.GetRawConfig(); !rawConfig.IsNull() {
-					if geoReplicationsRaw := rawConfig.AsValueMap()["georeplications"]; !geoReplicationsRaw.IsNull() {
-						for _, geoReplicationRaw := range geoReplicationsRaw.AsValueSlice() {
-							geoReplication := geoReplicationRaw.AsValueMap()
-							if !geoReplication["regional_endpoint_enabled"].IsNull() && !geoReplication["global_endpoint_routing_enabled"].IsNull() {
-								return fmt.Errorf("only one of `regional_endpoint_enabled` and `global_endpoint_routing_enabled` can be set per `georeplications` block")
-							}
-						}
-					}
-				}
-			}
-
 			return nil
 		}),
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["encryption"].Computed = true
-		r.Schema["encryption"].Elem.(*pluginsdk.Resource).Schema["key_vault_key_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
-
-		// `regional_endpoint_enabled` has been renamed to `global_endpoint_routing_enabled`. Both
-		// properties map to the same underlying `RegionEndpointEnabled` API field and are mutually
-		// exclusive (enforced in CustomizeDiff, since ConflictsWith cannot reference properties
-		// nested within a list block). Both are marked Computed so unset values don't produce a diff.
-		geoReplicationSchema := r.Schema["georeplications"].Elem.(*pluginsdk.Resource).Schema
-		geoReplicationSchema["regional_endpoint_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "`regional_endpoint_enabled` has been deprecated in favour of `global_endpoint_routing_enabled` and will be removed in v5.0 of the AzureRM Provider",
-		}
-		geoReplicationSchema["global_endpoint_routing_enabled"].Computed = true
-	}
-
-	return r
 }
 
 func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -466,7 +401,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 		Location: location.Normalize(d.Get("location").(string)),
 		Sku: registries.Sku{
 			Name: registries.SkuName(sku),
-			Tier: pointer.To(registries.SkuTier(sku)),
+			Tier: pointer.ToEnum[registries.SkuTier](sku),
 		},
 		Identity: identity,
 		Properties: &registries.RegistryProperties{
@@ -483,20 +418,12 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 			ZoneRedundancy:                   &zoneRedundancy,
 			AnonymousPullEnabled:             pointer.To(d.Get("anonymous_pull_enabled").(bool)),
 			DataEndpointEnabled:              pointer.To(d.Get("data_endpoint_enabled").(bool)),
-			NetworkRuleBypassOptions:         pointer.To(registries.NetworkRuleBypassOptions(d.Get("network_rule_bypass_option").(string))),
+			NetworkRuleBypassOptions:         pointer.ToEnum[registries.NetworkRuleBypassOptions](d.Get("network_rule_bypass_option").(string)),
 			RoleAssignmentMode:               pointer.ToEnum[registries.RoleAssignmentMode](d.Get("role_assignment_mode").(string)),
 			NetworkRuleBypassAllowedForTasks: pointer.To(d.Get("network_rule_bypass_for_tasks_enabled").(bool)),
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	if !features.FivePointOh() {
-		trustPolicy := &registries.TrustPolicy{}
-		if v, ok := d.GetOk("trust_policy_enabled"); ok && v.(bool) {
-			trustPolicy.Status = pointer.To(registries.PolicyStatusEnabled)
-		}
-		parameters.Properties.Policies.TrustPolicy = trustPolicy
 	}
 
 	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -509,8 +436,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	newGeoReplicationLocations = expandReplications(d.Get("georeplications").([]interface{}))
 	// geo replications have been specified
 	if len(newGeoReplicationLocations) > 0 {
-		err = applyGeoReplicationLocations(ctx, meta, id, oldGeoReplicationLocations, newGeoReplicationLocations)
-		if err != nil {
+		if err = applyGeoReplicationLocations(ctx, meta, id, oldGeoReplicationLocations, newGeoReplicationLocations); err != nil {
 			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
 	}
@@ -588,9 +514,6 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	policyKeys = append(policyKeys, "retention_policy_in_days")
-	if !features.FivePointOh() {
-		policyKeys = append(policyKeys, "trust_policy_enabled")
-	}
 
 	if d.HasChanges(policyKeys...) {
 		payload.Properties.Policies = &registries.Policies{}
@@ -605,20 +528,6 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 			payload.Properties.Policies.RetentionPolicy = &registries.RetentionPolicy{
 				Status: pointer.To(registries.PolicyStatusEnabled),
 				Days:   pointer.To(int64(v)),
-			}
-		}
-	}
-
-	if !features.FivePointOh() {
-		if d.HasChange("trust_policy_enabled") {
-			payload.Properties.Policies.TrustPolicy = &registries.TrustPolicy{
-				Status: pointer.To(registries.PolicyStatusDisabled),
-			}
-
-			if v := d.Get("trust_policy_enabled").(bool); v {
-				payload.Properties.Policies.TrustPolicy = &registries.TrustPolicy{
-					Status: pointer.To(registries.PolicyStatusEnabled),
-				}
 			}
 		}
 	}
@@ -668,7 +577,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.HasChange("network_rule_bypass_option") {
-		payload.Properties.NetworkRuleBypassOptions = pointer.To(registries.NetworkRuleBypassOptions(d.Get("network_rule_bypass_option").(string)))
+		payload.Properties.NetworkRuleBypassOptions = pointer.ToEnum[registries.NetworkRuleBypassOptions](d.Get("network_rule_bypass_option").(string))
 	}
 
 	if d.HasChange("role_assignment_mode") {
@@ -689,8 +598,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if hasGeoReplicationsChanges {
-		err := applyGeoReplicationLocations(ctx, meta, *id, expandReplications(oldReplications), expandReplications(newReplications))
-		if err != nil {
+		if err := applyGeoReplicationLocations(ctx, meta, *id, expandReplications(oldReplications), expandReplications(newReplications)); err != nil {
 			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
 	}
@@ -719,7 +627,7 @@ func applyContainerRegistrySku(d *pluginsdk.ResourceData, meta interface{}, sku 
 	parameters := registries.RegistryUpdateParameters{
 		Sku: &registries.Sku{
 			Name: registries.SkuName(sku),
-			Tier: pointer.To(registries.SkuTier(sku)),
+			Tier: pointer.ToEnum[registries.SkuTier](sku),
 		},
 	}
 
@@ -821,31 +729,15 @@ func applyGeoReplicationLocations(ctx context.Context, meta interface{}, registr
 			}
 
 			// Following can be removed once https://github.com/Azure/azure-rest-api-specs/issues/18934 is resolved. Otherwise, the create right after delete will always fail.
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("context is missing a timeout")
-			}
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending: []string{"InProgress"},
-				Target:  []string{"NotFound"},
-				Refresh: func() (interface{}, string, error) {
-					resp, err := replicationClient.Get(ctx, id)
-					if err != nil {
-						if response.WasNotFound(resp.HttpResponse) {
-							return resp, "NotFound", nil
-						}
-
-						return nil, "Error", err
-					}
-
-					return resp, "InProgress", nil
-				},
-				ContinuousTargetOccurence: 5,
-				PollInterval:              5 * time.Second,
-				Timeout:                   time.Until(deadline),
-			}
-			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("additional waiting for deletion of %s: %+v", id, err)
+			poller := custompollers.NewEventualConsistencyPoller(5, func(pollerCtx context.Context) (*http.Response, error) {
+				resp, err := replicationClient.Get(pollerCtx, id)
+				return resp.HttpResponse, err
+			}, &custompollers.EventualConsistencyPollerOptions{
+				Interval:         5 * time.Second,
+				TargetStatusCode: pointer.To(http.StatusNotFound),
+			})
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 			}
 		}
 
@@ -928,12 +820,6 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 				}
 				d.Set("retention_policy_in_days", retentionInDays)
 
-				if !features.FivePointOh() {
-					if policies.TrustPolicy != nil && policies.TrustPolicy.Status != nil {
-						policyEnabled := *policies.TrustPolicy.Status == registries.PolicyStatusEnabled
-						d.Set("trust_policy_enabled", policyEnabled)
-					}
-				}
 				d.Set("quarantine_policy_enabled", flattenQuarantinePolicy(props.Policies))
 				d.Set("export_policy_enabled", flattenExportPolicy(props.Policies))
 				d.Set("azuread_authentication_as_arm_policy_enabled", flattenAadAuthAsArmPolicy(props.Policies))
@@ -981,11 +867,7 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 				replication["location"] = valueLocation
 				replication["tags"] = tags.Flatten(value.Tags)
 				replication["zone_redundancy_enabled"] = *value.Properties.ZoneRedundancy == replications.ZoneRedundancyEnabled
-				regionEndpointEnabled := value.Properties.RegionEndpointEnabled != nil && *value.Properties.RegionEndpointEnabled
-				replication["global_endpoint_routing_enabled"] = regionEndpointEnabled
-				if !features.FivePointOh() {
-					replication["regional_endpoint_enabled"] = regionEndpointEnabled
-				}
+				replication["global_endpoint_routing_enabled"] = value.Properties.RegionEndpointEnabled != nil && *value.Properties.RegionEndpointEnabled
 				geoReplications = append(geoReplications, replication)
 			}
 		}
@@ -1030,7 +912,7 @@ func expandNetworkRuleSet(profiles []interface{}) *registries.NetworkRuleSet {
 	for _, ipRuleInterface := range ipRuleConfigs {
 		config := ipRuleInterface.(map[string]interface{})
 		newIpRule := registries.IPRule{
-			Action: pointer.To(registries.Action(config["action"].(string))),
+			Action: pointer.ToEnum[registries.Action](config["action"].(string)),
 			Value:  config["ip_range"].(string),
 		}
 		ipRules = append(ipRules, newIpRule)
@@ -1092,13 +974,6 @@ func expandReplications(p []interface{}) []replications.Replication {
 			zoneRedundancy = replications.ZoneRedundancyEnabled
 		}
 		regionEndpointEnabled := value["global_endpoint_routing_enabled"].(bool)
-		if !features.FivePointOh() {
-			// honour the deprecated `regional_endpoint_enabled` when the user has set it.
-			// Mutual exclusivity with `global_endpoint_routing_enabled` is enforced in CustomizeDiff.
-			if v, ok := value["regional_endpoint_enabled"].(bool); ok && v {
-				regionEndpointEnabled = v
-			}
-		}
 		reps = append(reps, replications.Replication{
 			Location: location,
 			Name:     &location,

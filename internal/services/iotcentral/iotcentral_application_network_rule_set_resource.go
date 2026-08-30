@@ -52,13 +52,10 @@ func (r IotCentralApplicationNetworkRuleSetResource) Arguments() map[string]*plu
 		},
 
 		"default_action": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(apps.NetworkActionDeny),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(apps.NetworkActionAllow),
-				string(apps.NetworkActionDeny),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(apps.NetworkActionDeny),
+			ValidateFunc: validation.StringInSlice(apps.PossibleValuesForNetworkAction(), false),
 		},
 
 		"ip_rule": {

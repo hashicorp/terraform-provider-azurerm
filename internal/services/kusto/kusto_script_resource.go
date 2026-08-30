@@ -244,8 +244,7 @@ func resourceKustoDatabaseScriptDelete(d *pluginsdk.ResourceData, meta interface
 	locks.ByName(id.ClusterName, "azurerm_kusto_cluster")
 	defer locks.UnlockByName(id.ClusterName, "azurerm_kusto_cluster")
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %q: %+v", id, err)
 	}
 

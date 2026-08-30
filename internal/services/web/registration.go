@@ -6,7 +6,6 @@ package web
 import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -33,24 +32,16 @@ func (r Registration) WebsiteCategories() []string {
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
-	datasources := map[string]*pluginsdk.Resource{
+	return map[string]*pluginsdk.Resource{
 		"azurerm_app_service_certificate_order": dataSourceAppServiceCertificateOrder(),
 		"azurerm_app_service_certificate":       dataSourceAppServiceCertificate(),
 		"azurerm_function_app_host_keys":        dataSourceFunctionAppHostKeys(),
 	}
-
-	if !features.FivePointOh() {
-		datasources["azurerm_app_service"] = dataSourceAppService()
-		datasources["azurerm_app_service_plan"] = dataSourceAppServicePlan()
-		datasources["azurerm_function_app"] = dataSourceFunctionApp()
-	}
-
-	return datasources
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	resources := map[string]*pluginsdk.Resource{
+	return map[string]*pluginsdk.Resource{
 		"azurerm_app_service_certificate":                           resourceAppServiceCertificate(),
 		"azurerm_app_service_certificate_order":                     resourceAppServiceCertificateOrder(),
 		"azurerm_app_service_custom_hostname_binding":               resourceAppServiceCustomHostnameBinding(),
@@ -61,21 +52,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_app_service_slot_virtual_network_swift_connection": resourceAppServiceSlotVirtualNetworkSwiftConnection(),
 		"azurerm_app_service_virtual_network_swift_connection":      resourceAppServiceVirtualNetworkSwiftConnection(),
 	}
-
-	if !features.FivePointOh() {
-		resources["azurerm_app_service_active_slot"] = resourceAppServiceActiveSlot()
-		resources["azurerm_app_service_hybrid_connection"] = resourceAppServiceHybridConnection()
-		resources["azurerm_app_service_plan"] = resourceAppServicePlan()
-		resources["azurerm_app_service_slot"] = resourceAppServiceSlot()
-		resources["azurerm_app_service_source_control_token"] = resourceAppServiceSourceControlToken()
-		resources["azurerm_app_service"] = resourceAppService()
-		resources["azurerm_function_app"] = resourceFunctionApp()
-		resources["azurerm_function_app_slot"] = resourceFunctionAppSlot()
-		resources["azurerm_static_site"] = resourceStaticSite()
-		resources["azurerm_static_site_custom_domain"] = resourceStaticSiteCustomDomain()
-	}
-
-	return resources
 }
 
 func (r Registration) DataSources() []sdk.DataSource {

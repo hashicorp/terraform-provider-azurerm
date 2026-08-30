@@ -50,8 +50,7 @@ func (p *ClientFilter) UnmarshalJSON(b []byte) error {
 				if err != nil {
 					return err
 				}
-				err = mpd.Decode(filterRaw)
-				if err != nil {
+				if err = mpd.Decode(filterRaw); err != nil {
 					return err
 				}
 				filtersOut = append(filtersOut, out)
@@ -64,8 +63,7 @@ func (p *ClientFilter) UnmarshalJSON(b []byte) error {
 				if err != nil {
 					return err
 				}
-				err = mpd.Decode(filterRaw)
-				if err != nil {
+				if err = mpd.Decode(filterRaw); err != nil {
 					return err
 				}
 				filtersOut = append(filtersOut, out)
@@ -78,8 +76,7 @@ func (p *ClientFilter) UnmarshalJSON(b []byte) error {
 				if err != nil {
 					return err
 				}
-				err = mpd.Decode(filterRaw)
-				if err != nil {
+				if err = mpd.Decode(filterRaw); err != nil {
 					return err
 				}
 				filtersOut = append(filtersOut, out)
@@ -93,8 +90,7 @@ func (p *ClientFilter) UnmarshalJSON(b []byte) error {
 				if err != nil {
 					return err
 				}
-				err = mpd.Decode(filterRaw)
-				if err != nil {
+				if err = mpd.Decode(filterRaw); err != nil {
 					return err
 				}
 				filtersOut = append(filtersOut, out)

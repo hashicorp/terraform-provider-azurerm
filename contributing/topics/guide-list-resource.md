@@ -476,6 +476,19 @@ Before adding a List Resource, the resource must have Resource Identity implemen
     * `subscription_id` - (Optional) The Subscription ID to query. Defaults to the value specified in the Provider Configuration.
     ````
 
+## Handling List for Sub-resources
+
+Some resources can be listed only beneath a parent resource, rather than at the subscription or resource group scope.
+
+For these sub-resources:
+
+* Do not expose `subscription_id` or `resource_group_name`.
+* Accept the immediate parent resource ID as a required argument.
+* Parse that parent ID and call the API that lists directly beneath that parent.
+* Apply the same rule to deeper hierarchies by taking the ID of the immediate parent resource at each level.
+
+Example: see [mysql_flexible_database_resource_list.go](../../internal/services/mysql/mysql_flexible_database_resource_list.go) and [mysql_flexible_database.html.markdown](../../website/docs/list-resources/mysql_flexible_database.html.markdown).
+
 ## Known Issues and Considerations
 
 ### Cancelled Context

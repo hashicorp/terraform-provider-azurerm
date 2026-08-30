@@ -162,12 +162,9 @@ func ConflictResolutionPolicy() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"mode": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(cosmosdb.ConflictResolutionModeLastWriterWins),
-						string(cosmosdb.ConflictResolutionModeCustom),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForConflictResolutionMode(), false),
 				},
 
 				"conflict_resolution_path": {
@@ -209,10 +206,7 @@ func CosmosDbIndexingPolicyCompositeIndexSchema() *pluginsdk.Schema {
 								Required: true,
 								// Workaround for Azure/azure-rest-api-specs#11222
 								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(cosmosdb.CompositePathSortOrderAscending),
-									string(cosmosdb.CompositePathSortOrderDescending),
-								}, true),
+								ValidateFunc:     validation.StringInSlice(cosmosdb.PossibleValuesForCompositePathSortOrder(), true),
 							},
 						},
 					},

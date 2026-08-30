@@ -60,24 +60,15 @@ func resourceCosmosDbSQLTrigger() *pluginsdk.Resource {
 			},
 
 			"operation": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cosmosdb.TriggerOperationAll),
-					string(cosmosdb.TriggerOperationCreate),
-					string(cosmosdb.TriggerOperationUpdate),
-					string(cosmosdb.TriggerOperationDelete),
-					string(cosmosdb.TriggerOperationReplace),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForTriggerOperation(), false),
 			},
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cosmosdb.TriggerTypePre),
-					string(cosmosdb.TriggerTypePost),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForTriggerType(), false),
 			},
 		},
 	}

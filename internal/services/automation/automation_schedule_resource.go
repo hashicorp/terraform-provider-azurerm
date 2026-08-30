@@ -118,16 +118,8 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(schedule.ScheduleDayMonday),
-						string(schedule.ScheduleDayTuesday),
-						string(schedule.ScheduleDayWednesday),
-						string(schedule.ScheduleDayThursday),
-						string(schedule.ScheduleDayFriday),
-						string(schedule.ScheduleDaySaturday),
-						string(schedule.ScheduleDaySunday),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(schedule.PossibleValuesForScheduleDay(), false),
 				},
 				Set:           set.HashStringIgnoreCase,
 				ConflictsWith: []string{"month_days", "monthly_occurrence"},
@@ -154,17 +146,9 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"day": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(schedule.ScheduleDayMonday),
-								string(schedule.ScheduleDayTuesday),
-								string(schedule.ScheduleDayWednesday),
-								string(schedule.ScheduleDayThursday),
-								string(schedule.ScheduleDayFriday),
-								string(schedule.ScheduleDaySaturday),
-								string(schedule.ScheduleDaySunday),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(schedule.PossibleValuesForScheduleDay(), false),
 						},
 						"occurrence": {
 							Type:     pluginsdk.TypeInt,
@@ -361,7 +345,7 @@ func resourceAutomationScheduleUpdate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	if d.HasChange("week_days") || d.HasChange("month_days") || d.HasChange("monthly_occurrence") {
+	if d.HasChanges("week_days", "month_days", "monthly_occurrence") {
 		// only pay attention to the advanced schedule fields if frequency is either Week or Month
 		if parameters.Properties.Frequency == schedule.ScheduleFrequencyWeek || parameters.Properties.Frequency == schedule.ScheduleFrequencyMonth {
 			parameters.Properties.AdvancedSchedule = expandArmAutomationScheduleAdvanced(d, d.Id() != "")

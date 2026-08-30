@@ -419,8 +419,7 @@ func (NetworkInterfaceResource) Destroy(ctx context.Context, client *clients.Cli
 		return nil, err
 	}
 
-	err = client.Network.NetworkInterfaces.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.Network.NetworkInterfaces.DeleteThenPoll(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

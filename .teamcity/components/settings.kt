@@ -13,7 +13,7 @@ var defaultParallelism = 20
 var defaultTimeout = 12
 
 // specifies the default version of Terraform Core which should be used for testing
-var defaultTerraformCoreVersion = "1.14.3"
+var defaultTerraformCoreVersion = "1.15.8"
 
 // This represents a cron view of days of the week, Monday - Friday.
 const val defaultDaysOfWeek = "2,3,4,5,6"
@@ -99,7 +99,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "datafactory" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "westus2", false)),
 
         // Dev Center only available in some regions / has a quota of 5
-        "devcenter" to testConfiguration(parallelism = 2, locationOverride = LocationConfiguration("westeurope", "uksouth", "canadacentral", true)),
+        "devcenter" to testConfiguration(parallelism = 2, locationOverride = LocationConfiguration("southeastasia", "uksouth", "canadacentral", true)),
 
         // "hdinsight" is super expensive - G class VM's are not available in westus2, quota only available in westeurope currently
         "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
@@ -121,6 +121,9 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // load balancer global tire Public IP is only available in
         "loadbalancer" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus", false)),
+
+        // Playwright workspace is only available in certain locations, parallelism set to 1 as its default quota is 2
+        "loadtestservice" to testConfiguration(parallelism = 1, locationOverride = LocationConfiguration("westeurope", "eastus", "westus3", false)),
 
         // Log Analytics Clusters have a max deployments of 2 - parallelism set to 1 or `importTest` fails
         "loganalytics" to testConfiguration(parallelism = 1),
@@ -156,7 +159,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "newrelic" to testConfiguration(locationOverride = LocationConfiguration("centraluseuap", "eastus", "eastus", false)),
 
         // Network Function is only available in certain locations
-        "networkfunction" to testConfiguration(locationOverride = LocationConfiguration("westus2", "eastus2", "westeurope", false)),
+        "networkfunction" to testConfiguration(locationOverride = LocationConfiguration("southeastasia", "eastus2", "westeurope", true)),
 
         // Network Regional Tire Public IP is only available in
         "network" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus", false), timeout = 24),
