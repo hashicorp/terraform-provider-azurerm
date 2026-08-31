@@ -60,7 +60,7 @@ func TestAccMySQLFlexibleDatabase_charsetUppercase(t *testing.T) {
 			Config: r.charsetUppercase(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("charset").HasValue("utf8mb3"),
+				check.That(data.ResourceName).Key("charset").HasValue("utf8mb3_unicode_ci"),
 			),
 		},
 		data.ImportStep(),
@@ -151,7 +151,7 @@ resource "azurerm_mysql_flexible_database" "import" {
 }
 
 func (r MysqlFlexibleDatabaseResource) charsetUppercase(data acceptance.TestData) string {
-	return r.charsetAndCollation(data, "UTF8", "utf8_unicode_ci")
+	return r.charsetAndCollation(data, "UTF8", "UTF8_UNICODE_CI")
 }
 
 func (r MysqlFlexibleDatabaseResource) charsetMixedcase(data acceptance.TestData) string {
