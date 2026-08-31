@@ -300,7 +300,7 @@ func expandAzureRmLoadBalancerProbe(d *pluginsdk.ResourceData) *loadbalancers.Pr
 	}
 
 	if v, ok := d.GetOk("no_healthy_backends_behavior"); ok {
-		properties.NoHealthyBackendsBehavior = pointer.To(loadbalancers.ProbeNoHealthyBackendsBehavior(v.(string)))
+		properties.NoHealthyBackendsBehavior = pointer.ToEnum[loadbalancers.ProbeNoHealthyBackendsBehavior](v.(string))
 	}
 
 	return &loadbalancers.Probe{
