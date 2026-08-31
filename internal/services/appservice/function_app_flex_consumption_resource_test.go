@@ -1171,11 +1171,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 func (r FunctionAppFlexConsumptionResource) completeFivePointOh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {
-    application_insights {
-      disable_generated_rule = true
-    }
-  }
+  features {}
 }
 
 %[1]s
@@ -1890,11 +1886,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 func (r FunctionAppFlexConsumptionResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {
-    application_insights {
-      disable_generated_rule = true
-    }
-  }
+  features {}
 }
 
 %[1]s
