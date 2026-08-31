@@ -173,21 +173,9 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(webapps.ConnectionStringTypeApiHub),
-							string(webapps.ConnectionStringTypeCustom),
-							string(webapps.ConnectionStringTypeDocDb),
-							string(webapps.ConnectionStringTypeEventHub),
-							string(webapps.ConnectionStringTypeMySql),
-							string(webapps.ConnectionStringTypeNotificationHub),
-							string(webapps.ConnectionStringTypePostgreSQL),
-							string(webapps.ConnectionStringTypeRedisCache),
-							string(webapps.ConnectionStringTypeServiceBus),
-							string(webapps.ConnectionStringTypeSQLAzure),
-							string(webapps.ConnectionStringTypeSQLServer),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForConnectionStringType(), false),
 					},
 
 					"value": {

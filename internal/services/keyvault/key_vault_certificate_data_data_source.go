@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
@@ -23,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"golang.org/x/crypto/pkcs12"
 )
 
@@ -108,7 +108,7 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 
 	cert, err := client.GetCertificate(ctx, *keyVaultBaseUri, name, version)
 	if err != nil {
-		if utils.ResponseWasNotFound(cert.Response) {
+		if response.WasNotFound(cert.Response.Response) {
 			return fmt.Errorf("the Certificate %q was not found in Key Vault at URI %q", name, *keyVaultBaseUri)
 		}
 

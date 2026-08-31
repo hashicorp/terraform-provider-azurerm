@@ -9,13 +9,13 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSynapseWorkspaceAADAdmin() *pluginsdk.Resource {
@@ -41,7 +41,7 @@ func resourceSynapseWorkspaceAADAdmin() *pluginsdk.Resource {
 			"synapse_workspace_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.WorkspaceID,
+				ValidateFunc: validation.AsGeneratedID(workspaces.ParseWorkspaceIDInsensitively),
 			},
 
 			"login": {
@@ -70,12 +70,14 @@ func resourceSynapseWorkspaceAADAdminCreateUpdate(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	workspaceId, err := parse.WorkspaceID(d.Get("synapse_workspace_id").(string))
+	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+	workspaceId, err := workspaces.ParseWorkspaceIDInsensitively(d.Get("synapse_workspace_id").(string))
 	if err != nil {
 		return err
 	}
-	workspaceName := workspaceId.Name
-	workspaceResourceGroup := workspaceId.ResourceGroup
+	workspaceName := workspaceId.WorkspaceName
+	workspaceResourceGroup := workspaceId.ResourceGroupName
 
 	aadAdmin := &synapse.WorkspaceAadAdminInfo{
 		AadAdminProperties: &synapse.AadAdminProperties{
@@ -91,7 +93,7 @@ func resourceSynapseWorkspaceAADAdminCreateUpdate(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("updating Synapse Workspace %q AAD Admin (Resource Group %q): %+v", workspaceName, workspaceResourceGroup, err)
 	}
 
-	id := parse.NewWorkspaceAADAdminID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, "activeDirectory")
+	id := parse.NewWorkspaceAADAdminID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, "activeDirectory")
 	if d.IsNewResource() {
 		d.SetId(id.ID())
 	}
@@ -115,14 +117,14 @@ func resourceSynapseWorkspaceAADAdminRead(d *pluginsdk.ResourceData, meta interf
 
 	aadAdmin, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName)
 	if err != nil {
-		if utils.ResponseWasNotFound(aadAdmin.Response) {
+		if response.WasNotFound(aadAdmin.Response.Response) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
-	workspaceID := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
+	workspaceID := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 
 	d.Set("synapse_workspace_id", workspaceID.ID())
 	d.Set("login", aadAdmin.Login)
@@ -146,7 +148,7 @@ func resourceSynapseWorkspaceAADAdminDelete(d *pluginsdk.ResourceData, meta inte
 
 	workspace, err := workspaceClient.Get(ctx, id.ResourceGroup, id.WorkspaceName)
 	if err != nil {
-		if utils.ResponseWasNotFound(workspace.Response) {
+		if response.WasNotFound(workspace.Response.Response) {
 			return fmt.Errorf("retrieving %q: %+v", id, err)
 		}
 	}

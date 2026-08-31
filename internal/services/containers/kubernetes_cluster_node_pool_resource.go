@@ -166,13 +166,10 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"eviction_policy": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.ScaleSetEvictionPolicyDelete),
-				string(agentpools.ScaleSetEvictionPolicyDeallocate),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForScaleSetEvictionPolicy(), false),
 		},
 
 		"kubelet_config": schemaNodePoolKubeletConfig(),
@@ -205,13 +202,10 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"kubelet_disk_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.KubeletDiskTypeOS),
-				string(agentpools.KubeletDiskTypeTemporary),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForKubeletDiskType(), false),
 		},
 
 		"max_count": {
@@ -291,13 +285,10 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"os_disk_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  agentpools.OSDiskTypeManaged,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.OSDiskTypeEphemeral),
-				string(agentpools.OSDiskTypeManaged),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      agentpools.OSDiskTypeManaged,
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForOSDiskType(), false),
 		},
 
 		"os_sku": {
@@ -317,14 +308,11 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"os_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(agentpools.OSTypeLinux),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.OSTypeLinux),
-				string(agentpools.OSTypeWindows),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      string(agentpools.OSTypeLinux),
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForOSType(), false),
 		},
 
 		"pod_subnet_id": {
@@ -334,14 +322,11 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"priority": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(agentpools.ScaleSetPriorityRegular),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.ScaleSetPriorityRegular),
-				string(agentpools.ScaleSetPrioritySpot),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      string(agentpools.ScaleSetPriorityRegular),
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForScaleSetPriority(), false),
 		},
 
 		"proximity_placement_group_id": {
@@ -366,13 +351,10 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"scale_down_mode": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(agentpools.ScaleDownModeDelete),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.ScaleDownModeDeallocate),
-				string(agentpools.ScaleDownModeDelete),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(agentpools.ScaleDownModeDelete),
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForScaleDownMode(), false),
 		},
 
 		"temporary_name_for_rotation": {
@@ -413,13 +395,9 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"workload_runtime": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.WorkloadRuntimeKataVMIsolation),
-				string(agentpools.WorkloadRuntimeOCIContainer),
-				string(agentpools.WorkloadRuntimeWasmWasi),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForWorkloadRuntime(), false),
 		},
 
 		"zones": commonschema.ZonesMultipleOptional(),

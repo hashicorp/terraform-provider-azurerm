@@ -298,15 +298,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 
 						"expander": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(managedclusters.ExpanderRandom),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(managedclusters.ExpanderLeastNegativewaste),
-								string(managedclusters.ExpanderMostNegativepods),
-								string(managedclusters.ExpanderPriority),
-								string(managedclusters.ExpanderRandom),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(managedclusters.ExpanderRandom),
+							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForExpander(), false),
 						},
 
 						"ignore_daemonsets_utilization_enabled": {
@@ -569,12 +564,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							Default:  managedclusters.NginxIngressControllerTypeAnnotationControlled,
 							ValidateFunc: validation.StringInSlice(
-								[]string{
-									string(managedclusters.NginxIngressControllerTypeAnnotationControlled),
-									string(managedclusters.NginxIngressControllerTypeInternal),
-									string(managedclusters.NginxIngressControllerTypeExternal),
-									string(managedclusters.NginxIngressControllerTypeNone),
-								}, false,
+								managedclusters.PossibleValuesForNginxIngressControllerType(), false,
 							),
 						},
 
@@ -822,17 +812,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"day": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(maintenanceconfigurations.WeekDaySunday),
-											string(maintenanceconfigurations.WeekDayMonday),
-											string(maintenanceconfigurations.WeekDayTuesday),
-											string(maintenanceconfigurations.WeekDayWednesday),
-											string(maintenanceconfigurations.WeekDayThursday),
-											string(maintenanceconfigurations.WeekDayFriday),
-											string(maintenanceconfigurations.WeekDaySaturday),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(maintenanceconfigurations.PossibleValuesForWeekDay(), false),
 									},
 
 									"hours": {
@@ -1129,27 +1111,17 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"network_plugin": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(managedclusters.NetworkPluginAzure),
-								string(managedclusters.NetworkPluginKubenet),
-								string(managedclusters.NetworkPluginNone),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForNetworkPlugin(), false),
 						},
 
 						"network_mode": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Computed: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								// https://github.com/Azure/AKS/issues/1954#issuecomment-759306712
-								// Transparent is already the default and only option for CNI
-								// Bridge is only kept for backward compatibility
-								string(managedclusters.NetworkModeBridge),
-								string(managedclusters.NetworkModeTransparent),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForNetworkMode(), false),
 						},
 
 						"network_policy": {
@@ -1182,11 +1154,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 
 						"network_plugin_mode": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(managedclusters.NetworkPluginModeOverlay),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForNetworkPluginMode(), false),
 						},
 
 						"pod_cidr": {
@@ -1226,27 +1196,18 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 
 						"load_balancer_sku": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(managedclusters.LoadBalancerSkuStandard),
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(managedclusters.LoadBalancerSkuBasic),
-								string(managedclusters.LoadBalancerSkuStandard),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(managedclusters.LoadBalancerSkuStandard),
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForLoadBalancerSku(), false),
 						},
 
 						"outbound_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(managedclusters.OutboundTypeLoadBalancer),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(managedclusters.OutboundTypeLoadBalancer),
-								string(managedclusters.OutboundTypeUserDefinedRouting),
-								string(managedclusters.OutboundTypeManagedNATGateway),
-								string(managedclusters.OutboundTypeUserAssignedNATGateway),
-								string(managedclusters.OutboundTypeNone),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(managedclusters.OutboundTypeLoadBalancer),
+							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForOutboundType(), false),
 						},
 
 						"load_balancer_profile": {
@@ -1316,13 +1277,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 									},
 
 									"backend_pool_type": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										Default:  string(managedclusters.BackendPoolTypeNodeIPConfiguration),
-										ValidateFunc: validation.StringInSlice([]string{
-											string(managedclusters.BackendPoolTypeNodeIPConfiguration),
-											string(managedclusters.BackendPoolTypeNodeIP),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Default:      string(managedclusters.BackendPoolTypeNodeIPConfiguration),
+										ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForBackendPoolType(), false),
 									},
 								},
 							},
@@ -1365,11 +1323,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							ForceNew: true,
 							Computed: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(managedclusters.IPFamilyIPvFour),
-									string(managedclusters.IPFamilyIPvSix),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForIPFamily(), false),
 							},
 						},
 
@@ -1399,15 +1354,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"node_os_upgrade_channel": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(managedclusters.NodeOSUpgradeChannelNodeImage),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(managedclusters.NodeOSUpgradeChannelNodeImage),
-					string(managedclusters.NodeOSUpgradeChannelNone),
-					string(managedclusters.NodeOSUpgradeChannelSecurityPatch),
-					string(managedclusters.NodeOSUpgradeChannelUnmanaged),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(managedclusters.NodeOSUpgradeChannelNodeImage),
+				ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForNodeOSUpgradeChannel(), false),
 			},
 
 			"node_resource_group": {
@@ -1578,14 +1528,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"sku_tier": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(managedclusters.ManagedClusterSKUTierFree),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(managedclusters.ManagedClusterSKUTierFree),
-					string(managedclusters.ManagedClusterSKUTierStandard),
-					string(managedclusters.ManagedClusterSKUTierPremium),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(managedclusters.ManagedClusterSKUTierFree),
+				ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForManagedClusterSKUTier(), false),
 			},
 
 			"storage_profile": {
@@ -1619,13 +1565,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"support_plan": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(managedclusters.KubernetesSupportPlanKubernetesOfficial),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(managedclusters.KubernetesSupportPlanKubernetesOfficial),
-					string(managedclusters.KubernetesSupportPlanAKSLongTermSupport),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(managedclusters.KubernetesSupportPlanKubernetesOfficial),
+				ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForKubernetesSupportPlan(), false),
 			},
 
 			"tags": commonschema.Tags(),

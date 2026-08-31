@@ -11,14 +11,13 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSynapseWorkspaceExtendedAuditingPolicy() *pluginsdk.Resource {
@@ -45,7 +44,7 @@ func resourceSynapseWorkspaceExtendedAuditingPolicy() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.WorkspaceID,
+				ValidateFunc: validation.AsGeneratedID(workspaces.ParseWorkspaceIDInsensitively),
 			},
 
 			"storage_endpoint": {
@@ -88,24 +87,26 @@ func resourceSynapseWorkspaceExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Res
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	workspaceId, err := parse.WorkspaceID(d.Get("synapse_workspace_id").(string))
+	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+	workspaceId, err := workspaces.ParseWorkspaceIDInsensitively(d.Get("synapse_workspace_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewWorkspaceExtendedAuditingPolicyID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, "default")
+	id := parse.NewWorkspaceExtendedAuditingPolicyID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, "default")
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName)
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("checking for presence of %s: %+v", id, err)
 				}
 			}
 
 			// if state is not disabled, we should flag it for import
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				if props := existing.ExtendedServerBlobAuditingPolicyProperties; props != nil && props.State != synapse.BlobAuditingPolicyStateDisabled {
 					return tf.ImportAsExistsError("azurerm_synapse_workspace_extended_auditing_policy", id.ID())
 				}
@@ -157,7 +158,7 @@ func resourceSynapseWorkspaceExtendedAuditingPolicyRead(d *pluginsdk.ResourceDat
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] synapse %s does not exist - removing from state", id)
 			d.SetId("")
 			return nil
@@ -165,7 +166,7 @@ func resourceSynapseWorkspaceExtendedAuditingPolicyRead(d *pluginsdk.ResourceDat
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
+	workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 	d.Set("synapse_workspace_id", workspaceId.ID())
 
 	if props := resp.ExtendedServerBlobAuditingPolicyProperties; props != nil {

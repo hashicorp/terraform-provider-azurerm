@@ -91,17 +91,10 @@ func resourceApiManagementSubscription() *pluginsdk.Resource {
 			},
 
 			"state": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(subscription.SubscriptionStateSubmitted),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(subscription.SubscriptionStateActive),
-					string(subscription.SubscriptionStateCancelled),
-					string(subscription.SubscriptionStateExpired),
-					string(subscription.SubscriptionStateRejected),
-					string(subscription.SubscriptionStateSubmitted),
-					string(subscription.SubscriptionStateSuspended),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(subscription.SubscriptionStateSubmitted),
+				ValidateFunc: validation.StringInSlice(subscription.PossibleValuesForSubscriptionState(), false),
 			},
 
 			"primary_key": {

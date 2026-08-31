@@ -87,16 +87,10 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"gpu_instance": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(managedclusters.GPUInstanceProfileMIGOneg),
-							string(managedclusters.GPUInstanceProfileMIGTwog),
-							string(managedclusters.GPUInstanceProfileMIGThreeg),
-							string(managedclusters.GPUInstanceProfileMIGFourg),
-							string(managedclusters.GPUInstanceProfileMIGSeveng),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForGPUInstanceProfile(), false),
 					},
 
 					"gpu_driver": {
@@ -107,13 +101,10 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"kubelet_disk_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(managedclusters.KubeletDiskTypeOS),
-							string(managedclusters.KubeletDiskTypeTemporary),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForKubeletDiskType(), false),
 					},
 
 					"max_count": {
@@ -172,13 +163,10 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"os_disk_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  agentpools.OSDiskTypeManaged,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(managedclusters.OSDiskTypeEphemeral),
-							string(managedclusters.OSDiskTypeManaged),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      agentpools.OSDiskTypeManaged,
+						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForOSDiskType(), false),
 					},
 
 					"os_sku": {
@@ -231,13 +219,10 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"scale_down_mode": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(managedclusters.ScaleDownModeDelete),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(managedclusters.ScaleDownModeDeallocate),
-							string(managedclusters.ScaleDownModeDelete),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(managedclusters.ScaleDownModeDelete),
+						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForScaleDownMode(), false),
 					},
 
 					"snapshot_id": {
@@ -614,12 +599,9 @@ func schemaNodePoolNetworkProfile() *pluginsdk.Schema {
 							},
 
 							"protocol": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(agentpools.ProtocolTCP),
-									string(agentpools.ProtocolUDP),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForProtocol(), false),
 							},
 						},
 					},

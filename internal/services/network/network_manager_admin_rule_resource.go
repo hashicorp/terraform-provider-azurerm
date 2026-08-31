@@ -68,22 +68,15 @@ func (r ManagerAdminRuleResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"action": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(adminrules.SecurityConfigurationRuleAccessAllow),
-				string(adminrules.SecurityConfigurationRuleAccessDeny),
-				string(adminrules.SecurityConfigurationRuleAccessAlwaysAllow),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(adminrules.PossibleValuesForSecurityConfigurationRuleAccess(), false),
 		},
 
 		"direction": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(adminrules.SecurityConfigurationRuleDirectionInbound),
-				string(adminrules.SecurityConfigurationRuleDirectionOutbound),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(adminrules.PossibleValuesForSecurityConfigurationRuleDirection(), false),
 		},
 
 		"priority": {
@@ -93,16 +86,9 @@ func (r ManagerAdminRuleResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"protocol": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(adminrules.SecurityConfigurationRuleProtocolAh),
-				string(adminrules.SecurityConfigurationRuleProtocolAny),
-				string(adminrules.SecurityConfigurationRuleProtocolIcmp),
-				string(adminrules.SecurityConfigurationRuleProtocolEsp),
-				string(adminrules.SecurityConfigurationRuleProtocolTcp),
-				string(adminrules.SecurityConfigurationRuleProtocolUdp),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(adminrules.PossibleValuesForSecurityConfigurationRuleProtocol(), false),
 		},
 
 		"description": {

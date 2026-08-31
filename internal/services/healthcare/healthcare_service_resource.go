@@ -57,14 +57,10 @@ func resourceHealthcareService() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"kind": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(service.KindFhir),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(service.KindFhir),
-					string(service.KindFhirNegativeRFour),
-					string(service.KindFhirNegativeStuThree),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(service.KindFhir),
+				ValidateFunc: validation.StringInSlice(service.PossibleValuesForKind(), false),
 			},
 
 			"identity": commonschema.SystemAssignedIdentityOptional(),

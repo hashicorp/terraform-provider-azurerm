@@ -72,14 +72,10 @@ func resourceSharedImageGallery() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"permission": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(galleries.GallerySharingPermissionTypesCommunity),
-								string(galleries.GallerySharingPermissionTypesGroups),
-								string(galleries.GallerySharingPermissionTypesPrivate),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(galleries.PossibleValuesForGallerySharingPermissionTypes(), false),
 						},
 
 						"community_gallery": {

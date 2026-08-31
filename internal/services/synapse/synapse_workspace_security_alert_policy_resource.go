@@ -10,13 +10,13 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSynapseWorkspaceSecurityAlertPolicy() *pluginsdk.Resource {
@@ -43,7 +43,7 @@ func resourceSynapseWorkspaceSecurityAlertPolicy() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.WorkspaceID,
+				ValidateFunc: validation.AsGeneratedID(workspaces.ParseWorkspaceIDInsensitively),
 			},
 
 			"disabled_alerts": {
@@ -115,14 +115,16 @@ func resourceSynapseWorkspaceSecurityAlertPolicyCreateUpdate(d *pluginsdk.Resour
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	workspaceId, err := parse.WorkspaceID(d.Get("synapse_workspace_id").(string))
+	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+	workspaceId, err := workspaces.ParseWorkspaceIDInsensitively(d.Get("synapse_workspace_id").(string))
 	if err != nil {
 		return err
 	}
 
 	// TODO: import check?
 
-	id := parse.NewWorkspaceSecurityAlertPolicyID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, "Default")
+	id := parse.NewWorkspaceSecurityAlertPolicyID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, "Default")
 
 	alertPolicy := expandServerSecurityAlertPolicy(d)
 
@@ -154,7 +156,7 @@ func resourceSynapseWorkspaceSecurityAlertPolicyRead(d *pluginsdk.ResourceData, 
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] synapse %s does not exist - removing from state", id)
 			d.SetId("")
 			return nil
@@ -163,7 +165,7 @@ func resourceSynapseWorkspaceSecurityAlertPolicyRead(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
+	workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 	d.Set("synapse_workspace_id", workspaceId.ID())
 
 	if props := resp.ServerSecurityAlertPolicyProperties; props != nil {
