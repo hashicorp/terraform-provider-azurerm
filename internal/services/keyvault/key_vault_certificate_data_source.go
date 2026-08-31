@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
@@ -19,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -282,7 +283,7 @@ func dataSourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface
 
 	cert, err := client.GetCertificate(ctx, *keyVaultBaseUri, name, version)
 	if err != nil {
-		if utils.ResponseWasNotFound(cert.Response) {
+		if response.WasNotFound(cert.Response.Response) {
 			return fmt.Errorf("a Certificate named %q was not found in Key Vault at URI %q", name, *keyVaultBaseUri)
 		}
 
@@ -379,13 +380,9 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *kv.CertificatePolicy) 
 	policy := make(map[string]interface{})
 
 	if params := input.IssuerParameters; params != nil {
-		var name string
-		if params.Name != nil {
-			name = *params.Name
-		}
 		policy["issuer_parameters"] = []interface{}{
 			map[string]interface{}{
-				"name": name,
+				"name": pointer.From(params.Name),
 			},
 		}
 	}
@@ -450,13 +447,9 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *kv.CertificatePolicy) 
 
 	// secret properties
 	if props := input.SecretProperties; props != nil {
-		var contentType string
-		if props.ContentType != nil {
-			contentType = *props.ContentType
-		}
 		policy["secret_properties"] = []interface{}{
 			map[string]interface{}{
-				"content_type": contentType,
+				"content_type": pointer.From(props.ContentType),
 			},
 		}
 	}

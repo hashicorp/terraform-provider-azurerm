@@ -17,7 +17,7 @@ import (
 )
 
 func dataSourceMonitorDiagnosticCategories() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceMonitorDiagnosticCategoriesRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -53,8 +53,6 @@ func dataSourceMonitorDiagnosticCategories() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
 func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta interface{}) error {

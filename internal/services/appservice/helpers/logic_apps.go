@@ -52,14 +52,10 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 				"cors": CorsSettingsSchema(),
 
 				"ftps_state": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Computed: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.FtpsStateAllAllowed),
-						string(webapps.FtpsStateDisabled),
-						string(webapps.FtpsStateFtpsOnly),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFtpsState(), false),
 				},
 
 				"http2_enabled": {
@@ -118,25 +114,10 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 				},
 
 				"scm_type": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Computed: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.ScmTypeBitbucketGit),
-						string(webapps.ScmTypeBitbucketHg),
-						string(webapps.ScmTypeCodePlexGit),
-						string(webapps.ScmTypeCodePlexHg),
-						string(webapps.ScmTypeDropbox),
-						string(webapps.ScmTypeExternalGit),
-						string(webapps.ScmTypeExternalHg),
-						string(webapps.ScmTypeGitHub),
-						string(webapps.ScmTypeLocalGit),
-						string(webapps.ScmTypeNone),
-						string(webapps.ScmTypeOneDrive),
-						string(webapps.ScmTypeTfs),
-						string(webapps.ScmTypeVSO),
-						string(webapps.ScmTypeVSTSRM),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForScmType(), false),
 				},
 
 				"use_32_bit_worker_process": {
@@ -185,6 +166,7 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 						"v5.0",
 						"v6.0",
 						"v8.0",
+						"v10.0",
 					}, false),
 				},
 

@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/subscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -62,12 +61,9 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"filter_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(subscriptions.FilterTypeSqlFilter),
-				string(subscriptions.FilterTypeCorrelationFilter),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(subscriptions.PossibleValuesForFilterType(), false),
 		},
 
 		"action": {
@@ -78,7 +74,7 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 		"sql_filter": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validate.SqlFilter,
+			ValidateFunc: validation.StringLenBetween(1, 1024),
 		},
 
 		// Reserved for future use, currently hard-coded to 20

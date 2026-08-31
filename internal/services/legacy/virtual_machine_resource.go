@@ -216,13 +216,10 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"os_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(virtualmachines.OperatingSystemTypesLinux),
-								string(virtualmachines.OperatingSystemTypesWindows),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForOperatingSystemTypes(), false),
 						},
 
 						"name": {
@@ -281,7 +278,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validate.DiskSizeGB,
+							ValidateFunc: validation.IntBetween(0, 32767),
 						},
 
 						"write_accelerator_enabled": {
@@ -350,7 +347,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validate.DiskSizeGB,
+							ValidateFunc: validation.IntBetween(0, 32767),
 						},
 
 						"lun": {
@@ -1026,10 +1023,6 @@ func resourceVirtualMachineDeleteVhd(ctx context.Context, storageClient *intStor
 		return fmt.Errorf("unable to locate Storage Account %q (Disk %q)", id.AccountId.AccountName, uri)
 	}
 
-	if err != nil {
-		return fmt.Errorf("building Blobs Client: %s", err)
-	}
-
 	blobsClient, err := storageClient.BlobsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return fmt.Errorf("building Blobs Client: %s", err)
@@ -1657,12 +1650,10 @@ func expandAzureRmVirtualMachineDiagnosticsProfile(d *pluginsdk.ResourceData) *v
 	if len(bootDiagnostics) > 0 {
 		bootDiagnostic := bootDiagnostics[0].(map[string]interface{})
 
-		diagnostic := &virtualmachines.BootDiagnostics{
+		diagnosticsProfile.BootDiagnostics = &virtualmachines.BootDiagnostics{
 			Enabled:    pointer.To(bootDiagnostic["enabled"].(bool)),
 			StorageUri: pointer.To(bootDiagnostic["storage_uri"].(string)),
 		}
-
-		diagnosticsProfile.BootDiagnostics = diagnostic
 
 		return diagnosticsProfile
 	}
@@ -1677,11 +1668,9 @@ func expandAzureRmVirtualMachineAdditionalCapabilities(d *pluginsdk.ResourceData
 	}
 
 	additionalCapability := additionalCapabilities[0].(map[string]interface{})
-	capability := &virtualmachines.AdditionalCapabilities{
+	return &virtualmachines.AdditionalCapabilities{
 		UltraSSDEnabled: pointer.To(additionalCapability["ultra_ssd_enabled"].(bool)),
 	}
-
-	return capability
 }
 
 func expandAzureRmVirtualMachineImageReference(d *pluginsdk.ResourceData) (*virtualmachines.ImageReference, error) {

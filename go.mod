@@ -16,10 +16,10 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
-	github.com/hashicorp/go-azure-helpers v0.81.1
+	github.com/hashicorp/go-azure-helpers v0.82.0
 	github.com/hashicorp/go-azure-sdk/data-plane v0.20260811.1225050
-	github.com/hashicorp/go-azure-sdk/resource-manager v0.20260811.1225050
-	github.com/hashicorp/go-azure-sdk/sdk v0.20260811.1225050
+	github.com/hashicorp/go-azure-sdk/resource-manager v0.20260827.1195017
+	github.com/hashicorp/go-azure-sdk/sdk v0.20260827.1195017
 	github.com/hashicorp/go-cty v1.5.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-multierror v1.1.1
@@ -45,9 +45,9 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/cobra v1.10.1
-	golang.org/x/crypto v0.54.0
-	golang.org/x/text v0.40.0
-	golang.org/x/tools v0.48.0
+	golang.org/x/crypto v0.55.0
+	golang.org/x/text v0.41.0
+	golang.org/x/tools v0.49.0
 	gopkg.in/dnaeon/go-vcr.v4 v4.0.6
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -100,8 +100,8 @@ require (
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/zclconf/go-cty v1.19.0 // indirect
 	go.yaml.in/yaml/v4 v4.0.0-rc.3 // indirect
-	golang.org/x/mod v0.38.0 // indirect
-	golang.org/x/net v0.57.0 // indirect
+	golang.org/x/mod v0.40.0 // indirect
+	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
@@ -112,4 +112,4 @@ require (
 	software.sslmate.com/src/go-pkcs12 v0.7.3 // indirect
 )
 
-go 1.26.5
+go 1.26.6

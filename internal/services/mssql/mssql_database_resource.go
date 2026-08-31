@@ -19,16 +19,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/backupshorttermretentionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/databasesecurityalertpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/elasticpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/geobackuppolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/longtermretentionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/replicationlinks"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serversecurityalertpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/transparentdataencryptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/backupshorttermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databasesecurityalertpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/elasticpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/geobackuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/longtermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/replicationlinks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serversecurityalertpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/transparentdataencryptions"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -285,12 +285,11 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 			// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
 			if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
-				err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
+				if err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
 					Sku: &databases.Sku{
 						Name: skuName,
 					},
-				})
-				if err != nil {
+				}); err != nil {
 					return fmt.Errorf("updating SKU of Replication Partner Database %s: %+v", partnerDatabaseId, err)
 				}
 			}
@@ -889,12 +888,11 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 				// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
 				if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
-					err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
+					if err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
 						Sku: &databases.Sku{
 							Name: skuName,
 						},
-					})
-					if err != nil {
+					}); err != nil {
 						return fmt.Errorf("updating SKU of Replication Partner Database %s: %+v", partnerDatabaseId, err)
 					}
 				}
@@ -955,8 +953,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	payload.Properties = pointer.To(props)
-	err = client.UpdateThenPoll(ctx, id, payload)
-	if err != nil {
+	if err = client.UpdateThenPoll(ctx, id, payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -1371,8 +1368,7 @@ func resourceMsSqlDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
@@ -1485,7 +1481,7 @@ func expandMsSqlServerImport(d *pluginsdk.ResourceData) (out databases.ImportExi
 		StorageKey:                 dbImportRef["storage_key"].(string),
 		StorageUri:                 dbImportRef["storage_uri"].(string),
 		AdministratorLogin:         dbImportRef["administrator_login"].(string),
-		AdministratorLoginPassword: dbImportRef["administrator_login_password"].(string),
+		AdministratorLoginPassword: pointer.To(dbImportRef["administrator_login_password"].(string)),
 		AuthenticationType:         pointer.To(dbImportRef["authentication_type"].(string)),
 	}
 
@@ -1564,8 +1560,10 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 					"storage_key_type": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
-						ValidateFunc: validation.StringInSlice(databases.PossibleValuesForStorageKeyType(),
-							false),
+						ValidateFunc: validation.StringInSlice([]string{
+							string(databases.StorageKeyTypeSharedAccessKey),
+							string(databases.StorageKeyTypeStorageAccessKey),
+						}, false),
 					},
 					"administrator_login": {
 						Type:     pluginsdk.TypeString,
@@ -1609,12 +1607,9 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"enclave_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(databases.AlwaysEncryptedEnclaveTypeVBS),
-				string(databases.AlwaysEncryptedEnclaveTypeDefault),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForAlwaysEncryptedEnclaveType(), false),
 		},
 
 		"license_type": {

@@ -60,12 +60,8 @@ func (r ManagerSecurityAdminConfigurationResource) Arguments() map[string]*plugi
 			Optional: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(securityadminconfigurations.NetworkIntentPolicyBasedServiceAll),
-					string(securityadminconfigurations.NetworkIntentPolicyBasedServiceAllowRulesOnly),
-					string(securityadminconfigurations.NetworkIntentPolicyBasedServiceNone),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice(securityadminconfigurations.PossibleValuesForNetworkIntentPolicyBasedService(), false),
 			},
 		},
 
@@ -143,10 +139,6 @@ func (r ManagerSecurityAdminConfigurationResource) Update() sdk.ResourceFunc {
 			var model ManagerSecurityAdminConfigurationModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			existing, err := client.Get(ctx, *id)
@@ -235,10 +227,9 @@ func (r ManagerSecurityAdminConfigurationResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id, securityadminconfigurations.DeleteOperationOptions{
+			if err = client.DeleteThenPoll(ctx, *id, securityadminconfigurations.DeleteOperationOptions{
 				Force: pointer.To(true),
-			})
-			if err != nil {
+			}); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -104,18 +103,9 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"variable_name": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(webapplicationfirewallpolicies.WebApplicationFirewallMatchVariableRemoteAddr),
-														string(webapplicationfirewallpolicies.WebApplicationFirewallMatchVariableRequestMethod),
-														string(webapplicationfirewallpolicies.WebApplicationFirewallMatchVariableQueryString),
-														string(webapplicationfirewallpolicies.WebApplicationFirewallMatchVariablePostArgs),
-														string(webapplicationfirewallpolicies.WebApplicationFirewallMatchVariableRequestUri),
-														string(webapplicationfirewallpolicies.WebApplicationFirewallMatchVariableRequestHeaders),
-														string(webapplicationfirewallpolicies.WebApplicationFirewallMatchVariableRequestBody),
-														string(webapplicationfirewallpolicies.WebApplicationFirewallMatchVariableRequestCookies),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForWebApplicationFirewallMatchVariable(), false),
 												},
 												"selector": {
 													Type:     pluginsdk.TypeString,
@@ -125,22 +115,9 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 										},
 									},
 									"operator": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorAny),
-											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorIPMatch),
-											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorGeoMatch),
-											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorEqual),
-											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorContains),
-											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorLessThan),
-											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorGreaterThan),
-											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorLessThanOrEqual),
-											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorGreaterThanOrEqual),
-											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorBeginsWith),
-											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorEndsWith),
-											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorRegex),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForWebApplicationFirewallOperator(), false),
 									},
 									"negation_condition": {
 										Type:     pluginsdk.TypeBool,
@@ -162,13 +139,9 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 							Required: true,
 						},
 						"rule_type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(webapplicationfirewallpolicies.WebApplicationFirewallRuleTypeMatchRule),
-								string(webapplicationfirewallpolicies.WebApplicationFirewallRuleTypeRateLimitRule),
-								string(webapplicationfirewallpolicies.WebApplicationFirewallRuleTypeInvalid),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForWebApplicationFirewallRuleType(), false),
 						},
 						"name": {
 							Type:     pluginsdk.TypeString,
@@ -206,19 +179,9 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"match_variable": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestArgKeys),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestArgNames),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestArgValues),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestCookieKeys),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestCookieNames),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestCookieValues),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestHeaderKeys),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestHeaderNames),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestHeaderValues),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForOwaspCrsExclusionEntryMatchVariable(), false),
 									},
 									"selector": {
 										Type:         pluginsdk.TypeString,
@@ -226,15 +189,9 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 										ValidateFunc: validation.NoZeroValues,
 									},
 									"selector_match_operator": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntrySelectorMatchOperatorContains),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntrySelectorMatchOperatorEndsWith),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntrySelectorMatchOperatorEquals),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntrySelectorMatchOperatorEqualsAny),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntrySelectorMatchOperatorStartsWith),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForOwaspCrsExclusionEntrySelectorMatchOperator(), false),
 									},
 									"excluded_rule_set": {
 										Type:     pluginsdk.TypeList,
@@ -324,15 +281,9 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 															},
 
 															"action": {
-																Type:     pluginsdk.TypeString,
-																Optional: true,
-																ValidateFunc: validation.StringInSlice([]string{
-																	string(webapplicationfirewallpolicies.ActionTypeAllow),
-																	string(webapplicationfirewallpolicies.ActionTypeAnomalyScoring),
-																	string(webapplicationfirewallpolicies.ActionTypeBlock),
-																	string(webapplicationfirewallpolicies.ActionTypeJSChallenge),
-																	string(webapplicationfirewallpolicies.ActionTypeLog),
-																}, false),
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForActionType(), false),
 															},
 														},
 													},
@@ -360,13 +311,10 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 						},
 
 						"mode": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(webapplicationfirewallpolicies.WebApplicationFirewallModePrevention),
-								string(webapplicationfirewallpolicies.WebApplicationFirewallModeDetection),
-							}, false),
-							Default: string(webapplicationfirewallpolicies.WebApplicationFirewallModePrevention),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForWebApplicationFirewallMode(), false),
+							Default:      string(webapplicationfirewallpolicies.WebApplicationFirewallModePrevention),
 						},
 
 						"request_body_check": {
@@ -400,8 +348,6 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 									 }
 							*/
 							Optional: true,
-							// We'll remove computed in 5.0 so we don't break existing configurations
-							Computed: !features.FivePointOh(),
 						},
 
 						"max_request_body_size_in_kb": {

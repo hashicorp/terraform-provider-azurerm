@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -23,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
@@ -247,11 +247,11 @@ func resourceSpringCloudAppCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, "")
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of existing %q: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_spring_cloud_app", id.ID())
 		}
 	}
@@ -370,7 +370,7 @@ func resourceSpringCloudAppRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] Spring Cloud App %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -489,8 +489,7 @@ func expandAppCustomPersistentDiskResourceArray(input []interface{}, id parse.Sp
 func expandSpringCloudAppAddon(input string) (map[string]interface{}, error) {
 	var addonConfig map[string]interface{}
 	if len(input) != 0 {
-		err := json.Unmarshal([]byte(input), &addonConfig)
-		if err != nil {
+		if err := json.Unmarshal([]byte(input), &addonConfig); err != nil {
 			return nil, fmt.Errorf("unable to unmarshal `addon_json`: %+v", err)
 		}
 	}
@@ -546,15 +545,10 @@ func flattenSpringCloudAppPersistentDisk(input *appplatform.PersistentDisk) []in
 		sizeInGB = int(*input.SizeInGB)
 	}
 
-	mountPath := ""
-	if input.MountPath != nil {
-		mountPath = *input.MountPath
-	}
-
 	return []interface{}{
 		map[string]interface{}{
 			"size_in_gb": sizeInGB,
-			"mount_path": mountPath,
+			"mount_path": pointer.From(input.MountPath),
 		},
 	}
 }

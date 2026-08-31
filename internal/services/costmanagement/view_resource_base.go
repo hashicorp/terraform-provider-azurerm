@@ -70,11 +70,9 @@ func (br costManagementViewBaseResource) arguments(fields map[string]*pluginsdk.
 		},
 
 		"report_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(views.ReportTypeUsage),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(views.PossibleValuesForReportType(), false),
 		},
 
 		"timeframe": {
@@ -366,10 +364,7 @@ func flattenPivotsToModel(input *[]views.PivotProperties) []CostManagementViewPi
 		if v := item.Type; v != nil {
 			pivotType = string(*v)
 		}
-		name := ""
-		if p := item.Name; p != nil {
-			name = *p
-		}
+		name := pointer.From(item.Name)
 		result = append(result, CostManagementViewPivotModel{
 			Name: name,
 			Type: pivotType,

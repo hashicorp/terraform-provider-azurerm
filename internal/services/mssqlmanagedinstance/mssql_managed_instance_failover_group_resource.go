@@ -102,12 +102,9 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Arguments() map[string]*plugi
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"mode": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(instancefailovergroups.ReadWriteEndpointFailoverPolicyAutomatic),
-							string(instancefailovergroups.ReadWriteEndpointFailoverPolicyManual),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(instancefailovergroups.PossibleValuesForReadWriteEndpointFailoverPolicy(), false),
 					},
 
 					"grace_minutes": {
@@ -302,8 +299,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			err = client.CreateOrUpdateThenPoll(ctx, *id, parameters)
-			if err != nil {
+			if err = client.CreateOrUpdateThenPoll(ctx, *id, parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -366,13 +362,8 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 					}
 
 					for _, partnerRegion := range props.PartnerRegions {
-						var location string
-						if partnerRegion.Location != nil {
-							location = *partnerRegion.Location
-						}
-
 						model.PartnerRegion = append(model.PartnerRegion, MsSqlManagedInstancePartnerRegionModel{
-							Location: location,
+							Location: pointer.From(partnerRegion.Location),
 							Role:     string(pointer.From(partnerRegion.ReplicationRole)),
 						})
 					}
@@ -410,8 +401,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

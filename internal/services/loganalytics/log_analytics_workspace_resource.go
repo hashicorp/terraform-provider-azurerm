@@ -33,7 +33,7 @@ import (
 )
 
 func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceLogAnalyticsWorkspaceCreate,
 		Read:   resourceLogAnalyticsWorkspaceRead,
 		Update: resourceLogAnalyticsWorkspaceUpdate,
@@ -92,25 +92,17 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"internet_ingestion_access_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(workspaces.PublicNetworkAccessTypeEnabled),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(workspaces.PublicNetworkAccessTypeEnabled),
-					string(workspaces.PublicNetworkAccessTypeDisabled),
-					string(workspaces.PublicNetworkAccessTypeSecuredByPerimeter),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(workspaces.PublicNetworkAccessTypeEnabled),
+				ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForPublicNetworkAccessType(), false),
 			},
 
 			"internet_query_access_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(workspaces.PublicNetworkAccessTypeEnabled),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(workspaces.PublicNetworkAccessTypeEnabled),
-					string(workspaces.PublicNetworkAccessTypeDisabled),
-					string(workspaces.PublicNetworkAccessTypeSecuredByPerimeter),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(workspaces.PublicNetworkAccessTypeEnabled),
+				ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForPublicNetworkAccessType(), false),
 			},
 
 			"sku": {
@@ -193,8 +185,6 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	return resource
 }
 
 func resourceLogAnalyticsWorkspaceCustomDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
@@ -629,8 +619,7 @@ func resourceLogAnalyticsWorkspaceDelete(d *pluginsdk.ResourceData, meta interfa
 	sharedKeyId := sharedKeyWorkspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
 
 	permanentlyDeleteOnDestroy := meta.(*clients.Client).Features.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy
-	err = client.DeleteThenPoll(ctx, sharedKeyId, sharedKeyWorkspaces.DeleteOperationOptions{Force: pointer.To(permanentlyDeleteOnDestroy)})
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, sharedKeyId, sharedKeyWorkspaces.DeleteOperationOptions{Force: pointer.To(permanentlyDeleteOnDestroy)}); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

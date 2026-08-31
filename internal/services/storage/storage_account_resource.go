@@ -345,14 +345,11 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			},
 
 			"dns_endpoint_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(storageaccounts.DnsEndpointTypeStandard),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(storageaccounts.DnsEndpointTypeStandard),
-					string(storageaccounts.DnsEndpointTypeAzureDnsZone),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(storageaccounts.DnsEndpointTypeStandard),
+				ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForDnsEndpointType(), false),
 			},
 
 			"default_to_oauth_authentication": {
@@ -1879,17 +1876,9 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 
 		// NOTE: The Storage API returns `null` rather than the default value in the API response for existing
 		// resources when a new field gets added - meaning we need to default the values below.
-		allowBlobPublicAccess := false
-		if props.AllowBlobPublicAccess != nil {
-			allowBlobPublicAccess = *props.AllowBlobPublicAccess
-		}
-		d.Set("allow_nested_items_to_be_public", allowBlobPublicAccess)
+		d.Set("allow_nested_items_to_be_public", pointer.From(props.AllowBlobPublicAccess))
 
-		defaultToOAuthAuthentication := false
-		if props.DefaultToOAuthAuthentication != nil {
-			defaultToOAuthAuthentication = *props.DefaultToOAuthAuthentication
-		}
-		d.Set("default_to_oauth_authentication", defaultToOAuthAuthentication)
+		d.Set("default_to_oauth_authentication", pointer.From(props.DefaultToOAuthAuthentication))
 
 		dnsEndpointType := storageaccounts.DnsEndpointTypeStandard
 		if props.DnsEndpointType != nil {
@@ -2540,10 +2529,7 @@ func flattenAccountBlobServiceProperties(input *blobservices.BlobServiceProperti
 		}
 	}
 
-	var defaultServiceVersion string
-	if input.Properties.DefaultServiceVersion != nil {
-		defaultServiceVersion = *input.Properties.DefaultServiceVersion
-	}
+	defaultServiceVersion := pointer.From(input.Properties.DefaultServiceVersion)
 
 	var LastAccessTimeTrackingPolicy bool
 	if v := input.Properties.LastAccessTimeTrackingPolicy; v != nil {
@@ -2595,14 +2581,9 @@ func flattenAccountBlobDeleteRetentionPolicy(input *blobservices.DeleteRetention
 			days = int(*input.Days)
 		}
 
-		var permanentDeleteEnabled bool
-		if input.AllowPermanentDelete != nil {
-			permanentDeleteEnabled = *input.AllowPermanentDelete
-		}
-
 		deleteRetentionPolicy = append(deleteRetentionPolicy, map[string]interface{}{
 			"days":                     days,
-			"permanent_delete_enabled": permanentDeleteEnabled,
+			"permanent_delete_enabled": pointer.From(input.AllowPermanentDelete),
 		})
 	}
 

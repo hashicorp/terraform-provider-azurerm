@@ -80,13 +80,10 @@ func resourceContainerRegistryWebhook() *pluginsdk.Resource {
 			},
 
 			"status": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  webhooks.WebhookStatusEnabled,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(webhooks.WebhookStatusDisabled),
-					string(webhooks.WebhookStatusEnabled),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      webhooks.WebhookStatusEnabled,
+				ValidateFunc: validation.StringInSlice(webhooks.PossibleValuesForWebhookStatus(), false),
 			},
 
 			"scope": {
@@ -100,14 +97,8 @@ func resourceContainerRegistryWebhook() *pluginsdk.Resource {
 				Required: true,
 				MinItems: 1,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webhooks.WebhookActionChartDelete),
-						string(webhooks.WebhookActionChartPush),
-						string(webhooks.WebhookActionDelete),
-						string(webhooks.WebhookActionPush),
-						string(webhooks.WebhookActionQuarantine),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(webhooks.PossibleValuesForWebhookAction(), false),
 				},
 			},
 
@@ -216,11 +207,7 @@ func resourceContainerRegistryWebhookRead(d *pluginsdk.ResourceData, meta interf
 			}
 			d.Set("status", status)
 
-			scope := ""
-			if v := props.Scope; v != nil {
-				scope = *v
-			}
-			d.Set("scope", scope)
+			d.Set("scope", pointer.From(props.Scope))
 
 			webhookActions := make([]string, len(props.Actions))
 			for i, action := range props.Actions {
@@ -235,17 +222,15 @@ func resourceContainerRegistryWebhookRead(d *pluginsdk.ResourceData, meta interf
 	}
 
 	if callbackModel := callbackConfig.Model; callbackModel != nil {
-		if props := callbackModel; props != nil {
-			d.Set("service_uri", props.ServiceUri)
+		d.Set("service_uri", callbackModel.ServiceUri)
 
-			customHeaders := make(map[string]string)
-			if props.CustomHeaders != nil {
-				for k, v := range *props.CustomHeaders {
-					customHeaders[k] = v
-				}
+		customHeaders := make(map[string]string)
+		if callbackModel.CustomHeaders != nil {
+			for k, v := range *callbackModel.CustomHeaders {
+				customHeaders[k] = v
 			}
-			d.Set("custom_headers", customHeaders)
 		}
+		d.Set("custom_headers", customHeaders)
 	}
 	return nil
 }

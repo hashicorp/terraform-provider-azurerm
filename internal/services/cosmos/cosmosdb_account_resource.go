@@ -215,11 +215,9 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 
 			// resource fields
 			"offer_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cosmosdb.DatabaseAccountOfferTypeStandard),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForDatabaseAccountOfferType(), false),
 			},
 
 			"analytical_storage": {
@@ -230,12 +228,9 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"schema_type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cosmosdb.AnalyticalStorageSchemaTypeWellDefined),
-								string(cosmosdb.AnalyticalStorageSchemaTypeFullFidelity),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForAnalyticalStorageSchemaType(), false),
 						},
 					},
 				},
@@ -268,14 +263,11 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"create_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cosmosdb.CreateModeDefault),
-					string(cosmosdb.CreateModeRestore),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForCreateMode(), false),
 			},
 
 			// Per Documentation: "The default identity needs to be explicitly set by the users." This should not be optional without a default anymore.
@@ -294,15 +286,11 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"kind": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(cosmosdb.DatabaseAccountKindGlobalDocumentDB),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cosmosdb.DatabaseAccountKindGlobalDocumentDB),
-					string(cosmosdb.DatabaseAccountKindMongoDB),
-					string(cosmosdb.DatabaseAccountKindParse),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(cosmosdb.DatabaseAccountKindGlobalDocumentDB),
+				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForDatabaseAccountKind(), false),
 			},
 
 			"ip_range_filter": {
@@ -353,15 +341,9 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"consistency_level": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cosmosdb.DefaultConsistencyLevelBoundedStaleness),
-								string(cosmosdb.DefaultConsistencyLevelConsistentPrefix),
-								string(cosmosdb.DefaultConsistencyLevelEventual),
-								string(cosmosdb.DefaultConsistencyLevelSession),
-								string(cosmosdb.DefaultConsistencyLevelStrong),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForDefaultConsistencyLevel(), false),
 						},
 
 						// This value can only change if the 'consistency_level' is set to 'BoundedStaleness'
@@ -535,12 +517,9 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cosmosdb.BackupPolicyTypeContinuous),
-								string(cosmosdb.BackupPolicyTypePeriodic),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForBackupPolicyType(), false),
 						},
 
 						// Though `tier` has the default value `Continuous30Days` but `tier` is only for the backup type `Continuous`. So the default value isn't added in the property schema.
@@ -566,14 +545,10 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 						},
 
 						"storage_redundancy": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cosmosdb.BackupStorageRedundancyGeo),
-								string(cosmosdb.BackupStorageRedundancyLocal),
-								string(cosmosdb.BackupStorageRedundancyZone),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForBackupStorageRedundancy(), false),
 						},
 					},
 				},
@@ -900,8 +875,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, id, account)
-	if err != nil {
+	if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, id, account); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -910,8 +884,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	// NOTE: this is to work around the issue here: https://github.com/Azure/azure-rest-api-specs/issues/27596
 	// Once the above issue is resolved we shouldn't need this check and update anymore
 	if d.Get("create_mode").(string) == string(cosmosdb.CreateModeRestore) {
-		err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, id, account)
-		if err != nil {
+		if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, id, account); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 	}
@@ -1148,8 +1121,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		account.Properties.Locations = configLocations
 
 		// Update the database locations...
-		err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account)
-		if err != nil {
+		if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account); err != nil {
 			return fmt.Errorf("updating %q `locations`: %+v", id, err)
 		}
 	}
@@ -1171,8 +1143,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		// Update the database 'Identity' to 'None'...
-		err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, identityVal)
-		if err != nil {
+		if err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, identityVal); err != nil {
 			return fmt.Errorf("updating 'identity' %q: %+v", id, err)
 		}
 
@@ -1189,8 +1160,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 
 			// Update the database...
-			err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, identityVal)
-			if err != nil {
+			if err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, identityVal); err != nil {
 				return fmt.Errorf("updating `identity` for %s: %+v", id, err)
 			}
 		}
@@ -1213,8 +1183,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		// Update the database...
-		err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, defaultIdentity)
-		if err != nil {
+		if err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, defaultIdentity); err != nil {
 			return fmt.Errorf("updating `default_identity_type` for %s: %+v", id, err)
 		}
 	}
@@ -1946,14 +1915,9 @@ func flattenCosmosDBAccountCapacity(input *cosmosdb.Capacity) []interface{} {
 		return make([]interface{}, 0)
 	}
 
-	var totalThroughputLimit int64
-	if input.TotalThroughputLimit != nil {
-		totalThroughputLimit = *input.TotalThroughputLimit
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"total_throughput_limit": totalThroughputLimit,
+			"total_throughput_limit": pointer.From(input.TotalThroughputLimit),
 		},
 	}
 }
@@ -2014,10 +1978,7 @@ func flattenCosmosdbAccountRestoreParameters(input *cosmosdb.RestoreParameters) 
 	if input == nil {
 		return make([]interface{}, 0)
 	}
-	var restoreSource string
-	if input.RestoreSource != nil {
-		restoreSource = *input.RestoreSource
-	}
+	restoreSource := pointer.From(input.RestoreSource)
 
 	var restoreTimestampInUtc string
 	if input.RestoreTimestampInUtc != nil {
@@ -2042,10 +2003,7 @@ func flattenCosmosdbAccountDatabasesToRestore(input *[]cosmosdb.DatabaseRestoreR
 	}
 
 	for _, item := range *input {
-		var databaseName string
-		if item.DatabaseName != nil {
-			databaseName = *item.DatabaseName
-		}
+		databaseName := pointer.From(item.DatabaseName)
 
 		results = append(results, map[string]interface{}{
 			"collection_names": helpers.FlattenStringSlice(item.CollectionNames),

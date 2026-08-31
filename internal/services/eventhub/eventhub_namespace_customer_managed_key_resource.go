@@ -281,22 +281,7 @@ func flattenEventHubNamespaceKeyVaultKeyIds(input *namespaces.Encryption) ([]str
 	}
 
 	for _, item := range *input.KeyVaultProperties {
-		var keyName string
-		if item.KeyName != nil {
-			keyName = *item.KeyName
-		}
-
-		var keyVaultUri string
-		if item.KeyVaultUri != nil {
-			keyVaultUri = *item.KeyVaultUri
-		}
-
-		var keyVersion string
-		if item.KeyVersion != nil {
-			keyVersion = *item.KeyVersion
-		}
-
-		keyVaultKeyId, err := keyvault.NewNestedItemID(keyVaultUri, keyvault.NestedItemTypeKey, keyName, keyVersion)
+		keyVaultKeyId, err := keyvault.NewNestedItemID(pointer.From(item.KeyVaultUri), keyvault.NestedItemTypeKey, pointer.From(item.KeyName), pointer.From(item.KeyVersion))
 		if err != nil {
 			return nil, err
 		}

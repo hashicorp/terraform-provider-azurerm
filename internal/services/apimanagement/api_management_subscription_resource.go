@@ -91,17 +91,10 @@ func resourceApiManagementSubscription() *pluginsdk.Resource {
 			},
 
 			"state": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(subscription.SubscriptionStateSubmitted),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(subscription.SubscriptionStateActive),
-					string(subscription.SubscriptionStateCancelled),
-					string(subscription.SubscriptionStateExpired),
-					string(subscription.SubscriptionStateRejected),
-					string(subscription.SubscriptionStateSubmitted),
-					string(subscription.SubscriptionStateSuspended),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(subscription.SubscriptionStateSubmitted),
+				ValidateFunc: validation.StringInSlice(subscription.PossibleValuesForSubscriptionState(), false),
 			},
 
 			"primary_key": {
@@ -195,7 +188,7 @@ func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, me
 		params.Properties.SecondaryKey = pointer.To(v.(string))
 	}
 
-	err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+	if err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 		if _, err := client.CreateOrUpdate(ctx, id, params, subscription.CreateOrUpdateOperationOptions{AppType: pointer.To(subscription.AppTypeDeveloperPortal), Notify: pointer.To(false)}); err != nil {
 			// APIM admins set limit on number of subscriptions to a product.  In order to be able to correctly enforce that limit service cannot let simultaneous creations
 			// to go through and first one wins/subsequent one gets 412 and that client/user can retry. This ensures that we have proper limits enforces as desired by APIM admin.
@@ -205,8 +198,7 @@ func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, me
 			return pluginsdk.NonRetryableError(err)
 		}
 		return nil
-	})
-	if err != nil {
+	}); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 

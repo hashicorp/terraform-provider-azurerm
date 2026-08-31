@@ -81,13 +81,9 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(namespaces.SkuNameBasic),
-					string(namespaces.SkuNameStandard),
-					string(namespaces.SkuNamePremium),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForSkuName(), false),
 			},
 
 			"capacity": {
@@ -185,13 +181,10 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"default_action": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(namespaces.DefaultActionAllow),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(namespaces.DefaultActionAllow),
-								string(namespaces.DefaultActionDeny),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(namespaces.DefaultActionAllow),
+							ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForDefaultAction(), false),
 						},
 
 						"public_network_access_enabled": {
@@ -764,17 +757,12 @@ func flattenServiceBusNamespaceNetworkRuleSet(networkRuleSet namespaces.NetworkR
 		publicNetworkAccess = *v
 	}
 
-	trustedServiceEnabled := false
-	if networkRuleSet.TrustedServiceAccessEnabled != nil {
-		trustedServiceEnabled = *networkRuleSet.TrustedServiceAccessEnabled
-	}
-
 	networkRules := flattenServiceBusNamespaceVirtualNetworkRules(networkRuleSet.VirtualNetworkRules)
 	ipRules := flattenServiceBusNamespaceIPRules(networkRuleSet.IPRules)
 
 	return []interface{}{map[string]interface{}{
 		"default_action":                defaultAction,
-		"trusted_services_allowed":      trustedServiceEnabled,
+		"trusted_services_allowed":      pointer.From(networkRuleSet.TrustedServiceAccessEnabled),
 		"public_network_access_enabled": publicNetworkAccess == namespaces.PublicNetworkAccessFlagEnabled,
 		"network_rules":                 pluginsdk.NewSet(networkRuleHash, networkRules),
 		"ip_rules":                      ipRules,
@@ -820,14 +808,9 @@ func flattenServiceBusNamespaceVirtualNetworkRules(input *[]namespaces.NWRuleSet
 			subnetId = v.Subnet.Id
 		}
 
-		ignore := false
-		if v.IgnoreMissingVnetServiceEndpoint != nil {
-			ignore = *v.IgnoreMissingVnetServiceEndpoint
-		}
-
 		result = append(result, map[string]interface{}{
 			"subnet_id":                            subnetId,
-			"ignore_missing_vnet_service_endpoint": ignore,
+			"ignore_missing_vnet_service_endpoint": pointer.From(v.IgnoreMissingVnetServiceEndpoint),
 		})
 	}
 

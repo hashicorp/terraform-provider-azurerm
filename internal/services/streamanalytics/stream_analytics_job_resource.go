@@ -108,34 +108,25 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 			},
 
 			"events_out_of_order_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(streamingjobs.EventsOutOfOrderPolicyAdjust),
-					string(streamingjobs.EventsOutOfOrderPolicyDrop),
-				}, false),
-				Default: string(streamingjobs.EventsOutOfOrderPolicyAdjust),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForEventsOutOfOrderPolicy(), false),
+				Default:      string(streamingjobs.EventsOutOfOrderPolicyAdjust),
 			},
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(streamingjobs.JobTypeCloud),
-					string(streamingjobs.JobTypeEdge),
-				}, false),
-				Default: string(streamingjobs.JobTypeCloud),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForJobType(), false),
+				Default:      string(streamingjobs.JobTypeCloud),
 			},
 
 			"output_error_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(streamingjobs.OutputErrorPolicyDrop),
-					string(streamingjobs.OutputErrorPolicyStop),
-				}, false),
-				Default: string(streamingjobs.OutputErrorPolicyDrop),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForOutputErrorPolicy(), false),
+				Default:      string(streamingjobs.OutputErrorPolicyDrop),
 			},
 
 			"streaming_units": {
@@ -145,13 +136,10 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 			},
 
 			"content_storage_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(streamingjobs.ContentStoragePolicySystemAccount),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(streamingjobs.ContentStoragePolicySystemAccount),
-					string(streamingjobs.ContentStoragePolicyJobStorageAccount),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(streamingjobs.ContentStoragePolicySystemAccount),
+				ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForContentStoragePolicy(), false),
 			},
 
 			"job_storage_account": {
@@ -593,10 +581,7 @@ func flattenJobStorageAccount(d *pluginsdk.ResourceData, input *streamingjobs.Jo
 		return []interface{}{}
 	}
 
-	accountName := ""
-	if v := input.AccountName; v != nil {
-		accountName = *v
-	}
+	accountName := pointer.From(input.AccountName)
 
 	return []interface{}{
 		map[string]interface{}{

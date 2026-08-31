@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/elasticpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/elasticpools"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -185,22 +185,16 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			// DC skus, where elasticpools allows 'Default' but will error if you try to set the
 			// 'enclave_type' to 'VBS' for DC skus...
 			"enclave_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(databases.AlwaysEncryptedEnclaveTypeVBS),
-					string(databases.AlwaysEncryptedEnclaveTypeDefault),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(databases.PossibleValuesForAlwaysEncryptedEnclaveType(), false),
 			},
 
 			"license_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(elasticpools.ElasticPoolLicenseTypeBasePrice),
-					string(elasticpools.ElasticPoolLicenseTypeLicenseIncluded),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(elasticpools.PossibleValuesForElasticPoolLicenseType(), false),
 			},
 
 			"high_availability_replica_count": {
@@ -401,8 +395,7 @@ func resourceMsSqlElasticPoolDelete(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting ElasticPool %s: %+v", id, err)
 	}
 

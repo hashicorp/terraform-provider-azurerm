@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/blobauditing"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/blobauditing"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -171,8 +171,7 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 		params.Properties.AuditActionsAndGroups = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 
-	err = client.ExtendedServerBlobAuditingPoliciesCreateOrUpdateThenPoll(ctx, *serverId, params)
-	if err != nil {
+	if err = client.ExtendedServerBlobAuditingPoliciesCreateOrUpdateThenPoll(ctx, *serverId, params); err != nil {
 		return fmt.Errorf("creating MsSql Server Extended Auditing Policy %s: %+v", serverId, err)
 	}
 
@@ -243,8 +242,7 @@ func resourceMsSqlServerExtendedAuditingPolicyDelete(d *pluginsdk.ResourceData, 
 		},
 	}
 
-	err = client.ExtendedServerBlobAuditingPoliciesCreateOrUpdateThenPoll(ctx, serverId, params)
-	if err != nil {
+	if err = client.ExtendedServerBlobAuditingPoliciesCreateOrUpdateThenPoll(ctx, serverId, params); err != nil {
 		return fmt.Errorf("deleting %s: %+v", serverId, err)
 	}
 	return nil

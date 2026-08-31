@@ -18,6 +18,16 @@ import (
 
 type SubscriptionTemplateDeploymentResource struct{}
 
+func TestAccSubscriptionTemplateDeployment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subscription_template_deployment", "test")
+	r := SubscriptionTemplateDeploymentResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.emptyConfig(data),
+		},
+	}, "")
+}
+
 func TestAccSubscriptionTemplateDeployment_empty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_template_deployment", "test")
 	r := SubscriptionTemplateDeploymentResource{}

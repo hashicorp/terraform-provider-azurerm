@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/encryptionprotectors"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverkeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/encryptionprotectors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serverkeys"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -219,8 +219,7 @@ func resourceMsSqlTransparentDataEncryptionDelete(d *pluginsdk.ResourceData, met
 		},
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, serverId, encryptionProtector)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, serverId, encryptionProtector); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

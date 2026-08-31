@@ -181,13 +181,10 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"eviction_policy": {
 				// only applicable when `priority` is set to `Spot`
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachinescalesets.VirtualMachineEvictionPolicyTypesDeallocate),
-					string(virtualmachinescalesets.VirtualMachineEvictionPolicyTypesDelete),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForVirtualMachineEvictionPolicyTypes(), false),
 			},
 
 			"extension_operations_enabled": {
@@ -315,15 +312,11 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			},
 
 			"upgrade_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(virtualmachinescalesets.UpgradeModeManual),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachinescalesets.UpgradeModeAutomatic),
-					string(virtualmachinescalesets.UpgradeModeManual),
-					string(virtualmachinescalesets.UpgradeModeRolling),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(virtualmachinescalesets.UpgradeModeManual),
+				ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForUpgradeMode(), false),
 			},
 
 			"user_data_base64": {
@@ -598,8 +591,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 	sourceImageId := d.Get("source_image_id").(string)
 	if len(sourceImageReferenceRaw) != 0 || sourceImageId != "" {
-		sourceImageReference := expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
-		virtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
+		virtualMachineProfile.StorageProfile.ImageReference = expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
 	}
 
 	if userData, ok := d.GetOk("user_data_base64"); ok {
@@ -753,8 +745,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
-	additionalCapabilities := ExpandOrchestratedVirtualMachineScaleSetAdditionalCapabilities(additionalCapabilitiesRaw)
-	props.Properties.AdditionalCapabilities = additionalCapabilities
+	props.Properties.AdditionalCapabilities = ExpandOrchestratedVirtualMachineScaleSetAdditionalCapabilities(additionalCapabilitiesRaw)
 
 	if v, ok := d.GetOk("data_disk"); ok {
 		ultraSSDEnabled := d.Get("additional_capabilities.0.ultra_ssd_enabled").(bool)
@@ -1137,8 +1128,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				sourceImageId := d.Get("source_image_id").(string)
 
 				if len(sourceImageReferenceRaw) != 0 || sourceImageId != "" {
-					sourceImageReference := expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
-					updateProps.VirtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
+					updateProps.VirtualMachineProfile.StorageProfile.ImageReference = expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
 				}
 
 				// Must include all storage profile properties when updating disk image.  See: https://github.com/hashicorp/terraform-provider-azurerm/issues/8273

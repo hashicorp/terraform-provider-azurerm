@@ -103,25 +103,19 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 			},
 
 			"mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(virtualwans.VpnNatRuleModeEgressSnat),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualwans.VpnNatRuleModeEgressSnat),
-					string(virtualwans.VpnNatRuleModeIngressSnat),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(virtualwans.VpnNatRuleModeEgressSnat),
+				ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForVpnNatRuleMode(), false),
 			},
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(virtualwans.VpnNatRuleTypeStatic),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualwans.VpnNatRuleTypeStatic),
-					string(virtualwans.VpnNatRuleTypeDynamic),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(virtualwans.VpnNatRuleTypeStatic),
+				ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForVpnNatRuleType(), false),
 			},
 		},
 	}
@@ -320,19 +314,9 @@ func flattenVpnGatewayNatRuleMappings(input *[]virtualwans.VpnNatRuleMapping) []
 	}
 
 	for _, item := range *input {
-		var addressSpace string
-		if item.AddressSpace != nil {
-			addressSpace = *item.AddressSpace
-		}
-
-		var portRange string
-		if item.PortRange != nil {
-			portRange = *item.PortRange
-		}
-
 		results = append(results, map[string]interface{}{
-			"address_space": addressSpace,
-			"port_range":    portRange,
+			"address_space": pointer.From(item.AddressSpace),
+			"port_range":    pointer.From(item.PortRange),
 		})
 	}
 
