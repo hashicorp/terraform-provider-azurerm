@@ -150,7 +150,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IntAtLeast(32768),
+				ValidateFunc: validation.IntBetween(32768, 67108864),
 			},
 
 			"storage_tier": {
@@ -625,10 +625,6 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				storageMb := diff.Get("storage_mb").(int)
 
 				if diff.Get("storage_type").(string) == string(servers.StorageTypePremiumVTwoLRS) {
-					if storageMb < 32768 || storageMb > 67108864 {
-						return fmt.Errorf("`storage_mb` must be between `32768` and `67108864` when `storage_type` is `PremiumV2_LRS`, got `%d`", storageMb)
-					}
-
 					if storageMb%1024 != 0 {
 						return fmt.Errorf("`storage_mb` must be a multiple of `1024` when `storage_type` is `PremiumV2_LRS`, got `%d`", storageMb)
 					}
