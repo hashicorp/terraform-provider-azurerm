@@ -173,44 +173,44 @@ data "azurerm_batch_pool" "test" {
 func (BatchPoolDataSource) identity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
   %s
-  data "azurerm_batch_pool" "test" {
-    name                = azurerm_batch_pool.test.name
-    account_name        = azurerm_batch_pool.test.account_name
-    resource_group_name = azurerm_batch_pool.test.resource_group_name
-  }
+data "azurerm_batch_pool" "test" {
+  name                = azurerm_batch_pool.test.name
+  account_name        = azurerm_batch_pool.test.account_name
+  resource_group_name = azurerm_batch_pool.test.resource_group_name
+}
   `, BatchPoolResource{}.identity(data))
 }
 
 func (BatchPoolDataSource) extensions(data acceptance.TestData) string {
 	return fmt.Sprintf(`
   %s
-  data "azurerm_batch_pool" "test" {
-    name                = azurerm_batch_pool.test.name
-    account_name        = azurerm_batch_pool.test.account_name
-    resource_group_name = azurerm_batch_pool.test.resource_group_name
-  }
+data "azurerm_batch_pool" "test" {
+  name                = azurerm_batch_pool.test.name
+  account_name        = azurerm_batch_pool.test.account_name
+  resource_group_name = azurerm_batch_pool.test.resource_group_name
+}
   `, BatchPoolResource{}.extensions(data))
 }
 
 func (BatchPoolDataSource) securityProfile(data acceptance.TestData) string {
 	return fmt.Sprintf(`
   %s
-  data "azurerm_batch_pool" "test" {
-    name                = azurerm_batch_pool.test.name
-    account_name        = azurerm_batch_pool.test.account_name
-    resource_group_name = azurerm_batch_pool.test.resource_group_name
-  }
+data "azurerm_batch_pool" "test" {
+  name                = azurerm_batch_pool.test.name
+  account_name        = azurerm_batch_pool.test.account_name
+  resource_group_name = azurerm_batch_pool.test.resource_group_name
+}
   `, BatchPoolResource{}.securityProfileWithUEFISettings(data))
 }
 
 func (BatchPoolDataSource) targetNodeCommunicationMode(data acceptance.TestData) string {
 	return fmt.Sprintf(`
   %s
-  data "azurerm_batch_pool" "test" {
-    name                = azurerm_batch_pool.test.name
-    account_name        = azurerm_batch_pool.test.account_name
-    resource_group_name = azurerm_batch_pool.test.resource_group_name
-  }
+data "azurerm_batch_pool" "test" {
+  name                = azurerm_batch_pool.test.name
+  account_name        = azurerm_batch_pool.test.account_name
+  resource_group_name = azurerm_batch_pool.test.resource_group_name
+}
   `, BatchPoolResource{}.targetNodeCommunicationMode(data, "Simplified"))
 }
 
