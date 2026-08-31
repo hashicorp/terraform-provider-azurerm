@@ -463,7 +463,7 @@ func (r ApplicationInsightsStandardWebTestResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (ApplicationInsightsStandardWebTestResource) Read() sdk.ResourceFunc {
+func (r ApplicationInsightsStandardWebTestResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 
@@ -484,7 +484,7 @@ func (ApplicationInsightsStandardWebTestResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			return ApplicationInsightsStandardWebTestResource{}.flatten(metadata, id, resp.Model)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
 }
