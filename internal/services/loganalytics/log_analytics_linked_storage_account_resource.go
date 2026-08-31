@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -47,16 +48,10 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"data_source_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(linkedstorageaccounts.DataSourceTypeCustomLogs),
-					string(linkedstorageaccounts.DataSourceTypeAzureWatson),
-					string(linkedstorageaccounts.DataSourceTypeQuery),
-					string(linkedstorageaccounts.DataSourceTypeAlerts),
-					string(linkedstorageaccounts.DataSourceTypeIngestion),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(linkedstorageaccounts.PossibleValuesForDataSourceType(), false),
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -149,11 +144,7 @@ func resourceLogAnalyticsLinkedStorageAccountRead(d *pluginsdk.ResourceData, met
 
 	if model := resp.Model; model != nil {
 		props := model.Properties
-		var storageAccountIds []string
-		if props.StorageAccountIds != nil {
-			storageAccountIds = *props.StorageAccountIds
-		}
-		d.Set("storage_account_ids", storageAccountIds)
+		d.Set("storage_account_ids", pointer.From(props.StorageAccountIds))
 	}
 
 	return nil

@@ -715,14 +715,14 @@ func TestAccPostgresqlFlexibleServer_withPremiumV2Storage(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withPremiumVTWO(data),
+			Config: r.withPremiumV2(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode"),
 		{
-			Config: r.withPremiumVTWOUpdated(data),
+			Config: r.withPremiumV2Updated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -971,7 +971,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
 `, r.templateWithLocationOverride(data, "northcentralus"), data.RandomInteger, versionNum, createModeProp)
 }
 
-func (r PostgresqlFlexibleServerResource) withPremiumVTWO(data acceptance.TestData) string {
+func (r PostgresqlFlexibleServerResource) withPremiumV2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -991,7 +991,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r PostgresqlFlexibleServerResource) withPremiumVTWOUpdated(data acceptance.TestData) string {
+func (r PostgresqlFlexibleServerResource) withPremiumV2Updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

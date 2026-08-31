@@ -29,7 +29,7 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceAnalysisServicesServer() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceAnalysisServicesServerCreate,
 		Read:   resourceAnalysisServicesServerRead,
 		Update: resourceAnalysisServicesServerUpdate,
@@ -117,13 +117,10 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 			},
 
 			"querypool_connection_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(servers.ConnectionModeAll),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(servers.ConnectionModeAll),
-					string(servers.ConnectionModeReadOnly),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(servers.ConnectionModeAll),
+				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForConnectionMode(), false),
 			},
 
 			"backup_blob_container_uri": {
@@ -141,8 +138,6 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	return resource
 }
 
 func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {

@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -32,7 +31,7 @@ import (
 )
 
 func resourceVirtualNetworkGateway() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceVirtualNetworkGatewayCreate,
 		Read:   resourceVirtualNetworkGatewayRead,
 		Update: resourceVirtualNetworkGatewayUpdate,
@@ -74,14 +73,11 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 			},
 
 			"vpn_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(virtualnetworkgateways.VpnTypeRouteBased),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualnetworkgateways.VpnTypeRouteBased),
-					string(virtualnetworkgateways.VpnTypePolicyBased),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(virtualnetworkgateways.VpnTypeRouteBased),
+				ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForVpnType(), false),
 			},
 
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
@@ -120,15 +116,11 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 			},
 
 			"generation": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualnetworkgateways.VpnGatewayGenerationGenerationOne),
-					string(virtualnetworkgateways.VpnGatewayGenerationGenerationTwo),
-					string(virtualnetworkgateways.VpnGatewayGenerationNone),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForVpnGatewayGeneration(), false),
 			},
 
 			"ip_configuration": {
@@ -149,13 +141,10 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 						},
 
 						"private_ip_address_allocation": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(virtualnetworkgateways.IPAllocationMethodStatic),
-								string(virtualnetworkgateways.IPAllocationMethodDynamic),
-							}, false),
-							Default: string(virtualnetworkgateways.IPAllocationMethodDynamic),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForIPAllocationMethod(), false),
+							Default:      string(virtualnetworkgateways.IPAllocationMethodDynamic),
 						},
 
 						"subnet_id": {
@@ -197,13 +186,9 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 									},
 
 									"type": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(virtualnetworkgateways.VpnPolicyMemberAttributeTypeAADGroupId),
-											string(virtualnetworkgateways.VpnPolicyMemberAttributeTypeCertificateGroupId),
-											string(virtualnetworkgateways.VpnPolicyMemberAttributeTypeRadiusAzureGroupId),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForVpnPolicyMemberAttributeType(), false),
 									},
 
 									"value": {
@@ -309,90 +294,39 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"dh_group": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(virtualnetworkgateways.DhGroupDHGroupOne),
-											string(virtualnetworkgateways.DhGroupDHGroupOneFour),
-											string(virtualnetworkgateways.DhGroupDHGroupTwo),
-											string(virtualnetworkgateways.DhGroupDHGroupTwoZeroFourEight),
-											string(virtualnetworkgateways.DhGroupDHGroupTwoFour),
-											string(virtualnetworkgateways.DhGroupECPTwoFiveSix),
-											string(virtualnetworkgateways.DhGroupECPThreeEightFour),
-											string(virtualnetworkgateways.DhGroupNone),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForDhGroup(), false),
 									},
 
 									"ike_encryption": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(virtualnetworkgateways.IkeEncryptionAESOneTwoEight),
-											string(virtualnetworkgateways.IkeEncryptionAESOneNineTwo),
-											string(virtualnetworkgateways.IkeEncryptionAESTwoFiveSix),
-											string(virtualnetworkgateways.IkeEncryptionDES),
-											string(virtualnetworkgateways.IkeEncryptionDESThree),
-											string(virtualnetworkgateways.IkeEncryptionGCMAESOneTwoEight),
-											string(virtualnetworkgateways.IkeEncryptionGCMAESTwoFiveSix),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForIkeEncryption(), false),
 									},
 
 									"ike_integrity": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(virtualnetworkgateways.IkeIntegrityGCMAESOneTwoEight),
-											string(virtualnetworkgateways.IkeIntegrityGCMAESTwoFiveSix),
-											string(virtualnetworkgateways.IkeIntegrityMDFive),
-											string(virtualnetworkgateways.IkeIntegritySHAOne),
-											string(virtualnetworkgateways.IkeIntegritySHATwoFiveSix),
-											string(virtualnetworkgateways.IkeIntegritySHAThreeEightFour),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForIkeIntegrity(), false),
 									},
 
 									"ipsec_encryption": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(virtualnetworkgateways.IPsecEncryptionAESOneTwoEight),
-											string(virtualnetworkgateways.IPsecEncryptionAESOneNineTwo),
-											string(virtualnetworkgateways.IPsecEncryptionAESTwoFiveSix),
-											string(virtualnetworkgateways.IPsecEncryptionDES),
-											string(virtualnetworkgateways.IPsecEncryptionDESThree),
-											string(virtualnetworkgateways.IPsecEncryptionGCMAESOneTwoEight),
-											string(virtualnetworkgateways.IPsecEncryptionGCMAESOneNineTwo),
-											string(virtualnetworkgateways.IPsecEncryptionGCMAESTwoFiveSix),
-											string(virtualnetworkgateways.IPsecEncryptionNone),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForIPsecEncryption(), false),
 									},
 
 									"ipsec_integrity": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(virtualnetworkgateways.IPsecIntegrityGCMAESOneTwoEight),
-											string(virtualnetworkgateways.IPsecIntegrityGCMAESOneNineTwo),
-											string(virtualnetworkgateways.IPsecIntegrityGCMAESTwoFiveSix),
-											string(virtualnetworkgateways.IPsecIntegrityMDFive),
-											string(virtualnetworkgateways.IPsecIntegritySHAOne),
-											string(virtualnetworkgateways.IPsecIntegritySHATwoFiveSix),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForIPsecIntegrity(), false),
 									},
 
 									"pfs_group": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(virtualnetworkgateways.PfsGroupECPTwoFiveSix),
-											string(virtualnetworkgateways.PfsGroupECPThreeEightFour),
-											string(virtualnetworkgateways.PfsGroupNone),
-											string(virtualnetworkgateways.PfsGroupPFSOne),
-											string(virtualnetworkgateways.PfsGroupPFSOneFour),
-											string(virtualnetworkgateways.PfsGroupPFSTwo),
-											string(virtualnetworkgateways.PfsGroupPFSTwoZeroFourEight),
-											string(virtualnetworkgateways.PfsGroupPFSTwoFour),
-											string(virtualnetworkgateways.PfsGroupPFSMM),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForPfsGroup(), false),
 									},
 
 									"sa_lifetime_in_seconds": {
@@ -498,12 +432,8 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 							Computed: true,
 							MaxItems: 3,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(virtualnetworkgateways.VpnAuthenticationTypeCertificate),
-									string(virtualnetworkgateways.VpnAuthenticationTypeAAD),
-									string(virtualnetworkgateways.VpnAuthenticationTypeRadius),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForVpnAuthenticationType(), false),
 							},
 						},
 
@@ -512,12 +442,8 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 							Optional: true,
 							Computed: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(virtualnetworkgateways.VpnClientProtocolIkeVTwo),
-									string(virtualnetworkgateways.VpnClientProtocolOpenVPN),
-									string(virtualnetworkgateways.VpnClientProtocolSSTP),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForVpnClientProtocol(), false),
 							},
 						},
 					},
@@ -671,24 +597,6 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["enable_bgp"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"bgp_enabled"},
-			Deprecated:    "the `enable_bgp` property has been deprecated in favour of the `bgp_enabled` property and will be removed in v5.0 of the AzureRM Provider",
-		}
-
-		resource.Schema["bgp_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"enable_bgp"},
-		}
-	}
-	return resource
 }
 
 func resourceVirtualNetworkGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
@@ -709,11 +617,9 @@ func resourceVirtualNetworkGatewayCustomizeDiff(ctx context.Context, d *pluginsd
 	maxScaleUnit := d.Get("maximum_scale_unit").(int)
 	sku := d.Get("sku").(string)
 
-	if features.FivePointOh() {
-		if sku == string(virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwScale) {
-			if minScaleUnit == 0 || maxScaleUnit == 0 {
-				return fmt.Errorf("`minimum_scale_unit` and `maximum_scale_unit` must be set when `sku` is `%s`", virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwScale)
-			}
+	if sku == string(virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwScale) {
+		if minScaleUnit == 0 || maxScaleUnit == 0 {
+			return fmt.Errorf("`minimum_scale_unit` and `maximum_scale_unit` must be set when `sku` is `%s`", virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwScale)
 		}
 	}
 
@@ -834,9 +740,6 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 		props := model.Properties
 
 		d.Set("bgp_enabled", props.EnableBgp)
-		if !features.FivePointOh() {
-			d.Set("enable_bgp", props.EnableBgp)
-		}
 
 		d.Set("type", string(pointer.From(props.GatewayType)))
 		d.Set("private_ip_address_enabled", props.EnablePrivateIPAddress)
@@ -926,16 +829,7 @@ func resourceVirtualNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	payload := existing.Model
 
-	if !features.FivePointOh() && d.HasChanges("enable_bgp", "bgp_enabled") {
-		enableBgp := false
-		if d.HasChange("enable_bgp") && !d.GetRawConfig().AsValueMap()["enable_bgp"].IsNull() {
-			enableBgp = d.Get("enable_bgp").(bool)
-		}
-		if d.HasChange("bgp_enabled") && !d.GetRawConfig().AsValueMap()["bgp_enabled"].IsNull() {
-			enableBgp = d.Get("bgp_enabled").(bool)
-		}
-		payload.Properties.EnableBgp = pointer.To(enableBgp)
-	} else if d.HasChange("bgp_enabled") {
+	if d.HasChange("bgp_enabled") {
 		payload.Properties.EnableBgp = pointer.To(d.Get("bgp_enabled").(bool))
 	}
 
@@ -1038,15 +932,10 @@ func resourceVirtualNetworkGatewayDelete(d *pluginsdk.ResourceData, meta interfa
 }
 
 func getVirtualNetworkGatewayProperties(id virtualnetworkgateways.VirtualNetworkGatewayId, d *pluginsdk.ResourceData) (*virtualnetworkgateways.VirtualNetworkGatewayPropertiesFormat, error) {
-	enableBgp := d.Get("bgp_enabled").(bool)
-	if !features.FivePointOh() && !d.GetRawConfig().AsValueMap()["enable_bgp"].IsNull() {
-		enableBgp = d.Get("enable_bgp").(bool)
-	}
-
 	props := &virtualnetworkgateways.VirtualNetworkGatewayPropertiesFormat{
 		GatewayType:                     pointer.ToEnum[virtualnetworkgateways.VirtualNetworkGatewayType](d.Get("type").(string)),
 		VpnType:                         pointer.ToEnum[virtualnetworkgateways.VpnType](d.Get("vpn_type").(string)),
-		EnableBgp:                       pointer.To(enableBgp),
+		EnableBgp:                       pointer.To(d.Get("bgp_enabled").(bool)),
 		EnablePrivateIPAddress:          pointer.To(d.Get("private_ip_address_enabled").(bool)),
 		ActiveActive:                    pointer.To(d.Get("active_active").(bool)),
 		EnableBgpRouteTranslationForNat: pointer.To(d.Get("bgp_route_translation_for_nat_enabled").(bool)),

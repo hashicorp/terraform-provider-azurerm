@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -22,13 +23,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	billingValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // TODO: this wants splitting into virtual resources with Virtual IDs
@@ -37,6 +38,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceArmRoleAssignmentCreate,
 		Read:   resourceArmRoleAssignmentRead,
+		Update: resourceArmRoleAssignmentUpdate,
 		Delete: resourceArmRoleAssignmentDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -47,6 +49,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -132,21 +135,18 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"description": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"condition": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"condition_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ForceNew: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"1.0",
@@ -278,6 +278,72 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceArmRoleAssignmentRead(d, meta)
 }
 
+func resourceArmRoleAssignmentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Authorization.ScopedRoleAssignmentsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.ScopedRoleAssignmentID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	options := roleassignments.DefaultGetOperationOptions()
+	if id.TenantId != "" {
+		options.TenantId = pointer.To(id.TenantId)
+	}
+
+	existing, err := client.Get(ctx, id.ScopedId, options)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+	if existing.Model == nil || existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `model.properties` was nil", *id)
+	}
+
+	props := *existing.Model.Properties
+
+	if d.HasChange("description") {
+		props.Description = nil
+		if v := d.Get("description").(string); v != "" {
+			props.Description = &v
+		}
+	}
+
+	// Order matters here that "condition_version" shall be handled prior to "condition".
+	if d.HasChange("condition_version") {
+		props.ConditionVersion = nil
+		if v := d.Get("condition_version").(string); v != "" {
+			props.ConditionVersion = &v
+		}
+	}
+	if d.HasChange("condition") {
+		props.Condition = nil
+		if v := d.Get("condition").(string); v != "" {
+			props.Condition = &v
+		}
+
+		// Implicitly setting the condition_version in case it is not specified in config (as how Create() has been implemented).
+		if d.GetRawConfig().AsValueMap()["condition_version"].IsNull() {
+			if props.Condition == nil {
+				props.ConditionVersion = nil
+			} else {
+				props.ConditionVersion = pointer.To("2.0")
+			}
+		}
+	}
+
+	params := roleassignments.RoleAssignmentCreateParameters{
+		Properties: props,
+	}
+
+	if _, err := client.Create(ctx, id.ScopedId, params); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
+
+	return resourceArmRoleAssignmentRead(d, meta)
+}
+
 func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Authorization.ScopedRoleAssignmentsClient
 	roleDefinitionsClient := meta.(*clients.Client).Authorization.ScopedRoleDefinitionsClient
@@ -377,8 +443,6 @@ func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, id parse.ScopedRoleAs
 		resp, err := roleAssignmentsClient.Create(ctx, id.ScopedId, param)
 		if err != nil {
 			switch {
-			case utils.ResponseErrorIsRetryable(err):
-				return pluginsdk.RetryableError(err)
 			case response.WasStatusCode(resp.HttpResponse, 400) && strings.Contains(err.Error(), "PrincipalNotFound"):
 				// When waiting for service principal to become available
 				return pluginsdk.RetryableError(err)
@@ -393,42 +457,23 @@ func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, id parse.ScopedRoleAs
 			return pluginsdk.NonRetryableError(fmt.Errorf("creation of %s did not return an id value", id))
 		}
 
-		stateConf := &pluginsdk.StateChangeConf{
-			Pending: []string{
-				"pending",
-			},
-			Target: []string{
-				"ready",
-			},
-			Refresh:                   roleAssignmentCreateStateRefreshFunc(ctx, roleAssignmentsClient, id),
-			MinTimeout:                5 * time.Second,
-			ContinuousTargetOccurence: 5,
-			Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
+		pollerOpts := &custompollers.EventualConsistencyPollerOptions{
+			Interval:              5 * time.Second,
+			RetryErrorStatusCodes: []int{http.StatusNotFound},
 		}
-
-		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-			return pluginsdk.NonRetryableError(fmt.Errorf("failed waiting for Role Assignment %s to finish replicating: %+v", id, err))
-		}
-
-		return nil
-	}
-}
-
-func roleAssignmentCreateStateRefreshFunc(ctx context.Context, client *roleassignments.RoleAssignmentsClient, id parse.ScopedRoleAssignmentId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
 		options := roleassignments.DefaultGetOperationOptions()
 		if id.TenantId != "" {
 			options.TenantId = pointer.To(id.TenantId)
 		}
-
-		resp, err := client.Get(ctx, id.ScopedId, options)
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return resp, "pending", nil
-			}
-			return resp, "failed", err
+		poller := custompollers.NewEventualConsistencyPoller(5, func(pollerCtx context.Context) (*http.Response, error) {
+			resp, err := roleAssignmentsClient.Get(pollerCtx, id.ScopedId, options)
+			return resp.HttpResponse, err
+		}, pollerOpts)
+		if err := poller.PollUntilDone(ctx); err != nil {
+			return pluginsdk.NonRetryableError(fmt.Errorf("failed waiting for Role Assignment %s to finish replicating: %+v", id, err))
 		}
-		return resp, "ready", nil
+
+		return nil
 	}
 }
 

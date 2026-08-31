@@ -65,26 +65,19 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(loadbalancers.LoadBalancerSkuNameStandard),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(loadbalancers.LoadBalancerSkuNameBasic),
-					string(loadbalancers.LoadBalancerSkuNameStandard),
-					string(loadbalancers.LoadBalancerSkuNameGateway),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(loadbalancers.LoadBalancerSkuNameStandard),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForLoadBalancerSkuName(), false),
 			},
 
 			"sku_tier": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(loadbalancers.LoadBalancerSkuTierRegional),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(loadbalancers.LoadBalancerSkuTierRegional),
-					string(loadbalancers.LoadBalancerSkuTierGlobal),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(loadbalancers.LoadBalancerSkuTierRegional),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForLoadBalancerSkuTier(), false),
 			},
 
 			"frontend_ip_configuration": {
@@ -120,11 +113,8 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							// Not using O+C here causes drift
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(loadbalancers.IPVersionIPvFour),
-								string(loadbalancers.IPVersionIPvSix),
-							}, false),
+							Computed:     true,
+							ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForIPVersion(), false),
 						},
 
 						"public_ip_address_id": {
@@ -141,13 +131,10 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 						},
 
 						"private_ip_address_allocation": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(loadbalancers.IPAllocationMethodDynamic),
-								string(loadbalancers.IPAllocationMethodStatic),
-							}, true),
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							Computed:         true,
+							ValidateFunc:     validation.StringInSlice(loadbalancers.PossibleValuesForIPAllocationMethod(), true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
@@ -396,8 +383,7 @@ func resourceArmLoadBalancerUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, loadbalancers.ProviderLoadBalancerId(*id), model)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, loadbalancers.ProviderLoadBalancerId(*id), model); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -416,8 +402,7 @@ func resourceArmLoadBalancerDelete(d *pluginsdk.ResourceData, meta interface{}) 
 
 	plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroupName, LoadBalancerName: id.LoadBalancerName}
 
-	err = client.DeleteThenPoll(ctx, plbId)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, plbId); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
@@ -497,15 +482,9 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]loadbalancers.Front
 	}
 
 	for _, config := range *ipConfigs {
-		name := ""
-		if config.Name != nil {
-			name = *config.Name
-		}
+		name := pointer.From(config.Name)
 
-		id := ""
-		if config.Id != nil {
-			id = *config.Id
-		}
+		id := pointer.From(config.Id)
 
 		var inboundNatRules []interface{}
 		var loadBalancingRules []interface{}

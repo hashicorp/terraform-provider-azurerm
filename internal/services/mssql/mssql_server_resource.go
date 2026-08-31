@@ -17,12 +17,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/restorabledroppeddatabases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverazureadadministrators"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverazureadonlyauthentications"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverconnectionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/sqlvulnerabilityassessmentssettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/restorabledroppeddatabases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serverazureadadministrators"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serverazureadonlyauthentications"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serverconnectionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/sqlvulnerabilityassessmentssettings"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -372,8 +372,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if d.HasChange("azuread_administrator") {
 		log.Printf("[INFO] Expanding 'azuread_administrator' to see if we need Create or Delete")
 		if adminProps := expandMsSqlServerAdministrator(d.Get("azuread_administrator").([]interface{})); adminProps != nil {
-			err := adminClient.CreateOrUpdateThenPoll(ctx, *id, pointer.From(adminProps))
-			if err != nil {
+			if err := adminClient.CreateOrUpdateThenPoll(ctx, *id, pointer.From(adminProps)); err != nil {
 				return fmt.Errorf("updating Azure Active Directory Administrator %s: %+v", id, err)
 			}
 		} else {
@@ -381,8 +380,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				return fmt.Errorf("retrieving Azure Active Directory Administrator %s: %+v", id, err)
 			}
 
-			err = adminClient.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = adminClient.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting Azure Active Directory Administrator %s: %+v", id, err)
 			}
 		}
@@ -398,8 +396,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				},
 			}
 
-			err := aadOnlyAuthenticationsClient.CreateOrUpdateThenPoll(ctx, *id, aadOnlyAuthenticationProps)
-			if err != nil {
+			if err := aadOnlyAuthenticationsClient.CreateOrUpdateThenPoll(ctx, *id, aadOnlyAuthenticationProps); err != nil {
 				return fmt.Errorf("updating Azure Active Directory Only Authentication for %s: %+v", id, err)
 			}
 		} else {
@@ -487,8 +484,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			payload.Properties.MinimalTlsVersion = pointer.ToEnum[servers.MinimalTlsVersion](d.Get("minimum_tls_version").(string))
 		}
 
-		err := client.CreateOrUpdateThenPoll(ctx, *id, *payload)
-		if err != nil {
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 	}
@@ -646,8 +642,7 @@ func resourceMsSqlServerDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, pointer.From(id))
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, pointer.From(id)); err != nil {
 		return fmt.Errorf("deleting SQL Server %s: %+v", id, err)
 	}
 
@@ -677,7 +672,7 @@ func expandMsSqlServerAdministrator(input []interface{}) *serverazureadadministr
 
 	adminProps := serverazureadadministrators.ServerAzureADAdministrator{
 		Properties: &serverazureadadministrators.AdministratorProperties{
-			AdministratorType: serverazureadadministrators.AdministratorType(servers.AdministratorTypeActiveDirectory),
+			AdministratorType: pointer.To(serverazureadadministrators.AdministratorTypeActiveDirectory),
 			Login:             v["login_username"].(string),
 			Sid:               v["object_id"].(string),
 		},

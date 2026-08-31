@@ -81,7 +81,7 @@ var (
 )
 
 func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -173,21 +173,9 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(webapps.ConnectionStringTypeApiHub),
-							string(webapps.ConnectionStringTypeCustom),
-							string(webapps.ConnectionStringTypeDocDb),
-							string(webapps.ConnectionStringTypeEventHub),
-							string(webapps.ConnectionStringTypeMySql),
-							string(webapps.ConnectionStringTypeNotificationHub),
-							string(webapps.ConnectionStringTypePostgreSQL),
-							string(webapps.ConnectionStringTypeRedisCache),
-							string(webapps.ConnectionStringTypeServiceBus),
-							string(webapps.ConnectionStringTypeSQLAzure),
-							string(webapps.ConnectionStringTypeSQLServer),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForConnectionStringType(), false),
 					},
 
 					"value": {
@@ -278,8 +266,6 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	return s
 }
 
 func (r LogicAppResource) Attributes() map[string]*pluginsdk.Schema {
@@ -1042,17 +1028,9 @@ func flattenLogicAppStandardIpRestriction(input *[]webapps.IPSecurityRestriction
 			}
 		}
 
-		subnetId := ""
-		if subnetIdRaw := v.VnetSubnetResourceId; subnetIdRaw != nil {
-			subnetId = *subnetIdRaw
-		}
-		restriction["virtual_network_subnet_id"] = subnetId
+		restriction["virtual_network_subnet_id"] = pointer.From(v.VnetSubnetResourceId)
 
-		name := ""
-		if nameRaw := v.Name; nameRaw != nil {
-			name = *nameRaw
-		}
-		restriction["name"] = name
+		restriction["name"] = pointer.From(v.Name)
 
 		priority := 0
 		if priorityRaw := v.Priority; priorityRaw != nil {
@@ -1060,11 +1038,7 @@ func flattenLogicAppStandardIpRestriction(input *[]webapps.IPSecurityRestriction
 		}
 		restriction["priority"] = priority
 
-		action := ""
-		if actionRaw := v.Action; actionRaw != nil {
-			action = *actionRaw
-		}
-		restriction["action"] = action
+		restriction["action"] = pointer.From(v.Action)
 
 		if headers := v.Headers; headers != nil {
 			restriction["headers"] = flattenHeaders(*headers)

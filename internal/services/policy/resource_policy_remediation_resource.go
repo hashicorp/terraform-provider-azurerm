@@ -26,7 +26,7 @@ import (
 )
 
 func resourceArmResourcePolicyRemediation() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceArmResourcePolicyRemediationCreateUpdate,
 		Read:   resourceArmResourcePolicyRemediationRead,
 		Update: resourceArmResourcePolicyRemediationCreateUpdate,
@@ -104,18 +104,13 @@ func resourceArmResourcePolicyRemediation() *pluginsdk.Resource {
 			},
 
 			"resource_discovery_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(remediations.ResourceDiscoveryModeExistingNonCompliant),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(remediations.ResourceDiscoveryModeExistingNonCompliant),
-					string(remediations.ResourceDiscoveryModeReEvaluateCompliance),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(remediations.ResourceDiscoveryModeExistingNonCompliant),
+				ValidateFunc: validation.StringInSlice(remediations.PossibleValuesForResourceDiscoveryMode(), false),
 			},
 		},
 	}
-
-	return resource
 }
 
 func resourceArmResourcePolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

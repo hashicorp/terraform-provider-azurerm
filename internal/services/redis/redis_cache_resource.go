@@ -96,13 +96,9 @@ func resourceRedisCache() *pluginsdk.Resource {
 			},
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(redisresources.SkuNameBasic),
-					string(redisresources.SkuNameStandard),
-					string(redisresources.SkuNamePremium),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(redisresources.PossibleValuesForSkuName(), false),
 			},
 
 			"minimum_tls_version": {
@@ -1159,10 +1155,7 @@ func flattenRedisPatchSchedules(schedule redispatchschedules.RedisPatchSchedule)
 	outputs := make([]interface{}, 0)
 
 	for _, entry := range schedule.Properties.ScheduleEntries {
-		maintenanceWindow := ""
-		if entry.MaintenanceWindow != nil {
-			maintenanceWindow = *entry.MaintenanceWindow
-		}
+		maintenanceWindow := pointer.From(entry.MaintenanceWindow)
 
 		outputs = append(outputs, map[string]interface{}{
 			"day_of_week":        string(entry.DayOfWeek),

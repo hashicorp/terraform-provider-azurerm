@@ -42,15 +42,10 @@ var expressRoutePortSchema = &pluginsdk.Schema{
 				Default:  false,
 			},
 			"macsec_cipher": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(expressrouteports.ExpressRouteLinkMacSecCipherGcmAesOneTwoEight),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(expressrouteports.ExpressRouteLinkMacSecCipherGcmAesOneTwoEight),
-					string(expressrouteports.ExpressRouteLinkMacSecCipherGcmAesTwoFiveSix),
-					string(expressrouteports.ExpressRouteLinkMacSecCipherGcmAesXpnOneTwoEight),
-					string(expressrouteports.ExpressRouteLinkMacSecCipherGcmAesXpnTwoFiveSix),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(expressrouteports.ExpressRouteLinkMacSecCipherGcmAesOneTwoEight),
+				ValidateFunc: validation.StringInSlice(expressrouteports.PossibleValuesForExpressRouteLinkMacSecCipher(), false),
 			},
 			"macsec_ckn_keyvault_secret_id": {
 				Type:         pluginsdk.TypeString,
@@ -141,25 +136,19 @@ func resourceArmExpressRoutePort() *pluginsdk.Resource {
 			},
 
 			"encapsulation": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(expressrouteports.ExpressRoutePortsEncapsulationDotOneQ),
-					string(expressrouteports.ExpressRoutePortsEncapsulationQinQ),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(expressrouteports.PossibleValuesForExpressRoutePortsEncapsulation(), false),
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"billing_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(expressrouteports.ExpressRoutePortsBillingTypeMeteredData),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(expressrouteports.ExpressRoutePortsBillingTypeMeteredData),
-					string(expressrouteports.ExpressRoutePortsBillingTypeUnlimitedData),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(expressrouteports.ExpressRoutePortsBillingTypeMeteredData),
+				ValidateFunc: validation.StringInSlice(expressrouteports.PossibleValuesForExpressRoutePortsBillingType(), false),
 			},
 
 			"link1": expressRoutePortSchema,
@@ -467,11 +456,6 @@ func flattenExpressRoutePortLinks(links *[]expressrouteports.ExpressRouteLink) (
 }
 
 func flattenExpressRoutePortLink(link expressrouteports.ExpressRouteLink) []interface{} {
-	var id string
-	if link.Id != nil {
-		id = *link.Id
-	}
-
 	var (
 		routerName    string
 		interfaceName string
@@ -514,7 +498,7 @@ func flattenExpressRoutePortLink(link expressrouteports.ExpressRouteLink) []inte
 
 	return []interface{}{
 		map[string]interface{}{
-			"id":                            id,
+			"id":                            pointer.From(link.Id),
 			"router_name":                   routerName,
 			"interface_name":                interfaceName,
 			"patch_panel_id":                patchPanelId,

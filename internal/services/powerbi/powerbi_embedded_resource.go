@@ -79,14 +79,11 @@ func resourcePowerBIEmbedded() *pluginsdk.Resource {
 			},
 
 			"mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(capacities.ModeGenTwo),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(capacities.ModeGenOne),
-					string(capacities.ModeGenTwo),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(capacities.ModeGenTwo),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(capacities.PossibleValuesForMode(), false),
 			},
 
 			"tags": commonschema.Tags(),

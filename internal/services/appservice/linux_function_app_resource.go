@@ -206,15 +206,11 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"client_certificate_mode": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  webapps.ClientCertModeOptional,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(webapps.ClientCertModeOptional),
-				string(webapps.ClientCertModeRequired),
-				string(webapps.ClientCertModeOptionalInteractiveUser),
-			}, false),
-			Description: "The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser` ",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      webapps.ClientCertModeOptional,
+			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForClientCertMode(), false),
+			Description:  "The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser` ",
 		},
 
 		"client_certificate_exclusion_paths": {
@@ -1390,8 +1386,7 @@ func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input webapps.Str
 
 		case "AzureWebJobsStorage":
 			if strings.HasPrefix(v, "@Microsoft.KeyVault") {
-				trimmed := strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(SecretUri=")
-				m.StorageKeyVaultSecretID = trimmed
+				m.StorageKeyVaultSecretID = strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(SecretUri=")
 			} else {
 				m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
 			}

@@ -161,13 +161,10 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				},
 
 				"managed_pipeline_mode": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(webapps.ManagedPipelineModeIntegrated),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.ManagedPipelineModeClassic),
-						string(webapps.ManagedPipelineModeIntegrated),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(webapps.ManagedPipelineModeIntegrated),
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForManagedPipelineMode(), false),
 				},
 
 				"remote_debugging_enabled": {
@@ -203,14 +200,10 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				},
 
 				"ftps_state": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(webapps.FtpsStateDisabled),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.FtpsStateAllAllowed),
-						string(webapps.FtpsStateDisabled),
-						string(webapps.FtpsStateFtpsOnly),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(webapps.FtpsStateDisabled),
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFtpsState(), false),
 				},
 
 				"health_check_path": {

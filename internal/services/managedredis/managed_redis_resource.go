@@ -336,8 +336,7 @@ func (r ManagedRedisResource) Create() sdk.ResourceFunc {
 			if len(model.DefaultDatabase) == 1 {
 				dbModel := model.DefaultDatabase[0]
 
-				err := createDb(ctx, dbClient, dbId, dbModel)
-				if err != nil {
+				if err := createDb(ctx, dbClient, dbId, dbModel); err != nil {
 					return fmt.Errorf("creating %s: %+v", dbId, err)
 				}
 			}

@@ -108,16 +108,11 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 				},
 
 				"unauthenticated_action": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(webapps.UnauthenticatedClientActionV2RedirectToLoginPage),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.UnauthenticatedClientActionV2RedirectToLoginPage),
-						string(webapps.UnauthenticatedClientActionV2AllowAnonymous),
-						string(webapps.UnauthenticatedClientActionV2ReturnFourZeroOne),
-						string(webapps.UnauthenticatedClientActionV2ReturnFourZeroThree),
-					}, false),
-					Description: "The action to take for requests made without authentication. Possible values include `RedirectToLoginPage`, `AllowAnonymous`, `Return401`, and `Return403`. Defaults to `RedirectToLoginPage`.",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(webapps.UnauthenticatedClientActionV2RedirectToLoginPage),
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForUnauthenticatedClientActionV2(), false),
+					Description:  "The action to take for requests made without authentication. Possible values include `RedirectToLoginPage`, `AllowAnonymous`, `Return401`, and `Return403`. Defaults to `RedirectToLoginPage`.",
 				},
 
 				"default_provider": {
@@ -172,15 +167,11 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 				},
 
 				"forward_proxy_convention": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(webapps.ForwardProxyConventionNoProxy),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.ForwardProxyConventionNoProxy),
-						string(webapps.ForwardProxyConventionCustom),
-						string(webapps.ForwardProxyConventionStandard),
-					}, false),
-					Description: "The convention used to determine the url of the request made. Possible values include `ForwardProxyConventionNoProxy`, `ForwardProxyConventionStandard`, `ForwardProxyConventionCustom`. Defaults to `ForwardProxyConventionNoProxy`",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(webapps.ForwardProxyConventionNoProxy),
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForForwardProxyConvention(), false),
+					Description:  "The convention used to determine the url of the request made. Possible values include `ForwardProxyConventionNoProxy`, `ForwardProxyConventionStandard`, `ForwardProxyConventionCustom`. Defaults to `ForwardProxyConventionNoProxy`",
 				},
 
 				"forward_proxy_custom_host_header_name": {
@@ -385,14 +376,11 @@ func authV2LoginSchema() *pluginsdk.Schema {
 				},
 
 				"cookie_expiration_convention": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(webapps.CookieExpirationConventionFixedTime),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.CookieExpirationConventionIdentityProviderDerived),
-						string(webapps.CookieExpirationConventionFixedTime),
-					}, false),
-					Description: "The method by which cookies expire. Possible values include: `FixedTime`, and `IdentityProviderDerived`. Defaults to `FixedTime`.",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(webapps.CookieExpirationConventionFixedTime),
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForCookieExpirationConvention(), false),
+					Description:  "The method by which cookies expire. Possible values include: `FixedTime`, and `IdentityProviderDerived`. Defaults to `FixedTime`.",
 				},
 
 				"cookie_expiration_time": {
@@ -1158,9 +1146,9 @@ func flattenStaticWebAppAuthV2Settings(input *webapps.AzureStaticWebApps) []Stat
 
 	result := StaticWebAppAuthV2Settings{}
 
-	if props := input; props != nil && pointer.From(props.Enabled) {
-		if props.Registration != nil {
-			result.ClientId = pointer.From(props.Registration.ClientId)
+	if pointer.From(input.Enabled) {
+		if input.Registration != nil {
+			result.ClientId = pointer.From(input.Registration.ClientId)
 		}
 	}
 
@@ -1654,7 +1642,7 @@ func GithubAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 func expandGitHubAuthV2Settings(input []GithubAuthV2Settings) *webapps.GitHub {
 	if len(input) == 1 {
 		github := input[0]
-		result := &webapps.GitHub{
+		return &webapps.GitHub{
 			Enabled: pointer.To(true),
 			Registration: &webapps.ClientRegistration{
 				ClientId:                pointer.To(github.ClientId),
@@ -1664,8 +1652,6 @@ func expandGitHubAuthV2Settings(input []GithubAuthV2Settings) *webapps.GitHub {
 				Scopes: pointer.To(github.LoginScopes),
 			},
 		}
-
-		return result
 	}
 
 	return &webapps.GitHub{
@@ -2048,15 +2034,13 @@ func TwitterAuthV2SettingsSchemaComputed() *pluginsdk.Schema {
 func expandTwitterAuthV2Settings(input []TwitterAuthV2Settings) *webapps.Twitter {
 	if len(input) == 1 {
 		twitter := input[0]
-		result := &webapps.Twitter{
+		return &webapps.Twitter{
 			Enabled: pointer.To(true),
 			Registration: &webapps.TwitterRegistration{
 				ConsumerKey:               pointer.To(twitter.ConsumerKey),
 				ConsumerSecretSettingName: pointer.To(twitter.ConsumerSecretSettingName),
 			},
 		}
-
-		return result
 	}
 
 	return &webapps.Twitter{

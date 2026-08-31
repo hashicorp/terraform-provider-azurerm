@@ -103,25 +103,18 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 
 			// set `immutability` to Computed, because it will start to return from the service once it has been set.
 			"immutability": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(vaults.ImmutabilityStateLocked),
-					string(vaults.ImmutabilityStateUnlocked),
-					string(vaults.ImmutabilityStateDisabled),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(vaults.PossibleValuesForImmutabilityState(), false),
 			},
 
 			"tags": commonschema.Tags(),
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(vaults.SkuNameRSZero),
-					string(vaults.SkuNameStandard),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(vaults.PossibleValuesForSkuName(), false),
 			},
 
 			"storage_mode_type": {
@@ -398,8 +391,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 			vault.Sku.Tier = pointer.To("Standard")
 		}
 
-		err = client.CreateOrUpdateThenPoll(ctx, id, vault, vaults.DefaultCreateOrUpdateOperationOptions())
-		if err != nil {
+		if err = client.CreateOrUpdateThenPoll(ctx, id, vault, vaults.DefaultCreateOrUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("updating Recovery Service %s: %+v", id, err)
 		}
 	}
@@ -464,14 +456,12 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	err = client.UpdateThenPoll(ctx, id, vault, vaults.DefaultUpdateOperationOptions())
-	if err != nil {
+	if err = client.UpdateThenPoll(ctx, id, vault, vaults.DefaultUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("updating  %s: %+v", id, err)
 	}
 
 	if requireAdditionalUpdate {
-		err := client.UpdateThenPoll(ctx, id, additionalUpdatePatch, vaults.DefaultUpdateOperationOptions())
-		if err != nil {
+		if err := client.UpdateThenPoll(ctx, id, additionalUpdatePatch, vaults.DefaultUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("updating Recovery Service %s: %+v, but recovery vault was created, a manually import might be required", id, err)
 		}
 	}
@@ -787,17 +777,15 @@ func flattenRecoveryServicesVaultMonitorSettings(input *vaults.MonitoringSetting
 	criticalAlert := false
 	emailNotification := false
 
-	if input != nil {
-		if input.AzureMonitorAlertSettings != nil {
-			allJobAlert = pointer.From(input.AzureMonitorAlertSettings.AlertsForAllJobFailures) == vaults.AlertsStateEnabled
-			allFailoverAlert = pointer.From(input.AzureMonitorAlertSettings.AlertsForAllFailoverIssues) == vaults.AlertsStateEnabled
-			allReplicationAlert = pointer.From(input.AzureMonitorAlertSettings.AlertsForAllReplicationIssues) == vaults.AlertsStateEnabled
-		}
+	if input.AzureMonitorAlertSettings != nil {
+		allJobAlert = pointer.From(input.AzureMonitorAlertSettings.AlertsForAllJobFailures) == vaults.AlertsStateEnabled
+		allFailoverAlert = pointer.From(input.AzureMonitorAlertSettings.AlertsForAllFailoverIssues) == vaults.AlertsStateEnabled
+		allReplicationAlert = pointer.From(input.AzureMonitorAlertSettings.AlertsForAllReplicationIssues) == vaults.AlertsStateEnabled
+	}
 
-		if input.ClassicAlertSettings != nil {
-			criticalAlert = pointer.From(input.ClassicAlertSettings.AlertsForCriticalOperations) == vaults.AlertsStateEnabled
-			emailNotification = pointer.From(input.ClassicAlertSettings.EmailNotificationsForSiteRecovery) == vaults.AlertsStateEnabled
-		}
+	if input.ClassicAlertSettings != nil {
+		criticalAlert = pointer.From(input.ClassicAlertSettings.AlertsForCriticalOperations) == vaults.AlertsStateEnabled
+		emailNotification = pointer.From(input.ClassicAlertSettings.EmailNotificationsForSiteRecovery) == vaults.AlertsStateEnabled
 	}
 
 	return []interface{}{

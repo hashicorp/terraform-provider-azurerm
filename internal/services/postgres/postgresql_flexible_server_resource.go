@@ -177,6 +177,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Optional: true,
 				Default:  string(servers.StorageTypePremiumLRS),
 				ForceNew: true,
+				// NOTE: not using `servers.PossibleValuesForStorageType()` because it includes `UltraSSD_LRS`, which is not GA yet
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servers.StorageTypePremiumLRS),
 					string(servers.StorageTypePremiumVTwoLRS),
@@ -200,19 +201,10 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			},
 
 			"version": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(servers.PostgresMajorVersionOneOne),
-					string(servers.PostgresMajorVersionOneTwo),
-					string(servers.PostgresMajorVersionOneThree),
-					string(servers.PostgresMajorVersionOneFour),
-					string(servers.PostgresMajorVersionOneFive),
-					string(servers.PostgresMajorVersionOneSix),
-					string(servers.PostgresMajorVersionOneSeven),
-					string(servers.PostgresMajorVersionOneEight),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForPostgresMajorVersion(), false),
 			},
 
 			"zone": commonschema.ZoneSingleOptional(),
@@ -314,12 +306,9 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"mode": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(servers.HighAvailabilityModeZoneRedundant),
-								string(servers.HighAvailabilityModeSameZone),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(servers.PossibleValuesForHighAvailabilityMode(), false),
 						},
 
 						"standby_availability_zone": commonschema.ZoneSingleOptional(),
@@ -820,8 +809,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if authRaw, ok := d.GetOk("authentication"); ok {
-		authConfig := expandFlexibleServerAuthConfig(authRaw.([]interface{}))
-		parameters.Properties.AuthConfig = authConfig
+		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfig(authRaw.([]interface{}))
 	}
 
 	identity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
@@ -932,9 +920,17 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 					d.Set("storage_tier", string(*storage.Tier))
 				}
 
-				d.Set("storage_type", pointer.FromEnum(storage.Type))
-				d.Set("storage_iops", pointer.From(storage.Iops))
-				d.Set("storage_throughput", pointer.From(storage.Throughput))
+				if storage.Type != nil {
+					d.Set("storage_type", string(*storage.Type))
+				}
+
+				if storage.Iops != nil {
+					d.Set("storage_iops", *storage.Iops)
+				}
+
+				if storage.Throughput != nil {
+					d.Set("storage_throughput", *storage.Throughput)
+				}
 			}
 
 			if backup := props.Backup; backup != nil {
@@ -1293,19 +1289,18 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 		storage.StorageSizeGB = pointer.To(int64(v.(int) / 1024))
 	}
 
-	storageType := servers.StorageType(d.Get("storage_type").(string))
-	storage.Type = pointer.To(storageType)
+	storage.Type = pointer.ToEnum[servers.StorageType](d.Get("storage_type").(string))
 
-	if tier := d.Get("storage_tier").(string); tier != "" {
-		storage.Tier = pointer.ToEnum[servers.AzureManagedDiskPerformanceTier](tier)
+	if v, ok := d.GetOk("storage_tier"); ok {
+		storage.Tier = pointer.ToEnum[servers.AzureManagedDiskPerformanceTier](v.(string))
 	}
 
-	if iops := d.Get("storage_iops").(int); iops > 0 {
-		storage.Iops = pointer.To(int64(iops))
+	if v, ok := d.GetOk("storage_iops"); ok {
+		storage.Iops = pointer.To(int64(v.(int)))
 	}
 
-	if throughput := d.Get("storage_throughput").(int); throughput > 0 {
-		storage.Throughput = pointer.To(int64(throughput))
+	if v, ok := d.GetOk("storage_throughput"); ok {
+		storage.Throughput = pointer.To(int64(v.(int)))
 	}
 
 	return &storage
@@ -1418,18 +1413,9 @@ func flattenArmServerMaintenanceWindow(input *servers.MaintenanceWindow) []inter
 		return make([]interface{}, 0)
 	}
 
-	var dayOfWeek int64
-	if input.DayOfWeek != nil {
-		dayOfWeek = *input.DayOfWeek
-	}
-	var startHour int64
-	if input.StartHour != nil {
-		startHour = *input.StartHour
-	}
-	var startMinute int64
-	if input.StartMinute != nil {
-		startMinute = *input.StartMinute
-	}
+	dayOfWeek := pointer.From(input.DayOfWeek)
+	startHour := pointer.From(input.StartHour)
+	startMinute := pointer.From(input.StartMinute)
 	return []interface{}{
 		map[string]interface{}{
 			"day_of_week":  dayOfWeek,
@@ -1494,10 +1480,7 @@ func flattenFlexibleServerHighAvailability(ha *servers.HighAvailability) []inter
 		return []interface{}{}
 	}
 
-	var zone string
-	if ha.StandbyAvailabilityZone != nil {
-		zone = *ha.StandbyAvailabilityZone
-	}
+	zone := pointer.From(ha.StandbyAvailabilityZone)
 
 	return []interface{}{
 		map[string]interface{}{

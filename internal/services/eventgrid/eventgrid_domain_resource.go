@@ -176,12 +176,10 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 							Required: true,
 						},
 						"action": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(domains.IPActionTypeAllow),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(domains.IPActionTypeAllow),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(domains.IPActionTypeAllow),
+							ValidateFunc: validation.StringInSlice(domains.PossibleValuesForIPActionType(), false),
 						},
 					},
 				},

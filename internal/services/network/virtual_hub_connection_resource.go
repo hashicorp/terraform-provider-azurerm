@@ -136,14 +136,11 @@ func resourceVirtualHubConnection() *pluginsdk.Resource {
 						},
 
 						"static_vnet_local_route_override_criteria": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ForceNew: true,
-							Default:  string(virtualwans.VnetLocalRouteOverrideCriteriaContains),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(virtualwans.VnetLocalRouteOverrideCriteriaContains),
-								string(virtualwans.VnetLocalRouteOverrideCriteriaEqual),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							Default:      string(virtualwans.VnetLocalRouteOverrideCriteriaContains),
+							ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForVnetLocalRouteOverrideCriteria(), false),
 						},
 
 						"static_vnet_propagate_static_routes_enabled": {
@@ -510,25 +507,15 @@ func flattenVirtualHubConnectionVnetStaticRoute(input *virtualwans.VnetRoute) []
 	}
 
 	for _, item := range *input.StaticRoutes {
-		var name string
-		if item.Name != nil {
-			name = *item.Name
-		}
-
-		var nextHopIpAddress string
-		if item.NextHopIPAddress != nil {
-			nextHopIpAddress = *item.NextHopIPAddress
-		}
-
 		addressPrefixes := make([]interface{}, 0)
 		if item.AddressPrefixes != nil {
 			addressPrefixes = helpers.FlattenStringSlice(item.AddressPrefixes)
 		}
 
 		v := map[string]interface{}{
-			"name":                name,
+			"name":                pointer.From(item.Name),
 			"address_prefixes":    addressPrefixes,
-			"next_hop_ip_address": nextHopIpAddress,
+			"next_hop_ip_address": pointer.From(item.NextHopIPAddress),
 		}
 
 		results = append(results, v)

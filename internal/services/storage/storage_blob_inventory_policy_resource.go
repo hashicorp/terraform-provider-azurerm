@@ -72,30 +72,21 @@ func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
 						},
 
 						"format": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(blobinventorypolicies.FormatCsv),
-								string(blobinventorypolicies.FormatParquet),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(blobinventorypolicies.PossibleValuesForFormat(), false),
 						},
 
 						"schedule": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(blobinventorypolicies.ScheduleDaily),
-								string(blobinventorypolicies.ScheduleWeekly),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(blobinventorypolicies.PossibleValuesForSchedule(), false),
 						},
 
 						"scope": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(blobinventorypolicies.ObjectTypeBlob),
-								string(blobinventorypolicies.ObjectTypeContainer),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(blobinventorypolicies.PossibleValuesForObjectType(), false),
 						},
 
 						"schema_fields": {
@@ -361,24 +352,12 @@ func flattenBlobInventoryPolicyFilter(input *blobinventorypolicies.BlobInventory
 		return make([]interface{}, 0)
 	}
 
-	var includeBlobVersions bool
-	if input.IncludeBlobVersions != nil {
-		includeBlobVersions = *input.IncludeBlobVersions
-	}
-	var includeDeleted bool
-	if input.IncludeDeleted != nil {
-		includeDeleted = *input.IncludeDeleted
-	}
-	var includeSnapshots bool
-	if input.IncludeSnapshots != nil {
-		includeSnapshots = *input.IncludeSnapshots
-	}
 	return []interface{}{
 		map[string]interface{}{
 			"blob_types":            helpers.FlattenStringSlice(input.BlobTypes),
-			"include_blob_versions": includeBlobVersions,
-			"include_deleted":       includeDeleted,
-			"include_snapshots":     includeSnapshots,
+			"include_blob_versions": pointer.From(input.IncludeBlobVersions),
+			"include_deleted":       pointer.From(input.IncludeDeleted),
+			"include_snapshots":     pointer.From(input.IncludeSnapshots),
 			"prefix_match":          helpers.FlattenStringSlice(input.PrefixMatch),
 			"exclude_prefixes":      helpers.FlattenStringSlice(input.ExcludePrefix),
 		},

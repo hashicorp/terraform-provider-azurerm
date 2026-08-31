@@ -60,24 +60,15 @@ func sslProfileSchema(computed bool) *pluginsdk.Schema {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(applicationgateways.ApplicationGatewaySslProtocolTLSvOneZero),
-							string(applicationgateways.ApplicationGatewaySslProtocolTLSvOneOne),
-							string(applicationgateways.ApplicationGatewaySslProtocolTLSvOneTwo),
-							string(applicationgateways.ApplicationGatewaySslProtocolTLSvOneThree),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewaySslProtocol(), false),
 					},
 				},
 
 				"policy_type": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(applicationgateways.ApplicationGatewaySslPolicyTypeCustom),
-						string(applicationgateways.ApplicationGatewaySslPolicyTypeCustomVTwo),
-						string(applicationgateways.ApplicationGatewaySslPolicyTypePredefined),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewaySslPolicyType(), false),
 				},
 
 				"policy_name": {
@@ -95,14 +86,9 @@ func sslProfileSchema(computed bool) *pluginsdk.Schema {
 				},
 
 				"min_protocol_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(applicationgateways.ApplicationGatewaySslProtocolTLSvOneZero),
-						string(applicationgateways.ApplicationGatewaySslProtocolTLSvOneOne),
-						string(applicationgateways.ApplicationGatewaySslProtocolTLSvOneTwo),
-						string(applicationgateways.ApplicationGatewaySslProtocolTLSvOneThree),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewaySslProtocol(), false),
 				},
 			},
 		},
@@ -420,13 +406,10 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 
 						"private_ip_address_allocation": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(applicationgateways.IPAllocationMethodDynamic),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(applicationgateways.IPAllocationMethodDynamic),
-								string(applicationgateways.IPAllocationMethodStatic),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(applicationgateways.IPAllocationMethodDynamic),
+							ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForIPAllocationMethod(), false),
 						},
 
 						"private_link_configuration_name": {
@@ -772,12 +755,9 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 									},
 
 									"private_ip_address_allocation": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(applicationgateways.IPAllocationMethodDynamic),
-											string(applicationgateways.IPAllocationMethodStatic),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForIPAllocationMethod(), false),
 									},
 
 									"primary": {
@@ -808,12 +788,9 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 
 						"rule_type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(applicationgateways.ApplicationGatewayRequestRoutingRuleTypeBasic),
-								string(applicationgateways.ApplicationGatewayRequestRoutingRuleTypePathBasedRouting),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewayRequestRoutingRuleType(), false),
 						},
 
 						"http_listener_name": {
@@ -964,14 +941,9 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 
 						"redirect_type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(applicationgateways.ApplicationGatewayRedirectTypePermanent),
-								string(applicationgateways.ApplicationGatewayRedirectTypeTemporary),
-								string(applicationgateways.ApplicationGatewayRedirectTypeFound),
-								string(applicationgateways.ApplicationGatewayRedirectTypeSeeOther),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewayRedirectType(), false),
 						},
 
 						"target_listener_name": {
@@ -1036,30 +1008,15 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(applicationgateways.ApplicationGatewaySkuNameBasic),
-								string(applicationgateways.ApplicationGatewaySkuNameStandardSmall),
-								string(applicationgateways.ApplicationGatewaySkuNameStandardMedium),
-								string(applicationgateways.ApplicationGatewaySkuNameStandardLarge),
-								string(applicationgateways.ApplicationGatewaySkuNameStandardVTwo),
-								string(applicationgateways.ApplicationGatewaySkuNameWAFLarge),
-								string(applicationgateways.ApplicationGatewaySkuNameWAFMedium),
-								string(applicationgateways.ApplicationGatewaySkuNameWAFVTwo),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewaySkuName(), false),
 						},
 
 						"tier": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(applicationgateways.ApplicationGatewayTierBasic),
-								string(applicationgateways.ApplicationGatewayTierStandard),
-								string(applicationgateways.ApplicationGatewayTierStandardVTwo),
-								string(applicationgateways.ApplicationGatewayTierWAF),
-								string(applicationgateways.ApplicationGatewayTierWAFVTwo),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewayTier(), false),
 						},
 
 						"capacity": {
@@ -1135,14 +1092,9 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 
 						"protocol": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(applicationgateways.ApplicationGatewayProtocolHTTP),
-								string(applicationgateways.ApplicationGatewayProtocolHTTPS),
-								string(applicationgateways.ApplicationGatewayProtocolTcp),
-								string(applicationgateways.ApplicationGatewayProtocolTls),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewayProtocol(), false),
 						},
 
 						"timeout": {
@@ -1618,12 +1570,9 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 
 						"firewall_mode": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(applicationgateways.ApplicationGatewayFirewallModeDetection),
-								string(applicationgateways.ApplicationGatewayFirewallModePrevention),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewayFirewallMode(), false),
 						},
 
 						"rule_set_type": {
@@ -1683,31 +1632,15 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"match_variable": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestArgKeys),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestArgNames),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestArgValues),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestCookieKeys),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestCookieNames),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestCookieValues),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestHeaderKeys),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestHeaderNames),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestHeaderValues),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForOwaspCrsExclusionEntryMatchVariable(), false),
 									},
 
 									"selector_match_operator": {
-										Type: pluginsdk.TypeString,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntrySelectorMatchOperatorContains),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntrySelectorMatchOperatorEndsWith),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntrySelectorMatchOperatorEquals),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntrySelectorMatchOperatorEqualsAny),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntrySelectorMatchOperatorStartsWith),
-										}, false),
-										Optional: true,
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForOwaspCrsExclusionEntrySelectorMatchOperator(), false),
+										Optional:     true,
 									},
 									"selector": {
 										ValidateFunc: validation.StringIsNotEmpty,
@@ -2013,8 +1946,7 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("global") {
-		globalConfiguration := expandApplicationGatewayGlobalConfiguration(d.Get("global").([]interface{}))
-		payload.Properties.GlobalConfiguration = globalConfiguration
+		payload.Properties.GlobalConfiguration = expandApplicationGatewayGlobalConfiguration(d.Get("global").([]interface{}))
 	}
 
 	if d.HasChange("http_listener") {
@@ -2072,9 +2004,7 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("probe") {
-		probes := expandApplicationGatewayProbes(d.Get("probe").(*schema.Set).List())
-
-		payload.Properties.Probes = probes
+		payload.Properties.Probes = expandApplicationGatewayProbes(d.Get("probe").(*schema.Set).List())
 	}
 
 	if d.HasChange("sku") {
@@ -4157,15 +4087,9 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]applicationgateways.Appli
 							config := *actionSet.UrlConfiguration
 							components := ""
 
-							path := ""
-							if config.ModifiedPath != nil {
-								path = *config.ModifiedPath
-							}
+							path := pointer.From(config.ModifiedPath)
 
-							queryString := ""
-							if config.ModifiedQueryString != nil {
-								queryString = *config.ModifiedQueryString
-							}
+							queryString := pointer.From(config.ModifiedQueryString)
 
 							// `components` doesn't exist in the API - it appears to be purely a UI state in the Portal
 							// as such we should consider removing this field in the future.
@@ -4180,16 +4104,11 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]applicationgateways.Appli
 								components = "path_only"
 							}
 
-							reroute := false
-							if config.Reroute != nil {
-								reroute = *config.Reroute
-							}
-
 							urlConfigs = append(urlConfigs, map[string]interface{}{
 								"components":   components,
 								"query_string": queryString,
 								"path":         path,
-								"reroute":      reroute,
+								"reroute":      pointer.From(config.Reroute),
 							})
 						}
 					}
@@ -4457,8 +4376,7 @@ func flattenApplicationGatewaySslCertificates(input *[]applicationgateways.Appli
 
 				if name == existingName {
 					if data := existingCerts["data"]; data != nil {
-						v := helpers.Base64EncodeIfNot(data.(string))
-						output["data"] = v
+						output["data"] = helpers.Base64EncodeIfNot(data.(string))
 					}
 
 					if password := existingCerts["password"]; password != nil {
@@ -5157,8 +5075,7 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 	tier := d.Get("sku.0.tier").(string)
 
 	if tier == string(applicationgateways.ApplicationGatewaySkuNameBasic) {
-		err := checkBasicSkuFeatures(d)
-		if err != nil {
+		if err := checkBasicSkuFeatures(d); err != nil {
 			return err
 		}
 	} else if !hasAutoscaleConfig && !hasCapacity {

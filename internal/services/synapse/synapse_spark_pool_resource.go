@@ -10,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -19,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSynapseSparkPool() *pluginsdk.Resource {
@@ -243,11 +243,11 @@ func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{})
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.BigDataPoolName)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_synapse_spark_pool", id.ID())
 		}
 	}
@@ -312,7 +312,7 @@ func resourceSynapseSparkPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.BigDataPoolName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] Synapse Spark Pool %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -495,14 +495,8 @@ func flattenArmSparkPoolAutoPauseProperties(input *synapse.AutoPauseProperties) 
 		return make([]interface{}, 0)
 	}
 
-	var delayInMinutes int32
-	if input.DelayInMinutes != nil {
-		delayInMinutes = *input.DelayInMinutes
-	}
-	var enabled bool
-	if input.Enabled != nil {
-		enabled = *input.Enabled
-	}
+	delayInMinutes := pointer.From(input.DelayInMinutes)
+	enabled := pointer.From(input.Enabled)
 
 	if !enabled {
 		return make([]interface{}, 0)
@@ -520,23 +514,14 @@ func flattenArmSparkPoolAutoScaleProperties(input *synapse.AutoScaleProperties) 
 		return make([]interface{}, 0)
 	}
 
-	var enabled bool
-	if input.Enabled != nil {
-		enabled = *input.Enabled
-	}
+	enabled := pointer.From(input.Enabled)
 
 	if !enabled {
 		return make([]interface{}, 0)
 	}
 
-	var maxNodeCount int32
-	if input.MaxNodeCount != nil {
-		maxNodeCount = *input.MaxNodeCount
-	}
-	var minNodeCount int32
-	if input.MinNodeCount != nil {
-		minNodeCount = *input.MinNodeCount
-	}
+	maxNodeCount := pointer.From(input.MaxNodeCount)
+	minNodeCount := pointer.From(input.MinNodeCount)
 	return []interface{}{
 		map[string]interface{}{
 			"max_node_count": maxNodeCount,
@@ -550,14 +535,8 @@ func flattenArmSparkPoolLibraryRequirements(input *synapse.LibraryRequirements) 
 		return make([]interface{}, 0)
 	}
 
-	var content string
-	if input.Content != nil {
-		content = *input.Content
-	}
-	var filename string
-	if input.Filename != nil {
-		filename = *input.Filename
-	}
+	content := pointer.From(input.Content)
+	filename := pointer.From(input.Filename)
 	return []interface{}{
 		map[string]interface{}{
 			"content":  content,
@@ -571,14 +550,8 @@ func flattenSparkPoolSparkConfig(input *synapse.SparkConfigProperties) []interfa
 		return make([]interface{}, 0)
 	}
 
-	var content string
-	if input.Content != nil {
-		content = *input.Content
-	}
-	var filename string
-	if input.Filename != nil {
-		filename = *input.Filename
-	}
+	content := pointer.From(input.Content)
+	filename := pointer.From(input.Filename)
 	return []interface{}{
 		map[string]interface{}{
 			"content":  content,

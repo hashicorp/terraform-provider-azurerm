@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
@@ -152,10 +151,10 @@ func (s SpringCloudDevToolPortalResource) Create() sdk.ResourceFunc {
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.DevToolPortalName)
-				if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+				if err != nil && !response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)
 				}
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					return metadata.ResourceRequiresImport(s.ResourceType(), id)
 				}
 			}
@@ -237,7 +236,7 @@ func (s SpringCloudDevToolPortalResource) Read() sdk.ResourceFunc {
 
 			resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.DevToolPortalName)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.Response.Response) {
 					return metadata.MarkAsGone(id)
 				}
 
@@ -341,19 +340,9 @@ func flattenSpringCloudDevToolPortalSsoProperties(properties *appplatform.DevToo
 		return []SsoModel{}
 	}
 
-	clientId := ""
-	if properties.ClientID != nil {
-		clientId = *properties.ClientID
-	}
-
 	clientSecret := ""
 	if len(model.Sso) != 0 {
 		clientSecret = model.Sso[0].ClientSecret
-	}
-
-	metadataUrl := ""
-	if properties.MetadataURL != nil {
-		metadataUrl = *properties.MetadataURL
 	}
 
 	scopes := make([]string, 0)
@@ -363,9 +352,9 @@ func flattenSpringCloudDevToolPortalSsoProperties(properties *appplatform.DevToo
 
 	return []SsoModel{
 		{
-			ClientId:     clientId,
+			ClientId:     pointer.From(properties.ClientID),
 			ClientSecret: clientSecret,
-			MetadataUrl:  metadataUrl,
+			MetadataUrl:  pointer.From(properties.MetadataURL),
 			Scope:        scopes,
 		},
 	}
