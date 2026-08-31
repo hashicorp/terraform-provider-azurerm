@@ -19,10 +19,13 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_container_app_session_pool" "example" {
-  name                       = "examplesessionpool"
-  resource_group_name        = azurerm_resource_group.example.name
-  location                   = azurerm_resource_group.example.location
-  cooldown_period_in_seconds = 300
+  name                = "examplesessionpool"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+
+  lifecycle_configuration {
+    cooldown_period_in_seconds = 300
+  }
 }
 ```
 
@@ -48,10 +51,6 @@ The following arguments are supported:
 
 ~> **Note:** The Container App Environment must be of type `Workload profile`. `Consumption only` environments are not supported.
 
-* `cooldown_period_in_seconds` - (Optional) The number of seconds a session remains alive once it becomes idle. Possible values range between `300` and `3600`.
-
-~> **Note:** `cooldown_period_in_seconds` must be specified when `lifecycle_type` is set to `Timed`, cannot be specified otherwise, and conflicts with `max_alive_period_in_seconds`.
-
 * `custom_container_template` - (Optional) A `custom_container_template` block as defined below.
 
 ~> **Note:** `custom_container_template` must be specified when `container_type` is set to `CustomContainer`, and may not be specified otherwise.
@@ -60,13 +59,7 @@ The following arguments are supported:
 
 ~> **Note:** `identity` may only be specified when `container_type` is set to `CustomContainer`.
 
-* `lifecycle_type` - (Optional) The lifecycle type of the sessions in this Container App Session Pool. Possible values are `OnContainerExit` and `Timed`. Defaults to `Timed`.
-
-~> **Note:** `OnContainerExit` can only be used when `container_type` is set to `CustomContainer`.
-
-* `max_alive_period_in_seconds` - (Optional) The maximum number of seconds a session remains alive.
-
-~> **Note:** `max_alive_period_in_seconds` must be specified when `lifecycle_type` is set to `OnContainerExit`, cannot be specified otherwise, and conflicts with `cooldown_period_in_seconds`.
+* `lifecycle_configuration` - (Required) A `lifecycle_configuration` block as defined below.
 
 * `network_egress_enabled` - (Optional) Should sessions in this Container App Session Pool be able to make outbound network requests? Defaults to `false`.
 
@@ -131,6 +124,22 @@ An `identity` block supports the following:
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Container App Session Pool.
 
 ~> **Note:** `identity_ids` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+---
+
+A `lifecycle_configuration` block supports the following:
+
+* `lifecycle_type` - (Optional) The lifecycle type of the sessions in this Container App Session Pool. Possible values are `OnContainerExit` and `Timed`. Defaults to `Timed`.
+
+~> **Note:** `OnContainerExit` can only be used when `container_type` is set to `CustomContainer`.
+
+* `cooldown_period_in_seconds` - (Optional) The number of seconds a session remains alive once it becomes idle. Possible values range between `300` and `3600`.
+
+~> **Note:** `cooldown_period_in_seconds` must be specified when `lifecycle_type` is set to `Timed`, cannot be specified otherwise, and conflicts with `max_alive_period_in_seconds`.
+
+* `max_alive_period_in_seconds` - (Optional) The maximum number of seconds a session remains alive.
+
+~> **Note:** `max_alive_period_in_seconds` must be specified when `lifecycle_type` is set to `OnContainerExit`, cannot be specified otherwise, and conflicts with `cooldown_period_in_seconds`.
 
 ---
 

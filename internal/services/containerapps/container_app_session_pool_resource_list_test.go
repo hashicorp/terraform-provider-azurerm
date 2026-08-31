@@ -57,10 +57,13 @@ provider "azurerm" {
 resource "azurerm_container_app_session_pool" "test" {
   count = 2
 
-  name                       = "acctestcasp${count.index}%[2]d"
-  resource_group_name        = azurerm_resource_group.test.name
-  location                   = azurerm_resource_group.test.location
-  cooldown_period_in_seconds = 300
+  name                = "acctestcasp${count.index}%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  lifecycle_configuration {
+    cooldown_period_in_seconds = 300
+  }
 }
 `, r.template(data), data.RandomInteger)
 }

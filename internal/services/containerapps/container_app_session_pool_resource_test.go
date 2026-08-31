@@ -30,7 +30,8 @@ func TestAccContainerAppSessionPool_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("container_type").HasValue("PythonLTS"),
 				check.That(data.ResourceName).Key("max_concurrent_sessions").HasValue("5"),
-				check.That(data.ResourceName).Key("lifecycle_type").HasValue("Timed"),
+				check.That(data.ResourceName).Key("lifecycle_configuration.0.lifecycle_type").HasValue("Timed"),
+				check.That(data.ResourceName).Key("lifecycle_configuration.0.cooldown_period_in_seconds").HasValue("300"),
 			),
 		},
 		data.ImportStep(),
@@ -120,6 +121,8 @@ func TestAccContainerAppSessionPool_onContainerExit(t *testing.T) {
 			Config: r.onContainerExit(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("lifecycle_configuration.0.lifecycle_type").HasValue("OnContainerExit"),
+				check.That(data.ResourceName).Key("lifecycle_configuration.0.max_alive_period_in_seconds").HasValue("600"),
 			),
 		},
 		data.ImportStep(),
@@ -152,10 +155,13 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_container_app_session_pool" "test" {
-  name                       = "acctestcasp%[2]d"
-  resource_group_name        = azurerm_resource_group.test.name
-  location                   = azurerm_resource_group.test.location
-  cooldown_period_in_seconds = 300
+  name                = "acctestcasp%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  lifecycle_configuration {
+    cooldown_period_in_seconds = 300
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -165,10 +171,14 @@ func (r ContainerAppSessionPoolResource) requiresImport(data acceptance.TestData
 %[1]s
 
 resource "azurerm_container_app_session_pool" "import" {
-  name                       = azurerm_container_app_session_pool.test.name
-  resource_group_name        = azurerm_container_app_session_pool.test.resource_group_name
-  location                   = azurerm_container_app_session_pool.test.location
-  cooldown_period_in_seconds = azurerm_container_app_session_pool.test.cooldown_period_in_seconds
+  name                = azurerm_container_app_session_pool.test.name
+  resource_group_name = azurerm_container_app_session_pool.test.resource_group_name
+  location            = azurerm_container_app_session_pool.test.location
+
+  lifecycle_configuration {
+    lifecycle_type             = azurerm_container_app_session_pool.test.lifecycle_configuration[0].lifecycle_type
+    cooldown_period_in_seconds = azurerm_container_app_session_pool.test.lifecycle_configuration[0].cooldown_period_in_seconds
+  }
 }
 `, r.basic(data))
 }
@@ -188,9 +198,12 @@ resource "azurerm_container_app_session_pool" "test" {
   container_type          = "PythonLTS"
   max_concurrent_sessions = 10
 
-  lifecycle_type             = "Timed"
-  cooldown_period_in_seconds = 600
-  network_egress_enabled     = true
+  lifecycle_configuration {
+    lifecycle_type             = "Timed"
+    cooldown_period_in_seconds = 600
+  }
+
+  network_egress_enabled = true
 
   tags = {
     environment = "acctest"
@@ -215,9 +228,12 @@ resource "azurerm_container_app_session_pool" "test" {
   container_type               = "CustomContainer"
   max_concurrent_sessions      = 10
 
-  lifecycle_type             = "Timed"
-  cooldown_period_in_seconds = 600
-  ready_session_instances    = 2
+  lifecycle_configuration {
+    lifecycle_type             = "Timed"
+    cooldown_period_in_seconds = 600
+  }
+
+  ready_session_instances = 2
 
   identity {
     type = "SystemAssigned"
@@ -284,9 +300,12 @@ resource "azurerm_container_app_session_pool" "test" {
   container_type               = "CustomContainer"
   max_concurrent_sessions      = 5
 
-  lifecycle_type              = "OnContainerExit"
-  max_alive_period_in_seconds = 600
-  ready_session_instances     = 1
+  lifecycle_configuration {
+    lifecycle_type              = "OnContainerExit"
+    max_alive_period_in_seconds = 600
+  }
+
+  ready_session_instances = 1
 
   custom_container_template {
     ingress_target_port = 80
