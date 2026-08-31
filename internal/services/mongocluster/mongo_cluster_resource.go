@@ -369,12 +369,10 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 			// Per the current service API design, they don’t allow setting `userAssignedIdentities` to `nil` in the request payload when the `type` of `identity` is `nil`; otherwise, the API would return an error.
 			// Therefore, we have to use the customized function instead of the common one, since the common function always sets `userAssignedIdentities` to `nil` in the request payload.
 			// Service team confirmed that it will be more flexible, and we will allow `userAssignedIdentities = nil` in the future. Tracking issue: https://github.com/Azure/azure-rest-api-specs/issues/38575
-			if identityVal != nil && identityVal.Type != identity.TypeNone {
-				parameter.Identity = &identity.LegacySystemAndUserAssignedMap{
-					Type:        identityVal.Type,
-					IdentityIds: identityVal.IdentityIds,
-				}
+			if identityVal != nil && identityVal.Type == identity.TypeNone {
+				identityVal = nil
 			}
+			parameter.Identity = identityVal
 
 			if state.AdministratorUserName != "" {
 				parameter.Properties.Administrator = &mongoclusters.AdministratorProperties{
@@ -596,14 +594,7 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf(`expanding "identity": %v`, err)
 				}
-				if identityVal == nil {
-					payload.Identity = nil
-				} else {
-					payload.Identity = &identity.LegacySystemAndUserAssignedMap{
-						Type:        identityVal.Type,
-						IdentityIds: identityVal.IdentityIds,
-					}
-				}
+				payload.Identity = identityVal
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -648,18 +639,11 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 
-				identityVal, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)
+				identity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
 				if err != nil {
 					return fmt.Errorf("flattening `identity`: %+v", err)
 				}
-				modelUserAssignedList := make([]identity.ModelUserAssigned, 0, len(identityVal))
-				for _, assigned := range identityVal {
-					modelUserAssignedList = append(modelUserAssignedList, identity.ModelUserAssigned{
-						Type:        assigned.Type,
-						IdentityIds: assigned.IdentityIds,
-					})
-				}
-				state.Identity = modelUserAssignedList
+				state.Identity = pointer.From(identity)
 
 				if props := model.Properties; props != nil {
 					// API doesn't return the value of administrator_password
@@ -874,11 +858,11 @@ func validateMongoClusterNetworkBypassMode(metadata sdk.ResourceMetaData, state 
 	}
 
 	if state.PublicNetworkAccess != string(mongoclusters.PublicNetworkAccessDisabled) {
-		return fmt.Errorf("`public_network_access` must be `Disabled` when `network_bypass_mode` is `AzureCosmosDB`")
+		return errors.New("`public_network_access` must be `Disabled` when `network_bypass_mode` is `AzureCosmosDB`")
 	}
 
 	if len(state.AuthenticationMethods) != 1 || state.AuthenticationMethods[0] != string(mongoclusters.AuthenticationModeMicrosoftEntraID) {
-		return fmt.Errorf("`authentication_methods` must contain only `MicrosoftEntraID` when `network_bypass_mode` is `AzureCosmosDB`")
+		return errors.New("`authentication_methods` must contain only `MicrosoftEntraID` when `network_bypass_mode` is `AzureCosmosDB`")
 	}
 
 	return nil

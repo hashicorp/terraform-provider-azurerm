@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `network_bypass_mode` - (Optional) The network bypass mode for the MongoDB Cluster. The only possible value is `AzureCosmosDB`; omitting this argument disables network bypass.
 
-~> **Note:** `network_bypass_mode` can only be set to `AzureCosmosDB` when `public_network_access` is `Disabled`, `authentication_methods` contains only `MicrosoftEntraID`, and no firewall rules exist on the cluster.
+~> **Note:** `network_bypass_mode` can only be set to `AzureCosmosDB` when `public_network_access` is `Disabled`, `authentication_methods` contains only `MicrosoftEntraID`, and no firewall rules exist on the cluster. This is not supported on portal yet since EntraID-only authentication is not supported there.
 
 * `preview_features` - (Optional) The preview features that can be enabled on the MongoDB Cluster. Changing this forces a new resource to be created.
 
