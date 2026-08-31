@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestAccountProjectConnectionName(t *testing.T) {
+func TestValidateCognitiveServicesAccountProjectConnectionName(t *testing.T) {
 	tests := []struct {
 		name  string
 		input string
