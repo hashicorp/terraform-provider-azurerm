@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverdnsaliases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serverdnsaliases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -139,8 +139,7 @@ func (m ServerDNSAliasResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 			client := metadata.Client.MSSQL.ServerDNSAliasClient
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
 			}
 			return nil
@@ -149,5 +148,5 @@ func (m ServerDNSAliasResource) Delete() sdk.ResourceFunc {
 }
 
 func (m ServerDNSAliasResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ServerDNSAliasID
+	return serverdnsaliases.ValidateDnsAliasID
 }

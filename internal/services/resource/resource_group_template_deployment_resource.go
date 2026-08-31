@@ -12,7 +12,10 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-02-01/templatespecversions"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
@@ -21,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
@@ -72,7 +74,7 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 					"template_content",
 					"template_spec_version_id",
 				},
-				StateFunc: utils.NormalizeJson,
+				StateFunc: helpers.NormalizeJson,
 			},
 
 			"template_spec_version_id": {
@@ -82,7 +84,7 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 					"template_content",
 					"template_spec_version_id",
 				},
-				ValidateFunc: validate.TemplateSpecVersionID,
+				ValidateFunc: validation.AsGeneratedID(templatespecversions.ParseTemplateSpecVersionIDInsensitively),
 			},
 
 			// Optional
@@ -96,7 +98,7 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 				Type:      pluginsdk.TypeString,
 				Optional:  true,
 				Computed:  true,
-				StateFunc: utils.NormalizeJson,
+				StateFunc: helpers.NormalizeJson,
 			},
 
 			"tags": commonschema.Tags(),
@@ -118,7 +120,7 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 				o, n := d.GetChange("template_content")
 
 				// the json has to be normalized and then compared against to see if a change has occurred
-				if !strings.EqualFold(o.(string), utils.NormalizeJson(n)) {
+				if !strings.EqualFold(o.(string), helpers.NormalizeJson(n)) {
 					return d.SetNewComputed("output_content")
 				}
 			}
@@ -127,7 +129,7 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 				o, n := d.GetChange("parameters_content")
 
 				// the json has to be normalized and then compared against to see if a change has occurred
-				if !strings.EqualFold(o.(string), utils.NormalizeJson(n)) {
+				if !strings.EqualFold(o.(string), helpers.NormalizeJson(n)) {
 					return d.SetNewComputed("output_content")
 				}
 			}
@@ -148,12 +150,12 @@ func resourceGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, me
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.DeploymentName)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of existing Template Deployment %q (Resource Group %q): %+v", id.ResourceGroup, id.DeploymentName, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_resource_group_template_deployment", id.ID())
 		}
 	}
@@ -314,7 +316,7 @@ func resourceGroupTemplateDeploymentResourceRead(d *pluginsdk.ResourceData, meta
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.DeploymentName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[DEBUG] Template Deployment %q (Resource Group %q) was not found - removing from state", id.DeploymentName, id.ResourceGroup)
 			d.SetId("")
 			return nil
@@ -378,7 +380,7 @@ func resourceGroupTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, me
 
 	template, err := client.Get(ctx, id.ResourceGroup, id.DeploymentName)
 	if err != nil {
-		if utils.ResponseWasNotFound(template.Response) {
+		if response.WasNotFound(template.Response.Response) {
 			return nil
 		}
 

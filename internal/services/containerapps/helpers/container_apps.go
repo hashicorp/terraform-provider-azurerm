@@ -275,14 +275,10 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 				},
 
 				"client_certificate_mode": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(containerapps.IngressClientCertificateModeAccept),
-						string(containerapps.IngressClientCertificateModeRequire),
-						string(containerapps.IngressClientCertificateModeIgnore),
-					}, false),
-					Description: "Client certificate mode for mTLS authentication. Ignore indicates server drops client certificate on forwarding. Accept indicates server forwards client certificate but does not require a client certificate. Require indicates server requires a client certificate.",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForIngressClientCertificateMode(), false),
+					Description:  "Client certificate mode for mTLS authentication. Ignore indicates server drops client certificate on forwarding. Accept indicates server forwards client certificate but does not require a client certificate. Require indicates server requires a client certificate.",
 				},
 			},
 		},
@@ -840,14 +836,11 @@ func ContainerDaprSchema() *pluginsdk.Schema {
 				},
 
 				"app_protocol": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(containerapps.AppProtocolHTTP),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(containerapps.AppProtocolHTTP),
-						string(containerapps.AppProtocolGrpc),
-					}, false),
-					Description: "The protocol for the app. Possible values include `http` and `grpc`. Defaults to `http`.",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(containerapps.AppProtocolHTTP),
+					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForAppProtocol(), false),
+					Description:  "The protocol for the app. Possible values include `http` and `grpc`. Defaults to `http`.",
 				},
 			},
 		},
@@ -2250,16 +2243,15 @@ func flattenContainerAppReadinessProbe(input containerapps.ContainerAppProbe) []
 }
 
 type ContainerAppLivenessProbe struct {
-	Transport              string       `tfschema:"transport"`
-	Host                   string       `tfschema:"host"`
-	Port                   int64        `tfschema:"port"`
-	Path                   string       `tfschema:"path"`
-	Headers                []HttpHeader `tfschema:"header"`
-	InitialDelay           int64        `tfschema:"initial_delay"`
-	Interval               int64        `tfschema:"interval_seconds"`
-	Timeout                int64        `tfschema:"timeout"`
-	FailureThreshold       int64        `tfschema:"failure_count_threshold"`
-	TerminationGracePeriod int64        `tfschema:"termination_grace_period_seconds,removedInNextMajorVersion"`
+	Transport        string       `tfschema:"transport"`
+	Host             string       `tfschema:"host"`
+	Port             int64        `tfschema:"port"`
+	Path             string       `tfschema:"path"`
+	Headers          []HttpHeader `tfschema:"header"`
+	InitialDelay     int64        `tfschema:"initial_delay"`
+	Interval         int64        `tfschema:"interval_seconds"`
+	Timeout          int64        `tfschema:"timeout"`
+	FailureThreshold int64        `tfschema:"failure_count_threshold"`
 }
 
 func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
@@ -2479,11 +2471,10 @@ func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containera
 func flattenContainerAppLivenessProbe(input containerapps.ContainerAppProbe) []ContainerAppLivenessProbe {
 	result := make([]ContainerAppLivenessProbe, 0)
 	probe := ContainerAppLivenessProbe{
-		InitialDelay:           pointer.From(input.InitialDelaySeconds),
-		Interval:               pointer.From(input.PeriodSeconds),
-		Timeout:                pointer.From(input.TimeoutSeconds),
-		FailureThreshold:       pointer.From(input.FailureThreshold),
-		TerminationGracePeriod: pointer.From(input.TerminationGracePeriodSeconds),
+		InitialDelay:     pointer.From(input.InitialDelaySeconds),
+		Interval:         pointer.From(input.PeriodSeconds),
+		Timeout:          pointer.From(input.TimeoutSeconds),
+		FailureThreshold: pointer.From(input.FailureThreshold),
 	}
 	if httpGet := input.HTTPGet; httpGet != nil {
 		if httpGet.Scheme != nil {
@@ -2517,16 +2508,15 @@ func flattenContainerAppLivenessProbe(input containerapps.ContainerAppProbe) []C
 }
 
 type ContainerAppStartupProbe struct {
-	Transport              string       `tfschema:"transport"`
-	Host                   string       `tfschema:"host"`
-	Port                   int64        `tfschema:"port"`
-	Path                   string       `tfschema:"path"`
-	Headers                []HttpHeader `tfschema:"header"`
-	InitialDelay           int64        `tfschema:"initial_delay"`
-	Interval               int64        `tfschema:"interval_seconds"`
-	Timeout                int64        `tfschema:"timeout"`
-	FailureThreshold       int64        `tfschema:"failure_count_threshold"`
-	TerminationGracePeriod int64        `tfschema:"termination_grace_period_seconds,removedInNextMajorVersion"`
+	Transport        string       `tfschema:"transport"`
+	Host             string       `tfschema:"host"`
+	Port             int64        `tfschema:"port"`
+	Path             string       `tfschema:"path"`
+	Headers          []HttpHeader `tfschema:"header"`
+	InitialDelay     int64        `tfschema:"initial_delay"`
+	Interval         int64        `tfschema:"interval_seconds"`
+	Timeout          int64        `tfschema:"timeout"`
+	FailureThreshold int64        `tfschema:"failure_count_threshold"`
 }
 
 func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
@@ -2742,11 +2732,10 @@ func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapp
 func flattenContainerAppStartupProbe(input containerapps.ContainerAppProbe) []ContainerAppStartupProbe {
 	result := make([]ContainerAppStartupProbe, 0)
 	probe := ContainerAppStartupProbe{
-		InitialDelay:           pointer.From(input.InitialDelaySeconds),
-		Interval:               pointer.From(input.PeriodSeconds),
-		Timeout:                pointer.From(input.TimeoutSeconds),
-		FailureThreshold:       pointer.From(input.FailureThreshold),
-		TerminationGracePeriod: pointer.From(input.TerminationGracePeriodSeconds),
+		InitialDelay:     pointer.From(input.InitialDelaySeconds),
+		Interval:         pointer.From(input.PeriodSeconds),
+		Timeout:          pointer.From(input.TimeoutSeconds),
+		FailureThreshold: pointer.From(input.FailureThreshold),
 	}
 
 	if httpGet := input.HTTPGet; httpGet != nil {

@@ -103,12 +103,7 @@ func (r ContainerConnectedRegistryResource) Arguments() map[string]*pluginsdk.Sc
 			ForceNew: true,
 			Default:  string(connectedregistries.ConnectedRegistryModeReadWrite),
 			ValidateFunc: validation.StringInSlice(
-				[]string{
-					string(connectedregistries.ConnectedRegistryModeMirror),
-					string(connectedregistries.ConnectedRegistryModeReadOnly),
-					string(connectedregistries.ConnectedRegistryModeReadWrite),
-					string(connectedregistries.ConnectedRegistryModeRegistry),
-				},
+				connectedregistries.PossibleValuesForConnectedRegistryMode(),
 				false,
 			),
 		},
@@ -160,13 +155,7 @@ func (r ContainerConnectedRegistryResource) Arguments() map[string]*pluginsdk.Sc
 			Optional: true,
 			Default:  connectedregistries.LogLevelNone,
 			ValidateFunc: validation.StringInSlice(
-				[]string{
-					string(connectedregistries.LogLevelNone),
-					string(connectedregistries.LogLevelDebug),
-					string(connectedregistries.LogLevelInformation),
-					string(connectedregistries.LogLevelWarning),
-					string(connectedregistries.LogLevelError),
-				},
+				connectedregistries.PossibleValuesForLogLevel(),
 				false,
 			),
 		},
@@ -247,7 +236,7 @@ func (r ContainerConnectedRegistryResource) Create() sdk.ResourceFunc {
 					},
 					ClientTokenIds: &model.ClientTokenIds,
 					Logging: &connectedregistries.LoggingProperties{
-						LogLevel:       pointer.To(connectedregistries.LogLevel(model.LogLevel)),
+						LogLevel:       pointer.ToEnum[connectedregistries.LogLevel](model.LogLevel),
 						AuditLogStatus: pointer.To(auditLogStatus),
 					},
 					NotificationsList: notifications,
@@ -430,7 +419,7 @@ func (r ContainerConnectedRegistryResource) Update() sdk.ResourceFunc {
 				}
 				if logging := props.Logging; logging != nil {
 					if metadata.ResourceData.HasChange("log_level") {
-						logging.LogLevel = pointer.To(connectedregistries.LogLevel(state.LogLevel))
+						logging.LogLevel = pointer.ToEnum[connectedregistries.LogLevel](state.LogLevel)
 					}
 					if metadata.ResourceData.HasChange("audit_log_enabled") {
 						logging.AuditLogStatus = pointer.To(connectedregistries.AuditLogStatusDisabled)

@@ -1324,7 +1324,7 @@ func flattenSingleFrontDoorHealthProbeSettingsModel(input *frontdoors.HealthProb
 		}
 	}
 
-	output := map[string]interface{}{
+	return map[string]interface{}{
 		"enabled":             enabled,
 		"id":                  id,
 		"name":                name,
@@ -1333,8 +1333,6 @@ func flattenSingleFrontDoorHealthProbeSettingsModel(input *frontdoors.HealthProb
 		"path":                path,
 		"probe_method":        probeMethod,
 	}
-
-	return output
 }
 
 func combineLoadBalancingSettingsModel(allLoadBalancingSettings []frontdoors.LoadBalancingSettingsModel, orderedIds []interface{}, frontDoorId frontdoors.FrontDoorId) []interface{} {
@@ -1419,15 +1417,13 @@ func flattenSingleFrontDoorLoadBalancingSettingsModel(input *frontdoors.LoadBala
 		}
 	}
 
-	output := map[string]interface{}{
+	return map[string]interface{}{
 		"additional_latency_milliseconds": additionalLatencyMilliseconds,
 		"id":                              id,
 		"name":                            name,
 		"sample_size":                     sampleSize,
 		"successful_samples_required":     successfulSamplesRequired,
 	}
-
-	return output
 }
 
 func combineRoutingRules(allRoutingRules []frontdoors.RoutingRule, oldBlocks interface{}, orderedIds []interface{}, frontDoorId frontdoors.FrontDoorId) ([]interface{}, error) {
@@ -1567,10 +1563,6 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoors.RouteConfigurat
 		}
 		name = backendPoolId.Name
 	}
-	customForwardingPath := ""
-	if v.CustomForwardingPath != nil {
-		customForwardingPath = *v.CustomForwardingPath
-	}
 
 	cacheEnabled := false
 	cacheQueryParameterStripDirective := string(frontdoors.FrontDoorQueryStripAll)
@@ -1629,7 +1621,7 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoors.RouteConfigurat
 	return &[]interface{}{
 		map[string]interface{}{
 			"backend_pool_name":                     name,
-			"custom_forwarding_path":                customForwardingPath,
+			"custom_forwarding_path":                pointer.From(v.CustomForwardingPath),
 			"forwarding_protocol":                   forwardingProtocol,
 			"cache_enabled":                         cacheEnabled,
 			"cache_query_parameter_strip_directive": cacheQueryParameterStripDirective,
@@ -1646,23 +1638,6 @@ func flattenRoutingRuleRedirectConfiguration(config frontdoors.RouteConfiguratio
 		return []interface{}{}
 	}
 
-	customFragment := ""
-	if v.CustomFragment != nil {
-		customFragment = *v.CustomFragment
-	}
-	customHost := ""
-	if v.CustomHost != nil {
-		customHost = *v.CustomHost
-	}
-	customQueryString := ""
-	if v.CustomQueryString != nil {
-		customQueryString = *v.CustomQueryString
-	}
-	customPath := ""
-	if v.CustomPath != nil {
-		customPath = *v.CustomPath
-	}
-
 	redirectProtocol := ""
 	if v.RedirectProtocol != nil {
 		redirectProtocol = string(*v.RedirectProtocol)
@@ -1675,10 +1650,10 @@ func flattenRoutingRuleRedirectConfiguration(config frontdoors.RouteConfiguratio
 
 	return []interface{}{
 		map[string]interface{}{
-			"custom_host":         customHost,
-			"custom_fragment":     customFragment,
-			"custom_query_string": customQueryString,
-			"custom_path":         customPath,
+			"custom_host":         pointer.From(v.CustomHost),
+			"custom_fragment":     pointer.From(v.CustomFragment),
+			"custom_query_string": pointer.From(v.CustomQueryString),
+			"custom_path":         pointer.From(v.CustomPath),
 			"redirect_protocol":   redirectProtocol,
 			"redirect_type":       redirectType,
 		},
@@ -1777,11 +1752,8 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 						Required: true,
 						MaxItems: 2,
 						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(frontdoors.FrontDoorProtocolHTTP),
-								string(frontdoors.FrontDoorProtocolHTTPS),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice(frontdoors.PossibleValuesForFrontDoorProtocol(), false),
 						},
 					},
 					"patterns_to_match": {
@@ -1825,23 +1797,14 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 									Optional: true,
 								},
 								"redirect_protocol": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(frontdoors.FrontDoorRedirectProtocolHTTPOnly),
-										string(frontdoors.FrontDoorRedirectProtocolHTTPSOnly),
-										string(frontdoors.FrontDoorRedirectProtocolMatchRequest),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(frontdoors.PossibleValuesForFrontDoorRedirectProtocol(), false),
 								},
 								"redirect_type": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(frontdoors.FrontDoorRedirectTypeFound),
-										string(frontdoors.FrontDoorRedirectTypeMoved),
-										string(frontdoors.FrontDoorRedirectTypePermanentRedirect),
-										string(frontdoors.FrontDoorRedirectTypeTemporaryRedirect),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(frontdoors.PossibleValuesForFrontDoorRedirectType(), false),
 								},
 							},
 						},
@@ -1868,15 +1831,10 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 									Default:  false,
 								},
 								"cache_query_parameter_strip_directive": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  string(frontdoors.FrontDoorQueryStripAll),
-									ValidateFunc: validation.StringInSlice([]string{
-										string(frontdoors.FrontDoorQueryStripAll),
-										string(frontdoors.FrontDoorQueryStripNone),
-										string(frontdoors.FrontDoorQueryStripOnly),
-										string(frontdoors.FrontDoorQueryStripAllExcept),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Default:      string(frontdoors.FrontDoorQueryStripAll),
+									ValidateFunc: validation.StringInSlice(frontdoors.PossibleValuesForFrontDoorQuery(), false),
 								},
 								"cache_query_parameters": {
 									Type:     pluginsdk.TypeList,
@@ -1897,14 +1855,10 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 									Optional: true,
 								},
 								"forwarding_protocol": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  string(frontdoors.FrontDoorForwardingProtocolHTTPSOnly),
-									ValidateFunc: validation.StringInSlice([]string{
-										string(frontdoors.FrontDoorForwardingProtocolHTTPOnly),
-										string(frontdoors.FrontDoorForwardingProtocolHTTPSOnly),
-										string(frontdoors.FrontDoorForwardingProtocolMatchRequest),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Default:      string(frontdoors.FrontDoorForwardingProtocolHTTPSOnly),
+									ValidateFunc: validation.StringInSlice(frontdoors.PossibleValuesForFrontDoorForwardingProtocol(), false),
 								},
 							},
 						},
@@ -1973,22 +1927,16 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 						Default:  "/",
 					},
 					"protocol": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(frontdoors.FrontDoorProtocolHTTP),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(frontdoors.FrontDoorProtocolHTTP),
-							string(frontdoors.FrontDoorProtocolHTTPS),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(frontdoors.FrontDoorProtocolHTTP),
+						ValidateFunc: validation.StringInSlice(frontdoors.PossibleValuesForFrontDoorProtocol(), false),
 					},
 					"probe_method": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(frontdoors.FrontDoorHealthProbeMethodGET),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(frontdoors.FrontDoorHealthProbeMethodGET),
-							string(frontdoors.FrontDoorHealthProbeMethodHEAD),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(frontdoors.FrontDoorHealthProbeMethodGET),
+						ValidateFunc: validation.StringInSlice(frontdoors.PossibleValuesForFrontDoorHealthProbeMethod(), false),
 					},
 					"interval_in_seconds": {
 						Type:     pluginsdk.TypeInt,

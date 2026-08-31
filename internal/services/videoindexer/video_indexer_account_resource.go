@@ -148,7 +148,7 @@ func (r AccountResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(account.Location),
 				Tags:     pointer.To(account.Tags),
 				Properties: &accounts.AccountPropertiesForPutRequest{
-					PublicNetworkAccess: pointer.To(accounts.PublicNetworkAccess(account.PublicNetworkAccess)),
+					PublicNetworkAccess: pointer.ToEnum[accounts.PublicNetworkAccess](account.PublicNetworkAccess),
 					StorageServices:     expandStorageForCreate(account.Storage),
 				},
 			}
@@ -230,7 +230,7 @@ func (r AccountResource) Update() sdk.ResourceFunc {
 				if payload.Properties == nil {
 					payload.Properties = &accounts.AccountPropertiesForPatchRequest{}
 				}
-				payload.Properties.PublicNetworkAccess = pointer.To(accounts.PublicNetworkAccess(account.PublicNetworkAccess))
+				payload.Properties.PublicNetworkAccess = pointer.ToEnum[accounts.PublicNetworkAccess](account.PublicNetworkAccess)
 			}
 
 			if _, err := client.Update(ctx, *id, payload); err != nil {

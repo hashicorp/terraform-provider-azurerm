@@ -55,7 +55,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	resources := map[string]*pluginsdk.Resource{
+	return map[string]*pluginsdk.Resource{
 		"azurerm_availability_set":                       resourceAvailabilitySet(),
 		"azurerm_capacity_reservation":                   resourceCapacityReservation(),
 		"azurerm_capacity_reservation_group":             resourceCapacityReservationGroup(),
@@ -82,8 +82,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_ssh_public_key":                         resourceSshPublicKey(),
 		"azurerm_managed_disk_sas_token":                 resourceManagedDiskSasToken(),
 	}
-
-	return resources
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
@@ -125,5 +123,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		AvailabilitySetListResource{},
+	}
 }

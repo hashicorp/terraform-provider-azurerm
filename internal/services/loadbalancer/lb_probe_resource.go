@@ -61,14 +61,10 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 			},
 
 			"protocol": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(loadbalancers.ProbeProtocolTcp),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(loadbalancers.ProbeProtocolHTTP),
-					string(loadbalancers.ProbeProtocolHTTPS),
-					string(loadbalancers.ProbeProtocolTcp),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(loadbalancers.ProbeProtocolTcp),
+				ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForProbeProtocol(), false),
 			},
 
 			"port": {
@@ -100,6 +96,13 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
 				Default:  2,
+			},
+
+			"no_healthy_backends_behavior": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(loadbalancers.ProbeNoHealthyBackendsBehaviorAllProbedDown),
+				ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForProbeNoHealthyBackendsBehavior(), false),
 			},
 
 			"load_balancer_rules": {
@@ -215,6 +218,7 @@ func resourceArmLoadBalancerProbeRead(d *pluginsdk.ResourceData, meta interface{
 			d.Set("protocol", string(props.Protocol))
 			d.Set("request_path", pointer.From(props.RequestPath))
 			d.Set("probe_threshold", int(pointer.From(props.ProbeThreshold)))
+			d.Set("no_healthy_backends_behavior", string(pointer.From(props.NoHealthyBackendsBehavior)))
 
 			// TODO: parse/make these consistent
 			var loadBalancerRules []string
@@ -268,8 +272,7 @@ func resourceArmLoadBalancerProbeDelete(d *pluginsdk.ResourceData, meta interfac
 			probes = append(probes[:index], probes[index+1:]...)
 			props.Probes = &probes
 
-			err := client.CreateOrUpdateThenPoll(ctx, plbId, *model)
-			if err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, plbId, *model); err != nil {
 				return fmt.Errorf("updating Load Balancer %q (Resource Group %q) for deletion of Probe %q: %+v", id.LoadBalancerName, id.ResourceGroupName, id.ProbeName, err)
 			}
 		}
@@ -294,6 +297,10 @@ func expandAzureRmLoadBalancerProbe(d *pluginsdk.ResourceData) *loadbalancers.Pr
 
 	if v, ok := d.GetOk("probe_threshold"); ok {
 		properties.ProbeThreshold = pointer.To(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("no_healthy_backends_behavior"); ok {
+		properties.NoHealthyBackendsBehavior = pointer.ToEnum[loadbalancers.ProbeNoHealthyBackendsBehavior](v.(string))
 	}
 
 	return &loadbalancers.Probe{

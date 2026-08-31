@@ -53,14 +53,10 @@ func (r CosmosDbSqlDedicatedGatewayResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"instance_size": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(sqldedicatedgateway.ServiceSizeCosmosPointDFours),
-				string(sqldedicatedgateway.ServiceSizeCosmosPointDEights),
-				string(sqldedicatedgateway.ServiceSizeCosmosPointDOneSixs),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(sqldedicatedgateway.PossibleValuesForServiceSize(), false),
 		},
 
 		"instance_count": {

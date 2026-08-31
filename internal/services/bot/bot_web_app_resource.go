@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
@@ -21,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
@@ -44,7 +44,7 @@ func resourceBotWebApp() *pluginsdk.Resource {
 
 			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.Response.Response) {
 					return nil, fmt.Errorf("the Web App Bot %q was not found in Resource Group %q", id.Name, id.ResourceGroup)
 				}
 
@@ -182,11 +182,11 @@ func resourceBotWebAppCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.Name)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of creating Web App Bot %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_bot_web_app", resourceId.ID())
 		}
 	}
@@ -205,7 +205,7 @@ func resourceBotWebAppCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 			DeveloperAppInsightKey:            pointer.To(d.Get("developer_app_insights_key").(string)),
 			DeveloperAppInsightsAPIKey:        pointer.To(d.Get("developer_app_insights_api_key").(string)),
 			DeveloperAppInsightsApplicationID: pointer.To(d.Get("developer_app_insights_application_id").(string)),
-			LuisAppIds:                        utils.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
+			LuisAppIds:                        helpers.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
 			LuisKey:                           pointer.To(d.Get("luis_key").(string)),
 		},
 		Location: pointer.To(d.Get("location").(string)),
@@ -244,7 +244,7 @@ func resourceBotWebAppRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] Web App Bot %q was not found in Resource Group %q - removing from state", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
@@ -300,7 +300,7 @@ func resourceBotWebAppUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 			DeveloperAppInsightKey:            pointer.To(d.Get("developer_app_insights_key").(string)),
 			DeveloperAppInsightsAPIKey:        pointer.To(d.Get("developer_app_insights_api_key").(string)),
 			DeveloperAppInsightsApplicationID: pointer.To(d.Get("developer_app_insights_application_id").(string)),
-			LuisAppIds:                        utils.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
+			LuisAppIds:                        helpers.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
 			LuisKey:                           pointer.To(d.Get("luis_key").(string)),
 		},
 		Location: pointer.To(d.Get("location").(string)),

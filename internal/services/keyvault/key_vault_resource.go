@@ -21,10 +21,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/deletedvaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/vaults"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/migration"
@@ -34,7 +34,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	dataplane "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -43,7 +42,7 @@ import (
 var keyVaultResourceName = "azurerm_key_vault"
 
 func resourceKeyVault() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceKeyVaultCreate,
 		Read:   resourceKeyVaultRead,
 		Update: resourceKeyVaultUpdate,
@@ -86,12 +85,9 @@ func resourceKeyVault() *pluginsdk.Resource {
 			},
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(vaults.SkuNameStandard),
-					string(vaults.SkuNamePremium),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(vaults.PossibleValuesForSkuName(), false),
 			},
 
 			"tenant_id": {
@@ -154,20 +150,14 @@ func resourceKeyVault() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"default_action": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(vaults.NetworkRuleActionAllow),
-								string(vaults.NetworkRuleActionDeny),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(vaults.PossibleValuesForNetworkRuleAction(), false),
 						},
 						"bypass": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(vaults.NetworkRuleBypassOptionsNone),
-								string(vaults.NetworkRuleBypassOptionsAzureServices),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(vaults.PossibleValuesForNetworkRuleBypassOptions(), false),
 						},
 						"ip_rules": {
 							Type:     pluginsdk.TypeSet,
@@ -218,55 +208,6 @@ func resourceKeyVault() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["rbac_authorization_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"enable_rbac_authorization"},
-		}
-
-		resource.Schema["enable_rbac_authorization"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"rbac_authorization_enabled"},
-			Deprecated:    "This property has been renamed to `rbac_authorization_enabled` and will be removed in v5.0 of the provider",
-		}
-
-		// NOTE: To unblock customers where they had previously deployed a key vault with
-		// contacts, but cannot re-deploy the key vault. I am adding support for the contact
-		// field back into the resource for UPDATE ONLY. If this is a new resource and the
-		// contact field is defined in the configuration file it will now throw an error.
-		// This will allow legacy key vaults to continue to work as the previously have
-		// and enforces our new model of separating out the data plane call into its
-		// own resource (e.g., contacts)...
-		resource.Schema["contact"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeSet,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "As the `contact` property uses a data plane API, to better support private endpoints and key vaults with public network access disabled, new key vaults with the `contact` field defined in the configuration file will now be required to use the `azurerm_key_vault_certificate_contacts` resource instead of the exposed `contact` field in the key vault resource itself. This field will be removed in v5.0 of the provider.",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"email": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-					},
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-					},
-					"phone": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-					},
-				},
-			},
-		}
-	}
-
-	return resource
 }
 
 func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -285,13 +226,6 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	defer locks.UnlockByName(id.VaultName, keyVaultResourceName)
 
 	isPublic := d.Get("public_network_access_enabled").(bool)
-	if !features.FivePointOh() {
-		if len(d.Get("contact").(*pluginsdk.Set).List()) > 0 {
-			// In v4.0, the provider will not allow creating key vaults if the configuration
-			// file contains a 'contact' field...
-			return fmt.Errorf("%s: `contact` field is not supported for new key vaults", id)
-		}
-	}
 
 	// check for the presence of an existing, live one which should be imported into the state
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
@@ -366,12 +300,6 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		Tags: tags.Expand(t),
 	}
 
-	if !features.FivePointOh() {
-		if v, ok := d.GetOk("enable_rbac_authorization"); ok {
-			parameters.Properties.EnableRbacAuthorization = pointer.To(v.(bool))
-		}
-	}
-
 	if isPublic {
 		parameters.Properties.PublicNetworkAccess = pointer.To("Enabled")
 	} else {
@@ -398,7 +326,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err != nil {
 			return err
 		}
-		if !utils.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
+		if !helpers.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
 			virtualNetworkNames = append(virtualNetworkNames, id.VirtualNetworkName)
 		}
 	}
@@ -473,7 +401,6 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
-	managementClient := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -505,8 +432,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if d.HasChange("access_policy") {
 		policiesRaw := d.Get("access_policy").([]interface{})
-		accessPolicies := expandAccessPolicies(policiesRaw)
-		update.Properties.AccessPolicies = accessPolicies
+		update.Properties.AccessPolicies = expandAccessPolicies(policiesRaw)
 	}
 
 	if d.HasChange("enabled_for_deployment") {
@@ -525,12 +451,6 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		update.Properties.EnableRbacAuthorization = pointer.To(d.Get("rbac_authorization_enabled").(bool))
 	}
 
-	if !features.FivePointOh() {
-		if d.HasChange("enable_rbac_authorization") {
-			update.Properties.EnableRbacAuthorization = pointer.To(d.Get("enable_rbac_authorization").(bool))
-		}
-	}
-
 	if d.HasChange("network_acls") {
 		networkAclsRaw := d.Get("network_acls").([]interface{})
 		networkAcls, subnetIds := expandKeyVaultNetworkAcls(networkAclsRaw)
@@ -543,7 +463,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 				return err
 			}
 
-			if !utils.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
+			if !helpers.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
 				virtualNetworkNames = append(virtualNetworkNames, id.VirtualNetworkName)
 			}
 		}
@@ -558,10 +478,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		newValue := d.Get("purge_protection_enabled").(bool)
 
 		// existing.Properties guaranteed non-nil above
-		oldValue := false
-		if existing.Model.Properties.EnablePurgeProtection != nil {
-			oldValue = *existing.Model.Properties.EnablePurgeProtection
-		}
+		oldValue := pointer.From(existing.Model.Properties.EnablePurgeProtection)
 
 		// whilst this should have got caught in the customizeDiff this won't work if that fields interpolated
 		// hence the double-checking here
@@ -608,10 +525,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		// existing.Properties guaranteed non-nil above
-		var oldValue int64 = 0
-		if existing.Model.Properties.SoftDeleteRetentionInDays != nil {
-			oldValue = *existing.Model.Properties.SoftDeleteRetentionInDays
-		}
+		oldValue := pointer.From(existing.Model.Properties.SoftDeleteRetentionInDays)
 
 		// whilst this should have got caught in the customizeDiff this won't work if that fields interpolated
 		// hence the double-checking here
@@ -640,48 +554,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
-	if !features.FivePointOh() {
-		if d.HasChange("contact") {
-			contacts := dataplane.Contacts{
-				ContactList: pointer.To(make([]dataplane.Contact, 0)),
-			}
-
-			if len(d.Get("contact").(*pluginsdk.Set).List()) > 0 || d.Get("contact").(*pluginsdk.Set).List()[0] != nil {
-				for _, item := range d.Get("contact").(*pluginsdk.Set).List() {
-					v := item.(map[string]interface{})
-					contacts.ContactList = pointer.To(append(*contacts.ContactList, dataplane.Contact{
-						Name:         pointer.To(v["name"].(string)),
-						EmailAddress: pointer.To(v["email"].(string)),
-						Phone:        pointer.To(v["phone"].(string)),
-					}))
-				}
-			}
-
-			vaultUri := ""
-			if existing.Model != nil && existing.Model.Properties.VaultUri != nil {
-				vaultUri = pointer.From(existing.Model.Properties.VaultUri)
-			}
-
-			if vaultUri == "" {
-				return fmt.Errorf("failed to get vault base url for %s: %s", *id, err)
-			}
-
-			var err error
-			if len(*contacts.ContactList) == 0 {
-				_, err = managementClient.DeleteCertificateContacts(ctx, vaultUri)
-			} else {
-				_, err = managementClient.SetCertificateContacts(ctx, vaultUri, contacts)
-			}
-
-			if err != nil {
-				var extendedErrorMsg string
-				if !isPublic {
-					extendedErrorMsg = "\n\nWARNING: public network access for this key vault has been disabled, access to the key vault is only allowed through private endpoints"
-				}
-				return fmt.Errorf("updating Contacts for %s: %+v %s", *id, err, extendedErrorMsg)
-			}
-		}
-	}
+	d.Partial(false)
 
 	return resourceKeyVaultRead(d, meta)
 }
@@ -737,9 +610,6 @@ func resourceKeyVaultFlatten(ctx context.Context, managementClient *dataplane.Ba
 		d.Set("rbac_authorization_enabled", model.Properties.EnableRbacAuthorization)
 		d.Set("purge_protection_enabled", model.Properties.EnablePurgeProtection)
 
-		if !features.FivePointOh() {
-			d.Set("enable_rbac_authorization", model.Properties.EnableRbacAuthorization)
-		}
 		if model.Properties.PublicNetworkAccess != nil {
 			publicNetworkAccessEnabled = strings.EqualFold(*model.Properties.PublicNetworkAccess, "Enabled")
 		}
@@ -795,14 +665,8 @@ func resourceKeyVaultFlatten(ctx context.Context, managementClient *dataplane.Ba
 		// to ignore the error if the data plane call fails.
 		contacts, err := managementClient.GetCertificateContacts(ctx, d.Get("vault_uri").(string))
 		if err != nil {
-			if publicNetworkAccessEnabled && (!utils.ResponseWasForbidden(contacts.Response) && !utils.ResponseWasNotFound(contacts.Response)) {
+			if publicNetworkAccessEnabled && (!response.WasForbidden(contacts.Response.Response) && !response.WasNotFound(contacts.Response.Response)) {
 				return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
-			}
-		}
-
-		if !features.FivePointOh() {
-			if err := d.Set("contact", flattenKeyVaultCertificateContactList(&contacts)); err != nil {
-				return fmt.Errorf("setting `contact` for KeyVault: %+v", err)
 			}
 		}
 	}
@@ -859,7 +723,7 @@ func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 						return err
 					}
 
-					if !utils.SliceContainsValue(virtualNetworkNames, subnetId.VirtualNetworkName) {
+					if !helpers.SliceContainsValue(virtualNetworkNames, subnetId.VirtualNetworkName) {
 						virtualNetworkNames = append(virtualNetworkNames, subnetId.VirtualNetworkName)
 					}
 				}
@@ -962,8 +826,8 @@ func expandKeyVaultNetworkAcls(input []interface{}) (*vaults.NetworkRuleSet, []s
 	}
 
 	ruleSet := vaults.NetworkRuleSet{
-		Bypass:              pointer.To(vaults.NetworkRuleBypassOptions(bypass)),
-		DefaultAction:       pointer.To(vaults.NetworkRuleAction(defaultAction)),
+		Bypass:              pointer.ToEnum[vaults.NetworkRuleBypassOptions](bypass),
+		DefaultAction:       pointer.ToEnum[vaults.NetworkRuleAction](defaultAction),
 		IPRules:             &ipRules,
 		VirtualNetworkRules: &networkRules,
 	}
@@ -1008,38 +872,6 @@ func flattenKeyVaultNetworkAcls(input *vaults.NetworkRuleSet) []interface{} {
 			"virtual_network_subnet_ids": pluginsdk.NewSet(pluginsdk.HashString, virtualNetworkSubnetIds),
 		},
 	}
-}
-
-func flattenKeyVaultCertificateContactList(input *dataplane.Contacts) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil || input.ContactList == nil {
-		return results
-	}
-
-	for _, contact := range *input.ContactList {
-		emailAddress := ""
-		if contact.EmailAddress != nil {
-			emailAddress = *contact.EmailAddress
-		}
-
-		name := ""
-		if contact.Name != nil {
-			name = *contact.Name
-		}
-
-		phone := ""
-		if contact.Phone != nil {
-			phone = *contact.Phone
-		}
-
-		results = append(results, map[string]interface{}{
-			"email": emailAddress,
-			"name":  name,
-			"phone": phone,
-		})
-	}
-
-	return results
 }
 
 func optedOutOfRecoveringSoftDeletedKeyVaultErrorFmt(name, location string) string {

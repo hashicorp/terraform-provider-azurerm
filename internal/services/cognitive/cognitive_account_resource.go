@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
 	search "github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -34,7 +35,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity
@@ -216,12 +216,9 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"default_action": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cognitiveservicesaccounts.NetworkRuleActionAllow),
-								string(cognitiveservicesaccounts.NetworkRuleActionDeny),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(cognitiveservicesaccounts.PossibleValuesForNetworkRuleAction(), false),
 						},
 
 						"ip_rules": {
@@ -491,7 +488,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 			ApiProperties:                 apiProps,
 			NetworkAcls:                   networkAcls,
 			CustomSubDomainName:           pointer.To(d.Get("custom_subdomain_name").(string)),
-			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
+			AllowedFqdnList:               helpers.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
 			RestrictOutboundNetworkAccess: pointer.To(d.Get("outbound_network_access_restricted").(bool)),
@@ -565,7 +562,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 			ApiProperties:                 apiProps,
 			NetworkAcls:                   networkAcls,
 			CustomSubDomainName:           pointer.To(d.Get("custom_subdomain_name").(string)),
-			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
+			AllowedFqdnList:               helpers.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
 			RestrictOutboundNetworkAccess: pointer.To(d.Get("outbound_network_access_restricted").(bool)),
@@ -688,12 +685,8 @@ func resourceCognitiveAccountFlatten(ctx context.Context, client *cognitiveservi
 			if err := d.Set("storage", flattenCognitiveAccountStorage(props.UserOwnedStorage)); err != nil {
 				return fmt.Errorf("setting `storages` for Cognitive Account %q: %+v", id, err)
 			}
-			outboundNetworkAccessRestricted := false
-			if props.RestrictOutboundNetworkAccess != nil {
-				outboundNetworkAccessRestricted = *props.RestrictOutboundNetworkAccess
-			}
 			// lintignore:R001
-			d.Set("outbound_network_access_restricted", outboundNetworkAccessRestricted)
+			d.Set("outbound_network_access_restricted", pointer.From(props.RestrictOutboundNetworkAccess))
 
 			localAuthEnabled := !pointer.From(props.DisableLocalAuth)
 			d.Set("local_auth_enabled", localAuthEnabled)

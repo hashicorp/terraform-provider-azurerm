@@ -171,20 +171,39 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"version": {
+			"storage_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Default:  string(servers.StorageTypePremiumLRS),
+				ForceNew: true,
+				// NOTE: not using `servers.PossibleValuesForStorageType()` because it includes `UltraSSD_LRS`, which is not GA yet
 				ValidateFunc: validation.StringInSlice([]string{
-					string(servers.PostgresMajorVersionOneOne),
-					string(servers.PostgresMajorVersionOneTwo),
-					string(servers.PostgresMajorVersionOneThree),
-					string(servers.PostgresMajorVersionOneFour),
-					string(servers.PostgresMajorVersionOneFive),
-					string(servers.PostgresMajorVersionOneSix),
-					string(servers.PostgresMajorVersionOneSeven),
-					string(servers.PostgresMajorVersionOneEight),
+					string(servers.StorageTypePremiumLRS),
+					string(servers.StorageTypePremiumVTwoLRS),
 				}, false),
+			},
+
+			"storage_iops": {
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// NOTE: O+C Azure computes IOPs for Premium_LRS or from source server
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(3000, 80000),
+			},
+
+			"storage_throughput": {
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// NOTE: O+C Azure computes throughput for Premium_LRS or from source server
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(125, 1200),
+			},
+
+			"version": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForPostgresMajorVersion(), false),
 			},
 
 			"zone": commonschema.ZoneSingleOptional(),
@@ -286,12 +305,9 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"mode": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(servers.HighAvailabilityModeZoneRedundant),
-								string(servers.HighAvailabilityModeSameZone),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(servers.PossibleValuesForHighAvailabilityMode(), false),
 						},
 
 						"standby_availability_zone": commonschema.ZoneSingleOptional(),
@@ -406,6 +422,10 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}
 				return nil
 			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				if diff.Get("storage_type").(string) == string(servers.StorageTypePremiumVTwoLRS) {
+					return nil
+				}
+
 				storageTierMappings := validate.InitializeFlexibleServerStorageTierDefaults()
 				var newTier string
 				var newMb int
@@ -489,6 +509,58 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 				if (oldIdentityType == string(identity.TypeUserAssigned) && newIdentityType == string(identity.TypeSystemAssigned)) || (oldIdentityType == string(identity.TypeUserAssigned) && newIdentityType == string(identity.TypeNone)) || (oldIdentityType == string(identity.TypeSystemAssignedUserAssigned) && newIdentityType == string(identity.TypeSystemAssigned)) || (oldIdentityType == string(identity.TypeSystemAssignedUserAssigned) && newIdentityType == string(identity.TypeNone)) {
 					diff.ForceNew("identity.0.type")
+				}
+
+				return nil
+			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				configMap := diff.GetRawConfig().AsValueMap()
+				createMode := diff.Get("create_mode").(string)
+
+				if diff.Get("storage_type").(string) == string(servers.StorageTypePremiumVTwoLRS) {
+					version := diff.Get("version").(string)
+					if version == string(servers.PostgresMajorVersionOneOne) || version == string(servers.PostgresMajorVersionOneTwo) || version == string(servers.PostgresMajorVersionOneThree) {
+						return fmt.Errorf("PostgreSQL version `%s` is not supported when `storage_type` is `PremiumV2_LRS`", version)
+					}
+
+					if skuName, ok := diff.GetOk("sku_name"); ok {
+						if strings.HasPrefix(skuName.(string), "B_") {
+							return errors.New("burstable compute tier is not supported when `storage_type` is `PremiumV2_LRS`")
+						}
+					}
+
+					if v := configMap["storage_tier"]; !v.IsNull() {
+						return errors.New("`storage_tier` is not supported when `storage_type` is `PremiumV2_LRS`")
+					}
+
+					if diff.Get("auto_grow_enabled").(bool) {
+						return errors.New("`auto_grow_enabled` is not supported when `storage_type` is `PremiumV2_LRS`")
+					}
+
+					if diff.Get("geo_redundant_backup_enabled").(bool) {
+						if _, ok := diff.GetOk("customer_managed_key"); ok {
+							return errors.New("`geo_redundant_backup_enabled` with `customer_managed_key` is not supported when `storage_type` is `PremiumV2_LRS`")
+						}
+					}
+
+					if createMode == "" || createMode == string(servers.CreateModeDefault) {
+						if v := configMap["storage_iops"]; v.IsNull() {
+							return errors.New("`storage_iops` is required when `storage_type` is `PremiumV2_LRS` and `create_mode` is `Default`")
+						}
+
+						if v := configMap["storage_throughput"]; v.IsNull() {
+							return errors.New("`storage_throughput` is required when `storage_type` is `PremiumV2_LRS` and `create_mode` is `Default`")
+						}
+					}
+				}
+
+				if diff.Get("storage_type").(string) == string(servers.StorageTypePremiumLRS) {
+					if v := configMap["storage_iops"]; !v.IsNull() {
+						return errors.New("`storage_iops` is only supported when `storage_type` is `PremiumV2_LRS`")
+					}
+
+					if v := configMap["storage_throughput"]; !v.IsNull() {
+						return errors.New("`storage_throughput` is only supported when `storage_type` is `PremiumV2_LRS`")
+					}
 				}
 
 				return nil
@@ -645,9 +717,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		storageMb = int(*storage.StorageSizeGB) * 1024
 	}
 
-	if storage.Tier == nil || *storage.Tier == "" {
-		// determine the correct default storage_tier based
-		// on the defined storage_mb...
+	if pointer.From(storage.Type) != servers.StorageTypePremiumVTwoLRS && pointer.From(storage.Tier) == "" {
 		storageTierMappings := validate.InitializeFlexibleServerStorageTierDefaults()
 		storageTiers := storageTierMappings[storageMb]
 		storage.Tier = pointer.To(storageTiers.DefaultTier)
@@ -713,8 +783,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if authRaw, ok := d.GetOk("authentication"); ok {
-		authConfig := expandFlexibleServerAuthConfig(authRaw.([]interface{}))
-		parameters.Properties.AuthConfig = authConfig
+		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfig(authRaw.([]interface{}))
 	}
 
 	identity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
@@ -823,6 +892,18 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 
 				if storage.Tier != nil {
 					d.Set("storage_tier", string(*storage.Tier))
+				}
+
+				if storage.Type != nil {
+					d.Set("storage_type", string(*storage.Type))
+				}
+
+				if storage.Iops != nil {
+					d.Set("storage_iops", *storage.Iops)
+				}
+
+				if storage.Throughput != nil {
+					d.Set("storage_throughput", *storage.Throughput)
 				}
 			}
 
@@ -1008,7 +1089,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfigForPatch(d.Get("authentication").([]interface{}))
 	}
 
-	if d.HasChanges("auto_grow_enabled", "storage_mb", "storage_tier") {
+	if d.HasChanges("auto_grow_enabled", "storage_mb", "storage_tier", "storage_iops", "storage_throughput") {
 		// TODO remove the additional update after https://github.com/Azure/azure-rest-api-specs/issues/22867 is fixed
 		storage := expandArmServerStorage(d)
 
@@ -1182,8 +1263,18 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 		storage.StorageSizeGB = pointer.To(int64(v.(int) / 1024))
 	}
 
+	storage.Type = pointer.ToEnum[servers.StorageType](d.Get("storage_type").(string))
+
 	if v, ok := d.GetOk("storage_tier"); ok {
-		storage.Tier = pointer.To(servers.AzureManagedDiskPerformanceTier(v.(string)))
+		storage.Tier = pointer.ToEnum[servers.AzureManagedDiskPerformanceTier](v.(string))
+	}
+
+	if v, ok := d.GetOk("storage_iops"); ok {
+		storage.Iops = pointer.To(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("storage_throughput"); ok {
+		storage.Throughput = pointer.To(int64(v.(int)))
 	}
 
 	return &storage
@@ -1296,18 +1387,9 @@ func flattenArmServerMaintenanceWindow(input *servers.MaintenanceWindow) []inter
 		return make([]interface{}, 0)
 	}
 
-	var dayOfWeek int64
-	if input.DayOfWeek != nil {
-		dayOfWeek = *input.DayOfWeek
-	}
-	var startHour int64
-	if input.StartHour != nil {
-		startHour = *input.StartHour
-	}
-	var startMinute int64
-	if input.StartMinute != nil {
-		startMinute = *input.StartMinute
-	}
+	dayOfWeek := pointer.From(input.DayOfWeek)
+	startHour := pointer.From(input.StartHour)
+	startMinute := pointer.From(input.StartMinute)
 	return []interface{}{
 		map[string]interface{}{
 			"day_of_week":  dayOfWeek,
@@ -1372,10 +1454,7 @@ func flattenFlexibleServerHighAvailability(ha *servers.HighAvailability) []inter
 		return []interface{}{}
 	}
 
-	var zone string
-	if ha.StandbyAvailabilityZone != nil {
-		zone = *ha.StandbyAvailabilityZone
-	}
+	zone := pointer.From(ha.StandbyAvailabilityZone)
 
 	return []interface{}{
 		map[string]interface{}{

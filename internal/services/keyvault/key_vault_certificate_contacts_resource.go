@@ -10,17 +10,16 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -40,7 +39,7 @@ type Contact struct {
 }
 
 func (r KeyVaultCertificateContactsResource) Arguments() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
 
 		"contact": {
@@ -69,13 +68,6 @@ func (r KeyVaultCertificateContactsResource) Arguments() map[string]*pluginsdk.S
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		schema["contact"].Required = false
-		schema["contact"].Optional = true
-	}
-
-	return schema
 }
 
 func (r KeyVaultCertificateContactsResource) Attributes() map[string]*pluginsdk.Schema {
@@ -125,12 +117,12 @@ func (r KeyVaultCertificateContactsResource) Create() sdk.ResourceFunc {
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.GetCertificateContacts(ctx, *keyVaultBaseUri)
 				if err != nil {
-					if !utils.ResponseWasNotFound(existing.Response) {
+					if !response.WasNotFound(existing.Response.Response) {
 						return fmt.Errorf("checking for presence of existing Certificate Contacts (Key Vault %q): %s", *keyVaultBaseUri, err)
 					}
 				}
 
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					if existing.ContactList != nil && len(*existing.ContactList) != 0 {
 						return tf.ImportAsExistsError(r.ResourceType(), id.ID())
 					}
@@ -141,20 +133,8 @@ func (r KeyVaultCertificateContactsResource) Create() sdk.ResourceFunc {
 				ContactList: expandKeyVaultCertificateContactsContact(state.Contact),
 			}
 
-			if !features.FivePointOh() {
-				if len(*contacts.ContactList) == 0 {
-					if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
-						return fmt.Errorf("removing Key Vault Certificate Contacts %s: %+v", id, err)
-					}
-				} else {
-					if _, err := client.SetCertificateContacts(ctx, *keyVaultBaseUri, contacts); err != nil {
-						return fmt.Errorf("creating Key Vault Certificate Contacts %s: %+v", id, err)
-					}
-				}
-			} else {
-				if _, err := client.SetCertificateContacts(ctx, *keyVaultBaseUri, contacts); err != nil {
-					return fmt.Errorf("creating Key Vault Certificate Contacts %s: %+v", id, err)
-				}
+			if _, err := client.SetCertificateContacts(ctx, *keyVaultBaseUri, contacts); err != nil {
+				return fmt.Errorf("creating Key Vault Certificate Contacts %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -192,7 +172,7 @@ func (r KeyVaultCertificateContactsResource) Read() sdk.ResourceFunc {
 
 			existing, err := client.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+				if response.WasNotFound(existing.Response.Response) {
 					metadata.Logger.Infof("No Certificate Contacts could be found at %s - removing from state!", id.KeyVaultBaseUrl)
 					return metadata.MarkAsGone(id)
 				}
@@ -237,20 +217,8 @@ func (r KeyVaultCertificateContactsResource) Update() sdk.ResourceFunc {
 				existing.ContactList = expandKeyVaultCertificateContactsContact(state.Contact)
 			}
 
-			if !features.FivePointOh() {
-				if len(*existing.ContactList) == 0 {
-					if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
-						return fmt.Errorf("removing Key Vault Certificate Contacts %s: %+v", id, err)
-					}
-				} else {
-					if _, err := client.SetCertificateContacts(ctx, id.KeyVaultBaseUrl, existing); err != nil {
-						return fmt.Errorf("updating Key Vault Certificate Contacts %s: %+v", id, err)
-					}
-				}
-			} else {
-				if _, err := client.SetCertificateContacts(ctx, id.KeyVaultBaseUrl, existing); err != nil {
-					return fmt.Errorf("updating Key Vault Certificate Contacts %s: %+v", id, err)
-				}
+			if _, err := client.SetCertificateContacts(ctx, id.KeyVaultBaseUrl, existing); err != nil {
+				return fmt.Errorf("updating Key Vault Certificate Contacts %s: %+v", id, err)
 			}
 
 			return nil
@@ -275,7 +243,7 @@ func (r KeyVaultCertificateContactsResource) Delete() sdk.ResourceFunc {
 			// check if any contacts exist in vault, if they do not then nothing to delete
 			resp, err := client.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.Response.Response) {
 					log.Printf("[DEBUG] Key Vault Certificate Contact %q was not found in Key Vault at URI %q - removing from state", id.ID(), id.KeyVaultBaseUrl)
 					return nil
 				}
@@ -317,25 +285,10 @@ func flattenKeyVaultCertificateContactsContact(input *[]keyvault.Contact) []Cont
 	}
 
 	for _, item := range *input {
-		emailAddress := ""
-		if item.EmailAddress != nil {
-			emailAddress = *item.EmailAddress
-		}
-
-		name := ""
-		if item.Name != nil {
-			name = *item.Name
-		}
-
-		phone := ""
-		if item.Phone != nil {
-			phone = *item.Phone
-		}
-
 		result = append(result, Contact{
-			Email: emailAddress,
-			Name:  name,
-			Phone: phone,
+			Email: pointer.From(item.EmailAddress),
+			Name:  pointer.From(item.Name),
+			Phone: pointer.From(item.Phone),
 		})
 	}
 

@@ -58,18 +58,10 @@ func resourceDedicatedHardwareSecurityModule() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(dedicatedhsms.SkuNameSafeNetLunaNetworkHSMASevenNineZero),
-					string(dedicatedhsms.SkuNamePayShieldOneZeroKLMKOneCPSSixZero),
-					string(dedicatedhsms.SkuNamePayShieldOneZeroKLMKOneCPSTwoFiveZero),
-					string(dedicatedhsms.SkuNamePayShieldOneZeroKLMKOneCPSTwoFiveZeroZero),
-					string(dedicatedhsms.SkuNamePayShieldOneZeroKLMKTwoCPSSixZero),
-					string(dedicatedhsms.SkuNamePayShieldOneZeroKLMKTwoCPSTwoFiveZero),
-					string(dedicatedhsms.SkuNamePayShieldOneZeroKLMKTwoCPSTwoFiveZeroZero),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(dedicatedhsms.PossibleValuesForSkuName(), false),
 			},
 
 			"network_profile": {

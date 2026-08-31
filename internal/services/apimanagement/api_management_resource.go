@@ -135,14 +135,10 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"virtual_network_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(apimanagementservice.VirtualNetworkTypeNone),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(apimanagementservice.VirtualNetworkTypeNone),
-				string(apimanagementservice.VirtualNetworkTypeExternal),
-				string(apimanagementservice.VirtualNetworkTypeInternal),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(apimanagementservice.VirtualNetworkTypeNone),
+			ValidateFunc: validation.StringInSlice(apimanagementservice.PossibleValuesForVirtualNetworkType(), false),
 		},
 
 		"virtual_network_configuration": {
@@ -270,12 +266,9 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"store_name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(apimanagementservice.StoreNameCertificateAuthority),
-							string(apimanagementservice.StoreNameRoot),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(apimanagementservice.PossibleValuesForStoreName(), false),
 					},
 
 					"expiry": {
@@ -711,7 +704,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 		}
 
 		// retry to restore service since there is an API issue : https://github.com/Azure/azure-rest-api-specs/issues/25262
-		err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+		if err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 			resp, err := client.CreateOrUpdate(ctx, id, params)
 			if err != nil {
 				if response.WasBadRequest(resp.HttpResponse) {
@@ -723,8 +716,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 				return pluginsdk.NonRetryableError(err)
 			}
 			return nil
-		})
-		if err != nil {
+		}); err != nil {
 			return fmt.Errorf("recovering %s: %+v", id, err)
 		}
 	}
@@ -767,7 +759,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if virtualNetworkType != "" {
-		properties.Properties.VirtualNetworkType = pointer.To(apimanagementservice.VirtualNetworkType(virtualNetworkType))
+		properties.Properties.VirtualNetworkType = pointer.ToEnum[apimanagementservice.VirtualNetworkType](virtualNetworkType)
 
 		if virtualNetworkType != string(apimanagementservice.VirtualNetworkTypeNone) {
 			virtualNetworkConfiguration := expandAzureRmApiManagementVirtualNetworkConfigurations(d)
@@ -969,7 +961,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if d.HasChange("virtual_network_type") {
-		props.VirtualNetworkType = pointer.To(apimanagementservice.VirtualNetworkType(virtualNetworkType))
+		props.VirtualNetworkType = pointer.ToEnum[apimanagementservice.VirtualNetworkType](virtualNetworkType)
 		if virtualNetworkType != string(apimanagementservice.VirtualNetworkTypeNone) {
 			if virtualNetworkConfiguration == nil {
 				return fmt.Errorf("you must specify 'virtual_network_configuration' when 'virtual_network_type' is %q", virtualNetworkType)

@@ -26,7 +26,7 @@ import (
 )
 
 func resourceIotCentralApplication() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceIotCentralAppCreate,
 		Read:   resourceIotCentralAppRead,
 		Update: resourceIotCentralAppUpdate,
@@ -84,14 +84,10 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 			},
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(apps.AppSkuSTOne),
-					string(apps.AppSkuSTTwo),
-					string(apps.AppSkuSTZero),
-				}, false),
-				Default: string(apps.AppSkuSTOne),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(apps.PossibleValuesForAppSku(), false),
+				Default:      string(apps.AppSkuSTOne),
 			},
 			"template": {
 				Type:         pluginsdk.TypeString,
@@ -104,8 +100,6 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	return resource
 }
 
 func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta interface{}) error {
