@@ -379,11 +379,11 @@ func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if existing.Model != nil {
+	if existing.Model == nil {
 		return fmt.Errorf("retrieving %s: `model` was nil", id)
 	}
 
-	if existing.Model.Properties != nil {
+	if existing.Model.Properties == nil {
 		return fmt.Errorf("retrieving %s: `properties` was nil", id)
 	}
 	props := existing.Model.Properties
