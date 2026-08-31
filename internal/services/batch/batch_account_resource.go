@@ -4,6 +4,7 @@
 package batch
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -311,10 +312,14 @@ func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
+	return resourceBatchAccountFlatten(ctx, client, d, id, resp.Model)
+}
+
+func resourceBatchAccountFlatten(ctx context.Context, client *batchaccount.BatchAccountClient, d *pluginsdk.ResourceData, id *batchaccount.BatchAccountId, model *batchaccount.BatchAccount) error {
 	d.Set("name", id.BatchAccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
 		identity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
