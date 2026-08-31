@@ -35,6 +35,11 @@ func TestAccWindowsVirtualMachineScaleSet_scalingCapacityReservationGroupId(t *t
 	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.scalingCapacityReservationGroupId(data, ""),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionCreate),
+				},
+			},
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -53,8 +58,7 @@ func TestAccWindowsVirtualMachineScaleSet_scalingCapacityReservationGroupId(t *t
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config:   r.scalingCapacityReservationGroupId(data, "azurerm_capacity_reservation_group.test2.id"),
-			PlanOnly: true,
+			Config: r.scalingCapacityReservationGroupId(data, "azurerm_capacity_reservation_group.test2.id"),
 			ConfigPlanChecks: resource.ConfigPlanChecks{
 				PreApply: []plancheck.PlanCheck{
 					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
@@ -62,8 +66,7 @@ func TestAccWindowsVirtualMachineScaleSet_scalingCapacityReservationGroupId(t *t
 			},
 		},
 		{
-			Config:   r.scalingCapacityReservationGroupId(data, ""),
-			PlanOnly: true,
+			Config: r.scalingCapacityReservationGroupId(data, ""),
 			ConfigPlanChecks: resource.ConfigPlanChecks{
 				PreApply: []plancheck.PlanCheck{
 					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
@@ -80,6 +83,11 @@ func TestAccWindowsVirtualMachineScaleSet_scalingCapacityReservationGroupIdZonal
 	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.scalingCapacityReservationGroupIdZonal(data, ""),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionCreate),
+				},
+			},
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -104,8 +112,7 @@ func TestAccWindowsVirtualMachineScaleSet_scalingCapacityReservationGroupIdZonal
 			"admin_password",
 		),
 		{
-			Config:   r.scalingCapacityReservationGroupIdZonal(data, "azurerm_capacity_reservation_group.test2.id"),
-			PlanOnly: true,
+			Config: r.scalingCapacityReservationGroupIdZonal(data, "azurerm_capacity_reservation_group.test2.id"),
 			ConfigPlanChecks: resource.ConfigPlanChecks{
 				PreApply: []plancheck.PlanCheck{
 					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
@@ -113,8 +120,7 @@ func TestAccWindowsVirtualMachineScaleSet_scalingCapacityReservationGroupIdZonal
 			},
 		},
 		{
-			Config:   r.scalingCapacityReservationGroupIdZonal(data, ""),
-			PlanOnly: true,
+			Config: r.scalingCapacityReservationGroupIdZonal(data, ""),
 			ConfigPlanChecks: resource.ConfigPlanChecks{
 				PreApply: []plancheck.PlanCheck{
 					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
