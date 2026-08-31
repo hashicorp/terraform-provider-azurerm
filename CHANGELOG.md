@@ -1,6 +1,7 @@
 ## 5.9.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_lb_probe `: add new argument `no_healthy_backends_behavior` [GH-32645]
 
 FEATURES:
 
