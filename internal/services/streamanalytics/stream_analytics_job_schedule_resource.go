@@ -43,13 +43,9 @@ func (r JobScheduleResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"start_mode": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(streamingjobs.OutputStartModeCustomTime),
-				string(streamingjobs.OutputStartModeJobStartTime),
-				string(streamingjobs.OutputStartModeLastOutputEventTime),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForOutputStartMode(), false),
 		},
 
 		"start_time": {

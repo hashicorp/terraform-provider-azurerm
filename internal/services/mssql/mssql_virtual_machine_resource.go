@@ -64,14 +64,10 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"sql_license_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(sqlvirtualmachines.SqlServerLicenseTypePAYG),
-					string(sqlvirtualmachines.SqlServerLicenseTypeAHUB),
-					string(sqlvirtualmachines.SqlServerLicenseTypeDR),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(sqlvirtualmachines.PossibleValuesForSqlServerLicenseType(), false),
 			},
 
 			"auto_backup": {
@@ -97,10 +93,7 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 										Type:             pluginsdk.TypeString,
 										Required:         true,
 										DiffSuppressFunc: suppress.CaseDifference,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(sqlvirtualmachines.FullBackupFrequencyTypeDaily),
-											string(sqlvirtualmachines.FullBackupFrequencyTypeWeekly),
-										}, false),
+										ValidateFunc:     validation.StringInSlice(sqlvirtualmachines.PossibleValuesForFullBackupFrequencyType(), false),
 									},
 
 									"full_backup_start_hour": {
@@ -126,16 +119,8 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 										Optional: true,
 										MinItems: 1,
 										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												string(sqlvirtualmachines.AutoBackupDaysOfWeekMonday),
-												string(sqlvirtualmachines.AutoBackupDaysOfWeekTuesday),
-												string(sqlvirtualmachines.AutoBackupDaysOfWeekWednesday),
-												string(sqlvirtualmachines.AutoBackupDaysOfWeekThursday),
-												string(sqlvirtualmachines.AutoBackupDaysOfWeekFriday),
-												string(sqlvirtualmachines.AutoBackupDaysOfWeekSaturday),
-												string(sqlvirtualmachines.AutoBackupDaysOfWeekSunday),
-											}, false),
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice(sqlvirtualmachines.PossibleValuesForAutoBackupDaysOfWeek(), false),
 										},
 									},
 								},
@@ -312,14 +297,10 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"sql_connectivity_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(sqlvirtualmachines.ConnectivityTypePRIVATE),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(sqlvirtualmachines.ConnectivityTypeLOCAL),
-					string(sqlvirtualmachines.ConnectivityTypePRIVATE),
-					string(sqlvirtualmachines.ConnectivityTypePUBLIC),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(sqlvirtualmachines.ConnectivityTypePRIVATE),
+				ValidateFunc: validation.StringInSlice(sqlvirtualmachines.PossibleValuesForConnectivityType(), false),
 			},
 
 			"sql_connectivity_update_password": {
@@ -401,22 +382,14 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"disk_type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(sqlvirtualmachines.DiskConfigurationTypeNEW),
-								string(sqlvirtualmachines.DiskConfigurationTypeEXTEND),
-								string(sqlvirtualmachines.DiskConfigurationTypeADD),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(sqlvirtualmachines.PossibleValuesForDiskConfigurationType(), false),
 						},
 						"storage_workload_type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(sqlvirtualmachines.SqlWorkloadTypeGENERAL),
-								string(sqlvirtualmachines.SqlWorkloadTypeOLTP),
-								string(sqlvirtualmachines.SqlWorkloadTypeDW),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(sqlvirtualmachines.PossibleValuesForSqlWorkloadType(), false),
 						},
 						"system_db_on_data_disk_enabled": {
 							Type:     pluginsdk.TypeBool,

@@ -141,16 +141,10 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"tier": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(deployments.SkuTierFree),
-							string(deployments.SkuTierBasic),
-							string(deployments.SkuTierStandard),
-							string(deployments.SkuTierPremium),
-							string(deployments.SkuTierEnterprise),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringInSlice(deployments.PossibleValuesForSkuTier(), false),
 					},
 
 					"size": {
@@ -184,14 +178,10 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"version_upgrade_option": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(deployments.DeploymentModelVersionUpgradeOptionOnceNewDefaultVersionAvailable),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(deployments.DeploymentModelVersionUpgradeOptionOnceCurrentVersionExpired),
-				string(deployments.DeploymentModelVersionUpgradeOptionOnceNewDefaultVersionAvailable),
-				string(deployments.DeploymentModelVersionUpgradeOptionNoAutoUpgrade),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(deployments.DeploymentModelVersionUpgradeOptionOnceNewDefaultVersionAvailable),
+			ValidateFunc: validation.StringInSlice(deployments.PossibleValuesForDeploymentModelVersionUpgradeOption(), false),
 		},
 	}
 }

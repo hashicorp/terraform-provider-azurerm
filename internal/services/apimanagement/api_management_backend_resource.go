@@ -207,12 +207,9 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 			},
 
 			"protocol": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(backend.BackendProtocolHTTP),
-					string(backend.BackendProtocolSoap),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(backend.PossibleValuesForBackendProtocol(), false),
 			},
 
 			"proxy": {

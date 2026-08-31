@@ -164,12 +164,10 @@ func resourceEventGridTopic() *pluginsdk.Resource {
 							Required: true,
 						},
 						"action": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(topics.IPActionTypeAllow),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(topics.IPActionTypeAllow),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(topics.IPActionTypeAllow),
+							ValidateFunc: validation.StringInSlice(topics.PossibleValuesForIPActionType(), false),
 						},
 					},
 				},

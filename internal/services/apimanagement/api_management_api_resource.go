@@ -76,13 +76,8 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(api.ProtocolHTTP),
-						string(api.ProtocolHTTPS),
-						string(api.ProtocolWs),
-						string(api.ProtocolWss),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(api.PossibleValuesForProtocol(), false),
 				},
 			},
 
@@ -101,15 +96,10 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 
 			// Optional
 			"api_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(api.ApiTypeGraphql),
-					string(api.ApiTypeHTTP),
-					string(api.ApiTypeSoap),
-					string(api.ApiTypeWebsocket),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(api.PossibleValuesForApiType(), false),
 			},
 
 			"contact": {
@@ -299,11 +289,8 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(api.BearerTokenSendingMethodsAuthorizationHeader),
-									string(api.BearerTokenSendingMethodsQuery),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(api.PossibleValuesForBearerTokenSendingMethods(), false),
 							},
 						},
 					},

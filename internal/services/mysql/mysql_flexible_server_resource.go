@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
@@ -25,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -112,15 +114,10 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			},
 
 			"create_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(servers.CreateModeDefault),
-					string(servers.CreateModeGeoRestore),
-					string(servers.CreateModePointInTimeRestore),
-					string(servers.CreateModeReplica),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForCreateMode(), false),
 			},
 
 			"customer_managed_key": {
@@ -479,20 +476,12 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	// Add the state wait function until issue https://github.com/Azure/azure-rest-api-specs/issues/21178 is fixed.
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{
-			"Pending",
-		},
-		Target: []string{
-			"OK",
-		},
-		Refresh:    mySqlFlexibleServerCreationRefreshFunc(ctx, client, id),
-		MinTimeout: 10 * time.Second,
-		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
-	}
-
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+	// Account for eventual consistency until issue https://github.com/Azure/azure-rest-api-specs/issues/21178 is fixed.
+	poller := custompollers.NewEventualConsistencyPoller(1, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, id)
+		return resp.HttpResponse, err
+	}, custompollers.DefaultCreationEventualConsistencyPollerOptions())
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for creation of Mysql Flexible Server %s: %+v", id, err)
 	}
 
@@ -509,19 +498,6 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	return resourceMysqlFlexibleServerRead(d, meta)
-}
-
-func mySqlFlexibleServerCreationRefreshFunc(ctx context.Context, client *servers.ServersClient, id servers.FlexibleServerId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return resp, "Pending", nil
-			}
-			return resp, "Error", err
-		}
-		return "OK", "OK", nil
-	}
 }
 
 func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
