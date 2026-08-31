@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package batch
 
 import (
@@ -19,7 +22,7 @@ type BatchAccountListResource struct{}
 var _ sdk.FrameworkListWrappedResource = new(BatchAccountListResource)
 
 func (BatchAccountListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = "azurerm_batch_account"
+	response.TypeName = batchAccountResourceName
 }
 
 func (BatchAccountListResource) ResourceFunc() *pluginsdk.Resource {
@@ -46,14 +49,14 @@ func (BatchAccountListResource) List(ctx context.Context, request list.ListReque
 	case !data.ResourceGroupName.IsNull():
 		resp, err := client.ListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", "azurerm_batch_account"), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", batchAccountResourceName), err)
 			return
 		}
 		results = resp.Items
 	default:
 		resp, err := client.ListComplete(ctx, commonids.NewSubscriptionID(subscriptionID))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", "azurerm_batch_account"), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", batchAccountResourceName), err)
 			return
 		}
 		results = resp.Items
@@ -82,7 +85,7 @@ func (BatchAccountListResource) List(ctx context.Context, request list.ListReque
 			rd.SetId(id.ID())
 
 			if err := resourceBatchAccountFlatten(ctx, client, rd, id, &item); err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", "azurerm_batch_account"), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", batchAccountResourceName), err)
 				return
 			}
 

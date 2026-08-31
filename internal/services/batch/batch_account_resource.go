@@ -32,6 +32,8 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity
 
+const batchAccountResourceName = "azurerm_batch_account"
+
 func resourceBatchAccount() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceBatchAccountCreate,
