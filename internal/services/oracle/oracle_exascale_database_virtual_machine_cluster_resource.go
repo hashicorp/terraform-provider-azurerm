@@ -384,7 +384,7 @@ func (ExascaleDatabaseVirtualMachineClusterResource) ResourceType() string {
 
 func (r ExascaleDatabaseVirtualMachineClusterResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 240 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Oracle.OracleClient.ExadbVMClusters
 			subscriptionId := metadata.Client.Account.SubscriptionId
@@ -480,7 +480,7 @@ func (r ExascaleDatabaseVirtualMachineClusterResource) Create() sdk.ResourceFunc
 
 func (r ExascaleDatabaseVirtualMachineClusterResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 240 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Oracle.OracleClient.ExadbVMClusters
 			id, err := exadbvmclusters.ParseExadbVMClusterID(metadata.ResourceData.Id())
@@ -591,7 +591,7 @@ func (ExascaleDatabaseVirtualMachineClusterResource) flatten(metadata sdk.Resour
 
 func (ExascaleDatabaseVirtualMachineClusterResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 240 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Oracle.OracleClient.ExadbVMClusters
 

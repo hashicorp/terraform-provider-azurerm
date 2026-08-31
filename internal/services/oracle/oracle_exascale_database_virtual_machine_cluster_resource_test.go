@@ -170,13 +170,13 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
       maximum = 12100
     }
   }
-  domain                                          = "ociactsubnet.ociactvnet.oraclevcn.com"
+  domain                                          = "oci${azurerm_subnet.virtual_network_subnet.name}.oci${azurerm_virtual_network.virtual_network.name}.oraclevcn.com"
   grid_image_ocid                                 = local.grid_image_ocid
   license_model                                   = "BringYourOwnLicense"
   private_zone_ocid                               = "private_zoneocid"
   single_client_access_name_listener_port_tcp     = 1521
   single_client_access_name_listener_port_tcp_ssl = 2484
-  system_version                                  = "19.2.12.0.0.200317"
+  system_version                                  = "25.2.6.0.0.260117"
   time_zone                                       = "UTC"
 }`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -242,20 +242,20 @@ provider "azurerm" {
 locals {
   zones           = ["1"]
   ssh_public_key  = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"
-  grid_image_ocid = "%[3]s"
+  grid_image_ocid = "%[4]s"
 }
 
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
-  location = "%[2]s"
+  location = "%[3]s"
 }
 
 resource "azurerm_virtual_network" "virtual_network" {
-  name                = "actvnet"
+  name                = "actvnet%[2]s"
   address_space       = ["10.0.0.0/16"]
-  location            = "%[2]s"
+  location            = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
 }
 
@@ -280,7 +280,7 @@ resource "azurerm_subnet" "virtual_network_subnet" {
 
 resource "azurerm_oracle_exascale_database_storage_vault" "test" {
   name                = "acctest%[1]d"
-  location            = "%[2]s"
+  location            = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
   display_name        = "acctest%[1]d"
   description         = "description"
@@ -290,5 +290,5 @@ resource "azurerm_oracle_exascale_database_storage_vault" "test" {
   additional_flash_cache_percentage = 100
   zones                             = local.zones
 }
-`, data.RandomInteger, data.Locations.Primary, getExascaleGridImageOcid())
+`, data.RandomInteger, data.RandomStringOfLength(3), data.Locations.Primary, getExascaleGridImageOcid())
 }
