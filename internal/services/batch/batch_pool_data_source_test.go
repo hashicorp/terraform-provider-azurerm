@@ -169,3 +169,107 @@ data "azurerm_batch_pool" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString)
 }
+
+func (BatchPoolDataSource) identity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+  %s
+
+  data "azurerm_batch_pool" "test" {
+    name                = azurerm_batch_pool.test.name
+    account_name        = azurerm_batch_pool.test.account_name
+    resource_group_name = azurerm_batch_pool.test.resource_group_name
+  }
+  `, BatchPoolResource{}.identity(data))
+}
+
+func (BatchPoolDataSource) extensions(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+  %s
+
+  data "azurerm_batch_pool" "test" {
+    name                = azurerm_batch_pool.test.name
+    account_name        = azurerm_batch_pool.test.account_name
+    resource_group_name = azurerm_batch_pool.test.resource_group_name
+  }
+  `, BatchPoolResource{}.extensions(data))
+}
+
+func (BatchPoolDataSource) securityProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+  %s
+
+  data "azurerm_batch_pool" "test" {
+    name                = azurerm_batch_pool.test.name
+    account_name        = azurerm_batch_pool.test.account_name
+    resource_group_name = azurerm_batch_pool.test.resource_group_name
+  }
+  `, BatchPoolResource{}.securityProfileWithUEFISettings(data))
+}
+
+func (BatchPoolDataSource) targetNodeCommunicationMode(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+  %s
+
+  data "azurerm_batch_pool" "test" {
+    name                = azurerm_batch_pool.test.name
+    account_name        = azurerm_batch_pool.test.account_name
+    resource_group_name = azurerm_batch_pool.test.resource_group_name
+  }
+  `, BatchPoolResource{}.targetNodeCommunicationMode(data, "Simplified"))
+}
+
+func TestAccBatchPoolDataSource_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_batch_pool", "test")
+	r := BatchPoolDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.identity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+			),
+		},
+	})
+}
+
+func TestAccBatchPoolDataSource_extensions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_batch_pool", "test")
+	r := BatchPoolDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.extensions(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("extensions.#").HasValue("1"),
+			),
+		},
+	})
+}
+
+func TestAccBatchPoolDataSource_securityProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_batch_pool", "test")
+	r := BatchPoolDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.securityProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
+			),
+		},
+	})
+}
+
+func TestAccBatchPoolDataSource_targetNodeCommunicationMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_batch_pool", "test")
+	r := BatchPoolDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.targetNodeCommunicationMode(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("target_node_communication_mode").HasValue("Simplified"),
+			),
+		},
+	})
+}
