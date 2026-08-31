@@ -8,18 +8,19 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkinterfaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/vmsspublicipaddresses"
-	network_2025_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/bastionhosts"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeteraccessrules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeterassociations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeterprofiles"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/webapplicationfirewallpolicies"
+	network_2025_07_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/bastionhosts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecurityperimeteraccessrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecurityperimeterassociations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecurityperimeterprofiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecurityperimeters"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	*network_2025_01_01.Client
+	*network_2025_07_01.Client
 
 	BastionHostsClient *bastionhosts.BastionHostsClient
 	// VMSS Data Source requires the Network Interfaces and VMSSPublicIpAddresses client from `2023-09-01` for the `ListVirtualMachineScaleSetVMNetworkInterfacesComplete` method
@@ -29,6 +30,8 @@ type Client struct {
 	NetworkSecurityPerimeterProfilesClient     *networksecurityperimeterprofiles.NetworkSecurityPerimeterProfilesClient
 	NetworkSecurityPerimetersClient            *networksecurityperimeters.NetworkSecurityPerimetersClient
 	VMSSPublicIPAddressesClient                *vmsspublicipaddresses.VMSSPublicIPAddressesClient
+	// The API issue affecting Web Application Firewall Policies is resolved in API version 2026-01-01 or later by https://github.com/Azure/azure-rest-api-specs/pull/45621.
+	WebApplicationFirewallPolicies *webapplicationfirewallpolicies.WebApplicationFirewallPoliciesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -74,7 +77,13 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(VMSSPublicIPAddressesClient.Client, o.Authorizers.ResourceManager)
 
-	client, err := network_2025_01_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+	WebApplicationFirewallPoliciesClient, err := webapplicationfirewallpolicies.NewWebApplicationFirewallPoliciesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Web Application Firewall Policies Client: %+v", err)
+	}
+	o.Configure(WebApplicationFirewallPoliciesClient.Client, o.Authorizers.ResourceManager)
+
+	client, err := network_2025_07_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {
@@ -89,6 +98,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		NetworkSecurityPerimeterProfilesClient:     NetworkSecurityPerimeterProfilesClient,
 		NetworkSecurityPerimetersClient:            NetworkSecurityPerimetersClient,
 		VMSSPublicIPAddressesClient:                VMSSPublicIPAddressesClient,
+		WebApplicationFirewallPolicies:             WebApplicationFirewallPoliciesClient,
 		Client:                                     client,
 	}, nil
 }
