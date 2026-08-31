@@ -4,6 +4,7 @@
 package batch
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -874,7 +875,11 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 								extension["automatic_upgrade_enabled"] = *item.EnableAutomaticUpgrade
 							}
 							if item.Settings != nil {
-								extension["settings_json"] = item.Settings
+								settingValue, err := json.Marshal((*item.Settings).(map[string]interface{}))
+								if err != nil {
+									return fmt.Errorf("flattening `settings_json`: %+v", err)
+								}
+								extension["settings_json"] = string(settingValue)
 							}
 
 							for i := range n {

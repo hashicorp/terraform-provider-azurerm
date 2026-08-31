@@ -43,6 +43,8 @@ The following attributes are exported:
 
 * `auto_scale` - A `auto_scale` block that describes the scale settings when using auto scale.
 
+* `automatic_upgrade_enabled` - Indicates whether the extension should be automatically upgraded by the platform if there is a newer version available. Supported values are `true` and `false`.
+
 * `data_disks` - A `data_disks` block describes the data disk settings.
 
 * `disk_encryption` - A `disk_encryption` block describes the disk encryption configuration applied on compute nodes in the pool.
@@ -51,17 +53,27 @@ The following attributes are exported:
 
 * `inter_node_communication` - Whether the pool permits direct communication between nodes. This imposes restrictions on which nodes can be assigned to the pool. Enabling this value can reduce the chance of the requested number of nodes to be allocated in the pool.
 
+An `identity` block supports the following:
+
+* `type` - Specifies the type of Managed Service Identity that should be configured on this Batch Account. Only possible value is `UserAssigned`.
+
+* `identity_ids` - Specifies a list of User Assigned Managed Identity IDs to be assigned to this Batch Account.
+
 * `license_type` - The type of on-premises license to be used when deploying the operating system.
 
 * `node_placement` - A `node_placement` block that describes the placement policy for allocating nodes in the pool.
 
 * `os_disk_placement` - Specifies the ephemeral disk placement for operating system disk for all VMs in the pool.
 
+* `security_profile` - A `security_profile` block that describes the security settings for the Batch pool as defined below. Changing this forces a new resource to be created.
+
 * `storage_image_reference` - The reference of the storage image used by the nodes in the Batch pool.
 
 * `start_task` - A `start_task` block that describes the start task settings for the Batch pool.
 
 * `task_scheduling_policy` - A `task_scheduling_policy` block that describes how tasks are distributed across compute nodes in a pool.
+
+* `target_node_communication_mode` - The desired node communication mode for the pool. Possible values are `Classic`, `Default` and `Simplified`.
 
 * `user_accounts` - A `user_accounts` block that describes the list of user accounts to be created on each node in the pool.
 
