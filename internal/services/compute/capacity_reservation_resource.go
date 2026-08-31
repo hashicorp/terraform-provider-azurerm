@@ -168,11 +168,15 @@ func resourceCapacityReservationRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourceCapacityReservationFlatten(d, id, resp.Model)
+}
+
+func resourceCapacityReservationFlatten(d *pluginsdk.ResourceData, id *capacityreservations.CapacityReservationId, model *capacityreservations.CapacityReservation) error {
 	d.Set("name", id.CapacityReservationName)
 	groupId := capacityreservationgroups.NewCapacityReservationGroupID(id.SubscriptionId, id.ResourceGroupName, id.CapacityReservationGroupName)
 	d.Set("capacity_reservation_group_id", groupId.ID())
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if err := d.Set("sku", flattenCapacityReservationSku(model.Sku)); err != nil {
 			return fmt.Errorf("setting `sku`: %+v", err)
 		}
