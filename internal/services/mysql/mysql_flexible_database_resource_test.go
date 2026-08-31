@@ -60,7 +60,7 @@ func TestAccMySQLFlexibleDatabase_charsetUppercase(t *testing.T) {
 			Config: r.charsetUppercase(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("charset").HasValue("utf8mb3_unicode_ci"),
+				check.That(data.ResourceName).Key("charset").HasValue("utf8mb3"),
 			),
 		},
 		data.ImportStep(),
@@ -92,7 +92,7 @@ func TestAccMySQLFlexibleDatabase_collationUppercase(t *testing.T) {
 			Config: r.collationUppercase(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("collation").HasValue("utf8_unicode_ci"),
+				check.That(data.ResourceName).Key("collation").HasValue("utf8mb3_unicode_ci"),
 			),
 		},
 		data.ImportStep(),
