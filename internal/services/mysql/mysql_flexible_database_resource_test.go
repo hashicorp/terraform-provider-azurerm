@@ -83,6 +83,22 @@ func TestAccMySQLFlexibleDatabase_charsetMixedcase(t *testing.T) {
 	})
 }
 
+func TestAccMySQLFlexibleDatabase_collationUppercase(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_database", "test")
+	r := MysqlFlexibleDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.collationUppercase(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("collation").HasValue("utf8_unicode_ci"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMySQLFlexibleDatabase_utf8Aliases(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_database", "test")
 	r := MysqlFlexibleDatabaseResource{}
@@ -140,6 +156,10 @@ func (r MysqlFlexibleDatabaseResource) charsetUppercase(data acceptance.TestData
 
 func (r MysqlFlexibleDatabaseResource) charsetMixedcase(data acceptance.TestData) string {
 	return r.charsetAndCollation(data, "Utf8", "utf8_unicode_ci")
+}
+
+func (r MysqlFlexibleDatabaseResource) collationUppercase(data acceptance.TestData) string {
+	return r.charsetAndCollation(data, "utf8", "UTF8_UNICODE_CI")
 }
 
 func (MysqlFlexibleDatabaseResource) charsetAndCollation(data acceptance.TestData, charset, collation string) string {

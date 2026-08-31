@@ -81,8 +81,9 @@ func mysqlFlexibleDatabaseCharsetDiffSuppress(key, oldValue, newValue string, re
 		mysqlFlexibleDatabaseAliasDiff(oldValue, newValue, "utf8", "utf8mb3")
 }
 
-func mysqlFlexibleDatabaseCollationDiffSuppress(_, oldValue, newValue string, _ *schema.ResourceData) bool {
-	return mysqlFlexibleDatabaseAliasDiff(oldValue, newValue, "utf8_unicode_ci", "utf8mb3_unicode_ci")
+func mysqlFlexibleDatabaseCollationDiffSuppress(key, oldValue, newValue string, resourceData *schema.ResourceData) bool {
+	return suppress.CaseDifference(key, oldValue, newValue, resourceData) ||
+		mysqlFlexibleDatabaseAliasDiff(oldValue, newValue, "utf8_unicode_ci", "utf8mb3_unicode_ci")
 }
 
 func mysqlFlexibleDatabaseAliasDiff(oldValue, newValue, firstAlias, secondAlias string) bool {
