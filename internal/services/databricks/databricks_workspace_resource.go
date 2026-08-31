@@ -145,13 +145,9 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			},
 
 			"network_security_group_rules_required": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(workspaces.RequiredNsgRulesAllRules),
-					string(workspaces.RequiredNsgRulesNoAzureDatabricksRules),
-					string(workspaces.RequiredNsgRulesNoAzureServiceRules),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForRequiredNsgRules(), false),
 			},
 
 			"load_balancer_backend_address_pool_id": {

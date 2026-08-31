@@ -1246,13 +1246,10 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 
 		"eviction_policy": {
 			// only applicable when `priority` is set to `Spot`
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(virtualmachinescalesets.VirtualMachineEvictionPolicyTypesDeallocate),
-				string(virtualmachinescalesets.VirtualMachineEvictionPolicyTypesDelete),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForVirtualMachineEvictionPolicyTypes(), false),
 		},
 
 		"extension_operations_enabled": {
@@ -1394,15 +1391,11 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"upgrade_mode": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(virtualmachinescalesets.UpgradeModeManual),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(virtualmachinescalesets.UpgradeModeAutomatic),
-				string(virtualmachinescalesets.UpgradeModeManual),
-				string(virtualmachinescalesets.UpgradeModeRolling),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      string(virtualmachinescalesets.UpgradeModeManual),
+			ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForUpgradeMode(), false),
 		},
 
 		"user_data": {

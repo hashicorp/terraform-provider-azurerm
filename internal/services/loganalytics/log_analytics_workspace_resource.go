@@ -92,25 +92,17 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"internet_ingestion_access_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(workspaces.PublicNetworkAccessTypeEnabled),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(workspaces.PublicNetworkAccessTypeEnabled),
-					string(workspaces.PublicNetworkAccessTypeDisabled),
-					string(workspaces.PublicNetworkAccessTypeSecuredByPerimeter),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(workspaces.PublicNetworkAccessTypeEnabled),
+				ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForPublicNetworkAccessType(), false),
 			},
 
 			"internet_query_access_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(workspaces.PublicNetworkAccessTypeEnabled),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(workspaces.PublicNetworkAccessTypeEnabled),
-					string(workspaces.PublicNetworkAccessTypeDisabled),
-					string(workspaces.PublicNetworkAccessTypeSecuredByPerimeter),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(workspaces.PublicNetworkAccessTypeEnabled),
+				ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForPublicNetworkAccessType(), false),
 			},
 
 			"sku": {

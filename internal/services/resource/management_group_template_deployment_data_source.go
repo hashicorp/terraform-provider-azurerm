@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	mgParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
@@ -15,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceManagementGroupTemplateDeployment() *pluginsdk.Resource {
@@ -65,7 +65,7 @@ func dataSourceManagementGroupTemplateDeploymentRead(d *schema.ResourceData, met
 
 	resp, err := client.GetAtManagementGroupScope(ctx, mgmtGroupId.Name, deploymentName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			return fmt.Errorf("deployment %s in Management Group %s was not found", deploymentName, managementGroupId)
 		}
 

@@ -79,12 +79,9 @@ func (r AppServiceConnectorResource) Arguments() map[string]*schema.Schema {
 		"secret_store": secretStoreSchema(),
 
 		"vnet_solution": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(servicelinker.VNetSolutionTypeServiceEndpoint),
-				string(servicelinker.VNetSolutionTypePrivateLink),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(servicelinker.PossibleValuesForVNetSolutionType(), false),
 		},
 
 		"authentication": authInfoSchema(),

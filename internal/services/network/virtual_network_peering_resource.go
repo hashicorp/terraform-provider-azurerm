@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity
@@ -200,13 +199,9 @@ func resourceVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, meta interfa
 		Refresh: func() (interface{}, string, error) {
 			future, err := client.CreateOrUpdate(ctx, id, peer, virtualnetworkpeerings.CreateOrUpdateOperationOptions{SyncRemoteAddressSpace: pointer.To(virtualnetworkpeerings.SyncRemoteAddressSpaceTrue)})
 			if err != nil {
-				if utils.ResponseErrorIsRetryable(err) {
+				if resp := future.HttpResponse; resp != nil && response.WasBadRequest(resp) && strings.Contains(err.Error(), "ReferencedResourceNotProvisioned") {
+					// Resource is not yet ready, this may be the case if the Vnet was just created or another peering was just initiated.
 					return future.HttpResponse, "Pending", err
-				} else {
-					if resp := future.HttpResponse; resp != nil && response.WasBadRequest(resp) && strings.Contains(err.Error(), "ReferencedResourceNotProvisioned") {
-						// Resource is not yet ready, this may be the case if the Vnet was just created or another peering was just initiated.
-						return future.HttpResponse, "Pending", err
-					}
 				}
 
 				return future.HttpResponse, "", err

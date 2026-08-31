@@ -53,13 +53,10 @@ func resourceWebpubsubNetworkACL() *pluginsdk.Resource {
 			"web_pubsub_id": commonschema.ResourceIDReferenceRequiredForceNew(&webpubsub.WebPubSubId{}),
 
 			"default_action": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  webpubsub.ACLActionDeny,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(webpubsub.ACLActionAllow),
-					string(webpubsub.ACLActionDeny),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      webpubsub.ACLActionDeny,
+				ValidateFunc: validation.StringInSlice(webpubsub.PossibleValuesForACLAction(), false),
 			},
 
 			"public_network": {

@@ -65,24 +65,17 @@ func resourcePublicIp() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"allocation_method": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(publicipaddresses.IPAllocationMethodStatic),
-					string(publicipaddresses.IPAllocationMethodDynamic),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(publicipaddresses.PossibleValuesForIPAllocationMethod(), false),
 			},
 
 			// Optional
 			"ddos_protection_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(publicipaddresses.DdosSettingsProtectionModeDisabled),
-					string(publicipaddresses.DdosSettingsProtectionModeEnabled),
-					string(publicipaddresses.DdosSettingsProtectionModeVirtualNetworkInherited),
-				}, false),
-				Default: string(publicipaddresses.DdosSettingsProtectionModeVirtualNetworkInherited),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(publicipaddresses.PossibleValuesForDdosSettingsProtectionMode(), false),
+				Default:      string(publicipaddresses.DdosSettingsProtectionModeVirtualNetworkInherited),
 			},
 
 			"ddos_protection_plan_id": {
@@ -94,14 +87,11 @@ func resourcePublicIp() *pluginsdk.Resource {
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 			"ip_version": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(publicipaddresses.IPVersionIPvFour),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(publicipaddresses.IPVersionIPvFour),
-					string(publicipaddresses.IPVersionIPvSix),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(publicipaddresses.IPVersionIPvFour),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(publicipaddresses.PossibleValuesForIPVersion(), false),
 			},
 
 			"sku": {
@@ -114,14 +104,11 @@ func resourcePublicIp() *pluginsdk.Resource {
 			},
 
 			"sku_tier": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(publicipaddresses.PublicIPAddressSkuTierRegional),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(publicipaddresses.PublicIPAddressSkuTierGlobal),
-					string(publicipaddresses.PublicIPAddressSkuTierRegional),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(publicipaddresses.PublicIPAddressSkuTierRegional),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(publicipaddresses.PossibleValuesForPublicIPAddressSkuTier(), false),
 			},
 
 			"idle_timeout_in_minutes": {

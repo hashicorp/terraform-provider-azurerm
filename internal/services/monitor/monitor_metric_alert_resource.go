@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
+	"net/http"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -154,15 +155,9 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 							},
 						},
 						"operator": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(metricalerts.OperatorEquals),
-								string(metricalerts.OperatorGreaterThan),
-								string(metricalerts.OperatorGreaterThanOrEqual),
-								string(metricalerts.OperatorLessThan),
-								string(metricalerts.OperatorLessThanOrEqual),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(metricalerts.PossibleValuesForOperator(), false),
 						},
 						"threshold": {
 							Type:     pluginsdk.TypeFloat,
@@ -239,22 +234,14 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 							},
 						},
 						"operator": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(metricalerts.DynamicThresholdOperatorLessThan),
-								string(metricalerts.DynamicThresholdOperatorGreaterThan),
-								string(metricalerts.DynamicThresholdOperatorGreaterOrLessThan),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(metricalerts.PossibleValuesForDynamicThresholdOperator(), false),
 						},
 						"alert_sensitivity": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(metricalerts.DynamicThresholdSensitivityLow),
-								string(metricalerts.DynamicThresholdSensitivityMedium),
-								string(metricalerts.DynamicThresholdSensitivityHigh),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(metricalerts.PossibleValuesForDynamicThresholdSensitivity(), false),
 						},
 
 						"evaluation_total_count": {
@@ -472,21 +459,15 @@ func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	// Monitor Metric Alert API would return 404 while creating multiple Monitor Metric Alerts and get each resource immediately once it's created successfully in parallel.
 	// Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/10973
 	log.Printf("[DEBUG] Waiting for %s to be created", id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"404"},
-		Target:                    []string{"200"},
-		Refresh:                   monitorMetricAlertStateRefreshFunc(ctx, client, id),
-		MinTimeout:                15 * time.Second,
-		ContinuousTargetOccurence: 10,
-	}
-
-	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
-	} else {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(10, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, id)
+		return resp.HttpResponse, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:              15 * time.Second,
+		TargetStatusCode:      pointer.To(http.StatusOK),
+		RetryErrorStatusCodes: []int{http.StatusNotFound},
+	})
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for Monitor %s to finish provisioning: %s", id, err)
 	}
 
@@ -922,19 +903,4 @@ func resourceMonitorMetricAlertActionHash(input interface{}) int {
 		}
 	}
 	return pluginsdk.HashString(buf.String())
-}
-
-func monitorMetricAlertStateRefreshFunc(ctx context.Context, client *metricalerts.MetricAlertsClient, id metricalerts.MetricAlertId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return nil, "404", nil
-			}
-
-			return nil, "", fmt.Errorf("retrieving %s: %s", id, err)
-		}
-
-		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
-	}
 }

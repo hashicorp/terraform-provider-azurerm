@@ -124,12 +124,9 @@ func (r MsSqlFailoverGroupResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"mode": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(failovergroups.ReadWriteEndpointFailoverPolicyAutomatic),
-							string(failovergroups.ReadWriteEndpointFailoverPolicyManual),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(failovergroups.PossibleValuesForReadWriteEndpointFailoverPolicy(), false),
 					},
 					"grace_minutes": {
 						Type:         pluginsdk.TypeInt,

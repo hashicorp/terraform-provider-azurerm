@@ -150,27 +150,17 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				},
 
 				"load_balancing_mode": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(webapps.SiteLoadBalancingLeastRequests),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.SiteLoadBalancingLeastRequests),
-						string(webapps.SiteLoadBalancingWeightedRoundRobin),
-						string(webapps.SiteLoadBalancingLeastResponseTime),
-						string(webapps.SiteLoadBalancingWeightedTotalTraffic),
-						string(webapps.SiteLoadBalancingRequestHash),
-						string(webapps.SiteLoadBalancingPerSiteRoundRobin),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(webapps.SiteLoadBalancingLeastRequests),
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSiteLoadBalancing(), false),
 				},
 
 				"managed_pipeline_mode": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(webapps.ManagedPipelineModeIntegrated),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.ManagedPipelineModeClassic),
-						string(webapps.ManagedPipelineModeIntegrated),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(webapps.ManagedPipelineModeIntegrated),
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForManagedPipelineMode(), false),
 				},
 
 				"remote_debugging_enabled": {
@@ -206,14 +196,10 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				},
 
 				"ftps_state": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(webapps.FtpsStateDisabled),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.FtpsStateAllAllowed),
-						string(webapps.FtpsStateDisabled),
-						string(webapps.FtpsStateFtpsOnly),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(webapps.FtpsStateDisabled),
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFtpsState(), false),
 				},
 
 				"health_check_path": {

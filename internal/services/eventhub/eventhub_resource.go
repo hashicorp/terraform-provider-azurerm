@@ -80,13 +80,10 @@ func resourceEventHub() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*schema.Schema{
 						"cleanup_policy": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(eventhubs.CleanupPolicyRetentionDescriptionDelete),
-								string(eventhubs.CleanupPolicyRetentionDescriptionCompact),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(eventhubs.PossibleValuesForCleanupPolicyRetentionDescription(), false),
 						},
 
 						"retention_time_in_hours": {
@@ -120,12 +117,9 @@ func resourceEventHub() *pluginsdk.Resource {
 							Default:  false,
 						},
 						"encoding": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(eventhubs.EncodingCaptureDescriptionAvro),
-								string(eventhubs.EncodingCaptureDescriptionAvroDeflate),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(eventhubs.PossibleValuesForEncodingCaptureDescription(), false),
 						},
 						"interval_in_seconds": {
 							Type:         pluginsdk.TypeInt,

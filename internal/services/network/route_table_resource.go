@@ -80,15 +80,9 @@ func resourceRouteTable() *pluginsdk.Resource {
 						},
 
 						"next_hop_type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(routetables.RouteNextHopTypeVirtualNetworkGateway),
-								string(routetables.RouteNextHopTypeVnetLocal),
-								string(routetables.RouteNextHopTypeInternet),
-								string(routetables.RouteNextHopTypeVirtualAppliance),
-								string(routetables.RouteNextHopTypeNone),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(routetables.PossibleValuesForRouteNextHopType(), false),
 						},
 
 						"next_hop_in_ip_address": {

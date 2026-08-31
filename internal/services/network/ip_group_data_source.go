@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/azurefirewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/firewallpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/ipgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -40,6 +42,22 @@ func dataSourceIpGroup() *pluginsdk.Resource {
 				Computed: true,
 				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 				Set:      pluginsdk.HashString,
+			},
+
+			"firewall_ids": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"firewall_policy_ids": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
 			},
 
 			"tags": commonschema.TagsDataSource(),
@@ -77,6 +95,26 @@ func dataSourceIpGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			if err := d.Set("cidrs", props.IPAddresses); err != nil {
 				return fmt.Errorf("setting `cidrs`: %+v", err)
 			}
+
+			firewallIDs := make([]string, 0)
+			for _, idStr := range getIds(props.Firewalls) {
+				firewallID, err := azurefirewalls.ParseAzureFirewallIDInsensitively(idStr)
+				if err != nil {
+					return fmt.Errorf("parsing Azure Firewall ID %q: %+v", idStr, err)
+				}
+				firewallIDs = append(firewallIDs, firewallID.ID())
+			}
+			d.Set("firewall_ids", firewallIDs)
+
+			firewallPolicyIDs := make([]string, 0)
+			for _, idStr := range getIds(props.FirewallPolicies) {
+				policyID, err := firewallpolicies.ParseFirewallPolicyIDInsensitively(idStr)
+				if err != nil {
+					return fmt.Errorf("parsing Azure Firewall Policy ID %q: %+v", idStr, err)
+				}
+				firewallPolicyIDs = append(firewallPolicyIDs, policyID.ID())
+			}
+			d.Set("firewall_policy_ids", firewallPolicyIDs)
 		}
 		return tags.FlattenAndSet(d, model.Tags)
 	}
