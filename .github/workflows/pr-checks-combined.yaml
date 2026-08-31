@@ -16,7 +16,7 @@ permissions:
 
 on:
   pull_request:
-    types: ['opened', 'synchronize', 'reopened', 'labeled'] # labeled event for ci-refresh
+    types: ['opened', 'synchronize', 'reopened']
 
 concurrency:
   group: 'pr-checks-combined-${{ github.event.pull_request.number || github.run_id }}'
@@ -44,7 +44,6 @@ jobs:
   # ==========================================
 
   paths-filter:
-    if: github.event.action != 'labeled' || github.event.label.name == 'ci-refresh' # retrigger on ci-refresh label with a new merge sha
     runs-on: ubuntu-latest
     outputs:
       website: ${{ steps.filter.outputs.website }}

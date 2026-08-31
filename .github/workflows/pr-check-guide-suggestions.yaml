@@ -13,7 +13,7 @@ permissions:
 
 on:
   pull_request:
-    types: ['opened', 'synchronize', 'labeled'] # labeled event for ci-refresh
+    types: ['opened', 'synchronize']
     paths:
       - '.github/workflows/pr-check-guide-suggestions.yaml'
       - 'internal/tools/pr-guide-suggestions/**'
@@ -29,7 +29,6 @@ concurrency:
 
 jobs:
   diff:
-    if: github.event.action != 'labeled' || github.event.label.name == 'ci-refresh' # retrigger on ci-refresh label with a new merge sha
     runs-on: ubuntu-latest
     # Skip when a maintainer has accepted the schema by applying the
     # "schema-accepted" label to the pull request.

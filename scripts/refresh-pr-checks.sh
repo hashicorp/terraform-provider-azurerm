@@ -2,20 +2,22 @@
 # Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
-# Re-runs CI for open PRs by applying the 'ci-refresh' label, which the
-# pr-check workflows accept as a re-trigger (see pr-checks-combined.yaml).
-# PR check results go stale when main moves (e.g. a newly enabled linter):
-# checks run against a merge with main computed at the last push, and GitHub
-# never re-runs them when main changes. Labeling fires a fresh pull_request
-# event whose merge commit is recomputed against the current base branch;
-# the workflow removes the label again so it acts as a stateless button.
+# Re-runs CI for open PRs by merging the current base branch into them via the
+# update-branch API (the "Update branch" button). PR check results go stale when
+# main moves (e.g. a newly enabled linter): checks run against a merge with main
+# computed at the last push, and GitHub never re-runs them when main changes.
+# Updating the branch pushes a real merge commit, which fires a genuine
+# 'synchronize' event, so every check workflow re-runs natively against current
+# main - no workflow changes, labels, or skipped-run noise involved.
 #
 # By default only PRs whose checks currently all pass are refreshed (their
-# green is what silently goes stale - red PRs already advertise themselves)
-# and PRs with merge conflicts are skipped (no merge commit can be built).
+# green is what silently goes stale - red PRs already advertise themselves).
+# Skipped automatically: PRs with merge conflicts (no merge commit can be
+# built), PRs already up to date with the base branch (nothing is stale), and
+# fork PRs without "maintainer can modify" (the API returns 403).
 #
-# Must be run with a user token (gh auth login): label events created by a
-# workflow's GITHUB_TOKEN would not trigger the check workflows.
+# Must be run with a user token (gh auth login): synchronize events pushed by
+# a workflow's GITHUB_TOKEN would not trigger the check workflows.
 #
 # Usage: refresh-pr-checks.sh [-a] [-n] [-l limit] [-s seconds] [-R owner/repo]
 #   -a  refresh all open PRs, not just those with passing checks
@@ -31,7 +33,6 @@ ALL=false
 DRY_RUN=false
 LIMIT=500
 SLEEP_SECONDS=8
-LABEL="ci-refresh"
 
 while getopts "anl:s:R:h" opt; do
   case "$opt" in
@@ -47,14 +48,6 @@ while getopts "anl:s:R:h" opt; do
     *) exit 1 ;;
   esac
 done
-
-# the label must exist before it can be applied
-if [ "$DRY_RUN" != "true" ] && ! gh label list --repo "$REPO" --json name --jq '.[].name' | grep -qx "$LABEL"; then
-  echo "creating the '$LABEL' label..."
-  gh label create "$LABEL" --repo "$REPO" \
-    --color "1D76DB" \
-    --description "Re-runs the PR checks against a fresh merge with the base branch (auto-removed)"
-fi
 
 # The search API's status qualifier finds PRs whose checks currently pass;
 # it is far cheaper than querying every PR's check rollup (which times out at
@@ -75,17 +68,11 @@ if [ -z "$PRS" ]; then
 fi
 
 COUNT=$(echo "$PRS" | wc -l | tr -d ' ')
-echo "refreshing checks on $COUNT PRs..."
+echo "refreshing checks on up to $COUNT PRs..."
 
 for n in $PRS; do
-  if [ "$DRY_RUN" = "true" ]; then
-    echo "would refresh #$n"
-    continue
-  fi
-
-  # reading mergeable makes GitHub recompute the speculative merge commit
-  # against the current base branch, so the labeled event tests fresh state.
-  # It also filters conflicted PRs, which have no merge commit to check.
+  # reading mergeable makes GitHub compute the merge preview against the current
+  # base branch, and filters conflicted PRs, which have no merge commit to build
   state="null"
   for _ in 1 2 3 4 5; do
     state=$(gh api "repos/$REPO/pulls/$n" --jq '.mergeable') || break
@@ -97,7 +84,17 @@ for n in $PRS; do
     continue
   fi
 
+  if [ "$DRY_RUN" = "true" ]; then
+    echo "would refresh #$n"
+    continue
+  fi
+
   echo "refreshing #$n"
-  gh pr edit "$n" --repo "$REPO" --add-label "$LABEL"
+  # 422 = already up to date with base; 403 = fork without maintainer-edit -
+  # both are fine to skip, anything else is worth seeing on stderr
+  if ! gh api -X PUT "repos/$REPO/pulls/$n/update-branch" > /dev/null; then
+    echo "skipping #$n (up to date, or branch not updatable)"
+    continue
+  fi
   sleep "$SLEEP_SECONDS"
 done
