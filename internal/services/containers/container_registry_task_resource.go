@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContainerRegistryTaskResource struct{}
@@ -145,7 +145,7 @@ type ContainerRegistryTaskModel struct {
 func userDataStateFunc(v interface{}) string {
 	switch s := v.(type) {
 	case string:
-		return utils.Base64EncodeIfNot(s)
+		return helpers.Base64EncodeIfNot(s)
 	default:
 		return ""
 	}
@@ -172,32 +172,19 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"os": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(tasks.OSWindows),
-							string(tasks.OSLinux),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForOS(), false),
 					},
 					"architecture": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(tasks.ArchitectureAmdSixFour),
-							string(tasks.ArchitectureArm),
-							string(tasks.ArchitectureArmSixFour),
-							string(tasks.ArchitectureThreeEightSix),
-							string(tasks.ArchitectureXEightSix),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForArchitecture(), false),
 					},
 					"variant": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(tasks.VariantVSix),
-							string(tasks.VariantVSeven),
-							string(tasks.VariantVEight),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForVariant(), false),
 					},
 				},
 			},
@@ -371,12 +358,9 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(tasks.BaseImageTriggerTypeAll),
-							string(tasks.BaseImageTriggerTypeRuntime),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForBaseImageTriggerType(), false),
 					},
 					"enabled": {
 						Type:     pluginsdk.TypeBool,
@@ -390,12 +374,9 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"update_trigger_payload_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(tasks.UpdateTriggerPayloadTypeDefault),
-							string(tasks.UpdateTriggerPayloadTypeToken),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForUpdateTriggerPayloadType(), false),
 					},
 				},
 			},
@@ -414,20 +395,14 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						Type:     pluginsdk.TypeList,
 						Required: true,
 						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(tasks.SourceTriggerEventCommit),
-								string(tasks.SourceTriggerEventPullrequest),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForSourceTriggerEvent(), false),
 						},
 					},
 					"source_type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(tasks.SourceControlTypeGithub),
-							string(tasks.SourceControlTypeVisualStudioTeamService),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForSourceControlType(), false),
 					},
 					"repository_url": {
 						Type:         pluginsdk.TypeString,
@@ -445,12 +420,9 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"token_type": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(tasks.TokenTypePAT),
-										string(tasks.TokenTypeOAuth),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForTokenType(), false),
 								},
 								"token": {
 									Type:         pluginsdk.TypeString,
@@ -522,12 +494,9 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"login_mode": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(tasks.SourceRegistryLoginModeNone),
-										string(tasks.SourceRegistryLoginModeDefault),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForSourceRegistryLoginMode(), false),
 								},
 							},
 						},
@@ -905,11 +874,11 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("platform") {
 				existing.Model.Properties.Platform = expandRegistryTaskPlatform(model.Platform)
 			}
-			if metadata.ResourceData.HasChange("docker_step") || metadata.ResourceData.HasChange("file_step") || metadata.ResourceData.HasChange("encoded_step") {
+			if metadata.ResourceData.HasChanges("docker_step", "file_step", "encoded_step") {
 				existing.Model.Properties.Step = expandRegistryTaskStep(model)
 			}
 
-			if metadata.ResourceData.HasChange("base_image_trigger") || metadata.ResourceData.HasChange("source_trigger") || metadata.ResourceData.HasChange("timer_trigger") {
+			if metadata.ResourceData.HasChanges("base_image_trigger", "source_trigger", "timer_trigger") {
 				existing.Model.Properties.Trigger = expandRegistryTaskTrigger(model)
 			}
 
@@ -998,7 +967,7 @@ func expandRegistryTaskBaseImageTrigger(triggers []BaseImageTrigger) *tasks.Base
 		out.UpdateTriggerEndpoint = &trigger.UpdateTriggerEndpoint
 	}
 	if trigger.UpdateTriggerPayloadType != "" {
-		out.UpdateTriggerPayloadType = pointer.To(tasks.UpdateTriggerPayloadType(trigger.UpdateTriggerPayloadType))
+		out.UpdateTriggerPayloadType = pointer.ToEnum[tasks.UpdateTriggerPayloadType](trigger.UpdateTriggerPayloadType)
 	}
 	return out
 }
@@ -1283,7 +1252,7 @@ func flattenRegistryTaskFileTaskStep(step tasks.TaskStepProperties, model Contai
 
 func expandRegistryTaskEncodedTaskStep(step EncodedTaskStep) tasks.EncodedTaskStep {
 	out := tasks.EncodedTaskStep{
-		EncodedTaskContent: utils.Base64EncodeIfNot(step.TaskContent),
+		EncodedTaskContent: helpers.Base64EncodeIfNot(step.TaskContent),
 		Values:             expandRegistryTaskValues(step.Values, step.SecretValues),
 	}
 	if step.ContextPath != "" {
@@ -1293,7 +1262,7 @@ func expandRegistryTaskEncodedTaskStep(step EncodedTaskStep) tasks.EncodedTaskSt
 		out.ContextAccessToken = &step.ContextAccessToken
 	}
 	if step.ValueContent != "" {
-		out.EncodedValuesContent = pointer.To(utils.Base64EncodeIfNot(step.ValueContent))
+		out.EncodedValuesContent = pointer.To(helpers.Base64EncodeIfNot(step.ValueContent))
 	}
 	return out
 }
@@ -1447,10 +1416,10 @@ func expandRegistryTaskPlatform(input []Platform) *tasks.PlatformProperties {
 		Os: tasks.OS(platform.OS),
 	}
 	if arch := platform.Architecture; arch != "" {
-		out.Architecture = pointer.To(tasks.Architecture(arch))
+		out.Architecture = pointer.ToEnum[tasks.Architecture](arch)
 	}
 	if variant := platform.Variant; variant != "" {
-		out.Variant = pointer.To(tasks.Variant(variant))
+		out.Variant = pointer.ToEnum[tasks.Variant](variant)
 	}
 	return out
 }
@@ -1512,7 +1481,7 @@ func expandSourceRegistryCredential(input []SourceRegistryCredential) *tasks.Sou
 		return nil
 	}
 
-	return &tasks.SourceRegistryCredentials{LoginMode: pointer.To(tasks.SourceRegistryLoginMode(input[0].LoginMode))}
+	return &tasks.SourceRegistryCredentials{LoginMode: pointer.ToEnum[tasks.SourceRegistryLoginMode](input[0].LoginMode)}
 }
 
 func flattenSourceRegistryCredential(input *tasks.SourceRegistryCredentials) []SourceRegistryCredential {

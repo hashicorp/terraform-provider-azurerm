@@ -97,12 +97,9 @@ func resourceElasticsearch() *pluginsdk.Resource {
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"action": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(rules.TagActionExclude),
-											string(rules.TagActionInclude),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForTagAction(), false),
 									},
 								},
 							},
@@ -395,42 +392,20 @@ func flattenTagRule(input *rules.MonitoringTagRules) []interface{} {
 			if v.Action != nil {
 				action = string(*v.Action)
 			}
-			name := ""
-			if v.Name != nil {
-				name = *v.Name
-			}
-			value := ""
-			if v.Value != nil {
-				value = *v.Value
-			}
-
 			filteringTags = append(filteringTags, map[string]interface{}{
 				"action": action,
-				"name":   name,
-				"value":  value,
+				"name":   pointer.From(v.Name),
+				"value":  pointer.From(v.Value),
 			})
 		}
-	}
-
-	sendActivityLogs := false
-	if rules.SendActivityLogs != nil {
-		sendActivityLogs = *rules.SendActivityLogs
-	}
-	sendAzureAdLogs := false
-	if rules.SendAadLogs != nil {
-		sendAzureAdLogs = *rules.SendAadLogs
-	}
-	sendSubscriptionLogs := false
-	if rules.SendSubscriptionLogs != nil {
-		sendSubscriptionLogs = *rules.SendSubscriptionLogs
 	}
 
 	return []interface{}{
 		map[string]interface{}{
 			"filtering_tag":          filteringTags,
-			"send_activity_logs":     sendActivityLogs,
-			"send_azuread_logs":      sendAzureAdLogs,
-			"send_subscription_logs": sendSubscriptionLogs,
+			"send_activity_logs":     pointer.From(rules.SendActivityLogs),
+			"send_azuread_logs":      pointer.From(rules.SendAadLogs),
+			"send_subscription_logs": pointer.From(rules.SendSubscriptionLogs),
 		},
 	}
 }

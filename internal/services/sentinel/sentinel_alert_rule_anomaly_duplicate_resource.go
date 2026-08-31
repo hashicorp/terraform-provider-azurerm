@@ -86,12 +86,9 @@ func (r AlertRuleAnomalyDuplicateResource) Arguments() map[string]*schema.Schema
 		},
 
 		"mode": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(securitymlanalyticssettings.SettingsStatusProduction),
-				string(securitymlanalyticssettings.SettingsStatusFlighting),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(securitymlanalyticssettings.PossibleValuesForSettingsStatus(), false),
 		},
 
 		"multi_select_observation": {
@@ -536,7 +533,12 @@ func (r AlertRuleAnomalyDuplicateResource) Update() sdk.ResourceFunc {
 				v.Properties.SettingsStatus = securitymlanalyticssettings.SettingsStatus(config.Mode)
 			}
 
-			if rd.HasChanges("multi_select_observation", "single_select_observation", "prioritized_exclude_observation", "threshold_observation") {
+			if rd.HasChanges(
+				"multi_select_observation",
+				"single_select_observation",
+				"prioritized_exclude_observation",
+				"threshold_observation",
+			) {
 				if v.Properties.CustomizableObservations == nil {
 					v.Properties.CustomizableObservations = &securitymlanalyticssettings.AnomalySecurityMLAnalyticsCustomizableObservations{}
 				}

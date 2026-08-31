@@ -13,38 +13,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type SecurityCenterSubscriptionPricingResource struct{}
-
-func TestAccServerVulnerabilityAssessment(t *testing.T) {
-	// these tests need to change `azurerm_security_center_subscription_pricing` of `VirtualMachines` in their test configs, so we need to run them serially.
-	// `securityCenterAssessmentPolicy` is included because it's using same `azurerm_security_center_assessment_policy` with other tests
-	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
-		"securityCenterAssessment": {
-			"basic":          testAccSecurityCenterAssessment_basic,
-			"complete":       testAccSecurityCenterAssessment_complete,
-			"update":         testAccSecurityCenterAssessment_update,
-			"requiresImport": testAccSecurityCenterAssessment_requiresImport,
-		},
-		"securityCenterAssessmentPolicy": {
-			"basic":    testAccSecurityCenterAssessmentPolicy_basic,
-			"complete": testAccSecurityCenterAssessmentPolicy_complete,
-			"update":   testAccSecurityCenterAssessmentPolicy_update,
-		},
-		"serverVulnerabilityAssessmentVirtualMachine": {
-			"basic":          testAccServerVulnerabilityAssessmentVirtualMachine_basic,
-			"requiresImport": testAccServerVulnerabilityAssessmentVirtualMachine_requiresImport,
-		},
-		"workSpace": {
-			"basic":          testAccSecurityCenterWorkspace_basic,
-			"update":         testAccSecurityCenterWorkspace_update,
-			"requiresImport": testAccSecurityCenterWorkspace_requiresImport,
-		},
-	})
-}
 
 func TestAccSecurityCenterSubscriptionPricing_cloudPosture(t *testing.T) {
 	// These tests will change pricing tier of cloud posture
@@ -117,9 +89,6 @@ func TestAccSecurityCenterSubscriptionPricing_cosmosDbs(t *testing.T) {
 }
 
 func testAccSecurityCenterSubscriptionPricing_storageAccountSubplan(t *testing.T) {
-	if !features.FivePointOh() {
-		t.Skipf("the `subplan` forces new in 4.0, but should be updated in 5.0.")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
 

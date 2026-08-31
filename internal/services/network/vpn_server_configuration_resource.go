@@ -56,12 +56,8 @@ func resourceVPNServerConfiguration() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Required: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualwans.VpnAuthenticationTypeAAD),
-						string(virtualwans.VpnAuthenticationTypeCertificate),
-						string(virtualwans.VpnAuthenticationTypeRadius),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForVpnAuthenticationType(), false),
 				},
 			},
 
@@ -618,26 +614,11 @@ func flattenVpnServerConfigurationAADAuthentication(input *virtualwans.AadAuthen
 		return []interface{}{}
 	}
 
-	audience := ""
-	if input.AadAudience != nil {
-		audience = *input.AadAudience
-	}
-
-	issuer := ""
-	if input.AadIssuer != nil {
-		issuer = *input.AadIssuer
-	}
-
-	tenant := ""
-	if input.AadTenant != nil {
-		tenant = *input.AadTenant
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"audience": audience,
-			"issuer":   issuer,
-			"tenant":   tenant,
+			"audience": pointer.From(input.AadAudience),
+			"issuer":   pointer.From(input.AadIssuer),
+			"tenant":   pointer.From(input.AadTenant),
 		},
 	}
 }
@@ -664,19 +645,9 @@ func flattenVpnServerConfigurationClientRootCertificates(input *[]virtualwans.Vp
 	output := make([]interface{}, 0)
 
 	for _, v := range *input {
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
-
-		publicCertData := ""
-		if v.PublicCertData != nil {
-			publicCertData = *v.PublicCertData
-		}
-
 		output = append(output, map[string]interface{}{
-			"name":             name,
-			"public_cert_data": publicCertData,
+			"name":             pointer.From(v.Name),
+			"public_cert_data": pointer.From(v.PublicCertData),
 		})
 	}
 
@@ -704,19 +675,9 @@ func flattenVpnServerConfigurationClientRevokedCertificates(input *[]virtualwans
 
 	output := make([]interface{}, 0)
 	for _, v := range *input {
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
-
-		thumbprint := ""
-		if v.Thumbprint != nil {
-			thumbprint = *v.Thumbprint
-		}
-
 		output = append(output, map[string]interface{}{
-			"name":       name,
-			"thumbprint": thumbprint,
+			"name":       pointer.From(v.Name),
+			"thumbprint": pointer.From(v.Thumbprint),
 		})
 	}
 	return output
@@ -831,19 +792,9 @@ func flattenVpnServerConfigurationRadius(input *virtualwans.VpnServerConfigurati
 	clientRootCertificates := make([]interface{}, 0)
 	if input.RadiusClientRootCertificates != nil {
 		for _, v := range *input.RadiusClientRootCertificates {
-			name := ""
-			if v.Name != nil {
-				name = *v.Name
-			}
-
-			thumbprint := ""
-			if v.Thumbprint != nil {
-				thumbprint = *v.Thumbprint
-			}
-
 			clientRootCertificates = append(clientRootCertificates, map[string]interface{}{
-				"name":       name,
-				"thumbprint": thumbprint,
+				"name":       pointer.From(v.Name),
+				"thumbprint": pointer.From(v.Thumbprint),
 			})
 		}
 	}
@@ -851,19 +802,9 @@ func flattenVpnServerConfigurationRadius(input *virtualwans.VpnServerConfigurati
 	serverRootCertificates := make([]interface{}, 0)
 	if input.RadiusServerRootCertificates != nil {
 		for _, v := range *input.RadiusServerRootCertificates {
-			name := ""
-			if v.Name != nil {
-				name = *v.Name
-			}
-
-			publicCertData := ""
-			if v.PublicCertData != nil {
-				publicCertData = *v.PublicCertData
-			}
-
 			serverRootCertificates = append(serverRootCertificates, map[string]interface{}{
-				"name":             name,
-				"public_cert_data": publicCertData,
+				"name":             pointer.From(v.Name),
+				"public_cert_data": pointer.From(v.PublicCertData),
 			})
 		}
 	}

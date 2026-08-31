@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
@@ -47,7 +46,7 @@ type SpringCloudRepositoryModel struct {
 type SpringCloudConfigurationServiceResource struct{}
 
 func (s SpringCloudConfigurationServiceResource) DeprecationMessage() string {
-	return features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_configuration_service` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.")
+	return "Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_configuration_service` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."
 }
 
 var (
@@ -79,12 +78,9 @@ func (s SpringCloudConfigurationServiceResource) Arguments() map[string]*schema.
 		},
 
 		"generation": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(appplatform.ConfigurationServiceGenerationGenOne),
-				string(appplatform.ConfigurationServiceGenerationGenTwo),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(appplatform.PossibleValuesForConfigurationServiceGeneration(), false),
 		},
 
 		"refresh_interval_in_seconds": {
@@ -191,7 +187,7 @@ func (s SpringCloudConfigurationServiceResource) ModelObject() interface{} {
 }
 
 func (s SpringCloudConfigurationServiceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.SpringCloudConfigurationServiceID
+	return appplatform.ValidateConfigurationServiceID
 }
 
 func (s SpringCloudConfigurationServiceResource) StateUpgraders() sdk.StateUpgradeData {
@@ -233,7 +229,7 @@ func (s SpringCloudConfigurationServiceResource) Create() sdk.ResourceFunc {
 
 			configurationServiceResource := appplatform.ConfigurationServiceResource{
 				Properties: &appplatform.ConfigurationServiceProperties{
-					Generation: pointer.To(appplatform.ConfigurationServiceGeneration(model.Generation)),
+					Generation: pointer.ToEnum[appplatform.ConfigurationServiceGeneration](model.Generation),
 					Settings: &appplatform.ConfigurationServiceSettings{
 						GitProperty: &appplatform.ConfigurationServiceGitProperty{
 							Repositories: expandConfigurationServiceConfigurationServiceGitRepositoryArray(model.Repository),
@@ -280,7 +276,7 @@ func (s SpringCloudConfigurationServiceResource) Update() sdk.ResourceFunc {
 
 			properties := existing.Model.Properties
 			if metadata.ResourceData.HasChange("generation") {
-				properties.Generation = pointer.To(appplatform.ConfigurationServiceGeneration(model.Generation))
+				properties.Generation = pointer.ToEnum[appplatform.ConfigurationServiceGeneration](model.Generation)
 			}
 
 			if metadata.ResourceData.HasChange("repository") {
@@ -294,8 +290,7 @@ func (s SpringCloudConfigurationServiceResource) Update() sdk.ResourceFunc {
 			configurationServiceResource := appplatform.ConfigurationServiceResource{
 				Properties: properties,
 			}
-			err = client.ConfigurationServicesCreateOrUpdateThenPoll(ctx, id, configurationServiceResource)
-			if err != nil {
+			if err = client.ConfigurationServicesCreateOrUpdateThenPoll(ctx, id, configurationServiceResource); err != nil {
 				return fmt.Errorf("creating/updating %s: %+v", id, err)
 			}
 
@@ -361,8 +356,7 @@ func (s SpringCloudConfigurationServiceResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.ConfigurationServicesDeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.ConfigurationServicesDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
@@ -410,10 +404,7 @@ func flattenConfigurationServiceConfigurationServiceGitRepositoryArray(input *[]
 	}
 
 	for _, item := range *input {
-		var strictHostKeyChecking bool
-		if item.StrictHostKeyChecking != nil {
-			strictHostKeyChecking = *item.StrictHostKeyChecking
-		}
+		strictHostKeyChecking := pointer.From(item.StrictHostKeyChecking)
 
 		var hostKey string
 		var hostKeyAlgorithm string

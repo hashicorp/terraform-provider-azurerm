@@ -10,8 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -23,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -35,7 +34,7 @@ import (
 var networkSecurityGroupResourceName = "azurerm_network_security_group"
 
 func resourceNetworkSecurityGroup() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceNetworkSecurityGroupCreate,
 		Read:   resourceNetworkSecurityGroupRead,
 		Update: resourceNetworkSecurityGroupUpdate,
@@ -85,16 +84,9 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 						},
 
 						"protocol": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(networksecuritygroups.SecurityRuleProtocolAny),
-								string(networksecuritygroups.SecurityRuleProtocolTcp),
-								string(networksecuritygroups.SecurityRuleProtocolUdp),
-								string(networksecuritygroups.SecurityRuleProtocolIcmp),
-								string(networksecuritygroups.SecurityRuleProtocolAh),
-								string(networksecuritygroups.SecurityRuleProtocolEsp),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(networksecuritygroups.PossibleValuesForSecurityRuleProtocol(), false),
 						},
 
 						"source_port_range": {
@@ -166,12 +158,9 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 						},
 
 						"access": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(networksecuritygroups.SecurityRuleAccessAllow),
-								string(networksecuritygroups.SecurityRuleAccessDeny),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(networksecuritygroups.PossibleValuesForSecurityRuleAccess(), false),
 						},
 
 						"priority": {
@@ -181,12 +170,9 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 						},
 
 						"direction": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(networksecuritygroups.SecurityRuleDirectionInbound),
-								string(networksecuritygroups.SecurityRuleDirectionOutbound),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(networksecuritygroups.PossibleValuesForSecurityRuleDirection(), false),
 						},
 					},
 				},
@@ -195,8 +181,6 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	return resource
 }
 
 func resourceNetworkSecurityGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {

@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -34,7 +33,7 @@ import (
 )
 
 func resourceArmLoadBalancer() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceArmLoadBalancerCreate,
 		Read:   resourceArmLoadBalancerRead,
 		Update: resourceArmLoadBalancerUpdate,
@@ -66,26 +65,19 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(loadbalancers.LoadBalancerSkuNameStandard),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(loadbalancers.LoadBalancerSkuNameBasic),
-					string(loadbalancers.LoadBalancerSkuNameStandard),
-					string(loadbalancers.LoadBalancerSkuNameGateway),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(loadbalancers.LoadBalancerSkuNameStandard),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForLoadBalancerSkuName(), false),
 			},
 
 			"sku_tier": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(loadbalancers.LoadBalancerSkuTierRegional),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(loadbalancers.LoadBalancerSkuTierRegional),
-					string(loadbalancers.LoadBalancerSkuTierGlobal),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(loadbalancers.LoadBalancerSkuTierRegional),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForLoadBalancerSkuTier(), false),
 			},
 
 			"frontend_ip_configuration": {
@@ -121,11 +113,8 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							// Not using O+C here causes drift
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(loadbalancers.IPVersionIPvFour),
-								string(loadbalancers.IPVersionIPvSix),
-							}, false),
+							Computed:     true,
+							ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForIPVersion(), false),
 						},
 
 						"public_ip_address_id": {
@@ -142,13 +131,10 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 						},
 
 						"private_ip_address_allocation": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(loadbalancers.IPAllocationMethodDynamic),
-								string(loadbalancers.IPAllocationMethodStatic),
-							}, true),
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							Computed:         true,
+							ValidateFunc:     validation.StringInSlice(loadbalancers.PossibleValuesForIPAllocationMethod(), true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
@@ -244,25 +230,6 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 			}),
 		),
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["subnet_id"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// Removing O+C did not seem to cause drift
-			Computed:     true,
-			ValidateFunc: commonids.ValidateSubnetID,
-		}
-		r.Schema["public_ip_address_id"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// Removing O+C did not seem to cause drift
-			Computed:     true,
-			ValidateFunc: commonids.ValidatePublicIPAddressID,
-		}
-	}
-
-	return r
 }
 
 func resourceArmLoadBalancerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -294,8 +261,8 @@ func resourceArmLoadBalancerCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	sku := loadbalancers.LoadBalancerSku{
-		Name: pointer.To(loadbalancers.LoadBalancerSkuName(d.Get("sku").(string))),
-		Tier: pointer.To(loadbalancers.LoadBalancerSkuTier(d.Get("sku_tier").(string))),
+		Name: pointer.ToEnum[loadbalancers.LoadBalancerSkuName](d.Get("sku").(string)),
+		Tier: pointer.ToEnum[loadbalancers.LoadBalancerSkuTier](d.Get("sku_tier").(string)),
 	}
 
 	properties := loadbalancers.LoadBalancerPropertiesFormat{}
@@ -416,8 +383,7 @@ func resourceArmLoadBalancerUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, loadbalancers.ProviderLoadBalancerId(*id), model)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, loadbalancers.ProviderLoadBalancerId(*id), model); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -436,8 +402,7 @@ func resourceArmLoadBalancerDelete(d *pluginsdk.ResourceData, meta interface{}) 
 
 	plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroupName, LoadBalancerName: id.LoadBalancerName}
 
-	err = client.DeleteThenPoll(ctx, plbId)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, plbId); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
@@ -459,7 +424,7 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 		properties := loadbalancers.FrontendIPConfigurationPropertiesFormat{}
 
 		if v := data["private_ip_address_allocation"].(string); v != "" {
-			properties.PrivateIPAllocationMethod = pointer.To(loadbalancers.IPAllocationMethod(v))
+			properties.PrivateIPAllocationMethod = pointer.ToEnum[loadbalancers.IPAllocationMethod](v)
 		}
 
 		if v := data["gateway_load_balancer_frontend_ip_configuration_id"].(string); v != "" {
@@ -487,7 +452,7 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 		if v := data["subnet_id"].(string); v != "" {
 			properties.PrivateIPAddressVersion = pointer.To(loadbalancers.IPVersionIPvFour)
 			if v := data["private_ip_address_version"].(string); v != "" {
-				properties.PrivateIPAddressVersion = pointer.To(loadbalancers.IPVersion(v))
+				properties.PrivateIPAddressVersion = pointer.ToEnum[loadbalancers.IPVersion](v)
 			}
 			properties.Subnet = &loadbalancers.Subnet{
 				Id: pointer.To(v),
@@ -517,15 +482,9 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]loadbalancers.Front
 	}
 
 	for _, config := range *ipConfigs {
-		name := ""
-		if config.Name != nil {
-			name = *config.Name
-		}
+		name := pointer.From(config.Name)
 
-		id := ""
-		if config.Id != nil {
-			id = *config.Id
-		}
+		id := pointer.From(config.Id)
 
 		var inboundNatRules []interface{}
 		var loadBalancingRules []interface{}

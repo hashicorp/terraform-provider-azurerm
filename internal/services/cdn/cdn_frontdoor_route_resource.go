@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigins"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/routes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rulesets"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -24,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
@@ -110,15 +110,10 @@ func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
 						},
 
 						"query_string_caching_behavior": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(routes.AfdQueryStringCachingBehaviorIgnoreQueryString),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(routes.AfdQueryStringCachingBehaviorIgnoreQueryString),
-								string(routes.AfdQueryStringCachingBehaviorIgnoreSpecifiedQueryStrings),
-								string(routes.AfdQueryStringCachingBehaviorIncludeSpecifiedQueryStrings),
-								string(routes.AfdQueryStringCachingBehaviorUseQueryString),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(routes.AfdQueryStringCachingBehaviorIgnoreQueryString),
+							ValidateFunc: validation.StringInSlice(routes.PossibleValuesForAfdQueryStringCachingBehavior(), false),
 						},
 
 						"compression_enabled": {
@@ -146,14 +141,10 @@ func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
 			},
 
 			"forwarding_protocol": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(routes.ForwardingProtocolMatchRequest),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(routes.ForwardingProtocolHTTPOnly),
-					string(routes.ForwardingProtocolHTTPSOnly),
-					string(routes.ForwardingProtocolMatchRequest),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(routes.ForwardingProtocolMatchRequest),
+				ValidateFunc: validation.StringInSlice(routes.PossibleValuesForForwardingProtocol(), false),
 			},
 
 			"https_redirect_enabled": {
@@ -190,11 +181,8 @@ func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
 				Required: true,
 				MaxItems: 2,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(routes.AFDEndpointProtocolsHTTP),
-						string(routes.AFDEndpointProtocolsHTTPS),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(routes.PossibleValuesForAFDEndpointProtocols(), false),
 				},
 			},
 		},
@@ -265,7 +253,7 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 			LinkToDefaultDomain: expandCdnFrontDoorRouteDefaultDomain(linkToDefaultDomain),
 			OriginGroup:         originGroup,
 			OriginPath:          pointer.ToOrNil(d.Get("cdn_frontdoor_origin_path").(string)),
-			PatternsToMatch:     utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
+			PatternsToMatch:     helpers.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
 			RuleSets:            expandCdnFrontdoorRouteRuleSetReferenceArray(d.Get("cdn_frontdoor_rule_set_ids").(*pluginsdk.Set).List()),
 			SupportedProtocols:  expandCdnFrontDoorRouteEndpointProtocolsArray(protocols),
 		},
@@ -448,7 +436,7 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.HasChange("patterns_to_match") {
-		props.PatternsToMatch = utils.ExpandStringSlice(d.Get("patterns_to_match").([]interface{}))
+		props.PatternsToMatch = helpers.ExpandStringSlice(d.Get("patterns_to_match").([]interface{}))
 	}
 
 	if d.HasChange("cdn_frontdoor_rule_set_ids") {
@@ -571,7 +559,7 @@ func expandCdnFrontdoorRouteCacheConfiguration(input []interface{}) *routes.AfdR
 	}
 
 	if contentTypes := v["content_types_to_compress"].([]interface{}); len(contentTypes) > 0 {
-		cacheConfiguration.CompressionSettings.ContentTypesToCompress = utils.ExpandStringSlice(contentTypes)
+		cacheConfiguration.CompressionSettings.ContentTypesToCompress = helpers.ExpandStringSlice(contentTypes)
 	}
 
 	return cacheConfiguration
@@ -599,7 +587,8 @@ func flattenCdnFrontDoorRouteRuleSetResourceArray(input *[]routes.ResourceRefere
 
 func flattenCdnFrontDoorRouteOriginGroupResourceReference(input *routes.ResourceReference) (string, error) {
 	if input != nil && input.Id != nil {
-		id, err := afdorigingroups.ParseOriginGroupID(*input.Id)
+		// The 5.0 go-azure-sdk migration changed this read path to strict parsing, regressing support for inconsistently cased IDs returned by Azure; see #32953.
+		id, err := afdorigingroups.ParseOriginGroupIDInsensitively(*input.Id)
 		if err != nil {
 			return "", err
 		}
@@ -642,7 +631,7 @@ func flattenCdnFrontDoorRouteCacheConfiguration(input *routes.AfdRouteCacheConfi
 	contentTypesToCompress := make([]interface{}, 0)
 	if v := input.CompressionSettings; v != nil {
 		compressionEnabled = pointer.From(v.IsCompressionEnabled)
-		contentTypesToCompress = utils.FlattenStringSlice(v.ContentTypesToCompress)
+		contentTypesToCompress = helpers.FlattenStringSlice(v.ContentTypesToCompress)
 	}
 
 	return []interface{}{

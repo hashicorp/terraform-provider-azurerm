@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -30,7 +31,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -488,7 +488,7 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.GetCertificate(ctx, *keyVaultBaseUrl, name, "")
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of existing Certificate %q in %s: %s", name, *keyVaultBaseUrl, err)
 			}
 		}
@@ -516,7 +516,7 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 		}
 		newCert, err = client.ImportCertificate(ctx, *keyVaultBaseUrl, name, importParameters)
 		if err != nil {
-			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && utils.ResponseWasConflict(newCert.Response) {
+			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && response.WasConflict(newCert.Response.Response) {
 				if err = recoverDeletedCertificate(ctx, d, meta, *keyVaultBaseUrl, name); err != nil {
 					return fmt.Errorf("recover deleted certificate: %+v", err)
 				}
@@ -532,7 +532,7 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 		// Generate new
 		newCert, err = createCertificate(d, meta)
 		if err != nil {
-			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && utils.ResponseWasConflict(newCert.Response) {
+			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && response.WasConflict(newCert.Response.Response) {
 				if err = recoverDeletedCertificate(ctx, d, meta, *keyVaultBaseUrl, name); err != nil {
 					return fmt.Errorf("recover deleted certificate: %+v", err)
 				}
@@ -599,9 +599,6 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 
 	meta.(*clients.Client).KeyVault.AddToCache(*keyVaultId, id.KeyVaultBaseURL)
 
-	// Because certificate content is not returned from the api, we need to set partial as true in case
-	// the update fails and state is updated incorrectly causing subsequent refreshes to not update `certificate`.
-	d.Partial(true)
 	if d.HasChange("certificate") {
 		if v, ok := d.GetOk("certificate"); ok {
 			// Import new version of certificate
@@ -677,7 +674,6 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 			return err
 		}
 	}
-	d.Partial(false)
 	return resourceKeyVaultCertificateRead(d, meta)
 }
 
@@ -749,7 +745,7 @@ func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface{}
 
 	cert, err := client.GetCertificate(ctx, id.KeyVaultBaseURL, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(cert.Response) {
+		if response.WasNotFound(cert.Response.Response) {
 			log.Printf("[DEBUG] Certificate %q was not found in Key Vault at URI %q - removing from state", id.Name, id.KeyVaultBaseURL)
 			d.SetId("")
 			return nil
@@ -956,7 +952,7 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*kv.Certificate
 		cert := v.(map[string]interface{})
 
 		ekus := cert["extended_key_usage"].([]interface{})
-		extendedKeyUsage := utils.ExpandStringSlice(ekus)
+		extendedKeyUsage := helpers.ExpandStringSlice(ekus)
 
 		keyUsage := make([]kv.KeyUsageType, 0)
 		keys := cert["key_usage"].(*pluginsdk.Set).List()
@@ -972,17 +968,17 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*kv.Certificate
 
 					emails := san["emails"].(*pluginsdk.Set).List()
 					if len(emails) > 0 {
-						subjectAlternativeNames.Emails = utils.ExpandStringSlice(emails)
+						subjectAlternativeNames.Emails = helpers.ExpandStringSlice(emails)
 					}
 
 					dnsNames := san["dns_names"].(*pluginsdk.Set).List()
 					if len(dnsNames) > 0 {
-						subjectAlternativeNames.DNSNames = utils.ExpandStringSlice(dnsNames)
+						subjectAlternativeNames.DNSNames = helpers.ExpandStringSlice(dnsNames)
 					}
 
 					upns := san["upns"].(*pluginsdk.Set).List()
 					if len(upns) > 0 {
-						subjectAlternativeNames.Upns = utils.ExpandStringSlice(upns)
+						subjectAlternativeNames.Upns = helpers.ExpandStringSlice(upns)
 					}
 				}
 			}

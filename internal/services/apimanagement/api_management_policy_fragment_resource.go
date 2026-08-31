@@ -69,13 +69,10 @@ func resourceApiManagementPolicyFragment() *pluginsdk.Resource {
 			"api_management_id": commonschema.ResourceIDReferenceRequiredForceNew(&apimanagementservice.ServiceId{}),
 
 			"format": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(policyfragment.PolicyFragmentContentFormatRawxml),
-					string(policyfragment.PolicyFragmentContentFormatXml),
-				}, false),
-				Default: policyfragment.PolicyFragmentContentFormatXml,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(policyfragment.PossibleValuesForPolicyFragmentContentFormat(), false),
+				Default:      policyfragment.PolicyFragmentContentFormatXml,
 			},
 
 			"value": {

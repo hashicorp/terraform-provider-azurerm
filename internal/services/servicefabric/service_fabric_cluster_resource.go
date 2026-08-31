@@ -56,42 +56,27 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"reliability_level": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cluster.ReliabilityLevelNone),
-					string(cluster.ReliabilityLevelBronze),
-					string(cluster.ReliabilityLevelSilver),
-					string(cluster.ReliabilityLevelGold),
-					string(cluster.ReliabilityLevelPlatinum),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(cluster.PossibleValuesForReliabilityLevel(), false),
 			},
 
 			"upgrade_mode": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cluster.UpgradeModeAutomatic),
-					string(cluster.UpgradeModeManual),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(cluster.PossibleValuesForUpgradeMode(), false),
 			},
 
 			"service_fabric_zonal_upgrade_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cluster.SfZonalUpgradeModeHierarchical),
-					string(cluster.SfZonalUpgradeModeParallel),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(cluster.PossibleValuesForSfZonalUpgradeMode(), false),
 			},
 
 			"vmss_zonal_upgrade_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cluster.VMSSZonalUpgradeModeHierarchical),
-					string(cluster.VMSSZonalUpgradeModeParallel),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(cluster.PossibleValuesForVMSSZonalUpgradeMode(), false),
 			},
 
 			"cluster_code_version": {
@@ -503,14 +488,10 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 							ValidateFunc: validate.PortNumber,
 						},
 						"durability_level": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(cluster.DurabilityLevelBronze),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cluster.DurabilityLevelBronze),
-								string(cluster.DurabilityLevelSilver),
-								string(cluster.DurabilityLevelGold),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(cluster.DurabilityLevelBronze),
+							ValidateFunc: validation.StringInSlice(cluster.PossibleValuesForDurabilityLevel(), false),
 						},
 
 						"application_ports": {
@@ -642,23 +623,19 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if certificateRaw, ok := d.GetOk("certificate"); ok {
-		certificate := expandServiceFabricClusterCertificate(certificateRaw.([]interface{}))
-		clusterModel.Properties.Certificate = certificate
+		clusterModel.Properties.Certificate = expandServiceFabricClusterCertificate(certificateRaw.([]interface{}))
 	}
 
 	if reverseProxyCertificateRaw, ok := d.GetOk("reverse_proxy_certificate"); ok {
-		reverseProxyCertificate := expandServiceFabricClusterReverseProxyCertificate(reverseProxyCertificateRaw.([]interface{}))
-		clusterModel.Properties.ReverseProxyCertificate = reverseProxyCertificate
+		clusterModel.Properties.ReverseProxyCertificate = expandServiceFabricClusterReverseProxyCertificate(reverseProxyCertificateRaw.([]interface{}))
 	}
 
 	if clientCertificateThumbprintRaw, ok := d.GetOk("client_certificate_thumbprint"); ok {
-		clientCertificateThumbprints := expandServiceFabricClusterClientCertificateThumbprints(clientCertificateThumbprintRaw.([]interface{}))
-		clusterModel.Properties.ClientCertificateThumbprints = clientCertificateThumbprints
+		clusterModel.Properties.ClientCertificateThumbprints = expandServiceFabricClusterClientCertificateThumbprints(clientCertificateThumbprintRaw.([]interface{}))
 	}
 
 	if clientCertificateCommonNamesRaw, ok := d.GetOk("client_certificate_common_name"); ok {
-		clientCertificateCommonNames := expandServiceFabricClusterClientCertificateCommonNames(clientCertificateCommonNamesRaw.([]interface{}))
-		clusterModel.Properties.ClientCertificateCommonNames = clientCertificateCommonNames
+		clusterModel.Properties.ClientCertificateCommonNames = expandServiceFabricClusterClientCertificateCommonNames(clientCertificateCommonNamesRaw.([]interface{}))
 	}
 
 	if clusterCodeVersion != "" {

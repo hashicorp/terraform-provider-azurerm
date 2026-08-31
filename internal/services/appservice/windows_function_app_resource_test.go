@@ -1689,7 +1689,7 @@ func TestAccWindowsFunctionApp_vNetIntegrationUpdate(t *testing.T) {
 	})
 }
 
-func TestAccWindowsFunctionAppASEv3_basic(t *testing.T) {
+func TestAccWindowsFunctionApp_ASEv3Basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
 	r := WindowsFunctionAppResource{}
 

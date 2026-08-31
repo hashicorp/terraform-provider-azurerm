@@ -79,14 +79,10 @@ func resourceApiManagementApiDiagnostic() *pluginsdk.Resource {
 			},
 
 			"verbosity": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(apidiagnostic.VerbosityVerbose),
-					string(apidiagnostic.VerbosityInformation),
-					string(apidiagnostic.VerbosityError),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(apidiagnostic.PossibleValuesForVerbosity(), false),
 			},
 
 			"log_client_ip": {
@@ -96,14 +92,10 @@ func resourceApiManagementApiDiagnostic() *pluginsdk.Resource {
 			},
 
 			"http_correlation_protocol": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(apidiagnostic.HTTPCorrelationProtocolNone),
-					string(apidiagnostic.HTTPCorrelationProtocolLegacy),
-					string(apidiagnostic.HTTPCorrelationProtocolWThreeC),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(apidiagnostic.PossibleValuesForHTTPCorrelationProtocol(), false),
 			},
 
 			"frontend_request": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
@@ -115,13 +107,10 @@ func resourceApiManagementApiDiagnostic() *pluginsdk.Resource {
 			"backend_response": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
 
 			"operation_name_format": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(apidiagnostic.OperationNameFormatName),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(apidiagnostic.OperationNameFormatName),
-					string(apidiagnostic.OperationNameFormatURL),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(apidiagnostic.OperationNameFormatName),
+				ValidateFunc: validation.StringInSlice(apidiagnostic.PossibleValuesForOperationNameFormat(), false),
 			},
 		},
 
@@ -206,7 +195,7 @@ func resourceApiManagementApiDiagnosticCreateUpdate(d *pluginsdk.ResourceData, m
 
 	if operationNameFormat, ok := d.GetOk("operation_name_format"); ok {
 		if d.Get("identifier") == "applicationinsights" {
-			parameters.Properties.OperationNameFormat = pointer.To(apidiagnostic.OperationNameFormat(operationNameFormat.(string)))
+			parameters.Properties.OperationNameFormat = pointer.ToEnum[apidiagnostic.OperationNameFormat](operationNameFormat.(string))
 		}
 	}
 
@@ -225,7 +214,7 @@ func resourceApiManagementApiDiagnosticCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	if verbosity, ok := d.GetOk("verbosity"); ok {
-		parameters.Properties.Verbosity = pointer.To(apidiagnostic.Verbosity(verbosity.(string)))
+		parameters.Properties.Verbosity = pointer.ToEnum[apidiagnostic.Verbosity](verbosity.(string))
 	}
 
 	//lint:ignore SA1019 SDKv2 migration  - staticcheck's own linter directives are currently being ignored under golanci-lint
@@ -234,7 +223,7 @@ func resourceApiManagementApiDiagnosticCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	if httpCorrelationProtocol, ok := d.GetOk("http_correlation_protocol"); ok {
-		parameters.Properties.HTTPCorrelationProtocol = pointer.To(apidiagnostic.HTTPCorrelationProtocol(httpCorrelationProtocol.(string)))
+		parameters.Properties.HTTPCorrelationProtocol = pointer.ToEnum[apidiagnostic.HTTPCorrelationProtocol](httpCorrelationProtocol.(string))
 	}
 
 	frontendRequest, frontendRequestSet := d.GetOk("frontend_request")
@@ -421,12 +410,9 @@ func schemaApiManagementDataMaskingEntityList() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"mode": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(apidiagnostic.DataMaskingModeHide),
-						string(apidiagnostic.DataMaskingModeMask),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(apidiagnostic.PossibleValuesForDataMaskingMode(), false),
 				},
 
 				"value": {
@@ -460,7 +446,7 @@ func expandApiManagementApiDiagnosticDataMaskingEntityList(input []interface{}) 
 	for _, v := range input {
 		entity := v.(map[string]interface{})
 		result = append(result, apidiagnostic.DataMaskingEntity{
-			Mode:  pointer.To(apidiagnostic.DataMaskingMode(entity["mode"].(string))),
+			Mode:  pointer.ToEnum[apidiagnostic.DataMaskingMode](entity["mode"].(string)),
 			Value: pointer.To(entity["value"].(string)),
 		})
 	}
