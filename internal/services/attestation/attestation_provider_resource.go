@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -232,6 +233,10 @@ func resourceAttestationProviderRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceAttestationProviderFlatten(ctx, attestationClients, d, id, resp.Model)
+}
+
+func resourceAttestationProviderFlatten(ctx context.Context, attestationClients *client.Client, d *pluginsdk.ResourceData, id *attestationproviders.AttestationProvidersId, model *attestationproviders.AttestationProviders) error {
 	dataPlaneUri, err := attestationClients.DataPlaneEndpointForProvider(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("determining Data Plane URI for %s: %+v", *id, err)
@@ -262,7 +267,7 @@ func resourceAttestationProviderRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("name", id.AttestationProviderName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
