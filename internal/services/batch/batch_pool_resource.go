@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -93,14 +92,9 @@ func resourceBatchPool() *pluginsdk.Resource {
 						// Here we treat `node_deallocation_method` the same as a secret value.
 						// Issue link: https://github.com/Azure/azure-rest-api-specs/issues/20948
 						"node_deallocation_method": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(pool.ComputeNodeDeallocationOptionRequeue),
-								string(pool.ComputeNodeDeallocationOptionRetainedData),
-								string(pool.ComputeNodeDeallocationOptionTaskCompletion),
-								string(pool.ComputeNodeDeallocationOptionTerminate),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForComputeNodeDeallocationOption(), false),
 						},
 						"target_dedicated_nodes": {
 							Type:         pluginsdk.TypeInt,
@@ -416,10 +410,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 							ForceNew:         true,
 							Default:          string(pool.DynamicVNetAssignmentScopeNone),
 							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(pool.DynamicVNetAssignmentScopeNone),
-								string(pool.DynamicVNetAssignmentScopeJob),
-							}, false),
+							ValidateFunc:     validation.StringInSlice(pool.PossibleValuesForDynamicVNetAssignmentScope(), false),
 						},
 						"accelerated_networking_enabled": {
 							Type:     pluginsdk.TypeBool,
@@ -443,13 +434,9 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Set: pluginsdk.HashString,
 						},
 						"public_address_provisioning_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(pool.IPAddressProvisioningTypeBatchManaged),
-								string(pool.IPAddressProvisioningTypeUserManaged),
-								string(pool.IPAddressProvisioningTypeNoPublicIPAddresses),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForIPAddressProvisioningType(), false),
 						},
 						"endpoint_configuration": {
 							Type:     pluginsdk.TypeList,
@@ -464,13 +451,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"protocol": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ForceNew: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(pool.InboundEndpointProtocolTCP),
-											string(pool.InboundEndpointProtocolUDP),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validation.StringInSlice(pool.PossibleValuesForInboundEndpointProtocol(), false),
 									},
 									"backend_port": {
 										Type:     pluginsdk.TypeInt,
@@ -500,13 +484,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 													ValidateFunc: validation.IntAtLeast(150),
 												},
 												"access": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ForceNew: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(pool.NetworkSecurityGroupRuleAccessAllow),
-														string(pool.NetworkSecurityGroupRuleAccessDeny),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ForceNew:     true,
+													ValidateFunc: validation.StringInSlice(pool.PossibleValuesForNetworkSecurityGroupRuleAccess(), false),
 												},
 												"source_address_prefix": {
 													Type:         pluginsdk.TypeString,
@@ -545,14 +526,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 							ValidateFunc: validation.IntBetween(0, 63),
 						},
 						"caching": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(pool.CachingTypeReadOnly),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(pool.CachingTypeNone),
-								string(pool.CachingTypeReadOnly),
-								string(pool.CachingTypeReadWrite),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(pool.CachingTypeReadOnly),
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForCachingType(), false),
 						},
 						"disk_size_gb": {
 							Type:         pluginsdk.TypeInt,
@@ -577,12 +554,9 @@ func resourceBatchPool() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"disk_encryption_target": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(pool.DiskEncryptionTargetTemporaryDisk),
-								string(pool.DiskEncryptionTargetOsDisk),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForDiskEncryptionTarget(), false),
 						},
 					},
 				},
@@ -625,7 +599,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Optional:     true,
 							ValidateFunc: validation.StringIsJSON,
 						},
-						"protected_settings": { // todo 4.0 - should this actually be a map of key value pairs?
+						"protected_settings": {
 							Type:      pluginsdk.TypeString,
 							Optional:  true,
 							Sensitive: true,
@@ -647,13 +621,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"policy": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(pool.NodePlacementPolicyTypeRegional),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(pool.NodePlacementPolicyTypeZonal),
-								string(pool.NodePlacementPolicyTypeRegional),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(pool.NodePlacementPolicyTypeRegional),
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForNodePlacementPolicyType(), false),
 						},
 					},
 				},
@@ -667,19 +638,14 @@ func resourceBatchPool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice(
-					[]string{
-						string(pool.DiffDiskPlacementCacheDisk),
-					}, false,
+					pool.PossibleValuesForDiffDiskPlacement(), false,
 				),
 			},
 			"inter_node_communication": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(pool.InterNodeCommunicationStateEnabled),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(pool.InterNodeCommunicationStateEnabled),
-					string(pool.InterNodeCommunicationStateDisabled),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(pool.InterNodeCommunicationStateEnabled),
+				ValidateFunc: validation.StringInSlice(pool.PossibleValuesForInterNodeCommunicationState(), false),
 			},
 
 			"security_profile": {
@@ -729,13 +695,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"node_fill_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(pool.ComputeNodeFillTypeSpread),
-								string(pool.ComputeNodeFillTypePack),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForComputeNodeFillType(), false),
 						},
 					},
 				},
@@ -757,12 +720,9 @@ func resourceBatchPool() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"elevation_level": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(pool.ElevationLevelNonAdmin),
-								string(pool.ElevationLevelAdmin),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForElevationLevel(), false),
 						},
 						"linux_user_configuration": {
 							Type:     pluginsdk.TypeList,
@@ -791,12 +751,9 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"login_mode": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(pool.LoginModeBatch),
-											string(pool.LoginModeInteractive),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(pool.PossibleValuesForLoginMode(), false),
 									},
 								},
 							},
@@ -818,53 +775,6 @@ func resourceBatchPool() *pluginsdk.Resource {
 				},
 			},
 		},
-	}
-
-	if !features.FivePointOh() {
-		resource.Schema["certificate"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Deprecated: "the `certificate` property has been deprecated and will be removed in v5.0 of the AzureRM provider.",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: azure.ValidateResourceID,
-						// The ID returned for the certificate in the batch account and the certificate applied to the pool
-						// are not consistent in their casing which causes issues when referencing IDs across resources
-						// (as Terraform still sees differences to apply due to the casing)
-						// Handling by ignoring casing for now. Raised as an issue: https://github.com/Azure/azure-rest-api-specs/issues/5574
-						DiffSuppressFunc: suppress.CaseDifference,
-					},
-					"store_location": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"CurrentUser",
-							"LocalMachine",
-						}, false),
-					},
-					"store_name": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"visibility": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice([]string{
-								"StartTask",
-								"Task",
-								"RemoteUser",
-							}, false),
-						},
-					},
-				},
-			},
-		}
 	}
 
 	resource.Identity = &schema.ResourceIdentity{
@@ -899,7 +809,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		Properties: &pool.PoolProperties{
 			VMSize:                 pointer.To(d.Get("vm_size").(string)),
 			DisplayName:            pointer.To(d.Get("display_name").(string)),
-			InterNodeCommunication: pointer.To(pool.InterNodeCommunicationState(d.Get("inter_node_communication").(string))),
+			InterNodeCommunication: pointer.ToEnum[pool.InterNodeCommunicationState](d.Get("inter_node_communication").(string)),
 			TaskSlotsPerNode:       pointer.To(int64(d.Get("max_tasks_per_node").(int))),
 		},
 	}
@@ -954,16 +864,6 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		return deploymentErr
 	}
 
-	if !features.FivePointOh() {
-		if v, ok := d.GetOk("certificate"); ok {
-			certificateReferences, err := ExpandBatchPoolCertificateReferences(v.([]interface{}))
-			if err != nil {
-				return fmt.Errorf("expanding `certificate`: %+v", err)
-			}
-			parameters.Properties.Certificates = certificateReferences
-		}
-	}
-
 	if err := validateBatchPoolCrossFieldRules(parameters.Properties); err != nil {
 		return err
 	}
@@ -984,7 +884,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if v, ok := d.GetOk("target_node_communication_mode"); ok {
-		parameters.Properties.TargetNodeCommunicationMode = pointer.To(pool.NodeCommunicationMode(v.(string)))
+		parameters.Properties.TargetNodeCommunicationMode = pointer.ToEnum[pool.NodeCommunicationMode](v.(string))
 	}
 
 	if _, err = client.Create(ctx, id, parameters, pool.CreateOperationOptions{}); err != nil {
@@ -1103,15 +1003,6 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if !features.FivePointOh() {
-		certificates := d.Get("certificate").([]interface{})
-		certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)
-		if err != nil {
-			return fmt.Errorf("expanding `certificate`: %+v", err)
-		}
-		parameters.Properties.Certificates = certificateReferences
-	}
-
 	if err := validateBatchPoolCrossFieldRules(parameters.Properties); err != nil {
 		return err
 	}
@@ -1129,7 +1020,7 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	parameters.Properties.MountConfiguration = mountConfiguration
 
 	if d.HasChange("target_node_communication_mode") {
-		parameters.Properties.TargetNodeCommunicationMode = pointer.To(pool.NodeCommunicationMode(d.Get("target_node_communication_mode").(string)))
+		parameters.Properties.TargetNodeCommunicationMode = pointer.ToEnum[pool.NodeCommunicationMode](d.Get("target_node_communication_mode").(string))
 	}
 
 	result, err := client.Update(ctx, *id, parameters, pool.UpdateOperationOptions{})
@@ -1324,12 +1215,6 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 						}
 						d.Set("windows", windowsConfig)
 					}
-				}
-			}
-
-			if !features.FivePointOh() {
-				if err := d.Set("certificate", flattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
-					return fmt.Errorf("flattening `certificate`: %+v", err)
 				}
 			}
 
@@ -1539,12 +1424,9 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"working_directory": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(pool.ContainerWorkingDirectoryTaskWorkingDirectory),
-							string(pool.ContainerWorkingDirectoryContainerImageDefault),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(pool.PossibleValuesForContainerWorkingDirectory(), false),
 					},
 				},
 			},
@@ -1588,22 +1470,16 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"elevation_level": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  string(pool.ElevationLevelNonAdmin),
-									ValidateFunc: validation.StringInSlice([]string{
-										string(pool.ElevationLevelNonAdmin),
-										string(pool.ElevationLevelAdmin),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Default:      string(pool.ElevationLevelNonAdmin),
+									ValidateFunc: validation.StringInSlice(pool.PossibleValuesForElevationLevel(), false),
 								},
 								"scope": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  string(pool.AutoUserScopeTask),
-									ValidateFunc: validation.StringInSlice([]string{
-										string(pool.AutoUserScopeTask),
-										string(pool.AutoUserScopePool),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Default:      string(pool.AutoUserScopeTask),
+									ValidateFunc: validation.StringInSlice(pool.PossibleValuesForAutoUserScope(), false),
 								},
 							},
 						},

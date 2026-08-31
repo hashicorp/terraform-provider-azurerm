@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimes"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -24,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
@@ -122,13 +122,10 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 			},
 
 			"edition": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(integrationruntimes.IntegrationRuntimeEditionStandard),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(integrationruntimes.IntegrationRuntimeEditionStandard),
-					string(integrationruntimes.IntegrationRuntimeEditionEnterprise),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(integrationruntimes.IntegrationRuntimeEditionStandard),
+				ValidateFunc: validation.StringInSlice(integrationruntimes.PossibleValuesForIntegrationRuntimeEdition(), false),
 			},
 
 			"copy_compute_scale": {
@@ -171,13 +168,10 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 			},
 
 			"license_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(integrationruntimes.IntegrationRuntimeLicenseTypeLicenseIncluded),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(integrationruntimes.IntegrationRuntimeLicenseTypeLicenseIncluded),
-					string(integrationruntimes.IntegrationRuntimeLicenseTypeBasePrice),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(integrationruntimes.IntegrationRuntimeLicenseTypeLicenseIncluded),
+				ValidateFunc: validation.StringInSlice(integrationruntimes.PossibleValuesForIntegrationRuntimeLicenseType(), false),
 			},
 
 			"vnet_integration": {
@@ -812,7 +806,7 @@ func expandDataFactoryIntegrationRuntimeAzureSsisVirtualNetwork(input []interfac
 	}
 
 	if publicIPs := v["public_ips"].([]interface{}); len(publicIPs) > 0 {
-		result.PublicIPs = utils.ExpandStringSlice(publicIPs)
+		result.PublicIPs = helpers.ExpandStringSlice(publicIPs)
 	}
 
 	return result
@@ -1082,7 +1076,7 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisVnetIntegration(vnetProperties
 			"vnet_id":     pointer.From(vnetProperties.VNetId),
 			"subnet_id":   pointer.From(vnetProperties.SubnetId),
 			"subnet_name": pointer.From(vnetProperties.Subnet),
-			"public_ips":  utils.FlattenStringSlice(vnetProperties.PublicIPs),
+			"public_ips":  helpers.FlattenStringSlice(vnetProperties.PublicIPs),
 		},
 	}
 }

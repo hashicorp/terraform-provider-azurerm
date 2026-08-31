@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/tables"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2025-07-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -63,13 +63,10 @@ func (r LogAnalyticsWorkspaceTableResource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"plan": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(tables.TablePlanEnumAnalytics),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(tables.TablePlanEnumAnalytics),
-				string(tables.TablePlanEnumBasic),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(tables.TablePlanEnumAnalytics),
+			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForTablePlanEnum(), false),
 		},
 
 		"retention_in_days": {
@@ -125,7 +122,7 @@ func (r LogAnalyticsWorkspaceTableResource) Create() sdk.ResourceFunc {
 
 			updateInput := tables.Table{
 				Properties: &tables.TableProperties{
-					Plan: pointer.To(tables.TablePlanEnum(model.Plan)),
+					Plan: pointer.ToEnum[tables.TablePlanEnum](model.Plan),
 				},
 			}
 
@@ -181,7 +178,7 @@ func (r LogAnalyticsWorkspaceTableResource) Update() sdk.ResourceFunc {
 					}
 
 					if metadata.ResourceData.HasChange("plan") {
-						updateInput.Properties.Plan = pointer.To(tables.TablePlanEnum(state.Plan))
+						updateInput.Properties.Plan = pointer.ToEnum[tables.TablePlanEnum](state.Plan)
 					}
 
 					if state.Plan == string(tables.TablePlanEnumAnalytics) {

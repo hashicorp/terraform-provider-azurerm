@@ -75,7 +75,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   data_factory_id = azurerm_data_factory.test.id
 
   sas_uri = "https://example.blob.core.windows.net"
-  key_vault_sas_token {
+  sas_token_linked_key_vault_key {
     linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
     secret_name         = "secret"
   }

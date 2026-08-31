@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/elasticpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/elasticpools"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -29,7 +29,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mssql_elasticpool -service-package-name mssql -properties "resource_group_name,server_name,name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceMsSqlElasticPool() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -185,23 +185,16 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			// DC skus, where elasticpools allows 'Default' but will error if you try to set the
 			// 'enclave_type' to 'VBS' for DC skus...
 			"enclave_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true, // TODO: Remove Computed in 4.0
-				ValidateFunc: validation.StringInSlice([]string{
-					string(databases.AlwaysEncryptedEnclaveTypeVBS),
-					string(databases.AlwaysEncryptedEnclaveTypeDefault),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(databases.PossibleValuesForAlwaysEncryptedEnclaveType(), false),
 			},
 
 			"license_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(elasticpools.ElasticPoolLicenseTypeBasePrice),
-					string(elasticpools.ElasticPoolLicenseTypeLicenseIncluded),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(elasticpools.PossibleValuesForElasticPoolLicenseType(), false),
 			},
 
 			"high_availability_replica_count": {
@@ -237,9 +230,7 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 
 			pluginsdk.ForceNewIfChange("enclave_type", func(ctx context.Context, old, new, _ interface{}) bool {
 				// enclave_type cannot be removed once it has been set
-				// but can be changed between VBS and Default...
-				// this Diff will not work until 4.0 when we remove
-				// the computed property from the field scheam.
+				// but can be changed between VBS and Default
 				if old.(string) != "" && new.(string) == "" {
 					return true
 				}
@@ -283,7 +274,7 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		Sku:      sku,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: &elasticpools.ElasticPoolProperties{
-			LicenseType:                pointer.To(elasticpools.ElasticPoolLicenseType(d.Get("license_type").(string))),
+			LicenseType:                pointer.ToEnum[elasticpools.ElasticPoolLicenseType](d.Get("license_type").(string)),
 			PerDatabaseSettings:        expandMsSqlElasticPoolPerDatabaseSettings(d),
 			ZoneRedundant:              pointer.To(d.Get("zone_redundant").(bool)),
 			MaintenanceConfigurationId: pointer.To(maintenanceConfigId.ID()),
@@ -297,7 +288,7 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 
 	// NOTE: The service default is actually nil/empty which indicates enclave is disabled. the value `Default` is NOT the default.
 	if v, ok := d.GetOk("enclave_type"); ok && v.(string) != "" {
-		elasticPool.Properties.PreferredEnclaveType = pointer.To(elasticpools.AlwaysEncryptedEnclaveType(v.(string)))
+		elasticPool.Properties.PreferredEnclaveType = pointer.ToEnum[elasticpools.AlwaysEncryptedEnclaveType](v.(string))
 	}
 
 	if d.HasChange("max_size_gb") {
@@ -404,8 +395,7 @@ func resourceMsSqlElasticPoolDelete(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting ElasticPool %s: %+v", id, err)
 	}
 

@@ -26,10 +26,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name analysis_services_server -service-package-name analysisservices -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceAnalysisServicesServer() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceAnalysisServicesServerCreate,
 		Read:   resourceAnalysisServicesServerRead,
 		Update: resourceAnalysisServicesServerUpdate,
@@ -117,13 +117,10 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 			},
 
 			"querypool_connection_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(servers.ConnectionModeAll),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(servers.ConnectionModeAll),
-					string(servers.ConnectionModeReadOnly),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(servers.ConnectionModeAll),
+				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForConnectionMode(), false),
 			},
 
 			"backup_blob_container_uri": {
@@ -141,8 +138,6 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	return resource
 }
 
 func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -179,7 +174,7 @@ func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	if querypoolConnectionMode, ok := d.GetOk("querypool_connection_mode"); ok {
-		analysisServicesServer.Properties.QuerypoolConnectionMode = pointer.To(servers.ConnectionMode(querypoolConnectionMode.(string)))
+		analysisServicesServer.Properties.QuerypoolConnectionMode = pointer.ToEnum[servers.ConnectionMode](querypoolConnectionMode.(string))
 	}
 
 	if containerUri, ok := d.GetOk("backup_blob_container_uri"); ok {
@@ -301,7 +296,7 @@ func resourceAnalysisServicesServerUpdate(d *pluginsdk.ResourceData, meta interf
 		Properties: &servers.AnalysisServicesServerMutableProperties{
 			AsAdministrators:        expandAnalysisServicesServerAdminUsers(d),
 			IPV4FirewallSettings:    expandAnalysisServicesServerFirewallSettings(d),
-			QuerypoolConnectionMode: pointer.To(servers.ConnectionMode(d.Get("querypool_connection_mode").(string))),
+			QuerypoolConnectionMode: pointer.ToEnum[servers.ConnectionMode](d.Get("querypool_connection_mode").(string)),
 		},
 	}
 

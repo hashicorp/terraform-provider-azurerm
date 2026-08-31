@@ -6,7 +6,6 @@ package cognitive
 import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -59,7 +58,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
-	resources := []sdk.Resource{
+	return []sdk.Resource{
 		CognitiveAccountConnectionAccountKeyResource{},
 		CognitiveAccountConnectionAccountManagedIdentityResource{},
 		CognitiveAccountConnectionApiKeyResource{},
@@ -71,12 +70,6 @@ func (r Registration) Resources() []sdk.Resource {
 		CognitiveDeploymentResource{},
 		CognitiveRaiBlocklistResource{},
 	}
-
-	if !features.FivePointOh() {
-		resources = append(resources, AIServices{})
-	}
-
-	return resources
 }
 
 func (r Registration) Actions() []func() action.Action {
@@ -104,5 +97,6 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 		CognitiveAccountConnectionEntraIDListResource{},
 		CognitiveAccountListResource{},
 		CognitiveAccountProjectConnectionEntraIDListResource{},
+		CognitiveDeploymentListResource{},
 	}
 }

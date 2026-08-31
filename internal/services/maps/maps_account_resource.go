@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maps/2023-06-01/accounts"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/custompollers"
@@ -23,11 +24,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMapsAccount() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceMapsAccountCreate,
 		Read:   resourceMapsAccountRead,
 		Update: resourceMapsAccountUpdate,
@@ -58,14 +58,10 @@ func resourceMapsAccount() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(accounts.NameSZero),
-					string(accounts.NameSOne),
-					string(accounts.NameGTwo),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(accounts.PossibleValuesForName(), false),
 			},
 
 			"cors": {
@@ -129,8 +125,6 @@ func resourceMapsAccount() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
 func resourceMapsAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -159,13 +153,8 @@ func resourceMapsAccountCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("expanding `data_store`: %+v", err)
 	}
 
-	loc := "global"
-	if v, ok := d.GetOk("location"); ok {
-		loc = location.Normalize(v.(string))
-	}
-
 	parameters := accounts.MapsAccount{
-		Location: loc,
+		Location: location.Normalize(d.Get("location").(string)),
 		Sku: accounts.Sku{
 			Name: accounts.Name(d.Get("sku_name").(string)),
 		},
@@ -177,9 +166,7 @@ func resourceMapsAccountCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		},
 	}
 
-	// setting anything into identity returns a 400 Bad Request error if the location of the maps account is `global` which is
-	// what we were defaulting to previously - when `location` becomes Required in 4.0 we can remove this check and set
-	// identity in the payload like we do elsewhere
+	// setting anything into identity returns a 400 Bad Request error if the location of the maps account is `global`
 	if v, ok := d.GetOk("identity"); ok {
 		identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(v.([]interface{}))
 		if err != nil {
@@ -358,7 +345,7 @@ func expandCors(input []interface{}) *accounts.CorsRules {
 	corsRule := make([]accounts.CorsRule, 0)
 
 	corsRule = append(corsRule, accounts.CorsRule{
-		AllowedOrigins: pointer.From(utils.ExpandStringSlice(cors["allowed_origins"].([]interface{}))),
+		AllowedOrigins: pointer.From(helpers.ExpandStringSlice(cors["allowed_origins"].([]interface{}))),
 	})
 
 	return &accounts.CorsRules{

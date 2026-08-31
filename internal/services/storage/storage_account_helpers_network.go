@@ -69,7 +69,7 @@ func expandAccountNetworkRuleBypass(input []interface{}) *storageaccounts.Bypass
 	for _, item := range input {
 		output = append(output, item.(string))
 	}
-	return pointer.To(storageaccounts.Bypass(strings.Join(output, ", ")))
+	return pointer.ToEnum[storageaccounts.Bypass](strings.Join(output, ", "))
 }
 
 func flattenAccountNetworkRuleBypass(input *storageaccounts.Bypass) []interface{} {

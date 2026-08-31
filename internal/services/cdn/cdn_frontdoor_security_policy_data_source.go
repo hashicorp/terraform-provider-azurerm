@@ -11,11 +11,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/securitypolicies"
 	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -240,9 +241,9 @@ func flattenCdnFrontDoorSecurityPolicyActivatedResourceReference(input *[]securi
 	for _, item := range *input {
 		frontDoorDomainId := ""
 		if item.Id != nil {
-			if parsedFrontDoorCustomDomainId, frontDoorCustomDomainIdErr := parse.FrontDoorCustomDomainIDInsensitively(*item.Id); frontDoorCustomDomainIdErr == nil {
+			if parsedFrontDoorCustomDomainId, frontDoorCustomDomainIdErr := afddomains.ParseCustomDomainIDInsensitively(*item.Id); frontDoorCustomDomainIdErr == nil {
 				frontDoorDomainId = parsedFrontDoorCustomDomainId.ID()
-			} else if parsedFrontDoorEndpointId, frontDoorEndpointIdErr := parse.FrontDoorEndpointIDInsensitively(*item.Id); frontDoorEndpointIdErr == nil {
+			} else if parsedFrontDoorEndpointId, frontDoorEndpointIdErr := afdendpoints.ParseAfdEndpointIDInsensitively(*item.Id); frontDoorEndpointIdErr == nil {
 				frontDoorDomainId = parsedFrontDoorEndpointId.ID()
 			} else {
 				return results, fmt.Errorf("flattening `cdn_frontdoor_domain_id`: %+v; %+v", frontDoorCustomDomainIdErr, frontDoorEndpointIdErr)

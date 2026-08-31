@@ -7,15 +7,16 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/disasterrecoveryconfigs"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -57,9 +58,10 @@ func resourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 			},
 
 			"partner_namespace_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: azure.ValidateResourceIDOrEmpty, // nolint: staticcheck
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				// TODO: check to see if empty values should be allowed (the previous validator permitted them)
+				ValidateFunc: validation.Any(validation.StringIsEmpty, namespaces.ValidateNamespaceID),
 			},
 
 			"alias_authorization_rule_id": {
@@ -260,41 +262,21 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resour
 	}
 
 	// no future for deletion so wait for it to vanish
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
-	}
-	deleteWait := &pluginsdk.StateChangeConf{
-		Pending:    []string{"200"},
-		Target:     []string{"404"},
-		MinTimeout: 30 * time.Second,
-		Timeout:    time.Until(deadline),
-		Refresh: func() (interface{}, string, error) {
-			resp, err := client.Get(ctx, *id)
-			statusCode := "dropped connection"
-			if resp.HttpResponse != nil {
-				statusCode = strconv.Itoa(resp.HttpResponse.StatusCode)
-			}
-
-			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
-					return resp, statusCode, nil
-				}
-				return nil, "nil", fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-
-			return resp, statusCode, nil
-		},
-	}
-
-	if _, err := deleteWait.WaitForStateContext(ctx); err != nil {
+	deletePoller := custompollers.NewEventualConsistencyPoller(1, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, *id)
+		return resp.HttpResponse, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:         30 * time.Second,
+		TargetStatusCode: pointer.To(http.StatusNotFound),
+	})
+	if err := deletePoller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting the deletion of %s: %v", *id, err)
 	}
 
 	namespaceId := disasterrecoveryconfigs.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 	// it can take some time for the name to become available again
 	// this is mainly here 	to enable updating the resource in place
-	deadline, ok = ctx.Deadline()
+	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("internal-error: context had no deadline")
 	}

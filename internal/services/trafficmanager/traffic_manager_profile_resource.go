@@ -26,7 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name traffic_manager_profile -service-package-name trafficmanager -properties "name,resource_group_name" -test-params "Geographic" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -test-params "Geographic"
 
 const azureTrafficManagerProfileResourceName = "azurerm_traffic_manager_profile"
 
@@ -61,16 +61,9 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"traffic_routing_method": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(profiles.TrafficRoutingMethodGeographic),
-					string(profiles.TrafficRoutingMethodWeighted),
-					string(profiles.TrafficRoutingMethodPerformance),
-					string(profiles.TrafficRoutingMethodPriority),
-					string(profiles.TrafficRoutingMethodSubnet),
-					string(profiles.TrafficRoutingMethodMultiValue),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(profiles.PossibleValuesForTrafficRoutingMethod(), false),
 			},
 
 			"dns_config": {
@@ -127,13 +120,9 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 						},
 
 						"protocol": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(profiles.MonitorProtocolHTTP),
-								string(profiles.MonitorProtocolHTTPS),
-								string(profiles.MonitorProtocolTCP),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(profiles.PossibleValuesForMonitorProtocol(), false),
 						},
 
 						"port": {
@@ -172,13 +161,10 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 			},
 
 			"profile_status": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(profiles.ProfileStatusEnabled),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(profiles.ProfileStatusEnabled),
-					string(profiles.ProfileStatusDisabled),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(profiles.ProfileStatusEnabled),
+				ValidateFunc: validation.StringInSlice(profiles.PossibleValuesForProfileStatus(), false),
 			},
 
 			"max_return": {

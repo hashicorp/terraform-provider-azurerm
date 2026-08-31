@@ -87,7 +87,7 @@ func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 				DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
 					// vault_id: ID of the parent resource; must share the same subscription ID as this backup instance.
 					// Suppress diff if snapshot_subscription_id matches this backup instance's subscription.
-					_, planVaultId := d.GetChange("vault_id")
+					planVaultId := d.Get("vault_id")
 					vaultId, err := backupvaultresources.ParseBackupVaultID(planVaultId.(string))
 					if err != nil {
 						return false
@@ -268,8 +268,7 @@ func resourceDataProtectionBackupInstanceDiskDelete(d *schema.ResourceData, meta
 		return err
 	}
 
-	err = client.BackupInstancesDeleteThenPoll(ctx, *id, backupinstanceresources.DefaultBackupInstancesDeleteOperationOptions())
-	if err != nil {
+	if err = client.BackupInstancesDeleteThenPoll(ctx, *id, backupinstanceresources.DefaultBackupInstancesDeleteOperationOptions()); err != nil {
 		return fmt.Errorf("deleting DataProtection BackupInstance (%q): %+v", id, err)
 	}
 

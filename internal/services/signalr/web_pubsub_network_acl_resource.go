@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/privateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -20,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var defaultRequestTypes = []webpubsub.WebPubSubRequestType{
@@ -53,13 +53,10 @@ func resourceWebpubsubNetworkACL() *pluginsdk.Resource {
 			"web_pubsub_id": commonschema.ResourceIDReferenceRequiredForceNew(&webpubsub.WebPubSubId{}),
 
 			"default_action": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  webpubsub.ACLActionDeny,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(webpubsub.ACLActionAllow),
-					string(webpubsub.ACLActionDeny),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      webpubsub.ACLActionDeny,
+				ValidateFunc: validation.StringInSlice(webpubsub.PossibleValuesForACLAction(), false),
 			},
 
 			"public_network": {
@@ -221,7 +218,7 @@ func resourceWebPubsubNetworkACLRead(d *pluginsdk.ResourceData, meta interface{}
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			if props != nil && props.NetworkACLs != nil {
+			if props.NetworkACLs != nil {
 				defaultAction := ""
 				if props.NetworkACLs.DefaultAction != nil && *props.NetworkACLs.DefaultAction != "" {
 					defaultAction = string(*props.NetworkACLs.DefaultAction)
@@ -305,11 +302,11 @@ func expandWebpubsubPublicNetwork(input []interface{}) *webpubsub.NetworkACL {
 
 	v := input[0].(map[string]interface{})
 
-	for _, item := range *utils.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List()) {
+	for _, item := range *helpers.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List()) {
 		allowRTs = append(allowRTs, webpubsub.WebPubSubRequestType(item))
 	}
 
-	for _, item := range *utils.ExpandStringSlice(v["denied_request_types"].(*pluginsdk.Set).List()) {
+	for _, item := range *helpers.ExpandStringSlice(v["denied_request_types"].(*pluginsdk.Set).List()) {
 		deniedRTs = append(deniedRTs, webpubsub.WebPubSubRequestType(item))
 	}
 
@@ -330,7 +327,7 @@ func flattenWebpubsubPublicNetwork(input *webpubsub.NetworkACL) []interface{} {
 			allowRequestTypes = append(allowRequestTypes, string(item))
 		}
 	}
-	allow := utils.FlattenStringSlice(&allowRequestTypes)
+	allow := helpers.FlattenStringSlice(&allowRequestTypes)
 
 	deniedRequestTypes := make([]string, 0)
 	if input.Deny != nil {
@@ -338,7 +335,7 @@ func flattenWebpubsubPublicNetwork(input *webpubsub.NetworkACL) []interface{} {
 			deniedRequestTypes = append(deniedRequestTypes, string(item))
 		}
 	}
-	deny := utils.FlattenStringSlice(&deniedRequestTypes)
+	deny := helpers.FlattenStringSlice(&deniedRequestTypes)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -374,13 +371,13 @@ func expandWebpubsubPrivateEndpoint(input []interface{}, privateEndpointConnecti
 				}
 
 				allowedRTs := make([]webpubsub.WebPubSubRequestType, 0)
-				for _, item := range *utils.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List()) {
+				for _, item := range *helpers.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List()) {
 					allowedRTs = append(allowedRTs, webpubsub.WebPubSubRequestType(item))
 				}
 				result.Allow = &allowedRTs
 
 				deniedRTs := make([]webpubsub.WebPubSubRequestType, 0)
-				for _, item := range *utils.ExpandStringSlice(v["denied_request_types"].(*pluginsdk.Set).List()) {
+				for _, item := range *helpers.ExpandStringSlice(v["denied_request_types"].(*pluginsdk.Set).List()) {
 					deniedRTs = append(deniedRTs, webpubsub.WebPubSubRequestType(item))
 				}
 				result.Deny = &deniedRTs
@@ -419,7 +416,7 @@ func flattenWebpubsubPrivateEndpoint(input *[]webpubsub.PrivateEndpointACL, priv
 						allowedRequestTypes = append(allowedRequestTypes, string(item))
 					}
 				}
-				allow := utils.FlattenStringSlice(&allowedRequestTypes)
+				allow := helpers.FlattenStringSlice(&allowedRequestTypes)
 
 				deniedRequestTypes := make([]string, 0)
 				if item.Deny != nil {
@@ -427,7 +424,7 @@ func flattenWebpubsubPrivateEndpoint(input *[]webpubsub.PrivateEndpointACL, priv
 						deniedRequestTypes = append(deniedRequestTypes, string(item))
 					}
 				}
-				deny := utils.FlattenStringSlice(&deniedRequestTypes)
+				deny := helpers.FlattenStringSlice(&deniedRequestTypes)
 
 				results = append(results, map[string]interface{}{
 					"id":                    *props.PrivateEndpoint.Id,

@@ -72,17 +72,11 @@ func (r AadB2cDirectoryResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"data_residency_location": {
-			Description: "Location in which the B2C tenant is hosted and data resides. See https://aka.ms/B2CDataResidency for more information.",
-			Type:        pluginsdk.TypeString,
-			Required:    true,
-			ForceNew:    true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(tenants.LocationAsiaPacific),
-				string(tenants.LocationAustralia),
-				string(tenants.LocationEurope),
-				string(tenants.LocationGlobal),
-				string(tenants.LocationUnitedStates),
-			}, false),
+			Description:  "Location in which the B2C tenant is hosted and data resides. See https://aka.ms/B2CDataResidency for more information.",
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(tenants.PossibleValuesForLocation(), false),
 		},
 
 		"display_name": {

@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name application_insights_web_test -properties "name,resource_group_name" -service-package-name applicationinsights -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 package applicationinsights
 
@@ -178,7 +178,7 @@ func resourceApplicationInsightsWebTestsCreate(d *pluginsdk.ResourceData, meta i
 	webTest := webtests.WebTest{
 		Name:     pointer.To(id.WebTestName),
 		Location: location.Normalize(d.Get("location").(string)),
-		Kind:     pointer.To(webtests.WebTestKind(d.Get("kind").(string))),
+		Kind:     pointer.ToEnum[webtests.WebTestKind](d.Get("kind").(string)),
 		Properties: &webtests.WebTestProperties{
 			SyntheticMonitorId: id.WebTestName,
 			Name:               id.WebTestName,
