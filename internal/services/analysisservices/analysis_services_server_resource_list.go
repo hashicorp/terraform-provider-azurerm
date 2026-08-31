@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package analysisservices
 
 import (
@@ -23,7 +26,7 @@ func (AnalysisServicesServerListResource) ResourceFunc() *pluginsdk.Resource {
 }
 
 func (AnalysisServicesServerListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = "azurerm_analysis_services_server"
+	response.TypeName = analysisServicesServerResourceName
 }
 
 func (AnalysisServicesServerListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
@@ -47,7 +50,7 @@ func (AnalysisServicesServerListResource) List(ctx context.Context, request list
 	case !data.ResourceGroupName.IsNull():
 		resp, err := client.ListByResourceGroup(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", "azurerm_analysis_services_server"), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", analysisServicesServerResourceName), err)
 			return
 		}
 		if resp.Model != nil {
@@ -56,7 +59,7 @@ func (AnalysisServicesServerListResource) List(ctx context.Context, request list
 	default:
 		resp, err := client.List(ctx, commonids.NewSubscriptionID(subscriptionID))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", "azurerm_analysis_services_server"), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", analysisServicesServerResourceName), err)
 			return
 		}
 		if resp.Model != nil {
@@ -79,7 +82,7 @@ func (AnalysisServicesServerListResource) List(ctx context.Context, request list
 			rd.SetId(id.ID())
 
 			if err := resourceAnalysisServicesServerFlatten(rd, id, &item); err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", "azurerm_analysis_services_server"), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", analysisServicesServerResourceName), err)
 				return
 			}
 

@@ -28,6 +28,8 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity
 
+const analysisServicesServerResourceName = "azurerm_analysis_services_server"
+
 func resourceAnalysisServicesServer() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceAnalysisServicesServerCreate,
