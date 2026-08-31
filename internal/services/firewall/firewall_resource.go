@@ -68,24 +68,17 @@ func resourceFirewall() *pluginsdk.Resource {
 
 			// lintignore:S013
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(azurefirewalls.AzureFirewallSkuNameAZFWHub),
-					string(azurefirewalls.AzureFirewallSkuNameAZFWVNet),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(azurefirewalls.PossibleValuesForAzureFirewallSkuName(), false),
 			},
 
 			// lintignore:S013
 			"sku_tier": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(azurefirewalls.AzureFirewallSkuTierPremium),
-					string(azurefirewalls.AzureFirewallSkuTierStandard),
-					string(azurefirewalls.AzureFirewallSkuTierBasic),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(azurefirewalls.PossibleValuesForAzureFirewallSkuTier(), false),
 			},
 
 			"firewall_policy_id": {
@@ -155,14 +148,10 @@ func resourceFirewall() *pluginsdk.Resource {
 			},
 
 			"threat_intel_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(azurefirewalls.AzureFirewallThreatIntelModeOff),
-					string(azurefirewalls.AzureFirewallThreatIntelModeAlert),
-					string(azurefirewalls.AzureFirewallThreatIntelModeDeny),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(azurefirewalls.PossibleValuesForAzureFirewallThreatIntelMode(), false),
 			},
 
 			"dns_servers": {

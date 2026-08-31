@@ -87,12 +87,10 @@ func (r ExtendedLocationCustomLocationResource) Arguments() map[string]*pluginsd
 		},
 
 		"host_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(customlocations.HostTypeKubernetes),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(customlocations.PossibleValuesForHostType(), false),
 		},
 
 		"display_name": {

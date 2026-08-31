@@ -117,13 +117,10 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 			},
 
 			"querypool_connection_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(servers.ConnectionModeAll),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(servers.ConnectionModeAll),
-					string(servers.ConnectionModeReadOnly),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(servers.ConnectionModeAll),
+				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForConnectionMode(), false),
 			},
 
 			"backup_blob_container_uri": {

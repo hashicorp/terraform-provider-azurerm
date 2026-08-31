@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2023-09-01/hubs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -220,44 +221,20 @@ func resourceNotificationHubCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	// Notification Hubs are eventually consistent
 	log.Printf("[DEBUG] Waiting for %s to become available..", id)
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
-	}
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"404"},
-		Target:                    []string{"200"},
-		Refresh:                   notificationHubStateRefreshFunc(ctx, client, id),
-		MinTimeout:                15 * time.Second,
-		ContinuousTargetOccurence: 10,
-		Timeout:                   time.Until(deadline),
-	}
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(10, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.NotificationHubsGet(pollerCtx, id)
+		return resp.HttpResponse, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:              15 * time.Second,
+		TargetStatusCode:      pointer.To(http.StatusOK),
+		RetryErrorStatusCodes: []int{http.StatusNotFound},
+	})
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to become available: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 	return resourceNotificationHubRead(d, meta)
-}
-
-func notificationHubStateRefreshFunc(ctx context.Context, client *hubs.HubsClient, id hubs.NotificationHubId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.NotificationHubsGet(ctx, id)
-		statusCode := "dropped connection"
-		if res.HttpResponse != nil {
-			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
-		}
-
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return nil, statusCode, nil
-			}
-
-			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
-		}
-
-		return res, statusCode, nil
-	}
 }
 
 func resourceNotificationHubRead(d *pluginsdk.ResourceData, meta interface{}) error {

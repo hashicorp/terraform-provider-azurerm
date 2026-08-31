@@ -220,11 +220,8 @@ func replicationRecoveryPlanActionSchema() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(replicationrecoveryplans.PossibleOperationsDirectionsPrimaryToRecovery),
-						string(replicationrecoveryplans.PossibleOperationsDirectionsRecoveryToPrimary),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(replicationrecoveryplans.PossibleValuesForPossibleOperationsDirections(), false),
 				},
 			},
 
@@ -248,12 +245,9 @@ func replicationRecoveryPlanActionSchema() *pluginsdk.Resource {
 			},
 
 			"fabric_location": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(replicationrecoveryplans.RecoveryPlanActionLocationPrimary),
-					string(replicationrecoveryplans.RecoveryPlanActionLocationRecovery),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(replicationrecoveryplans.PossibleValuesForRecoveryPlanActionLocation(), false),
 			},
 
 			"manual_action_instruction": {

@@ -81,24 +81,18 @@ func resourceNetAppPool() *pluginsdk.Resource {
 			},
 
 			"qos_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(capacitypools.QosTypeAuto),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(capacitypools.QosTypeAuto),
-					string(capacitypools.QosTypeManual),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(capacitypools.QosTypeAuto),
+				ValidateFunc: validation.StringInSlice(capacitypools.PossibleValuesForQosType(), false),
 			},
 
 			"encryption_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  capacitypools.EncryptionTypeSingle,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(capacitypools.EncryptionTypeSingle),
-					string(capacitypools.EncryptionTypeDouble),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      capacitypools.EncryptionTypeSingle,
+				ValidateFunc: validation.StringInSlice(capacitypools.PossibleValuesForEncryptionType(), false),
 			},
 
 			"cool_access_enabled": {

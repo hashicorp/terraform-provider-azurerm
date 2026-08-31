@@ -43,20 +43,15 @@ func schemaStreamAnalyticsOutputSerialization() *pluginsdk.Schema {
 				},
 
 				"encoding": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(outputs.EncodingUTFEight),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(outputs.PossibleValuesForEncoding(), false),
 				},
 
 				"format": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(outputs.JsonOutputSerializationFormatArray),
-						string(outputs.JsonOutputSerializationFormatLineSeparated),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(outputs.PossibleValuesForJsonOutputSerializationFormat(), false),
 				},
 			},
 		},
