@@ -1,3 +1,31 @@
+## 5.3.0 (August 27, 2026)
+
+FEATURES:
+
+* **New Data Source**: `azurerm_playwright_workspace` ([#31954](https://github.com/hashicorp/terraform-provider-azurerm/issues/31954))
+* **New List Resource**: `azurerm_cognitive_deployment` ([#33149](https://github.com/hashicorp/terraform-provider-azurerm/issues/33149))
+* **New List Resource**: `azurerm_playwright_workspace` ([#31954](https://github.com/hashicorp/terraform-provider-azurerm/issues/31954))
+* **New Resource**: `azurerm_playwright_workspace` ([#31954](https://github.com/hashicorp/terraform-provider-azurerm/issues/31954))
+
+ENHANCEMENTS:
+
+* dependencies: `go-azure-helpers` - update version to `0.82.0` ([#33142](https://github.com/hashicorp/terraform-provider-azurerm/issues/33142))
+* dependencies: `sql` - update API version to `2025-01-01` ([#33201](https://github.com/hashicorp/terraform-provider-azurerm/issues/33201))
+* Data Source: `azurerm_role_definition` - export the `role_definition_resource_id` property ([#33126](https://github.com/hashicorp/terraform-provider-azurerm/issues/33126))
+* `azurerm_cognitive_deployment` - add Resource Identity support ([#33149](https://github.com/hashicorp/terraform-provider-azurerm/issues/33149))
+* `azurerm_federated_identity_credential` - add additional polling to account for Azure's eventual consistency ([#32935](https://github.com/hashicorp/terraform-provider-azurerm/issues/32935))
+* `azurerm_kubernetes_cluster` - add support for the `oms_agent.retina_flow_logs_enabled` property ([#33222](https://github.com/hashicorp/terraform-provider-azurerm/issues/33222))
+* `azurerm_managed_application` - add support for the `identity` block ([#30725](https://github.com/hashicorp/terraform-provider-azurerm/issues/30725))
+* `azurerm_private_endpoint` - extend validation for the `private_service_connection.subresource_names` property to allow names containing spaces ([#32887](https://github.com/hashicorp/terraform-provider-azurerm/issues/32887))
+* `azurerm_search_service` - allow in-place downgrades of the `sku` property between Basic and Standard tiers ([#33069](https://github.com/hashicorp/terraform-provider-azurerm/issues/33069))
+* `azurerm_site_recovery_replicated_vm` - add update support to the `managed_disk` block without requiring resource recreation ([#33140](https://github.com/hashicorp/terraform-provider-azurerm/issues/33140))
+* `azurerm_user_assigned_identity` - add additional polling to account for Azure's eventual consistency ([#33142](https://github.com/hashicorp/terraform-provider-azurerm/issues/33142))
+
+BUG FIXES:
+
+* Data Source: `azurerm_app_configuration_key` - now correctly sets `tags` into state ([#33182](https://github.com/hashicorp/terraform-provider-azurerm/issues/33182))
+* `azurerm_eventhub_namespace` - prevent `network_rulesets.x.default_action` being set to `Deny` if `ip_rule` or `virtual_network_rule` is not specified ([#33216](https://github.com/hashicorp/terraform-provider-azurerm/issues/33216))
+
 ## 5.2.0 (August 20, 2026)
 
 FEATURES:

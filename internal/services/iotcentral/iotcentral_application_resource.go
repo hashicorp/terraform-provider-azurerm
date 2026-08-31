@@ -84,14 +84,10 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 			},
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(apps.AppSkuSTOne),
-					string(apps.AppSkuSTTwo),
-					string(apps.AppSkuSTZero),
-				}, false),
-				Default: string(apps.AppSkuSTOne),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(apps.PossibleValuesForAppSku(), false),
+				Default:      string(apps.AppSkuSTOne),
 			},
 			"template": {
 				Type:         pluginsdk.TypeString,

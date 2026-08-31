@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
@@ -20,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -237,23 +239,16 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("creating Monitor Diagnostics Setting %q for Resource %q: %+v", id.DiagnosticSettingName, id.ResourceUri, err)
 	}
 
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal error: could not retrieve context deadline for %s", id.ID())
-	}
-
 	// https://github.com/Azure/azure-rest-api-specs/issues/30249
 	log.Printf("[DEBUG] Waiting for Monitor Diagnostic Setting %q for Resource %q to become ready", id.DiagnosticSettingName, id.ResourceUri)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"NotFound"},
-		Target:                    []string{"Exists"},
-		Refresh:                   monitorDiagnosticSettingRefreshFunc(ctx, client, id),
-		MinTimeout:                5 * time.Second,
-		ContinuousTargetOccurence: 3,
-		Timeout:                   time.Until(deadline),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(3, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, id)
+		return resp.HttpResponse, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:              5 * time.Second,
+		RetryErrorStatusCodes: []int{http.StatusNotFound},
+	})
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for Monitor Diagnostic Setting %q for Resource %q to become ready: %s", id.DiagnosticSettingName, id.ResourceUri, err)
 	}
 
@@ -482,41 +477,20 @@ func resourceMonitorDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal error: could not retrieve context deadline for %s", id.ID())
-	}
-
 	// API appears to be eventually consistent (identified during tainting this resource)
 	log.Printf("[DEBUG] Waiting for Monitor Diagnostic Setting %q for Resource %q to disappear", id.DiagnosticSettingName, id.ResourceUri)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"Exists"},
-		Target:                    []string{"NotFound"},
-		Refresh:                   monitorDiagnosticSettingRefreshFunc(ctx, client, *id),
-		MinTimeout:                15 * time.Second,
-		ContinuousTargetOccurence: 5,
-		Timeout:                   time.Until(deadline),
-	}
-
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(5, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, *id)
+		return resp.HttpResponse, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:         15 * time.Second,
+		TargetStatusCode: pointer.To(http.StatusNotFound),
+	})
+	if err = poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for Monitor Diagnostic Setting %q for Resource %q to disappear: %s", id.DiagnosticSettingName, id.ResourceUri, err)
 	}
 
 	return nil
-}
-
-func monitorDiagnosticSettingRefreshFunc(ctx context.Context, client *diagnosticsettings.DiagnosticSettingsClient, targetResourceId diagnosticsettings.ScopedDiagnosticSettingId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, targetResourceId)
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return "NotFound", "NotFound", nil
-			}
-			return nil, "", fmt.Errorf("issuing read request in monitorDiagnosticSettingRefreshFunc: %s", err)
-		}
-
-		return res, "Exists", nil
-	}
 }
 
 func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) (*[]diagnosticsettings.DiagnosticsLogSettings, error) {

@@ -61,14 +61,11 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 			},
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(rbacs.RoleDefinitionTypeCustomRole),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(rbacs.RoleDefinitionTypeBuiltInRole),
-					string(rbacs.RoleDefinitionTypeCustomRole),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(rbacs.RoleDefinitionTypeCustomRole),
+				ValidateFunc: validation.StringInSlice(rbacs.PossibleValuesForRoleDefinitionType(), false),
 			},
 
 			"assignable_scopes": {

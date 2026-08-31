@@ -32,14 +32,8 @@ func dataSourceAdvisorRecommendations() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(getrecommendations.CategoryHighAvailability),
-						string(getrecommendations.CategorySecurity),
-						string(getrecommendations.CategoryPerformance),
-						string(getrecommendations.CategoryCost),
-						string(getrecommendations.CategoryOperationalExcellence),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(getrecommendations.PossibleValuesForCategory(), false),
 				},
 			},
 

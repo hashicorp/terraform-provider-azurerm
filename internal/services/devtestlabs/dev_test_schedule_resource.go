@@ -70,13 +70,10 @@ func resourceDevTestLabSchedules() *pluginsdk.Resource {
 			},
 
 			"status": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  schedules.EnableStatusDisabled,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(schedules.EnableStatusEnabled),
-					string(schedules.EnableStatusDisabled),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      schedules.EnableStatusDisabled,
+				ValidateFunc: validation.StringInSlice(schedules.PossibleValuesForEnableStatus(), false),
 			},
 
 			"task_type": {
@@ -165,13 +162,10 @@ func resourceDevTestLabSchedules() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"status": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  schedules.EnableStatusDisabled,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(schedules.EnableStatusEnabled),
-								string(schedules.EnableStatusDisabled),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      schedules.EnableStatusDisabled,
+							ValidateFunc: validation.StringInSlice(schedules.PossibleValuesForEnableStatus(), false),
 						},
 						"time_in_minutes": {
 							Type:         pluginsdk.TypeInt,

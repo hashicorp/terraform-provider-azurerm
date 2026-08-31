@@ -104,13 +104,10 @@ func resourceArmResourcePolicyRemediation() *pluginsdk.Resource {
 			},
 
 			"resource_discovery_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(remediations.ResourceDiscoveryModeExistingNonCompliant),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(remediations.ResourceDiscoveryModeExistingNonCompliant),
-					string(remediations.ResourceDiscoveryModeReEvaluateCompliance),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(remediations.ResourceDiscoveryModeExistingNonCompliant),
+				ValidateFunc: validation.StringInSlice(remediations.PossibleValuesForResourceDiscoveryMode(), false),
 			},
 		},
 	}

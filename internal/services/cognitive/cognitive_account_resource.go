@@ -216,12 +216,9 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"default_action": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cognitiveservicesaccounts.NetworkRuleActionAllow),
-								string(cognitiveservicesaccounts.NetworkRuleActionDeny),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(cognitiveservicesaccounts.PossibleValuesForNetworkRuleAction(), false),
 						},
 
 						"ip_rules": {

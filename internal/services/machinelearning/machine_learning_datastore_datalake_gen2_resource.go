@@ -117,11 +117,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Arguments() map[string]*pluginsdk.
 		"service_data_identity": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(datastore.ServiceDataAccessAuthIdentityNone),
-				string(datastore.ServiceDataAccessAuthIdentityWorkspaceSystemAssignedIdentity),
-				string(datastore.ServiceDataAccessAuthIdentityWorkspaceUserAssignedIdentity),
-			},
+			ValidateFunc: validation.StringInSlice(datastore.PossibleValuesForServiceDataAccessAuthIdentity(),
 				false),
 			Default: string(datastore.ServiceDataAccessAuthIdentityNone),
 		},

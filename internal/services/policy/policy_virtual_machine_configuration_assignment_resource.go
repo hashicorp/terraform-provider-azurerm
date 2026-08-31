@@ -70,14 +70,9 @@ func resourcePolicyVirtualMachineConfigurationAssignmentSchema() map[string]*plu
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"assignment_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(guestconfigurationassignments.AssignmentTypeAudit),
-							string(guestconfigurationassignments.AssignmentTypeDeployAndAutoCorrect),
-							string(guestconfigurationassignments.AssignmentTypeApplyAndAutoCorrect),
-							string(guestconfigurationassignments.AssignmentTypeApplyAndMonitor),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(guestconfigurationassignments.PossibleValuesForAssignmentType(), false),
 					},
 
 					"content_hash": {
