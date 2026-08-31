@@ -167,13 +167,9 @@ func (a MetadataResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"tier": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(sentinelmetadata.SupportTierCommunity),
-							string(sentinelmetadata.SupportTierMicrosoft),
-							string(sentinelmetadata.SupportTierPartner),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(sentinelmetadata.PossibleValuesForSupportTier(), false),
 					},
 
 					"name": {

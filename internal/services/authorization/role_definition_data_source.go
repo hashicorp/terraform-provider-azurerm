@@ -21,13 +21,14 @@ type RoleDefinitionDataSource struct{}
 var _ sdk.DataSource = RoleDefinitionDataSource{}
 
 type RoleDefinitionDataSourceModel struct {
-	Name             string                      `tfschema:"name"`
-	RoleDefinitionId string                      `tfschema:"role_definition_id"`
-	Scope            string                      `tfschema:"scope"`
-	Description      string                      `tfschema:"description"`
-	Type             string                      `tfschema:"type"`
-	Permissions      []PermissionDataSourceModel `tfschema:"permissions"`
-	AssignableScopes []string                    `tfschema:"assignable_scopes"`
+	Name                     string                      `tfschema:"name"`
+	RoleDefinitionId         string                      `tfschema:"role_definition_id"`
+	Scope                    string                      `tfschema:"scope"`
+	Description              string                      `tfschema:"description"`
+	Type                     string                      `tfschema:"type"`
+	Permissions              []PermissionDataSourceModel `tfschema:"permissions"`
+	AssignableScopes         []string                    `tfschema:"assignable_scopes"`
+	RoleDefinitionResourceId string                      `tfschema:"role_definition_resource_id"`
 }
 
 type PermissionDataSourceModel struct {
@@ -142,6 +143,11 @@ func (a RoleDefinitionDataSource) Attributes() map[string]*pluginsdk.Schema {
 				Type: pluginsdk.TypeString,
 			},
 		},
+
+		"role_definition_resource_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -218,9 +224,11 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 			}
 
 			state := RoleDefinitionDataSourceModel{
-				Scope:            id.Scope,
-				RoleDefinitionId: defId,
+				Scope:                    id.Scope,
+				RoleDefinitionId:         defId,
+				RoleDefinitionResourceId: pointer.From(role.Id),
 			}
+
 			if props := role.Properties; props != nil {
 				state.Name = pointer.From(props.RoleName)
 				state.Type = pointer.From(props.Type)
@@ -229,10 +237,7 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 				state.AssignableScopes = pointer.From(props.AssignableScopes)
 			}
 
-			// The sdk managed id start with two "/" when scope is tenant level (empty).
-			// So we use the id from response without parsing and reformatting it.
-			// Tracked on https://github.com/hashicorp/pandora/issues/3257
-			metadata.ResourceData.SetId(*role.Id) // azignore:AZR001
+			metadata.ResourceData.SetId(*role.Id) // azignore:AZR001 - tenant level (empty) scope IDs start with "//" which the ID parser cannot round-trip, so the raw response ID is used (hashicorp/pandora#3257)
 			return metadata.Encode(&state)
 		},
 	}

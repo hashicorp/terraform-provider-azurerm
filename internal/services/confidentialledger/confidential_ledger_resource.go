@@ -73,13 +73,9 @@ func resourceConfidentialLedger() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"ledger_role_name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(confidentialledger.LedgerRoleNameAdministrator),
-								string(confidentialledger.LedgerRoleNameContributor),
-								string(confidentialledger.LedgerRoleNameReader),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(confidentialledger.PossibleValuesForLedgerRoleName(), false),
 						},
 						"principal_id": {
 							Type:         pluginsdk.TypeString,
@@ -102,13 +98,9 @@ func resourceConfidentialLedger() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"ledger_role_name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(confidentialledger.LedgerRoleNameAdministrator),
-								string(confidentialledger.LedgerRoleNameContributor),
-								string(confidentialledger.LedgerRoleNameReader),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(confidentialledger.PossibleValuesForLedgerRoleName(), false),
 						},
 						"pem_public_key": {
 							Type:         pluginsdk.TypeString,

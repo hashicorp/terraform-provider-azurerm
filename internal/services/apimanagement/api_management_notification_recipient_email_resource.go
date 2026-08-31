@@ -37,18 +37,10 @@ func (r ApiManagementNotificationRecipientEmailResource) Arguments() map[string]
 		},
 
 		"notification_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(notificationrecipientemail.NotificationNameAccountClosedPublisher),
-				string(notificationrecipientemail.NotificationNameBCC),
-				string(notificationrecipientemail.NotificationNameNewApplicationNotificationMessage),
-				string(notificationrecipientemail.NotificationNameNewIssuePublisherNotificationMessage),
-				string(notificationrecipientemail.NotificationNamePurchasePublisherNotificationMessage),
-				string(notificationrecipientemail.NotificationNameQuotaLimitApproachingPublisherNotificationMessage),
-				string(notificationrecipientemail.NotificationNameRequestPublisherNotificationMessage),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(notificationrecipientemail.PossibleValuesForNotificationName(), false),
 		},
 
 		"email": {
