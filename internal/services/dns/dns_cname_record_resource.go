@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/trafficmanagers"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -22,6 +23,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id dns_zone_id
+
+const azureDnsCNameRecordResourceName = "azurerm_dns_cname_record"
 
 func resourceDnsCNameRecord() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -37,16 +42,11 @@ func resourceDnsCNameRecord() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			parsed, err := recordsets.ParseRecordTypeID(id)
-			if err != nil {
-				return err
-			}
-			if parsed.RecordType != recordsets.RecordTypeCNAME {
-				return fmt.Errorf("this resource only supports 'CNAME' records")
-			}
-			return nil
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&recordsets.RecordTypeId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&recordsets.RecordTypeId{}),
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -149,6 +149,9 @@ func resourceDnsCNameRecordCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceDnsCNameRecordRead(d, meta)
 }
@@ -172,11 +175,15 @@ func resourceDnsCNameRecordRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceDnsCNameRecordFlatten(d, id, resp.Model)
+}
+
+func resourceDnsCNameRecordFlatten(d *pluginsdk.ResourceData, id *recordsets.RecordTypeId, model *recordsets.RecordSet) error {
 	d.Set("name", id.RelativeRecordSetName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("zone_name", id.DnsZoneName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("fqdn", props.Fqdn)
 			d.Set("ttl", props.TTL)
@@ -209,7 +216,7 @@ func resourceDnsCNameRecordRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceDnsCNameRecordUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
