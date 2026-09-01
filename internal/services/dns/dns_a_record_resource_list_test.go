@@ -34,13 +34,13 @@ func TestAccDnsARecord_listByDnsZoneID(t *testing.T) {
 					querycheck.ExpectLengthAtLeast("azurerm_dns_a_record.list", 1),
 					querycheck.ExpectIdentity(
 						"azurerm_dns_a_record.list",
-					map[string]knownvalue.Check{
-						"name":                  knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-						"resource_group_name":   knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-						"dns_zone_name":         knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-						"subscription_id":       knownvalue.StringExact(data.Subscriptions.Primary),
-						"record_type":           knownvalue.StringExact("A"),
-					},
+						map[string]knownvalue.Check{
+							"name":                knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"dns_zone_name":       knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
+							"record_type":         knownvalue.StringExact("A"),
+						},
 					),
 				},
 			},
