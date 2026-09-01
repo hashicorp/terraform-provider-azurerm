@@ -103,9 +103,7 @@ func dataSourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if props := model.Properties; props != nil {
 			d.Set("prefix_length", props.PrefixLength)
 			d.Set("ip_prefix", props.IPPrefix)
-			if version := props.PublicIPAddressVersion; version != nil {
-				d.Set("ip_version", string(*version))
-			}
+			d.Set("ip_version", string(pointer.From(props.PublicIPAddressVersion)))
 
 			customIpPrefixId := ""
 			if props.CustomIPPrefix != nil {
