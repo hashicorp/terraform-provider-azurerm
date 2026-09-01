@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 FEATURES:
+* **New List Resource**: `azurerm_application_insights_standard_web_test` [GH-33243]
 
 BUG FIXES:
 
