@@ -220,9 +220,10 @@ func (r GeoCatalogResource) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			if rawIdentityType, ok := metadata.ResourceDiff.GetOk("identity.0.type"); ok {
 				identityType := identity.Type(rawIdentityType.(string))
-				if identityType == identity.TypeSystemAssigned || identityType == identity.TypeSystemAssignedUserAssigned {
+				switch identityType {
+				case identity.TypeSystemAssigned, identity.TypeSystemAssignedUserAssigned:
 					return fmt.Errorf("`%s` and `%s` resource identities are not supported", identity.TypeSystemAssigned, identity.TypeSystemAssignedUserAssigned)
-				} else if identityType == identity.TypeUserAssigned {
+				case identity.TypeUserAssigned:
 					identityIds := metadata.ResourceDiff.GetRawConfig().AsValueMap()["identity"].AsValueSlice()[0].AsValueMap()["identity_ids"]
 					if identityIds.IsNull() || identityIds.LengthInt() == 0 {
 						return fmt.Errorf("`identity_ids` must be specified when `type` is set to `%s`", identity.TypeUserAssigned)
