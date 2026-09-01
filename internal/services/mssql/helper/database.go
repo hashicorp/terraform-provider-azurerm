@@ -59,7 +59,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 
 		linkProps := item.Properties
 
-		if linkProps.PartnerLocation == nil || linkProps.PartnerServer == nil || linkProps.PartnerDatabase == nil {
+		if linkProps.PartnerLocation == nil || linkProps.PartnerServer == nil || linkProps.PartnerDatabase == nil || linkProps.PartnerDatabaseId == nil {
 			log.Printf("[INFO] Replication Link Properties were invalid for %q", id)
 			continue
 		}
@@ -123,11 +123,6 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 			}
 
 			for _, linkPossiblePartnerItem := range linksPossiblePartnerIterator.Items {
-				if linkPossiblePartnerItem.Properties == nil {
-					log.Printf("[INFO] Replication Link Properties was nil for SQL Database %q (%q)", partnerDatabase, partnerServerId)
-					continue
-				}
-
 				if linkPossiblePartnerItem.Properties == nil {
 					log.Printf("[INFO] Replication Link Properties was nil for SQL Database %q (%q)", partnerDatabase, partnerServerId)
 					continue
