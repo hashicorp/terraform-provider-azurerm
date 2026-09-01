@@ -116,7 +116,6 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
 			return err
 		}
-
 	} else {
 		if err := client.CreateOrUpdateThenPoll(ctx, plbId, *loadBalancer.Model); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
