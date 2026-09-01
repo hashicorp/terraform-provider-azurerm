@@ -1,84 +1,20 @@
-## 5.12.0 (Unreleased)
-
-ENHANCEMENTS:
-
-FEATURES:
-* **New List Resource**: `azurerm_application_insights_standard_web_test` [GH-33243]
-
-BUG FIXES:
-
-## 5.11.0 (Unreleased)
-
-ENHANCEMENTS:
-
-FEATURES:
-* **New List Resource**: `dedicated_host_group` [GH-33257]
-
-BUG FIXES:
-
-## 5.10.0 (Unreleased)
-
-ENHANCEMENTS:
-
-FEATURES:
-* **NEW LIST RESOURCE** - `arc_kubernetes_provisioned_cluster` [GH-33247]
-
-BUG FIXES:
-
-## 5.9.0 (Unreleased)
-
-ENHANCEMENTS:
-* `azurerm_lb_probe `: add new argument `no_healthy_backends_behavior` [GH-32645]
-
-FEATURES:
-
-BUG FIXES:
-
-## 5.8.0 (Unreleased)
-
-ENHANCEMENTS:
-* Data Source: `azurerm_ip_group` - export attributes `firewall_ids` and `firewall_policy_ids` [GH-33190]
-
-FEATURES:
-
-BUG FIXES:
-
-## 5.7.0 (Unreleased)
-
-ENHANCEMENTS:
-* Data Source: `azurerm_private_link_service` - export attributes `fqdns` and `destination_ip_address` [GH-33191]
-
-FEATURES:
-
-BUG FIXES:
-
-## 5.6.0 (Unreleased)
-
-ENHANCEMENTS:
-* Data Source: `azurerm_api_management_workspace` - export the `description` attribute [GH-33205]
-
-FEATURES:
-
-BUG FIXES:
-
-## 5.5.0 (Unreleased)
-
-ENHANCEMENTS:
-
-FEATURES:
-* New List Resource: azurerm_availability_set [GH-33241]
-
-BUG FIXES:
-
 ## 5.4.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_lb_probe ` - add support for the `no_healthy_backends_behavior` property [GH-32645]
+* Data Source: `azurerm_ip_group` - export the `firewall_ids` and `firewall_policy_ids` properties [GH-33190]
+* Data Source: `azurerm_private_link_service` - export the `fqdns` and `destination_ip_address` properties [GH-33191]
 * dependencies: `azurerm_mongo_cluster` - update API version to `2026-06-01` [GH-33195]
 * dependencies: `azurerm_mongo_cluster_firewall_rule` - update API version to `2026-06-01` [GH-33195]
 * dependencies: `azurerm_mongo_cluster_user` - update API version to `2026-06-01` [GH-33195]
-* `azurerm_postgresql_flexible_server` - add new arguments `storage_type`, `storage_iops`, and `storage_throughput` which allows choice of the new "Premium V2 LRS" storage type [GH-32121]
+* Data Source: `azurerm_api_management_workspace` - export the `description` property [GH-33205]
+* `azurerm_postgresql_flexible_server` - add support for the `storage_type`, `storage_iops`, and `storage_throughput` properties which allows choice of the new "Premium V2 LRS" storage type [GH-32121]
 
 FEATURES:
+* **New List Resource**: `azurerm_application_insights_standard_web_test` [GH-33243]
+* **New List Resource**: `azurerm_dedicated_host_group` [GH-33257]
+* **New List Resource**: `azurerm_arc_kubernetes_provisioned_cluster` [GH-33247]
+* **New List Resource**: `azurerm_availability_set` [GH-33241]
 
 BUG FIXES:
 
