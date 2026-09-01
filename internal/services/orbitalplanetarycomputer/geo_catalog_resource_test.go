@@ -6,6 +6,7 @@ package orbitalplanetarycomputer_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -92,6 +93,30 @@ func TestAccGeoCatalog_update(t *testing.T) {
 	})
 }
 
+func TestAccGeoCatalog_systemAssignedIdentityError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_geo_catalog", "test")
+	r := GeoCatalogResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.systemAssignedIdentityError(data),
+			ExpectError: regexp.MustCompile("`SystemAssigned` and `SystemAssigned, UserAssigned` resource identities are not supported"),
+		},
+	})
+}
+
+func TestAccGeoCatalog_userAssignedIdentityError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_geo_catalog", "test")
+	r := GeoCatalogResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.userAssignedIdentityError(data),
+			ExpectError: regexp.MustCompile("`identity_ids` must be specified when `type` is set to `UserAssigned`"),
+		},
+	})
+}
+
 func (r GeoCatalogResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := geocatalogs.ParseGeoCatalogID(state.ID)
 	if err != nil {
@@ -158,6 +183,38 @@ resource "azurerm_geo_catalog" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+func (r GeoCatalogResource) systemAssignedIdentityError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_geo_catalog" "test" {
+  name                = "acctest-geocatalog-%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, r.template(data), data.RandomString)
+}
+
+func (r GeoCatalogResource) userAssignedIdentityError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_geo_catalog" "test" {
+  name                = "acctest-geocatalog-%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "UserAssigned"
+  }
+}
+`, r.template(data), data.RandomString)
 }
 
 func (r GeoCatalogResource) template(data acceptance.TestData) string {

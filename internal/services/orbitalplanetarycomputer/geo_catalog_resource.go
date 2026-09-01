@@ -218,13 +218,15 @@ func (r GeoCatalogResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			if rawIdentityIds, ok := metadata.ResourceDiff.GetOk("identity.0.identity_ids"); ok {
-				identityIds := rawIdentityIds.(*pluginsdk.Set)
-				identityType := metadata.ResourceDiff.Get("identity.0.type").(string)
-				if identityType == string(identity.TypeSystemAssigned) || identityType == string(identity.TypeSystemAssignedUserAssigned) {
-					return fmt.Errorf("%q and %q resource identity is not supported", identity.TypeSystemAssigned, identity.TypeSystemAssignedUserAssigned)
-				} else if identityIds.Len() == 0 {
-					return fmt.Errorf("`identity_ids` must be specified when `type` is set to %q", string(identity.TypeUserAssigned))
+			if rawIdentityType, ok := metadata.ResourceDiff.GetOk("identity.0.type"); ok {
+				identityType := identity.Type(rawIdentityType.(string))
+				if identityType == identity.TypeSystemAssigned || identityType == identity.TypeSystemAssignedUserAssigned {
+					return fmt.Errorf("`%s` and `%s` resource identities are not supported", identity.TypeSystemAssigned, identity.TypeSystemAssignedUserAssigned)
+				} else if identityType == identity.TypeUserAssigned {
+					identityIds := metadata.ResourceDiff.GetRawConfig().AsValueMap()["identity"].AsValueSlice()[0].AsValueMap()["identity_ids"]
+					if identityIds.IsNull() || identityIds.LengthInt() == 0 {
+						return fmt.Errorf("`identity_ids` must be specified when `type` is set to `%s`", identity.TypeUserAssigned)
+					}
 				}
 			}
 
