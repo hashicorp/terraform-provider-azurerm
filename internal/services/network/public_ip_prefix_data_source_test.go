@@ -74,7 +74,7 @@ data "azurerm_public_ip_prefix" "test" {
 `, resourceGroupName, data.Locations.Primary, name)
 }
 
-func TestAccDataSourcePublicIpPrefix_customIpPrefix(t *testing.T) {
+func TestAccDataSourcePublicIPPrefix_customIpPrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
 	r := PublicIPPrefixDataSource{}
 
