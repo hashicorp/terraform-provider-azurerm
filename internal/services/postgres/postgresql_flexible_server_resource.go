@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"slices"
 	"strconv"
 	"strings"
@@ -150,7 +151,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IntBetween(32768, 67108864),
+				ValidateFunc: validation.IntBetween(int(math.Exp2(15)), int(math.Exp2(26))),
 			},
 
 			"storage_tier": {
@@ -632,7 +633,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 					return nil
 				}
 
-				validStorageMb := []int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4193280, 4194304, 8388608, 16777216, 33553408}
+				validStorageMb := []int{int(math.Exp2(15)), int(math.Exp2(16)), int(math.Exp2(17)), int(math.Exp2(18)), int(math.Exp2(19)), int(math.Exp2(20)), int(math.Exp2(21)), 4193280, int(math.Exp2(22)), int(math.Exp2(23)), int(math.Exp2(24)), 33553408}
 				if !slices.Contains(validStorageMb, storageMb) {
 					return fmt.Errorf("`storage_mb` must be one of %v when `storage_type` is `Premium_LRS`, got `%d`", validStorageMb, storageMb)
 				}
