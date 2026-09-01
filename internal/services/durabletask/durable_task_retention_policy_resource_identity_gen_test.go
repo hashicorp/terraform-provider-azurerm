@@ -34,5 +34,5 @@ func TestAccDurableTaskRetentionPolicy_resourceIdentity(t *testing.T) {
 		},
 		data.ImportBlockWithResourceIdentityStep(false),
 		data.ImportBlockWithIDStep(false),
-	}, true)
+	}, false)
 }

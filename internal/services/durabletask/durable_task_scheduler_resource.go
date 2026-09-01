@@ -3,7 +3,7 @@
 
 package durabletask
 
-//go:generate go run ../../tools/generator-tests resourceidentity -test-sequential
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 import (
 	"context"

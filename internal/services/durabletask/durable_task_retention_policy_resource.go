@@ -3,7 +3,7 @@
 
 package durabletask
 
-//go:generate go run ../../tools/generator-tests resourceidentity -parent-id "durable_task_scheduler_id" -test-sequential
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id "durable_task_scheduler_id"
 
 import (
 	"context"

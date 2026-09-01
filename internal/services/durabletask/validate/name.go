@@ -4,23 +4,16 @@
 package validate
 
 import (
-	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var durableTaskNameRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]$`)
 
-func DurableTaskName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if len(value) < 3 || len(value) > 63 {
-		errors = append(errors, fmt.Errorf("property `%s` must be between 3 and 63 characters, got %d", k, len(value)))
-		return warnings, errors
-	}
-
-	if !durableTaskNameRegex.MatchString(value) {
-		errors = append(errors, fmt.Errorf("property `%s` must start and end with alphanumeric characters and can contain hyphens", k))
-	}
-
-	return warnings, errors
+func DurableTaskName(i interface{}, k string) ([]string, []error) {
+	return validation.All(
+		validation.StringLenBetween(3, 63),
+		validation.StringMatch(durableTaskNameRegex, "must start and end with alphanumeric characters and can contain hyphens"),
+	)(i, k)
 }
