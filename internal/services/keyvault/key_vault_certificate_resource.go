@@ -121,15 +121,10 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"curve": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										Computed: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(kv.JSONWebKeyCurveNameP256),
-											string(kv.JSONWebKeyCurveNameP256K),
-											string(kv.JSONWebKeyCurveNameP384),
-											string(kv.JSONWebKeyCurveNameP521),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Computed:     true,
+										ValidateFunc: validation.StringInEnumSlice(kv.PossibleJSONWebKeyCurveNameValues(), false),
 									},
 									"exportable": {
 										Type:     pluginsdk.TypeBool,
@@ -178,12 +173,9 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"action_type": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(kv.CertificatePolicyActionAutoRenew),
-														string(kv.CertificatePolicyActionEmailContacts),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInEnumSlice(kv.PossibleCertificatePolicyActionValues(), false),
 												},
 											},
 										},
@@ -243,18 +235,8 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeSet,
 										Required: true,
 										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												string(kv.KeyUsageTypeCRLSign),
-												string(kv.KeyUsageTypeDataEncipherment),
-												string(kv.KeyUsageTypeDecipherOnly),
-												string(kv.KeyUsageTypeDigitalSignature),
-												string(kv.KeyUsageTypeEncipherOnly),
-												string(kv.KeyUsageTypeKeyAgreement),
-												string(kv.KeyUsageTypeKeyCertSign),
-												string(kv.KeyUsageTypeKeyEncipherment),
-												string(kv.KeyUsageTypeNonRepudiation),
-											}, false),
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringInEnumSlice(kv.PossibleKeyUsageTypeValues(), false),
 										},
 									},
 									"subject": {

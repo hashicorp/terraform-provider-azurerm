@@ -126,15 +126,10 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 			},
 
 			"querystring_caching_behaviour": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(cdn.QueryStringCachingBehaviorIgnoreQueryString),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.QueryStringCachingBehaviorBypassCaching),
-					string(cdn.QueryStringCachingBehaviorIgnoreQueryString),
-					string(cdn.QueryStringCachingBehaviorNotSet),
-					string(cdn.QueryStringCachingBehaviorUseQueryString),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(cdn.QueryStringCachingBehaviorIgnoreQueryString),
+				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleQueryStringCachingBehaviorValues(), false),
 			},
 
 			"content_types_to_compress": {
@@ -185,15 +180,9 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 			},
 
 			"optimization_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.OptimizationTypeDynamicSiteAcceleration),
-					string(cdn.OptimizationTypeGeneralMediaStreaming),
-					string(cdn.OptimizationTypeGeneralWebDelivery),
-					string(cdn.OptimizationTypeLargeFileDownload),
-					string(cdn.OptimizationTypeVideoOnDemandMediaStreaming),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleOptimizationTypeValues(), false),
 			},
 
 			"fqdn": {
