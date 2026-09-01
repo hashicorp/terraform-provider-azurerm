@@ -16,7 +16,7 @@ import (
 
 func TestAccLbRule_listByLoadBalancerID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "testlist1")
-	r := LoadBalancerRule{}
+	r := LbRuleResource{}
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -47,7 +47,7 @@ func TestAccLbRule_listByLoadBalancerID(t *testing.T) {
 	})
 }
 
-func (r LoadBalancerRule) basicQuery(data acceptance.TestData) string {
+func (r LbRuleResource) basicQuery(data acceptance.TestData) string {
 	return `
 list "azurerm_lb_rule" "list" {
   provider = azurerm

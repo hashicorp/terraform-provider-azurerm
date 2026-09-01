@@ -4,6 +4,7 @@
 package loadbalancer
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -24,7 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -parent-id loadbalancer_id
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "load_balancer_name:loadbalancer_id,resource_group_name:loadbalancer_id,subscription_id:loadbalancer_id"
 
 func resourceArmLoadBalancerRule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -37,7 +38,7 @@ func resourceArmLoadBalancerRule() *pluginsdk.Resource {
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&loadbalancers.LoadBalancingRuleId{}),
 		},
 
-		Importer: pluginsdk.ImporterValidatingIdentity(&loadbalancers.LoadBalancingRuleId{}),
+		Importer: pluginsdk.ImporterValidatingIdentityThen(&loadbalancers.LoadBalancingRuleId{}, loadBalancerRuleResourceImporter),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -48,6 +49,16 @@ func resourceArmLoadBalancerRule() *pluginsdk.Resource {
 
 		Schema: resourceArmLoadBalancerRuleSchema(),
 	}
+}
+
+func loadBalancerRuleResourceImporter(_ context.Context, d *pluginsdk.ResourceData, _ interface{}) ([]*pluginsdk.ResourceData, error) {
+	id, err := loadbalancers.ParseLoadBalancingRuleID(d.Id())
+	if err != nil {
+		return nil, err
+	}
+	lbId := loadbalancers.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroupName, id.LoadBalancerName)
+
+	return []*pluginsdk.ResourceData{lbId}, nil
 }
 
 func resourceArmLoadBalancerRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

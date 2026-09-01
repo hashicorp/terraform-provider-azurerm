@@ -14,11 +14,11 @@ import (
 
 func TestAccLbRule_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
-	r := LoadBalancerRule{}
+	r := LbRuleResource{}
 
 	checkedFields := map[string]struct{}{
-		"load_balancer_name":  {},
 		"name":                {},
+		"load_balancer_name":  {},
 		"resource_group_name": {},
 		"subscription_id":     {},
 	}
@@ -28,8 +28,8 @@ func TestAccLbRule_resourceIdentity(t *testing.T) {
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_lb_rule.test", checkedFields),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_lb_rule.test", tfjsonpath.New("load_balancer_name"), tfjsonpath.New("loadbalancer_id")),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_lb_rule.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_lb_rule.test", tfjsonpath.New("load_balancer_name"), tfjsonpath.New("loadbalancer_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_lb_rule.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("loadbalancer_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_lb_rule.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("loadbalancer_id")),
 			},
