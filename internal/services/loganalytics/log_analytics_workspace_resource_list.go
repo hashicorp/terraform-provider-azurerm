@@ -82,7 +82,7 @@ func (LogAnalyticsWorkspaceListResource) List(ctx context.Context, request list.
 			}
 			rd.SetId(id.ID())
 
-			if err := resourceLogAnalyticsWorkspaceFlatten(ctx, sharedKeyClient, rd, id, &item); err != nil {
+			if err := resourceLogAnalyticsWorkspaceFlatten(ctx, sharedKeyClient, rd, id, &item, request.IncludeResource); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", azureLogAnalyticsWorkspaceName), err)
 				return
 			}
