@@ -66,6 +66,8 @@ func resourceFirewall() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
+			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+
 			// lintignore:S013
 			"sku_name": {
 				Type:         pluginsdk.TypeString,
@@ -256,7 +258,8 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	parameters := azurefirewalls.AzureFirewall{
-		Location: &location,
+		Location:         &location,
+		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
 		Properties: &azurefirewalls.AzureFirewallPropertiesFormat{
 			IPConfigurations:     ipConfigs,
 			ThreatIntelMode:      pointer.ToEnum[azurefirewalls.AzureFirewallThreatIntelMode](d.Get("threat_intel_mode").(string)),
@@ -422,6 +425,7 @@ func resourceFirewallSetFlatten(d *pluginsdk.ResourceData, id *azurefirewalls.Az
 
 	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("edge_zone", flattenEdgeZone(model.ExtendedLocation))
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
 		if props := model.Properties; props != nil {
