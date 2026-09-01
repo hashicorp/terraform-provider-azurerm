@@ -67,7 +67,7 @@ func resourceEventHub() *pluginsdk.Resource {
 			"message_retention": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validate.ValidateEventHubMessageRetentionCount,
 				ExactlyOneOf: []string{"retention_description", "message_retention"},
 			},
@@ -76,7 +76,7 @@ func resourceEventHub() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*schema.Schema{
 						"cleanup_policy": {

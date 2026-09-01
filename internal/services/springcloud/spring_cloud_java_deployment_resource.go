@@ -362,23 +362,23 @@ func resourceSprintCloudJavaDeploymentSchema() map[string]*pluginsdk.Schema {
 		"quota": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					// The value returned in GET will be recalculated by the service if the deprecated "cpu" is honored, so make this property as Computed.
 					"cpu": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+						// Note: O+C The value returned in GET will be recalculated by the service if the deprecated "cpu" is honored, so make this property as Computed.
 						Computed: true,
 						// NOTE: we're intentionally not validating this field since additional values are possible when enabled by the service team
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
-					// The value returned in GET will be recalculated by the service if the deprecated "memory_in_gb" is honored, so make this property as Computed.
 					"memory": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+						// Note: O+C The value returned in GET will be recalculated by the service if the deprecated "memory_in_gb" is honored, so make this property as Computed.
 						Computed: true,
 						// NOTE: we're intentionally not validating this field since additional values are possible when enabled by the service team
 						ValidateFunc: validation.StringIsNotEmpty,

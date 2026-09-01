@@ -109,7 +109,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				Type:       pluginsdk.TypeList,
 				Optional:   true,
 				MaxItems:   1,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{

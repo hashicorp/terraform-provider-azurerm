@@ -402,7 +402,7 @@ func BackupSchema() *pluginsdk.Schema {
 							"start_time": {
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
-								Computed:     true,
+								Computed:     true, // azignore:AZS007 - pre-existing violation
 								Description:  "When the schedule should start working in RFC-3339 format.",
 								ValidateFunc: validation.IsRFC3339Time,
 							},

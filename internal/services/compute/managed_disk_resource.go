@@ -102,7 +102,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 					512,
 					4096,
 				}),
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"optimized_frequent_attach_enabled": {
@@ -121,7 +121,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			"source_uri": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 			},
 
@@ -160,8 +160,9 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			},
 
 			"disk_size_gb": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because Azure computes disk size when not specified
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(0, 65536),
 			},
@@ -174,29 +175,33 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			},
 
 			"disk_iops_read_write": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because Azure assigns IOPS based on disk size when not specified
 				Computed:     true,
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"disk_mbps_read_write": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because Azure assigns throughput based on disk size when not specified
 				Computed:     true,
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"disk_iops_read_only": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because Azure assigns read-only IOPS based on disk size when not specified
 				Computed:     true,
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"disk_mbps_read_only": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because Azure assigns read-only throughput based on disk size when not specified
 				Computed:     true,
 				ValidateFunc: validation.IntAtLeast(1),
 			},
@@ -237,13 +242,13 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			"tier": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"max_shares": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.IntBetween(2, 10),
 			},
 

@@ -1233,8 +1233,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"computer_name_prefix": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-
-			// Computed since we reuse the VM name if one's not specified
+			// Note: O+C since we reuse the VM name if one's not specified
 			Computed: true,
 			ForceNew: true,
 
@@ -1344,7 +1343,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
 			ForceNew: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"priority": {
