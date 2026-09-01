@@ -31,7 +31,7 @@ output "public_ip_prefix" {
 
 ## Attributes Reference
 
-* `custom_ip_prefix_id` - The Custom IP Prefix ID associated with the Public IP Prefix. Changing this forces a new resource to be created.
+* `custom_ip_prefix_id` - The Custom IP Prefix ID associated with the Public IP Prefix. 
 * `id` - The ID of the Public IP Prefix.
 * `ip_prefix` - The Public IP address range, in CIDR notation.
 * `ip_version` - The IP Version to use, `IPv6` or `IPv4`. Changing this forces a new resource to be created. Default is `IPv4`.
