@@ -216,13 +216,10 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"os_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(virtualmachines.OperatingSystemTypesLinux),
-								string(virtualmachines.OperatingSystemTypesWindows),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForOperatingSystemTypes(), false),
 						},
 
 						"name": {

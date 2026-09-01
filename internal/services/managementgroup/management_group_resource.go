@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/management/2020-05-01/managementgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
@@ -166,19 +168,18 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	// We have a potential race condition / consistency issue whereby the implicit role assignment for the SP may not be
 	// completed before the read-back here or an eventually consistent read is creating a temporary 403 error.
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{
-			"pending",
-		},
-		Target: []string{
-			"succeeded",
-		},
-		Refresh:                   managementGroupCreateStateRefreshFunc(ctx, client, id),
-		Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
-		ContinuousTargetOccurence: 5,
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(5, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, id, managementgroups.GetOperationOptions{
+			CacheControl: &managementGroupCacheControl,
+			Expand:       pointer.To(managementgroups.ExpandChildren),
+			Recurse:      pointer.To(true),
+		})
+		return resp.HttpResponse, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:              10 * time.Second,
+		RetryErrorStatusCodes: []int{http.StatusForbidden},
+	})
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("failed waiting for read on Managementgroup %q", groupName)
 	}
 
@@ -427,22 +428,4 @@ func determineManagementGroupSubscriptionsIdsToRemove(existing *[]managementgrou
 	}
 
 	return &subscriptionIdsToRemove, nil
-}
-
-func managementGroupCreateStateRefreshFunc(ctx context.Context, client *managementgroups.ManagementGroupsClient, id commonids.ManagementGroupId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, id, managementgroups.GetOperationOptions{
-			CacheControl: &managementGroupCacheControl,
-			Expand:       pointer.To(managementgroups.ExpandChildren),
-			Recurse:      pointer.To(true),
-		})
-		if err != nil {
-			if response.WasForbidden(resp.HttpResponse) {
-				return resp, "pending", nil
-			}
-			return resp, "failed", err
-		}
-
-		return resp, "succeeded", nil
-	}
 }

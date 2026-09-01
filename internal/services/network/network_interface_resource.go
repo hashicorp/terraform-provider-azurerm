@@ -88,22 +88,16 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 						},
 
 						"private_ip_address_version": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(networkinterfaces.IPVersionIPvFour),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(networkinterfaces.IPVersionIPvFour),
-								string(networkinterfaces.IPVersionIPvSix),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(networkinterfaces.IPVersionIPvFour),
+							ValidateFunc: validation.StringInSlice(networkinterfaces.PossibleValuesForIPVersion(), false),
 						},
 
 						"private_ip_address_allocation": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(networkinterfaces.IPAllocationMethodDynamic),
-								string(networkinterfaces.IPAllocationMethodStatic),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(networkinterfaces.PossibleValuesForIPAllocationMethod(), false),
 						},
 
 						"public_ip_address_id": {

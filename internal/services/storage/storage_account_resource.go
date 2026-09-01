@@ -345,14 +345,11 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			},
 
 			"dns_endpoint_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(storageaccounts.DnsEndpointTypeStandard),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(storageaccounts.DnsEndpointTypeStandard),
-					string(storageaccounts.DnsEndpointTypeAzureDnsZone),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(storageaccounts.DnsEndpointTypeStandard),
+				ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForDnsEndpointType(), false),
 			},
 
 			"default_to_oauth_authentication": {

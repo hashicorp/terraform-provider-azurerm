@@ -87,13 +87,10 @@ func resourceArmDevTestPolicy() *pluginsdk.Resource {
 			},
 
 			"evaluator_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(policies.PolicyEvaluatorTypeAllowedValuesPolicy),
-					string(policies.PolicyEvaluatorTypeMaxValuePolicy),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(policies.PossibleValuesForPolicyEvaluatorType(), false),
 			},
 
 			"description": {

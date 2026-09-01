@@ -80,13 +80,10 @@ func resourceContainerRegistryWebhook() *pluginsdk.Resource {
 			},
 
 			"status": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  webhooks.WebhookStatusEnabled,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(webhooks.WebhookStatusDisabled),
-					string(webhooks.WebhookStatusEnabled),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      webhooks.WebhookStatusEnabled,
+				ValidateFunc: validation.StringInSlice(webhooks.PossibleValuesForWebhookStatus(), false),
 			},
 
 			"scope": {
@@ -100,14 +97,8 @@ func resourceContainerRegistryWebhook() *pluginsdk.Resource {
 				Required: true,
 				MinItems: 1,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webhooks.WebhookActionChartDelete),
-						string(webhooks.WebhookActionChartPush),
-						string(webhooks.WebhookActionDelete),
-						string(webhooks.WebhookActionPush),
-						string(webhooks.WebhookActionQuarantine),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(webhooks.PossibleValuesForWebhookAction(), false),
 				},
 			},
 

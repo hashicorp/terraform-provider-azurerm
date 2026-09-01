@@ -72,30 +72,21 @@ func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
 						},
 
 						"format": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(blobinventorypolicies.FormatCsv),
-								string(blobinventorypolicies.FormatParquet),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(blobinventorypolicies.PossibleValuesForFormat(), false),
 						},
 
 						"schedule": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(blobinventorypolicies.ScheduleDaily),
-								string(blobinventorypolicies.ScheduleWeekly),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(blobinventorypolicies.PossibleValuesForSchedule(), false),
 						},
 
 						"scope": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(blobinventorypolicies.ObjectTypeBlob),
-								string(blobinventorypolicies.ObjectTypeContainer),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(blobinventorypolicies.PossibleValuesForObjectType(), false),
 						},
 
 						"schema_fields": {

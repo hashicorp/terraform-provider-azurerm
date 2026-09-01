@@ -131,14 +131,10 @@ func resourceVirtualHub() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 
 			"hub_routing_preference": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(virtualwans.HubRoutingPreferenceExpressRoute),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualwans.HubRoutingPreferenceExpressRoute),
-					string(virtualwans.HubRoutingPreferenceVpnGateway),
-					string(virtualwans.HubRoutingPreferenceASPath),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(virtualwans.HubRoutingPreferenceExpressRoute),
+				ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForHubRoutingPreference(), false),
 			},
 
 			"default_route_table_id": {

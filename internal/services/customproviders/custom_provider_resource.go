@@ -73,13 +73,10 @@ func resourceCustomProvider() *pluginsdk.Resource {
 							ValidateFunc: validation.IsURLWithHTTPS,
 						},
 						"routing_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(customresourceprovider.ResourceTypeRoutingProxy),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(customresourceprovider.ResourceTypeRoutingProxy),
-								string(customresourceprovider.ResourceTypeRoutingProxyCache),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(customresourceprovider.ResourceTypeRoutingProxy),
+							ValidateFunc: validation.StringInSlice(customresourceprovider.PossibleValuesForResourceTypeRouting(), false),
 						},
 					},
 				},
