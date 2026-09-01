@@ -16,7 +16,7 @@ import (
 
 func TestAccDnsARecord_listByDnsZoneID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_a_record", "testlist1")
-	r := TestAccDnsARecordResource{}
+	r := DnsARecordResource{}
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -29,7 +29,7 @@ func TestAccDnsARecord_listByDnsZoneID(t *testing.T) {
 			},
 			{
 				Query:  true,
-				Config: r.basicQuery(data),
+				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLengthAtLeast("azurerm_dns_a_record.list", 1),
 					querycheck.ExpectIdentity(
@@ -48,7 +48,7 @@ func TestAccDnsARecord_listByDnsZoneID(t *testing.T) {
 	})
 }
 
-func (r TestAccDnsARecordResource) basicQuery(data acceptance.TestData) string {
+func (r DnsARecordResource) basicQuery() string {
 	return `
 list "azurerm_dns_a_record" "list" {
   provider = azurerm

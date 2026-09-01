@@ -6,6 +6,7 @@ package dns_test
 import (
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -17,11 +18,11 @@ func TestAccDnsARecord_resourceIdentity(t *testing.T) {
 	r := DnsARecordResource{}
 
 	checkedFields := map[string]struct{}{
+		"subscription_id":     {},
+		"record_type":         {},
 		"dns_zone_name":       {},
 		"name":                {},
-		"record_type":         {},
 		"resource_group_name": {},
-		"subscription_id":     {},
 	}
 
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
@@ -29,11 +30,11 @@ func TestAccDnsARecord_resourceIdentity(t *testing.T) {
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_dns_a_record.test", checkedFields),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dns_a_record.test", tfjsonpath.New("dns_zone_name"), tfjsonpath.New("dns_zone_id")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dns_a_record.test", tfjsonpath.New("name"), tfjsonpath.New("dns_zone_id")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dns_a_record.test", tfjsonpath.New("record_type"), tfjsonpath.New("dns_zone_id")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dns_a_record.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("dns_zone_id")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dns_a_record.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("dns_zone_id")),
+				statecheck.ExpectIdentityValue("azurerm_dns_a_record.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
+				statecheck.ExpectIdentityValue("azurerm_dns_a_record.test", tfjsonpath.New("record_type"), knownvalue.StringExact("A")),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_dns_a_record.test", tfjsonpath.New("dns_zone_name"), tfjsonpath.New("zone_name")),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_dns_a_record.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_dns_a_record.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
 			},
 		},
 		data.ImportBlockWithResourceIdentityStep(false),

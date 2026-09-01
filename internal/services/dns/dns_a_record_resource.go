@@ -4,6 +4,7 @@
 package dns
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -22,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -parent-id dns_zone_id
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "dns_zone_name:zone_name,resource_group_name,name" -known-values "record_type:A"
 
 const azurermDnsARecordResourceName = "azurerm_dns_a_record"
 
@@ -43,7 +44,7 @@ func resourceDnsARecord() *pluginsdk.Resource {
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&recordsets.RecordTypeId{}),
 		},
 
-		Importer: pluginsdk.ImporterValidatingIdentity(&recordsets.RecordTypeId{}),
+		Importer: pluginsdk.ImporterValidatingIdentityThen(&recordsets.RecordTypeId{}, resourceDnsARecordImporter),
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -95,6 +96,17 @@ func resourceDnsARecord() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+}
+
+func resourceDnsARecordImporter(_ context.Context, d *pluginsdk.ResourceData, _ interface{}) ([]*pluginsdk.ResourceData, error) {
+	resourceId, err := recordsets.ParseRecordTypeID(d.Id())
+	if err != nil {
+		return []*pluginsdk.ResourceData{d}, err
+	}
+	if resourceId.RecordType != recordsets.RecordTypeA {
+		return []*pluginsdk.ResourceData{d}, fmt.Errorf("importing %s wrong type received: expected %s received %s", resourceId, recordsets.RecordTypeA, resourceId.RecordType)
+	}
+	return []*pluginsdk.ResourceData{d}, nil
 }
 
 func resourceDnsARecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
