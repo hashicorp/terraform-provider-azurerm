@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * `azurerm_postgresql_flexible_server` - add support for the `storage_type`, `storage_iops`, and `storage_throughput` properties which allows choice of the new "Premium V2 LRS" storage type [GH-32121]
 
 FEATURES:
+* **New List Resource**: `application_insights_workbook_template` [GH-33245]
 * **New List Resource**: `azurerm_application_insights_standard_web_test` [GH-33243]
 * **New List Resource**: `azurerm_dedicated_host_group` [GH-33257]
 * **New List Resource**: `azurerm_arc_kubernetes_provisioned_cluster` [GH-33247]
