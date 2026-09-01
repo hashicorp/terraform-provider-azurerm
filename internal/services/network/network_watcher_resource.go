@@ -13,11 +13,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkwatchers"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity
+
+var azureNetworkWatcherResourceName = "azurerm_network_watcher"
 
 func resourceNetworkWatcher() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -25,10 +30,11 @@ func resourceNetworkWatcher() *pluginsdk.Resource {
 		Read:   resourceNetworkWatcherRead,
 		Update: resourceNetworkWatcherUpdate,
 		Delete: resourceNetworkWatcherDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := networkwatchers.ParseNetworkWatcherID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&networkwatchers.NetworkWatcherId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&networkwatchers.NetworkWatcherId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -84,6 +90,9 @@ func resourceNetworkWatcherCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceNetworkWatcherRead(d, meta)
 }
@@ -140,10 +149,14 @@ func resourceNetworkWatcherRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceNetworkWatcherFlatten(d, id, resp.Model)
+}
+
+func resourceNetworkWatcherFlatten(d *pluginsdk.ResourceData, id *networkwatchers.NetworkWatcherId, model *networkwatchers.NetworkWatcher) error {
 	d.Set("name", id.NetworkWatcherName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -151,7 +164,7 @@ func resourceNetworkWatcherRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceNetworkWatcherDelete(d *pluginsdk.ResourceData, meta interface{}) error {
