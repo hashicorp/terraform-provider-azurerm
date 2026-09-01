@@ -276,7 +276,7 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 						stateConf := &pluginsdk.StateChangeConf{
 							Pending:                   []string{"pending"},
 							Target:                    []string{"available"},
-							Refresh:                   managedHSMKeyRefreshFunc(*kid),
+							Refresh:                   managedHSMKeyRefreshFunc(ctx, *kid),
 							Delay:                     30 * time.Second,
 							PollInterval:              10 * time.Second,
 							ContinuousTargetOccurence: 10,

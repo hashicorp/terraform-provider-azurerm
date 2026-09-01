@@ -112,7 +112,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 	return nil
 }
 
-func keyVaultChildItemRefreshFunc(secretUri string) pluginsdk.StateRefreshFunc {
+func keyVaultChildItemRefreshFunc(ctx context.Context, secretUri string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Checking to see if KeyVault Secret %q is available..", secretUri)
 
@@ -122,7 +122,12 @@ func keyVaultChildItemRefreshFunc(secretUri string) pluginsdk.StateRefreshFunc {
 			Transport: PTransport,
 		}
 
-		conn, err := client.Get(secretUri)
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, secretUri, nil)
+		if err != nil {
+			return nil, "pending", fmt.Errorf("building request to check secret at %q: %s", secretUri, err)
+		}
+
+		conn, err := client.Do(req)
 		if err != nil {
 			log.Printf("[DEBUG] Didn't find KeyVault secret at %q", secretUri)
 			return nil, "pending", fmt.Errorf("checking secret at %q: %s", secretUri, err)

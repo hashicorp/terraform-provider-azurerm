@@ -567,7 +567,7 @@ func recoverDeletedCertificate(ctx context.Context, d *pluginsdk.ResourceData, m
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending:                   []string{"pending"},
 			Target:                    []string{"available"},
-			Refresh:                   keyVaultChildItemRefreshFunc(*certificate),
+			Refresh:                   keyVaultChildItemRefreshFunc(ctx, *certificate),
 			Delay:                     30 * time.Second,
 			PollInterval:              10 * time.Second,
 			ContinuousTargetOccurence: 10,

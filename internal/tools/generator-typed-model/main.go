@@ -31,7 +31,6 @@ func main() {
 	f := jen.NewFile("main")
 	modelStmts := modelForSchemaMap(snake2Camel(strings.TrimPrefix(rt, "azurerm_"))+"Model", resource.Schema)
 	for _, stmt := range modelStmts {
-		stmt := stmt
 		f.Add(&stmt)
 	}
 	fmt.Printf("%#v", f)
