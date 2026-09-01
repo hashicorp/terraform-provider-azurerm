@@ -17,7 +17,7 @@ import (
 
 func TestAccDnsCNameRecord_listByDnsZoneID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "testlist1")
-	r := DnsCNameRecordResource{}
+	r := DnsCnameRecordResource{}
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -48,7 +48,7 @@ func TestAccDnsCNameRecord_listByDnsZoneID(t *testing.T) {
 	})
 }
 
-func (r DnsCNameRecordResource) basicQuery(data acceptance.TestData) string {
+func (r DnsCnameRecordResource) basicQuery(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
