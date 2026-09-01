@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkwatchers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -29,6 +30,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id network_watcher_id
+
+const azureNetworkWatcherFlowLogResourceName = "azurerm_network_watcher_flow_log"
 
 func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -42,10 +47,11 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 			0: migration.NetworkWatcherFlowLogV0ToV1{},
 		}),
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := flowlogs.ParseFlowLogID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&flowlogs.FlowLogId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&flowlogs.FlowLogId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -218,7 +224,7 @@ func resourceNetworkWatcherFlowLogCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_network_watcher_flow_log", id.ID())
+		return tf.ImportAsExistsError(azureNetworkWatcherFlowLogResourceName, id.ID())
 	}
 
 	targetResourceId := d.Get("target_resource_id").(string)
@@ -266,6 +272,9 @@ func resourceNetworkWatcherFlowLogCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceNetworkWatcherFlowLogRead(d, meta)
 }
@@ -362,11 +371,15 @@ func resourceNetworkWatcherFlowLogRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
+	return resourceNetworkWatcherFlowLogFlatten(d, id, resp.Model)
+}
+
+func resourceNetworkWatcherFlowLogFlatten(d *pluginsdk.ResourceData, id *flowlogs.FlowLogId, model *flowlogs.FlowLog) error {
 	d.Set("name", id.FlowLogName)
 	d.Set("network_watcher_name", id.NetworkWatcherName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
@@ -411,7 +424,7 @@ func resourceNetworkWatcherFlowLogRead(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceNetworkWatcherFlowLogDelete(d *pluginsdk.ResourceData, meta interface{}) error {
