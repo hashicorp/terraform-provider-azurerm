@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -10,16 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	cosmosParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
-	cosmosValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type OutputCosmosDBResource struct{}
@@ -66,7 +64,7 @@ func (r OutputCosmosDBResource) Arguments() map[string]*pluginsdk.Schema {
 		"cosmosdb_sql_database_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: cosmosValidate.SqlDatabaseID,
+			ValidateFunc: cosmosdb.ValidateSqlDatabaseID,
 		},
 
 		"container_name": {
@@ -129,32 +127,34 @@ func (r OutputCosmosDBResource) Create() sdk.ResourceFunc {
 			}
 			id := outputs.NewOutputID(subscriptionId, streamingJobId.ResourceGroupName, streamingJobId.StreamingJobName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
-
-			databaseId, err := cosmosParse.SqlDatabaseID(model.Database)
+			databaseId, err := cosmosdb.ParseSqlDatabaseID(model.Database)
 			if err != nil {
 				return err
 			}
 
 			documentDbOutputProps := &outputs.DocumentDbOutputDataSourceProperties{
-				AccountId:             utils.String(databaseId.DatabaseAccountName),
-				AccountKey:            utils.String(model.AccountKey),
-				Database:              utils.String(databaseId.Name),
-				CollectionNamePattern: utils.String(model.ContainerName),
-				DocumentId:            utils.String(model.DocumentID),
-				PartitionKey:          utils.String(model.PartitionKey),
-				AuthenticationMode:    pointer.To(outputs.AuthenticationMode(model.AuthenticationMode)),
+				AccountId:             pointer.To(databaseId.DatabaseAccountName),
+				AccountKey:            pointer.To(model.AccountKey),
+				Database:              pointer.To(databaseId.SqlDatabaseName),
+				CollectionNamePattern: pointer.To(model.ContainerName),
+				DocumentId:            pointer.To(model.DocumentID),
+				PartitionKey:          pointer.To(model.PartitionKey),
+				AuthenticationMode:    pointer.ToEnum[outputs.AuthenticationMode](model.AuthenticationMode),
 			}
 
 			props := outputs.Output{
-				Name: utils.String(model.Name),
+				Name: pointer.To(model.Name),
 				Properties: &outputs.OutputProperties{
 					Datasource: &outputs.DocumentDbOutputDataSource{
 						Properties: documentDbOutputProps,
@@ -207,26 +207,14 @@ func (r OutputCosmosDBResource) Read() sdk.ResourceFunc {
 
 					state.AccountKey = metadata.ResourceData.Get("cosmosdb_account_key").(string)
 
-					databaseId := cosmosParse.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroupName, *output.Properties.AccountId, *output.Properties.Database)
+					databaseId := cosmosdb.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroupName, *output.Properties.AccountId, *output.Properties.Database)
 					state.Database = databaseId.ID()
 
-					collectionName := ""
-					if v := output.Properties.CollectionNamePattern; v != nil {
-						collectionName = *v
-					}
-					state.ContainerName = collectionName
+					state.ContainerName = pointer.From(output.Properties.CollectionNamePattern)
 
-					document := ""
-					if v := output.Properties.DocumentId; v != nil {
-						document = *v
-					}
-					state.DocumentID = document
+					state.DocumentID = pointer.From(output.Properties.DocumentId)
 
-					partitionKey := ""
-					if v := output.Properties.PartitionKey; v != nil {
-						partitionKey = *v
-					}
-					state.PartitionKey = partitionKey
+					state.PartitionKey = pointer.From(output.Properties.PartitionKey)
 
 					state.AuthenticationMode = string(pointer.From(output.Properties.AuthenticationMode))
 
@@ -247,8 +235,6 @@ func (r OutputCosmosDBResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("deleting %s", *id)
 
 			if resp, err := client.Delete(ctx, *id); err != nil {
 				if !response.WasNotFound(resp.HttpResponse) {
@@ -279,7 +265,7 @@ func (r OutputCosmosDBResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			databaseId, err := cosmosParse.SqlDatabaseID(state.Database)
+			databaseId, err := cosmosdb.ParseSqlDatabaseID(state.Database)
 			if err != nil {
 				return err
 			}
@@ -290,7 +276,7 @@ func (r OutputCosmosDBResource) Update() sdk.ResourceFunc {
 						Datasource: outputs.DocumentDbOutputDataSource{
 							Properties: &outputs.DocumentDbOutputDataSourceProperties{
 								AccountKey:            &state.AccountKey,
-								Database:              &databaseId.Name,
+								Database:              &databaseId.SqlDatabaseName,
 								CollectionNamePattern: &state.ContainerName,
 								DocumentId:            &state.DocumentID,
 								PartitionKey:          &state.PartitionKey,

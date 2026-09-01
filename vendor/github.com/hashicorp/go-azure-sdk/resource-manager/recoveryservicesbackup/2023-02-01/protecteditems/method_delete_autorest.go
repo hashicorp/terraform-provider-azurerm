@@ -2,16 +2,19 @@ package protecteditems
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/polling"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DeleteOperationResponse struct {
+	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
 }
 
@@ -23,19 +26,27 @@ func (c ProtectedItemsClient) Delete(ctx context.Context, id ProtectedItemId) (r
 		return
 	}
 
-	result.HttpResponse, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
+	result, err = c.senderForDelete(ctx, req)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "protecteditems.ProtectedItemsClient", "Delete", result.HttpResponse, "Failure sending request")
 		return
 	}
 
-	result, err = c.responderForDelete(result.HttpResponse)
+	return
+}
+
+// DeleteThenPoll performs Delete then polls until it's completed
+func (c ProtectedItemsClient) DeleteThenPoll(ctx context.Context, id ProtectedItemId) error {
+	result, err := c.Delete(ctx, id)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "protecteditems.ProtectedItemsClient", "Delete", result.HttpResponse, "Failure responding to request")
-		return
+		return fmt.Errorf("performing Delete: %+v", err)
 	}
 
-	return
+	if err := result.Poller.PollUntilDone(); err != nil {
+		return fmt.Errorf("polling after Delete: %+v", err)
+	}
+
+	return nil
 }
 
 // preparerForDelete prepares the Delete request.
@@ -53,14 +64,15 @@ func (c ProtectedItemsClient) preparerForDelete(ctx context.Context, id Protecte
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// responderForDelete handles the response to the Delete request. The method always
-// closes the http.Response Body.
-func (c ProtectedItemsClient) responderForDelete(resp *http.Response) (result DeleteOperationResponse, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusAccepted, http.StatusNoContent, http.StatusOK),
-		autorest.ByClosing())
-	result.HttpResponse = resp
+// senderForDelete sends the Delete request. The method will close the
+// http.Response Body if it receives an error.
+func (c ProtectedItemsClient) senderForDelete(ctx context.Context, req *http.Request) (future DeleteOperationResponse, err error) {
+	var resp *http.Response
+	resp, err = c.Client.Send(req, azure.DoRetryWithRegistration(c.Client))
+	if err != nil {
+		return
+	}
 
+	future.Poller, err = polling.NewPollerFromResponse(ctx, resp, c.Client, req.Method)
 	return
 }

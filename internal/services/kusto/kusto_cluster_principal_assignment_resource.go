@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package kusto
@@ -7,17 +7,18 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/clusterprincipalassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceKustoClusterPrincipalAssignment() *pluginsdk.Resource {
@@ -107,7 +108,7 @@ func resourceKustoClusterPrincipalAssignmentCreate(d *pluginsdk.ResourceData, me
 	defer cancel()
 
 	id := clusterprincipalassignments.NewPrincipalAssignmentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		principalAssignment, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(principalAssignment.HttpResponse) {
@@ -127,16 +128,15 @@ func resourceKustoClusterPrincipalAssignmentCreate(d *pluginsdk.ResourceData, me
 
 	principalAssignment := clusterprincipalassignments.ClusterPrincipalAssignment{
 		Properties: &clusterprincipalassignments.ClusterPrincipalProperties{
-			TenantId:      utils.String(tenantID),
+			TenantId:      pointer.To(tenantID),
 			PrincipalId:   principalID,
 			PrincipalType: clusterprincipalassignments.PrincipalType(principalType),
 			Role:          clusterprincipalassignments.ClusterPrincipalRole(role),
 		},
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, principalAssignment)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, principalAssignment, sdk.SetIDCallback(meta, &id, d)); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -155,7 +155,7 @@ func resourceKustoClusterPrincipalAssignmentRead(d *pluginsdk.ResourceData, meta
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -172,26 +172,14 @@ func resourceKustoClusterPrincipalAssignmentRead(d *pluginsdk.ResourceData, meta
 		if props != nil {
 			d.Set("principal_id", props.PrincipalId)
 
-			principalName := ""
-			if props.PrincipalName != nil {
-				principalName = *props.PrincipalName
-			}
-			d.Set("principal_name", principalName)
+			d.Set("principal_name", pointer.From(props.PrincipalName))
 
 			d.Set("principal_type", string(props.PrincipalType))
 			d.Set("role", string(props.Role))
 
-			tenantID := ""
-			if props.TenantId != nil {
-				tenantID = *props.TenantId
-			}
-			d.Set("tenant_id", tenantID)
+			d.Set("tenant_id", pointer.From(props.TenantId))
 
-			tenantName := ""
-			if props.TenantName != nil {
-				tenantName = *props.TenantName
-			}
-			d.Set("tenant_name", tenantName)
+			d.Set("tenant_name", pointer.From(props.TenantName))
 		}
 	}
 
@@ -208,8 +196,7 @@ func resourceKustoClusterPrincipalAssignmentDelete(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

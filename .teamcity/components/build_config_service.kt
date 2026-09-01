@@ -6,10 +6,10 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
     val environment = environment
     val vcsRootId = vcsRootId
 
-    fun buildConfiguration(providerName : String, nightlyTestsEnabled: Boolean, startHour: Int, parallelism: Int, daysOfWeek: String, daysOfMonth: String, timeout: Int) : BuildType {
+    fun buildConfiguration(providerName : String, nightlyTestsEnabled: Boolean, startHour: Int, parallelism: Int, daysOfWeek: String, daysOfMonth: String, timeout: Int, disableTriggers: Boolean, runWithBetaVersion: Boolean) : BuildType {
         return BuildType {
             // TC needs a consistent ID for dynamically generated packages
-            id(uniqueID(providerName))
+            id(uniqueID(providerName, runWithBetaVersion))
 
             name = "%s - Acceptance Tests".format(displayName)
 
@@ -19,9 +19,12 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
             }
 
             steps {
+                CheckScheduleConstraints()
+                SetBuildStartTime()
                 ConfigureGoEnv()
                 DownloadTerraformBinary()
                 RunAcceptanceTests(packageName)
+                PostTestResultsToGitHubPullRequest()
             }
 
             failureConditions {
@@ -31,6 +34,7 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
 
             features {
                 Golang()
+                BuildCacheFeature()
             }
 
             params {
@@ -40,15 +44,21 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
                 TerraformShouldPanicForSchemaErrors()
                 ReadOnlySettings()
                 WorkingDirectory(packageName)
+                GoCache()
+                BuildStartTime()
+                text("DAYS_OF_WEEK", daysOfWeek)
+                text("env.SCHEDULE_MATCHES", "true")
+                text("env.IS_NIGHTLY_RUN", "false")
             }
 
-            triggers {
-                RunNightly(nightlyTestsEnabled, startHour, daysOfWeek, daysOfMonth)
-            }
+            // Triggers are now managed by the top-level Composite Build Chain
         }
     }
 
-    fun uniqueID(provider : String) : String {
-        return "%s_SERVICE_%s_%s".format(provider.toUpperCase(), environment.toUpperCase(), packageName.toUpperCase())
+    fun uniqueID(provider : String, runWithBetaVersion: Boolean ) : String {
+        if (runWithBetaVersion) {
+            return "%s_BETA_VERSION_SERVICE_%s_%s".format(provider.uppercase(), environment.uppercase(), packageName.uppercase())
+        }
+        return "%s_SERVICE_%s_%s".format(provider.uppercase(), environment.uppercase(), packageName.uppercase())
     }
 }

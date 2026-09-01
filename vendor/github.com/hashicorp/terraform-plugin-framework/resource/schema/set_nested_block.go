@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package schema
@@ -6,6 +6,8 @@ package schema
 import (
 	"context"
 	"fmt"
+
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
@@ -15,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
@@ -223,6 +224,10 @@ func (b SetNestedBlock) Type() attr.Type {
 // errors or panics. This logic runs during the GetProviderSchema RPC and
 // should never include false positives.
 func (b SetNestedBlock) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
+	if fwschema.BlockContainsAnyWriteOnlyChildAttributes(b) {
+		resp.Diagnostics.Append(fwschema.SetBlockCollectionWithWriteOnlyDiag(req.Path))
+	}
+
 	if b.CustomType == nil && fwtype.ContainsCollectionWithDynamic(b.Type()) {
 		resp.Diagnostics.Append(fwtype.BlockCollectionWithDynamicTypeDiag(req.Path))
 	}

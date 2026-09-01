@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub
@@ -6,10 +6,10 @@ package eventhub
 import (
 	"context"
 	"fmt"
-	"log"
-	"strconv"
+	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/checknameavailabilitydisasterrecoveryconfigs"
@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceEventHubNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
@@ -75,11 +75,9 @@ func resourceEventHubNamespaceDisasterRecoveryConfigCreate(d *pluginsdk.Resource
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM EventHub Namespace Disaster Recovery Configs creation.")
-
 	id := disasterrecoveryconfigs.NewDisasterRecoveryConfigID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -97,7 +95,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigCreate(d *pluginsdk.Resource
 
 	parameters := disasterrecoveryconfigs.ArmDisasterRecovery{
 		Properties: &disasterrecoveryconfigs.ArmDisasterRecoveryProperties{
-			PartnerNamespace: utils.String(d.Get("partner_namespace_id").(string)),
+			PartnerNamespace: pointer.To(d.Get("partner_namespace_id").(string)),
 		},
 	}
 
@@ -105,11 +103,12 @@ func resourceEventHubNamespaceDisasterRecoveryConfigCreate(d *pluginsdk.Resource
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err := resourceEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx, client, id); err != nil {
 		return fmt.Errorf("waiting for replication of %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceEventHubNamespaceDisasterRecoveryConfigRead(d, meta)
 }
 
@@ -154,7 +153,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.Resource
 
 	parameters := disasterrecoveryconfigs.ArmDisasterRecovery{
 		Properties: &disasterrecoveryconfigs.ArmDisasterRecoveryProperties{
-			PartnerNamespace: utils.String(d.Get("partner_namespace_id").(string)),
+			PartnerNamespace: pointer.To(d.Get("partner_namespace_id").(string)),
 		},
 	}
 
@@ -240,43 +239,21 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("context has no deadline")
-	}
-
 	// no future for deletion so wait for it to vanish
-	deleteWait := &pluginsdk.StateChangeConf{
-		Pending:    []string{"200"},
-		Target:     []string{"404"},
-		MinTimeout: 30 * time.Second,
-		Timeout:    time.Until(deadline),
-		Refresh: func() (interface{}, string, error) {
-			resp, err := client.Get(ctx, *id)
-			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
-					return resp, "404", nil
-				}
-				return nil, "nil", fmt.Errorf("polling to check the deletion state for %s: %+v", *id, err)
-			}
-
-			// if resp.HttpResponse is nil it's a dropped connection, which is normally checked
-			// via `response.WasNotFound` however since we want the status code here for the poller
-			status := "dropped connection"
-			if resp.HttpResponse != nil {
-				status = strconv.Itoa(resp.HttpResponse.StatusCode)
-			}
-			return resp, status, nil
-		},
-	}
-
-	if _, err := deleteWait.WaitForStateContext(ctx); err != nil {
+	deletePoller := custompollers.NewEventualConsistencyPoller(1, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, *id)
+		return resp.HttpResponse, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:         30 * time.Second,
+		TargetStatusCode: pointer.To(http.StatusNotFound),
+	})
+	if err := deletePoller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting the deletion of %s: %+v", *id, err)
 	}
 
 	// it can take some time for the name to become available again
 	// this is mainly here	to enable updating the resource in place
-	deadline, ok = ctx.Deadline()
+	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("context has no deadline")
 	}

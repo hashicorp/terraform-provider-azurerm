@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package authorization
@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -14,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
 	"github.com/hashicorp/go-uuid"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
@@ -181,16 +183,18 @@ func (r RoleDefinitionResource) Create() sdk.ResourceFunc {
 
 			id := roledefinitions.NewScopedRoleDefinitionID(config.Scope, roleId)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Role Definition ID for %q (Scope %q)", config.Name, config.Scope)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				importID := parse.RoleDefinitionID{
-					RoleID: roleId,
-					Scope:  config.Scope,
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing Role Definition ID for %q (Scope %q)", config.Name, config.Scope)
 				}
-				return metadata.ResourceRequiresImport(r.ResourceType(), importID)
+				if !response.WasNotFound(existing.HttpResponse) {
+					importID := parse.RoleDefinitionID{
+						RoleID: roleId,
+						Scope:  config.Scope,
+					}
+					return metadata.ResourceRequiresImport(r.ResourceType(), importID)
+				}
 			}
 
 			properties := roledefinitions.RoleDefinition{
@@ -341,9 +345,6 @@ func (r RoleDefinitionResource) Update() sdk.ResourceFunc {
 			if updatedOn == nil {
 				return fmt.Errorf("updating Role Definition %q (Scope %q): `properties.UpdatedOn` was nil", stateId.RoleID, stateId.Scope)
 			}
-			if updatedOn == nil {
-				return fmt.Errorf("updating %s: `properties.UpdatedOn` was nil", stateId)
-			}
 
 			// "Updating" a role definition actually creates a new one and these get consolidated a few seconds later
 			// where the "create date" and "update date" match for the newly created record
@@ -394,26 +395,12 @@ func (r RoleDefinitionResource) Delete() sdk.ResourceFunc {
 			}
 
 			// Deletes are not instant and can take time to propagate
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("internal error: context had no deadline")
-			}
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending: []string{
-					"Pending",
-				},
-				Target: []string{
-					"Deleted",
-					"NotFound",
-				},
-				Refresh:                   roleDefinitionDeleteStateRefreshFunc(ctx, client, id),
-				MinTimeout:                10 * time.Second,
-				ContinuousTargetOccurence: 20,
-				Timeout:                   time.Until(deadline),
-			}
-
-			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for delete on Role Definition %s to complete", stateId)
+			poller := custompollers.NewEventualConsistencyPoller(20, func(pollerCtx context.Context) (*http.Response, error) {
+				resp, err := client.Get(pollerCtx, id)
+				return resp.HttpResponse, err
+			}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for deletion of %s: %+v", stateId, err)
 			}
 
 			return nil
@@ -527,17 +514,4 @@ func flattenRoleDefinitionPermissions(input *[]roledefinitions.Permission) []Per
 	}
 
 	return permissions
-}
-
-func roleDefinitionDeleteStateRefreshFunc(ctx context.Context, client *roledefinitions.RoleDefinitionsClient, id roledefinitions.ScopedRoleDefinitionId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return resp, "NotFound", nil
-			}
-			return nil, "Error", err
-		}
-		return "Pending", "Pending", nil
-	}
 }

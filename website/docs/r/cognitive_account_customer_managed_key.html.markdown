@@ -41,12 +41,13 @@ resource "azurerm_cognitive_account" "example" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                     = "example-vault"
-  location                 = azurerm_resource_group.example.location
-  resource_group_name      = azurerm_resource_group.example.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "example-vault"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
 
   access_policy {
     tenant_id = azurerm_cognitive_account.example.identity[0].tenant_id
@@ -115,7 +116,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Cognitive Account Customer Managed Key.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cognitive Account Customer Managed Key.
@@ -129,3 +130,9 @@ Customer Managed Keys for a Cognitive Account can be imported using the `resourc
 ```shell
 terraform import azurerm_cognitive_account_customer_managed_key.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.CognitiveServices/accounts/account1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.CognitiveServices` - 2026-03-01

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -8,22 +8,22 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 func resourceSpringCloudBuildPackBinding() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		DeprecationMessage: features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_build_pack_binding` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."),
+		DeprecationMessage: "Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_build_pack_binding` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.",
 
 		Create: resourceSpringCloudBuildPackBindingCreateUpdate,
 		Read:   resourceSpringCloudBuildPackBindingRead,
@@ -117,14 +117,16 @@ func resourceSpringCloudBuildPackBindingCreateUpdate(d *pluginsdk.ResourceData, 
 	id := parse.NewSpringCloudBuildPackBindingID(subscriptionId, builderId.ResourceGroup, builderId.SpringName, builderId.BuildServiceName, builderId.BuilderName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.BuildServiceName, id.BuilderName, id.BuildPackBindingName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.BuildServiceName, id.BuilderName, id.BuildPackBindingName)
+			if err != nil {
+				if !response.WasNotFound(existing.Response.Response) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_spring_cloud_build_pack_binding", id.ID())
+			if !response.WasNotFound(existing.Response.Response) {
+				return tf.ImportAsExistsError("azurerm_spring_cloud_build_pack_binding", id.ID())
+			}
 		}
 	}
 
@@ -139,11 +141,12 @@ func resourceSpringCloudBuildPackBindingCreateUpdate(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceSpringCloudBuildPackBindingRead(d, meta)
 }
 
@@ -159,7 +162,7 @@ func resourceSpringCloudBuildPackBindingRead(d *pluginsdk.ResourceData, meta int
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.BuildServiceName, id.BuilderName, id.BuildPackBindingName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] appplatform %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -205,10 +208,10 @@ func expandBuildPackBindingBuildPackBindingLaunchProperties(input []interface{})
 	v := input[0].(map[string]interface{})
 	var properties, secrets map[string]*string
 	if valueRaw, ok := v["properties"]; ok && valueRaw != nil {
-		properties = utils.ExpandMapStringPtrString(valueRaw.(map[string]interface{}))
+		properties = helpers.ExpandMapStringPtrString(valueRaw.(map[string]interface{}))
 	}
 	if valueRaw, ok := v["secrets"]; ok && valueRaw != nil {
-		secrets = utils.ExpandMapStringPtrString(valueRaw.(map[string]interface{}))
+		secrets = helpers.ExpandMapStringPtrString(valueRaw.(map[string]interface{}))
 	}
 	return &appplatform.BuildpackBindingLaunchProperties{
 		Properties: properties,
@@ -223,7 +226,7 @@ func flattenBuildPackBindingBuildPackBindingLaunchProperties(input *appplatform.
 
 	props := make(map[string]interface{})
 	if input.Properties != nil {
-		props = utils.FlattenMapStringPtrString(input.Properties)
+		props = helpers.FlattenMapStringPtrString(input.Properties)
 	}
 	secrets := make(map[string]interface{})
 	if len(old) != 0 {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -13,18 +13,20 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -32,10 +34,12 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 		Read:   resourceWebApplicationFirewallPolicyRead,
 		Update: resourceWebApplicationFirewallPolicyUpdate,
 		Delete: resourceWebApplicationFirewallPolicyDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyID(id)
-			return err
-		}),
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&webapplicationfirewallpolicies.ApplicationGatewayWebApplicationFirewallPolicyId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&webapplicationfirewallpolicies.ApplicationGatewayWebApplicationFirewallPolicyId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -73,6 +77,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 								string(webapplicationfirewallpolicies.WebApplicationFirewallActionAllow),
 								string(webapplicationfirewallpolicies.WebApplicationFirewallActionBlock),
 								string(webapplicationfirewallpolicies.WebApplicationFirewallActionLog),
+								string(webapplicationfirewallpolicies.ActionTypeJSChallenge),
 							}, false),
 						},
 						"enabled": {
@@ -98,18 +103,9 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"variable_name": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(webapplicationfirewallpolicies.WebApplicationFirewallMatchVariableRemoteAddr),
-														string(webapplicationfirewallpolicies.WebApplicationFirewallMatchVariableRequestMethod),
-														string(webapplicationfirewallpolicies.WebApplicationFirewallMatchVariableQueryString),
-														string(webapplicationfirewallpolicies.WebApplicationFirewallMatchVariablePostArgs),
-														string(webapplicationfirewallpolicies.WebApplicationFirewallMatchVariableRequestUri),
-														string(webapplicationfirewallpolicies.WebApplicationFirewallMatchVariableRequestHeaders),
-														string(webapplicationfirewallpolicies.WebApplicationFirewallMatchVariableRequestBody),
-														string(webapplicationfirewallpolicies.WebApplicationFirewallMatchVariableRequestCookies),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForWebApplicationFirewallMatchVariable(), false),
 												},
 												"selector": {
 													Type:     pluginsdk.TypeString,
@@ -119,22 +115,9 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 										},
 									},
 									"operator": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorAny),
-											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorIPMatch),
-											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorGeoMatch),
-											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorEqual),
-											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorContains),
-											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorLessThan),
-											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorGreaterThan),
-											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorLessThanOrEqual),
-											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorGreaterThanOrEqual),
-											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorBeginsWith),
-											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorEndsWith),
-											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorRegex),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForWebApplicationFirewallOperator(), false),
 									},
 									"negation_condition": {
 										Type:     pluginsdk.TypeBool,
@@ -156,13 +139,9 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 							Required: true,
 						},
 						"rule_type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(webapplicationfirewallpolicies.WebApplicationFirewallRuleTypeMatchRule),
-								string(webapplicationfirewallpolicies.WebApplicationFirewallRuleTypeRateLimitRule),
-								string(webapplicationfirewallpolicies.WebApplicationFirewallRuleTypeInvalid),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForWebApplicationFirewallRuleType(), false),
 						},
 						"name": {
 							Type:     pluginsdk.TypeString,
@@ -200,19 +179,9 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"match_variable": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestArgKeys),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestArgNames),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestArgValues),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestCookieKeys),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestCookieNames),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestCookieValues),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestHeaderKeys),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestHeaderNames),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestHeaderValues),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForOwaspCrsExclusionEntryMatchVariable(), false),
 									},
 									"selector": {
 										Type:         pluginsdk.TypeString,
@@ -220,15 +189,9 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 										ValidateFunc: validation.NoZeroValues,
 									},
 									"selector_match_operator": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntrySelectorMatchOperatorContains),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntrySelectorMatchOperatorEndsWith),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntrySelectorMatchOperatorEquals),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntrySelectorMatchOperatorEqualsAny),
-											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntrySelectorMatchOperatorStartsWith),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForOwaspCrsExclusionEntrySelectorMatchOperator(), false),
 									},
 									"excluded_rule_set": {
 										Type:     pluginsdk.TypeList,
@@ -318,15 +281,9 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 															},
 
 															"action": {
-																Type:     pluginsdk.TypeString,
-																Optional: true,
-																ValidateFunc: validation.StringInSlice([]string{
-																	string(webapplicationfirewallpolicies.ActionTypeAllow),
-																	string(webapplicationfirewallpolicies.ActionTypeAnomalyScoring),
-																	string(webapplicationfirewallpolicies.ActionTypeBlock),
-																	string(webapplicationfirewallpolicies.ActionTypeJSChallenge),
-																	string(webapplicationfirewallpolicies.ActionTypeLog),
-																}, false),
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForActionType(), false),
 															},
 														},
 													},
@@ -354,13 +311,10 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 						},
 
 						"mode": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(webapplicationfirewallpolicies.WebApplicationFirewallModePrevention),
-								string(webapplicationfirewallpolicies.WebApplicationFirewallModeDetection),
-							}, false),
-							Default: string(webapplicationfirewallpolicies.WebApplicationFirewallModePrevention),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForWebApplicationFirewallMode(), false),
+							Default:      string(webapplicationfirewallpolicies.WebApplicationFirewallModePrevention),
 						},
 
 						"request_body_check": {
@@ -388,14 +342,12 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 								NOTE: O+C: This value defaults to true but is only available under certain conditions (i.e. when version is 3.2)
 									managed_rules {
 										managed_rule_set {
-										  type    = "OWASP"
-										  version = "3.2"
+										 type  = "OWASP"
+										 version = "3.2"
 										}
-									  }
+									 }
 							*/
 							Optional: true,
-							// We'll remove computed in 5.0 so we don't break existing configurations
-							Computed: !features.FivePointOh(),
 						},
 
 						"max_request_body_size_in_kb": {
@@ -447,7 +399,8 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 													Required: true,
 													ValidateFunc: validation.StringInSlice(
 														webapplicationfirewallpolicies.PossibleValuesForScrubbingRuleEntryMatchVariable(),
-														false),
+														false,
+													),
 												},
 
 												"selector_match_operator": {
@@ -456,7 +409,8 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 													Default:  "Equals",
 													ValidateFunc: validation.StringInSlice(
 														webapplicationfirewallpolicies.PossibleValuesForScrubbingRuleEntryMatchOperator(),
-														false),
+														false,
+													),
 												},
 
 												"selector": {
@@ -499,24 +453,26 @@ func resourceWebApplicationFirewallPolicyCreate(d *pluginsdk.ResourceData, meta 
 
 	id := webapplicationfirewallpolicies.NewApplicationGatewayWebApplicationFirewallPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id)
-	if err != nil {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+			}
+		}
 		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+			return tf.ImportAsExistsError("azurerm_web_application_firewall_policy", id.ID())
 		}
 	}
-	if !response.WasNotFound(resp.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_web_application_firewall_policy", id.ID())
-	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	customRules := d.Get("custom_rules").([]interface{})
 	policySettings := d.Get("policy_settings").([]interface{})
 	managedRules := d.Get("managed_rules").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := webapplicationfirewallpolicies.WebApplicationFirewallPolicy{
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Properties: &webapplicationfirewallpolicies.WebApplicationFirewallPolicyPropertiesFormat{
 			CustomRules:    expandWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(customRules),
 			PolicySettings: expandWebApplicationFirewallPolicyPolicySettings(policySettings),
@@ -530,6 +486,9 @@ func resourceWebApplicationFirewallPolicyCreate(d *pluginsdk.ResourceData, meta 
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceWebApplicationFirewallPolicyRead(d, meta)
 }
@@ -598,10 +557,13 @@ func resourceWebApplicationFirewallPolicyRead(d *pluginsdk.ResourceData, meta in
 		}
 		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
+	return resourceWebApplicationFirewallPolicySetFlatten(d, id, resp.Model)
+}
 
+func resourceWebApplicationFirewallPolicySetFlatten(d *pluginsdk.ResourceData, id *webapplicationfirewallpolicies.ApplicationGatewayWebApplicationFirewallPolicyId, model *webapplicationfirewallpolicies.WebApplicationFirewallPolicy) error {
 	d.Set("name", id.ApplicationGatewayWebApplicationFirewallPolicyName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		if prop := model.Properties; prop != nil {
 			if err := d.Set("custom_rules", flattenWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(prop.CustomRules)); err != nil {
@@ -621,9 +583,11 @@ func resourceWebApplicationFirewallPolicyRead(d *pluginsdk.ResourceData, meta in
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceWebApplicationFirewallPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -668,7 +632,7 @@ func expandWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(input []
 		}
 
 		if rateLimitDuration, ok := v["rate_limit_duration"]; ok && rateLimitDuration.(string) != "" {
-			result.RateLimitDuration = pointer.To(webapplicationfirewallpolicies.ApplicationGatewayFirewallRateLimitDuration(rateLimitDuration.(string)))
+			result.RateLimitDuration = pointer.ToEnum[webapplicationfirewallpolicies.ApplicationGatewayFirewallRateLimitDuration](rateLimitDuration.(string))
 		}
 
 		if rateLimitThreshHold, ok := v["rate_limit_threshold"]; ok && rateLimitThreshHold.(int) > 0 {
@@ -712,7 +676,7 @@ func expandWebApplicationFirewallPolicyPolicySettings(input []interface{}) *weba
 
 	result := webapplicationfirewallpolicies.PolicySettings{
 		State:                             pointer.To(enabled),
-		Mode:                              pointer.To(webapplicationfirewallpolicies.WebApplicationFirewallMode(mode)),
+		Mode:                              pointer.ToEnum[webapplicationfirewallpolicies.WebApplicationFirewallMode](mode),
 		FileUploadEnforcement:             pointer.To(fileUploadEnforcement),
 		RequestBodyCheck:                  pointer.To(requestBodyCheck),
 		RequestBodyEnforcement:            pointer.To(requestBodyEnforcement),
@@ -926,7 +890,7 @@ func expandWebApplicationFirewallPolicyOverrideRules(input []interface{}) *[]web
 
 		action := v["action"].(string)
 		if action != "" {
-			result.Action = pointer.To(webapplicationfirewallpolicies.ActionType(action))
+			result.Action = pointer.ToEnum[webapplicationfirewallpolicies.ActionType](action)
 		}
 
 		results = append(results, result)
@@ -950,9 +914,9 @@ func expandWebApplicationFirewallPolicyMatchCondition(input []interface{}) []web
 			transforms = append(transforms, webapplicationfirewallpolicies.WebApplicationFirewallTransform(trans.(string)))
 		}
 		result := webapplicationfirewallpolicies.MatchCondition{
-			MatchValues:      pointer.From(utils.ExpandStringSlice(matchValues)),
+			MatchValues:      pointer.From(helpers.ExpandStringSlice(matchValues)),
 			MatchVariables:   expandWebApplicationFirewallPolicyMatchVariable(matchVariables),
-			NegationConditon: utils.Bool(negationCondition),
+			NegationConditon: pointer.To(negationCondition),
 			Operator:         webapplicationfirewallpolicies.WebApplicationFirewallOperator(operator),
 			Transforms:       &transforms,
 		}
@@ -970,7 +934,7 @@ func expandWebApplicationFirewallPolicyMatchVariable(input []interface{}) []weba
 		selector := v["selector"].(string)
 
 		result := webapplicationfirewallpolicies.MatchVariable{
-			Selector:     utils.String(selector),
+			Selector:     pointer.To(selector),
 			VariableName: webapplicationfirewallpolicies.WebApplicationFirewallMatchVariable(variableName),
 		}
 
@@ -1027,7 +991,12 @@ func flattenWebApplicationFirewallPolicyPolicySettings(input *webapplicationfire
 	result["file_upload_limit_in_mb"] = int(pointer.From(input.FileUploadLimitInMb))
 	result["log_scrubbing"] = flattenWebApplicationFirewallPolicyLogScrubbing(input.LogScrubbing)
 	result["request_body_inspect_limit_in_kb"] = pointer.From(input.RequestBodyInspectLimitInKB)
-	result["js_challenge_cookie_expiration_in_minutes"] = pointer.From(input.JsChallengeCookieExpirationInMins)
+
+	jsChallengeCookieExpirationInMins := 30 // default value is not returned, https://github.com/Azure/azure-rest-api-specs/issues/36330
+	if v := pointer.From(input.JsChallengeCookieExpirationInMins); v != 0 {
+		jsChallengeCookieExpirationInMins = int(v)
+	}
+	result["js_challenge_cookie_expiration_in_minutes"] = jsChallengeCookieExpirationInMins
 
 	return []interface{}{result}
 }
@@ -1212,7 +1181,7 @@ func flattenWebApplicationFirewallPolicyMatchCondition(input []webapplicationfir
 				transforms = append(transforms, string(trans))
 			}
 		}
-		v["match_values"] = utils.FlattenStringSlice(pointer.To(item.MatchValues))
+		v["match_values"] = helpers.FlattenStringSlice(pointer.To(item.MatchValues))
 		v["match_variables"] = flattenWebApplicationFirewallPolicyMatchVariable(item.MatchVariables)
 		if negationCondition := item.NegationConditon; negationCondition != nil {
 			v["negation_condition"] = *negationCondition

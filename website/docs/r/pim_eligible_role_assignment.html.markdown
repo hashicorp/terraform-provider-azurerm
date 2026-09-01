@@ -142,7 +142,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 10 minutes) Used when creating the PIM Eligible Role Assignment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the PIM Eligible Role Assignment.
@@ -157,3 +157,9 @@ terraform import azurerm_pim_eligible_role_assignment.example /subscriptions/000
 ```
 
 -> **Note:** This ID is specific to Terraform - and is of the format `{scope}|{roleDefinitionId}|{principalId}`, where the first segment is the scope of the role assignment, the second segment is the role definition ID, and the last segment is the principal object ID.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Authorization` - 2020-10-01

@@ -38,6 +38,7 @@ const DefaultPassword = "changeit"
 
 // An Encoder contains methods for encoding PKCS#12 files.  This package
 // defines several different Encoders with different parameters.
+// An Encoder is safe for concurrent use by multiple goroutines.
 type Encoder struct {
 	macAlgorithm         asn1.ObjectIdentifier
 	certAlgorithm        asn1.ObjectIdentifier
@@ -156,6 +157,33 @@ var Passwordless = &Encoder{
 // help as much as you think.
 var Modern2023 = &Encoder{
 	macAlgorithm:         oidSHA256,
+	certAlgorithm:        oidPBES2,
+	keyAlgorithm:         oidPBES2,
+	macIterations:        2048,
+	encryptionIterations: 2048,
+	saltLen:              16,
+	rand:                 rand.Reader,
+}
+
+// Modern2026 encodes PKCS#12 files using algorithms that are considered modern
+// as of 2026.  Private keys and certificates are encrypted using PBES2 with
+// PBKDF2-HMAC-SHA-256 and AES-256-CBC.  The MAC algorithm is PBMAC1 with
+// PBKDF2-HMAC-SHA-256 and HMAC-SHA256.
+//
+// Files produced with this encoder can be read by OpenSSL 3.4.0 and higher and
+// Java 26 and higher.
+//
+// For passwords, it is RECOMMENDED that you do one of the following:
+// 1) Use [DefaultPassword] and protect the file using other means, or
+// 2) Use a high-entropy password, such as one generated with `openssl rand -hex 16`.
+//
+// You SHOULD NOT use a lower-entropy password with this encoder because the number of KDF
+// iterations is only 2048 and doesn't provide meaningful protection against
+// brute-forcing.  You can increase the number of iterations using [Encoder.WithIterations],
+// but as https://neilmadden.blog/2023/01/09/on-pbkdf2-iterations/ explains, this doesn't
+// help as much as you think.
+var Modern2026 = &Encoder{
+	macAlgorithm:         oidPBMAC1,
 	certAlgorithm:        oidPBES2,
 	keyAlgorithm:         oidPBES2,
 	macIterations:        2048,
@@ -348,10 +376,10 @@ func convertBag(bag *safeBag, password []byte) (*pem.Block, error) {
 				return nil, err
 			}
 		default:
-			return nil, errors.New("found unknown private key type in PKCS#8 wrapping")
+			return nil, errors.New("pkcs12: found unknown private key type in PKCS#8 wrapping")
 		}
 	default:
-		return nil, errors.New("don't know how to convert a safe bag of type " + bag.Id.String())
+		return nil, errors.New("pkcs12: don't know how to convert a safe bag of type " + bag.Id.String())
 	}
 	return block, nil
 }
@@ -625,7 +653,7 @@ func Encode(rand io.Reader, privateKey interface{}, certificate *x509.Certificat
 // fingerprint of the end-entity certificate.
 func (enc *Encoder) Encode(privateKey interface{}, certificate *x509.Certificate, caCerts []*x509.Certificate, password string) (pfxData []byte, err error) {
 	if enc.macAlgorithm == nil && enc.certAlgorithm == nil && enc.keyAlgorithm == nil && password != "" {
-		return nil, errors.New("password must be empty")
+		return nil, errors.New("pkcs12: password must be empty")
 	}
 
 	encodedPassword, err := bmpStringZeroTerminated(password)
@@ -698,13 +726,21 @@ func (enc *Encoder) Encode(privateKey interface{}, certificate *x509.Certificate
 	}
 
 	if enc.macAlgorithm != nil {
-		// compute the MAC
-		pfx.MacData.Mac.Algorithm.Algorithm = enc.macAlgorithm
-		pfx.MacData.MacSalt = make([]byte, enc.saltLen)
-		if _, err = enc.rand.Read(pfx.MacData.MacSalt); err != nil {
+		macSalt := make([]byte, enc.saltLen)
+		if _, err = enc.rand.Read(macSalt); err != nil {
 			return nil, err
 		}
-		pfx.MacData.Iterations = enc.macIterations
+		pfx.MacData.Mac.Algorithm.Algorithm = enc.macAlgorithm
+		if enc.macAlgorithm.Equal(oidPBMAC1) {
+			var err error
+			pfx.MacData.Mac.Algorithm.Parameters.FullBytes, err = makePBMAC1Parameters(macSalt, enc.macIterations)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			pfx.MacData.MacSalt = macSalt
+			pfx.MacData.Iterations = enc.macIterations
+		}
 		if err = computeMac(&pfx.MacData, authenticatedSafeBytes, encodedPassword); err != nil {
 			return nil, err
 		}
@@ -787,7 +823,7 @@ func EncodeTrustStoreEntries(rand io.Reader, entries []TrustStoreEntry, password
 // encrypted and contains the certificates.
 func (enc *Encoder) EncodeTrustStoreEntries(entries []TrustStoreEntry, password string) (pfxData []byte, err error) {
 	if enc.macAlgorithm == nil && enc.certAlgorithm == nil && password != "" {
-		return nil, errors.New("password must be empty")
+		return nil, errors.New("pkcs12: password must be empty")
 	}
 
 	encodedPassword, err := bmpStringZeroTerminated(password)
@@ -865,13 +901,21 @@ func (enc *Encoder) EncodeTrustStoreEntries(entries []TrustStoreEntry, password 
 	}
 
 	if enc.macAlgorithm != nil {
-		// compute the MAC
-		pfx.MacData.Mac.Algorithm.Algorithm = enc.macAlgorithm
-		pfx.MacData.MacSalt = make([]byte, enc.saltLen)
-		if _, err = enc.rand.Read(pfx.MacData.MacSalt); err != nil {
+		macSalt := make([]byte, enc.saltLen)
+		if _, err = enc.rand.Read(macSalt); err != nil {
 			return nil, err
 		}
-		pfx.MacData.Iterations = enc.macIterations
+		pfx.MacData.Mac.Algorithm.Algorithm = enc.macAlgorithm
+		if enc.macAlgorithm.Equal(oidPBMAC1) {
+			var err error
+			pfx.MacData.Mac.Algorithm.Parameters.FullBytes, err = makePBMAC1Parameters(macSalt, enc.macIterations)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			pfx.MacData.MacSalt = macSalt
+			pfx.MacData.Iterations = enc.macIterations
+		}
 		if err = computeMac(&pfx.MacData, authenticatedSafeBytes, encodedPassword); err != nil {
 			return nil, err
 		}

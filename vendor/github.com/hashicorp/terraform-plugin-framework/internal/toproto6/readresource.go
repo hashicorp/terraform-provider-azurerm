@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package toproto6
@@ -27,6 +27,11 @@ func ReadResourceResponse(ctx context.Context, fw *fwserver.ReadResourceResponse
 
 	proto6.Diagnostics = append(proto6.Diagnostics, Diagnostics(ctx, diags)...)
 	proto6.NewState = newState
+
+	newIdentity, diags := ResourceIdentity(ctx, fw.NewIdentity)
+
+	proto6.Diagnostics = append(proto6.Diagnostics, Diagnostics(ctx, diags)...)
+	proto6.NewIdentity = newIdentity
 
 	newPrivate, diags := fw.Private.Bytes(ctx)
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -91,8 +91,6 @@ func resourceApiManagementProductCreateUpdate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for API Management Product creation.")
-
 	id := product.NewProductID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("product_id").(string))
 
 	displayName := d.Get("display_name").(string)
@@ -104,15 +102,17 @@ func resourceApiManagementProductCreateUpdate(d *pluginsdk.ResourceData, meta in
 	published := d.Get("published").(bool)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_product", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_api_management_product", id.ID())
+			}
 		}
 	}
 	publishedVal := product.ProductStateNotPublished
@@ -132,11 +132,18 @@ func resourceApiManagementProductCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	// Swagger says: Can be present only if subscriptionRequired property is present and has a value of false.
 	// API/Portal says: Cannot provide values for approvalRequired and subscriptionsLimit when subscriptionRequired is set to false in the request payload
-	if subscriptionRequired && subscriptionsLimit > 0 {
-		properties.Properties.ApprovalRequired = pointer.To(approvalRequired)
-		properties.Properties.SubscriptionsLimit = pointer.To(int64(subscriptionsLimit))
+	if subscriptionRequired {
+		if approvalRequired && subscriptionsLimit <= 0 {
+			return fmt.Errorf("`subscriptions_limit` must be greater than 0 to use `approval_required`")
+		}
+		// Set `subscriptions_limit` to null or omit to allow unlimited per user subscriptions
+		// When `subscriptions_limit` is specified as `0` it means the maximum number of subscriptions is 0, rather than allowing unlimited per user subscriptions
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "subscriptions_limit") && subscriptionsLimit >= 0 {
+			properties.Properties.ApprovalRequired = pointer.To(approvalRequired)
+			properties.Properties.SubscriptionsLimit = pointer.To(int64(subscriptionsLimit))
+		}
 	} else if approvalRequired {
-		return fmt.Errorf("`subscription_required` must be true and `subscriptions_limit` must be greater than 0 to use `approval_required`")
+		return fmt.Errorf("`subscription_required` must be true to use `approval_required`")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, properties, product.CreateOrUpdateOperationOptions{}); err != nil {
@@ -197,7 +204,6 @@ func resourceApiManagementProductDelete(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting %s", *id)
 	if resp, err := client.Delete(ctx, *id, product.DeleteOperationOptions{DeleteSubscriptions: pointer.To(true)}); err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)

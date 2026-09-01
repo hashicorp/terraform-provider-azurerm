@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2019, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package terraform
@@ -51,6 +51,10 @@ type InstanceDiff struct {
 	// meant to be used for additional data a resource may want to pass through.
 	// The value here must only contain Go primitives and collections.
 	Meta map[string]interface{}
+
+	// Identity is the identity data used to track resource identity
+	// starting in Terraform 1.12+
+	Identity map[string]string
 }
 
 func (d *InstanceDiff) Lock()   { d.mu.Lock() }
@@ -663,7 +667,8 @@ func (d *InstanceDiff) Empty() bool {
 	return !d.Destroy &&
 		!d.DestroyTainted &&
 		!d.DestroyDeposed &&
-		len(d.Attributes) == 0
+		len(d.Attributes) == 0 &&
+		len(d.Identity) == 0
 }
 
 // Equal compares two diffs for exact equality.

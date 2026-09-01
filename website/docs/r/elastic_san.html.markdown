@@ -83,12 +83,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this Elastic SAN resource.
-* `delete` - (Defaults to 30 minutes) Used when deleting this Elastic SAN resource.
-* `read` - (Defaults to 5 minutes) Used when retrieving this Elastic SAN resource.
-* `update` - (Defaults to 30 minutes) Used when updating this Elastic SAN resource.
+* `create` - (Defaults to 30 minutes) Used when creating the Elastic SAN resource.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Elastic SAN resource.
+* `update` - (Defaults to 30 minutes) Used when updating the Elastic SAN resource.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Elastic SAN resource.
 
 ## Import
 
@@ -97,3 +97,9 @@ An existing Elastic SAN can be imported into Terraform using the `resource id`, 
 ```shell
 terraform import azurerm_elastic_san.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.ElasticSan/elasticSans/esan1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ElasticSan` - 2023-01-01

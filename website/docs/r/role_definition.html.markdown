@@ -63,7 +63,7 @@ resource "azurerm_role_definition" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -105,11 +105,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Role Definition.
-* `update` - (Defaults to 60 minutes) Used when updating the Role Definition.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Role Definition.
+* `update` - (Defaults to 1 hour) Used when updating the Role Definition.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Role Definition.
 
 ## Import
@@ -121,3 +121,9 @@ terraform import azurerm_role_definition.example "/subscriptions/00000000-0000-0
 ```
 
 -> **Note:** This ID is specific to Terraform - and is of the format `{roleDefinitionId}|{scope}`.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Authorization` - 2022-05-01-preview

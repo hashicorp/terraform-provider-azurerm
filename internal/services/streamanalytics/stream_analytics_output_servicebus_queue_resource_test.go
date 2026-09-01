@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StreamAnalyticsOutputServiceBusQueueResource struct{}
@@ -197,15 +197,14 @@ func (r StreamAnalyticsOutputServiceBusQueueResource) Exists(ctx context.Context
 	resp, err := client.StreamAnalytics.OutputsClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r StreamAnalyticsOutputServiceBusQueueResource) avro(data acceptance.TestData) string {
-	template := r.template(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -222,11 +221,10 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "test" {
     type = "Avro"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data, ""), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputServiceBusQueueResource) csv(data acceptance.TestData) string {
-	template := r.template(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -245,11 +243,10 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "test" {
     field_delimiter = ","
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data, ""), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputServiceBusQueueResource) json(data acceptance.TestData) string {
-	template := r.template(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -268,11 +265,10 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "test" {
     format   = "LineSeparated"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data, ""), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputServiceBusQueueResource) updated(data acceptance.TestData) string {
-	template := r.template(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -302,11 +298,10 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "test" {
     type = "Avro"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data, ""), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputServiceBusQueueResource) propertyColumns(data acceptance.TestData) string {
-	template := r.template(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -327,11 +322,10 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "test" {
 
   property_columns = ["column1", "column2", "column3"]
 }
-`, template, data.RandomInteger)
+`, r.template(data, ""), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputServiceBusQueueResource) updatePropertyColumns(data acceptance.TestData) string {
-	template := r.template(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -352,11 +346,10 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "test" {
 
   property_columns = ["column1", "column3"]
 }
-`, template, data.RandomInteger)
+`, r.template(data, ""), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputServiceBusQueueResource) systemPropertyColumns(data acceptance.TestData) string {
-	template := r.template(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -381,11 +374,10 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "test" {
     CorrelationId = "79b839ac-be78-4542-8185-098170483986"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data, ""), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputServiceBusQueueResource) updateSystemPropertyColumns(data acceptance.TestData) string {
-	template := r.template(data, "")
 	return fmt.Sprintf(`
 %s
 
@@ -409,11 +401,10 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "test" {
     CorrelationId = "79b839ac-be78-4542-8185-098170483986"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data, ""), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputServiceBusQueueResource) requiresImport(data acceptance.TestData) string {
-	template := r.json(data)
 	return fmt.Sprintf(`
 %s
 
@@ -434,11 +425,10 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "import" {
     }
   }
 }
-`, template)
+`, r.json(data))
 }
 
 func (r StreamAnalyticsOutputServiceBusQueueResource) authenticationModeMsi(data acceptance.TestData, identity string) string {
-	template := r.template(data, identity)
 	return fmt.Sprintf(`
 %s
 
@@ -456,7 +446,7 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "test" {
     format   = "LineSeparated"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data, identity), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputServiceBusQueueResource) template(data acceptance.TestData, identity string) string {

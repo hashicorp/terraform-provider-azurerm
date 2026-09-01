@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logic
@@ -10,9 +10,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountbatchconfigurations"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
@@ -20,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLogicAppIntegrationAccountBatchConfiguration() *pluginsdk.Resource {
@@ -247,14 +248,16 @@ func resourceLogicAppIntegrationAccountBatchConfigurationCreateUpdate(d *plugins
 	id := integrationaccountbatchconfigurations.NewBatchConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("integration_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_logic_app_integration_account_batch_configuration", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_logic_app_integration_account_batch_configuration", id.ID())
+			}
 		}
 	}
 
@@ -342,11 +345,11 @@ func expandIntegrationAccountBatchConfigurationBatchReleaseCriteria(input []inte
 	v := input[0].(map[string]interface{})
 
 	if batchSize := v["batch_size"].(int); batchSize != 0 {
-		result.BatchSize = utils.Int64(int64(batchSize))
+		result.BatchSize = pointer.To(int64(batchSize))
 	}
 
 	if messageCount := v["message_count"].(int); messageCount != 0 {
-		result.MessageCount = utils.Int64(int64(messageCount))
+		result.MessageCount = pointer.To(int64(messageCount))
 	}
 
 	if recurrence := v["recurrence"].([]interface{}); len(recurrence) != 0 {
@@ -365,19 +368,19 @@ func expandIntegrationAccountBatchConfigurationWorkflowTriggerRecurrence(input [
 	frequency := integrationaccountbatchconfigurations.RecurrenceFrequency(v["frequency"].(string))
 	result := integrationaccountbatchconfigurations.WorkflowTriggerRecurrence{
 		Frequency: &frequency,
-		Interval:  utils.Int64(int64(v["interval"].(int))),
+		Interval:  pointer.To(int64(v["interval"].(int))),
 	}
 
 	if startTime := v["start_time"].(string); startTime != "" {
-		result.StartTime = utils.String(startTime)
+		result.StartTime = pointer.To(startTime)
 	}
 
 	if endTime := v["end_time"].(string); endTime != "" {
-		result.EndTime = utils.String(endTime)
+		result.EndTime = pointer.To(endTime)
 	}
 
 	if timeZone := v["time_zone"].(string); timeZone != "" {
-		result.TimeZone = utils.String(timeZone)
+		result.TimeZone = pointer.To(timeZone)
 	}
 
 	if schedule := v["schedule"].([]interface{}); len(schedule) != 0 {
@@ -396,23 +399,23 @@ func expandIntegrationAccountBatchConfigurationRecurrenceSchedule(input []interf
 	result := integrationaccountbatchconfigurations.RecurrenceSchedule{}
 
 	if hours := v["hours"].(*pluginsdk.Set).List(); len(hours) != 0 {
-		result.Hours = utils.ExpandInt64Slice(hours)
+		result.Hours = helpers.ExpandInt64Slice(hours)
 	}
 
 	if minutes := v["minutes"].(*pluginsdk.Set).List(); len(minutes) != 0 {
-		result.Minutes = utils.ExpandInt64Slice(minutes)
+		result.Minutes = helpers.ExpandInt64Slice(minutes)
 	}
 
 	if rawWeekDays := v["week_days"].(*pluginsdk.Set).List(); len(rawWeekDays) != 0 {
 		weekDays := make([]integrationaccountbatchconfigurations.DaysOfWeek, 0)
-		for _, item := range *(utils.ExpandStringSlice(rawWeekDays)) {
-			weekDays = append(weekDays, (integrationaccountbatchconfigurations.DaysOfWeek)(item))
+		for _, item := range *helpers.ExpandStringSlice(rawWeekDays) {
+			weekDays = append(weekDays, integrationaccountbatchconfigurations.DaysOfWeek(item))
 		}
 		result.WeekDays = &weekDays
 	}
 
 	if monthDays := v["month_days"].(*pluginsdk.Set).List(); len(monthDays) != 0 {
-		result.MonthDays = utils.ExpandInt64Slice(monthDays)
+		result.MonthDays = helpers.ExpandInt64Slice(monthDays)
 	}
 
 	if monthlyOccurrence := v["monthly"].(*pluginsdk.Set).List(); len(monthlyOccurrence) != 0 {
@@ -431,7 +434,7 @@ func expandIntegrationAccountBatchConfigurationRecurrenceScheduleOccurrences(inp
 		day := integrationaccountbatchconfigurations.DayOfWeek(v["weekday"].(string))
 		results = append(results, integrationaccountbatchconfigurations.RecurrenceScheduleOccurrence{
 			Day:        &day,
-			Occurrence: utils.Int64(int64(v["week"].(int))),
+			Occurrence: pointer.To(int64(v["week"].(int))),
 		})
 	}
 
@@ -439,20 +442,10 @@ func expandIntegrationAccountBatchConfigurationRecurrenceScheduleOccurrences(inp
 }
 
 func flattenIntegrationAccountBatchConfigurationBatchReleaseCriteria(input integrationaccountbatchconfigurations.BatchReleaseCriteria) []interface{} {
-	var batchSize int64
-	if input.BatchSize != nil {
-		batchSize = *input.BatchSize
-	}
-
-	var messageCount int64
-	if input.MessageCount != nil {
-		messageCount = *input.MessageCount
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"batch_size":    batchSize,
-			"message_count": messageCount,
+			"batch_size":    pointer.From(input.BatchSize),
+			"message_count": pointer.From(input.MessageCount),
 			"recurrence":    flattenIntegrationAccountBatchConfigurationWorkflowTriggerRecurrence(input.Recurrence),
 		},
 	}
@@ -463,30 +456,18 @@ func flattenIntegrationAccountBatchConfigurationWorkflowTriggerRecurrence(input 
 		return make([]interface{}, 0)
 	}
 
-	var endTime string
-	if input.EndTime != nil {
-		endTime = *input.EndTime
-	}
+	endTime := pointer.From(input.EndTime)
 
 	var frequency integrationaccountbatchconfigurations.RecurrenceFrequency
 	if input.Frequency != nil && *input.Frequency != "" {
 		frequency = *input.Frequency
 	}
 
-	var interval int64
-	if input.Interval != nil {
-		interval = *input.Interval
-	}
+	interval := pointer.From(input.Interval)
 
-	var startTime string
-	if input.StartTime != nil {
-		startTime = *input.StartTime
-	}
+	startTime := pointer.From(input.StartTime)
 
-	var timeZone string
-	if input.TimeZone != nil {
-		timeZone = *input.TimeZone
-	}
+	timeZone := pointer.From(input.TimeZone)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -509,16 +490,16 @@ func flattenIntegrationAccountBatchConfigurationRecurrenceSchedule(input *integr
 	if input.WeekDays != nil {
 		weekDaysCast := make([]string, 0)
 		for _, item := range *input.WeekDays {
-			weekDaysCast = append(weekDaysCast, (string)(item))
+			weekDaysCast = append(weekDaysCast, string(item))
 		}
-		weekDays = utils.FlattenStringSlice(&weekDaysCast)
+		weekDays = helpers.FlattenStringSlice(&weekDaysCast)
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"hours":      utils.FlattenInt64Slice(input.Hours),
-			"minutes":    utils.FlattenInt64Slice(input.Minutes),
-			"month_days": utils.FlattenInt64Slice(input.MonthDays),
+			"hours":      helpers.FlattenInt64Slice(input.Hours),
+			"minutes":    helpers.FlattenInt64Slice(input.Minutes),
+			"month_days": helpers.FlattenInt64Slice(input.MonthDays),
 			"monthly":    flattenIntegrationAccountBatchConfigurationRecurrenceScheduleOccurrence(input.MonthlyOccurrences),
 			"week_days":  weekDays,
 		},
@@ -537,10 +518,7 @@ func flattenIntegrationAccountBatchConfigurationRecurrenceScheduleOccurrence(inp
 			day = *item.Day
 		}
 
-		var occurrence int64
-		if item.Occurrence != nil {
-			occurrence = *item.Occurrence
-		}
+		occurrence := pointer.From(item.Occurrence)
 
 		results = append(results, map[string]interface{}{
 			"weekday": day,

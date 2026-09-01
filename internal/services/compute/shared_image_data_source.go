@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -267,26 +267,11 @@ func flattenGalleryImageDataSourcePurchasePlan(input *galleryimages.ImagePurchas
 		return []interface{}{}
 	}
 
-	name := ""
-	if input.Name != nil {
-		name = *input.Name
-	}
-
-	publisher := ""
-	if input.Publisher != nil {
-		publisher = *input.Publisher
-	}
-
-	product := ""
-	if input.Product != nil {
-		product = *input.Product
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"name":      name,
-			"publisher": publisher,
-			"product":   product,
+			"name":      pointer.From(input.Name),
+			"publisher": pointer.From(input.Publisher),
+			"product":   pointer.From(input.Product),
 		},
 	}
 }

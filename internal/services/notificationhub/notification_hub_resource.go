@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package notificationhub
@@ -7,9 +7,10 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
+	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -17,11 +18,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2023-09-01/hubs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var notificationHubResourceName = "azurerm_notification_hub"
@@ -188,16 +189,19 @@ func resourceNotificationHubCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	defer cancel()
 
 	id := hubs.NewNotificationHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.NotificationHubsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_notification_hub", id.ID())
+	if d.IsNewResource() {
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.NotificationHubsGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+			}
+
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_notification_hub", id.ID())
+			}
 		}
 	}
 
@@ -217,44 +221,20 @@ func resourceNotificationHubCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	// Notification Hubs are eventually consistent
 	log.Printf("[DEBUG] Waiting for %s to become available..", id)
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
-	}
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"404"},
-		Target:                    []string{"200"},
-		Refresh:                   notificationHubStateRefreshFunc(ctx, client, id),
-		MinTimeout:                15 * time.Second,
-		ContinuousTargetOccurence: 10,
-		Timeout:                   time.Until(deadline),
-	}
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(10, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.NotificationHubsGet(pollerCtx, id)
+		return resp.HttpResponse, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:              15 * time.Second,
+		TargetStatusCode:      pointer.To(http.StatusOK),
+		RetryErrorStatusCodes: []int{http.StatusNotFound},
+	})
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to become available: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 	return resourceNotificationHubRead(d, meta)
-}
-
-func notificationHubStateRefreshFunc(ctx context.Context, client *hubs.HubsClient, id hubs.NotificationHubId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.NotificationHubsGet(ctx, id)
-		statusCode := "dropped connection"
-		if res.HttpResponse != nil {
-			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
-		}
-
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return nil, statusCode, nil
-			}
-
-			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
-		}
-
-		return res, statusCode, nil
-	}
 }
 
 func resourceNotificationHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -353,11 +333,11 @@ func expandNotificationHubsAPNSCredentials(inputs []interface{}) *hubs.ApnsCrede
 
 	credentials := hubs.ApnsCredential{
 		Properties: hubs.ApnsCredentialProperties{
-			AppId:    utils.String(teamId),
-			AppName:  utils.String(bundleId),
+			AppId:    pointer.To(teamId),
+			AppName:  pointer.To(bundleId),
 			Endpoint: endpoint,
-			KeyId:    utils.String(keyId),
-			Token:    utils.String(token),
+			KeyId:    pointer.To(keyId),
+			Token:    pointer.To(token),
 		},
 	}
 	return &credentials
@@ -394,8 +374,7 @@ func flattenNotificationHubsAPNSCredentials(input *hubs.ApnsCredential) []interf
 		apnsProductionEndpoint: apnsProductionName,
 		apnsSandboxEndpoint:    apnsSandboxName,
 	}
-	applicationMode := applicationEndpoints[input.Properties.Endpoint]
-	output["application_mode"] = applicationMode
+	output["application_mode"] = applicationEndpoints[input.Properties.Endpoint]
 
 	if keyId := input.Properties.KeyId; keyId != nil {
 		output["key_id"] = *keyId

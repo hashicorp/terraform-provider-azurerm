@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -11,11 +11,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceMonitorScheduledQueryRulesLog() *pluginsdk.Resource {
@@ -91,7 +90,7 @@ func dataSourceMonitorScheduledQueryRulesLog() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
@@ -143,11 +142,11 @@ func dataSourceMonitorScheduledQueryRulesLogRead(d *pluginsdk.ResourceData, meta
 		}
 
 		if props.Source.AuthorizedResources != nil {
-			d.Set("authorized_resource_ids", utils.FlattenStringSlice(props.Source.AuthorizedResources))
+			d.Set("authorized_resource_ids", helpers.FlattenStringSlice(props.Source.AuthorizedResources))
 			d.Set("data_source_id", props.Source.DataSourceId)
 		}
 
-		if err = d.Set("tags", utils.FlattenPtrMapStringString(model.Tags)); err != nil {
+		if err = d.Set("tags", helpers.FlattenPtrMapStringString(model.Tags)); err != nil {
 			return err
 		}
 	}

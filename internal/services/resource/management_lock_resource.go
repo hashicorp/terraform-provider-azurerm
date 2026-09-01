@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -6,17 +6,19 @@ package resource
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/managementlocks"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceManagementLock() *pluginsdk.Resource {
@@ -76,7 +78,8 @@ func resourceManagementLockCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	defer cancel()
 
 	id := managementlocks.NewScopedLockID(d.Get("scope").(string), d.Get("name").(string))
-	if d.IsNewResource() {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.GetByScope(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -92,7 +95,7 @@ func resourceManagementLockCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	payload := managementlocks.ManagementLockObject{
 		Properties: managementlocks.ManagementLockProperties{
 			Level: managementlocks.LockLevel(d.Get("lock_level").(string)),
-			Notes: utils.String(d.Get("notes").(string)),
+			Notes: pointer.To(d.Get("notes").(string)),
 		},
 	}
 
@@ -100,21 +103,11 @@ func resourceManagementLockCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal-error: context was missing a deadline")
-	}
-
-	stateConf := &pluginsdk.StateChangeConf{
-		Target: []string{
-			"OK",
-		},
-		Refresh:                   managementLockStateRefreshFunc(ctx, client, id),
-		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 12,
-		Timeout:                   time.Until(deadline),
-	}
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(12, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.GetByScope(pollerCtx, id)
+		return resp.HttpResponse, err
+	}, custompollers.DefaultCreationEventualConsistencyPollerOptions())
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to finish create replication", id)
 	}
 
@@ -173,36 +166,13 @@ func resourceManagementLockDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal-error: context was missing a deadline")
-	}
-
-	stateConf := &pluginsdk.StateChangeConf{
-		Target: []string{
-			"NotFound",
-		},
-		Refresh:                   managementLockStateRefreshFunc(ctx, client, *id),
-		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 12,
-		Timeout:                   time.Until(deadline),
-	}
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(12, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.GetByScope(pollerCtx, *id)
+		return resp.HttpResponse, err
+	}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to finish delete replication", id)
 	}
 
 	return nil
-}
-
-func managementLockStateRefreshFunc(ctx context.Context, client *managementlocks.ManagementLocksClient, id managementlocks.ScopedLockId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.GetByScope(ctx, id)
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return resp, "NotFound", nil
-			}
-			return nil, "Error", err
-		}
-		return "OK", "OK", nil
-	}
 }

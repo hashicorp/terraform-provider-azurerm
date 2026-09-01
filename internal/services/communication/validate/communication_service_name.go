@@ -1,24 +1,14 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
 import (
-	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func CommunicationServiceName(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
-	}
-
-	if !regexp.MustCompile(`^(([a-zA-Z])|([a-zA-Z][0-9a-zA-Z-]{0,62}[0-9a-zA-Z]))$`).MatchString(v) {
-		errors = append(errors, fmt.Errorf("%q must be between 1 and 64 characters in length and start with letters and contain only letters, numbers and hyphens. And it cannot end with hyphen.", k))
-		return
-	}
-
-	return
+func CommunicationServiceName(i interface{}, k string) ([]string, []error) {
+	return validation.StringMatch(regexp.MustCompile(`^(([a-zA-Z])|([a-zA-Z][0-9a-zA-Z-]{0,62}[0-9a-zA-Z]))$`), "must be between 1 and 64 characters in length and start with letters and contain only letters, numbers and hyphens. And it cannot end with hyphen")(i, k)
 }

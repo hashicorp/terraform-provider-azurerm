@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dns
@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -113,15 +114,17 @@ func resourceDnsMxRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	id := recordsets.NewRecordTypeID(subscriptionId, resGroup, zoneName, recordsets.RecordTypeMX, name)
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_dns_mx_record", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_dns_mx_record", id.ID())
+			}
 		}
 	}
 
@@ -216,14 +219,9 @@ func flattenAzureRmDnsMxRecords(records *[]recordsets.MxRecord) []map[string]int
 				preference = strconv.Itoa(int(*record.Preference))
 			}
 
-			exchange := ""
-			if record.Exchange != nil {
-				exchange = *record.Exchange
-			}
-
 			results = append(results, map[string]interface{}{
 				"preference": preference,
-				"exchange":   exchange,
+				"exchange":   pointer.From(record.Exchange),
 			})
 		}
 	}
@@ -257,8 +255,8 @@ func resourceDnsMxRecordHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["preference"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["exchange"].(string)))
+		fmt.Fprintf(&buf, "%s-", m["preference"].(string))
+		fmt.Fprintf(&buf, "%s-", m["exchange"].(string))
 	}
 
 	return pluginsdk.HashString(buf.String())

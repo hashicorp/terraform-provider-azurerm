@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -14,10 +14,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/virtualwans"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/expressrouteconnections"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/expressroutegateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressrouteconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressroutegateways"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -88,14 +89,16 @@ func resourceExpressRouteGatewayCreate(d *pluginsdk.ResourceData, meta interface
 
 	id := expressroutegateways.NewExpressRouteGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if resp.Model != nil && resp.Model.Id != nil && *resp.Model.Id != "" {
-		return tf.ImportAsExistsError("azurerm_express_route_gateway", id.ID())
+		if resp.Model != nil && resp.Model.Id != nil && *resp.Model.Id != "" {
+			return tf.ImportAsExistsError("azurerm_express_route_gateway", id.ID())
+		}
 	}
 
 	gatewayId := expressrouteconnections.NewExpressRouteGatewayID(id.SubscriptionId, id.ResourceGroupName, id.ExpressRouteGatewayName)
@@ -127,7 +130,7 @@ func resourceExpressRouteGatewayCreate(d *pluginsdk.ResourceData, meta interface
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -241,7 +244,9 @@ func resourceExpressRouteGatewayRead(d *pluginsdk.ResourceData, meta interface{}
 			}
 			d.Set("scale_units", scaleUnits)
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }

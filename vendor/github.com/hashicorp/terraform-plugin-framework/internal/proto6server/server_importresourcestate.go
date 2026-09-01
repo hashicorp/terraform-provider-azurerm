@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package proto6server
@@ -36,7 +36,15 @@ func (s *Server) ImportResourceState(ctx context.Context, proto6Req *tfprotov6.I
 		return toproto6.ImportResourceStateResponse(ctx, fwResp), nil
 	}
 
-	fwReq, diags := fromproto6.ImportResourceStateRequest(ctx, proto6Req, resource, resourceSchema)
+	identitySchema, diags := s.FrameworkServer.ResourceIdentitySchema(ctx, proto6Req.TypeName)
+
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ImportResourceStateResponse(ctx, fwResp), nil
+	}
+
+	fwReq, diags := fromproto6.ImportResourceStateRequest(ctx, proto6Req, resource, resourceSchema, identitySchema)
 
 	fwResp.Diagnostics.Append(diags...)
 

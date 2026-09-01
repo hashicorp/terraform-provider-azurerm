@@ -12,7 +12,7 @@ Manages a virtual machine scale set.
 
 ## Disclaimers
 
-!> **Note:** The `azurerm_virtual_machine_scale_set` resource has been deprecated in favour of the [`azurerm_linux_virtual_machine_scale_set`](linux_virtual_machine_scale_set.html) and [`azurerm_windows_virtual_machine_scale_set`](windows_virtual_machine_scale_set.html) resources. Whilst this will continue to be available throughout the 2.x and 3.x releases however is in a feature-frozen state to maintain compatibility - new functionality will instead be added to the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources and the `azurerm_virtual_machine_scale_set` resource will be removed in the future.
+!> **Note:** The `azurerm_virtual_machine_scale_set` resource has been deprecated in favour of the [`azurerm_linux_virtual_machine_scale_set`](linux_virtual_machine_scale_set.html) and [`azurerm_windows_virtual_machine_scale_set`](windows_virtual_machine_scale_set.html) resources. Whilst this will continue to be available however is in a feature-frozen state to maintain compatibility - new functionality will instead be added to the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources and the `azurerm_virtual_machine_scale_set` resource will be removed in the future.
 
 ~> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
@@ -105,7 +105,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
   health_probe_id = azurerm_lb_probe.example.id
 
   sku {
-    name     = "Standard_F2"
+    name     = "Standard_D4_v5"
     tier     = "Standard"
     capacity = 2
   }
@@ -211,7 +211,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
   upgrade_policy_mode = "Manual"
 
   sku {
-    name     = "Standard_F2"
+    name     = "Standard_D4_v5"
     tier     = "Standard"
     capacity = 2
   }
@@ -257,7 +257,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -589,12 +589,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Virtual Machine Scale Set.
-* `update` - (Defaults to 60 minutes) Used when updating the Virtual Machine Scale Set.
+* `create` - (Defaults to 1 hour) Used when creating the Virtual Machine Scale Set.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Scale Set.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Machine Scale Set.
+* `update` - (Defaults to 1 hour) Used when updating the Virtual Machine Scale Set.
+* `delete` - (Defaults to 1 hour) Used when deleting the Virtual Machine Scale Set.
 
 ## Import
 
@@ -603,3 +603,9 @@ Virtual Machine Scale Sets can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_virtual_machine_scale_set.scaleset1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/virtualMachineScaleSets/scaleset1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Compute` - 2025-04-01

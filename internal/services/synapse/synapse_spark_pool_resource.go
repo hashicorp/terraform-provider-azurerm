@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse
@@ -9,6 +9,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
@@ -17,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSynapseSparkPool() *pluginsdk.Resource {
@@ -51,7 +54,7 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.WorkspaceID,
+				ValidateFunc: validation.AsGeneratedID(workspaces.ParseWorkspaceIDInsensitively),
 			},
 
 			"node_size_family": {
@@ -216,13 +219,12 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"3.2",
-					"3.3",
 					"3.4",
+					"3.5",
 				}, false),
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -233,27 +235,29 @@ func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	workspaceId, err := parse.WorkspaceID(d.Get("synapse_workspace_id").(string))
+	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+	workspaceId, err := workspaces.ParseWorkspaceIDInsensitively(d.Get("synapse_workspace_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing `synapse_workspace_id`: %+v", err)
 	}
 
-	id := parse.NewSparkPoolID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, d.Get("name").(string))
-	if d.IsNewResource() {
+	id := parse.NewSparkPoolID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, d.Get("name").(string))
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.BigDataPoolName)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_synapse_spark_pool", id.ID())
 		}
 	}
 
 	workspace, err := workspaceClient.Get(ctx, id.ResourceGroup, id.WorkspaceName)
 	if err != nil {
-		return fmt.Errorf("reading Synapse workspace %q (Workspace %q / Resource Group %q): %+v", workspaceId.Name, workspaceId.Name, workspaceId.ResourceGroup, err)
+		return fmt.Errorf("reading Synapse workspace %q (Workspace %q / Resource Group %q): %+v", workspaceId.WorkspaceName, workspaceId.WorkspaceName, workspaceId.ResourceGroupName, err)
 	}
 
 	autoScale := expandArmSparkPoolAutoScaleProperties(d.Get("auto_scale").([]interface{}))
@@ -262,38 +266,38 @@ func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{})
 		BigDataPoolResourceProperties: &synapse.BigDataPoolResourceProperties{
 			AutoPause:                 expandArmSparkPoolAutoPauseProperties(d.Get("auto_pause").([]interface{})),
 			AutoScale:                 autoScale,
-			CacheSize:                 utils.Int32(int32(d.Get("cache_size").(int))),
-			IsComputeIsolationEnabled: utils.Bool(d.Get("compute_isolation_enabled").(bool)),
+			CacheSize:                 pointer.To(int32(d.Get("cache_size").(int))),
+			IsComputeIsolationEnabled: pointer.To(d.Get("compute_isolation_enabled").(bool)),
 			DynamicExecutorAllocation: &synapse.DynamicExecutorAllocation{
-				Enabled:      utils.Bool(d.Get("dynamic_executor_allocation_enabled").(bool)),
-				MinExecutors: utils.Int32(int32(d.Get("min_executors").(int))),
-				MaxExecutors: utils.Int32(int32(d.Get("max_executors").(int))),
+				Enabled:      pointer.To(d.Get("dynamic_executor_allocation_enabled").(bool)),
+				MinExecutors: pointer.To(int32(d.Get("min_executors").(int))),
+				MaxExecutors: pointer.To(int32(d.Get("max_executors").(int))),
 			},
-			DefaultSparkLogFolder:       utils.String(d.Get("spark_log_folder").(string)),
+			DefaultSparkLogFolder:       pointer.To(d.Get("spark_log_folder").(string)),
 			NodeSize:                    synapse.NodeSize(d.Get("node_size").(string)),
 			NodeSizeFamily:              synapse.NodeSizeFamily(d.Get("node_size_family").(string)),
-			SessionLevelPackagesEnabled: utils.Bool(d.Get("session_level_packages_enabled").(bool)),
+			SessionLevelPackagesEnabled: pointer.To(d.Get("session_level_packages_enabled").(bool)),
 			SparkConfigProperties:       expandSparkPoolSparkConfig(d.Get("spark_config").([]interface{})),
-			SparkEventsFolder:           utils.String(d.Get("spark_events_folder").(string)),
-			SparkVersion:                utils.String(d.Get("spark_version").(string)),
+			SparkEventsFolder:           pointer.To(d.Get("spark_events_folder").(string)),
+			SparkVersion:                pointer.To(d.Get("spark_version").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 	if !*autoScale.Enabled {
-		bigDataPoolInfo.NodeCount = utils.Int32(int32(d.Get("node_count").(int)))
+		bigDataPoolInfo.NodeCount = pointer.To(int32(d.Get("node_count").(int)))
 	}
 
-	force := utils.Bool(false)
+	force := pointer.To(false)
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.BigDataPoolName, bigDataPoolInfo, force)
 	if err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	// Library Requirements can't be specified on Create so we'll call update after we've confirmed the Spark Pool has been created.
 	return resourceSynapseSparkPoolUpdate(d, meta)
@@ -311,7 +315,7 @@ func resourceSynapseSparkPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.BigDataPoolName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] Synapse Spark Pool %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -319,7 +323,7 @@ func resourceSynapseSparkPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving Synapse Spark Pool %q (Workspace %q / Resource Group %q): %+v", id.BigDataPoolName, id.WorkspaceName, id.ResourceGroup, err)
 	}
 	d.Set("name", id.BigDataPoolName)
-	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID()
+	workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID()
 	d.Set("synapse_workspace_id", workspaceId)
 
 	if props := resp.BigDataPoolResourceProperties; props != nil {
@@ -383,29 +387,29 @@ func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta interface{})
 		BigDataPoolResourceProperties: &synapse.BigDataPoolResourceProperties{
 			AutoPause:                 expandArmSparkPoolAutoPauseProperties(d.Get("auto_pause").([]interface{})),
 			AutoScale:                 autoScale,
-			CacheSize:                 utils.Int32(int32(d.Get("cache_size").(int))),
-			IsComputeIsolationEnabled: utils.Bool(d.Get("compute_isolation_enabled").(bool)),
+			CacheSize:                 pointer.To(int32(d.Get("cache_size").(int))),
+			IsComputeIsolationEnabled: pointer.To(d.Get("compute_isolation_enabled").(bool)),
 			DynamicExecutorAllocation: &synapse.DynamicExecutorAllocation{
-				Enabled:      utils.Bool(d.Get("dynamic_executor_allocation_enabled").(bool)),
-				MinExecutors: utils.Int32(int32(d.Get("min_executors").(int))),
-				MaxExecutors: utils.Int32(int32(d.Get("max_executors").(int))),
+				Enabled:      pointer.To(d.Get("dynamic_executor_allocation_enabled").(bool)),
+				MinExecutors: pointer.To(int32(d.Get("min_executors").(int))),
+				MaxExecutors: pointer.To(int32(d.Get("max_executors").(int))),
 			},
-			DefaultSparkLogFolder:       utils.String(d.Get("spark_log_folder").(string)),
+			DefaultSparkLogFolder:       pointer.To(d.Get("spark_log_folder").(string)),
 			LibraryRequirements:         expandArmSparkPoolLibraryRequirements(d.Get("library_requirement").([]interface{})),
 			NodeSize:                    synapse.NodeSize(d.Get("node_size").(string)),
 			NodeSizeFamily:              synapse.NodeSizeFamily(d.Get("node_size_family").(string)),
-			SessionLevelPackagesEnabled: utils.Bool(d.Get("session_level_packages_enabled").(bool)),
+			SessionLevelPackagesEnabled: pointer.To(d.Get("session_level_packages_enabled").(bool)),
 			SparkConfigProperties:       expandSparkPoolSparkConfig(d.Get("spark_config").([]interface{})),
-			SparkEventsFolder:           utils.String(d.Get("spark_events_folder").(string)),
-			SparkVersion:                utils.String(d.Get("spark_version").(string)),
+			SparkEventsFolder:           pointer.To(d.Get("spark_events_folder").(string)),
+			SparkVersion:                pointer.To(d.Get("spark_version").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 	if !*autoScale.Enabled {
-		bigDataPoolInfo.NodeCount = utils.Int32(int32(d.Get("node_count").(int)))
+		bigDataPoolInfo.NodeCount = pointer.To(int32(d.Get("node_count").(int)))
 	}
 
-	force := utils.Bool(false)
+	force := pointer.To(false)
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.BigDataPoolName, bigDataPoolInfo, force)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
@@ -443,27 +447,27 @@ func resourceSynapseSparkPoolDelete(d *pluginsdk.ResourceData, meta interface{})
 func expandArmSparkPoolAutoPauseProperties(input []interface{}) *synapse.AutoPauseProperties {
 	if len(input) == 0 {
 		return &synapse.AutoPauseProperties{
-			Enabled: utils.Bool(false),
+			Enabled: pointer.To(false),
 		}
 	}
 	v := input[0].(map[string]interface{})
 	return &synapse.AutoPauseProperties{
-		DelayInMinutes: utils.Int32(int32(v["delay_in_minutes"].(int))),
-		Enabled:        utils.Bool(true),
+		DelayInMinutes: pointer.To(int32(v["delay_in_minutes"].(int))),
+		Enabled:        pointer.To(true),
 	}
 }
 
 func expandArmSparkPoolAutoScaleProperties(input []interface{}) *synapse.AutoScaleProperties {
 	if len(input) == 0 || input[0] == nil {
 		return &synapse.AutoScaleProperties{
-			Enabled: utils.Bool(false),
+			Enabled: pointer.To(false),
 		}
 	}
 	v := input[0].(map[string]interface{})
 	return &synapse.AutoScaleProperties{
-		MinNodeCount: utils.Int32(int32(v["min_node_count"].(int))),
-		Enabled:      utils.Bool(true),
-		MaxNodeCount: utils.Int32(int32(v["max_node_count"].(int))),
+		MinNodeCount: pointer.To(int32(v["min_node_count"].(int))),
+		Enabled:      pointer.To(true),
+		MaxNodeCount: pointer.To(int32(v["max_node_count"].(int))),
 	}
 }
 
@@ -473,8 +477,8 @@ func expandArmSparkPoolLibraryRequirements(input []interface{}) *synapse.Library
 	}
 	v := input[0].(map[string]interface{})
 	return &synapse.LibraryRequirements{
-		Content:  utils.String(v["content"].(string)),
-		Filename: utils.String(v["filename"].(string)),
+		Content:  pointer.To(v["content"].(string)),
+		Filename: pointer.To(v["filename"].(string)),
 	}
 }
 
@@ -484,8 +488,8 @@ func expandSparkPoolSparkConfig(input []interface{}) *synapse.SparkConfigPropert
 	}
 	value := input[0].(map[string]interface{})
 	return &synapse.SparkConfigProperties{
-		Content:  utils.String(value["content"].(string)),
-		Filename: utils.String(value["filename"].(string)),
+		Content:  pointer.To(value["content"].(string)),
+		Filename: pointer.To(value["filename"].(string)),
 	}
 }
 
@@ -494,14 +498,8 @@ func flattenArmSparkPoolAutoPauseProperties(input *synapse.AutoPauseProperties) 
 		return make([]interface{}, 0)
 	}
 
-	var delayInMinutes int32
-	if input.DelayInMinutes != nil {
-		delayInMinutes = *input.DelayInMinutes
-	}
-	var enabled bool
-	if input.Enabled != nil {
-		enabled = *input.Enabled
-	}
+	delayInMinutes := pointer.From(input.DelayInMinutes)
+	enabled := pointer.From(input.Enabled)
 
 	if !enabled {
 		return make([]interface{}, 0)
@@ -519,23 +517,14 @@ func flattenArmSparkPoolAutoScaleProperties(input *synapse.AutoScaleProperties) 
 		return make([]interface{}, 0)
 	}
 
-	var enabled bool
-	if input.Enabled != nil {
-		enabled = *input.Enabled
-	}
+	enabled := pointer.From(input.Enabled)
 
 	if !enabled {
 		return make([]interface{}, 0)
 	}
 
-	var maxNodeCount int32
-	if input.MaxNodeCount != nil {
-		maxNodeCount = *input.MaxNodeCount
-	}
-	var minNodeCount int32
-	if input.MinNodeCount != nil {
-		minNodeCount = *input.MinNodeCount
-	}
+	maxNodeCount := pointer.From(input.MaxNodeCount)
+	minNodeCount := pointer.From(input.MinNodeCount)
 	return []interface{}{
 		map[string]interface{}{
 			"max_node_count": maxNodeCount,
@@ -549,14 +538,8 @@ func flattenArmSparkPoolLibraryRequirements(input *synapse.LibraryRequirements) 
 		return make([]interface{}, 0)
 	}
 
-	var content string
-	if input.Content != nil {
-		content = *input.Content
-	}
-	var filename string
-	if input.Filename != nil {
-		filename = *input.Filename
-	}
+	content := pointer.From(input.Content)
+	filename := pointer.From(input.Filename)
 	return []interface{}{
 		map[string]interface{}{
 			"content":  content,
@@ -570,14 +553,8 @@ func flattenSparkPoolSparkConfig(input *synapse.SparkConfigProperties) []interfa
 		return make([]interface{}, 0)
 	}
 
-	var content string
-	if input.Content != nil {
-		content = *input.Content
-	}
-	var filename string
-	if input.Filename != nil {
-		filename = *input.Filename
-	}
+	content := pointer.From(input.Content)
+	filename := pointer.From(input.Filename)
 	return []interface{}{
 		map[string]interface{}{
 			"content":  content,

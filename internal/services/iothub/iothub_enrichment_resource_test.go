@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub_test
@@ -9,12 +9,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IotHubEnrichmentResource struct{}
@@ -80,8 +81,8 @@ func (IotHubEnrichmentResource) Exists(ctx context.Context, client *clients.Clie
 
 	iothub, err := client.IoTHub.ResourceClient.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
-		if utils.ResponseWasNotFound(iothub.Response) {
-			return utils.Bool(false), nil
+		if response.WasNotFound(iothub.Response.Response) {
+			return pointer.To(false), nil
 		}
 
 		return nil, fmt.Errorf("retrieving IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)
@@ -98,11 +99,11 @@ func (IotHubEnrichmentResource) Exists(ctx context.Context, client *clients.Clie
 
 	for _, enrichment := range *enrichments {
 		if strings.EqualFold(*enrichment.Key, id.Name) {
-			return utils.Bool(true), nil
+			return pointer.To(true), nil
 		}
 	}
 
-	return utils.Bool(false), nil
+	return pointer.To(false), nil
 }
 
 func (IotHubEnrichmentResource) basic(data acceptance.TestData) string {
@@ -126,7 +127,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test%[1]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -166,7 +167,7 @@ resource "azurerm_iothub_enrichment" "test" {
   value          = "$twin.tags.DeviceType"
   endpoint_names = [azurerm_iothub_endpoint_storage_container.test.name]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r IotHubEnrichmentResource) requiresImport(data acceptance.TestData) string {
@@ -206,7 +207,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test%[1]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -246,5 +247,5 @@ resource "azurerm_iothub_enrichment" "test" {
   value          = "$twin.tags.Tenant"
   endpoint_names = [azurerm_iothub_endpoint_storage_container.test.name]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

@@ -12,7 +12,7 @@ Manages a Virtual Machine.
 
 ## Disclaimers
 
--> **Note:** The `azurerm_virtual_machine` resource has been superseded by the [`azurerm_linux_virtual_machine`](linux_virtual_machine.html) and [`azurerm_windows_virtual_machine`](windows_virtual_machine.html) resources. The existing `azurerm_virtual_machine` resource will continue to be available throughout the 3.x releases however is in a feature-frozen state to maintain compatibility - new functionality will instead be added to the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` resources.
+-> **Note:** The `azurerm_virtual_machine` resource has been superseded by the [`azurerm_linux_virtual_machine`](linux_virtual_machine.html) and [`azurerm_windows_virtual_machine`](windows_virtual_machine.html) resources. The existing `azurerm_virtual_machine` resource will continue to be available however is in a feature-frozen state to maintain compatibility - new functionality will instead be added to the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` resources.
 
 ~> **Note:** Data Disks can be attached either directly on the `azurerm_virtual_machine` resource, or using the `azurerm_virtual_machine_data_disk_attachment` resource - but the two cannot be used together. If both are used against the same Virtual Machine, spurious changes will occur.
 
@@ -95,7 +95,7 @@ resource "azurerm_virtual_machine" "main" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -408,12 +408,12 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Virtual Machine.
-* `update` - (Defaults to 60 minutes) Used when updating the Virtual Machine.
+* `create` - (Defaults to 1 hour) Used when creating the Virtual Machine.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Machine.
+* `update` - (Defaults to 1 hour) Used when updating the Virtual Machine.
+* `delete` - (Defaults to 1 hour) Used when deleting the Virtual Machine.
 
 ## Import
 
@@ -422,3 +422,11 @@ Virtual Machines can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_virtual_machine.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/virtualMachines/machine1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Compute` - 2024-03-01, 2023-04-02
+
+* `Microsoft.Network` - 2025-01-01

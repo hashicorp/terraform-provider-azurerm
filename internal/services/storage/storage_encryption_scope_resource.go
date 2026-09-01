@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -11,16 +11,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/encryptionscopes"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/encryptionscopes"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_encryption_scope -service-package-name storage -properties "name" -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id" -test-name "keyVaultKey"
 
 func resourceStorageEncryptionScope() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -29,10 +31,11 @@ func resourceStorageEncryptionScope() *pluginsdk.Resource {
 		Update: resourceStorageEncryptionScopeUpdate,
 		Delete: resourceStorageEncryptionScopeDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := encryptionscopes.ParseEncryptionScopeID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&encryptionscopes.EncryptionScopeId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&encryptionscopes.EncryptionScopeId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -57,18 +60,15 @@ func resourceStorageEncryptionScope() *pluginsdk.Resource {
 			},
 
 			"source": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(encryptionscopes.EncryptionScopeSourceMicrosoftPointKeyVault),
-					string(encryptionscopes.EncryptionScopeSourceMicrosoftPointStorage),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(encryptionscopes.PossibleValuesForEncryptionScopeSource(), false),
 			},
 
 			"key_vault_key_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: keyVaultValidate.KeyVaultChildIDWithOptionalVersion,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny),
 			},
 
 			"infrastructure_encryption_required": {
@@ -91,15 +91,18 @@ func resourceStorageEncryptionScopeCreate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	id := encryptionscopes.NewEncryptionScopeID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of an existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of an existing %s: %+v", id, err)
+			}
 		}
-	}
-	if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.State != nil {
-		if *existing.Model.Properties.State == encryptionscopes.EncryptionScopeStateEnabled {
-			return tf.ImportAsExistsError("azurerm_storage_encryption_scope", id.ID())
+		if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.State != nil {
+			if *existing.Model.Properties.State == encryptionscopes.EncryptionScopeStateEnabled {
+				return tf.ImportAsExistsError("azurerm_storage_encryption_scope", id.ID())
+			}
 		}
 	}
 
@@ -111,15 +114,15 @@ func resourceStorageEncryptionScopeCreate(d *pluginsdk.ResourceData, meta interf
 
 	payload := encryptionscopes.EncryptionScope{
 		Properties: &encryptionscopes.EncryptionScopeProperties{
-			Source: pointer.To(encryptionscopes.EncryptionScopeSource(d.Get("source").(string))),
+			Source: pointer.ToEnum[encryptionscopes.EncryptionScopeSource](d.Get("source").(string)),
 			State:  pointer.To(encryptionscopes.EncryptionScopeStateEnabled),
 			KeyVaultProperties: &encryptionscopes.EncryptionScopeKeyVaultProperties{
-				KeyUri: utils.String(d.Get("key_vault_key_id").(string)),
+				KeyUri: pointer.To(d.Get("key_vault_key_id").(string)),
 			},
 		},
 	}
 	if v, ok := d.GetOk("infrastructure_encryption_required"); ok {
-		payload.Properties.RequireInfrastructureEncryption = utils.Bool(v.(bool))
+		payload.Properties.RequireInfrastructureEncryption = pointer.To(v.(bool))
 	}
 
 	if _, err := client.Put(ctx, id, payload); err != nil {
@@ -127,6 +130,10 @@ func resourceStorageEncryptionScopeCreate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceStorageEncryptionScopeRead(d, meta)
 }
 
@@ -161,11 +168,11 @@ func resourceStorageEncryptionScopeUpdate(d *pluginsdk.ResourceData, meta interf
 	payload.Properties.State = pointer.To(encryptionscopes.EncryptionScopeStateEnabled)
 	if d.HasChange("key_vault_key_id") {
 		payload.Properties.KeyVaultProperties = &encryptionscopes.EncryptionScopeKeyVaultProperties{
-			KeyUri: utils.String(d.Get("key_vault_key_id").(string)),
+			KeyUri: pointer.To(d.Get("key_vault_key_id").(string)),
 		}
 	}
 	if d.HasChange("source") {
-		payload.Properties.Source = pointer.To(encryptionscopes.EncryptionScopeSource(d.Get("source").(string)))
+		payload.Properties.Source = pointer.ToEnum[encryptionscopes.EncryptionScopeSource](d.Get("source").(string))
 	}
 
 	if _, err := client.Patch(ctx, *id, *payload); err != nil {
@@ -207,17 +214,18 @@ func resourceStorageEncryptionScopeRead(d *pluginsdk.ResourceData, meta interfac
 				return nil
 			}
 
-			keyVaultKeyUri := ""
-			if props.KeyVaultProperties != nil && props.KeyVaultProperties.KeyUri != nil {
-				keyVaultKeyUri = *props.KeyVaultProperties.KeyUri
-			}
-			d.Set("key_vault_key_id", keyVaultKeyUri)
 			d.Set("infrastructure_encryption_required", props.RequireInfrastructureEncryption)
 			d.Set("source", string(pointer.From(props.Source)))
+
+			keyVaultKeyUri := ""
+			if props.KeyVaultProperties != nil {
+				keyVaultKeyUri = pointer.From(props.KeyVaultProperties.KeyUri)
+			}
+			d.Set("key_vault_key_id", keyVaultKeyUri)
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceStorageEncryptionScopeDelete(d *pluginsdk.ResourceData, meta interface{}) error {

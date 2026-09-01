@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -11,11 +12,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -44,7 +45,7 @@ func dataSourceResources() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"required_tags": tags.Schema(),
+			"required_tags": commonschema.Tags(),
 
 			"resources": {
 				Type:     pluginsdk.TypeList,
@@ -68,7 +69,7 @@ func dataSourceResources() *pluginsdk.Resource {
 							Computed: true,
 						},
 						"location": commonschema.LocationComputed(),
-						"tags":     tags.SchemaDataSource(),
+						"tags":     commonschema.TagsDataSource(),
 					},
 				},
 			},
@@ -87,7 +88,7 @@ func dataSourceResourcesRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	requiredTags := d.Get("required_tags").(map[string]interface{})
 
 	if resourceGroupName == "" && resourceName == "" && resourceType == "" {
-		return fmt.Errorf("At least one of `name`, `resource_group_name` or `type` must be specified")
+		return errors.New("at least one of `name`, `resource_group_name` or `type` must be specified")
 	}
 
 	var filter string
@@ -162,15 +163,9 @@ func filterResource(inputs []resources.GenericResourceExpanded, requiredTags map
 		}
 
 		if tagMatches == len(requiredTags) {
-			resName := ""
-			if res.Name != nil {
-				resName = *res.Name
-			}
+			resName := pointer.From(res.Name)
 
-			resID := ""
-			if res.ID != nil {
-				resID = *res.ID
-			}
+			resID := pointer.From(res.ID)
 
 			resResourceGroupName := ""
 			if res.ID != nil {
@@ -180,10 +175,7 @@ func filterResource(inputs []resources.GenericResourceExpanded, requiredTags map
 				}
 			}
 
-			resType := ""
-			if res.Type != nil {
-				resType = *res.Type
-			}
+			resType := pointer.From(res.Type)
 
 			resLocation := ""
 			if res.Location != nil {

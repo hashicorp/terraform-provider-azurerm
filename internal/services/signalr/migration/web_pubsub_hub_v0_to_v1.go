@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -15,7 +15,7 @@ var _ pluginsdk.StateUpgrade = WebPubsubHubV0ToV1{}
 type WebPubsubHubV0ToV1 struct{}
 
 func (WebPubsubHubV0ToV1) Schema() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -75,7 +75,6 @@ func (WebPubsubHubV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 	}
-	return s
 }
 
 func (WebPubsubHubV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {

@@ -51,7 +51,13 @@ resource "azurerm_subnet" "example" {
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.2.0/24"]
-  service_endpoints    = ["Microsoft.Sql", "Microsoft.Storage"]
+  service_endpoint {
+    service = "Microsoft.Sql"
+  }
+
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
 }
 
 resource "azurerm_storage_account" "example" {
@@ -74,7 +80,7 @@ resource "azurerm_storage_account" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -94,21 +100,23 @@ The following arguments are supported:
 
 * `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS`, `ZRS`, `GZRS` and `RAGZRS`. Changing this forces a new resource to be created when types `LRS`, `GRS` and `RAGRS` are changed to `ZRS`, `GZRS` or `RAGZRS` and vice versa.
 
+* `provisioned_billing_model_version` - (Optional) Specifies the version of the **provisioned** billing model (e.g. when `account_kind = "FileStorage"` for Storage File). Possible value is `V2`. Changing this forces a new resource to be created.
+
 * `cross_tenant_replication_enabled` - (Optional) Should cross Tenant replication be enabled? Defaults to `false`.
 
-* `access_tier` - (Optional) Defines the access tier for `BlobStorage`, `FileStorage` and `StorageV2` accounts. Valid options are `Hot`, `Cool`, `Cold` and `Premium`. Defaults to `Hot`.
+* `access_tier` - (Optional) Defines the access tier for `BlobStorage`, `FileStorage` and `StorageV2` accounts. Valid options are `Hot`, `Cool`, `Cold`, `Smart` and `Premium`. Defaults to `Hot`.
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Storage Account should exist. Changing this forces a new Storage Account to be created.
 
 * `https_traffic_only_enabled` - (Optional) Boolean flag which forces HTTPS if enabled, see [here](https://docs.microsoft.com/azure/storage/storage-require-secure-transfer/) for more information. Defaults to `true`.
 
-* `min_tls_version` - (Optional) The minimum supported TLS version for the storage account. Possible values are `TLS1_0`, `TLS1_1`, and `TLS1_2`. Defaults to `TLS1_2` for new storage accounts.
+* `min_tls_version` - (Optional) The minimum supported TLS version for the storage account. The only possible value is `TLS1_2`. Defaults to `TLS1_2` for new storage accounts.
 
 ~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
 
 -> **Note:** At this time `min_tls_version` is only supported in the Public Cloud, China Cloud, and US Government Cloud.
 
-* `allow_nested_items_to_be_public` - (Optional) Allow or disallow nested items within this Account to opt into being public. Defaults to `true`.
+* `allow_nested_items_to_be_public` - (Optional) Allow or disallow nested items within this Account to opt into being public. Defaults to `false`.
 
 -> **Note:** At this time `allow_nested_items_to_be_public` is only supported in the Public Cloud, China Cloud, and US Government Cloud.
 
@@ -137,16 +145,6 @@ The following arguments are supported:
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `blob_properties` - (Optional) A `blob_properties` block as defined below.
-
-* `queue_properties` - (Optional) A `queue_properties` block as defined below.
-
-~> **Note:** `queue_properties` can only be configured when `account_tier` is set to `Standard` and `account_kind` is set to either `Storage` or `StorageV2`.
-
-* `static_website` - (Optional) A `static_website` block as defined below.
-
-~> **Note:** `static_website` can only be set when the `account_kind` is set to `StorageV2` or `BlockBlobStorage`.
-
-~> **Note:** If `static_website` is specified, the service will automatically create a `azurerm_storage_container` named `$web`.
 
 * `share_properties` - (Optional) A `share_properties` block as defined below.
 
@@ -178,7 +176,7 @@ The following arguments are supported:
 
 * `sas_policy` - (Optional) A `sas_policy` block as defined below.
 
-* `allowed_copy_scope` - (Optional) Restrict copy to and from Storage Accounts within an AAD tenant or with Private Links to the same VNet. Possible values are `AAD` and `PrivateLink`.
+* `allowed_copy_scope` - (Optional) The permitted scope for copy operations between storage accounts. Possible values are `AAD`, `PrivateLink` and `All`.
 
 * `sftp_enabled` - (Optional) Boolean, enable SFTP for the storage account
 
@@ -247,13 +245,13 @@ A `custom_domain` block supports the following:
 
 * `use_subdomain` - (Optional) Should the Custom Domain Name be validated by using indirect CNAME validation?
 
+~> **Note:** [More information on Validation is available here](https://docs.microsoft.com/en-gb/azure/storage/blobs/storage-custom-domain-name)
+
 ---
 
 A `customer_managed_key` block supports the following:
 
-* `key_vault_key_id` - (Optional) The ID of the Key Vault Key, supplying a version-less key ID will enable auto-rotation of this key. Exactly one of `key_vault_key_id` and `managed_hsm_key_id` may be specified.
-
-* `managed_hsm_key_id` -  (Optional) The ID of the managed HSM Key. Exactly one of `key_vault_key_id` and `managed_hsm_key_id` may be specified.
+* `key_vault_key_id` - (Optional) The ID of the Key Vault Key, supplying a version-less key ID will enable auto-rotation of this key.
 
 * `user_assigned_identity_id` - (Required) The ID of a user assigned identity.
 
@@ -283,18 +281,6 @@ A `container_delete_retention_policy` block supports the following:
 
 ---
 
-A `hour_metrics` block supports the following:
-
-* `enabled` - (Required) Indicates whether hour metrics are enabled for the Queue service.
-
-* `version` - (Required) The version of storage analytics to configure.
-
-* `include_apis` - (Optional) Indicates whether metrics should generate summary statistics for called API operations.
-
-* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained.
-
----
-
 An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Storage Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
@@ -313,35 +299,9 @@ An `immutability_policy` block supports the following:
 
 * `allow_protected_append_writes` - (Required) When enabled, new blocks can be written to an append blob while maintaining immutability protection and compliance. Only new blocks can be added and any existing blocks cannot be modified or deleted.
 
-* `state` - (Required) Defines the mode of the policy. `Disabled` state disables the policy, `Unlocked` state allows increase and decrease of immutability retention time and also allows toggling allowProtectedAppendWrites property, `Locked` state only allows the increase of the immutability retention time. A policy can only be created in a Disabled or Unlocked state and can be toggled between the two states. Only a policy in an Unlocked state can transition to a Locked state which cannot be reverted. Changing from `Locked` forces a new resource to be created.
+* `state` - (Required) Defines the mode of the policy. `Disabled` state disables the policy, `Unlocked` state allows increase and decrease of immutability retention time and also allows toggling allowProtectedAppendWrites property, `Locked` state only allows the increase of the immutability retention time. A policy can only be created in a Disabled or Unlocked state and can be toggled between the two states. Only a policy in an Unlocked state can transition to a Locked state which cannot be reverted.
 
 * `period_since_creation_in_days` - (Required) The immutability period for the blobs in the container since the policy creation, in days.
-
----
-
-A `logging` block supports the following:
-
-* `delete` - (Required) Indicates whether all delete requests should be logged.
-
-* `read` - (Required) Indicates whether all read requests should be logged.
-
-* `version` - (Required) The version of storage analytics to configure.
-
-* `write` - (Required) Indicates whether all write requests should be logged.
-
-* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained.
-
----
-
-A `minute_metrics` block supports the following:
-
-* `enabled` - (Required) Indicates whether minute metrics are enabled for the Queue service.
-
-* `version` - (Required) The version of storage analytics to configure.
-
-* `include_apis` - (Optional) Indicates whether metrics should generate summary statistics for called API operations.
-
-* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained.
 
 ---
 
@@ -361,8 +321,6 @@ A `network_rules` block supports the following:
 
 ~> **Note:** The prefix of `ip_rules` must be between 0 and 30 and only supports public IP addresses.
 
-~> **Note:** [More information on Validation is available here](https://docs.microsoft.com/en-gb/azure/storage/blobs/storage-custom-domain-name)
-
 ---
 
 A `private_link_access` block supports the following:
@@ -379,7 +337,7 @@ A `azure_files_authentication` block supports the following:
 
 * `active_directory` - (Optional) A `active_directory` block as defined below. Required when `directory_type` is `AD`.
 
-* `default_share_level_permission` - (Optional) Specifies the default share level permissions applied to all users. Possible values are `StorageFileDataSmbShareReader`, `StorageFileDataSmbShareContributor`, `StorageFileDataSmbShareElevatedContributor`, or `None`.
+* `default_share_level_permission` - (Optional) Specifies the default share level permissions applied to all users. Possible values are `StorageFileDataSmbShareReader`, `StorageFileDataSmbShareContributor`, `StorageFileDataSmbShareElevatedContributor`, or `None`. Defaults to `None`.
 
 ---
 
@@ -409,31 +367,11 @@ A `routing` block supports the following:
 
 ---
 
-A `queue_properties` block supports the following:
-
-* `cors_rule` - (Optional) A `cors_rule` block as defined above.
-
-* `logging` - (Optional) A `logging` block as defined below.
-
-* `minute_metrics` - (Optional) A `minute_metrics` block as defined below.
-
-* `hour_metrics` - (Optional) A `hour_metrics` block as defined below.
-
----
-
 A `sas_policy` block supports the following:
 
 * `expiration_period` - (Required) The SAS expiration period in format of `DD.HH:MM:SS`.
 
-* `expiration_action` - (Optional) The SAS expiration action. The only possible value is `Log` at this moment. Defaults to `Log`.
-
----
-
-A `static_website` block supports the following:
-
-* `index_document` - (Optional) The webpage that Azure Storage serves for requests to the root of a website or any subfolder. For example, index.html. The value is case-sensitive.
-
-* `error_404_document` - (Optional) The absolute path to a custom webpage that should be used when a request is made which does not correspond to an existing file.
+* `expiration_action` - (Optional) The SAS expiration action. Possible values are `Log` and `Block`. Defaults to `Log`.
 
 ---
 
@@ -633,12 +571,12 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Storage Account.
-* `update` - (Defaults to 60 minutes) Used when updating the Storage Account.
+* `create` - (Defaults to 1 hour) Used when creating the Storage Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Account.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Storage Account.
+* `update` - (Defaults to 1 hour) Used when updating the Storage Account.
+* `delete` - (Defaults to 1 hour) Used when deleting the Storage Account.
 
 ## Import
 
@@ -647,3 +585,9 @@ Storage Accounts can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_storage_account.storageAcc1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Storage` - 2025-08-01

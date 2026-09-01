@@ -61,9 +61,20 @@ func (c AppPlatformClient) DeploymentsGenerateThreadDump(ctx context.Context, id
 
 // DeploymentsGenerateThreadDumpThenPoll performs DeploymentsGenerateThreadDump then polls until it's completed
 func (c AppPlatformClient) DeploymentsGenerateThreadDumpThenPoll(ctx context.Context, id DeploymentId, input DiagnosticParameters) error {
+	return c.DeploymentsGenerateThreadDumpCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DeploymentsGenerateThreadDumpCallbackThenPoll performs DeploymentsGenerateThreadDump, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) DeploymentsGenerateThreadDumpCallbackThenPoll(ctx context.Context, id DeploymentId, input DiagnosticParameters, callback func() error) error {
 	result, err := c.DeploymentsGenerateThreadDump(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DeploymentsGenerateThreadDump: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

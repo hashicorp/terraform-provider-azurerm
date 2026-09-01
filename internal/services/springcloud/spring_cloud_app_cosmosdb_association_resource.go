@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -8,9 +8,11 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	cosmosValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
@@ -18,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
@@ -37,7 +38,7 @@ const (
 
 func resourceSpringCloudAppCosmosDBAssociation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		DeprecationMessage: features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_app_cosmosdb_association` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."),
+		DeprecationMessage: "Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_app_cosmosdb_association` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.",
 
 		Create: resourceSpringCloudAppCosmosDBAssociationCreateUpdate,
 		Read:   resourceSpringCloudAppCosmosDBAssociationRead,
@@ -80,7 +81,7 @@ func resourceSpringCloudAppCosmosDBAssociation() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: cosmosValidate.DatabaseAccountID,
+				ValidateFunc: cosmosdb.ValidateDatabaseAccountID,
 			},
 
 			"api_type": {
@@ -153,15 +154,18 @@ func resourceSpringCloudAppCosmosDBAssociationCreateUpdate(d *pluginsdk.Resource
 	}
 
 	id := parse.NewSpringCloudAppAssociationID(appId.SubscriptionId, appId.ResourceGroup, appId.SpringName, appId.AppName, d.Get("name").(string))
+
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.BindingName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.BindingName)
+			if err != nil {
+				if !response.WasNotFound(existing.Response.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_spring_cloud_app_cosmosdb_association", id.ID())
+			if !response.WasNotFound(existing.Response.Response) {
+				return tf.ImportAsExistsError("azurerm_spring_cloud_app_cosmosdb_association", id.ID())
+			}
 		}
 	}
 
@@ -173,7 +177,7 @@ func resourceSpringCloudAppCosmosDBAssociationCreateUpdate(d *pluginsdk.Resource
 	sqlDatabaseName := d.Get("cosmosdb_sql_database_name")
 
 	bindingParameters := map[string]*string{
-		springCloudAppCosmosDbAssociationKeyAPIType: utils.String(apiType),
+		springCloudAppCosmosDbAssociationKeyAPIType: pointer.To(apiType),
 	}
 
 	switch apiType {
@@ -181,23 +185,23 @@ func resourceSpringCloudAppCosmosDBAssociationCreateUpdate(d *pluginsdk.Resource
 		if cassandraKeyspaceName == "" {
 			return fmt.Errorf("`cosmosdb_cassandra_keyspace_name` should be set if `api_type` is `%s`", apiType)
 		}
-		bindingParameters[springCloudAppCosmosDbAssociationKeyKeySpace] = utils.String(cassandraKeyspaceName.(string))
+		bindingParameters[springCloudAppCosmosDbAssociationKeyKeySpace] = pointer.To(cassandraKeyspaceName.(string))
 	case springCloudAppCosmosDbAssociationAPITypeGremlin:
 		if gremlinDatabaseName == "" || gremlinGraphName == "" {
 			return fmt.Errorf("`cosmosdb_gremlin_database_name` and `cosmosdb_gremlin_graph_name` should be set if `api_type` is `%s`", apiType)
 		}
-		bindingParameters[springCloudAppCosmosDbAssociationKeyDatabaseName] = utils.String(gremlinDatabaseName.(string))
-		bindingParameters[springCloudAppCosmosDbAssociationKeyCollectionName] = utils.String(gremlinGraphName.(string))
+		bindingParameters[springCloudAppCosmosDbAssociationKeyDatabaseName] = pointer.To(gremlinDatabaseName.(string))
+		bindingParameters[springCloudAppCosmosDbAssociationKeyCollectionName] = pointer.To(gremlinGraphName.(string))
 	case springCloudAppCosmosDbAssociationAPITypeMongo:
 		if mongoDatabaseName == "" {
 			return fmt.Errorf("`cosmosdb_mongo_database_name` should be set if `api_type` is `%s`", apiType)
 		}
-		bindingParameters[springCloudAppCosmosDbAssociationKeyDatabaseName] = utils.String(mongoDatabaseName.(string))
+		bindingParameters[springCloudAppCosmosDbAssociationKeyDatabaseName] = pointer.To(mongoDatabaseName.(string))
 	case springCloudAppCosmosDbAssociationAPITypeSql:
 		if sqlDatabaseName == "" {
 			return fmt.Errorf("`cosmosdb_sql_database_name` should be set if `api_type` is `%s`", apiType)
 		}
-		bindingParameters[springCloudAppCosmosDbAssociationKeyDatabaseName] = utils.String(sqlDatabaseName.(string))
+		bindingParameters[springCloudAppCosmosDbAssociationKeyDatabaseName] = pointer.To(sqlDatabaseName.(string))
 	case springCloudAppCosmosDbAssociationAPITypeTable:
 		if cassandraKeyspaceName != "" || gremlinDatabaseName != "" || gremlinGraphName != "" || mongoDatabaseName != "" || sqlDatabaseName != "" {
 			return fmt.Errorf("`cosmosdb_cassandra_keyspace_name`, `cosmosdb_gremlin_database_name`, `cosmosdb_gremlin_graph_name`, `cosmosdb_mongo_database_name`, `cosmosdb_sql_database_name` should not be set if `api_type` is `%s`", apiType)
@@ -207,8 +211,8 @@ func resourceSpringCloudAppCosmosDBAssociationCreateUpdate(d *pluginsdk.Resource
 	bindingResource := appplatform.BindingResource{
 		Properties: &appplatform.BindingResourceProperties{
 			BindingParameters: bindingParameters,
-			Key:               utils.String(d.Get("cosmosdb_access_key").(string)),
-			ResourceID:        utils.String(d.Get("cosmosdb_account_id").(string)),
+			Key:               pointer.To(d.Get("cosmosdb_access_key").(string)),
+			ResourceID:        pointer.To(d.Get("cosmosdb_account_id").(string)),
 		},
 	}
 
@@ -216,11 +220,15 @@ func resourceSpringCloudAppCosmosDBAssociationCreateUpdate(d *pluginsdk.Resource
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceSpringCloudAppCosmosDBAssociationRead(d, meta)
 }
 
@@ -236,7 +244,7 @@ func resourceSpringCloudAppCosmosDBAssociationRead(d *pluginsdk.ResourceData, me
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.BindingName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] Spring Cloud App Association %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil

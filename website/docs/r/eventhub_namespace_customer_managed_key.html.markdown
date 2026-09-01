@@ -10,7 +10,7 @@ description: |-
 
 Manages a Customer Managed Key for a EventHub Namespace.
 
-!> **Note:** In 2.x versions of the Azure Provider during deletion this resource will **delete and recreate the parent EventHub Namespace which may involve data loss** as it's not possible to remove the Customer Managed Key from the EventHub Namespace once it's been added. Version 3.0 of the Azure Provider will change this so that the Delete operation is a noop, requiring the parent EventHub Namespace is deleted/recreated to remove the Customer Managed Key.
+!> **Note:** In 2.x versions of the Azure Provider during deletion this resource will **delete and recreate the parent EventHub Namespace which may involve data loss** as it's not possible to remove the Customer Managed Key from the EventHub Namespace once it's been added. Version 3.0 of the Azure Provider changed this so that the Delete operation is a noop, requiring the parent EventHub Namespace is deleted/recreated to remove the Customer Managed Key.
 
 ## Example Usage with System Assigned Identity
 
@@ -42,12 +42,13 @@ resource "azurerm_eventhub_namespace" "example" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "example" {
-  name                     = "examplekv"
-  location                 = azurerm_resource_group.example.location
-  resource_group_name      = azurerm_resource_group.example.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "examplekv"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
 }
 
 resource "azurerm_key_vault_access_policy" "example" {
@@ -130,12 +131,13 @@ resource "azurerm_eventhub_namespace" "example" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "example" {
-  name                     = "examplekv"
-  location                 = azurerm_resource_group.example.location
-  resource_group_name      = azurerm_resource_group.example.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "examplekv"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
 }
 
 resource "azurerm_key_vault_access_policy" "example" {
@@ -206,7 +208,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the EventHub Namespace Customer Managed Key.
 * `read` - (Defaults to 5 minutes) Used when retrieving the EventHub Namespace Customer Managed Key.
@@ -220,3 +222,9 @@ Customer Managed Keys for a EventHub Namespace can be imported using the `resour
 ```shell
 terraform import azurerm_eventhub_namespace_customer_managed_key.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.EventHub` - 2024-01-01

@@ -14,13 +14,13 @@ Manages a Linux Virtual Machine Scale Set.
 
 -> **Note:** As of the **v2.86.0** (November 19, 2021) release of the provider this resource will only create Virtual Machine Scale Sets with the **Uniform** Orchestration Mode. For Virtual Machine Scale Sets with **Flexible** orchestration mode, use [`azurerm_orchestrated_virtual_machine_scale_set`](orchestrated_virtual_machine_scale_set.html). Flexible orchestration mode is recommended for workloads on Azure.
 
--> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
+-> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text. Read more about [sensitive data](/docs/state/sensitive-data.html) in state.
 
--> **Note:** Terraform will automatically update & reimage the nodes in the Scale Set (if Required) during an Update - this behaviour can be configured [using the `features` setting within the Provider block](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block).
+-> **Note:** Terraform will automatically update & reimage the nodes in the Scale Set (if Required) during an Update - this behaviour can be configured using the [`features`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block) setting within the Provider block.
 
 ## Example Usage
 
-This example provisions a basic Linux Virtual Machine Scale Set on an internal network. Additional examples of how to use the `azurerm_linux_virtual_machine_scale_set` resource can be found [in the ./examples/vm-scale-set/linux` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/vm-scale-set/linux).
+This example provisions a basic Linux Virtual Machine Scale Set on an internal network. Additional examples of how to use the `azurerm_linux_virtual_machine_scale_set` resource can be found in the [`./examples/vm-scale-set/linux`](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/vm-scale-set/linux) directory within the GitHub Repository.
 
 ```hcl
 locals {
@@ -54,7 +54,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
   name                = "example-vmss"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  sku                 = "Standard_F2"
+  sku                 = "Standard_D4_v5"
   instances           = 1
   admin_username      = "adminuser"
 
@@ -88,7 +88,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) The name of the Linux Virtual Machine Scale Set. Changing this forces a new resource to be created.
 
@@ -100,9 +100,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 * `instances` - (Optional) The number of Virtual Machines in the Scale Set. Defaults to `0`.
 
--> **Note:** If you are using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) to ignore changes to this field.
+-> **Note:** If you are using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://developer.hashicorp.com/terraform/language/block/resource#ignore_changes) to ignore changes to this field.
 
-* `sku` - (Required) The Virtual Machine SKU for the Scale Set, such as `Standard_F2`.
+* `sku` - (Required) The Virtual Machine SKU for the Scale Set, such as `Standard_D4_v5`.
 
 * `network_interface` - (Required) One or more `network_interface` blocks as defined below.
 
@@ -196,7 +196,17 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group in which the Virtual Machine Scale Set should be assigned to. Changing this forces a new resource to be created.
 
-* `rolling_upgrade_policy` - (Optional) A `rolling_upgrade_policy` block as defined below. This is Required and can only be specified when `upgrade_mode` is set to `Automatic` or `Rolling`. Changing this forces a new resource to be created.
+* `resilient_vm_creation_enabled` - (Optional) Should resilient VM creation be enabled? When enabled, the service will attempt to create VMs in alternative fault domains or zones if the primary location fails during creation. Defaults to `false`.
+
+-> **Note:** `resilient_vm_creation_enabled` is currently not supported in the `austriaeast`, `belgiumcentral`, `centraluseuap`, `chilecentral`, `indonesiacentral`, `israelnorthwest`, `malaysiawest`, `mexicocentral`, `newzealandnorth`, `southcentralus2`, `southindia`, `southeastus3`, `southwestus`, `eastasia`, `eastus`, `southcentralus`, `southeastasia`, and `westeurope` regions.
+
+* `resilient_vm_deletion_enabled` - (Optional) Should resilient VM deletion be enabled? When enabled, the service will use a more resilient deletion process that attempts to gracefully handle failures during VM termination. Defaults to `false`.
+
+-> **Note:** `resilient_vm_deletion_enabled` is currently not supported in the `austriaeast`, `belgiumcentral`, `centraluseuap`, `chilecentral`, `indonesiacentral`, `israelnorthwest`, `malaysiawest`, `mexicocentral`, `newzealandnorth`, `southcentralus2`, `southindia`, `southeastus3`, `southwestus`, `eastasia`, `eastus`, `southcentralus`, `southeastasia`, and `westeurope` regions.
+
+* `rolling_upgrade_policy` - (Optional) A `rolling_upgrade_policy` block as defined below. Changing this forces a new resource to be created.
+
+~> **Note:** `rolling_upgrade_policy` is required for `Rolling`, optional for `Automatic`, and cannot be specified for `Manual`. When omitted with `Automatic`, Azure sets this block to its default values.
 
 * `scale_in` - (Optional) A `scale_in` block as defined below.
 
@@ -256,9 +266,9 @@ An `admin_ssh_key` block supports the following:
 
 An `automatic_os_upgrade_policy` block supports the following:
 
-* `disable_automatic_rollback` - (Required) Should automatic rollbacks be disabled?
+* `automatic_rollback_enabled` - (Required) Whether automatic rollbacks are enabled.
 
-* `enable_automatic_os_upgrade` - (Required) Should OS Upgrades automatically be applied to Scale Set instances in a rolling fashion when a newer version of the OS Image becomes available?
+* `automatic_os_upgrade_enabled` - (Required) Whether to apply OS Upgrades automatically to Scale Set instances in a rolling fashion when a newer version of the OS Image becomes available.
 
 ---
 
@@ -318,9 +328,9 @@ A `data_disk` block supports the following:
 
 -> **Note:** Disk Encryption Sets are in Public Preview in a limited set of regions
 
-* `ultra_ssd_disk_iops_read_write` - (Optional) Specifies the Read-Write IOPS for this Data Disk. Only settable when `storage_account_type` is `PremiumV2_LRS` or `UltraSSD_LRS`.
+* `disk_iops_read_write` - (Optional) Specifies the Read-Write IOPS for this Data Disk. Only settable when `storage_account_type` is `PremiumV2_LRS` or `UltraSSD_LRS`.
 
-* `ultra_ssd_disk_mbps_read_write` - (Optional) Specifies the bandwidth in MB per second for this Data Disk. Only settable when `storage_account_type` is `PremiumV2_LRS` or `UltraSSD_LRS`.
+* `disk_mbps_read_write` - (Optional) Specifies the bandwidth in MB per second for this Data Disk. Only settable when `storage_account_type` is `PremiumV2_LRS` or `UltraSSD_LRS`.
 
 * `write_accelerator_enabled` - (Optional) Should Write Accelerator be enabled for this Data Disk? Defaults to `false`.
 
@@ -348,7 +358,7 @@ An `extension` block supports the following:
 
 * `auto_upgrade_minor_version` - (Optional) Should the latest version of the Extension be used at Deployment Time, if one is available? This won't auto-update the extension on existing installation. Defaults to `true`.
 
-* `automatic_upgrade_enabled` - (Optional) Should the Extension be automatically updated whenever the Publisher releases a new version of this VM Extension? 
+* `automatic_upgrade_enabled` - (Optional) Should the Extension be automatically updated whenever the Publisher releases a new version of this VM Extension?
 
 * `force_update_tag` - (Optional) A value which, when different to the previous value can be used to force-run the Extension even if the Extension Configuration hasn't changed.
 
@@ -440,11 +450,19 @@ A `network_interface` block supports the following:
 
 * `ip_configuration` - (Required) One or more `ip_configuration` blocks as defined above.
 
+* `auxiliary_mode` - (Optional) Specifies the auxiliary mode used to enable network high-performance feature on Network Virtual Appliances (NVAs). This feature offers competitive performance in Connections Per Second (CPS) optimization, along with improvements to handling large amounts of simultaneous connections. Possible values are `AcceleratedConnections` and `Floating`.
+
+-> **Note:** `auxiliary_mode` is in **Preview** and requires that the prerequisites are enabled - [more information can be found in the Azure documentation](https://learn.microsoft.com/azure/networking/nva-accelerated-connections#prerequisites).
+
+* `auxiliary_sku` - (Optional) Specifies the SKU used for the network high-performance feature on Network Virtual Appliances (NVAs). Possible values are `A1`, `A2`, `A4` and `A8`.
+
+-> **Note:** `auxiliary_sku` is in **Preview** and requires that the prerequisites are enabled - [more information can be found in the Azure documentation](https://learn.microsoft.com/azure/networking/nva-accelerated-connections#prerequisites).
+
 * `dns_servers` - (Optional) A list of IP Addresses of DNS Servers which should be assigned to the Network Interface.
 
-* `enable_accelerated_networking` - (Optional) Does this Network Interface support Accelerated Networking? Defaults to `false`.
+* `accelerated_networking_enabled` - (Optional) Does this Network Interface support Accelerated Networking? Defaults to `false`.
 
-* `enable_ip_forwarding` - (Optional) Does this Network Interface support IP Forwarding? Defaults to `false`.
+* `ip_forwarding_enabled` - (Optional) Does this Network Interface support IP Forwarding? Defaults to `false`.
 
 * `network_security_group_id` - (Optional) The ID of a Network Security Group which should be assigned to this Network Interface.
 
@@ -479,8 +497,6 @@ An `os_disk` block supports the following:
 * `security_encryption_type` - (Optional) Encryption Type when the Virtual Machine Scale Set is Confidential VMSS. Possible values are `VMGuestStateOnly` and `DiskWithVMGuestState`. Changing this forces a new resource to be created.
 
 -> **Note:** `vtpm_enabled` must be set to `true` when `security_encryption_type` is specified.
-
--> **Note:** `encryption_at_host_enabled` cannot be set to `true` when `security_encryption_type` is set to `DiskWithVMGuestState`.
 
 * `write_accelerator_enabled` - (Optional) Should Write Accelerator be Enabled for this OS Disk? Defaults to `false`.
 
@@ -562,7 +578,7 @@ A `secret` block supports the following:
 
 A `termination_notification` block supports the following:
 
-* `enabled` - (Required) Should the termination notification be enabled on this Virtual Machine Scale Set? 
+* `enabled` - (Required) Should the termination notification be enabled on this Virtual Machine Scale Set?
 
 * `timeout` - (Optional) Length of time (in minutes, between 5 and 15) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format. Defaults to `PT5M`.
 
@@ -610,12 +626,12 @@ A `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Linux Virtual Machine Scale Set.
-* `read` - (Defaults to 5 minutes) Used when reading the Linux Virtual Machine Scale Set.
-* `update` - (Defaults to 60 minutes) Used when updating (and rolling the instances of) the Linux Virtual Machine Scale Set (e.g. when changing SKU).
-* `delete` - (Defaults to 60 minutes) Used when deleting the Linux Virtual Machine Scale Set.
+* `create` - (Defaults to 1 hour) Used when creating the Linux Virtual Machine Scale Set.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Linux Virtual Machine Scale Set.
+* `update` - (Defaults to 1 hour) Used when updating the Linux Virtual Machine Scale Set.
+* `delete` - (Defaults to 1 hour) Used when deleting the Linux Virtual Machine Scale Set.
 
 ## Import
 
@@ -624,3 +640,9 @@ Linux Virtual Machine Scale Sets can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_linux_virtual_machine_scale_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/virtualMachineScaleSets/scaleset1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Compute` - 2025-04-01

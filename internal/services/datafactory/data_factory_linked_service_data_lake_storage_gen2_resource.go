@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -15,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
@@ -79,6 +80,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2() *pluginsdk.Resource {
 			"service_principal_key": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
+				Sensitive:     true,
 				ValidateFunc:  validation.StringIsNotEmpty,
 				RequiredWith:  []string{"service_principal_id", "tenant"},
 				ConflictsWith: []string{"storage_account_key", "use_managed_identity"},
@@ -88,6 +90,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2() *pluginsdk.Resource {
 			"storage_account_key": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
+				Sensitive:     true,
 				ConflictsWith: []string{"service_principal_id", "service_principal_key", "use_managed_identity", "tenant"},
 				AtLeastOneOf:  []string{"service_principal_key", "service_principal_id", "tenant", "storage_account_key", "use_managed_identity"},
 			},
@@ -154,15 +157,17 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *pluginsd
 	id := parse.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory Data Lake Storage Gen2 %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+			if err != nil {
+				if !response.WasNotFound(existing.Response.Response) {
+					return fmt.Errorf("checking for presence of existing Data Factory Data Lake Storage Gen2 %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_data_lake_storage_gen2", id.ID())
+			if !response.WasNotFound(existing.Response.Response) {
+				return tf.ImportAsExistsError("azurerm_data_factory_linked_service_data_lake_storage_gen2", id.ID())
+			}
 		}
 	}
 
@@ -170,32 +175,32 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *pluginsd
 
 	if d.Get("use_managed_identity").(bool) {
 		datalakeStorageGen2Properties = &datafactory.AzureBlobFSLinkedServiceTypeProperties{
-			URL: utils.String(d.Get("url").(string)),
+			URL: pointer.To(d.Get("url").(string)),
 		}
 	} else if v, ok := d.GetOk("storage_account_key"); ok {
 		datalakeStorageGen2Properties = &datafactory.AzureBlobFSLinkedServiceTypeProperties{
-			URL: utils.String(d.Get("url").(string)),
+			URL: pointer.To(d.Get("url").(string)),
 			AccountKey: datafactory.SecureString{
-				Value: utils.String(v.(string)),
+				Value: pointer.To(v.(string)),
 				Type:  datafactory.TypeSecureString,
 			},
 		}
 	} else {
 		secureString := datafactory.SecureString{
-			Value: utils.String(d.Get("service_principal_key").(string)),
+			Value: pointer.To(d.Get("service_principal_key").(string)),
 			Type:  datafactory.TypeSecureString,
 		}
 
 		datalakeStorageGen2Properties = &datafactory.AzureBlobFSLinkedServiceTypeProperties{
-			URL:                 utils.String(d.Get("url").(string)),
-			ServicePrincipalID:  utils.String(d.Get("service_principal_id").(string)),
-			Tenant:              utils.String(d.Get("tenant").(string)),
+			URL:                 pointer.To(d.Get("url").(string)),
+			ServicePrincipalID:  pointer.To(d.Get("service_principal_id").(string)),
+			Tenant:              pointer.To(d.Get("tenant").(string)),
 			ServicePrincipalKey: &secureString,
 		}
 	}
 
 	datalakeStorageGen2LinkedService := &datafactory.AzureBlobFSLinkedService{
-		Description:                            utils.String(d.Get("description").(string)),
+		Description:                            pointer.To(d.Get("description").(string)),
 		AzureBlobFSLinkedServiceTypeProperties: datalakeStorageGen2Properties,
 		Type:                                   datafactory.TypeBasicLinkedServiceTypeAzureBlobFS,
 	}
@@ -244,7 +249,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2Read(d *pluginsdk.Resour
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -309,9 +314,9 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2Delete(d *pluginsdk.Reso
 		return err
 	}
 
-	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(response) {
+		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting Data Factory Data Lake Storage Gen2 %s: %+v", *id, err)
 		}
 	}

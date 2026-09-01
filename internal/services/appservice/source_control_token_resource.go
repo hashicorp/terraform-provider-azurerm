@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -85,15 +84,17 @@ func (r AppServiceSourceControlTokenResource) Create() sdk.ResourceFunc {
 
 			client := metadata.Client.AppService.ResourceProvidersClient
 
-			existing, err := client.GetSourceControl(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("%s not found", id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetSourceControl(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("%s not found", id)
+					}
+					return fmt.Errorf("retrieving %s: %+v", id, err)
 				}
-				return fmt.Errorf("retrieving %s: %+v", id, err)
-			}
-			if existing.Model.Properties != nil && pointer.From(existing.Model.Properties.Token) != "" {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if existing.Model.Properties != nil && pointer.From(existing.Model.Properties.Token) != "" {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			sourceControlOAuth := resourceproviders.SourceControl{
@@ -177,7 +178,7 @@ func (r AppServiceSourceControlTokenResource) Delete() sdk.ResourceFunc {
 }
 
 func (r AppServiceSourceControlTokenResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.AppServiceSourceControlTokenID
+	return validation.StringInSlice([]string{"/providers/Microsoft.Web/sourceControls/GitHub"}, false)
 }
 
 func (r AppServiceSourceControlTokenResource) Update() sdk.ResourceFunc {

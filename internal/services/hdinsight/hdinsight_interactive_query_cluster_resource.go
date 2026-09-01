@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package hdinsight
@@ -18,9 +18,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // NOTE: this isn't a recommended way of building resources in Terraform
@@ -207,27 +207,29 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 
 	computeIsolationProperties := ExpandHDInsightComputeIsolationProperties(d.Get("compute_isolation").([]interface{}))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing HDInsight InteractiveQuery Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing HDInsight InteractiveQuery Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_hdinsight_interactive_query_cluster", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_hdinsight_interactive_query_cluster", id.ID())
+		}
 	}
 
 	encryptionInTransit := d.Get("encryption_in_transit_enabled").(bool)
 
 	var configurationsRaw interface{} = configurations
 	params := clusters.ClusterCreateParametersExtended{
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Properties: &clusters.ClusterCreateProperties{
 			Tier:                      pointer.To(tier),
 			OsType:                    pointer.To(clusters.OSTypeLinux),
-			ClusterVersion:            utils.String(clusterVersion),
-			MinSupportedTlsVersion:    utils.String(tls),
+			ClusterVersion:            pointer.To(clusterVersion),
+			MinSupportedTlsVersion:    pointer.To(tls),
 			NetworkProperties:         networkProperties,
 			PrivateLinkConfigurations: privateLinkConfigurations,
 			EncryptionInTransitProperties: &clusters.EncryptionInTransitProperties{
@@ -272,7 +274,7 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 		}
 	}
 
-	if err := client.CreateThenPoll(ctx, id, params); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, params, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating Interactive Query %s: %+v", id, err)
 	}
 

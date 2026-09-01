@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2020, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tf5muxserver
@@ -28,25 +28,8 @@ func (s *muxServer) CloseEphemeralResource(ctx context.Context, req *tfprotov5.C
 		}, nil
 	}
 
-	// TODO: Remove and call server.CloseEphemeralResource below directly once interface becomes required.
-	ephemeralResourceServer, ok := server.(tfprotov5.EphemeralResourceServer)
-	if !ok {
-		resp := &tfprotov5.CloseEphemeralResourceResponse{
-			Diagnostics: []*tfprotov5.Diagnostic{
-				{
-					Severity: tfprotov5.DiagnosticSeverityError,
-					Summary:  "CloseEphemeralResource Not Implemented",
-					Detail: "A CloseEphemeralResource call was received by the provider, however the provider does not implement CloseEphemeralResource. " +
-						"Either upgrade the provider to a version that implements CloseEphemeralResource or this is a bug in Terraform that should be reported to the Terraform maintainers.",
-				},
-			},
-		}
-
-		return resp, nil
-	}
-
 	ctx = logging.Tfprotov5ProviderServerContext(ctx, server)
 	logging.MuxTrace(ctx, "calling downstream server")
 
-	return ephemeralResourceServer.CloseEphemeralResource(ctx, req)
+	return server.CloseEphemeralResource(ctx, req)
 }

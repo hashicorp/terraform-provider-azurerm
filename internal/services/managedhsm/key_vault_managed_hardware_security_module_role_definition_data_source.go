@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedhsm
@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -171,7 +171,7 @@ func (k KeyvaultMHSMRoleDefinitionDataSource) Read() sdk.ResourceFunc {
 
 			result, err := client.Get(ctx, id.BaseURI(), id.Scope, id.RoleDefinitionName)
 			if err != nil {
-				if utils.ResponseWasNotFound(result.Response) {
+				if response.WasNotFound(result.Response.Response) {
 					return fmt.Errorf("%s was not found", id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -186,7 +186,7 @@ func (k KeyvaultMHSMRoleDefinitionDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if prop := result.RoleDefinitionProperties; prop != nil {
-				config.Description = pointer.ToString(prop.Description)
+				config.Description = pointer.From(prop.Description)
 				config.RoleType = string(prop.RoleType)
 				config.RoleName = pointer.From(prop.RoleName)
 

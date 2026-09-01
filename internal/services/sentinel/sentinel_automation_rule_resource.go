@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -10,18 +10,18 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2024-09-01/automationrules"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSentinelAutomationRule() *pluginsdk.Resource {
@@ -85,9 +85,35 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 			// We can't use the pluginsdk.SuppressJsonDiff here as the "condition_json" is always an array, while that function assume its input is an object.
 			// Once https://github.com/hashicorp/terraform-plugin-sdk/pull/1102 is merged, we can switch to pluginsdk.SuppressJsonDiff.
 			DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
-				return utils.NormalizeJson(old) == utils.NormalizeJson(new)
+				return helpers.NormalizeJson(old) == helpers.NormalizeJson(new)
 			},
 			ValidateFunc: validation.StringIsJSON,
+		},
+
+		"action_incident_task": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"order": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+
+					"title": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"description": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
 		},
 
 		"action_incident": {
@@ -190,7 +216,7 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.AutomationRuleID(id)
+			_, err := automationrules.ParseAutomationRuleID(id)
 			return err
 		}),
 
@@ -219,15 +245,17 @@ func resourceSentinelAutomationRuleCreateOrUpdate(d *pluginsdk.ResourceData, met
 	id := automationrules.NewAutomationRuleID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, name)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_sentinel_automation_rule", id.ID())
+			if !response.WasNotFound(resp.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_sentinel_automation_rule", id.ID())
+			}
 		}
 	}
 
@@ -259,8 +287,7 @@ func resourceSentinelAutomationRuleCreateOrUpdate(d *pluginsdk.ResourceData, met
 		params.Properties.TriggeringLogic.SetExpirationTimeUtcAsTime(t)
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id, params)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id, params); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -309,13 +336,16 @@ func resourceSentinelAutomationRuleRead(d *pluginsdk.ResourceData, meta interfac
 		}
 		d.Set("condition_json", conditionJSON)
 
-		actionIncident, actionPlaybook := flattenAutomationRuleActions(prop.Actions)
+		actionIncident, actionPlaybook, actionIncidentTask := flattenAutomationRuleActions(prop.Actions)
 
 		if err := d.Set("action_incident", actionIncident); err != nil {
 			return fmt.Errorf("setting `action_incident`: %v", err)
 		}
 		if err := d.Set("action_playbook", actionPlaybook); err != nil {
 			return fmt.Errorf("setting `action_playbook`: %v", err)
+		}
+		if err := d.Set("action_incident_task", actionIncidentTask); err != nil {
+			return fmt.Errorf("setting `action_incident_task`: %v", err)
 		}
 	}
 
@@ -332,8 +362,7 @@ func resourceSentinelAutomationRuleDelete(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	_, err = client.Delete(ctx, *id)
-	if err != nil {
+	if _, err = client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
@@ -345,8 +374,7 @@ func expandAutomationRuleConditionsFromJSON(input string) (*[]automationrules.Au
 		return nil, nil
 	}
 	triggerLogic := &automationrules.AutomationRuleTriggeringLogic{}
-	err := triggerLogic.UnmarshalJSON([]byte(fmt.Sprintf(`{ "conditions": %s }`, input)))
-	if err != nil {
+	if err := triggerLogic.UnmarshalJSON([]byte(fmt.Sprintf(`{ "conditions": %s }`, input))); err != nil {
 		return nil, err
 	}
 	return triggerLogic.Conditions, nil
@@ -367,19 +395,23 @@ func expandAutomationRuleActions(d *pluginsdk.ResourceData, defaultTenantId stri
 	}
 	actionPlaybook := expandAutomationRuleActionPlaybook(d.Get("action_playbook").([]interface{}), defaultTenantId)
 
-	if len(actionIncident)+len(actionPlaybook) == 0 {
+	actionIncidentTask := expandAutomationRuleActionIncidentTask(d.Get("action_incident_task").([]interface{}))
+
+	if len(actionIncident)+len(actionPlaybook)+len(actionIncidentTask) == 0 {
 		return nil, nil
 	}
 
 	out := make([]automationrules.AutomationRuleAction, 0, len(actionIncident)+len(actionPlaybook))
 	out = append(out, actionIncident...)
 	out = append(out, actionPlaybook...)
+	out = append(out, actionIncidentTask...)
 	return out, nil
 }
 
-func flattenAutomationRuleActions(input []automationrules.AutomationRuleAction) (actionIncident []interface{}, actionPlaybook []interface{}) {
+func flattenAutomationRuleActions(input []automationrules.AutomationRuleAction) (actionIncident []interface{}, actionPlaybook []interface{}, actionIncidentTask []interface{}) {
 	actionIncident = make([]interface{}, 0)
 	actionPlaybook = make([]interface{}, 0)
+	actionIncidentTask = make([]interface{}, 0)
 
 	for _, action := range input {
 		switch action := action.(type) {
@@ -387,6 +419,8 @@ func flattenAutomationRuleActions(input []automationrules.AutomationRuleAction) 
 			actionIncident = append(actionIncident, flattenAutomationRuleActionIncident(action))
 		case automationrules.AutomationRuleRunPlaybookAction:
 			actionPlaybook = append(actionPlaybook, flattenAutomationRuleActionPlaybook(action))
+		case automationrules.AutomationRuleAddIncidentTaskAction:
+			actionIncidentTask = append(actionIncidentTask, flattenAutomationRuleACtionIncidentTask(action))
 		}
 	}
 
@@ -424,7 +458,7 @@ func expandAutomationRuleActionIncident(input []interface{}) ([]automationrules.
 		}
 
 		var labelsPtr *[]automationrules.IncidentLabel
-		if labelStrsPtr := utils.ExpandStringSlice(b["labels"].([]interface{})); labelStrsPtr != nil && len(*labelStrsPtr) > 0 {
+		if labelStrsPtr := helpers.ExpandStringSlice(b["labels"].([]interface{})); labelStrsPtr != nil && len(*labelStrsPtr) > 0 {
 			labels := make([]automationrules.IncidentLabel, 0, len(*labelStrsPtr))
 			for _, label := range *labelStrsPtr {
 				labels = append(labels, automationrules.IncidentLabel{
@@ -437,7 +471,7 @@ func expandAutomationRuleActionIncident(input []interface{}) ([]automationrules.
 		var ownerPtr *automationrules.IncidentOwnerInfo
 		if ownerIdStr := b["owner_id"].(string); ownerIdStr != "" {
 			ownerPtr = &automationrules.IncidentOwnerInfo{
-				ObjectId: utils.String(ownerIdStr),
+				ObjectId: pointer.To(ownerIdStr),
 			}
 		}
 
@@ -563,5 +597,40 @@ func flattenAutomationRuleActionPlaybook(input automationrules.AutomationRuleRun
 		"order":        input.Order,
 		"logic_app_id": logicAppId,
 		"tenant_id":    tenantId,
+	}
+}
+
+func expandAutomationRuleActionIncidentTask(input []interface{}) []automationrules.AutomationRuleAction {
+	output := make([]automationrules.AutomationRuleAction, 0, len(input))
+
+	for _, task := range input {
+		task := task.(map[string]interface{})
+		output = append(output, automationrules.AutomationRuleAddIncidentTaskAction{
+			Order: int64(task["order"].(int)),
+			ActionConfiguration: &automationrules.AddIncidentTaskActionProperties{
+				Title:       task["title"].(string),
+				Description: pointer.To(task["description"].(string)),
+			},
+		})
+	}
+
+	return output
+}
+
+func flattenAutomationRuleACtionIncidentTask(input automationrules.AutomationRuleAddIncidentTaskAction) map[string]interface{} {
+	var (
+		title       string
+		description string
+	)
+
+	if cfg := input.ActionConfiguration; cfg != nil {
+		title = cfg.Title
+		description = pointer.From(cfg.Description)
+	}
+
+	return map[string]interface{}{
+		"order":       input.Order,
+		"title":       title,
+		"description": description,
 	}
 }

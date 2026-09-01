@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -121,20 +121,16 @@ func dataSourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) e
 				}
 			}
 			connectionInfo := retrieveConnectionInformation(ctx, networkInterfacesClient, publicIPAddressesClient, props)
-			err = d.Set("private_ip_address", connectionInfo.primaryPrivateAddress)
-			if err != nil {
+			if err = d.Set("private_ip_address", connectionInfo.primaryPrivateAddress); err != nil {
 				return err
 			}
-			err = d.Set("private_ip_addresses", connectionInfo.privateAddresses)
-			if err != nil {
+			if err = d.Set("private_ip_addresses", connectionInfo.privateAddresses); err != nil {
 				return err
 			}
-			err = d.Set("public_ip_address", connectionInfo.primaryPublicAddress)
-			if err != nil {
+			if err = d.Set("public_ip_address", connectionInfo.primaryPublicAddress); err != nil {
 				return err
 			}
-			err = d.Set("public_ip_addresses", connectionInfo.publicAddresses)
-			if err != nil {
+			if err = d.Set("public_ip_addresses", connectionInfo.publicAddresses); err != nil {
 				return err
 			}
 		}

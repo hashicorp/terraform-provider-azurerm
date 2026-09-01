@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -10,8 +10,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-02-01/templatespecversions"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
@@ -20,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func tenantTemplateDeploymentResource() *pluginsdk.Resource {
@@ -62,7 +65,7 @@ func tenantTemplateDeploymentResource() *pluginsdk.Resource {
 					"template_content",
 					"template_spec_version_id",
 				},
-				StateFunc: utils.NormalizeJson,
+				StateFunc: helpers.NormalizeJson,
 			},
 
 			"template_spec_version_id": {
@@ -72,7 +75,7 @@ func tenantTemplateDeploymentResource() *pluginsdk.Resource {
 					"template_content",
 					"template_spec_version_id",
 				},
-				ValidateFunc: validate.TemplateSpecVersionID,
+				ValidateFunc: validation.AsGeneratedID(templatespecversions.ParseTemplateSpecVersionIDInsensitively),
 			},
 
 			// Optional
@@ -86,10 +89,10 @@ func tenantTemplateDeploymentResource() *pluginsdk.Resource {
 				Type:      pluginsdk.TypeString,
 				Optional:  true,
 				Computed:  true,
-				StateFunc: utils.NormalizeJson,
+				StateFunc: helpers.NormalizeJson,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			// Computed
 			"output_content": {
@@ -109,18 +112,20 @@ func tenantTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, meta inte
 
 	id := parse.NewTenantTemplateDeploymentID(d.Get("name").(string))
 
-	existing, err := client.GetAtTenantScope(ctx, id.DeploymentName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Tenant Template Deployment %q: %+v", id.DeploymentName, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetAtTenantScope(ctx, id.DeploymentName)
+		if err != nil {
+			if !response.WasNotFound(existing.Response.Response) {
+				return fmt.Errorf("checking for presence of existing Tenant Template Deployment %q: %+v", id.DeploymentName, err)
+			}
 		}
-	}
-	if existing.Properties != nil {
-		return tf.ImportAsExistsError("azurerm_tenant_template_deployment", id.ID())
+		if !response.WasNotFound(existing.Response.Response) {
+			return tf.ImportAsExistsError("azurerm_tenant_template_deployment", id.ID())
+		}
 	}
 
 	deployment := resources.ScopedDeployment{
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &resources.DeploymentProperties{
 			DebugSetting: expandTemplateDeploymentDebugSetting(d.Get("debug_level").(string)),
 			Mode:         resources.DeploymentModeIncremental,
@@ -138,7 +143,7 @@ func tenantTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, meta inte
 
 	if templateSpecVersionID, ok := d.GetOk("template_spec_version_id"); ok {
 		deployment.Properties.TemplateLink = &resources.TemplateLink{
-			ID: utils.String(templateSpecVersionID.(string)),
+			ID: pointer.To(templateSpecVersionID.(string)),
 		}
 	}
 
@@ -162,12 +167,13 @@ func tenantTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("creating Tenant Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
+	d.SetId(id.ID())
+
 	log.Printf("[DEBUG] Waiting for deployment of Tenant Template Deployment %q..", id.DeploymentName)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of Tenant Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
-	d.SetId(id.ID())
 	return tenantTemplateDeploymentResourceRead(d, meta)
 }
 
@@ -181,7 +187,6 @@ func tenantTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	log.Printf("[DEBUG] Retrieving Tenant Template Deployment %q..", id.DeploymentName)
 	template, err := client.GetAtTenantScope(ctx, id.DeploymentName)
 	if err != nil {
 		return fmt.Errorf("retrieving Tenant Template Deployment %q: %+v", id.DeploymentName, err)
@@ -231,7 +236,7 @@ func tenantTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if d.HasChange("template_spec_version_id") {
 		deployment.Properties.TemplateLink = &resources.TemplateLink{
-			ID: utils.String(d.Get("template_spec_version_id").(string)),
+			ID: pointer.To(d.Get("template_spec_version_id").(string)),
 		}
 
 		if d.Get("template_spec_version_id").(string) != "" {
@@ -275,7 +280,7 @@ func tenantTemplateDeploymentResourceRead(d *pluginsdk.ResourceData, meta interf
 
 	resp, err := client.GetAtTenantScope(ctx, id.DeploymentName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[DEBUG] Tenant Template Deployment %q was not found - removing from state", id.DeploymentName)
 			d.SetId("")
 			return nil
@@ -339,7 +344,6 @@ func tenantTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, meta inte
 	// at this time unfortunately the Resources RP doesn't expose a means of deleting top-level objects
 	// so we're unable to delete these during deletion - this'll need to be detailed in the docs
 
-	log.Printf("[DEBUG] Deleting Tenant Template Deployment %q..", id.DeploymentName)
 	future, err := client.DeleteAtTenantScope(ctx, id.DeploymentName)
 	if err != nil {
 		return fmt.Errorf("deleting Tenant Template Deployment %q: %+v", id.DeploymentName, err)
@@ -349,7 +353,6 @@ func tenantTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, meta inte
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for deletion of Tenant Template Deployment %q: %+v", id.DeploymentName, err)
 	}
-	log.Printf("[DEBUG] Deleted Tenant Template Deployment %q.", id.DeploymentName)
 
 	return nil
 }

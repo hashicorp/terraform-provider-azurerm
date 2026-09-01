@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2018, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package edgezones
@@ -9,8 +9,10 @@ import (
 	"strings"
 )
 
-var _ json.Marshaler = &Model{}
-var _ json.Unmarshaler = &Model{}
+var (
+	_ json.Marshaler   = &Model{}
+	_ json.Unmarshaler = &Model{}
+)
 
 type Model struct {
 	Name string

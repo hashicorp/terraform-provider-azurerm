@@ -27,7 +27,7 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -39,11 +39,11 @@ The following arguments are supported:
 
 ---
 
-* `allow_resource_only_permissions` - (Optional) Specifies if the log Analytics Workspace allow users accessing to data associated with resources they have permission to view, without permission to workspace. Defaults to `true`.
+* `allow_resource_only_permissions` - (Optional) Specifies if the log Analytics Workspace allows users accessing to data associated with the resources they have permission to view, without permission to workspace. Defaults to `true`.
 
-* `local_authentication_disabled` - (Optional) Specifies if the log Analytics workspace should enforce authentication using Azure AD. Defaults to `false`.
+* `local_authentication_enabled` - (Optional) Specifies if the log Analytics workspace should allow local authentication methods in addition to Microsoft Entra (Azure AD). Defaults to `true`.
 
-* `sku` - (Optional) Specifies the SKU of the Log Analytics Workspace. Possible values are `PerNode`, `Premium`, `Standard`, `Standalone`, `Unlimited`, `CapacityReservation`, `PerGB2018`, and `LACluster`. Defaults to `PerGB2018`.
+* `sku` - (Optional) Specifies the SKU of the Log Analytics Workspace. Possible values are `PerGB2018`, `PerNode`, `Premium`, `Standalone`, `Standard`, `CapacityReservation`, `LACluster` and `Unlimited`. Defaults to `PerGB2018`.
 
 ~> **Note:** `sku` should only be set to `LACluster` when the Log Analytics Workspace is linked to a Log Analytics Cluster. Additionally, `sku` cannot be modified while linked.
 
@@ -59,11 +59,13 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `internet_ingestion_enabled` - (Optional) Should the Log Analytics Workspace support ingestion over the Public Internet? Defaults to `true`.
+* `internet_ingestion_access_type` - (Optional) Controls public network access for ingestion into the Log Analytics Workspace. Possible values are `Enabled`, `Disabled`, and `SecuredByPerimeter`. Defaults to `Enabled`.
 
-* `internet_query_enabled` - (Optional) Should the Log Analytics Workspace support querying over the Public Internet? Defaults to `true`.
+* `internet_query_access_type` - (Optional) Controls public network access for querying the Log Analytics Workspace. Possible values are `Enabled`, `Disabled`, and `SecuredByPerimeter`. Defaults to `Enabled`.
 
-* `reservation_capacity_in_gb_per_day` - (Optional) The capacity reservation level in GB for this workspace. Possible values are `100`, `200`, `300`, `400`, `500`, `1000`, `2000` and `5000`.
+~> **Note:** `SecuredByPerimeter` indicates that access is governed by an [Azure Network Security Perimeter](https://learn.microsoft.com/en-us/azure/private-link/network-security-perimeter-concepts) associated with this workspace via an `azurerm_network_security_perimeter_association` resource with `access_mode` set to `Enforced`. Azure will also set this value automatically when such an association is created.
+
+* `reservation_capacity_in_gb_per_day` - (Optional) The capacity reservation level in GB for this workspace. Possible values are `100`, `200`, `300`, `400`, `500`, `1000`, `2000`, `5000`, `10000`, `25000`, and `50000`.
 
 ~> **Note:** `reservation_capacity_in_gb_per_day` can only be used when the `sku` is set to `CapacityReservation`.
 
@@ -97,7 +99,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Log Analytics Workspace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Log Analytics Workspace.
@@ -111,3 +113,9 @@ Log Analytics Workspaces can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_log_analytics_workspace.workspace1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.OperationalInsights` - 2025-07-01, 2020-08-01

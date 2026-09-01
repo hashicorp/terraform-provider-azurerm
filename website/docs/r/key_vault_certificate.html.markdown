@@ -35,11 +35,12 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                = "examplekeyvault"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "examplekeyvault"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -117,6 +118,7 @@ resource "azurerm_key_vault" "example" {
   name                       = "examplekeyvault"
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -228,7 +230,7 @@ resource "azurerm_key_vault_certificate" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -309,7 +311,7 @@ The `lifetime_action` block supports the following:
 
 The `action` block supports the following:
 
-* `action_type` - (Required) The Type of action to be performed when the lifetime trigger is triggerec. Possible values include `AutoRenew` and `EmailContacts`.
+* `action_type` - (Required) The Type of action to be performed when the lifetime trigger is triggered. Possible values include `AutoRenew` and `EmailContacts`.
 
 ---
 
@@ -373,11 +375,11 @@ A `certificate_attribute` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Key Vault Certificate.
-* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Certificate.
+* `create` - (Defaults to 1 hour) Used when creating the Key Vault Certificate.
 * `read` - (Defaults to 30 minutes) Used when retrieving the Key Vault Certificate.
+* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Certificate.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault Certificate.
 
 ## Import

@@ -30,7 +30,7 @@ resource "azurerm_app_service_certificate" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -58,7 +58,7 @@ The following arguments are supported:
 
 ```hcl
 data "azuread_service_principal" "MicrosoftWebApp" {
-  application_id = "abfa0a7c-a6b6-4736-8310-5855508787cd"
+  client_id = "abfa0a7c-a6b6-4736-8310-5855508787cd"
 }
 ```
 
@@ -92,11 +92,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the App Service Certificate.
-* `update` - (Defaults to 30 minutes) Used when updating the App Service Certificate.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Service Certificate.
+* `update` - (Defaults to 30 minutes) Used when updating the App Service Certificate.
 * `delete` - (Defaults to 30 minutes) Used when deleting the App Service Certificate.
 
 ## Import
@@ -106,3 +106,9 @@ App Service Certificates can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_app_service_certificate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/certificates/certificate1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Web` - 2023-12-01

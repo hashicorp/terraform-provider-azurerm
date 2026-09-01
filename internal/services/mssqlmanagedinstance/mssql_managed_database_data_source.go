@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssqlmanagedinstance
@@ -66,10 +66,12 @@ func (d MsSqlManagedDatabaseDataSource) Attributes() map[string]*pluginsdk.Schem
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"resource_group_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"long_term_retention_policy": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -94,18 +96,15 @@ func (d MsSqlManagedDatabaseDataSource) Attributes() map[string]*pluginsdk.Schem
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
-
-					"immutable_backups_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
-					},
 				},
 			},
 		},
+
 		"short_term_retention_days": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
+
 		"point_in_time_restore": {
 			Type:     schema.TypeList,
 			Computed: true,

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy_test
@@ -83,7 +83,7 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 func (d PolicySetDefinitionDataSource) customByName(data acceptance.TestData) string {
-	template := PolicySetDefinitionResource{}.custom(data)
+	template := PolicySetDefinitionResourceTest{}.custom(data)
 	return fmt.Sprintf(`
 %s
 
@@ -94,7 +94,7 @@ data "azurerm_policy_set_definition" "test" {
 }
 
 func (d PolicySetDefinitionDataSource) customByDisplayName(data acceptance.TestData) string {
-	template := PolicySetDefinitionResource{}.custom(data)
+	template := PolicySetDefinitionResourceTest{}.custom(data)
 	return fmt.Sprintf(`
 %s
 

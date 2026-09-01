@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceStreamAnalyticsStreamInputBlob() *pluginsdk.Resource {
@@ -119,19 +118,20 @@ func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Stream Input Blob creation.")
 	id := inputs.NewInputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_blob", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_blob", id.ID())
+			}
 		}
 	}
 
@@ -149,23 +149,23 @@ func resourceStreamAnalyticsStreamInputBlobCreateUpdate(d *pluginsdk.ResourceDat
 	}
 
 	props := inputs.Input{
-		Name: utils.String(id.InputName),
+		Name: pointer.To(id.InputName),
 		Properties: &inputs.StreamInputProperties{
 			// Type: streamanalytics.TypeBasicInputPropertiesTypeStream,
 			Datasource: &inputs.BlobStreamInputDataSource{
 				// Type: streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftStorageBlob,
 				Properties: &inputs.BlobStreamInputDataSourceProperties{
-					Container:   utils.String(containerName),
-					DateFormat:  utils.String(dateFormat),
-					PathPattern: utils.String(pathPattern),
-					TimeFormat:  utils.String(timeFormat),
+					Container:   pointer.To(containerName),
+					DateFormat:  pointer.To(dateFormat),
+					PathPattern: pointer.To(pathPattern),
+					TimeFormat:  pointer.To(timeFormat),
 					StorageAccounts: &[]inputs.StorageAccount{
 						{
-							AccountName: utils.String(storageAccountName),
-							AccountKey:  utils.String(storageAccountKey),
+							AccountName: pointer.To(storageAccountName),
+							AccountKey:  pointer.To(storageAccountKey),
 						},
 					},
-					AuthenticationMode: pointer.To(inputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+					AuthenticationMode: pointer.ToEnum[inputs.AuthenticationMode](d.Get("authentication_mode").(string)),
 				},
 			},
 			Serialization: serialization,
@@ -214,12 +214,7 @@ func resourceStreamAnalyticsStreamInputBlobRead(d *pluginsdk.ResourceData, meta 
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			input, ok := props.(inputs.InputProperties) // nolint: gosimple
-			if !ok {
-				return fmt.Errorf("converting %s to an Input", *id)
-			}
-
-			streamInput, ok := input.(inputs.StreamInputProperties)
+			streamInput, ok := props.(inputs.StreamInputProperties)
 			if !ok {
 				return fmt.Errorf("converting %s to a Stream Input", *id)
 			}
@@ -230,29 +225,13 @@ func resourceStreamAnalyticsStreamInputBlobRead(d *pluginsdk.ResourceData, meta 
 			}
 
 			if streamBlobInputProps := streamBlobInput.Properties; streamBlobInputProps != nil {
-				dateFormat := ""
-				if v := streamBlobInput.Properties.DateFormat; v != nil {
-					dateFormat = *v
-				}
-				d.Set("date_format", dateFormat)
+				d.Set("date_format", pointer.From(streamBlobInput.Properties.DateFormat))
 
-				pathPattern := ""
-				if v := streamBlobInputProps.PathPattern; v != nil {
-					pathPattern = *v
-				}
-				d.Set("path_pattern", pathPattern)
+				d.Set("path_pattern", pointer.From(streamBlobInputProps.PathPattern))
 
-				containerName := ""
-				if v := streamBlobInputProps.Container; v != nil {
-					containerName = *v
-				}
-				d.Set("storage_container_name", containerName)
+				d.Set("storage_container_name", pointer.From(streamBlobInputProps.Container))
 
-				timeFormat := ""
-				if v := streamBlobInputProps.TimeFormat; v != nil {
-					timeFormat = *v
-				}
-				d.Set("time_format", timeFormat)
+				d.Set("time_format", pointer.From(streamBlobInputProps.TimeFormat))
 
 				authMode := ""
 				if v := streamBlobInputProps.AuthenticationMode; v != nil {

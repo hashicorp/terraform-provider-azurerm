@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -11,7 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -22,6 +23,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id "storage_account_id"
+
 func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceStorageAccountNetworkRulesCreate,
@@ -29,10 +32,11 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 		Update: resourceStorageAccountNetworkRulesUpdate,
 		Delete: resourceStorageAccountNetworkRulesDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseStorageAccountID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.StorageAccountId{}, pluginsdk.ResourceTypeForIdentityVirtual),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.StorageAccountId{}, pluginsdk.ResourceTypeForIdentityVirtual),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -55,13 +59,8 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true, // Defaults to storageaccounts.BypassAzureServices in the API, but schema does not support defaults for lists/sets.
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(storageaccounts.BypassAzureServices),
-						string(storageaccounts.BypassLogging),
-						string(storageaccounts.BypassMetrics),
-						string(storageaccounts.BypassNone),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForBypass(), false),
 				},
 				Set: pluginsdk.HashString,
 			},
@@ -87,12 +86,9 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 			},
 
 			"default_action": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(storageaccounts.DefaultActionAllow),
-					string(storageaccounts.DefaultActionDeny),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForDefaultAction(), false),
 			},
 
 			"private_link_access": {
@@ -158,7 +154,9 @@ func resourceStorageAccountNetworkRulesCreate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 	if usesNonDefaultStorageAccountRules {
-		return tf.ImportAsExistsError("azurerm_storage_account_network_rule", id.ID())
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			return tf.ImportAsExistsError("azurerm_storage_account_network_rule", id.ID())
+		}
 	}
 
 	acls := resp.Model.Properties.NetworkAcls
@@ -182,6 +180,9 @@ func resourceStorageAccountNetworkRulesCreate(d *pluginsdk.ResourceData, meta in
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, id, pluginsdk.ResourceTypeForIdentityVirtual); err != nil {
+		return err
+	}
 
 	return resourceStorageAccountNetworkRulesRead(d, meta)
 }
@@ -292,7 +293,7 @@ func resourceStorageAccountNetworkRulesRead(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id, pluginsdk.ResourceTypeForIdentityVirtual)
 }
 
 func resourceStorageAccountNetworkRulesDelete(d *pluginsdk.ResourceData, meta interface{}) error {

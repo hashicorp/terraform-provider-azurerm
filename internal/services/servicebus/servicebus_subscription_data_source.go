@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus
@@ -8,18 +8,15 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/subscriptions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/subscriptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func dataSourceServiceBusSubscription() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceServiceBusSubscriptionRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -89,46 +86,6 @@ func dataSourceServiceBusSubscription() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["topic_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: topics.ValidateTopicID,
-			AtLeastOneOf: []string{"topic_id", "topic_name", "resource_group_name", "namespace_name"},
-		}
-
-		resource.Schema["topic_name"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validate.TopicName(),
-			AtLeastOneOf: []string{"topic_id", "topic_name", "resource_group_name", "namespace_name"},
-			Deprecated:   "`topic_name` will be removed in favour of the property `topic_id` in version 5.0 of the AzureRM Provider.",
-		}
-
-		resource.Schema["resource_group_name"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: resourcegroups.ValidateName,
-			AtLeastOneOf: []string{"topic_id", "topic_name", "resource_group_name", "namespace_name"},
-			Deprecated:   "`resource_group_name` will be removed in favour of the property `topic_id` in version 5.0 of the AzureRM Provider.",
-		}
-
-		resource.Schema["namespace_name"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validate.NamespaceName,
-			AtLeastOneOf: []string{"topic_id", "topic_name", "resource_group_name", "namespace_name"},
-			Deprecated:   "`namespace_name` will be removed in favour of the property `topic_id` in version 5.0 of the AzureRM Provider.",
-		}
-
-		resource.Schema["enable_batched_operations"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		}
-	}
-
-	return resource
 }
 
 func dataSourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -148,12 +105,6 @@ func dataSourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interf
 		rgName = topicId.ResourceGroupName
 		nsName = topicId.NamespaceName
 		topicName = topicId.TopicName
-
-		if !features.FivePointOh() && topicId.SubscriptionId == "" {
-			rgName = d.Get("resource_group_name").(string)
-			nsName = d.Get("namespace_name").(string)
-			topicName = d.Get("topic_name").(string)
-		}
 	}
 
 	id := subscriptions.NewSubscriptions2ID(subscriptionId, rgName, nsName, topicName, d.Get("name").(string))
@@ -186,10 +137,6 @@ func dataSourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interf
 			}
 
 			d.Set("max_delivery_count", maxDeliveryCount)
-
-			if !features.FivePointOh() {
-				d.Set("enable_batched_operations", props.EnableBatchedOperations)
-			}
 		}
 	}
 

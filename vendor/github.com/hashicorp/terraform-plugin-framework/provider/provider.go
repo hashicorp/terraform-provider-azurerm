@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -6,10 +6,13 @@ package provider
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/function"
+	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/statestore"
 )
 
 // Provider is the core interface that all Terraform providers must implement.
@@ -90,9 +93,6 @@ type ProviderWithFunctions interface {
 // include ephemeral resources for usage in practitioner configurations.
 //
 // Ephemeral resources are supported in Terraform version 1.10 and later.
-//
-// NOTE: Ephemeral resource support is experimental and exposed without compatibility promises until
-// these notices are removed.
 type ProviderWithEphemeralResources interface {
 	Provider
 
@@ -125,6 +125,32 @@ type ProviderWithMetaSchema interface {
 	MetaSchema(context.Context, MetaSchemaRequest, *MetaSchemaResponse)
 }
 
+type ProviderWithListResources interface {
+	Provider
+
+	// ListResources returns a slice of functions to instantiate each Resource
+	// List implementation.
+	//
+	// The resource type name is determined by the ListResource implementing
+	// the Metadata method. All ListResources must have unique names.
+	ListResources(context.Context) []func() list.ListResource
+}
+
+// ProviderWithActions is an interface type that extends Provider to
+// include actions for usage in practitioner configurations.
+//
+// Actions are supported in Terraform version 1.14 and later.
+type ProviderWithActions interface {
+	Provider
+
+	// Actions returns a slice of functions to instantiate each Action
+	// implementation.
+	//
+	// The action type is determined by the Action implementing
+	// the Metadata method. All action types must have unique names.
+	Actions(context.Context) []func() action.Action
+}
+
 // ProviderWithValidateConfig is an interface type that extends Provider to include imperative validation.
 //
 // Declaring validation using this methodology simplifies one-off
@@ -138,4 +164,20 @@ type ProviderWithValidateConfig interface {
 
 	// ValidateConfig performs the validation.
 	ValidateConfig(context.Context, ValidateConfigRequest, *ValidateConfigResponse)
+}
+
+// ProviderWithStateStores is an interface type that extends Provider to include state stores.
+//
+// NOTE: State store support is experimental and exposed without compatibility promises until
+// these notices are removed.
+type ProviderWithStateStores interface {
+	Provider
+
+	// StateStores returns a slice of functions to instantiate each
+	// StateStore implementation.
+	//
+	// The state store type name is determined by the
+	// StateStore implementing the Metadata method. All state
+	// stores must have unique names.
+	StateStores(context.Context) []func() statestore.StateStore
 }

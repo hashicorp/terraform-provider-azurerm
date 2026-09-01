@@ -67,7 +67,7 @@ output "app_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -81,13 +81,13 @@ The following arguments are supported:
 
 * `daily_data_cap_in_gb` - (Optional) Specifies the Application Insights component daily data volume cap in GB. Defaults to `100`.
 
-* `daily_data_cap_notifications_disabled` - (Optional) Specifies if a notification email will be sent when the daily data volume cap is met. Defaults to `false`.
+* `daily_data_cap_notifications_enabled` - (Optional) Whether a notification email will be sent when the daily data volume cap is met. Defaults to `true`.
 
 * `retention_in_days` - (Optional) Specifies the retention period in days. Possible values are `30`, `60`, `90`, `120`, `180`, `270`, `365`, `550` or `730`. Defaults to `90`.
 
 * `sampling_percentage` - (Optional) Specifies the percentage of the data produced by the monitored application that is sampled for Application Insights telemetry. Defaults to `100`.
 
-* `disable_ip_masking` - (Optional) By default the real client IP is masked as `0.0.0.0` in the logs. Use this argument to disable masking and log the real client IP. Defaults to `false`.
+* `ip_masking_enabled` - (Optional) By default the real client IP is masked as `0.0.0.0` in the logs. Set this argument to `false` to disable masking and log the real client IP. Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -95,7 +95,7 @@ The following arguments are supported:
 
 ~> **Note:** `workspace_id` cannot be removed after set. More details can be found at [Migrate to workspace-based Application Insights resources](https://docs.microsoft.com/azure/azure-monitor/app/convert-classic-resource#migration-process). If `workspace_id` is not specified but you encounter a diff, this might indicate a Microsoft initiated automatic migration from classic resources to workspace-based resources. If this is the case, please update `workspace_id` in the config file to the new value.
 
-* `local_authentication_disabled` - (Optional) Disable Non-Azure AD based Auth. Defaults to `false`.
+* `local_authentication_enabled` - (Optional) Whether Non-Azure AD based Auth is enabled. Defaults to `true`.
 
 * `internet_ingestion_enabled` - (Optional) Should the Application Insights component support ingestion over the Public Internet? Defaults to `true`.
 
@@ -117,11 +117,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Application Insights Component.
-* `update` - (Defaults to 30 minutes) Used when updating the Application Insights Component.
+* `create` - (Defaults to 1 hour) Used when creating the Application Insights Component.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Application Insights Component.
+* `update` - (Defaults to 30 minutes) Used when updating the Application Insights Component.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Application Insights Component.
 
 ## Import
@@ -131,3 +131,11 @@ Application Insights instances can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_application_insights.instance1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Insights/components/instance1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AlertsManagement` - 2019-06-01
+
+* `Microsoft.Insights` - 2020-02-02, 2015-05-01

@@ -1,27 +1,18 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
 import (
-	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ExportName(v interface{}, k string) (warnings []string, errors []error) {
-	name := v.(string)
-
-	if regexp.MustCompile(`^[\s]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q must not consist of whitespace", k))
-	}
-
-	if !regexp.MustCompile(`^[a-zA-Z0-9]+$`).MatchString(name) {
-		errors = append(errors, fmt.Errorf("%q may only contain letters and digits: %q", k, name))
-	}
-
-	if len(name) < 3 || len(name) > 24 {
-		errors = append(errors, fmt.Errorf("%q must be (inclusive) between 3 and 24 characters long but is %d", k, len(name)))
-	}
-
-	return warnings, errors
+func ExportName(v interface{}, k string) ([]string, []error) {
+	return validation.All(
+		validation.StringDoesNotMatch(regexp.MustCompile(`^[\s]+$`), "must not consist of whitespace"),
+		validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9]+$`), "may only contain letters and digits"),
+		validation.StringLenBetween(3, 24),
+	)(v, k)
 }

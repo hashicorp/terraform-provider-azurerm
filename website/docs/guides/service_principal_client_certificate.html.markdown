@@ -136,7 +136,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=4.1.0"
+      version = "=5.0.0"
     }
   }
 }
@@ -155,7 +155,7 @@ At this point running either `terraform plan` or `terraform apply` should allow 
 
 It's also possible to configure these variables either directly, or from variables, in your provider block, like so:
 
-!> **Caution** We recommend not defining these variables in-line since they could easily be checked into Source Control.
+!> **Note:** We recommend not defining these variables in-line since they could easily be checked into Source Control.
 
 *Reading the certificate bundle from the filesystem*
 ```hcl
@@ -168,7 +168,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=4.1.0"
+      version = "=5.0.0"
     }
   }
 }
@@ -196,7 +196,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=4.1.0"
+      version = "=5.0.0"
     }
   }
 }

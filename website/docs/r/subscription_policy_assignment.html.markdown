@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `parameters` - (Optional) A JSON mapping of any Parameters for this Policy.
 
-* `overrides` - (Optional) One or more `overrides` blocks as defined below. More detail about `overrides` and `resource_selectors` see [policy assignment structure](https://learn.microsoft.com/en-us/azure/governance/policy/concepts/assignment-structure#resource-selectors-preview)
+* `overrides` - (Optional) One or more `overrides` blocks as defined below. More detail about `overrides` and `resource_selectors` see [policy assignment structure](https://learn.microsoft.com/en-us/azure/governance/policy/concepts/assignment-structure)
 
 * `resource_selectors` - (Optional) One or more `resource_selectors` blocks as defined below to filter polices by resource properties.
 
@@ -110,6 +110,8 @@ A `overrides` block supports the following:
 A `override_selector` block supports the following:
 
 * `in` - (Optional) Specify the list of policy reference id values to filter in. Cannot be used with `not_in`.
+
+* `kind` - (Optional) Specifies which characteristic will narrow down the set of evaluated resources. Possible values are `resourceLocation`, and `policyDefinitionReferenceId`. Defaults to `policyDefinitionReferenceId`.
 
 * `not_in` - (Optional) Specify the list of policy reference id values to filter out. Cannot be used with `in`.
 
@@ -148,7 +150,7 @@ The `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Policy Assignment for this Subscription.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Policy Assignment for this Subscription.
@@ -162,3 +164,9 @@ Subscription Policy Assignments can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_subscription_policy_assignment.example /subscriptions/00000000-0000-0000-000000000000/providers/Microsoft.Authorization/policyAssignments/assignment1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Authorization` - 2022-06-01

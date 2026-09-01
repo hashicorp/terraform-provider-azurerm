@@ -6,3 +6,6 @@ enhancement:
 
 breaking-change:
  - '- \[\s?(x|X)\s?\] Breaking Change'
+
+ai-assisted:
+  - '- \[\s?(x|X)\s?\] AI Assisted.*'

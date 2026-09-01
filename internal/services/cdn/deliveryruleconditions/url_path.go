@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package deliveryruleconditions
@@ -7,9 +7,10 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func URLPath() *pluginsdk.Resource {
@@ -73,10 +74,10 @@ func ExpandArmCdnEndpointConditionURLPath(input []interface{}) []cdn.BasicDelive
 		requestURICondition := cdn.DeliveryRuleURLPathCondition{
 			Name: cdn.NameURLPath,
 			Parameters: &cdn.URLPathMatchConditionParameters{
-				OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleUrlPathMatchConditionParameters"),
+				OdataType:       pointer.To("Microsoft.Azure.Cdn.Models.DeliveryRuleUrlPathMatchConditionParameters"),
 				Operator:        cdn.URLPathOperator(item["operator"].(string)),
-				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
+				NegateCondition: pointer.To(item["negate_condition"].(bool)),
+				MatchValues:     helpers.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
 			},
 		}
 
@@ -112,7 +113,7 @@ func FlattenArmCdnEndpointConditionURLPath(input cdn.BasicDeliveryRuleCondition)
 		}
 
 		if params.MatchValues != nil {
-			matchValues = utils.FlattenStringSlice(params.MatchValues)
+			matchValues = helpers.FlattenStringSlice(params.MatchValues)
 		}
 
 		if params.Transforms != nil {

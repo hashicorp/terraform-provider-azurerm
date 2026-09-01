@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package toproto5
@@ -6,9 +6,10 @@ package toproto5
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 )
 
 // SchemaAttribute returns the *tfprotov5.SchemaAttribute equivalent of an
@@ -34,10 +35,12 @@ func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePa
 		Computed:  a.IsComputed(),
 		Sensitive: a.IsSensitive(),
 		Type:      a.GetType().TerraformType(ctx),
+		WriteOnly: a.IsWriteOnly(),
 	}
 
 	if a.GetDeprecationMessage() != "" {
 		schemaAttribute.Deprecated = true
+		schemaAttribute.DeprecationMessage = a.GetDeprecationMessage()
 	}
 
 	if a.GetDescription() != "" {

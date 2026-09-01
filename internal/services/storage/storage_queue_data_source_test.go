@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -23,6 +23,7 @@ func TestAccDataSourceStorageQueue_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("metadata.%").HasValue("2"),
 				check.That(data.ResourceName).Key("metadata.k1").HasValue("v1"),
 				check.That(data.ResourceName).Key("metadata.k2").HasValue("v2"),
+				check.That(data.ResourceName).Key("url").HasValue(fmt.Sprintf("https://acctestsadsc%[1]s.queue.core.windows.net/acctestqueuedstest-%[1]s", data.RandomString)),
 			),
 		},
 	})
@@ -35,7 +36,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "queuedstest-%[1]s"
+  name     = "acctestqueue-%[1]s"
   location = "%[2]s"
 }
 
@@ -49,8 +50,8 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_queue" "test" {
-  name                 = "queuedstest-%[1]s"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  name               = "acctestqueuedstest-%[1]s"
+  storage_account_id = azurerm_storage_account.test.id
   metadata = {
     k1 = "v1"
     k2 = "v2"
@@ -58,8 +59,8 @@ resource "azurerm_storage_queue" "test" {
 }
 
 data "azurerm_storage_queue" "test" {
-  name                 = azurerm_storage_queue.test.name
-  storage_account_name = azurerm_storage_queue.test.storage_account_name
+  name               = azurerm_storage_queue.test.name
+  storage_account_id = azurerm_storage_queue.test.storage_account_id
 }
 `, data.RandomString, data.Locations.Primary, data.RandomInteger)
 }

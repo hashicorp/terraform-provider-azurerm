@@ -1,14 +1,20 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/action"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
+
+var _ sdk.TypedServiceRegistration = Registration{}
+
+var _ sdk.FrameworkServiceRegistration = Registration{}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
@@ -49,7 +55,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	resources := map[string]*pluginsdk.Resource{
+	return map[string]*pluginsdk.Resource{
 		"azurerm_availability_set":                       resourceAvailabilitySet(),
 		"azurerm_capacity_reservation":                   resourceCapacityReservation(),
 		"azurerm_capacity_reservation_group":             resourceCapacityReservationGroup(),
@@ -76,12 +82,11 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_ssh_public_key":                         resourceSshPublicKey(),
 		"azurerm_managed_disk_sas_token":                 resourceManagedDiskSasToken(),
 	}
-
-	return resources
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
+		ManagedDisksDataSource{},
 		OrchestratedVirtualMachineScaleSetDataSource{},
 	}
 }
@@ -92,10 +97,34 @@ func (r Registration) Resources() []sdk.Resource {
 		VirtualMachineRunCommandResource{},
 		GalleryApplicationResource{},
 		GalleryApplicationVersionResource{},
-		RestorePointCollectionResource{},
 		VirtualMachineRestorePointCollectionResource{},
 		VirtualMachineRestorePointResource{},
 		VirtualMachineGalleryApplicationAssignmentResource{},
 		VirtualMachineScaleSetStandbyPoolResource{},
+	}
+}
+
+func (r Registration) Actions() []func() action.Action {
+	return []func() action.Action{
+		newVirtualMachinePowerAction,
+	}
+}
+
+func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
+	return []sdk.FrameworkWrappedResource{}
+}
+
+func (r Registration) FrameworkDataSources() []sdk.FrameworkWrappedDataSource {
+	return []sdk.FrameworkWrappedDataSource{}
+}
+
+func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource {
+	return []func() ephemeral.EphemeralResource{}
+}
+
+func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
+	return []sdk.FrameworkListWrappedResource{
+		AvailabilitySetListResource{},
+		DedicatedHostGroupListResource{},
 	}
 }

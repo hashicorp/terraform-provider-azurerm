@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -16,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
@@ -85,21 +86,23 @@ func resourceIotHubCertificateCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	id := parse.NewIotHubCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("iothub_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.IotHubName, id.CertificateName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.IotHubName, id.CertificateName)
+		if err != nil {
+			if !response.WasNotFound(existing.Response.Response) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_iothub_certificate", id.ID())
+		if !response.WasNotFound(existing.Response.Response) {
+			return tf.ImportAsExistsError("azurerm_iothub_certificate", id.ID())
+		}
 	}
 
 	certificate := devices.CertificateDescription{
 		Properties: &devices.CertificateProperties{
-			IsVerified:  utils.Bool(d.Get("is_verified").(bool)),
-			Certificate: utils.String(d.Get("certificate_content").(string)),
+			IsVerified:  pointer.To(d.Get("is_verified").(bool)),
+			Certificate: pointer.To(d.Get("certificate_content").(string)),
 		},
 	}
 
@@ -124,7 +127,7 @@ func resourceIotHubCertificateRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.IotHubName, id.CertificateName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -156,17 +159,14 @@ func resourceIotHubCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("reading %s: %v", id, err)
 	}
 
-	etag := ""
-	if existing.Etag != nil {
-		etag = *existing.Etag
-	}
+	etag := pointer.From(existing.Etag)
 
 	if d.HasChange("is_verified") {
-		existing.Properties.IsVerified = utils.Bool(d.Get("is_verified").(bool))
+		existing.Properties.IsVerified = pointer.To(d.Get("is_verified").(bool))
 	}
 
 	if d.HasChange("certificate_content") {
-		existing.Properties.Certificate = utils.String(d.Get("certificate_content").(string))
+		existing.Properties.Certificate = pointer.To(d.Get("certificate_content").(string))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IotHubName, id.CertificateName, existing, etag); err != nil {
@@ -188,7 +188,7 @@ func resourceIotHubCertificateDelete(d *pluginsdk.ResourceData, meta interface{}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.IotHubName, id.CertificateName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -198,7 +198,7 @@ func resourceIotHubCertificateDelete(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("deleting  %s because Etag is nil", *id)
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.IotHubName, id.CertificateName, *utils.String(*resp.Etag)); err != nil {
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.IotHubName, id.CertificateName, *pointer.To(*resp.Etag)); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 	return nil

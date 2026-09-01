@@ -1,20 +1,25 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package signalr
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name signalr_service_custom_domain -service-package-name signalr -properties "name" -compare-values "subscription_id:signalr_service_id,resource_group_name:signalr_service_id,signalr_name:signalr_service_id" -test-env-vars "ARM_TEST_DNS_ZONE,ARM_TEST_DATA_RESOURCE_GROUP"
+
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CustomDomainSignalrServiceModel struct {
@@ -26,7 +31,14 @@ type CustomDomainSignalrServiceModel struct {
 
 type CustomDomainSignalrServiceResource struct{}
 
-var _ sdk.Resource = CustomDomainSignalrServiceResource{}
+var (
+	_ sdk.Resource             = CustomDomainSignalrServiceResource{}
+	_ sdk.ResourceWithIdentity = CustomDomainSignalrServiceResource{}
+)
+
+func (r CustomDomainSignalrServiceResource) Identity() resourceids.ResourceId {
+	return &signalr.CustomDomainId{}
+}
 
 func (r CustomDomainSignalrServiceResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -96,53 +108,33 @@ func (r CustomDomainSignalrServiceResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("parsing custom certificate for %s: %+v", id, err)
 			}
 
-			existing, err := client.CustomDomainsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.CustomDomainsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			customDomainObj := signalr.CustomDomain{
 				Properties: signalr.CustomDomainProperties{
 					DomainName: customDomainSignalrServiceModel.DomainName,
 					CustomCertificate: signalr.ResourceReference{
-						Id: utils.String(customDomainSignalrServiceModel.SignalrCustomCertificateId),
+						Id: pointer.To(customDomainSignalrServiceModel.SignalrCustomCertificateId),
 					},
 				},
 			}
-			if _, err := client.CustomDomainsCreateOrUpdate(ctx, id, customDomainObj); err != nil {
+			if err := client.CustomDomainsCreateOrUpdateCallbackThenPoll(ctx, id, customDomainObj, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
-			}
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending: []string{
-					string(signalr.ProvisioningStateUpdating),
-					string(signalr.ProvisioningStateCreating),
-					string(signalr.ProvisioningStateMoving),
-					string(signalr.ProvisioningStateRunning),
-				},
-				Target: []string{
-					string(signalr.ProvisioningStateSucceeded),
-					string(signalr.ProvisioningStateFailed),
-				},
-				Refresh:                   signalrServiceCustomDomainProvisioningStateRefreshFunc(ctx, client, id),
-				Timeout:                   time.Until(deadline),
-				PollInterval:              10 * time.Second,
-				ContinuousTargetOccurence: 20,
-			}
-
-			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
 				return err
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -166,27 +158,7 @@ func (r CustomDomainSignalrServiceResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := CustomDomainSignalrServiceModel{
-				Name:             id.CustomDomainName,
-				SignalRServiceId: signalr.NewSignalRID(id.SubscriptionId, id.ResourceGroupName, id.SignalRName).ID(),
-			}
-
-			if model := resp.Model; model != nil {
-				props := model.Properties
-				signalrCustomCertificateId := ""
-				if props.CustomCertificate.Id != nil {
-					signalrCustomCertificateID, err := signalr.ParseCustomCertificateIDInsensitively(*props.CustomCertificate.Id)
-					if err != nil {
-						return fmt.Errorf("parsing signalr custom cert id for %s: %+v", id, err)
-					}
-					signalrCustomCertificateId = signalrCustomCertificateID.ID()
-				}
-
-				state.SignalrCustomCertificateId = signalrCustomCertificateId
-				state.DomainName = props.DomainName
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
 }
@@ -211,20 +183,11 @@ func (r CustomDomainSignalrServiceResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
-			}
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending:                   []string{"Exists"},
-				Target:                    []string{"NotFound"},
-				Refresh:                   signalrServiceCustomDomainDeleteRefreshFunc(ctx, client, *id),
-				Timeout:                   time.Until(deadline),
-				PollInterval:              10 * time.Second,
-				ContinuousTargetOccurence: 20,
-			}
-
-			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			poller := custompollers.NewEventualConsistencyPoller(20, func(pollerCtx context.Context) (*http.Response, error) {
+				resp, err := client.CustomDomainsGet(pollerCtx, *id)
+				return resp.HttpResponse, err
+			}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+			if err := poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("waiting for %s to be fully deleted: %+v", *id, err)
 			}
 
@@ -237,37 +200,28 @@ func (r CustomDomainSignalrServiceResource) IDValidationFunc() pluginsdk.SchemaV
 	return signalr.ValidateCustomDomainID
 }
 
-func signalrServiceCustomDomainProvisioningStateRefreshFunc(ctx context.Context, client *signalr.SignalRClient, id signalr.CustomDomainId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.CustomDomainsGet(ctx, id)
-
-		provisioningState := "Pending"
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return res, provisioningState, nil
-			}
-			return nil, "Error", fmt.Errorf("polling for the provisioning state of %s: %+v", id, err)
-		}
-
-		if res.Model != nil && res.Model.Properties.ProvisioningState != nil {
-			provisioningState = string(*res.Model.Properties.ProvisioningState)
-		}
-
-		return res, provisioningState, nil
+func (r CustomDomainSignalrServiceResource) flatten(metadata sdk.ResourceMetaData, id *signalr.CustomDomainId, model *signalr.CustomDomain) error {
+	state := CustomDomainSignalrServiceModel{
+		Name:             id.CustomDomainName,
+		SignalRServiceId: signalr.NewSignalRID(id.SubscriptionId, id.ResourceGroupName, id.SignalRName).ID(),
 	}
-}
 
-func signalrServiceCustomDomainDeleteRefreshFunc(ctx context.Context, client *signalr.SignalRClient, id signalr.CustomDomainId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.CustomDomainsGet(ctx, id)
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return "NotFound", "NotFound", nil
+	if model != nil {
+		props := model.Properties
+		state.DomainName = props.DomainName
+
+		if props.CustomCertificate.Id != nil {
+			signalrCustomCertificateID, err := signalr.ParseCustomCertificateIDInsensitively(*props.CustomCertificate.Id)
+			if err != nil {
+				return fmt.Errorf("parsing signalr custom cert id for %s: %+v", *id, err)
 			}
-
-			return nil, "", fmt.Errorf("checking if %s has been deleted: %+v", id, err)
+			state.SignalrCustomCertificateId = signalrCustomCertificateID.ID()
 		}
-
-		return res, "Exists", nil
 	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }

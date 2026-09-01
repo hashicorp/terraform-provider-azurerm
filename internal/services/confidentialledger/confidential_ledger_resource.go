@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package confidentialledger
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -15,11 +16,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/2022-05-13/confidentialledger"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/confidentialledger/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceConfidentialLedger() *pluginsdk.Resource {
@@ -72,13 +73,9 @@ func resourceConfidentialLedger() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"ledger_role_name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(confidentialledger.LedgerRoleNameAdministrator),
-								string(confidentialledger.LedgerRoleNameContributor),
-								string(confidentialledger.LedgerRoleNameReader),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(confidentialledger.PossibleValuesForLedgerRoleName(), false),
 						},
 						"principal_id": {
 							Type:         pluginsdk.TypeString,
@@ -101,13 +98,9 @@ func resourceConfidentialLedger() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"ledger_role_name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(confidentialledger.LedgerRoleNameAdministrator),
-								string(confidentialledger.LedgerRoleNameContributor),
-								string(confidentialledger.LedgerRoleNameReader),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(confidentialledger.PossibleValuesForLedgerRoleName(), false),
 						},
 						"pem_public_key": {
 							Type:         pluginsdk.TypeString,
@@ -139,14 +132,17 @@ func resourceConfidentialLedgerCreate(d *pluginsdk.ResourceData, meta interface{
 	defer cancel()
 
 	id := confidentialledger.NewLedgerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.LedgerGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.LedgerGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_confidential_ledger", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_confidential_ledger", id.ID())
+		}
 	}
 
 	aadBasedUsers := expandAADBasedSecurityPrincipal(d.Get("azuread_based_service_principal").([]interface{}))
@@ -154,7 +150,7 @@ func resourceConfidentialLedgerCreate(d *pluginsdk.ResourceData, meta interface{
 	ledgerType := confidentialledger.LedgerType(d.Get("ledger_type").(string))
 	location := location.Normalize(d.Get("location").(string))
 	parameters := confidentialledger.ConfidentialLedger{
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Properties: &confidentialledger.LedgerProperties{
 			AadBasedSecurityPrincipals:  aadBasedUsers,
 			CertBasedSecurityPrincipals: certBasedUsers,
@@ -163,8 +159,8 @@ func resourceConfidentialLedgerCreate(d *pluginsdk.ResourceData, meta interface{
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.LedgerCreateThenPoll(ctx, id, parameters); err != nil {
-		return fmt.Errorf("error creating %s: %+v", id.ID(), err)
+	if err := client.LedgerCreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+		return fmt.Errorf("creating %s: %+v", id.ID(), err)
 	}
 
 	d.SetId(id.ID())
@@ -254,13 +250,11 @@ func resourceConfidentialLedgerUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("azuread_based_service_principal") {
-		aadBasedUsers := expandAADBasedSecurityPrincipal(d.Get("azuread_based_service_principal").([]interface{}))
-		ledger.Properties.AadBasedSecurityPrincipals = aadBasedUsers
+		ledger.Properties.AadBasedSecurityPrincipals = expandAADBasedSecurityPrincipal(d.Get("azuread_based_service_principal").([]interface{}))
 	}
 
 	if d.HasChange("certificate_based_security_principal") {
-		certBasedUsers := expandCertBasedSecurityPrincipal(d.Get("certificate_based_security_principal").([]interface{}))
-		ledger.Properties.CertBasedSecurityPrincipals = certBasedUsers
+		ledger.Properties.CertBasedSecurityPrincipals = expandCertBasedSecurityPrincipal(d.Get("certificate_based_security_principal").([]interface{}))
 	}
 
 	if d.HasChange("tags") {
@@ -302,8 +296,8 @@ func expandAADBasedSecurityPrincipal(input []interface{}) *[]confidentialledger.
 
 		result := confidentialledger.AADBasedSecurityPrincipal{
 			LedgerRoleName: &ledgerRoleName,
-			PrincipalId:    utils.String(principalId),
-			TenantId:       utils.String(tenantId),
+			PrincipalId:    pointer.To(principalId),
+			TenantId:       pointer.To(tenantId),
 		}
 
 		output = append(output, result)
@@ -320,7 +314,7 @@ func expandCertBasedSecurityPrincipal(input []interface{}) *[]confidentialledger
 
 		ledgerRoleName := confidentialledger.LedgerRoleName(v["ledger_role_name"].(string))
 		output = append(output, confidentialledger.CertBasedSecurityPrincipal{
-			Cert:           utils.String(v["pem_public_key"].(string)),
+			Cert:           pointer.To(v["pem_public_key"].(string)),
 			LedgerRoleName: &ledgerRoleName,
 		})
 	}
@@ -340,20 +334,10 @@ func flattenAADBasedSecurityPrincipal(input *[]confidentialledger.AADBasedSecuri
 			ledgerRoleName = string(*item.LedgerRoleName)
 		}
 
-		principalId := ""
-		if item.PrincipalId != nil {
-			principalId = *item.PrincipalId
-		}
-
-		tenantId := ""
-		if item.TenantId != nil {
-			tenantId = *item.TenantId
-		}
-
 		output = append(output, map[string]interface{}{
 			"ledger_role_name": ledgerRoleName,
-			"principal_id":     principalId,
-			"tenant_id":        tenantId,
+			"principal_id":     pointer.From(item.PrincipalId),
+			"tenant_id":        pointer.From(item.TenantId),
 		})
 	}
 
@@ -367,11 +351,6 @@ func flattenCertBasedSecurityPrincipal(input *[]confidentialledger.CertBasedSecu
 	}
 
 	for _, item := range *input {
-		pemPublicKey := ""
-		if item.Cert != nil {
-			pemPublicKey = *item.Cert
-		}
-
 		ledgerRoleName := ""
 		if item.LedgerRoleName != nil {
 			ledgerRoleName = string(*item.LedgerRoleName)
@@ -379,7 +358,7 @@ func flattenCertBasedSecurityPrincipal(input *[]confidentialledger.CertBasedSecu
 
 		output = append(output, map[string]interface{}{
 			"ledger_role_name": ledgerRoleName,
-			"pem_public_key":   pemPublicKey,
+			"pem_public_key":   pointer.From(item.Cert),
 		})
 	}
 

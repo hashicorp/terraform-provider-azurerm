@@ -1,19 +1,14 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
 import (
-	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func TriggerHttpRequestRelativePath(v interface{}, _ string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile("^[A-Za-z0-9_/}{]+$").MatchString(value) {
-		errors = append(errors, fmt.Errorf("Relative Path can only contain alphanumeric characters, underscores, forward slashes and curly braces."))
-	}
-
-	return warnings, errors
+func TriggerHttpRequestRelativePath(v interface{}, k string) ([]string, []error) {
+	return validation.StringMatch(regexp.MustCompile("^[A-Za-z0-9_/}{]+$"), "can only contain alphanumeric characters, underscores, forward slashes and curly braces")(v, k)
 }

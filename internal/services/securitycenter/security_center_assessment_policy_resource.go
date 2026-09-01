@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter
@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2021-06-01/assessmentsmetadata"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
@@ -146,15 +146,17 @@ func resourceArmSecurityCenterAssessmentPolicyCreate(d *pluginsdk.ResourceData, 
 
 	id := assessmentsmetadata.NewProviderAssessmentMetadataID(subscriptionId, name)
 
-	existing, err := client.GetInSubscription(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetInSubscription(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_security_center_assessment_policy", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_security_center_assessment_policy", id.ID())
+		}
 	}
 
 	params := assessmentsmetadata.SecurityAssessmentMetadataResponse{
@@ -169,7 +171,7 @@ func resourceArmSecurityCenterAssessmentPolicyCreate(d *pluginsdk.ResourceData, 
 	if v, ok := d.GetOk("categories"); ok {
 		categories := make([]assessmentsmetadata.Categories, 0)
 		for _, item := range v.(*pluginsdk.Set).List() {
-			categories = append(categories, (assessmentsmetadata.Categories)(item.(string)))
+			categories = append(categories, assessmentsmetadata.Categories(item.(string)))
 		}
 		params.Properties.Categories = &categories
 	}
@@ -183,7 +185,7 @@ func resourceArmSecurityCenterAssessmentPolicyCreate(d *pluginsdk.ResourceData, 
 	}
 
 	if v, ok := d.GetOk("implementation_effort"); ok {
-		params.Properties.ImplementationEffort = pointer.To(assessmentsmetadata.ImplementationEffort(v.(string)))
+		params.Properties.ImplementationEffort = pointer.ToEnum[assessmentsmetadata.ImplementationEffort](v.(string))
 	}
 
 	if v, ok := d.GetOk("remediation_description"); ok {
@@ -191,7 +193,7 @@ func resourceArmSecurityCenterAssessmentPolicyCreate(d *pluginsdk.ResourceData, 
 	}
 
 	if v, ok := d.GetOk("user_impact"); ok {
-		params.Properties.UserImpact = pointer.To(assessmentsmetadata.UserImpact(v.(string)))
+		params.Properties.UserImpact = pointer.ToEnum[assessmentsmetadata.UserImpact](v.(string))
 	}
 
 	if _, err := client.CreateInSubscription(ctx, id, params); err != nil {
@@ -240,7 +242,7 @@ func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, me
 					categories = append(categories, string(item))
 				}
 			}
-			d.Set("categories", utils.FlattenStringSlice(&categories))
+			d.Set("categories", helpers.FlattenStringSlice(&categories))
 
 			threats := make([]string, 0)
 			if props.Threats != nil {
@@ -248,7 +250,7 @@ func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, me
 					threats = append(threats, string(item))
 				}
 			}
-			d.Set("threats", utils.FlattenStringSlice(&threats))
+			d.Set("threats", helpers.FlattenStringSlice(&threats))
 		}
 	}
 
@@ -296,21 +298,21 @@ func resourceArmSecurityCenterAssessmentPolicyUpdate(d *pluginsdk.ResourceData, 
 	if d.HasChange("threats") {
 		threats := make([]assessmentsmetadata.Threats, 0)
 		for _, item := range d.Get("threats").(*pluginsdk.Set).List() {
-			threats = append(threats, (assessmentsmetadata.Threats)(item.(string)))
+			threats = append(threats, assessmentsmetadata.Threats(item.(string)))
 		}
 		existing.Model.Properties.Threats = &threats
 	}
 
 	if d.HasChange("implementation_effort") {
-		existing.Model.Properties.ImplementationEffort = pointer.To(assessmentsmetadata.ImplementationEffort(d.Get("implementation_effort").(string)))
+		existing.Model.Properties.ImplementationEffort = pointer.ToEnum[assessmentsmetadata.ImplementationEffort](d.Get("implementation_effort").(string))
 	}
 
 	if d.HasChange("remediation_description") {
-		existing.Model.Properties.RemediationDescription = utils.String(d.Get("remediation_description").(string))
+		existing.Model.Properties.RemediationDescription = pointer.To(d.Get("remediation_description").(string))
 	}
 
 	if d.HasChange("user_impact") {
-		existing.Model.Properties.UserImpact = pointer.To(assessmentsmetadata.UserImpact(d.Get("user_impact").(string)))
+		existing.Model.Properties.UserImpact = pointer.ToEnum[assessmentsmetadata.UserImpact](d.Get("user_impact").(string))
 	}
 
 	if _, err := client.CreateInSubscription(ctx, *id, *existing.Model); err != nil {

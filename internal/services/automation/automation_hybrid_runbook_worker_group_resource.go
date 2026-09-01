@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/hybridrunbookworkergroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/hybridrunbookworkergroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/listallhybridrunbookworkergroupinautomationaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type HybridRunbookWorkerGroupModel struct {
@@ -67,23 +67,26 @@ func (m HybridRunbookWorkerGroupResource) ResourceType() string {
 func (m HybridRunbookWorkerGroupResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Automation.HybridRunbookWorkerGroup
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Automation.HybridRunbookWorkerGroup
 
 			var model HybridRunbookWorkerGroupModel
-			if err := meta.Decode(&model); err != nil {
+			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			subscriptionID := meta.Client.Account.SubscriptionId
+			subscriptionID := metadata.Client.Account.SubscriptionId
 			id := hybridrunbookworkergroup.NewHybridRunbookWorkerGroupID(subscriptionID, model.ResourceGroupName,
 				model.AutomationAccountName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if !response.WasNotFound(existing.HttpResponse) {
-				if err != nil {
-					return fmt.Errorf("retreiving %s: %v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					if err != nil {
+						return fmt.Errorf("retreiving %s: %v", id, err)
+					}
+					return metadata.ResourceRequiresImport(m.ResourceType(), id)
 				}
-				return meta.ResourceRequiresImport(m.ResourceType(), id)
 			}
 			req := hybridrunbookworkergroup.HybridRunbookWorkerGroupCreateOrUpdateParameters{
 				Name: pointer.To(model.Name),
@@ -91,17 +94,16 @@ func (m HybridRunbookWorkerGroupResource) Create() sdk.ResourceFunc {
 			if model.CredentialName != "" {
 				req.Properties = &hybridrunbookworkergroup.HybridRunbookWorkerGroupCreateOrUpdateProperties{}
 				req.Properties.Credential = &hybridrunbookworkergroup.RunAsCredentialAssociationProperty{
-					Name: utils.String(model.CredentialName),
+					Name: pointer.To(model.CredentialName),
 				}
 			}
 			// return 201 cause err in autorest sdk
-			_, err = client.Create(ctx, id, req)
 			// Workaround swagger issue https://github.com/Azure/azure-rest-api-specs/issues/19741
-			if err != nil {
+			if _, err := client.Create(ctx, id, req); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
-			meta.SetID(id)
+			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -162,7 +164,7 @@ func (m HybridRunbookWorkerGroupResource) Update() sdk.ResourceFunc {
 			if meta.ResourceData.HasChange("credential_name") {
 				upd.Properties = &hybridrunbookworkergroup.HybridRunbookWorkerGroupCreateOrUpdateProperties{}
 				upd.Properties.Credential = &hybridrunbookworkergroup.RunAsCredentialAssociationProperty{
-					Name: utils.String(model.CredentialName),
+					Name: pointer.To(model.CredentialName),
 				}
 			}
 			if _, err = client.Update(ctx, *id, upd); err != nil {
@@ -183,8 +185,22 @@ func (m HybridRunbookWorkerGroupResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 			meta.Logger.Infof("deleting %s", id)
-			client := meta.Client.Automation.HybridRunbookWorkerGroup
-			if _, err = client.Delete(ctx, *id); err != nil {
+
+			// NOTE: Due to incorrect tags in Azure Swagger, the delete operation is only available
+			// in the ListAllHybridRunbookWorkerGroupInAutomationAccount client, not in the
+			// main HybridRunbookWorkerGroup client where it logically belongs
+			// Issue tracked in: https://github.com/Azure/azure-rest-api-specs/issues/38703
+			client := meta.Client.Automation.ListAllHybridRunbookWorkerGroupInAutomationAccount
+
+			// Convert the ID to the listallhybridrunbookworkergroupinautomationaccount package format
+			deleteId := listallhybridrunbookworkergroupinautomationaccount.NewHybridRunbookWorkerGroupID(
+				id.SubscriptionId,
+				id.ResourceGroupName,
+				id.AutomationAccountName,
+				id.HybridRunbookWorkerGroupName,
+			)
+
+			if _, err = client.HybridRunbookWorkerGroupDelete(ctx, deleteId); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
 			}
 			return nil

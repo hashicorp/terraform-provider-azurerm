@@ -67,7 +67,7 @@ output "full_permissions_api_key" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -91,7 +91,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Application Insights API Key.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Application Insights API Key.
@@ -106,3 +106,9 @@ terraform import azurerm_application_insights_api_key.my_key /subscriptions/0000
 ```
 
 -> **Note:** The secret `api_key` cannot be retrieved during an import. You will need to edit the state by hand to set the secret value if you happen to have it backed up somewhere.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Insights` - 2015-05-01

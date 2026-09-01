@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/hashicorp/terraform-exec/tfexec"
 	tfjson "github.com/hashicorp/terraform-json"
@@ -28,6 +29,13 @@ var expectNonEmptyPlanOutputChangesMinTFVersion = tfversion.Version0_14_0
 
 func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugintest.WorkingDir, step TestStep, providers *providerFactories, stepIndex int, helper *plugintest.Helper) error {
 	t.Helper()
+
+	// When `refreshAfterApply` is true, a `Config`-mode test step will invoke
+	// a refresh before successful completion. This is a compatibility measure
+	// for test cases that have different -- but semantically-equal -- state
+	// representations in their test steps. When comparing two states, the
+	// testing framework is not aware of semantic equality or set equality.
+	_, refreshAfterApply := os.LookupEnv(EnvTfAccRefreshAfterApply)
 
 	configRequest := teststep.PrepareConfigurationRequest{
 		Directory: step.ConfigDirectory,
@@ -102,18 +110,23 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 		logging.HelperResourceDebug(ctx, "Running Terraform CLI plan and apply")
 
 		// Plan!
-		err := runProviderCommand(ctx, t, func() error {
+		err := runProviderCommand(ctx, t, wd, providers, func() error {
 			var opts []tfexec.PlanOption
 			if step.Destroy {
 				opts = append(opts, tfexec.Destroy(true))
 			}
 
-			if c.AdditionalCLIOptions != nil && c.AdditionalCLIOptions.Plan.AllowDeferral {
-				opts = append(opts, tfexec.AllowDeferral(true))
+			if c.AdditionalCLIOptions != nil {
+				if c.AdditionalCLIOptions.Plan.AllowDeferral {
+					opts = append(opts, tfexec.AllowDeferral(true))
+				}
+				if c.AdditionalCLIOptions.Plan.NoRefresh {
+					opts = append(opts, tfexec.Refresh(false))
+				}
 			}
 
 			return wd.CreatePlan(ctx, opts...)
-		}, wd, providers)
+		})
 		if err != nil {
 			return fmt.Errorf("Error running pre-apply plan: %w", err)
 		}
@@ -121,11 +134,11 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 		// Run pre-apply plan checks
 		if len(step.ConfigPlanChecks.PreApply) > 0 {
 			var plan *tfjson.Plan
-			err = runProviderCommand(ctx, t, func() error {
+			err = runProviderCommand(ctx, t, wd, providers, func() error {
 				var err error
 				plan, err = wd.SavedPlan(ctx)
 				return err
-			}, wd, providers)
+			})
 			if err != nil {
 				return fmt.Errorf("Error retrieving pre-apply plan: %w", err)
 			}
@@ -150,29 +163,40 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 			// the shim logic will return an error such as:
 			//
 			//    Failed to marshal state to json: schema version 0 for null_resource.test in state does not match version 1 from the provider
-			err := runProviderCommand(ctx, t, func() error {
+			err := runProviderCommand(ctx, t, wd, providers, func() error {
 				return wd.Refresh(ctx)
-			}, wd, providers)
+			})
 
 			if err != nil {
 				return fmt.Errorf("Error running pre-apply refresh: %w", err)
 			}
 
-			err = runProviderCommand(ctx, t, func() error {
-				stateBeforeApplication, err = getState(ctx, t, wd)
+			err = runProviderCommand(ctx, t, wd, providers, func() error {
+				_, stateBeforeApplication, err = getState(ctx, t, wd)
 				if err != nil {
 					return err
 				}
 				return nil
-			}, wd, providers)
+			})
 
 			if err != nil {
 				return fmt.Errorf("Error retrieving pre-apply state: %w", err)
 			}
+
+			// Create Destroy Plan
+			err = runProviderCommand(ctx, t, wd, providers, func() error {
+				var opts []tfexec.PlanOption
+				opts = append(opts, tfexec.Destroy(true))
+
+				return wd.CreatePlan(ctx, opts...)
+			})
+			if err != nil {
+				return fmt.Errorf("Error running destroy plan after step.Check shimmed state was retrieved: %w", err)
+			}
 		}
 
 		// Apply the diff, creating real resources
-		err = runProviderCommand(ctx, t, func() error {
+		err = runProviderCommand(ctx, t, wd, providers, func() error {
 			var opts []tfexec.ApplyOption
 
 			if c.AdditionalCLIOptions != nil && c.AdditionalCLIOptions.Apply.AllowDeferral {
@@ -180,7 +204,7 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 			}
 
 			return wd.Apply(ctx, opts...)
-		}, wd, providers)
+		})
 		if err != nil {
 			if step.Destroy {
 				return fmt.Errorf("Error running destroy: %w", err)
@@ -199,13 +223,13 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 			} else {
 				var state *terraform.State
 
-				err := runProviderCommand(ctx, t, func() error {
-					state, err = getState(ctx, t, wd)
+				err := runProviderCommand(ctx, t, wd, providers, func() error {
+					_, state, err = getState(ctx, t, wd)
 					if err != nil {
 						return err
 					}
 					return nil
-				}, wd, providers)
+				})
 
 				if err != nil {
 					return fmt.Errorf("Error retrieving state after apply: %w", err)
@@ -221,11 +245,11 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 		if len(step.ConfigStateChecks) > 0 {
 			var state *tfjson.State
 
-			err = runProviderCommand(ctx, t, func() error {
+			err = runProviderCommand(ctx, t, wd, providers, func() error {
 				var err error
 				state, err = wd.State(ctx)
 				return err
-			}, wd, providers)
+			})
 
 			if err != nil {
 				return fmt.Errorf("Error retrieving post-apply, post-refresh state: %w", err)
@@ -242,7 +266,7 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 	logging.HelperResourceDebug(ctx, "Running Terraform CLI plan to check for perpetual differences")
 
 	// do a plan
-	err = runProviderCommand(ctx, t, func() error {
+	err = runProviderCommand(ctx, t, wd, providers, func() error {
 		opts := []tfexec.PlanOption{
 			tfexec.Refresh(false),
 		}
@@ -250,12 +274,17 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 			opts = append(opts, tfexec.Destroy(true))
 		}
 
-		if c.AdditionalCLIOptions != nil && c.AdditionalCLIOptions.Plan.AllowDeferral {
-			opts = append(opts, tfexec.AllowDeferral(true))
+		if c.AdditionalCLIOptions != nil {
+			if c.AdditionalCLIOptions.Plan.AllowDeferral {
+				opts = append(opts, tfexec.AllowDeferral(true))
+			}
+			if c.AdditionalCLIOptions.Plan.NoRefresh {
+				opts = append(opts, tfexec.Refresh(false))
+			}
 		}
 
 		return wd.CreatePlan(ctx, opts...)
-	}, wd, providers)
+	})
 	if err != nil {
 		if step.PlanOnly {
 			return fmt.Errorf("Error running non-refresh plan: %w", err)
@@ -265,11 +294,11 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 	}
 
 	var plan *tfjson.Plan
-	err = runProviderCommand(ctx, t, func() error {
+	err = runProviderCommand(ctx, t, wd, providers, func() error {
 		var err error
 		plan, err = wd.SavedPlan(ctx)
 		return err
-	}, wd, providers)
+	})
 	if err != nil {
 		if step.PlanOnly {
 			return fmt.Errorf("Error reading saved non-refresh plan: %w", err)
@@ -292,11 +321,11 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 
 	if !planIsEmpty(plan, helper.TerraformVersion()) && !step.ExpectNonEmptyPlan {
 		var stdout string
-		err = runProviderCommand(ctx, t, func() error {
+		err = runProviderCommand(ctx, t, wd, providers, func() error {
 			var err error
 			stdout, err = wd.SavedPlanRawStdout(ctx)
 			return err
-		}, wd, providers)
+		})
 		if err != nil {
 			return fmt.Errorf("Error reading saved human-readable non-refresh plan output: %w", err)
 		}
@@ -309,7 +338,7 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 	}
 
 	// do another plan
-	err = runProviderCommand(ctx, t, func() error {
+	err = runProviderCommand(ctx, t, wd, providers, func() error {
 		var opts []tfexec.PlanOption
 		if step.Destroy {
 			opts = append(opts, tfexec.Destroy(true))
@@ -319,12 +348,17 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 			}
 		}
 
-		if c.AdditionalCLIOptions != nil && c.AdditionalCLIOptions.Plan.AllowDeferral {
-			opts = append(opts, tfexec.AllowDeferral(true))
+		if c.AdditionalCLIOptions != nil {
+			if c.AdditionalCLIOptions.Plan.AllowDeferral {
+				opts = append(opts, tfexec.AllowDeferral(true))
+			}
+			if c.AdditionalCLIOptions.Plan.NoRefresh {
+				opts = append(opts, tfexec.Refresh(false))
+			}
 		}
 
 		return wd.CreatePlan(ctx, opts...)
-	}, wd, providers)
+	})
 	if err != nil {
 		if step.PlanOnly {
 			return fmt.Errorf("Error running refresh plan: %w", err)
@@ -333,11 +367,11 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 		return fmt.Errorf("Error running post-apply refresh plan: %w", err)
 	}
 
-	err = runProviderCommand(ctx, t, func() error {
+	err = runProviderCommand(ctx, t, wd, providers, func() error {
 		var err error
 		plan, err = wd.SavedPlan(ctx)
 		return err
-	}, wd, providers)
+	})
 	if err != nil {
 		if step.PlanOnly {
 			return fmt.Errorf("Error reading refresh plan: %w", err)
@@ -357,11 +391,11 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 	// check if plan is empty
 	if !planIsEmpty(plan, helper.TerraformVersion()) && !step.ExpectNonEmptyPlan {
 		var stdout string
-		err = runProviderCommand(ctx, t, func() error {
+		err = runProviderCommand(ctx, t, wd, providers, func() error {
 			var err error
 			stdout, err = wd.SavedPlanRawStdout(ctx)
 			return err
-		}, wd, providers)
+		})
 		if err != nil {
 			return fmt.Errorf("Error reading human-readable refresh plan output: %w", err)
 		}
@@ -383,13 +417,13 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 
 		var state *terraform.State
 
-		err = runProviderCommand(ctx, t, func() error {
-			state, err = getState(ctx, t, wd)
+		err = runProviderCommand(ctx, t, wd, providers, func() error {
+			_, state, err = getState(ctx, t, wd)
 			if err != nil {
 				return err
 			}
 			return nil
-		}, wd, providers)
+		})
 
 		if err != nil {
 			return err
@@ -420,9 +454,30 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 		// this fails. If refresh isn't read-only, then this will have
 		// caught a different bug.
 		if idRefreshCheck != nil {
+			fmt.Println("Not Writing by testing ID Refresh")
 			if err := testIDRefresh(ctx, t, c, wd, step, idRefreshCheck, providers, stepIndex, helper); err != nil {
 				return fmt.Errorf(
 					"[ERROR] Test: ID-only test failed: %s", err)
+			}
+		}
+	}
+
+	if step.PostApplyFunc != nil {
+		logging.HelperResourceDebug(ctx, "Calling TestCase PostApplyFunc")
+		step.PostApplyFunc()
+		logging.HelperResourceDebug(ctx, "Called TestCase PostApplyFunc")
+	}
+
+	if refreshAfterApply && !step.Destroy && !step.PlanOnly && !step.ExpectNonEmptyPlan {
+		if len(c.Steps) > stepIndex+1 {
+			// If the next step is a refresh, then we have no need to refresh here
+			if !c.Steps[stepIndex+1].RefreshState {
+				// Log a searchable message to easily determine when this is no longer being used
+				logging.HelperResourceDebug(ctx, EnvTfAccRefreshAfterApply+": running apply -refresh-only -refresh=true")
+				err := runProviderCommandApplyRefreshOnly(ctx, t, wd, providers)
+				if err != nil {
+					return fmt.Errorf("Error running apply refresh-only: %w", err)
+				}
 			}
 		}
 	}

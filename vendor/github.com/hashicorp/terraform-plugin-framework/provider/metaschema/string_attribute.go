@@ -1,14 +1,15 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package metaschema
 
 import (
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
@@ -115,5 +116,23 @@ func (a StringAttribute) IsRequired() bool {
 // IsSensitive always returns false as there is no plan for provider meta
 // schema data.
 func (a StringAttribute) IsSensitive() bool {
+	return false
+}
+
+// IsWriteOnly returns false as write-only attributes are not relevant to provider meta schemas,
+// as these schemas describe data explicitly not saved to any artifact.
+func (a StringAttribute) IsWriteOnly() bool {
+	return false
+}
+
+// IsRequiredForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a StringAttribute) IsRequiredForImport() bool {
+	return false
+}
+
+// IsOptionalForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a StringAttribute) IsOptionalForImport() bool {
 	return false
 }

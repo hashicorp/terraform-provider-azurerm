@@ -933,7 +933,7 @@ func (sig *Signature) Sign(h hash.Hash, priv *PrivateKey, config *Config) (err e
 		}
 		sig.Notations = append(sig.Notations, &notation)
 	}
-	sig.outSubpackets, err = sig.buildSubpackets(priv.PublicKey)
+	sig.outSubpackets, err = sig.buildSubpackets(priv.PublicKey, config)
 	if err != nil {
 		return err
 	}
@@ -1254,11 +1254,11 @@ type outputSubpacket struct {
 	contents      []byte
 }
 
-func (sig *Signature) buildSubpackets(issuer PublicKey) (subpackets []outputSubpacket, err error) {
+func (sig *Signature) buildSubpackets(issuer PublicKey, config *Config) (subpackets []outputSubpacket, err error) {
 	creationTime := make([]byte, 4)
 	binary.BigEndian.PutUint32(creationTime, uint32(sig.CreationTime.Unix()))
 	// Signature Creation Time
-	subpackets = append(subpackets, outputSubpacket{true, creationTimeSubpacket, true, creationTime})
+	subpackets = append(subpackets, outputSubpacket{true, creationTimeSubpacket, !config.GenerateNonCriticalSignatureCreationTime(), creationTime})
 	// Signature Expiration Time
 	if sig.SigLifetimeSecs != nil && *sig.SigLifetimeSecs != 0 {
 		sigLifetime := make([]byte, 4)
@@ -1288,7 +1288,9 @@ func (sig *Signature) buildSubpackets(issuer PublicKey) (subpackets []outputSubp
 	if sig.IssuerKeyId != nil && sig.Version == 4 {
 		keyId := make([]byte, 8)
 		binary.BigEndian.PutUint64(keyId, *sig.IssuerKeyId)
-		subpackets = append(subpackets, outputSubpacket{true, issuerSubpacket, true, keyId})
+		// Note: making this critical breaks RPM <=4.16.
+		// See: https://github.com/ProtonMail/go-crypto/issues/263
+		subpackets = append(subpackets, outputSubpacket{true, issuerSubpacket, false, keyId})
 	}
 	// Notation Data
 	for _, notation := range sig.Notations {
@@ -1355,7 +1357,7 @@ func (sig *Signature) buildSubpackets(issuer PublicKey) (subpackets []outputSubp
 		if sig.FlagGroupKey {
 			flags |= KeyFlagGroupKey
 		}
-		subpackets = append(subpackets, outputSubpacket{true, keyFlagsSubpacket, true, []byte{flags}})
+		subpackets = append(subpackets, outputSubpacket{true, keyFlagsSubpacket, !config.GenerateNonCriticalKeyFlags(), []byte{flags}})
 	}
 	// Signer's User ID
 	if sig.SignerUserId != nil {

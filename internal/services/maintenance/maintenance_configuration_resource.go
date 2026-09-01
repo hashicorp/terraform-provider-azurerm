@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package maintenance
@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/maintenanceconfigurations"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/migration"
@@ -25,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMaintenanceConfiguration() *pluginsdk.Resource {
@@ -246,14 +246,16 @@ func resourceMaintenanceConfigurationCreate(d *pluginsdk.ResourceData, meta inte
 
 	id := maintenanceconfigurations.NewMaintenanceConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_maintenance_configuration", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_maintenance_configuration", id.ID())
+		}
 	}
 
 	scope := maintenanceconfigurations.MaintenanceScope(d.Get("scope").(string))
@@ -279,12 +281,12 @@ func resourceMaintenanceConfigurationCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	configuration := maintenanceconfigurations.MaintenanceConfiguration{
-		Name:     utils.String(id.MaintenanceConfigurationName),
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Name:     pointer.To(id.MaintenanceConfigurationName),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &maintenanceconfigurations.MaintenanceConfigurationProperties{
 			MaintenanceScope:    &scope,
 			Visibility:          &visibility,
-			Namespace:           utils.String("Microsoft.Maintenance"),
+			Namespace:           pointer.To("Microsoft.Maintenance"),
 			MaintenanceWindow:   window,
 			ExtensionProperties: extensionProperties,
 			InstallPatches:      installPatches,
@@ -344,7 +346,7 @@ func resourceMaintenanceConfigurationUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("visibility") {
-		payload.Properties.Visibility = pointer.To(maintenanceconfigurations.Visibility(d.Get("visibility").(string)))
+		payload.Properties.Visibility = pointer.ToEnum[maintenanceconfigurations.Visibility](d.Get("visibility").(string))
 	}
 
 	if d.HasChange("tags") {
@@ -439,11 +441,11 @@ func expandMaintenanceConfigurationWindow(input []interface{}) *maintenanceconfi
 	timeZone := v["time_zone"].(string)
 	recurEvery := v["recur_every"].(string)
 	window := maintenanceconfigurations.MaintenanceWindow{
-		StartDateTime:      utils.String(startDateTime),
-		ExpirationDateTime: utils.String(expirationDateTime),
-		Duration:           utils.String(duration),
-		TimeZone:           utils.String(timeZone),
-		RecurEvery:         utils.String(recurEvery),
+		StartDateTime:      pointer.To(startDateTime),
+		ExpirationDateTime: pointer.To(expirationDateTime),
+		Duration:           pointer.To(duration),
+		TimeZone:           pointer.To(timeZone),
+		RecurEvery:         pointer.To(recurEvery),
 	}
 	return &window
 }
@@ -538,13 +540,13 @@ func expandMaintenanceConfigurationInstallPatchesWindows(input []interface{}) *m
 	}
 	windowsInput := maintenanceconfigurations.InputWindowsParameters{}
 	if v, ok := v["classifications_to_include"]; ok {
-		windowsInput.ClassificationsToInclude = utils.ExpandStringSlice(v.([]interface{}))
+		windowsInput.ClassificationsToInclude = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 	if v, ok := v["kb_numbers_to_exclude"]; ok {
-		windowsInput.KbNumbersToExclude = utils.ExpandStringSlice(v.([]interface{}))
+		windowsInput.KbNumbersToExclude = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 	if v, ok := v["kb_numbers_to_include"]; ok {
-		windowsInput.KbNumbersToInclude = utils.ExpandStringSlice(v.([]interface{}))
+		windowsInput.KbNumbersToInclude = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 	return &windowsInput
 }
@@ -556,15 +558,15 @@ func flattenMaintenanceConfigurationInstallPatchesWindows(input *maintenanceconf
 		output := make(map[string]interface{})
 
 		if classificationsToInclude := v.ClassificationsToInclude; classificationsToInclude != nil {
-			output["classifications_to_include"] = utils.FlattenStringSlice(classificationsToInclude)
+			output["classifications_to_include"] = helpers.FlattenStringSlice(classificationsToInclude)
 		}
 
 		if kbNumbersToExclude := v.KbNumbersToExclude; kbNumbersToExclude != nil {
-			output["kb_numbers_to_exclude"] = utils.FlattenStringSlice(kbNumbersToExclude)
+			output["kb_numbers_to_exclude"] = helpers.FlattenStringSlice(kbNumbersToExclude)
 		}
 
 		if kbNumbersToInclude := v.KbNumbersToInclude; kbNumbersToInclude != nil {
-			output["kb_numbers_to_include"] = utils.FlattenStringSlice(kbNumbersToInclude)
+			output["kb_numbers_to_include"] = helpers.FlattenStringSlice(kbNumbersToInclude)
 		}
 
 		results = append(results, output)
@@ -584,13 +586,13 @@ func expandMaintenanceConfigurationInstallPatchesLinux(input []interface{}) *mai
 	}
 	linuxParameters := maintenanceconfigurations.InputLinuxParameters{}
 	if v, ok := v["classifications_to_include"]; ok {
-		linuxParameters.ClassificationsToInclude = utils.ExpandStringSlice(v.([]interface{}))
+		linuxParameters.ClassificationsToInclude = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 	if v, ok := v["package_names_mask_to_exclude"]; ok {
-		linuxParameters.PackageNameMasksToExclude = utils.ExpandStringSlice(v.([]interface{}))
+		linuxParameters.PackageNameMasksToExclude = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 	if v, ok := v["package_names_mask_to_include"]; ok {
-		linuxParameters.PackageNameMasksToInclude = utils.ExpandStringSlice(v.([]interface{}))
+		linuxParameters.PackageNameMasksToInclude = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 	return &linuxParameters
 }
@@ -601,15 +603,15 @@ func flattenMaintenanceConfigurationInstallPatchesLinux(input *maintenanceconfig
 	if input != nil {
 		classificationsToInclude := make([]interface{}, 0)
 		if input.ClassificationsToInclude != nil {
-			classificationsToInclude = utils.FlattenStringSlice(input.ClassificationsToInclude)
+			classificationsToInclude = helpers.FlattenStringSlice(input.ClassificationsToInclude)
 		}
 		packageNamesMaskToExclude := make([]interface{}, 0)
 		if input.PackageNameMasksToExclude != nil {
-			packageNamesMaskToExclude = utils.FlattenStringSlice(input.PackageNameMasksToExclude)
+			packageNamesMaskToExclude = helpers.FlattenStringSlice(input.PackageNameMasksToExclude)
 		}
 		packageNamesMaskToInclude := make([]interface{}, 0)
 		if input.PackageNameMasksToInclude != nil {
-			packageNamesMaskToInclude = utils.FlattenStringSlice(input.PackageNameMasksToInclude)
+			packageNamesMaskToInclude = helpers.FlattenStringSlice(input.PackageNameMasksToInclude)
 		}
 
 		results = append(results, map[string]interface{}{

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -42,11 +42,9 @@ func schemaStreamAnalyticsStreamInputSerialization() *pluginsdk.Schema {
 				},
 
 				"encoding": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(inputs.EncodingUTFEight),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(inputs.PossibleValuesForEncoding(), false),
 				},
 			},
 		},
@@ -77,7 +75,7 @@ func expandStreamAnalyticsStreamInputSerialization(input []interface{}) (inputs.
 		}
 		return inputs.CsvSerialization{
 			Properties: &inputs.CsvSerializationProperties{
-				Encoding:       pointer.To(inputs.Encoding(encoding)),
+				Encoding:       pointer.ToEnum[inputs.Encoding](encoding),
 				FieldDelimiter: pointer.To(fieldDelimiter),
 			},
 		}, nil
@@ -89,12 +87,12 @@ func expandStreamAnalyticsStreamInputSerialization(input []interface{}) (inputs.
 
 		return inputs.JsonSerialization{
 			Properties: &inputs.JsonSerializationProperties{
-				Encoding: pointer.To(inputs.Encoding(encoding)),
+				Encoding: pointer.ToEnum[inputs.Encoding](encoding),
 			},
 		}, nil
 	}
 
-	return nil, fmt.Errorf("Unsupported Input Type %q", inputType)
+	return nil, fmt.Errorf("unsupported Input Type %q", inputType)
 }
 
 func expandStreamAnalyticsStreamInputSerializationTyped(serialization []Serialization) (inputs.Serialization, error) {
@@ -121,7 +119,7 @@ func expandStreamAnalyticsStreamInputSerializationTyped(serialization []Serializ
 		}
 		return inputs.CsvSerialization{
 			Properties: &inputs.CsvSerializationProperties{
-				Encoding:       pointer.To(inputs.Encoding(encoding)),
+				Encoding:       pointer.ToEnum[inputs.Encoding](encoding),
 				FieldDelimiter: pointer.To(fieldDelimiter),
 			},
 		}, nil
@@ -133,12 +131,12 @@ func expandStreamAnalyticsStreamInputSerializationTyped(serialization []Serializ
 
 		return inputs.JsonSerialization{
 			Properties: &inputs.JsonSerializationProperties{
-				Encoding: pointer.To(inputs.Encoding(encoding)),
+				Encoding: pointer.ToEnum[inputs.Encoding](encoding),
 			},
 		}, nil
 	}
 
-	return nil, fmt.Errorf("Unsupported Input Type %q", inputType)
+	return nil, fmt.Errorf("unsupported Input Type %q", inputType)
 }
 
 func flattenStreamAnalyticsStreamInputSerialization(input inputs.Serialization) []interface{} {

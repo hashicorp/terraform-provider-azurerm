@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics_test
@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/streamingjobs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StreamAnalyticsJobScheduleResource struct{}
@@ -97,7 +97,7 @@ func (r StreamAnalyticsJobScheduleResource) Exists(ctx context.Context, client *
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(resp.Model != nil && resp.Model.Properties.OutputStartTime != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Properties.OutputStartTime != nil), nil
 }
 
 func (r StreamAnalyticsJobScheduleResource) basic(data acceptance.TestData) string {
@@ -178,16 +178,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "chonks"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_blob" "test" {
-  name                   = "chonkdata"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source                 = "testdata/chonkdata.csv"
+  name                 = "chonkdata"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Block"
+  source               = "testdata/chonkdata.csv"
 }
 
 resource "azurerm_stream_analytics_job" "test" {
@@ -203,10 +202,10 @@ resource "azurerm_stream_analytics_job" "test" {
   streaming_units                          = 6
 
   transformation_query = <<QUERY
-    SELECT *
-    INTO [acctestoutputchonk]
-    FROM [acctestinputchonk]
-QUERY
+	    SELECT *
+	    INTO [acctestoutputchonk]
+	    FROM [acctestinputchonk]
+	QUERY
 }
 
 resource "azurerm_stream_analytics_stream_input_blob" "test" {
@@ -242,5 +241,5 @@ resource "azurerm_stream_analytics_output_blob" "test" {
     type = "Avro"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -6,16 +6,11 @@ package validate
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func OrchestratedVirtualMachineScaleSetPublicIPSku(input interface{}, key string) (warnings []string, errors []error) {
-	v, ok := input.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
-	}
-
+func OrchestratedVirtualMachineScaleSetPublicIPSku(input interface{}, key string) ([]string, []error) {
 	publicIpSkus := []string{
 		fmt.Sprintf("%s_%s", string(virtualmachinescalesets.PublicIPAddressSkuNameBasic), string(virtualmachinescalesets.PublicIPAddressSkuTierRegional)),
 		fmt.Sprintf("%s_%s", string(virtualmachinescalesets.PublicIPAddressSkuNameStandard), string(virtualmachinescalesets.PublicIPAddressSkuTierRegional)),
@@ -23,12 +18,5 @@ func OrchestratedVirtualMachineScaleSetPublicIPSku(input interface{}, key string
 		fmt.Sprintf("%s_%s", string(virtualmachinescalesets.PublicIPAddressSkuNameStandard), string(virtualmachinescalesets.PublicIPAddressSkuTierGlobal)),
 	}
 
-	for _, sku := range publicIpSkus {
-		if v == sku {
-			return
-		}
-	}
-
-	errors = append(errors, fmt.Errorf("%q is not valid, expected to be one of %+v, got %q", key, publicIpSkus, v))
-	return
+	return validation.StringInSlice(publicIpSkus, false)(input, key)
 }

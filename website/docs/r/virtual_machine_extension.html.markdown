@@ -54,7 +54,7 @@ resource "azurerm_linux_virtual_machine" "example" {
   name                = "example-machine"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  size                = "Standard_F2"
+  size                = "Standard_D4_v5"
   admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.example.id,
@@ -98,7 +98,7 @@ SETTINGS
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -157,11 +157,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Virtual Machine Extension.
-* `update` - (Defaults to 30 minutes) Used when updating the Virtual Machine Extension.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Extension.
+* `update` - (Defaults to 30 minutes) Used when updating the Virtual Machine Extension.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Virtual Machine Extension.
 
 ## Import
@@ -171,3 +171,9 @@ Virtual Machine Extensions can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_virtual_machine_extension.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/virtualMachines/myVM/extensions/extensionName
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Compute` - 2024-03-01

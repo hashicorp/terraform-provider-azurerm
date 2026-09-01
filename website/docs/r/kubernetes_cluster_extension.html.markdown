@@ -104,7 +104,7 @@ An `aks_assigned_identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Kubernetes Cluster Extension.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kubernetes Cluster Extension.
@@ -118,3 +118,9 @@ Kubernetes Cluster Extension can be imported using the `resource id` for differe
 ```shell
 terraform import azurerm_kubernetes_cluster_extension.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.ContainerService/managedClusters/cluster1/providers/Microsoft.KubernetesConfiguration/extensions/extension1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.KubernetesConfiguration` - 2024-11-01

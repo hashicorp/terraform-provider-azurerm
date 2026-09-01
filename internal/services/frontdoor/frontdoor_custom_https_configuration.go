@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package frontdoor
@@ -12,13 +12,10 @@ import (
 func schemaCustomHttpsConfiguration() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"certificate_source": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(frontdoors.FrontDoorCertificateSourceFrontDoor),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(frontdoors.FrontDoorCertificateSourceAzureKeyVault),
-				string(frontdoors.FrontDoorCertificateSourceFrontDoor),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(frontdoors.FrontDoorCertificateSourceFrontDoor),
+			ValidateFunc: validation.StringInSlice(frontdoors.PossibleValuesForFrontDoorCertificateSource(), false),
 		},
 		"minimum_tls_version": {
 			Type:     pluginsdk.TypeString,

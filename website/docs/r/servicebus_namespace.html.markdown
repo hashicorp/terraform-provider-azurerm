@@ -34,7 +34,7 @@ resource "azurerm_servicebus_namespace" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Is public network access enabled for the Service Bus Namespace? Defaults to `true`.
 
-* `minimum_tls_version` - (Optional) The minimum supported TLS version for this Service Bus Namespace. Valid values are: `1.0`, `1.1` and `1.2`. Defaults to `1.2`.
+* `minimum_tls_version` - (Optional) The minimum supported TLS version for this Service Bus Namespace. The only possible value is `1.2`. Defaults to `1.2`.
 
 ~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
 
@@ -159,11 +159,11 @@ A `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Service Bus Namespace.
-* `update` - (Defaults to 30 minutes) Used when updating the Service Bus Namespace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Service Bus Namespace.
+* `update` - (Defaults to 30 minutes) Used when updating the Service Bus Namespace.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Service Bus Namespace.
 
 ## Import
@@ -173,3 +173,9 @@ Service Bus Namespace can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_servicebus_namespace.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ServiceBus/namespaces/sbns1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ServiceBus` - 2024-01-01

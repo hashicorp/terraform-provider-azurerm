@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+// lintignore:V001 // this validates a map of metadata keys, not a single string
 func MetaDataKeys(value interface{}, _ string) (warnings []string, errors []error) {
 	v, ok := value.(map[string]interface{})
 	if !ok {
@@ -24,7 +25,7 @@ func MetaDataKeys(value interface{}, _ string) (warnings []string, errors []erro
 		// must begin with a letter, underscore
 		// the rest: letters, digits and underscores
 		if !regexp.MustCompile(`^([a-z_]{1}[a-z0-9_]{1,})$`).MatchString(k) {
-			errors = append(errors, fmt.Errorf("MetaData must start with letters or an underscores and be all lowercase. Got %q.", k))
+			errors = append(errors, fmt.Errorf("'MetaData' must start with letters or an underscores and be all lowercase. Got %q", k))
 		}
 	}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loadbalancer
@@ -10,11 +10,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -96,7 +97,9 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if exists {
 		if id.LoadBalancingRuleName == *existingRule.Name {
 			if d.IsNewResource() {
-				return tf.ImportAsExistsError("azurerm_lb_rule", *existingRule.Id)
+				if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					return tf.ImportAsExistsError("azurerm_lb_rule", *existingRule.Id)
+				}
 			}
 
 			// this rule is being updated/reapplied remove old copy from the slice
@@ -106,12 +109,16 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	loadBalancer.Model.Properties.LoadBalancingRules = &lbRules
 
-	err = client.CreateOrUpdateThenPoll(ctx, plbId, *loadBalancer.Model)
-	if err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, plbId, *loadBalancer.Model, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, plbId, *loadBalancer.Model); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceArmLoadBalancerRuleRead(d, meta)
 }
@@ -149,8 +156,8 @@ func resourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface{}
 
 		if props := config.Properties; props != nil {
 			d.Set("disable_outbound_snat", pointer.From(props.DisableOutboundSnat))
-			d.Set("enable_floating_ip", pointer.From(props.EnableFloatingIP))
-			d.Set("enable_tcp_reset", pointer.From(props.EnableTcpReset))
+			d.Set("floating_ip_enabled", pointer.From(props.EnableFloatingIP))
+			d.Set("tcp_reset_enabled", pointer.From(props.EnableTcpReset))
 			d.Set("protocol", string(props.Protocol))
 			d.Set("backend_port", int(pointer.From(props.BackendPort)))
 
@@ -247,8 +254,7 @@ func resourceArmLoadBalancerRuleDelete(d *pluginsdk.ResourceData, meta interface
 				lbRules = append(lbRules[:index], lbRules[index+1:]...)
 				props.LoadBalancingRules = &lbRules
 
-				err := client.CreateOrUpdateThenPoll(ctx, plbId, *model)
-				if err != nil {
+				if err := client.CreateOrUpdateThenPoll(ctx, plbId, *model); err != nil {
 					return fmt.Errorf("Creating/Updating %s: %+v", id, err)
 				}
 			}
@@ -263,8 +269,8 @@ func expandAzureRmLoadBalancerRule(d *pluginsdk.ResourceData, lb *loadbalancers.
 		Protocol:            loadbalancers.TransportProtocol(d.Get("protocol").(string)),
 		FrontendPort:        int64(d.Get("frontend_port").(int)),
 		BackendPort:         pointer.To(int64(d.Get("backend_port").(int))),
-		EnableFloatingIP:    pointer.To(d.Get("enable_floating_ip").(bool)),
-		EnableTcpReset:      pointer.To(d.Get("enable_tcp_reset").(bool)),
+		EnableFloatingIP:    pointer.To(d.Get("floating_ip_enabled").(bool)),
+		EnableTcpReset:      pointer.To(d.Get("tcp_reset_enabled").(bool)),
 		DisableOutboundSnat: pointer.To(d.Get("disable_outbound_snat").(bool)),
 	}
 
@@ -273,7 +279,7 @@ func expandAzureRmLoadBalancerRule(d *pluginsdk.ResourceData, lb *loadbalancers.
 	}
 
 	if v := d.Get("load_distribution").(string); v != "" {
-		properties.LoadDistribution = pointer.To(loadbalancers.LoadDistribution(v))
+		properties.LoadDistribution = pointer.ToEnum[loadbalancers.LoadDistribution](v)
 	}
 
 	// TODO: ensure these ID's are consistent
@@ -326,7 +332,7 @@ func expandAzureRmLoadBalancerRule(d *pluginsdk.ResourceData, lb *loadbalancers.
 }
 
 func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
-	resource := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -391,17 +397,16 @@ func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
-		"enable_floating_ip": {
+		"floating_ip_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
-		"enable_tcp_reset": {
+		"tcp_reset_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
+			Default:  false,
 		},
 
 		"disable_outbound_snat": {
@@ -423,6 +428,4 @@ func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
 			Default:  string(loadbalancers.LoadDistributionDefault),
 		},
 	}
-
-	return resource
 }

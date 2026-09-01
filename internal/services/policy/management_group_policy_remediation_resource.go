@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	managmentGroupParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
@@ -23,11 +24,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmManagementGroupPolicyRemediation() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceArmManagementGroupPolicyRemediationCreateUpdate,
 		Read:   resourceArmManagementGroupPolicyRemediationRead,
 		Update: resourceArmManagementGroupPolicyRemediationCreateUpdate,
@@ -64,6 +64,7 @@ func resourceArmManagementGroupPolicyRemediation() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				// TODO: remove this suppression when github issue https://github.com/Azure/azure-rest-api-specs/issues/8353 is addressed
+				// Additional issue since #8353 was closed: https://github.com/Azure/azure-rest-api-specs/issues/37823
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc:     validate.PolicyAssignmentID,
 			},
@@ -98,11 +99,13 @@ func resourceArmManagementGroupPolicyRemediation() *pluginsdk.Resource {
 			"policy_definition_reference_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				// The API does not honour the provided casing, instead returning values in all lowercase
+				// https://github.com/Azure/azure-rest-api-specs/issues/37823
+				DiffSuppressFunc:      suppress.CaseDifference,
+				DiffSuppressOnRefresh: true,
 			},
 		},
 	}
-
-	return resource
 }
 
 func resourceArmManagementGroupPolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -117,21 +120,23 @@ func resourceArmManagementGroupPolicyRemediationCreateUpdate(d *pluginsdk.Resour
 	id := remediations.NewProviders2RemediationID(managementID.Name, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.GetAtManagementGroup(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.GetAtManagementGroup(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
+				}
 			}
-		}
-		if existing.Model != nil {
-			return tf.ImportAsExistsError("azurerm_management_group_policy_remediation", id.ID())
+			if existing.Model != nil {
+				return tf.ImportAsExistsError("azurerm_management_group_policy_remediation", id.ID())
+			}
 		}
 	}
 
 	var parameters remediations.Remediation
 	props := &remediations.RemediationProperties{
 		Filters: &remediations.RemediationFilters{
-			Locations: utils.ExpandStringSlice(d.Get("location_filters").([]interface{})),
+			Locations: helpers.ExpandStringSlice(d.Get("location_filters").([]interface{})),
 		},
 		PolicyAssignmentId:          pointer.To(d.Get("policy_assignment_id").(string)),
 		PolicyDefinitionReferenceId: pointer.To(d.Get("policy_definition_reference_id").(string)),
@@ -157,7 +162,9 @@ func resourceArmManagementGroupPolicyRemediationCreateUpdate(d *pluginsdk.Resour
 		return fmt.Errorf("creating/updating %s: %+v", id.ID(), err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	return resourceArmManagementGroupPolicyRemediationRead(d, meta)
 }
@@ -189,7 +196,7 @@ func resourceArmManagementGroupPolicyRemediationRead(d *pluginsdk.ResourceData, 
 	if props := resp.Model.Properties; props != nil {
 		locations := make([]interface{}, 0)
 		if filters := props.Filters; filters != nil {
-			locations = utils.FlattenStringSlice(filters.Locations)
+			locations = helpers.FlattenStringSlice(filters.Locations)
 		}
 		if err := d.Set("location_filters", locations); err != nil {
 			return fmt.Errorf("setting `location_filters`: %+v", err)
@@ -228,7 +235,8 @@ func resourceArmManagementGroupPolicyRemediationDelete(d *pluginsdk.ResourceData
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if err := waitForRemediationToDelete(ctx, existing.Model.Properties, id.ID(), d.Timeout(pluginsdk.TimeoutDelete),
+	if err := waitForRemediationToDelete(
+		ctx, existing.Model.Properties, id.ID(), d.Timeout(pluginsdk.TimeoutDelete),
 		func() error {
 			_, err := client.CancelAtManagementGroup(ctx, *id)
 			return err

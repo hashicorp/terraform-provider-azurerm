@@ -36,11 +36,12 @@ resource "azurerm_signalr_service" "example" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                = "example-keyvault"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "example-keyvault"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -101,7 +102,7 @@ resource "azurerm_signalr_service_custom_domain" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -123,7 +124,7 @@ The following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the custom domain of the SignalR service
 * `read` - (Defaults to 5 minutes) Used when retrieving the custom domain of the SignalR service
@@ -136,3 +137,9 @@ Custom Domain for a SignalR service can be imported using the `resource id`, e.g
 ```shell
 terraform import azurerm_signalr_service_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/signalR/signalr1/customDomains/customDomain1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.SignalRService` - 2024-03-01

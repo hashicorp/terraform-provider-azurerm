@@ -40,7 +40,7 @@ resource "azurerm_bot_channel_directline" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -80,6 +80,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The Bot Channel ID.
 
+* `extension_key_1` - The first key for Directline App Service Extension.
+
+* `extension_key_2` - The second key for Directline App Service Extension.
+
 ---
 
 A `site` block exports the following:
@@ -92,11 +96,11 @@ A `site` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Directline Channel.
-* `update` - (Defaults to 30 minutes) Used when updating the Directline Channel.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Directline Channel.
+* `update` - (Defaults to 30 minutes) Used when updating the Directline Channel.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Directline Channel.
 
 ## Import

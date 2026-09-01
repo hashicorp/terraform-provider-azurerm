@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/customipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/customipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -24,7 +24,7 @@ const (
 	ipv6TestCidr = "2620:10c:5001::/48"
 )
 
-func TestAccCustomIpPrefixV4(t *testing.T) {
+func TestAccCustomIpPrefix_v4(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"ipv4": {
 			"commissioned":   testAccCustomIpPrefix_ipv4,
@@ -33,7 +33,7 @@ func TestAccCustomIpPrefixV4(t *testing.T) {
 	})
 }
 
-func TestAccCustomIpPrefixV6(t *testing.T) {
+func TestAccCustomIpPrefix_v6(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"ipv6": {
 			"commissioned": testAccCustomIpPrefix_ipv6,
@@ -131,7 +131,7 @@ func (CustomIpPrefixResource) Exists(ctx context.Context, client *clients.Client
 		return nil, err
 	}
 
-	resp, err := client.Network.Client.CustomIPPrefixes.Get(ctx, *id, customipprefixes.DefaultGetOperationOptions())
+	resp, err := client.Network.CustomIPPrefixes.Get(ctx, *id, customipprefixes.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil

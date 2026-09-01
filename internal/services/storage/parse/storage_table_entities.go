@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 )
 
 // TODO: tests for this
@@ -39,7 +39,7 @@ func (id StorageTableEntitiesId) ID() string {
 }
 
 func NewStorageTableEntitiesId(accountName, domainSuffix, tableName, filter string) StorageTableEntitiesId {
-	s := utils.Base64EncodeIfNot(filter)
+	s := helpers.Base64EncodeIfNot(filter)
 	sha := sha1.Sum([]byte(s))
 	filterHash := hex.EncodeToString(sha[:])
 	return StorageTableEntitiesId{

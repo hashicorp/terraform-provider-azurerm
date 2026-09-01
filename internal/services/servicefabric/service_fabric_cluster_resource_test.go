@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicefabric_test
@@ -8,18 +8,18 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabric/2021-06-01/cluster"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ServiceFabricClusterResource struct{}
 
-func TestAccAzureRMServiceFabricCluster_basic(t *testing.T) {
+func TestAccServiceFabricCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -44,7 +44,7 @@ func TestAccAzureRMServiceFabricCluster_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_basicNodeTypeUpdate(t *testing.T) {
+func TestAccServiceFabricCluster_basicNodeTypeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -86,7 +86,7 @@ func TestAccAzureRMServiceFabricCluster_basicNodeTypeUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_requiresImport(t *testing.T) {
+func TestAccServiceFabricCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -111,7 +111,7 @@ func TestAccAzureRMServiceFabricCluster_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_manualClusterCodeVersion(t *testing.T) {
+func TestAccServiceFabricCluster_manualClusterCodeVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	codeVersion := "10.1.1541.9590"
 	r := ServiceFabricClusterResource{}
@@ -137,7 +137,7 @@ func TestAccAzureRMServiceFabricCluster_manualClusterCodeVersion(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_manualLatest(t *testing.T) {
+func TestAccServiceFabricCluster_manualLatest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -154,7 +154,7 @@ func TestAccAzureRMServiceFabricCluster_manualLatest(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_addOnFeatures(t *testing.T) {
+func TestAccServiceFabricCluster_addOnFeatures(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -170,7 +170,7 @@ func TestAccAzureRMServiceFabricCluster_addOnFeatures(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_certificate(t *testing.T) {
+func TestAccServiceFabricCluster_certificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -191,7 +191,7 @@ func TestAccAzureRMServiceFabricCluster_certificate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_reverseProxyCertificate(t *testing.T) {
+func TestAccServiceFabricCluster_reverseProxyCertificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -216,7 +216,7 @@ func TestAccAzureRMServiceFabricCluster_reverseProxyCertificate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_reverseProxyNotSet(t *testing.T) {
+func TestAccServiceFabricCluster_reverseProxyNotSet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -242,7 +242,7 @@ func TestAccAzureRMServiceFabricCluster_reverseProxyNotSet(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_reverseProxyUpdate(t *testing.T) {
+func TestAccServiceFabricCluster_reverseProxyUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -299,7 +299,7 @@ func TestAccAzureRMServiceFabricCluster_reverseProxyUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_clientCertificateThumbprint(t *testing.T) {
+func TestAccServiceFabricCluster_clientCertificateThumbprint(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -324,7 +324,7 @@ func TestAccAzureRMServiceFabricCluster_clientCertificateThumbprint(t *testing.T
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_withMultipleClientCertificateThumbprints(t *testing.T) {
+func TestAccServiceFabricCluster_withMultipleClientCertificateThumbprints(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -339,7 +339,7 @@ func TestAccAzureRMServiceFabricCluster_withMultipleClientCertificateThumbprints
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_clientCertificateCommonNames(t *testing.T) {
+func TestAccServiceFabricCluster_clientCertificateCommonNames(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -367,7 +367,7 @@ func TestAccAzureRMServiceFabricCluster_clientCertificateCommonNames(t *testing.
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_readerAdminClientCertificateThumbprint(t *testing.T) {
+func TestAccServiceFabricCluster_readerAdminClientCertificateThumbprint(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -394,7 +394,7 @@ func TestAccAzureRMServiceFabricCluster_readerAdminClientCertificateThumbprint(t
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_certificateCommonNames(t *testing.T) {
+func TestAccServiceFabricCluster_certificateCommonNames(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -413,7 +413,7 @@ func TestAccAzureRMServiceFabricCluster_certificateCommonNames(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_reverseProxyCertificateCommonNames(t *testing.T) {
+func TestAccServiceFabricCluster_reverseProxyCertificateCommonNames(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -432,7 +432,7 @@ func TestAccAzureRMServiceFabricCluster_reverseProxyCertificateCommonNames(t *te
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_azureActiveDirectory(t *testing.T) {
+func TestAccServiceFabricCluster_azureActiveDirectory(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -457,7 +457,7 @@ func TestAccAzureRMServiceFabricCluster_azureActiveDirectory(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_azureActiveDirectoryDelete(t *testing.T) {
+func TestAccServiceFabricCluster_azureActiveDirectoryDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -495,7 +495,7 @@ func TestAccAzureRMServiceFabricCluster_azureActiveDirectoryDelete(t *testing.T)
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_diagnosticsConfig(t *testing.T) {
+func TestAccServiceFabricCluster_diagnosticsConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -516,7 +516,7 @@ func TestAccAzureRMServiceFabricCluster_diagnosticsConfig(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_diagnosticsConfigDelete(t *testing.T) {
+func TestAccServiceFabricCluster_diagnosticsConfigDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -544,7 +544,7 @@ func TestAccAzureRMServiceFabricCluster_diagnosticsConfigDelete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_fabricSettings(t *testing.T) {
+func TestAccServiceFabricCluster_fabricSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -563,7 +563,7 @@ func TestAccAzureRMServiceFabricCluster_fabricSettings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_fabricSettingsRemove(t *testing.T) {
+func TestAccServiceFabricCluster_fabricSettingsRemove(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -585,7 +585,7 @@ func TestAccAzureRMServiceFabricCluster_fabricSettingsRemove(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_nodeTypeCustomPorts(t *testing.T) {
+func TestAccServiceFabricCluster_nodeTypeCustomPorts(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -607,7 +607,7 @@ func TestAccAzureRMServiceFabricCluster_nodeTypeCustomPorts(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_nodeTypesMultiple(t *testing.T) {
+func TestAccServiceFabricCluster_nodeTypesMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -629,7 +629,7 @@ func TestAccAzureRMServiceFabricCluster_nodeTypesMultiple(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_nodeTypesUpdate(t *testing.T) {
+func TestAccServiceFabricCluster_nodeTypesUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -651,7 +651,7 @@ func TestAccAzureRMServiceFabricCluster_nodeTypesUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_nodeTypeProperties(t *testing.T) {
+func TestAccServiceFabricCluster_nodeTypeProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -703,7 +703,7 @@ func TestAccServiceFabricCluster_clusterUpgradePolicy(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_tags(t *testing.T) {
+func TestAccServiceFabricCluster_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -720,7 +720,7 @@ func TestAccAzureRMServiceFabricCluster_tags(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_nodeTypesStateless(t *testing.T) {
+func TestAccServiceFabricCluster_nodeTypesStateless(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -743,7 +743,7 @@ func TestAccAzureRMServiceFabricCluster_nodeTypesStateless(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceFabricCluster_zonalUpgradeMode(t *testing.T) {
+func TestAccServiceFabricCluster_zonalUpgradeMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 	r := ServiceFabricClusterResource{}
 
@@ -779,11 +779,11 @@ func (r ServiceFabricClusterResource) Exists(ctx context.Context, client *client
 	resp, err := client.ServiceFabric.ClustersClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id.ID(), err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r ServiceFabricClusterResource) basic(data acceptance.TestData, count int) string {
@@ -1428,7 +1428,7 @@ resource "azuread_application" "cluster_explorer" {
 }
 
 resource "azuread_service_principal" "cluster_explorer" {
-  application_id = azuread_application.cluster_explorer.application_id
+  client_id = azuread_application.cluster_explorer.client_id
 }
 
 resource "azuread_application" "cluster_console" {
@@ -1454,7 +1454,7 @@ resource "azuread_application" "cluster_console" {
   }
 
   required_resource_access {
-    resource_app_id = azuread_application.cluster_explorer.application_id
+    resource_app_id = azuread_application.cluster_explorer.client_id
 
     resource_access {
       id   = "311a71cc-e848-46a1-bdf8-97ff7156d8e6" # sign in and user profile permission ctx https://github.com/Azure/azure-cli/issues/7925
@@ -1464,7 +1464,7 @@ resource "azuread_application" "cluster_console" {
 }
 
 resource "azuread_service_principal" "cluster_console" {
-  application_id = azuread_application.cluster_console.application_id
+  client_id = azuread_application.cluster_console.client_id
 }
 
 resource "azurerm_service_fabric_cluster" "test" {
@@ -1483,8 +1483,8 @@ resource "azurerm_service_fabric_cluster" "test" {
 
   azure_active_directory {
     tenant_id              = data.azurerm_client_config.current.tenant_id
-    cluster_application_id = azuread_application.cluster_explorer.application_id
-    client_application_id  = azuread_application.cluster_console.application_id
+    cluster_application_id = azuread_application.cluster_explorer.client_id
+    client_application_id  = azuread_application.cluster_console.client_id
   }
 
   fabric_settings {

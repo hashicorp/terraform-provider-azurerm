@@ -10,8 +10,6 @@ description: |-
 
 Use this data source to access information about an existing File Share.
 
-~> **Note:** Shared Key authentication will always be used for this data source, as AzureAD authentication is not supported by the Storage API for files.
-
 ## Example Usage
 
 ```hcl
@@ -33,11 +31,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the share.
 
-* `storage_account_name` - (Optional) The name of the storage account in which the share exists. This property is deprecated in favour of `storage_account_id`.
-
-* `storage_account_id` - (Optional) The ID of the storage account in which the share exists.
-
-~> **Note:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
+* `storage_account_id` - (Required) The ID of the storage account in which the share exists.
 
 ## Attributes Reference
 
@@ -48,6 +42,10 @@ The following arguments are supported:
 * `metadata` - A map of custom file share metadata.
 
 * `acl` - One or more acl blocks as defined below.
+
+* `rbac_scope_id` - The ID that is supposed to be used as the `scope` of an `azurerm_role_assignmet` for this File Share.
+
+~> **Note:** Due to historical reason of the File Share service, the `scope` to be used in an `azurerm_role_assignmet` is different than its Resource Manager ID. See: https://github.com/Azure/azure-rest-api-specs/issues/24568.
 
 ---
 
@@ -69,6 +67,12 @@ A `access_policy` block has the following attributes:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Storage` - 2025-08-01

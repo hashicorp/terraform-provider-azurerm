@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -16,24 +16,29 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/gallerysharingupdate"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity
+
 func resourceSharedImageGallery() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSharedImageGalleryCreate,
-		Read:   resourceSharedImageGalleryRead,
-		Update: resourceSharedImageGalleryUpdate,
-		Delete: resourceSharedImageGalleryDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseSharedImageGalleryID(id)
-			return err
-		}),
+		Create:   resourceSharedImageGalleryCreate,
+		Read:     resourceSharedImageGalleryRead,
+		Update:   resourceSharedImageGalleryUpdate,
+		Delete:   resourceSharedImageGalleryDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.SharedImageGalleryId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.SharedImageGalleryId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -67,14 +72,10 @@ func resourceSharedImageGallery() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"permission": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(galleries.GallerySharingPermissionTypesCommunity),
-								string(galleries.GallerySharingPermissionTypesGroups),
-								string(galleries.GallerySharingPermissionTypesPrivate),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(galleries.PossibleValuesForGallerySharingPermissionTypes(), false),
 						},
 
 						"community_gallery": {
@@ -137,15 +138,18 @@ func resourceSharedImageGalleryCreate(d *pluginsdk.ResourceData, meta interface{
 	defer cancel()
 
 	id := commonids.NewSharedImageGalleryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id, galleries.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_shared_image_gallery", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, galleries.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_shared_image_gallery", id.ID())
+		}
 	}
 
 	sharing, permission, err := expandSharedImageGallerySharing(d.Get("sharing").([]interface{}))
@@ -162,8 +166,13 @@ func resourceSharedImageGalleryCreate(d *pluginsdk.ResourceData, meta interface{
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
 	}
 
 	if permission == galleries.GallerySharingPermissionTypesCommunity {
@@ -174,8 +183,6 @@ func resourceSharedImageGalleryCreate(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("enabling community sharing of %s: %+v", id, err)
 		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceSharedImageGalleryRead(d, meta)
 }
@@ -224,7 +231,7 @@ func resourceSharedImageGalleryRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceSharedImageGalleryUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

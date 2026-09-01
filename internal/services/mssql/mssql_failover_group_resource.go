@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
@@ -13,16 +13,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/failovergroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/failovergroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MsSqlFailoverGroupModel struct {
@@ -63,7 +61,7 @@ func (r MsSqlFailoverGroupResource) ModelObject() interface{} {
 }
 
 func (r MsSqlFailoverGroupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.FailoverGroupID
+	return failovergroups.ValidateFailoverGroupID
 }
 
 func (r MsSqlFailoverGroupResource) Arguments() map[string]*pluginsdk.Schema {
@@ -126,12 +124,9 @@ func (r MsSqlFailoverGroupResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"mode": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(failovergroups.ReadWriteEndpointFailoverPolicyAutomatic),
-							string(failovergroups.ReadWriteEndpointFailoverPolicyManual),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(failovergroups.PossibleValuesForReadWriteEndpointFailoverPolicy(), false),
 					},
 					"grace_minutes": {
 						Type:         pluginsdk.TypeInt,
@@ -142,7 +137,7 @@ func (r MsSqlFailoverGroupResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -196,15 +191,17 @@ func (r MsSqlFailoverGroupResource) Create() sdk.ResourceFunc {
 
 			id := failovergroups.NewFailoverGroupID(subscriptionId, serverId.ResourceGroupName, serverId.ServerName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			readOnlyFailoverPolicy := failovergroups.ReadOnlyEndpointFailoverPolicyDisabled
@@ -227,12 +224,11 @@ func (r MsSqlFailoverGroupResource) Create() sdk.ResourceFunc {
 			if rwPolicy := model.ReadWriteEndpointFailurePolicy; len(rwPolicy) > 0 {
 				properties.Properties.ReadWriteEndpoint.FailoverPolicy = failovergroups.ReadWriteEndpointFailoverPolicy(rwPolicy[0].Mode)
 				if rwPolicy[0].Mode == string(failovergroups.ReadWriteEndpointFailoverPolicyAutomatic) {
-					properties.Properties.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes = utils.Int64(rwPolicy[0].GraceMinutes)
+					properties.Properties.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes = pointer.To(rwPolicy[0].GraceMinutes)
 				}
 			}
 
-			err = client.CreateOrUpdateThenPoll(ctx, id, properties)
-			if err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, properties, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -253,13 +249,10 @@ func (r MsSqlFailoverGroupResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Info("Decoding state...")
 			var state MsSqlFailoverGroupModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("updating %s", id)
 
 			readOnlyFailoverPolicy := failovergroups.ReadOnlyEndpointFailoverPolicyDisabled
 			if state.ReadonlyEndpointFailurePolicyEnabled {
@@ -285,8 +278,7 @@ func (r MsSqlFailoverGroupResource) Update() sdk.ResourceFunc {
 			}
 
 			// client.Update doesn't support changing the PartnerServers
-			err = client.CreateOrUpdateThenPoll(ctx, *id, properties)
-			if err != nil {
+			if err = client.CreateOrUpdateThenPoll(ctx, *id, properties); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -368,8 +360,7 @@ func (r MsSqlFailoverGroupResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

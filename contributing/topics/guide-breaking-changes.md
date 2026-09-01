@@ -4,7 +4,7 @@ To keep up with and accommodate the changing pace of Azure, the provider needs t
 
 The `azurerm` provider attempts to be as "surface stable" as possible during minor and patch releases meaning breaking changes are typically only made during major releases, however exceptions are sometimes made for minor releases when the breaking change is deemed necessary or is unavoidable. Terraform users rely on the stability of Terraform providers as not only can configuration changes be costly to make, test, and deploy they can also affect downstream tooling such as modules. Even as part of a major release, breaking changes that are overly large or have little benefit can delay users upgrading to the next major version.
 
-Generally we can safely introduce breaking changes into the provider for the major release using a feature flag. For the next major release that would be the `features.FivePointOh()` flag which is available in the provider today. This guide includes several topics on how to do common deprecations and breaking changes in the provider using this feature flag, as well as additional guidance on how to deal with changing default values in the Azure API. 
+Generally we can safely introduce breaking changes into the provider for the major release using a feature flag. For the next major release that would be the `features.SixPointOh()` flag which is available in the provider today. This guide includes several topics on how to do common deprecations and breaking changes in the provider using this feature flag, as well as additional guidance on how to deal with changing default values in the Azure API. 
 
 Types of breaking changes covered are:
 
@@ -31,7 +31,7 @@ The steps outlined below uses an example resource that is deprecated, but the sa
     var _ sdk.ResourceWithDeprecationAndNoReplacement = ResourceWithNoReplacement{}
     
     func (r ResourceWithNoReplacement) DeprecationMessage() string {
-        return "The `azurerm_resource_with_no_replacement` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider"
+        return "The `azurerm_resource_with_no_replacement` resource has been deprecated and will be removed in v6.0 of the AzureRM Provider"
     }
      
     
@@ -61,7 +61,7 @@ The steps outlined below uses an example resource that is deprecated, but the sa
             Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
             },
             
-            DeprecationMessage: "The `azurerm_example` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider"
+            DeprecationMessage: "The `azurerm_example` resource has been deprecated and will be removed in v6.0 of the AzureRM Provider"
             ...
         }
     }
@@ -76,7 +76,7 @@ The steps outlined below uses an example resource that is deprecated, but the sa
             MySqlFlexibleServerResource{},
         }
         
-        if !features.FivePointOh() {
+        if !features.SixPointOh() {
             resources = append(resources, ExampleResource{})
         }
         
@@ -92,7 +92,7 @@ The steps outlined below uses an example resource that is deprecated, but the sa
     
         }
     
-        if !features.FivePointOh() {
+        if !features.SixPointOh() {
             resources["azurerm_example"] = resourceExample()
         }
     
@@ -100,12 +100,16 @@ The steps outlined below uses an example resource that is deprecated, but the sa
     }
     ```
 
-3. Skip all tests related to the deprecated resource.
+3. Handle tests for the deprecated resource.
 
+    **Option A: Skip tests (when API still works)**
+    
+    If the Azure API can still provision the resource, conditionally skip the tests using the major release feature flag, this allows the tests to run until the next major release is published:
+    
     ```go
     func TestAccExample_basic(t *testing.T) {
-        if features.FivePointOh() {
-            t.Skipf("Skipping since `azurerm_example` is deprecated and will be removed in 5.0")
+        if features.SixPointOh() {
+            t.Skipf("Skipping since `azurerm_example` is deprecated and will be removed in 6.0")
         }
         data := acceptance.BuildTestData(t, "azurerm_example", "test")
         r := ExampleResource{}
@@ -122,7 +126,13 @@ The steps outlined below uses an example resource that is deprecated, but the sa
     }
     ```
 
-4. Update the upgrade guide under `website/docs/5.0-upgrade-guide.markdown`.
+    **Option B: Remove tests (when API no longer works)**
+    
+    If the Azure API can no longer provision new instances of the resource (e.g., the service is retired, the API returns errors, or provisioning is blocked), **remove the test file entirely** rather than skipping the tests.
+    
+    > **Why remove instead of skip?** Skipped tests still need to compile and maintain valid references. When the API no longer works, keeping tests around adds maintenance burden with no benefit. Removing them keeps the codebase clean and avoids confusion about why tests exist but never execute.
+
+4. Update the upgrade guide under `website/docs/6.0-upgrade-guide.markdown`.
 
    ```markdown
    ## Removed Resources
@@ -135,7 +145,7 @@ The steps outlined below uses an example resource that is deprecated, but the sa
 5. Update the resource (or data source) documentation
 
    ```markdown
-   ~> **Note:** The `azurerm_example` resource has been deprecated because [reason here e.g. the service is retiring by 2025-10-10] and will be removed in v5.0 of the AzureRM Provider.
+   ~> **Note:** The `azurerm_example` resource has been deprecated because [reason here e.g. the service is retiring by 2025-10-10] and will be removed in v6.0 of the AzureRM Provider.
    ```
 
 ## Breaking Schema Changes and Deprecations
@@ -172,15 +182,14 @@ The following example follows a fictional resource that will have the following 
       }
    
       // Regardless of the number of arguments changing, the whole schema definition should be updated like the following rather than inline changes for the current schema definition.
-	  // This is to make cleanup easy so we can delete this block when the next major version releases.
-      if !features.FivePointOh() {
+      // This is to make cleanup easy so we can delete this block when the next major version releases.
+      if !features.SixPointOh() {
          args["enable_scaling"] = &pluginsdk.Schema{
             Type:          pluginsdk.TypeBool,
             Optional:      true,
             Computed:      true,
-            Default:       false,
             ConflictsWith: []string{"scaling_enabled"},
-            Deprecated:    "`enable_scaling` has been deprecated in favour of `scaling_enabled` and will be removed in v5.0 of the AzureRM Provider",
+            Deprecated:    "`enable_scaling` has been deprecated in favour of `scaling_enabled` and will be removed in v6.0 of the AzureRM Provider",
          }
          // When renaming a property both properties need to have `Computed` set on them until the old property is removed in the next major release
          // We also need to remember to set ConflictsWith on both the old and the renamed property to ensure users don't set both in their config
@@ -188,7 +197,6 @@ The following example follows a fictional resource that will have the following 
             Type:          pluginsdk.TypeBool,
             Optional:      true,
             Computed:      true,
-            Default:       false,
             ConflictsWith: []string{"enable_scaling"},
          }
          
@@ -200,7 +208,23 @@ The following example follows a fictional resource that will have the following 
    ```
    > **Note:** In the past we've accepted in-lined anonymous functions in a property's schema definition to conditionally change the default value, validation function etc. these will no longer be accepted in the provider. This is a deliberate decision to reduce the variation in how deprecations are done in the provider and also simplifies the clean-up effort of feature flagged code after the major release.
 
-2. Update the Create/Read/Update methods if necessary.
+2. Update the Create/Read/Update methods.
+
+   For Create function, you can do: 
+   ```go
+   
+   payload := example.Payload{
+     // ...
+     EnableScaling: pointer.To(model.ScalingEnabled),
+     // ...
+   }
+   
+   if !features.SixPointOh() {
+     if !pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "enable_scaling") {
+       payload.EnableScaling = pointer.To(model.EnableScaling);
+     }
+   }
+   ```
 
 3. Update the test configurations.
 
@@ -210,7 +234,7 @@ The following example follows a fictional resource that will have the following 
 
    ```go
    func (ExampleResource) complete(data acceptance.TestData) string {
-   if !features.FivePointOh() {
+   if !features.SixPointOh() {
         return fmt.Sprintf(`
    provider "azurerm" {
      features {}
@@ -246,7 +270,7 @@ The following example follows a fictional resource that will have the following 
    ```
    > **Note:** Wherever possible, only update the test configuration and avoid updating the test case since changes to the test cases are more involved and higher effort to clean up.
 
-4. Update the upgrade guide under `website/docs/5.0-upgrade-guide.markdown`
+4. Update the upgrade guide under `website/docs/6.0-upgrade-guide.markdown`
    
    Under the appropriate section of the upgrade guide, add a line for the deprecation
    ```markdown
@@ -264,7 +288,7 @@ The following example follows a fictional resource that will have the following 
 
    * The resource documentation should only be updated when a property is undergoing a soft deprecation. In the example above the only update to the resource documentation we need to do is to remove the property `enable_scaling` and add the property `scaling_enabled`.
 
-   * Breaking changes such as the default value changing, or other property behaviour changing in a way that will only be active when the major release has gone out *should not* be added to the documentation since these do not apply yet. Please do not add any `**Note:** This property will do x in 5.0` notes in the documentation. 
+   * Breaking changes such as the default value changing, or other property behaviour changing in a way that will only be active when the major release has gone out *should not* be added to the documentation since these do not apply yet. Please do not add any `**Note:** This property will do x in 6.0` notes in the documentation. 
 
 ## Updating Default Values
 
@@ -368,10 +392,22 @@ func (r SparkResource) Arguments() map[string]*pluginsdk.Schema{
             },
         }
 
-    if !features.FivePointOh() {
-        args["spark_version"].Default = "2.4"
+    // Regardless of the number of arguments changing, the whole schema definition should be updated like the following rather than inline changes for the current schema definition.
+    if !features.SixPointOh() {
+        args["spark_version"] = &pluginsdk.Schema{
+            Type:     pluginsdk.TypeString,
+            Optional: true,
+            Default: "2.4",
+            ValidateFunc: validation.StringInSlice([]string{
+               "2.4",
+               "3.1",
+               "3.2",
+               "3.3",
+               "3.4",
+            }, false),
+        }
     }
-	
+
     return args
 }
 ```
@@ -403,7 +439,7 @@ There are many ways to accidentally add a breaking change when looking at proper
 
 ## Post Release Breaking Change Clean Up
 
-Once the next major release has happened, all blocks of code that were conditionally included for that version (e.g. `if !features.FivePointOh() { ... }`) need to be removed. Most should be fine to simply remove, however there are a few things to watch out for:
+Once the next major release has happened, all blocks of code that were conditionally included for that version (e.g. `if !features.SixPointOh() { ... }`) need to be removed. Most should be fine to simply remove, however there are a few things to watch out for:
 
 1. For typed resources, if you are removing a property, make sure you also remove it from the model(s). The fields should have a `removedInNextMajorVersion` tag. 
 2. For typed resources, there may be properties that were only included once the major version was released, make sure you remove the `addedInNextMajorVersion` tag from these properties in the model(s).

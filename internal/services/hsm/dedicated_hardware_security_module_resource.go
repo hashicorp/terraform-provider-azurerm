@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package hsm
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -18,11 +19,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDedicatedHardwareSecurityModule() *pluginsdk.Resource {
@@ -57,18 +58,10 @@ func resourceDedicatedHardwareSecurityModule() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(dedicatedhsms.SkuNameSafeNetLunaNetworkHSMASevenNineZero),
-					string(dedicatedhsms.SkuNamePayShieldOneZeroKLMKOneCPSSixZero),
-					string(dedicatedhsms.SkuNamePayShieldOneZeroKLMKOneCPSTwoFiveZero),
-					string(dedicatedhsms.SkuNamePayShieldOneZeroKLMKOneCPSTwoFiveZeroZero),
-					string(dedicatedhsms.SkuNamePayShieldOneZeroKLMKTwoCPSSixZero),
-					string(dedicatedhsms.SkuNamePayShieldOneZeroKLMKTwoCPSTwoFiveZero),
-					string(dedicatedhsms.SkuNamePayShieldOneZeroKLMKTwoCPSTwoFiveZeroZero),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(dedicatedhsms.PossibleValuesForSkuName(), false),
 			},
 
 			"network_profile": {
@@ -147,14 +140,17 @@ func resourceDedicatedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, me
 	defer cancel()
 
 	id := dedicatedhsms.NewDedicatedHSMID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.DedicatedHsmGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.DedicatedHsmGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_dedicated_hardware_security_module", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_dedicated_hardware_security_module", id.ID())
+		}
 	}
 
 	skuName := dedicatedhsms.SkuName(d.Get("sku_name").(string))
@@ -177,7 +173,7 @@ func resourceDedicatedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, me
 	}
 
 	if v, ok := d.GetOk("stamp_id"); ok {
-		parameters.Properties.StampId = utils.String(v.(string))
+		parameters.Properties.StampId = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("zones"); ok {
@@ -187,7 +183,7 @@ func resourceDedicatedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, me
 		}
 	}
 
-	if err := client.DedicatedHsmCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.DedicatedHsmCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -296,7 +292,7 @@ func expandDedicatedHsmNetworkProfile(input []interface{}) *dedicatedhsms.Networ
 
 	result := dedicatedhsms.NetworkProfile{
 		Subnet: &dedicatedhsms.ApiEntityReference{
-			Id: utils.String(v["subnet_id"].(string)),
+			Id: pointer.To(v["subnet_id"].(string)),
 		},
 		NetworkInterfaces: expandDedicatedHsmNetworkInterfacePrivateIPAddresses(v["network_interface_private_ip_addresses"].(*pluginsdk.Set).List()),
 	}
@@ -310,7 +306,7 @@ func expandDedicatedHsmNetworkInterfacePrivateIPAddresses(input []interface{}) *
 	for _, item := range input {
 		if item != nil {
 			results = append(results, dedicatedhsms.NetworkInterface{
-				PrivateIPAddress: utils.String(item.(string)),
+				PrivateIPAddress: pointer.To(item.(string)),
 			})
 		}
 	}

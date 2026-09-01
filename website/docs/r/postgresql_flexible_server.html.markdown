@@ -34,7 +34,9 @@ resource "azurerm_subnet" "example" {
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.2.0/24"]
-  service_endpoints    = ["Microsoft.Storage"]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
   delegation {
     name = "fs"
     service_delegation {
@@ -51,11 +53,10 @@ resource "azurerm_private_dns_zone" "example" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "example" {
-  name                  = "exampleVnetZone.com"
-  private_dns_zone_name = azurerm_private_dns_zone.example.name
-  virtual_network_id    = azurerm_virtual_network.example.id
-  resource_group_name   = azurerm_resource_group.example.name
-  depends_on            = [azurerm_subnet.example]
+  name                = "exampleVnetZone.com"
+  private_dns_zone_id = azurerm_private_dns_zone.example.id
+  virtual_network_id  = azurerm_virtual_network.example.id
+  depends_on          = [azurerm_subnet.example]
 }
 
 resource "azurerm_postgresql_flexible_server" "example" {
@@ -93,7 +94,7 @@ The following arguments are supported:
 
 * `administrator_login` - (Optional) The Administrator login for the PostgreSQL Flexible Server. Required when `create_mode` is `Default` and `authentication.password_auth_enabled` is `true`.
 
--> **Note:** Once `administrator_login` is specified, changing this forces a new PostgreSQL Flexible Server to be created.
+-> **Note:** Once `administrator_login` is specified, changing this forces a new PostgreSQL Flexible Server to be created. Setting it back to `null` has no effect - since this property is computed, Terraform will report no changes and the previously configured value will be retained in state and on the server.
 
 -> **Note:** To create with `administrator_login` specified or update with it first specified , `authentication.password_auth_enabled` must be set to `true`.
 
@@ -113,7 +114,9 @@ The following arguments are supported:
 
 * `geo_redundant_backup_enabled` - (Optional) Is Geo-Redundant backup enabled on the PostgreSQL Flexible Server. Defaults to `false`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-* `create_mode` - (Optional) The creation mode which can be used to restore or replicate existing servers. Possible values are `Default`, `GeoRestore`, `PointInTimeRestore`, `Replica` and `Update`.
+* `create_mode` - (Optional) The creation mode which can be used to restore or replicate existing servers. Possible values are `Default`, `GeoRestore`, `PointInTimeRestore`, `Replica`, `ReviveDropped` and `Update`.
+
+* `cluster` - (Optional) A `cluster` block as defined below.
 
 * `delegated_subnet_id` - (Optional) The ID of the virtual network subnet to create the PostgreSQL Flexible Server. The provided subnet should not have any other resource deployed in it and this subnet will be delegated to the PostgreSQL Flexible Server, if not already delegated. Changing this forces a new PostgreSQL Flexible Server to be created.
 
@@ -143,23 +146,45 @@ The following arguments are supported:
 
 * `auto_grow_enabled` - (Optional) Is the storage auto grow for PostgreSQL Flexible Server enabled? Defaults to `false`.
 
+~> **Note:** `auto_grow_enabled` is not supported when `storage_type` is `PremiumV2_LRS`.
+
 * `storage_mb` - (Optional) The max storage allowed for the PostgreSQL Flexible Server. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4193280`, `4194304`, `8388608`, `16777216` and `33553408`.
 
 ~> **Note:** If the `storage_mb` field is undefined on the initial deployment of the PostgreSQL Flexible Server resource it will default to `32768`. If the `storage_mb` field has been defined and then removed, the `storage_mb` field will retain the previously defined value.
 
 ~> **Note:** The `storage_mb` can only be scaled up, for example, you can scale the `storage_mb` from `32768` to `65536`, but not from `65536` to `32768`. Scaling down `storage_mb` forces a new PostgreSQL Flexible Server to be created.
 
-* `storage_tier` - (Optional) The name of storage performance tier for IOPS of the PostgreSQL Flexible Server. Possible values are `P4`, `P6`, `P10`, `P15`,`P20`, `P30`,`P40`, `P50`,`P60`, `P70` or `P80`. Default value is dependant on the `storage_mb` value. Please see the `storage_tier` defaults based on `storage_mb` table below.
+* `storage_tier` - (Optional) The name of storage performance tier for IOPS of the PostgreSQL Flexible Server. Possible values are `P4`, `P6`, `P10`, `P15`,`P20`, `P30`,`P40`, `P50`,`P60`, `P70` or `P80`. Default value is dependent on the `storage_mb` value. Please see the `storage_tier` defaults based on `storage_mb` table below.
 
 ~> **Note:** The `storage_tier` can be scaled once every 12 hours, this restriction is in place to ensure stability and performance after any changes to your PostgreSQL Flexible Server's configuration.
 
+~> **Note:** `storage_tier` is not supported when `storage_type` is `PremiumV2_LRS`.
+
+* `storage_type` - (Optional) The type of storage used for the PostgreSQL Flexible Server. Possible values are `Premium_LRS` and `PremiumV2_LRS`. Defaults to `Premium_LRS`. Changing this forces a new resource to be created.
+
+~> **Note:** When `storage_type` is set to `PremiumV2_LRS`, the following constraints apply: PostgreSQL versions `11`, `12` and `13` are not supported; `geo_redundant_backup_enabled` with `customer_managed_key` is not supported. Please refer to [Azure Documentation](https://learn.microsoft.com/en-us/azure/postgresql/compute-storage/concepts-storage-premium-ssd-v2#limitations-and-considerations) for more details.
+
+~> **Note:** When `storage_type` is `Premium_LRS`, servers created with a `create_mode` other than `Default` (such as a `Replica` or a restored server) are provisioned with `storage_tier` set to the basic tier for the corresponding `storage_mb`. Setting `storage_tier` to the required value must be performed in a separate update after creation.
+
+* `storage_iops` - (Optional) The maximum IOPS supported for storage. Possible values range between `3000` and `80000`.
+
+~> **Note:** `storage_iops` is required when `storage_type` is `PremiumV2_LRS` and is not supported when `storage_type` is `Premium_LRS`.
+
+* `storage_throughput` - (Optional) The maximum throughput supported for storage in MB/s. Possible values range between `125` and `1200`.
+
+~> **Note:** `storage_throughput` is required when `storage_type` is `PremiumV2_LRS` and is not supported when `storage_type` is `Premium_LRS`.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the PostgreSQL Flexible Server.
 
-* `version` - (Optional) The version of PostgreSQL Flexible Server to use. Possible values are `11`,`12`, `13`, `14`, `15` and `16`. Required when `create_mode` is `Default`.
+* `version` - (Optional) The version of PostgreSQL Flexible Server to use. Possible values are `11`,`12`, `13`, `14`, `15`, `16`, `17`, and `18`. Required when `create_mode` is `Default`.
 
 -> **Note:** Downgrading `version` isn't supported and will force a new PostgreSQL Flexible Server to be created.
 
 -> **Note:** In-place version updates are irreversible and may cause downtime for the PostgreSQL Flexible Server, determined by the size of the instance.
+
+-> **Note:** Major version upgrades are not supported when `cluster` is specified.
+
+-> **Note:** Versions 11, 12, 13 are in Extended Support. Upgrade to a supported version before August 1, 2026 to avoid Extended Support billing. see [Eligible PostgreSQL versions](https://learn.microsoft.com/en-us/azure/postgresql/configure-maintain/extended-support#eligible-postgresql-versions)
 
 * `zone` - (Optional) Specifies the Availability Zone in which the PostgreSQL Flexible Server should be located.
 
@@ -185,11 +210,11 @@ An `authentication` block supports the following:
 
 A `customer_managed_key` block supports the following:
 
-* `key_vault_key_id` - (Required) The versioned ID of the Key Vault Key.
+* `key_vault_key_id` - (Required) The versioned/versionless ID of the Key Vault Key.
 
 * `primary_user_assigned_identity_id` - (Optional) Specifies the primary user managed identity id for a Customer Managed Key. Must be added to `identity.identity_ids`.
 
-* `geo_backup_key_vault_key_id` - (Optional) The versioned ID of the geo backup Key Vault Key.
+* `geo_backup_key_vault_key_id` - (Optional) The versioned/versionless ID of the geo backup Key Vault Key.
 
 ~> **Note:** The key vault in which this key exists must be in the same region as the geo-redundant backup.
 
@@ -203,11 +228,13 @@ A `customer_managed_key` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this PostgreSQL Flexible Server. Possible values are `UserAssigned` and `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this PostgreSQL Flexible Server. Possible values are `UserAssigned`, `SystemAssigned` and `SystemAssigned, UserAssigned`.
+
+~> **Note:** Once `UserAssigned` has been added, removing it forces a new resource to be created.
 
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this PostgreSQL Flexible Server. Required if used together with `customer_managed_key` block.
 
-~> **Note:** `identity_ids` is required when `type` is set to `UserAssigned`.
+~> **Note:** `identity_ids` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -232,6 +259,20 @@ A `high_availability` block supports the following:
 -> **Note:** Azure will automatically assign an Availability Zone if one is not specified. If the PostgreSQL Flexible Server fails-over to the Standby Availability Zone, the `zone` will be updated to reflect the current Primary Availability Zone. You can use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore changes to the `zone` and `high_availability[0].standby_availability_zone` fields should you wish for Terraform to not migrate the PostgreSQL Flexible Server back to it's primary Availability Zone after a fail-over.
 
 -> **Note:** The Availability Zones available depend on the Azure Region that the PostgreSQL Flexible Server is being deployed into - see [the Azure Availability Zones documentation](https://azure.microsoft.com/global-infrastructure/geographies/#geographies) for more information on which Availability Zones are available in each Azure Region.
+
+---
+
+A `cluster` block supports the following:
+
+* `size` - (Required) The number of nodes in the cluster. Must be at least `1` and no greater than `32`.
+
+-> **Note:** The maximum supported cluster size is currently 20 nodes. Support for up to 32 nodes will be available in the near future.
+
+-> **Note:** Cluster support is only available for PostgreSQL version 17 and above, and is not supported when `create_mode` is set to anything other than `Default`.
+
+-> **Note:** The cluster `size` can only be increased, not decreased. Attempting to reduce the cluster size will result in an error.
+
+* `default_database_name` - (Optional) The default database name to be created. Changing this forces a new PostgreSQL Flexible Server to be created.
 
 ---
 
@@ -276,7 +317,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the PostgreSQL Flexible Server.
 * `read` - (Defaults to 5 minutes) Used when retrieving the PostgreSQL Flexible Server.
@@ -290,3 +331,9 @@ PostgreSQL Flexible Servers can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_postgresql_flexible_server.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DBforPostgreSQL/flexibleServers/server1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DBforPostgreSQL` - 2025-08-01

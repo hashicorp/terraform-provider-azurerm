@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datashare_test
@@ -21,7 +21,7 @@ func TestAccDataShareDatasetBlobStorageDataSource_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(DataShareDataSetBlobStorageResource{}),
+				check.That(data.ResourceName).ExistsInAzure(DataShareDatasetBlobStorageResource{}),
 				check.That(data.ResourceName).Key("container_name").Exists(),
 				check.That(data.ResourceName).Key("storage_account.0.name").Exists(),
 				check.That(data.ResourceName).Key("storage_account.0.resource_group_name").Exists(),
@@ -41,5 +41,5 @@ data "azurerm_data_share_dataset_blob_storage" "test" {
   name          = azurerm_data_share_dataset_blob_storage.test.name
   data_share_id = azurerm_data_share_dataset_blob_storage.test.data_share_id
 }
-`, DataShareDataSetBlobStorageResource{}.basicFile(data))
+`, DataShareDatasetBlobStorageResource{}.basicFile(data))
 }

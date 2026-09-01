@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package advisor
@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/advisor/2023-01-01/getrecommendations"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -31,18 +32,29 @@ func dataSourceAdvisorRecommendations() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(getrecommendations.CategoryHighAvailability),
-						string(getrecommendations.CategorySecurity),
-						string(getrecommendations.CategoryPerformance),
-						string(getrecommendations.CategoryCost),
-						string(getrecommendations.CategoryOperationalExcellence),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(getrecommendations.PossibleValuesForCategory(), false),
 				},
 			},
 
 			"filter_by_resource_groups": commonschema.ResourceGroupNameSetOptional(),
+
+			"filter_by_resource_ids": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: azure.ValidateResourceID,
+				},
+			},
+
+			"filter_by_recommendation_type_guids": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
 
 			"recommendations": {
 				Type:     pluginsdk.TypeList,
@@ -55,6 +67,11 @@ func dataSourceAdvisorRecommendations() *pluginsdk.Resource {
 						},
 
 						"description": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
@@ -117,6 +134,12 @@ func dataSourceAdvisorRecommendationsRead(d *pluginsdk.ResourceData, meta interf
 	if resGroups := expandAzureRmAdvisorRecommendationsMapString("ResourceGroup", d.Get("filter_by_resource_groups").(*pluginsdk.Set).List()); resGroups != "" {
 		filterList = append(filterList, resGroups)
 	}
+	if resIDs := expandAzureRmAdvisorRecommendationsMapString("ResourceId", d.Get("filter_by_resource_ids").(*pluginsdk.Set).List()); resIDs != "" {
+		filterList = append(filterList, resIDs)
+	}
+	if recommendationTypeGuids := expandAzureRmAdvisorRecommendationsMapString("RecommendationTypeGuid", d.Get("filter_by_recommendation_type_guids").(*pluginsdk.Set).List()); recommendationTypeGuids != "" {
+		filterList = append(filterList, recommendationTypeGuids)
+	}
 
 	opts := getrecommendations.RecommendationsListOperationOptions{}
 	if len(filterList) > 0 {
@@ -132,7 +155,7 @@ func dataSourceAdvisorRecommendationsRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("setting `recommendations`: %+v", err)
 	}
 
-	d.SetId("avdisor/recommendations/" + time.Now().UTC().String())
+	d.SetId(fmt.Sprintf("advisor/recommendations/%s/%d", id.SubscriptionId, pluginsdk.HashString(strings.Join(filterList, " and "))))
 
 	return nil
 }
@@ -161,6 +184,7 @@ func flattenAzureRmAdvisorRecommendations(recommends []getrecommendations.Resour
 		result = append(result, map[string]interface{}{
 			"category":               string(pointer.From(v.Category)),
 			"description":            description,
+			"id":                     pointer.From(r.Id),
 			"impact":                 string(pointer.From(v.Impact)),
 			"recommendation_name":    pointer.From(r.Name),
 			"recommendation_type_id": pointer.From(v.RecommendationTypeId),

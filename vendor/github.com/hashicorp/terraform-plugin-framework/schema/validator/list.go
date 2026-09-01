@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validator
@@ -35,6 +35,11 @@ type ListRequest struct {
 
 	// ConfigValue contains the value of the attribute for validation from the configuration.
 	ConfigValue types.List
+
+	// ClientCapabilities defines optionally supported protocol features for
+	// schema validation RPCs, such as forward-compatible Terraform
+	// behavior changes.
+	ClientCapabilities ValidateSchemaClientCapabilities
 }
 
 // ListResponse is a response to a ListRequest.

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -9,9 +9,7 @@ import (
 )
 
 func TestWorkspaceName(t *testing.T) {
-	const errEmpty = "cannot be an empty string"
-	const errMinLen = "must be at least 3 characters"
-	const errMaxLen = "must be no more than 64 characters"
+	const errLen = "to be in the range (3 - 64)"
 	const errAllowList = "can contain only alphanumeric characters, underscores, and hyphens"
 
 	cases := []struct {
@@ -42,29 +40,29 @@ func TestWorkspaceName(t *testing.T) {
 		{
 			Name:           "Below minimum character length",
 			Input:          "--",
-			ExpectedErrors: []string{errMinLen},
+			ExpectedErrors: []string{errLen},
 		},
 		{
 			Name:           "Above maximum character length",
 			Input:          "01234567890123456789012345678901234567890123456789012345678901234", // 31 chars
-			ExpectedErrors: []string{errMaxLen},
+			ExpectedErrors: []string{errLen},
 		},
 		{
 			Name:           "Specifically test for emptiness",
 			Input:          "",
-			ExpectedErrors: []string{errEmpty},
+			ExpectedErrors: []string{errLen},
 		},
 
 		// Complex negative cases
 		{
 			Name:           "Too short and non-allowed char",
 			Input:          "*^",
-			ExpectedErrors: []string{errMinLen, errAllowList},
+			ExpectedErrors: []string{errLen, errAllowList},
 		},
 		{
 			Name:           "Too long and non-allowed char",
 			Input:          "0123456789012345678901234567890123456789012345678901234567890123ß",
-			ExpectedErrors: []string{errMaxLen, errAllowList},
+			ExpectedErrors: []string{errLen, errAllowList},
 		},
 	}
 

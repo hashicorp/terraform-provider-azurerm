@@ -62,9 +62,20 @@ func (c IotDpsResourceClient) CreateOrUpdatePrivateEndpointConnection(ctx contex
 
 // CreateOrUpdatePrivateEndpointConnectionThenPoll performs CreateOrUpdatePrivateEndpointConnection then polls until it's completed
 func (c IotDpsResourceClient) CreateOrUpdatePrivateEndpointConnectionThenPoll(ctx context.Context, id PrivateEndpointConnectionId, input PrivateEndpointConnection) error {
+	return c.CreateOrUpdatePrivateEndpointConnectionCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateOrUpdatePrivateEndpointConnectionCallbackThenPoll performs CreateOrUpdatePrivateEndpointConnection, runs the optional callback function, then polls until it's completed
+func (c IotDpsResourceClient) CreateOrUpdatePrivateEndpointConnectionCallbackThenPoll(ctx context.Context, id PrivateEndpointConnectionId, input PrivateEndpointConnection, callback func() error) error {
 	result, err := c.CreateOrUpdatePrivateEndpointConnection(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdatePrivateEndpointConnection: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

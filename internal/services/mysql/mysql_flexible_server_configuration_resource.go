@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mysql
@@ -12,12 +12,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/configurations"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mysql_flexible_server_configuration -service-package-name mysql -test-name characterSetServer -properties "name,resource_group_name,flexible_server_name:server_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
+var mysqlFlexibleServerConfigurationResourceName = "azurerm_mysql_flexible_server_configuration"
 
 func resourceMySQLFlexibleServerConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -26,16 +32,17 @@ func resourceMySQLFlexibleServerConfiguration() *pluginsdk.Resource {
 		Update: resourceMySQLFlexibleServerConfigurationUpdate,
 		Delete: resourceMySQLFlexibleServerConfigurationDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := configurations.ParseConfigurationID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&configurations.ConfigurationId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		},
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&configurations.ConfigurationId{}),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -68,8 +75,6 @@ func resourceMySQLFlexibleServerConfigurationCreate(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM MySQL Configuration creation.")
-
 	payload := configurations.Configuration{
 		Properties: &configurations.ConfigurationProperties{
 			Value: pointer.To(d.Get("value").(string)),
@@ -84,11 +89,15 @@ func resourceMySQLFlexibleServerConfigurationCreate(d *pluginsdk.ResourceData, m
 	locks.ByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
 	defer locks.UnlockByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
 
-	if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
+	if err := client.UpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceMySQLFlexibleServerConfigurationRead(d, meta)
 }
 
@@ -96,8 +105,6 @@ func resourceMySQLFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, m
 	client := meta.(*clients.Client).MySQL.FlexibleServers.Configurations
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for AzureRM MySQL Configuration update.")
 
 	id, err := configurations.ParseConfigurationID(d.Id())
 	if err != nil {
@@ -141,19 +148,23 @@ func resourceMySQLFlexibleServerConfigurationRead(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourceMySQLFlexibleServerConfigurationFlatten(d, id, resp.Model)
+}
+
+func resourceMySQLFlexibleServerConfigurationFlatten(d *pluginsdk.ResourceData, id *configurations.ConfigurationId, dbConfig *configurations.Configuration) error {
 	d.Set("name", id.ConfigurationName)
 	d.Set("server_name", id.FlexibleServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	value := ""
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
+	if dbConfig != nil {
+		if props := dbConfig.Properties; props != nil {
 			value = *props.Value
 		}
 	}
 	d.Set("value", value)
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceMySQLFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {

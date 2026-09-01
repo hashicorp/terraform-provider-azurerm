@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -21,7 +20,7 @@ import (
 const SentinelAlertRuleFusionName = "BuiltInFusion"
 
 func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceSentinelAlertRuleFusionCreate,
 		Read:   resourceSentinelAlertRuleFusionRead,
 		Update: resourceSentinelAlertRuleFusionUpdate,
@@ -100,12 +99,7 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice(
-												[]string{
-													string(alertrules.AlertSeverityHigh),
-													string(alertrules.AlertSeverityMedium),
-													string(alertrules.AlertSeverityLow),
-													string(alertrules.AlertSeverityInformational),
-												},
+												alertrules.PossibleValuesForAlertSeverity(),
 												false,
 											),
 										},
@@ -118,18 +112,6 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["name"] = &pluginsdk.Schema{
-			Deprecated:   "the `name` is deprecated and will be removed in v5.0 version of the provider.",
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			Default:      SentinelAlertRuleFusionName,
-			ValidateFunc: validation.StringIsNotEmpty,
-		}
-	}
-	return resource
 }
 
 func resourceSentinelAlertRuleFusionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -138,9 +120,6 @@ func resourceSentinelAlertRuleFusionCreate(d *pluginsdk.ResourceData, meta inter
 	defer cancel()
 
 	name := SentinelAlertRuleFusionName
-	if !features.FivePointOh() {
-		name = d.Get("name").(string)
-	}
 
 	workspaceID, err := alertrules.ParseWorkspaceID(d.Get("log_analytics_workspace_id").(string))
 	if err != nil {
@@ -244,9 +223,6 @@ func resourceSentinelAlertRuleFusionRead(d *pluginsdk.ResourceData, meta interfa
 
 	workspaceId := alertrules.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
 
-	if !features.FivePointOh() {
-		d.Set("name", id.RuleId)
-	}
 	d.Set("log_analytics_workspace_id", workspaceId.ID())
 
 	if model := resp.Model; model != nil {

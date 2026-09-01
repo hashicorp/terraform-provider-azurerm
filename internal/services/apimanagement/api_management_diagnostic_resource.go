@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -77,14 +77,10 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 			},
 
 			"verbosity": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(diagnostic.VerbosityVerbose),
-					string(diagnostic.VerbosityInformation),
-					string(diagnostic.VerbosityError),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(diagnostic.PossibleValuesForVerbosity(), false),
 			},
 
 			"log_client_ip": {
@@ -94,14 +90,10 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 			},
 
 			"http_correlation_protocol": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(diagnostic.HTTPCorrelationProtocolNone),
-					string(diagnostic.HTTPCorrelationProtocolLegacy),
-					string(diagnostic.HTTPCorrelationProtocolWThreeC),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(diagnostic.PossibleValuesForHTTPCorrelationProtocol(), false),
 			},
 
 			"frontend_request": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
@@ -113,12 +105,9 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 			"backend_response": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
 
 			"operation_name_format": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(diagnostic.OperationNameFormatName),
-					string(diagnostic.OperationNameFormatURL),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(diagnostic.PossibleValuesForOperationNameFormat(), false),
 			},
 		},
 
@@ -143,15 +132,17 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 	id := diagnostic.NewDiagnosticID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("identifier").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_diagnostic", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_api_management_diagnostic", id.ID())
+			}
 		}
 	}
 
@@ -163,7 +154,7 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	if operationNameFormat, ok := d.GetOk("operation_name_format"); ok {
 		if d.Get("identifier") == "applicationinsights" {
-			parameters.Properties.OperationNameFormat = pointer.To(diagnostic.OperationNameFormat(operationNameFormat.(string)))
+			parameters.Properties.OperationNameFormat = pointer.ToEnum[diagnostic.OperationNameFormat](operationNameFormat.(string))
 		}
 	}
 
@@ -181,7 +172,7 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if verbosity, ok := d.GetOk("verbosity"); ok {
-		parameters.Properties.Verbosity = pointer.To(diagnostic.Verbosity(verbosity.(string)))
+		parameters.Properties.Verbosity = pointer.ToEnum[diagnostic.Verbosity](verbosity.(string))
 	}
 
 	//lint:ignore SA1019 SDKv2 migration - staticcheck's own linter directives are currently being ignored under golanci-lint
@@ -190,7 +181,7 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if httpCorrelationProtocol, ok := d.GetOk("http_correlation_protocol"); ok {
-		parameters.Properties.HTTPCorrelationProtocol = pointer.To(diagnostic.HTTPCorrelationProtocol(httpCorrelationProtocol.(string)))
+		parameters.Properties.HTTPCorrelationProtocol = pointer.ToEnum[diagnostic.HTTPCorrelationProtocol](httpCorrelationProtocol.(string))
 	}
 
 	frontendRequest, frontendRequestSet := d.GetOk("frontend_request")
@@ -378,7 +369,7 @@ func expandApiManagementDataMaskingEntityList(input []interface{}) *[]diagnostic
 	for _, v := range input {
 		entity := v.(map[string]interface{})
 		result = append(result, diagnostic.DataMaskingEntity{
-			Mode:  pointer.To(diagnostic.DataMaskingMode(entity["mode"].(string))),
+			Mode:  pointer.ToEnum[diagnostic.DataMaskingMode](entity["mode"].(string)),
 			Value: pointer.To(entity["value"].(string)),
 		})
 	}

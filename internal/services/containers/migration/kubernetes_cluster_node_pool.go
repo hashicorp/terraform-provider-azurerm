@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -7,7 +7,8 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -20,14 +21,14 @@ func (k KubernetesClusterNodePoolV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFu
 		log.Printf("[DEBUG] Migrating ID to correct casing for Kubernetes Cluster")
 
 		originClusterId := rawState["kubernetes_cluster_id"].(string)
-		clusterId, err := parse.ClusterID(originClusterId)
+		clusterId, err := commonids.ParseKubernetesClusterIDInsensitively(originClusterId)
 		if err != nil {
 			return nil, err
 		}
 		rawState["kubernetes_cluster_id"] = clusterId.ID()
 
 		id := rawState["id"].(string)
-		poolId, err := parse.NodePoolID(id)
+		poolId, err := agentpools.ParseAgentPoolIDInsensitively(id)
 		if err != nil {
 			return nil, err
 		}
@@ -144,7 +145,6 @@ func (k KubernetesClusterNodePoolV0ToV1) Schema() map[string]*pluginsdk.Schema {
 						Optional: true,
 					},
 
-					// TODO 4.0: change this to `container_log_max_files`
 					"container_log_max_line": {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,

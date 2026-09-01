@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
@@ -24,9 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -154,7 +153,7 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_key_vault_secret_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: kvValidate.NestedItemIdWithOptionalVersion,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
 			ExactlyOneOf: []string{
 				"storage_account_name",
 				"storage_key_vault_secret_id",
@@ -275,7 +274,7 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"storage_account": helpers.StorageAccountSchema(),
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 
 		"virtual_network_backup_restore_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -452,13 +451,15 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			elasticOrConsumptionPlan := helpers.PlanIsElastic(planSKU) || helpers.PlanIsConsumption(planSKU)
 			sendContentSettings := elasticOrConsumptionPlan && !functionAppSlot.ForceDisableContentShare
 
-			existing, err := client.GetSlot(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Linux %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetSlot(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing Linux %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			subscriptionID := commonids.NewSubscriptionID(subscriptionId)
@@ -525,7 +526,6 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			siteEnvelope := webapps.Site{
 				Location: location.Normalize(functionApp.Model.Location),
 				Tags:     pointer.To(functionAppSlot.Tags),
-				Kind:     pointer.To("functionapp,linux"),
 				Identity: expandedIdentity,
 				Properties: &webapps.SiteProperties{
 					ServerFarmId:             pointer.To(servicePlanId.ID()),
@@ -533,7 +533,7 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 					HTTPSOnly:                pointer.To(functionAppSlot.HttpsOnly),
 					SiteConfig:               siteConfig,
 					ClientCertEnabled:        pointer.To(functionAppSlot.ClientCertEnabled),
-					ClientCertMode:           pointer.To(webapps.ClientCertMode(functionAppSlot.ClientCertMode)),
+					ClientCertMode:           pointer.ToEnum[webapps.ClientCertMode](functionAppSlot.ClientCertMode),
 					DailyMemoryTimeQuota:     pointer.To(functionAppSlot.DailyMemoryTimeQuota),
 					VnetBackupRestoreEnabled: pointer.To(functionAppSlot.VirtualNetworkBackupRestoreEnabled),
 					VnetImagePullEnabled:     pointer.To(functionAppSlot.VnetImagePullEnabled),
@@ -562,7 +562,7 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				siteEnvelope.Properties.ClientCertExclusionPaths = pointer.To(functionAppSlot.ClientCertExclusionPaths)
 			}
 
-			if err := client.CreateOrUpdateSlotThenPoll(ctx, id, siteEnvelope); err != nil {
+			if err := client.CreateOrUpdateSlotCallbackThenPoll(ctx, id, siteEnvelope, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating Linux %s: %+v", id, err)
 			}
 
@@ -629,9 +629,7 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			storageConfig := helpers.ExpandStorageConfig(functionAppSlot.StorageAccounts)
 			if storageConfig.Properties != nil {
 				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id, *storageConfig); err != nil {
-					if err != nil {
-						return fmt.Errorf("setting Storage Accounts for Linux %s: %+v", id, err)
-					}
+					return fmt.Errorf("setting Storage Accounts for Linux %s: %+v", id, err)
 				}
 			}
 
@@ -828,7 +826,6 @@ func (r LinuxFunctionAppSlotResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting Linux %s", *id)
 			delOpts := webapps.DeleteSlotOperationOptions{
 				DeleteEmptyServerFarm: pointer.To(false),
 				DeleteMetrics:         pointer.To(false),
@@ -911,7 +908,7 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
-				model.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(state.ClientCertMode))
+				model.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](state.ClientCertMode)
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
@@ -1065,17 +1062,7 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
 				// (@jackofallops) - in the case of a removal of this block, we need to zero these settings
 				if authUpdate.Properties == nil {
-					authUpdate.Properties = &webapps.SiteAuthSettingsProperties{
-						Enabled:                           pointer.To(false),
-						ClientSecret:                      pointer.To(""),
-						ClientSecretSettingName:           pointer.To(""),
-						ClientSecretCertificateThumbprint: pointer.To(""),
-						GoogleClientSecret:                pointer.To(""),
-						FacebookAppSecret:                 pointer.To(""),
-						GitHubClientSecret:                pointer.To(""),
-						TwitterConsumerSecret:             pointer.To(""),
-						MicrosoftAccountClientSecret:      pointer.To(""),
-					}
+					authUpdate.Properties = helpers.DefaultAuthSettingsProperties()
 				}
 				if _, err := client.UpdateAuthSettingsSlot(ctx, *id, *authUpdate); err != nil {
 					return fmt.Errorf("updating Auth Settings for Linux %s: %+v", id, err)
@@ -1084,6 +1071,10 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("auth_settings_v2") {
 				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
+				// (@toddgiguere) - in the case of a removal of this block, we need to zero these settings
+				if authV2Update.Properties == nil {
+					authV2Update.Properties = helpers.DefaultAuthV2SettingsProperties()
+				}
 				if _, err := client.UpdateAuthSettingsV2Slot(ctx, *id, *authV2Update); err != nil {
 					return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", id, err)
 				}
@@ -1172,8 +1163,7 @@ func (m *LinuxFunctionAppSlotModel) unpackLinuxFunctionAppSettings(input webapps
 
 		case "AzureWebJobsStorage":
 			if strings.HasPrefix(v, "@Microsoft.KeyVault") {
-				trimmed := strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(SecretUri=")
-				m.StorageKeyVaultSecretID = trimmed
+				m.StorageKeyVaultSecretID = strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(SecretUri=")
 			} else {
 				m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
 			}
@@ -1241,7 +1231,7 @@ func (r LinuxFunctionAppSlotResource) CustomizeDiff() sdk.ResourceFunc {
 					return fmt.Errorf("retrieving %s: %+v", functionAppId, err)
 				}
 				if functionAppModel := functionApp.Model; functionAppModel != nil && functionAppModel.Properties != nil {
-					if ase := functionAppModel.Properties.HostingEnvironmentProfile; ase != nil && ase.Id != nil && *(ase.Id) != "" && !newValue.(bool) {
+					if ase := functionAppModel.Properties.HostingEnvironmentProfile; ase != nil && ase.Id != nil && *ase.Id != "" && !newValue.(bool) {
 						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app slot running in an app service environment")
 					}
 				}

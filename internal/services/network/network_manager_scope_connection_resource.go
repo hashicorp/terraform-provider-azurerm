@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -6,10 +6,13 @@ package network
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/scopeconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/scopeconnections"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -101,13 +104,16 @@ func (r ManagerScopeConnectionResource) Create() sdk.ResourceFunc {
 			}
 
 			id := scopeconnections.NewScopeConnectionID(networkManagerId.SubscriptionId, networkManagerId.ResourceGroupName, networkManagerId.NetworkManagerName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			scopeConnection := scopeconnections.ScopeConnection{
@@ -262,32 +268,16 @@ func (r ManagerScopeConnectionResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
-			}
-
 			// https://github.com/Azure/azure-rest-api-specs/issues/23188
 			// confirm the connection is fully deleted
-			stateChangeConf := &pluginsdk.StateChangeConf{
-				Pending: []string{"Exists"},
-				Target:  []string{"NotFound"},
-				Refresh: func() (result interface{}, state string, err error) {
-					resp, err := client.Get(ctx, *id)
-					if err != nil {
-						if response.WasNotFound(resp.HttpResponse) {
-							return "NotFound", "NotFound", nil
-						}
-						return "Error", "Error", err
-					}
-					return resp, "Exists", nil
-				},
-				MinTimeout:                3 * time.Second,
-				ContinuousTargetOccurence: 3,
-				Timeout:                   time.Until(deadline),
-			}
-
-			if _, err = stateChangeConf.WaitForStateContext(ctx); err != nil {
+			poller := custompollers.NewEventualConsistencyPoller(3, func(pollerCtx context.Context) (*http.Response, error) {
+				resp, err := client.Get(pollerCtx, *id)
+				return resp.HttpResponse, err
+			}, &custompollers.EventualConsistencyPollerOptions{
+				Interval:         3 * time.Second,
+				TargetStatusCode: pointer.To(http.StatusNotFound),
+			})
+			if err := poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
 			}
 			return nil

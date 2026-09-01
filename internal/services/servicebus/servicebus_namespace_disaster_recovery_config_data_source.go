@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus
@@ -9,19 +9,16 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/disasterrecoveryconfigs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-10-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/disasterrecoveryconfigs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func dataSourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceServiceBusNamespaceDisasterRecoveryConfigRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -76,34 +73,6 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["namespace_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: namespaces.ValidateNamespaceID,
-			AtLeastOneOf: []string{"resource_group_name", "namespace_name", "namespace_id"},
-		}
-		resource.Schema["namespace_name"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validate.NamespaceName,
-			AtLeastOneOf: []string{"resource_group_name", "namespace_name", "namespace_id"},
-			Deprecated:   "`namespace_name` will be removed in favour of the property `namespace_id` in version 5.0 of the AzureRM Provider.",
-		}
-		resource.Schema["resource_group_name"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: resourcegroups.ValidateName,
-			AtLeastOneOf: []string{"resource_group_name", "namespace_name", "namespace_id"},
-			Deprecated:   "`resource_group_name` will be removed in favour of the property `namespace_id` in version 5.0 of the AzureRM Provider.",
-		}
-	}
-
-	return resource
 }
 
 func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -121,11 +90,6 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resour
 		}
 		resourceGroup = namespaceId.ResourceGroupName
 		namespaceName = namespaceId.NamespaceName
-
-		if !features.FivePointOh() && namespaceId.NamespaceName == "" {
-			resourceGroup = d.Get("resource_group_name").(string)
-			namespaceName = d.Get("namespace_name").(string)
-		}
 	}
 
 	id := disasterrecoveryconfigs.NewDisasterRecoveryConfigID(subscriptionId, resourceGroup, namespaceName, d.Get("name").(string))
@@ -138,11 +102,6 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resour
 	}
 
 	d.Set("name", id.DisasterRecoveryConfigName)
-
-	if !features.FivePointOh() {
-		d.Set("resource_group_name", id.ResourceGroupName)
-		d.Set("namespace_name", id.NamespaceName)
-	}
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {

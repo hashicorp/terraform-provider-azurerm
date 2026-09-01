@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-plugin-framework/action"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -14,6 +15,7 @@ type Registration struct{}
 var (
 	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
 	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+	_ sdk.FrameworkServiceRegistration               = Registration{}
 )
 
 // Name is the name of this Service
@@ -37,6 +39,9 @@ func (r Registration) DataSources() []sdk.DataSource {
 		ManagerDataSource{},
 		ManagerNetworkGroupDataSource{},
 		ManagerConnectivityConfigurationDataSource{},
+		ManagerIpamPoolDataSource{},
+		NetworkSecurityPerimeterProfileDataSource{},
+		NetworkSecurityPerimeterDataSource{},
 		VPNServerConfigurationDataSource{},
 		VirtualNetworkPeeringDataSource{},
 	}
@@ -47,17 +52,26 @@ func (r Registration) Resources() []sdk.Resource {
 		CustomIpPrefixResource{},
 		ManagerAdminRuleResource{},
 		ManagerAdminRuleCollectionResource{},
-		ManagerDeploymentResource{},
 		ManagerConnectivityConfigurationResource{},
+		ManagerDeploymentResource{},
+		ManagerIpamPoolResource{},
+		ManagerIpamPoolStaticCidrResource{},
 		ManagerManagementGroupConnectionResource{},
 		ManagerNetworkGroupResource{},
 		ManagerResource{},
-		ManagerIpamPoolResource{},
+		ManagerRoutingConfigurationResource{},
+		ManagerRoutingRuleCollectionResource{},
+		ManagerRoutingRuleResource{},
 		ManagerScopeConnectionResource{},
 		ManagerSecurityAdminConfigurationResource{},
 		ManagerStaticMemberResource{},
 		ManagerSubscriptionConnectionResource{},
 		ManagerVerifierWorkspaceResource{},
+		ManagerVerifierWorkspaceReachabilityAnalysisIntentResource{},
+		NetworkSecurityPerimeterAccessRuleResource{},
+		NetworkSecurityPerimeterAssociationResource{},
+		NetworkSecurityPerimeterResource{},
+		NetworkSecurityPerimeterProfileResource{},
 		PrivateEndpointApplicationSecurityGroupAssociationResource{},
 		RouteMapResource{},
 		VirtualHubRoutingIntentResource{},
@@ -104,7 +118,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	resources := map[string]*pluginsdk.Resource{
+	return map[string]*pluginsdk.Resource{
 		"azurerm_application_gateway":                      resourceApplicationGateway(),
 		"azurerm_application_security_group":               resourceApplicationSecurityGroup(),
 		"azurerm_bastion_host":                             resourceBastionHost(),
@@ -176,10 +190,42 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_vpn_site":                                  resourceVpnSite(),
 		"azurerm_web_application_firewall_policy":           resourceWebApplicationFirewallPolicy(),
 	}
+}
 
-	if !features.FivePointOh() {
-		resources["azurerm_network_packet_capture"] = resourceNetworkPacketCapture()
+func (r Registration) Actions() []func() action.Action {
+	return []func() action.Action{}
+}
+
+func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
+	return []sdk.FrameworkListWrappedResource{
+		ApplicationGatewayListResource{},
+		ApplicationSecurityGroupListResource{},
+		IpGroupListResource{},
+		NatGatewayListResource{},
+		NetworkDDoSProtectionPlanListResource{},
+		NetworkInterfaceListResource{},
+		NetworkProfileListResource{},
+		NetworkSecurityGroupListResource{},
+		NetworkSecurityRuleListResource{},
+		PrivateEndpointListResource{},
+		PublicIpListResource{},
+		RouteListResource{},
+		RouteTableListResource{},
+		SubnetListResource{},
+		VirtualNetworkListResource{},
+		VirtualNetworkPeeringListResource{},
+		WebApplicationFirewallPolicyListResource{},
 	}
+}
 
-	return resources
+func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource {
+	return []func() ephemeral.EphemeralResource{}
+}
+
+func (r Registration) FrameworkDataSources() []sdk.FrameworkWrappedDataSource {
+	return []sdk.FrameworkWrappedDataSource{}
+}
+
+func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
+	return []sdk.FrameworkWrappedResource{}
 }

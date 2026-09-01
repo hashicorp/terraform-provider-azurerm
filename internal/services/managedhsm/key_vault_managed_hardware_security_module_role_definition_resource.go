@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedhsm
@@ -6,13 +6,15 @@ package managedhsm
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/migration"
@@ -20,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -51,7 +52,7 @@ var (
 // Arguments ...
 // skip `assignable_scopes` field support as https://github.com/Azure/azure-rest-api-specs/issues/23045
 func (r KeyVaultMHSMRoleDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -134,8 +135,6 @@ func (r KeyVaultMHSMRoleDefinitionResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
-
-	return s
 }
 
 func (r KeyVaultMHSMRoleDefinitionResource) Attributes() map[string]*pluginsdk.Schema {
@@ -212,12 +211,15 @@ func (r KeyVaultMHSMRoleDefinitionResource) Create() sdk.ResourceFunc {
 
 			scope := keyvault.RoleScopeGlobal
 			id := parse.NewManagedHSMDataPlaneRoleDefinitionID(endpoint.ManagedHSMName, endpoint.DomainSuffix, string(scope), config.Name)
-			existing, err := client.Get(ctx, id.BaseURI(), id.Scope, id.ManagedHSMName)
-			if !utils.ResponseWasNotFound(existing.Response) {
-				if err != nil {
-					return fmt.Errorf("checking for the existence of an existing %q: %+v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id.BaseURI(), id.Scope, id.ManagedHSMName)
+				if !response.WasNotFound(existing.Response.Response) {
+					if err != nil {
+						return fmt.Errorf("checking for the existence of an existing %q: %+v", id, err)
+					}
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
 			payload := keyvault.RoleDefinitionCreateParameters{
@@ -238,30 +240,14 @@ func (r KeyVaultMHSMRoleDefinitionResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %v", id.ID(), err)
 			}
 
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("internal-error: context has no deadline")
-			}
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending: []string{"InProgress"},
-				Target:  []string{"Found"},
-				Refresh: func() (interface{}, string, error) {
-					result, err := client.Get(ctx, id.BaseURI(), id.Scope, id.RoleDefinitionName)
-					if err != nil {
-						if response.WasNotFound(result.Response.Response) {
-							return result, "InProgress", nil
-						}
-
-						return nil, "Error", err
-					}
-
-					return result, "Found", nil
-				},
-				ContinuousTargetOccurence: 5,
-				PollInterval:              5 * time.Second,
-				Timeout:                   time.Until(deadline),
-			}
-			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+			poller := custompollers.NewEventualConsistencyPoller(5, func(pollerCtx context.Context) (*http.Response, error) {
+				result, err := client.Get(pollerCtx, id.BaseURI(), id.Scope, id.RoleDefinitionName)
+				return result.Response.Response, err
+			}, &custompollers.EventualConsistencyPollerOptions{
+				Interval:              5 * time.Second,
+				RetryErrorStatusCodes: []int{http.StatusNotFound},
+			})
+			if err := poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 			}
 
@@ -320,7 +306,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) Read() sdk.ResourceFunc {
 			}
 
 			if prop := result.RoleDefinitionProperties; prop != nil {
-				state.Description = pointer.ToString(prop.Description)
+				state.Description = pointer.From(prop.Description)
 				state.RoleType = string(prop.RoleType)
 				state.RoleName = pointer.From(prop.RoleName)
 				state.Permission = flattenKeyVaultMHSMRolePermission(prop.Permissions)
@@ -381,8 +367,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) Update() sdk.ResourceFunc {
 				},
 			}
 
-			_, err = client.CreateOrUpdate(ctx, id.BaseURI(), id.Scope, id.RoleDefinitionName, payload)
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id.BaseURI(), id.Scope, id.RoleDefinitionName, payload); err != nil {
 				return fmt.Errorf("updating %s: %v", id.ID(), err)
 			}
 
@@ -426,30 +411,14 @@ func (r KeyVaultMHSMRoleDefinitionResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %+v: %v", id, err)
 			}
 
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("internal-error: context has no deadline")
-			}
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending: []string{"InProgress"},
-				Target:  []string{"NotFound"},
-				Refresh: func() (interface{}, string, error) {
-					result, err := client.Get(ctx, id.BaseURI(), id.Scope, id.RoleDefinitionName)
-					if err != nil {
-						if response.WasNotFound(result.Response.Response) {
-							return result, "NotFound", nil
-						}
-
-						return nil, "Error", err
-					}
-
-					return result, "InProgress", nil
-				},
-				ContinuousTargetOccurence: 5,
-				PollInterval:              5 * time.Second,
-				Timeout:                   time.Until(deadline),
-			}
-			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+			poller := custompollers.NewEventualConsistencyPoller(5, func(pollerCtx context.Context) (*http.Response, error) {
+				result, err := client.Get(pollerCtx, id.BaseURI(), id.Scope, id.RoleDefinitionName)
+				return result.Response.Response, err
+			}, &custompollers.EventualConsistencyPollerOptions{
+				Interval:         5 * time.Second,
+				TargetStatusCode: pointer.To(http.StatusNotFound),
+			})
+			if err := poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 			}
 

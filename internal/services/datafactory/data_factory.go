@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -8,8 +8,10 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
@@ -36,8 +38,8 @@ func expandDataFactoryLinkedServiceIntegrationRuntime(integrationRuntimeName str
 // Because the password isn't returned from the api in the connection string, we'll check all
 // but the password string and return true if they match.
 func azureRmDataFactoryLinkedServiceConnectionStringDiff(_, old string, new string, _ *pluginsdk.ResourceData) bool {
-	oldSplit := strings.Split(strings.ToLower(old), ";")
-	newSplit := strings.Split(strings.ToLower(new), ";")
+	oldSplit := strings.Split(strings.TrimSuffix(strings.ToLower(old), ";"), ";")
+	newSplit := strings.Split(strings.TrimSuffix(strings.ToLower(new), ";"), ";")
 
 	sort.Strings(oldSplit)
 	sort.Strings(newSplit)
@@ -226,7 +228,7 @@ func flattenDataFactorySnowflakeSchemaColumns(input interface{}) []interface{} {
 }
 
 func suppressJsonOrderingDifference(_, old, new string, _ *pluginsdk.ResourceData) bool {
-	return utils.NormalizeJson(old) == utils.NormalizeJson(new)
+	return helpers.NormalizeJson(old) == helpers.NormalizeJson(new)
 }
 
 func expandAzureKeyVaultSecretReference(input []interface{}) *datafactory.AzureKeyVaultSecretReference {
@@ -239,8 +241,8 @@ func expandAzureKeyVaultSecretReference(input []interface{}) *datafactory.AzureK
 	return &datafactory.AzureKeyVaultSecretReference{
 		SecretName: config["secret_name"].(string),
 		Store: &datafactory.LinkedServiceReference{
-			Type:          utils.String("LinkedServiceReference"),
-			ReferenceName: utils.String(config["linked_service_name"].(string)),
+			Type:          pointer.To("LinkedServiceReference"),
+			ReferenceName: pointer.To(config["linked_service_name"].(string)),
 		},
 	}
 }
@@ -309,11 +311,10 @@ func expandDataFactoryDatasetSFTPServerLocation(d *pluginsdk.ResourceData) dataf
 
 	props := sftpServerLocations[0].(map[string]interface{})
 
-	sftpServerLocation := datafactory.SftpLocation{
+	return datafactory.SftpLocation{
 		FolderPath: expandDataFactoryExpressionResultType(props["path"].(string), props["dynamic_path_enabled"].(bool)),
 		FileName:   expandDataFactoryExpressionResultType(props["filename"].(string), props["dynamic_filename_enabled"].(bool)),
 	}
-	return sftpServerLocation
 }
 
 func expandDataFactoryDatasetHttpServerLocation(d *pluginsdk.ResourceData) datafactory.BasicDatasetLocation {
@@ -324,12 +325,11 @@ func expandDataFactoryDatasetHttpServerLocation(d *pluginsdk.ResourceData) dataf
 
 	props := httpServerLocations[0].(map[string]interface{})
 
-	httpServerLocation := datafactory.HTTPServerLocation{
+	return datafactory.HTTPServerLocation{
 		RelativeURL: props["relative_url"].(string),
 		FolderPath:  expandDataFactoryExpressionResultType(props["path"].(string), props["dynamic_path_enabled"].(bool)),
 		FileName:    expandDataFactoryExpressionResultType(props["filename"].(string), props["dynamic_filename_enabled"].(bool)),
 	}
-	return httpServerLocation
 }
 
 func expandDataFactoryDatasetAzureBlobStorageLocation(d *pluginsdk.ResourceData) datafactory.BasicDatasetLocation {
@@ -340,13 +340,11 @@ func expandDataFactoryDatasetAzureBlobStorageLocation(d *pluginsdk.ResourceData)
 
 	props := azureBlobStorageLocations[0].(map[string]interface{})
 
-	blobStorageLocation := datafactory.AzureBlobStorageLocation{
+	return datafactory.AzureBlobStorageLocation{
 		Container:  expandDataFactoryExpressionResultType(props["container"].(string), props["dynamic_container_enabled"].(bool)),
 		FolderPath: expandDataFactoryExpressionResultType(props["path"].(string), props["dynamic_path_enabled"].(bool)),
 		FileName:   expandDataFactoryExpressionResultType(props["filename"].(string), props["dynamic_filename_enabled"].(bool)),
 	}
-
-	return blobStorageLocation
 }
 
 func expandDataFactoryDatasetAzureBlobFSLocation(d *pluginsdk.ResourceData) datafactory.BasicDatasetLocation {
@@ -357,14 +355,12 @@ func expandDataFactoryDatasetAzureBlobFSLocation(d *pluginsdk.ResourceData) data
 
 	props := azureBlobFsLocations[0].(map[string]interface{})
 
-	blobFSLocation := datafactory.AzureBlobFSLocation{
+	return datafactory.AzureBlobFSLocation{
 		Type:       datafactory.TypeBasicDatasetLocationTypeAzureBlobFSLocation,
 		FileSystem: expandDataFactoryExpressionResultType(props["file_system"].(string), props["dynamic_file_system_enabled"].(bool)),
 		FolderPath: expandDataFactoryExpressionResultType(props["path"].(string), props["dynamic_path_enabled"].(bool)),
 		FileName:   expandDataFactoryExpressionResultType(props["filename"].(string), props["dynamic_filename_enabled"].(bool)),
 	}
-
-	return blobFSLocation
 }
 
 func flattenDataFactoryDatasetHTTPServerLocation(input *datafactory.HTTPServerLocation) []interface{} {
@@ -505,7 +501,35 @@ func expandDataFactoryDatasetCompression(d *pluginsdk.ResourceData) *datafactory
 
 	props := compression[0].(map[string]interface{})
 	return &datafactory.DatasetCompression{
-		Type:  props["type"].(string),
+		Type:  expandCompressionType(props["type"].(string)),
 		Level: props["level"].(string),
+	}
+}
+
+// API expects character case for some compression type to be lower, otherwise they won't take effect
+func expandCompressionType(inputType string) string {
+	compressionTypes := []string{
+		TypeBasicDatasetCompressionTypeBZip2,
+		TypeBasicDatasetCompressionTypeDeflate,
+		TypeBasicDatasetCompressionTypeGZip,
+		TypeBasicDatasetCompressionTypeTar,
+	}
+
+	for _, compcompressionType := range compressionTypes {
+		if strings.EqualFold(compcompressionType, inputType) {
+			return strings.ToLower(inputType)
+		}
+	}
+
+	return inputType
+}
+
+func expandDataFactoryEncryptionIdentity(input string) *factories.CMKIdentityDefinition {
+	if input == "" {
+		return nil
+	}
+
+	return &factories.CMKIdentityDefinition{
+		UserAssignedIdentity: &input,
 	}
 }

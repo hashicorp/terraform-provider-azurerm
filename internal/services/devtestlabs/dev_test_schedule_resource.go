@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package devtestlabs
@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/schedules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -69,13 +70,10 @@ func resourceDevTestLabSchedules() *pluginsdk.Resource {
 			},
 
 			"status": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  schedules.EnableStatusDisabled,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(schedules.EnableStatusEnabled),
-					string(schedules.EnableStatusDisabled),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      schedules.EnableStatusDisabled,
+				ValidateFunc: validation.StringInSlice(schedules.PossibleValuesForEnableStatus(), false),
 			},
 
 			"task_type": {
@@ -164,13 +162,10 @@ func resourceDevTestLabSchedules() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"status": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  schedules.EnableStatusDisabled,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(schedules.EnableStatusEnabled),
-								string(schedules.EnableStatusDisabled),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      schedules.EnableStatusDisabled,
+							ValidateFunc: validation.StringInSlice(schedules.PossibleValuesForEnableStatus(), false),
 						},
 						"time_in_minutes": {
 							Type:         pluginsdk.TypeInt,
@@ -185,7 +180,7 @@ func resourceDevTestLabSchedules() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -199,19 +194,21 @@ func resourceDevTestLabSchedulesCreateUpdate(d *pluginsdk.ResourceData, meta int
 	id := schedules.NewLabScheduleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("lab_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, schedules.GetOperationOptions{})
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id, schedules.GetOperationOptions{})
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_dev_test_schedule", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_dev_test_schedule", id.ID())
+			}
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 
 	schedule := schedules.Schedule{
 		Location:   &location,
@@ -234,25 +231,19 @@ func resourceDevTestLabSchedulesCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if v, ok := d.GetOk("weekly_recurrence"); ok {
-		weekRecurrence := expandDevTestScheduleRecurrenceWeekly(v)
-
-		schedule.Properties.WeeklyRecurrence = weekRecurrence
+		schedule.Properties.WeeklyRecurrence = expandDevTestScheduleRecurrenceWeekly(v)
 	}
 
 	if v, ok := d.GetOk("daily_recurrence"); ok {
-		dailyRecurrence := expandDevTestScheduleRecurrenceDaily(v)
-		schedule.Properties.DailyRecurrence = dailyRecurrence
+		schedule.Properties.DailyRecurrence = expandDevTestScheduleRecurrenceDaily(v)
 	}
 
 	if v, ok := d.GetOk("hourly_recurrence"); ok {
-		hourlyRecurrence := expandDevTestScheduleRecurrenceHourly(v)
-
-		schedule.Properties.HourlyRecurrence = hourlyRecurrence
+		schedule.Properties.HourlyRecurrence = expandDevTestScheduleRecurrenceHourly(v)
 	}
 
 	if _, ok := d.GetOk("notification_settings"); ok {
-		notificationSettings := expandDevTestScheduleNotificationSettings(d)
-		schedule.Properties.NotificationSettings = notificationSettings
+		schedule.Properties.NotificationSettings = expandDevTestScheduleNotificationSettings(d)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, schedule); err != nil {
@@ -288,8 +279,8 @@ func resourceDevTestLabSchedulesRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		if location := model.Location; location != nil {
-			d.Set("location", azure.NormalizeLocation(*location))
+		if loc := model.Location; loc != nil {
+			d.Set("location", location.Normalize(*loc))
 		}
 
 		props := model.Properties

@@ -94,11 +94,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Web App Hybrid Connection.
-* `update` - (Defaults to 30 minutes) Used when updating the Web App Hybrid Connection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Web App Hybrid Connection.
+* `update` - (Defaults to 30 minutes) Used when updating the Web App Hybrid Connection.
 * `delete` - (Defaults to 5 minutes) Used when deleting the Web App Hybrid Connection.
 
 ## Import
@@ -108,3 +108,11 @@ a Web App Hybrid Connection can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_web_app_hybrid_connection.example "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/hybridConnectionNamespaces/hybridConnectionNamespace1/relays/relay1"
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Relay` - 2021-11-01
+
+* `Microsoft.Web` - 2023-12-01

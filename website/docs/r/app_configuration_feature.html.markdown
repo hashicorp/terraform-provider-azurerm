@@ -44,7 +44,7 @@ resource "azurerm_app_configuration_feature" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -69,6 +69,8 @@ The following arguments are supported:
 * `targeting_filter` - (Optional) A `targeting_filter` block as defined below.
 
 * `timewindow_filter` - (Optional) A `timewindow_filter` block as defined below.
+  
+* `custom_filter` - (Optional) A `custom_filter` block as defined below.
 
 ---
 
@@ -98,6 +100,22 @@ A `timewindow_filter` block represents a feature filter of type `Microsoft.TimeW
 
 ---
 
+A `custom_filter` block represents a feature filter of custom type and takes the following attributes:
+
+* `name` - (Required) The name of the custom filter.
+
+* `parameters` - (Optional) One or more `parameters` blocks as defined below.
+
+---
+
+A `parameters` block represents a custom parameter that can be used in a `custom_filter` and takes the following attributes:
+
+* `name` - (Required) The name of the parameter, this could be any string.
+
+* `value` - (Required) The value of the parameter.
+
+---
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -106,11 +124,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 45 minutes) Used when creating the App Configuration Feature.
-* `update` - (Defaults to 30 minutes) Used when updating the App Configuration Feature.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Configuration Feature.
+* `update` - (Defaults to 30 minutes) Used when updating the App Configuration Feature.
 * `delete` - (Defaults to 30 minutes) Used when deleting the App Configuration Feature.
 
 ## Import

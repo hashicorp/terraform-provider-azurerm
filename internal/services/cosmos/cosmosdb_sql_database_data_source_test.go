@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos_test
@@ -13,7 +13,7 @@ import (
 
 type CosmosDBSqlDatabaseDataSource struct{}
 
-func TestAccDataSourceCosmosDBSqlDatabase_basic(t *testing.T) {
+func TestAccDataSourceCosmosSqlDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cosmosdb_sql_database", "test")
 	r := CosmosDBSqlDatabaseDataSource{}
 

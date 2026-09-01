@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse_test
@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SynapseWorkspaceResource struct{}
@@ -98,8 +99,8 @@ func TestAccSynapseWorkspace_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+			ExpectNonEmptyPlan: true, // removing workspace AAD admin also removes the SQL AAD admin and visa versa so it needs to be recreated
 		},
-		data.ImportStep("sql_administrator_login_password"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -232,20 +233,20 @@ func TestAccSynapseWorkspace_cmkWithAADAdmin(t *testing.T) {
 }
 
 func (r SynapseWorkspaceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.WorkspaceID(state.ID)
+	id, err := workspaces.ParseWorkspaceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Synapse.WorkspaceClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Synapse.WorkspaceClient.Get(ctx, id.ResourceGroupName, id.WorkspaceName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+		if response.WasNotFound(resp.Response.Response) {
+			return pointer.To(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Synapse Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Synapse Workspace %q (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroupName, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r SynapseWorkspaceResource) basic(data acceptance.TestData) string {
@@ -353,7 +354,7 @@ resource "azurerm_synapse_workspace" "test" {
     ENV = "Test"
   }
 }
-`, template, data.RandomString, data.Locations.Secondary, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomString, data.Locations.Ternary, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func (r SynapseWorkspaceResource) withAadAdmin(data acceptance.TestData) string {
@@ -606,12 +607,14 @@ func (r SynapseWorkspaceResource) customerManagedKey(data acceptance.TestData) s
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acckv%d"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctest%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -653,7 +656,7 @@ resource "azurerm_synapse_workspace" "test" {
     type = "SystemAssigned"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomString, data.RandomInteger)
 }
 
 func (r SynapseWorkspaceResource) azureAdOnlyAuthentication(data acceptance.TestData) string {
@@ -726,18 +729,20 @@ func (r SynapseWorkspaceResource) cmkWithAADAdmin(data acceptance.TestData) stri
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestuaid%[2]d"
+  name                = "acctestuaid%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acckv%[2]d"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctest%[2]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -774,7 +779,7 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_synapse_workspace" "test" {
-  name                                 = "acctestsw%[2]d"
+  name                                 = "acctestsw%[2]s"
   resource_group_name                  = azurerm_resource_group.test.name
   location                             = azurerm_resource_group.test.location
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
@@ -792,5 +797,5 @@ resource "azurerm_synapse_workspace" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomString)
 }

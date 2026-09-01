@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -27,9 +27,9 @@ import (
 func runPostTestDestroy(ctx context.Context, t testing.T, c TestCase, wd *plugintest.WorkingDir, providers *providerFactories, statePreDestroy *terraform.State) error {
 	t.Helper()
 
-	err := runProviderCommand(ctx, t, func() error {
+	err := runProviderCommand(ctx, t, wd, providers, func() error {
 		return wd.Destroy(ctx)
-	}, wd, providers)
+	})
 	if err != nil {
 		return err
 	}
@@ -62,18 +62,27 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 		protov6: c.ProtoV6ProviderFactories,
 	}
 
+	// If any of the test steps used the StateStore mode and tested an error, make sure we don't execute any more commands with an invalid state store
+	var initializationErrorOccurred bool
+
 	defer func() {
 		t.Helper()
 
+		// We can't retrieve the state because the backend/state store isn't fully initialized.
+		if initializationErrorOccurred {
+			wd.Close()
+			return
+		}
+
 		var statePreDestroy *terraform.State
 		var err error
-		err = runProviderCommand(ctx, t, func() error {
-			statePreDestroy, err = getState(ctx, t, wd)
+		err = runProviderCommand(ctx, t, wd, providers, func() error {
+			_, statePreDestroy, err = getState(ctx, t, wd)
 			if err != nil {
 				return err
 			}
 			return nil
-		}, wd, providers)
+		})
 		if err != nil {
 			logging.HelperResourceError(ctx,
 				"Error retrieving state, there may be dangling resources",
@@ -116,9 +125,9 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 			t.Fatalf("TestCase error setting provider configuration: %s", err)
 		}
 
-		err = runProviderCommand(ctx, t, func() error {
+		err = runProviderCommand(ctx, t, wd, providers, func() error {
 			return wd.Init(ctx)
-		}, wd, providers)
+		})
 
 		if err != nil {
 			logging.HelperResourceError(ctx,
@@ -128,8 +137,6 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 			t.Fatalf("TestCase error running init: %s", err.Error())
 		}
 	}
-
-	logging.HelperResourceDebug(ctx, "Starting TestSteps")
 
 	// use this to track last step successfully applied
 	// acts as default for import tests
@@ -249,14 +256,16 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 				File:      step.ConfigFile,
 				Raw:       rawCfg,
 				TestStepConfigRequest: config.TestStepConfigRequest{
-					StepNumber: stepIndex + 1,
+					StepNumber: stepNumber,
 					TestName:   t.Name(),
 				},
 			}.Exec()
 
 			testStepConfig = teststep.Configuration(confRequest)
 
-			err = wd.SetConfig(ctx, testStepConfig, step.ConfigVariables)
+			if !step.Query {
+				err = wd.SetConfig(ctx, testStepConfig, step.ConfigVariables)
+			}
 
 			if err != nil {
 				logging.HelperResourceError(ctx,
@@ -266,15 +275,9 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 				t.Fatalf("TestStep %d/%d error setting test provider configuration: %s", stepNumber, len(c.Steps), err)
 			}
 
-			err = runProviderCommand(
-				ctx,
-				t,
-				func() error {
-					return wd.Init(ctx)
-				},
-				wd,
-				providers,
-			)
+			err = runProviderCommand(ctx, t, wd, providers, func() error {
+				return wd.Init(ctx)
+			})
 
 			if err != nil {
 				logging.HelperResourceError(ctx,
@@ -289,7 +292,7 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 		if step.ImportState {
 			logging.HelperResourceTrace(ctx, "TestStep is ImportState mode")
 
-			err := testStepNewImportState(ctx, t, helper, wd, step, appliedCfg, providers, stepIndex)
+			err := testStepNewImportState(ctx, t, helper, wd, step, appliedCfg, providers, stepNumber)
 			if step.ExpectError != nil {
 				logging.HelperResourceDebug(ctx, "Checking TestStep ExpectError")
 				if err == nil {
@@ -356,6 +359,88 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 						map[string]interface{}{logging.KeyError: err},
 					)
 					t.Fatalf("Step %d/%d error running refresh: %s", stepNumber, len(c.Steps), err)
+				}
+			}
+
+			logging.HelperResourceDebug(ctx, "Finished TestStep")
+
+			continue
+		}
+
+		if step.Query {
+			logging.HelperResourceTrace(ctx, "TestStep is Query mode")
+
+			err := testStepNewQuery(ctx, t, wd, step, providers)
+
+			if step.ExpectError != nil {
+				logging.HelperResourceDebug(ctx, "Checking TestStep ExpectError")
+				if err == nil {
+					logging.HelperResourceError(ctx, "Error running query: expected an error but got none")
+					t.Fatalf("Step %d/%d error running query: expected an error but got none", stepNumber, len(c.Steps))
+				}
+				if !step.ExpectError.MatchString(err.Error()) {
+					logging.HelperResourceError(ctx, fmt.Sprintf("Error running query: expected an error with pattern (%s)", step.ExpectError.String()),
+						map[string]interface{}{logging.KeyError: err},
+					)
+					t.Fatalf("Step %d/%d error running query, expected an error with pattern (%s), no match on: %s", stepNumber, len(c.Steps), step.ExpectError.String(), err)
+				}
+			} else {
+				if err != nil && c.ErrorCheck != nil {
+					logging.HelperResourceDebug(ctx, "Calling TestCase ErrorCheck")
+					err = c.ErrorCheck(err)
+					logging.HelperResourceDebug(ctx, "Called TestCase ErrorCheck")
+				}
+				if err != nil {
+					logging.HelperResourceError(ctx, "Error running query",
+						map[string]interface{}{logging.KeyError: err},
+					)
+					t.Fatalf("Step %d/%d error running query checks: %s", stepNumber, len(c.Steps), err)
+				}
+			}
+
+			logging.HelperResourceDebug(ctx, "Finished TestStep")
+
+			continue
+		}
+
+		if step.StateStore {
+			logging.HelperResourceTrace(ctx, "TestStep is StateStore mode")
+
+			err := testStepNewStateStore(ctx, t, wd, step, providers, cfg)
+			if err == nil && step.VerifyStateStoreLock {
+				logging.HelperResourceTrace(ctx, "TestStep is running VerifyStateStoreLock logic")
+				err = testStepVerifyStateStoreLock(ctx, t, step, providers, cfg, helper)
+			}
+
+			if err != nil {
+				// Ensure the TestStep doesn't run any Terraform commands that expect the backend/state store to be initialized
+				initializationErrorOccurred = true
+			}
+
+			if step.ExpectError != nil {
+				logging.HelperResourceDebug(ctx, "Checking TestStep ExpectError")
+				if err == nil {
+					logging.HelperResourceError(ctx, "Error running state store tests: expected an error but got none")
+					t.Fatalf("Step %d/%d error running state store tests: expected an error but got none", stepNumber, len(c.Steps))
+				}
+
+				if !step.ExpectError.MatchString(err.Error()) {
+					logging.HelperResourceError(ctx, fmt.Sprintf("Error running state store tests: expected an error with pattern (%s)", step.ExpectError.String()),
+						map[string]interface{}{logging.KeyError: err},
+					)
+					t.Fatalf("Step %d/%d error running state store tests, expected an error with pattern (%s), no match on: %s", stepNumber, len(c.Steps), step.ExpectError.String(), err)
+				}
+			} else {
+				if err != nil && c.ErrorCheck != nil {
+					logging.HelperResourceDebug(ctx, "Calling TestCase ErrorCheck")
+					err = c.ErrorCheck(err)
+					logging.HelperResourceDebug(ctx, "Called TestCase ErrorCheck")
+				}
+				if err != nil {
+					logging.HelperResourceError(ctx, "Error running state store tests",
+						map[string]interface{}{logging.KeyError: err},
+					)
+					t.Fatalf("Step %d/%d error running state store tests: %s", stepNumber, len(c.Steps), err)
 				}
 			}
 
@@ -436,12 +521,13 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 				t.Fatalf("Error generating merged configuration: %s", err)
 			}
 
+			// Preserve the step config for future test steps to use (import state)
 			confRequest := teststep.PrepareConfigurationRequest{
 				Directory: step.ConfigDirectory,
 				File:      step.ConfigFile,
 				Raw:       mergedConfig,
 				TestStepConfigRequest: config.TestStepConfigRequest{
-					StepNumber: stepIndex + 1,
+					StepNumber: stepNumber,
 					TestName:   t.Name(),
 				},
 			}.Exec()
@@ -461,18 +547,18 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 	}
 }
 
-func getState(ctx context.Context, t testing.T, wd *plugintest.WorkingDir) (*terraform.State, error) {
+func getState(ctx context.Context, t testing.T, wd *plugintest.WorkingDir) (*tfjson.State, *terraform.State, error) {
 	t.Helper()
 
 	jsonState, err := wd.State(ctx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	state, err := shimStateFromJson(jsonState)
 	if err != nil {
 		t.Fatal(err)
 	}
-	return state, nil
+	return jsonState, state, nil
 }
 
 func stateIsEmpty(state *terraform.State) bool {
@@ -582,17 +668,17 @@ func testIDRefresh(ctx context.Context, t testing.T, c TestCase, wd *plugintest.
 	}()
 
 	// Refresh!
-	err = runProviderCommand(ctx, t, func() error {
+	err = runProviderCommand(ctx, t, wd, providers, func() error {
 		err = wd.Refresh(ctx)
 		if err != nil {
 			t.Fatalf("Error running terraform refresh: %s", err)
 		}
-		state, err = getState(ctx, t, wd)
+		_, state, err = getState(ctx, t, wd)
 		if err != nil {
 			return err
 		}
 		return nil
-	}, wd, providers)
+	})
 	if err != nil {
 		return err
 	}
@@ -653,7 +739,7 @@ func copyWorkingDir(ctx context.Context, t testing.T, stepNumber int, wd *plugin
 	dest := filepath.Join(workingDir, fmt.Sprintf("%s%s", "step_", strconv.Itoa(stepNumber)))
 
 	baseDir := wd.BaseDir()
-	rootBaseDir := strings.TrimLeft(baseDir, workingDir)
+	rootBaseDir := strings.TrimPrefix(baseDir, workingDir)
 
 	err := plugintest.CopyDir(workingDir, dest, rootBaseDir)
 	if err != nil {

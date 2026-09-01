@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package subscription
@@ -21,13 +21,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	billingValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var SubscriptionResourceName = "azurerm_subscription"
@@ -88,10 +88,7 @@ func resourceSubscription() *pluginsdk.Resource {
 				ForceNew:    true,
 				Description: "The workload type for the Subscription. Possible values are `Production` (default) and `DevTest`.",
 				// Other RP's have updated Constants with contextual prefixes so these are likely to change
-				ValidateFunc: validation.StringInSlice([]string{
-					string(subscriptionAlias.WorkloadProduction),
-					string(subscriptionAlias.WorkloadDevTest),
-				}, false),
+				ValidateFunc: validation.StringInSlice(subscriptionAlias.PossibleValuesForWorkload(), false),
 				// Workload is not exposed in any way, so must be ignored if the resource is imported.
 				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 					return new == ""
@@ -137,15 +134,18 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	id := subscriptionAlias.NewAliasID(aliasName)
-	existing, err := aliasClient.AliasGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existence of Subscription by Alias %q: %+v", id.AliasName, err)
-		}
-	}
 
-	if model := existing.Model; model != nil && model.Properties != nil {
-		return tf.ImportAsExistsError("azurerm_subscription", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := aliasClient.AliasGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existence of Subscription by Alias %q: %+v", id.AliasName, err)
+			}
+		}
+
+		if model := existing.Model; model != nil && model.Properties != nil {
+			return tf.ImportAsExistsError("azurerm_subscription", id.ID())
+		}
 	}
 
 	locks.ByName(aliasName, SubscriptionResourceName)
@@ -183,7 +183,7 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("an Alias for Subscription %q already exists with name %q - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information", subscriptionId, *exists, "azurerm_subscription")
 		}
 
-		req.Properties.SubscriptionId = utils.String(subscriptionId)
+		req.Properties.SubscriptionId = pointer.To(subscriptionId)
 		existingSub, err := client.Get(ctx, subscriptionResourceId)
 		if err != nil {
 			return fmt.Errorf("retrieving existing %s: %+v", subscriptionResourceId, err)
@@ -209,13 +209,14 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	} else {
 		// If we're not assuming control of an existing Subscription, we need to know where to create it.
-		req.Properties.DisplayName = utils.String(d.Get("subscription_name").(string))
-		req.Properties.BillingScope = utils.String(d.Get("billing_scope_id").(string))
+		req.Properties.DisplayName = pointer.To(d.Get("subscription_name").(string))
+		req.Properties.BillingScope = pointer.To(d.Get("billing_scope_id").(string))
 	}
 
-	if err := aliasClient.AliasCreateThenPoll(ctx, id, req); err != nil {
+	if err := aliasClient.AliasCreateCallbackThenPoll(ctx, id, req, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating new Subscription (Alias %q): %+v", aliasName, err)
 	}
+	d.SetId(id.ID())
 
 	alias, err := aliasClient.AliasGet(ctx, id)
 	if err != nil || alias.Model == nil || alias.Model.Properties == nil || alias.Model.Properties.SubscriptionId == nil {
@@ -242,12 +243,10 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 				Tags: t,
 			},
 		}
-		if _, err = tagsClient.CreateOrUpdateAtScope(ctx, scope, tagsResource); err != nil {
+		if _, err := tagsClient.CreateOrUpdateAtScope(ctx, scope, tagsResource); err != nil {
 			return fmt.Errorf("setting tags on %s: %+v", id, err)
 		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceSubscriptionRead(d, meta)
 }
@@ -276,7 +275,7 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		defer locks.UnlockByID(subscriptionId.ID())
 
 		displayName := subscriptionAlias.SubscriptionName{
-			SubscriptionName: utils.String(d.Get("subscription_name").(string)),
+			SubscriptionName: pointer.To(d.Get("subscription_name").(string)),
 		}
 		if _, err := aliasClient.SubscriptionRename(ctx, subscriptionId, displayName); err != nil {
 			return fmt.Errorf("could not update Display Name of Subscription %q: %+v", subscriptionId, err)
@@ -382,10 +381,7 @@ func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	if err != nil || alias.Model == nil || alias.Model.Properties == nil {
 		return fmt.Errorf("could not read Alias %q for Subscription: %+v", id.AliasName, err)
 	}
-	subscriptionId := ""
-	if subscriptionIdRaw := alias.Model.Properties.SubscriptionId; subscriptionIdRaw != nil {
-		subscriptionId = *subscriptionIdRaw
-	}
+	subscriptionId := pointer.From(alias.Model.Properties.SubscriptionId)
 	locks.ByID(subscriptionId)
 	defer locks.UnlockByID(subscriptionId)
 

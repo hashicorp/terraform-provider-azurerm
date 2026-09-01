@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package schema
@@ -188,4 +188,21 @@ func (a Int32Attribute) IsRequired() bool {
 // IsSensitive returns the Sensitive field value.
 func (a Int32Attribute) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly returns false as write-only attributes are not supported in data source schemas.
+func (a Int32Attribute) IsWriteOnly() bool {
+	return false
+}
+
+// IsRequiredForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a Int32Attribute) IsRequiredForImport() bool {
+	return false
+}
+
+// IsOptionalForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a Int32Attribute) IsOptionalForImport() bool {
+	return false
 }

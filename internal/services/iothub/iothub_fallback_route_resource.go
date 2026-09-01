@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
@@ -7,7 +7,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/migration"
@@ -16,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
@@ -109,7 +111,7 @@ func resourceIotHubFallbackRouteCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
-		if utils.ResponseWasNotFound(iothub.Response) {
+		if response.WasNotFound(iothub.Response.Response) {
 			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", id.IotHubName, id.ResourceGroup)
 		}
 
@@ -126,10 +128,10 @@ func resourceIotHubFallbackRouteCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	routing.FallbackRoute = &devices.FallbackRouteProperties{
-		Source:        utils.String(d.Get("source").(string)),
-		Condition:     utils.String(d.Get("condition").(string)),
-		EndpointNames: utils.ExpandStringSlice(d.Get("endpoint_names").([]interface{})),
-		IsEnabled:     utils.Bool(d.Get("enabled").(bool)),
+		Source:        pointer.To(d.Get("source").(string)),
+		Condition:     pointer.To(d.Get("condition").(string)),
+		EndpointNames: helpers.ExpandStringSlice(d.Get("endpoint_names").([]interface{})),
+		IsEnabled:     pointer.To(d.Get("enabled").(bool)),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.IotHubName, iothub, "")
@@ -137,11 +139,11 @@ func resourceIotHubFallbackRouteCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the completion of the creating/updating of %s: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceIotHubFallbackRouteRead(d, meta)
 }
@@ -158,7 +160,7 @@ func resourceIotHubFallbackRouteRead(d *pluginsdk.ResourceData, meta interface{}
 
 	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
-		if utils.ResponseWasNotFound(iothub.Response) {
+		if response.WasNotFound(iothub.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -197,7 +199,7 @@ func resourceIotHubFallbackRouteDelete(d *pluginsdk.ResourceData, meta interface
 
 	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
-		if utils.ResponseWasNotFound(iothub.Response) {
+		if response.WasNotFound(iothub.Response.Response) {
 			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", id.IotHubName, id.ResourceGroup)
 		}
 

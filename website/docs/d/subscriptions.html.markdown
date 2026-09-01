@@ -25,7 +25,7 @@ output "first_available_subscription_display_name" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `display_name_prefix` - (Optional) A case-insensitive prefix which can be used to filter on the `display_name` field
 * `display_name_contains` - (Optional) A case-insensitive value which must be contained within the `display_name` field, used to filter the results
@@ -48,6 +48,6 @@ The `subscription` block contains:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the subscriptions.

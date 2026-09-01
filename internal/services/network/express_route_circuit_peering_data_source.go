@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/expressroutecircuitpeerings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressroutecircuitpeerings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -28,13 +28,9 @@ func dataSourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"peering_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(expressroutecircuitpeerings.ExpressRoutePeeringTypeAzurePrivatePeering),
-					string(expressroutecircuitpeerings.ExpressRoutePeeringTypeAzurePublicPeering),
-					string(expressroutecircuitpeerings.ExpressRoutePeeringTypeMicrosoftPeering),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(expressroutecircuitpeerings.PossibleValuesForExpressRoutePeeringType(), false),
 			},
 
 			"express_route_circuit_name": {

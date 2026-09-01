@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus
@@ -9,18 +9,16 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queues"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-10-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/queues"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func dataSourceServiceBusQueue() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceServiceBusQueueRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -116,48 +114,6 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["namespace_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: namespaces.ValidateNamespaceID,
-			AtLeastOneOf: []string{"namespace_id", "namespace_name", "resource_group_name"},
-		}
-
-		resource.Schema["resource_group_name"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: resourcegroups.ValidateName,
-			AtLeastOneOf: []string{"namespace_id", "namespace_name", "resource_group_name"},
-			Deprecated:   "`resource_group_name` will be removed in favour of the property `namespace_id` in version 5.0 of the AzureRM Provider.",
-		}
-
-		resource.Schema["namespace_name"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: azValidate.NamespaceName,
-			AtLeastOneOf: []string{"namespace_id", "namespace_name", "resource_group_name"},
-			Deprecated:   "`namespace_name` will be removed in favour of the property `namespace_id` in version 5.0 of the AzureRM Provider.",
-		}
-
-		resource.Schema["enable_batched_operations"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		}
-
-		resource.Schema["enable_express"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		}
-
-		resource.Schema["enable_partitioning"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		}
-	}
-
-	return resource
 }
 
 func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -175,11 +131,6 @@ func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 		resourceGroup = namespaceId.ResourceGroupName
 		namespaceName = namespaceId.NamespaceName
-	}
-
-	if !features.FivePointOh() && resourceGroup == "" {
-		resourceGroup = d.Get("resource_group_name").(string)
-		namespaceName = d.Get("namespace_name").(string)
 	}
 
 	id := queues.NewQueueID(subscriptionId, resourceGroup, namespaceName, d.Get("name").(string))
@@ -210,12 +161,6 @@ func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 			d.Set("requires_session", props.RequiresSession)
 			d.Set("status", string(pointer.From(props.Status)))
-
-			if !features.FivePointOh() {
-				d.Set("enable_batched_operations", props.EnableBatchedOperations)
-				d.Set("enable_express", props.EnableExpress)
-				d.Set("enable_partitioning", props.EnablePartitioning)
-			}
 
 			if apiMaxSizeInMegabytes := props.MaxSizeInMegabytes; apiMaxSizeInMegabytes != nil {
 				maxSizeInMegabytes := int(*apiMaxSizeInMegabytes)

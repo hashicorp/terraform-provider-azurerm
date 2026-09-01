@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -6,38 +6,39 @@ package client
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/backupshorttermretentionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/blobauditing"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/databasesecurityalertpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/databasevulnerabilityassessmentrulebaselines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/elasticpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/encryptionprotectors"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/failovergroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/firewallrules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/geobackuppolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobagents"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobcredentials"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobsteps"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobtargetgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/longtermretentionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/outboundfirewallrules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/replicationlinks"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/restorabledroppeddatabases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverazureadadministrators"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverazureadonlyauthentications"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverconnectionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverdevopsaudit"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverdnsaliases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverkeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serversecurityalertpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servervulnerabilityassessments"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/sqlvulnerabilityassessmentssettings"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/transparentdataencryptions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/virtualnetworkrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/backupshorttermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/blobauditing"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databasesecurityalertpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databasevulnerabilityassessmentrulebaselines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/elasticpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/encryptionprotectors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/failovergroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/firewallrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/geobackuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobagents"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobcredentials"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobexecutions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobstepexecutions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobsteps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobtargetgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/longtermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/outboundfirewallrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/replicationlinks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/restorabledroppeddatabases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serverazureadadministrators"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serverazureadonlyauthentications"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serverconnectionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serverdevopsaudit"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serverdnsaliases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serverkeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serversecurityalertpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/servervulnerabilityassessments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/sqlvulnerabilityassessmentssettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/transparentdataencryptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/virtualnetworkrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/availabilitygrouplisteners"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachinegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachines"
@@ -57,7 +58,9 @@ type Client struct {
 	GeoBackupPoliciesClient                            *geobackuppolicies.GeoBackupPoliciesClient
 	JobAgentsClient                                    *jobagents.JobAgentsClient
 	JobCredentialsClient                               *jobcredentials.JobCredentialsClient
+	JobExecutionsClient                                *jobexecutions.JobExecutionsClient
 	JobsClient                                         *jobs.JobsClient
+	JobStepExecutionsClient                            *jobstepexecutions.JobStepExecutionsClient
 	JobStepsClient                                     *jobsteps.JobStepsClient
 	JobTargetGroupsClient                              *jobtargetgroups.JobTargetGroupsClient
 	LongTermRetentionPoliciesClient                    *longtermretentionpolicies.LongTermRetentionPoliciesClient
@@ -71,7 +74,6 @@ type Client struct {
 	ServerDevOpsAuditSettingsClient                    *serverdevopsaudit.ServerDevOpsAuditClient
 	ServerKeysClient                                   *serverkeys.ServerKeysClient
 	ServerSecurityAlertPoliciesClient                  *serversecurityalertpolicies.ServerSecurityAlertPoliciesClient
-	LegacyServerSecurityAlertPoliciesClient            *sql.ServerSecurityAlertPoliciesClient
 	ServerVulnerabilityAssessmentsClient               *servervulnerabilityassessments.ServerVulnerabilityAssessmentsClient
 	SqlVulnerabilityAssessmentSettingsClient           *sqlvulnerabilityassessmentssettings.SqlVulnerabilityAssessmentsSettingsClient
 	ServersClient                                      *servers.ServersClient
@@ -155,11 +157,23 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(jobCredentialsClient.Client, o.Authorizers.ResourceManager)
 
+	jobExecutionsClient, err := jobexecutions.NewJobExecutionsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Job Executions Client: %+v", err)
+	}
+	o.Configure(jobExecutionsClient.Client, o.Authorizers.ResourceManager)
+
 	jobsClient, err := jobs.NewJobsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Jobs Client: %+v", err)
 	}
 	o.Configure(jobsClient.Client, o.Authorizers.ResourceManager)
+
+	jobStepExecutionsClient, err := jobstepexecutions.NewJobStepExecutionsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Job Step Executions Client: %+v", err)
+	}
+	o.Configure(jobStepExecutionsClient.Client, o.Authorizers.ResourceManager)
 
 	jobStepsClient, err := jobsteps.NewJobStepsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -233,9 +247,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(serverKeysClient.Client, o.Authorizers.ResourceManager)
 
-	legacyServerSecurityAlertPoliciesClient := sql.NewServerSecurityAlertPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&legacyServerSecurityAlertPoliciesClient.Client, o.ResourceManagerAuthorizer)
-
 	serverSecurityAlertPoliciesClient, err := serversecurityalertpolicies.NewServerSecurityAlertPoliciesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Server Security Alert Policies Client: %+v", err)
@@ -291,7 +302,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(virtualNetworkRulesClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		// Clients using the Track1 SDK which need to be gradually switched over to `hashicorp/go-azure-sdk`
 		BlobAuditingPoliciesClient:                         databaseExtendedBlobAuditingPoliciesClient,
 		DatabaseVulnerabilityAssessmentRuleBaselinesClient: databaseVulnerabilityAssessmentRuleBaselinesClient,
 		EncryptionProtectorClient:                          encryptionProtectorClient,
@@ -299,6 +309,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		FirewallRulesClient:                                firewallRulesClient,
 		JobAgentsClient:                                    jobAgentsClient,
 		JobCredentialsClient:                               jobCredentialsClient,
+		JobExecutionsClient:                                jobExecutionsClient,
 		OutboundFirewallRulesClient:                        outboundFirewallRulesClient,
 		ServerDNSAliasClient:                               serverDNSAliasClient,
 		ServerDevOpsAuditSettingsClient:                    serverDevOpsAuditSettingsClient,
@@ -308,28 +319,24 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		VirtualMachinesClient:                              virtualMachinesClient,
 		VirtualMachineGroupsClient:                         virtualMachineGroupsClient,
 		VirtualNetworkRulesClient:                          virtualNetworkRulesClient,
-
-		// Legacy Clients
-		LegacyServerSecurityAlertPoliciesClient: &legacyServerSecurityAlertPoliciesClient,
-
-		// 2023-08-01-preview Clients
-		BackupShortTermRetentionPoliciesClient:   backupShortTermRetentionPoliciesClient,
-		DatabasesClient:                          databasesClient,
-		DatabaseSecurityAlertPoliciesClient:      databaseSecurityAlertPoliciesClient,
-		ElasticPoolsClient:                       elasticPoolsClient,
-		GeoBackupPoliciesClient:                  geoBackupPoliciesClient,
-		JobsClient:                               jobsClient,
-		JobStepsClient:                           jobStepsClient,
-		JobTargetGroupsClient:                    jobTargetGroupsClient,
-		LongTermRetentionPoliciesClient:          longTermRetentionPoliciesClient,
-		ReplicationLinksClient:                   replicationLinksClient,
-		RestorableDroppedDatabasesClient:         restorableDroppedDatabasesClient,
-		ServerAzureADAdministratorsClient:        serverAzureADAdministratorsClient,
-		ServerAzureADOnlyAuthenticationsClient:   serverAzureADOnlyAuthenticationsClient,
-		ServerConnectionPoliciesClient:           serverConnectionPoliciesClient,
-		ServerSecurityAlertPoliciesClient:        serverSecurityAlertPoliciesClient,
-		SqlVulnerabilityAssessmentSettingsClient: sqlVulnerabilityAssessmentsSettingsClient,
-		TransparentDataEncryptionsClient:         transparentDataEncryptionsClient,
-		ServersClient:                            serversClient,
+		BackupShortTermRetentionPoliciesClient:             backupShortTermRetentionPoliciesClient,
+		DatabasesClient:                                    databasesClient,
+		DatabaseSecurityAlertPoliciesClient:                databaseSecurityAlertPoliciesClient,
+		ElasticPoolsClient:                                 elasticPoolsClient,
+		GeoBackupPoliciesClient:                            geoBackupPoliciesClient,
+		JobsClient:                                         jobsClient,
+		JobStepExecutionsClient:                            jobStepExecutionsClient,
+		JobStepsClient:                                     jobStepsClient,
+		JobTargetGroupsClient:                              jobTargetGroupsClient,
+		LongTermRetentionPoliciesClient:                    longTermRetentionPoliciesClient,
+		ReplicationLinksClient:                             replicationLinksClient,
+		RestorableDroppedDatabasesClient:                   restorableDroppedDatabasesClient,
+		ServerAzureADAdministratorsClient:                  serverAzureADAdministratorsClient,
+		ServerAzureADOnlyAuthenticationsClient:             serverAzureADOnlyAuthenticationsClient,
+		ServerConnectionPoliciesClient:                     serverConnectionPoliciesClient,
+		ServerSecurityAlertPoliciesClient:                  serverSecurityAlertPoliciesClient,
+		SqlVulnerabilityAssessmentSettingsClient:           sqlVulnerabilityAssessmentsSettingsClient,
+		TransparentDataEncryptionsClient:                   transparentDataEncryptionsClient,
+		ServersClient:                                      serversClient,
 	}, nil
 }

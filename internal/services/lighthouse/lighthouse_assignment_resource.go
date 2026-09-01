@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package lighthouse
@@ -7,8 +7,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2022-10-01/registrationassignments"
@@ -16,10 +18,11 @@ import (
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLighthouseAssignment() *pluginsdk.Resource {
@@ -82,17 +85,20 @@ func resourceLighthouseAssignmentCreate(d *pluginsdk.ResourceData, meta interfac
 
 	id := registrationassignments.NewScopedRegistrationAssignmentID(d.Get("scope").(string), lighthouseAssignmentName)
 	options := registrationassignments.GetOperationOptions{
-		ExpandRegistrationDefinition: utils.Bool(false),
-	}
-	existing, err := client.Get(ctx, id, options)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-		}
+		ExpandRegistrationDefinition: pointer.To(false),
 	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_lighthouse_assignment", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, options)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_lighthouse_assignment", id.ID())
+		}
 	}
 
 	parameters := registrationassignments.RegistrationAssignment{
@@ -101,7 +107,7 @@ func resourceLighthouseAssignmentCreate(d *pluginsdk.ResourceData, meta interfac
 		},
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -120,7 +126,7 @@ func resourceLighthouseAssignmentRead(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	options := registrationassignments.GetOperationOptions{
-		ExpandRegistrationDefinition: utils.Bool(false),
+		ExpandRegistrationDefinition: pointer.To(false),
 	}
 	resp, err := client.Get(ctx, *id, options)
 	if err != nil {
@@ -159,34 +165,16 @@ func resourceLighthouseAssignmentDelete(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{"Deleting"},
-		Target:     []string{"Deleted"},
-		Refresh:    lighthouseAssignmentDeleteRefreshFunc(ctx, client, *id),
-		MinTimeout: 15 * time.Second,
-		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(1, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, *id, registrationassignments.GetOperationOptions{ExpandRegistrationDefinition: pointer.To(true)})
+		return resp.HttpResponse, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:         15 * time.Second,
+		TargetStatusCode: pointer.To(http.StatusNotFound),
+	})
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func lighthouseAssignmentDeleteRefreshFunc(ctx context.Context, client *registrationassignments.RegistrationAssignmentsClient, id registrationassignments.ScopedRegistrationAssignmentId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		options := registrationassignments.GetOperationOptions{
-			ExpandRegistrationDefinition: utils.Bool(true),
-		}
-		resp, err := client.Get(ctx, id, options)
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return resp, "Deleted", nil
-			}
-			return nil, "Error", fmt.Errorf("polling to check the deletion of %s: %+v", id, err)
-		}
-
-		return resp, "Deleting", nil
-	}
 }

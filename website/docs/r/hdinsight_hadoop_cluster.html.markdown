@@ -36,11 +36,12 @@ resource "azurerm_hdinsight_hadoop_cluster" "example" {
   name                = "example-hdicluster"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  cluster_version     = "3.6"
+  cluster_version     = "5.1"
   tier                = "Standard"
+  tls_min_version     = "1.2"
 
   component_version {
-    hadoop = "2.7"
+    hadoop = "3.3"
   }
 
   gateway {
@@ -49,27 +50,27 @@ resource "azurerm_hdinsight_hadoop_cluster" "example" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.example.id
-    storage_account_key  = azurerm_storage_account.example.primary_access_key
-    is_default           = true
+    storage_container_url = azurerm_storage_container.example.url
+    storage_account_key   = azurerm_storage_account.example.primary_access_key
+    is_default            = true
   }
 
   roles {
     head_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_D4_V2"
+      vm_size               = "Standard_A4_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 3
     }
 
     zookeeper_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -77,7 +78,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -95,6 +96,10 @@ The following arguments are supported:
 
 * `roles` - (Required) A `roles` block as defined below.
 
+* `tier` - (Required) Specifies the Tier which should be used for this HDInsight Hadoop Cluster. Possible values are `Standard` or `Premium`. Changing this forces a new resource to be created.
+
+* `tls_min_version` - (Required) The minimal supported TLS version. Possible values are 1.0, 1.1 or 1.2. Changing this forces a new resource to be created.
+
 * `storage_account` - (Optional) One or more `storage_account` block as defined below.
 
 * `network` - (Optional) A `network` block as defined below.
@@ -106,12 +111,6 @@ The following arguments are supported:
 * `compute_isolation` - (Optional) A `compute_isolation` block as defined below.
 
 * `storage_account_gen2` - (Optional) A `storage_account_gen2` block as defined below.
-
-* `tier` - (Required) Specifies the Tier which should be used for this HDInsight Hadoop Cluster. Possible values are `Standard` or `Premium`. Changing this forces a new resource to be created.
-
-* `tls_min_version` - (Optional) The minimal supported TLS version. Possible values are 1.0, 1.1 or 1.2. Changing this forces a new resource to be created.
-
-~> **Note:** Starting on June 30, 2020, Azure HDInsight will enforce TLS 1.2 or later versions for all HTTPS connections. For more information, see [Azure HDInsight TLS 1.2 Enforcement](https://azure.microsoft.com/en-us/updates/azure-hdinsight-tls-12-enforcement/).
 
 ---
 
@@ -161,7 +160,7 @@ A `head_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Head Nodes should be provisioned within. Changing this forces a new resource to be created.
 
-* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined below.
+* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined below. Changing this forces a new resource to be created.
 
 ---
 
@@ -213,11 +212,9 @@ A `storage_account` block supports the following:
 
 * `storage_account_key` - (Required) The Access Key which should be used to connect to the Storage Account. Changing this forces a new resource to be created.
 
-* `storage_container_id` - (Required) The ID of the Storage Container. Changing this forces a new resource to be created.
+* `storage_container_url` - (Required) The URL of the Storage Container. Changing this forces a new resource to be created.
 
--> **Note:** This can be obtained from the `id` of the `azurerm_storage_container` resource.
-
-* `storage_resource_id` - (Optional) The ID of the Storage Account. Changing this forces a new resource to be created.
+* `storage_account_id` - (Optional) The ID of the Storage Account. Changing this forces a new resource to be created.
 
 ---
 
@@ -227,11 +224,11 @@ A `storage_account_gen2` block supports the following:
 
 -> **Note:** One of the `storage_account` or `storage_account_gen2` blocks must be marked as the default.
 
-* `storage_resource_id` - (Required) The ID of the Storage Account. Changing this forces a new resource to be created.
+* `storage_account_id` - (Required) The ID of the Storage Account. Changing this forces a new resource to be created.
 
 * `filesystem_id` - (Required) The ID of the Gen2 Filesystem. Changing this forces a new resource to be created.
 
-* `managed_identity_resource_id` - (Required) The ID of Managed Identity to use for accessing the Gen2 filesystem. Changing this forces a new resource to be created.
+* `user_assigned_identity_id` - (Required) The ID of User Assigned Identity to use for accessing the Gen2 filesystem. Changing this forces a new resource to be created.
 
 -> **Note:** This can be obtained from the `id` of the `azurerm_storage_container` resource.
 
@@ -243,21 +240,21 @@ A `private_link_configuration` block supports the following:
 
 * `group_id` - (Required) The ID of the private link service group.
 
-* `private_link_service_connection` - (Required) A `private_link_service_connection` block as defined below.
+* `ip_configuration` - (Required) An `ip_configuration` block as defined below.
 
 ---
 
-A `private_link_service_connection` block supports the following:
+An `ip_configuration` block supports the following:
 
-* `name` - (Required) The name of the private link service connection.
+* `name` - (Required) The name of the IP configuration.
 
 * `primary` - (Optional) Indicates whether this IP configuration is primary.
 
-* `private_ip_allocation_method` - (Optional) The private IP allocation method. The only possible value now is `Dynamic`.
+* `private_ip_allocation_method` - (Optional) The private IP allocation method. Possible values are `Dynamic` and `Static`.
 
 * `private_ip_address` - (Optional) The private IP address of the IP configuration.
 
-* `subnet_id` - (Optional) The ID of the Subnet within the Virtual Network where the private link service connection should be provisioned within.
+* `subnet_id` - (Optional) The ID of the Subnet within the Virtual Network where the IP configuration should be provisioned.
 
 ---
 
@@ -283,7 +280,7 @@ A `worker_node` block supports the following:
 
 * `autoscale` - (Optional) A `autoscale` block as defined below.
 
-* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined above.
+* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined above. Changing this forces a new resource to be created.
 
 ---
 
@@ -317,7 +314,7 @@ A `zookeeper_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Zookeeper Nodes should be provisioned within. Changing this forces a new resource to be created.
 
-* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined above.
+* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined above. Changing this forces a new resource to be created.
 
 ---
 
@@ -331,7 +328,7 @@ A `edge_node` block supports the following:
 
 * `https_endpoints` - (Optional) The HTTPS Connectivity Endpoint for this HDInsight Hadoop Cluster. One or more `https_endpoints` blocks as defined below.
 
-* `uninstall_script_actions` - (Optional) A `uninstall_script_actions` block as defined below.
+* `uninstall_script_actions` - (Optional) A `uninstall_script_actions` block as defined below. Changing this forces a new resource to be created.
 
 ---
 
@@ -495,12 +492,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Hadoop HDInsight Cluster.
-* `update` - (Defaults to 60 minutes) Used when updating the Hadoop HDInsight Cluster.
+* `create` - (Defaults to 1 hour) Used when creating the Hadoop HDInsight Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Hadoop HDInsight Cluster.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Hadoop HDInsight Cluster.
+* `update` - (Defaults to 1 hour) Used when updating the Hadoop HDInsight Cluster.
+* `delete` - (Defaults to 1 hour) Used when deleting the Hadoop HDInsight Cluster.
 
 ## Import
 
@@ -509,3 +506,9 @@ HDInsight Hadoop Clusters can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_hdinsight_hadoop_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.HDInsight/clusters/cluster1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.HDInsight` - 2021-06-01

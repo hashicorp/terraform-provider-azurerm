@@ -83,6 +83,8 @@ The following attributes are exported:
 
 * `storage_account_access_key` - The access key which will be used to access the backend storage account for the Logic App.
 
+* `storage_key_vault_secret_id` - The Key Vault Secret ID, optionally including version, that contains the connection string to the backend storage account for the Logic App.
+
 * `storage_account_share_name` - The name of the share used by the logic app.
 
 * `tags` - A mapping of tags assigned to the resource.
@@ -133,7 +135,11 @@ The `site_config` block exports the following:
 
 * `ip_restriction` - A list of `ip_restriction` objects representing IP restrictions as defined below.
 
+* `ip_restriction_default_action` - The default action taken when no `ip_restriction` rules match. 
+
 * `scm_ip_restriction` - A list of `scm_ip_restriction` objects representing SCM IP restrictions as defined below.
+  
+* `scm_ip_restriction_default_action` - The default action taken when no `scm_ip_restriction` rules match.
 
 * `scm_use_main_ip_restriction` - Should the Logic App `ip_restriction` configuration be used for the SCM too.
 
@@ -213,6 +219,12 @@ A `headers` block supports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Logic App Workflow.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Web` - 2023-12-01

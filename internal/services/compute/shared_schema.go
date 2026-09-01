@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -9,10 +9,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -35,13 +35,41 @@ func additionalUnattendContentSchema() *pluginsdk.Schema {
 					Sensitive: true,
 				},
 				"setting": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachines.SettingNamesAutoLogon),
-						string(virtualmachines.SettingNamesFirstLogonCommands),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForSettingNames(), false),
+				},
+			},
+		},
+	}
+}
+
+func additionalUnattendContentSchemaVM() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		// whilst the SDK supports updating, the API doesn't:
+		//   Code="PropertyChangeNotAllowed"
+		//   Message="Changing property 'windowsConfiguration.additionalUnattendContent' is not allowed."
+		//   Target="windowsConfiguration.additionalUnattendContent
+		ForceNew: true,
+		ConflictsWith: []string{
+			"os_managed_disk_id",
+		},
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"content": {
+					Type:      pluginsdk.TypeString,
+					Required:  true,
+					ForceNew:  true,
+					Sensitive: true,
+				},
+				"setting": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForSettingNames(), false),
 				},
 			},
 		},
@@ -55,7 +83,7 @@ func expandAdditionalUnattendContent(input []interface{}) *[]virtualmachines.Add
 		raw := v.(map[string]interface{})
 
 		output = append(output, virtualmachines.AdditionalUnattendContent{
-			SettingName: pointer.To(virtualmachines.SettingNames(raw["setting"].(string))),
+			SettingName: pointer.ToEnum[virtualmachines.SettingNames](raw["setting"].(string)),
 			Content:     pointer.To(raw["content"].(string)),
 
 			// no other possible values
@@ -74,12 +102,12 @@ func expandAdditionalUnattendContentVMSS(input []interface{}) *[]virtualmachines
 		raw := v.(map[string]interface{})
 
 		output = append(output, virtualmachinescalesets.AdditionalUnattendContent{
-			SettingName: pointer.To(virtualmachinescalesets.SettingNames(raw["setting"].(string))),
+			SettingName: pointer.ToEnum[virtualmachinescalesets.SettingNames](raw["setting"].(string)),
 			Content:     pointer.To(raw["content"].(string)),
 
 			// no other possible values
-			PassName:      pointer.To(virtualmachinescalesets.PassNamesOobeSystem),
-			ComponentName: pointer.To(virtualmachinescalesets.ComponentNamesMicrosoftNegativeWindowsNegativeShellNegativeSetup),
+			PassName:      pointer.To(virtualmachinescalesets.PassNameOobeSystem),
+			ComponentName: pointer.To(virtualmachinescalesets.ComponentNameMicrosoftNegativeWindowsNegativeShellNegativeSetup),
 		})
 	}
 
@@ -242,10 +270,7 @@ func flattenBootDiagnostics(input *virtualmachines.DiagnosticsProfile) []interfa
 		return []interface{}{}
 	}
 
-	storageAccountUri := ""
-	if input.BootDiagnostics.StorageUri != nil {
-		storageAccountUri = *input.BootDiagnostics.StorageUri
-	}
+	storageAccountUri := pointer.From(input.BootDiagnostics.StorageUri)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -259,10 +284,7 @@ func flattenBootDiagnosticsVMSS(input *virtualmachinescalesets.DiagnosticsProfil
 		return []interface{}{}
 	}
 
-	storageAccountUri := ""
-	if input.BootDiagnostics.StorageUri != nil {
-		storageAccountUri = *input.BootDiagnostics.StorageUri
-	}
+	storageAccountUri := pointer.From(input.BootDiagnostics.StorageUri)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -291,7 +313,7 @@ func linuxSecretSchema() *pluginsdk.Schema {
 							"url": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
-								ValidateFunc: keyVaultValidate.NestedItemId,
+								ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
 							},
 						},
 					},
@@ -494,20 +516,11 @@ func flattenPlan(input *virtualmachines.Plan) []interface{} {
 		return []interface{}{}
 	}
 
-	name := ""
-	if input.Name != nil {
-		name = *input.Name
-	}
+	name := pointer.From(input.Name)
 
-	product := ""
-	if input.Product != nil {
-		product = *input.Product
-	}
+	product := pointer.From(input.Product)
 
-	publisher := ""
-	if input.Publisher != nil {
-		publisher = *input.Publisher
-	}
+	publisher := pointer.From(input.Publisher)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -523,26 +536,59 @@ func flattenPlanVMSS(input *virtualmachinescalesets.Plan) []interface{} {
 		return []interface{}{}
 	}
 
-	name := ""
-	if input.Name != nil {
-		name = *input.Name
-	}
+	name := pointer.From(input.Name)
 
-	product := ""
-	if input.Product != nil {
-		product = *input.Product
-	}
+	product := pointer.From(input.Product)
 
-	publisher := ""
-	if input.Publisher != nil {
-		publisher = *input.Publisher
-	}
+	publisher := pointer.From(input.Publisher)
 
 	return []interface{}{
 		map[string]interface{}{
 			"name":      name,
 			"product":   product,
 			"publisher": publisher,
+		},
+	}
+}
+
+func sourceImageReferenceSchemaVM() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		ForceNew: true,
+		MaxItems: 1,
+		ExactlyOneOf: []string{
+			"os_managed_disk_id",
+			"source_image_id",
+			"source_image_reference",
+		},
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"publisher": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"offer": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"sku": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"version": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
 		},
 	}
 }
@@ -566,13 +612,13 @@ func sourceImageReferenceSchema(isVirtualMachine bool) *pluginsdk.Schema {
 				"publisher": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ForceNew:     true,
+					ForceNew:     isVirtualMachine,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"offer": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ForceNew:     true,
+					ForceNew:     isVirtualMachine,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"sku": {
@@ -799,22 +845,51 @@ func winRmListenerSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"protocol": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachines.ProtocolTypesHTTP),
-						string(virtualmachines.ProtocolTypesHTTPS),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForProtocolTypes(), false),
 				},
 
 				"certificate_url": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: keyVaultValidate.NestedItemId,
+					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
 				},
 			},
+		},
+	}
+}
+
+func winRmListenerSchemaVM() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeSet,
+		Optional: true,
+		// Whilst the SDK allows you to modify this, the API does not:
+		//   Code="PropertyChangeNotAllowed"
+		//   Message="Changing property 'windowsConfiguration.winRM.listeners' is not allowed."
+		//   Target="windowsConfiguration.winRM.listeners"
+		ForceNew: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"protocol": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForProtocolTypes(), false),
+				},
+
+				"certificate_url": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
+				},
+			},
+		},
+		ConflictsWith: []string{
+			"os_managed_disk_id",
 		},
 	}
 }
@@ -826,7 +901,7 @@ func expandWinRMListener(input []interface{}) *virtualmachines.WinRMConfiguratio
 		raw := v.(map[string]interface{})
 
 		listener := virtualmachines.WinRMListener{
-			Protocol: pointer.To(virtualmachines.ProtocolTypes(raw["protocol"].(string))),
+			Protocol: pointer.ToEnum[virtualmachines.ProtocolTypes](raw["protocol"].(string)),
 		}
 
 		certificateUrl := raw["certificate_url"].(string)
@@ -849,7 +924,7 @@ func expandWinRMListenerVMSS(input []interface{}) *virtualmachinescalesets.WinRM
 		raw := v.(map[string]interface{})
 
 		listener := virtualmachinescalesets.WinRMListener{
-			Protocol: pointer.To(virtualmachinescalesets.ProtocolTypes(raw["protocol"].(string))),
+			Protocol: pointer.ToEnum[virtualmachinescalesets.ProtocolTypes](raw["protocol"].(string)),
 		}
 
 		certificateUrl := raw["certificate_url"].(string)
@@ -873,10 +948,7 @@ func flattenWinRMListener(input *virtualmachines.WinRMConfiguration) []interface
 	output := make([]interface{}, 0)
 
 	for _, v := range *input.Listeners {
-		certificateUrl := ""
-		if v.CertificateURL != nil {
-			certificateUrl = *v.CertificateURL
-		}
+		certificateUrl := pointer.From(v.CertificateURL)
 
 		output = append(output, map[string]interface{}{
 			"certificate_url": certificateUrl,
@@ -895,10 +967,7 @@ func flattenWinRMListenerVMSS(input *virtualmachinescalesets.WinRMConfiguration)
 	output := make([]interface{}, 0)
 
 	for _, v := range *input.Listeners {
-		certificateUrl := ""
-		if v.CertificateURL != nil {
-			certificateUrl = *v.CertificateURL
-		}
+		certificateUrl := pointer.From(v.CertificateURL)
 
 		output = append(output, map[string]interface{}{
 			"certificate_url": certificateUrl,
@@ -931,12 +1000,47 @@ func windowsSecretSchema() *pluginsdk.Schema {
 							"url": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
-								ValidateFunc: keyVaultValidate.NestedItemId,
+								ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
 							},
 						},
 					},
 				},
 			},
+		},
+	}
+}
+
+func windowsSecretSchemaVM() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				// whilst this isn't present in the nested object it's required when this is specified
+				"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+
+				"certificate": {
+					Type:     pluginsdk.TypeSet,
+					Required: true,
+					MinItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"store": {
+								Type:     pluginsdk.TypeString,
+								Required: true,
+							},
+							"url": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
+							},
+						},
+					},
+				},
+			},
+		},
+		ConflictsWith: []string{
+			"os_managed_disk_id",
 		},
 	}
 }
@@ -1020,15 +1124,9 @@ func flattenWindowsSecrets(input *[]virtualmachines.VaultSecretGroup) []interfac
 
 		if v.VaultCertificates != nil {
 			for _, c := range *v.VaultCertificates {
-				store := ""
-				if c.CertificateStore != nil {
-					store = *c.CertificateStore
-				}
+				store := pointer.From(c.CertificateStore)
 
-				url := ""
-				if c.CertificateURL != nil {
-					url = *c.CertificateURL
-				}
+				url := pointer.From(c.CertificateURL)
 
 				certificates = append(certificates, map[string]interface{}{
 					"store": store,
@@ -1063,15 +1161,9 @@ func flattenWindowsSecretsVMSS(input *[]virtualmachinescalesets.VaultSecretGroup
 
 		if v.VaultCertificates != nil {
 			for _, c := range *v.VaultCertificates {
-				store := ""
-				if c.CertificateStore != nil {
-					store = *c.CertificateStore
-				}
+				store := pointer.From(c.CertificateStore)
 
-				url := ""
-				if c.CertificateURL != nil {
-					url = *c.CertificateURL
-				}
+				url := pointer.From(c.CertificateURL)
 
 				certificates = append(certificates, map[string]interface{}{
 					"store": store,

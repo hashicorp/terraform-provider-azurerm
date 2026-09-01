@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid
@@ -11,22 +11,23 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/eventsubscriptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/eventsubscriptions"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func possibleEventSubscriptionEndpointTypes() []string {
 	return []string{
 		string(AzureFunctionEndpoint),
-		string(EventHubEndpointID),
-		string(HybridConnectionEndpointID),
-		string(ServiceBusQueueEndpointID),
-		string(ServiceBusTopicEndpointID),
+		string(EventHubID),
+		string(HybridConnectionID),
+		string(ServiceBusQueueID),
+		string(ServiceBusTopicID),
 		string(StorageQueueEndpoint),
 		string(WebHookEndpoint),
 	}
@@ -87,51 +88,49 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 			"expiration_time_utc": eventSubscriptionSchemaExpirationTimeUTC(),
 
 			"azure_function_endpoint": eventSubscriptionSchemaAzureFunctionEndpoint(
-				utils.RemoveFromStringArray(
+				helpers.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
 					string(AzureFunctionEndpoint),
 				),
 			),
 
-			"eventhub_endpoint_id": eventSubscriptionSchemaEventHubEndpointID(
-				utils.RemoveFromStringArray(
+			"eventhub_id": eventSubscriptionSchemaEventHubEndpointID(
+				helpers.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
-					string(EventHubEndpointID),
+					string(EventHubID),
 				),
 			),
 
-			"hybrid_connection_endpoint_id": eventSubscriptionSchemaHybridConnectionEndpointID(
-				utils.RemoveFromStringArray(
+			"hybrid_connection_id": eventSubscriptionSchemaHybridConnectionEndpointID(
+				helpers.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
-					string(HybridConnectionEndpointID),
+					string(HybridConnectionID),
 				),
 			),
 
-			// TODO: this can become `service_bus_queue_id` in 4.0
-			"service_bus_queue_endpoint_id": eventSubscriptionSchemaServiceBusQueueEndpointID(
-				utils.RemoveFromStringArray(
+			"service_bus_queue_id": eventSubscriptionSchemaServiceBusQueueEndpointID(
+				helpers.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
-					string(ServiceBusQueueEndpointID),
+					string(ServiceBusQueueID),
 				),
 			),
 
-			// TODO: this can become `service_bus_topic_id` in 4.0
-			"service_bus_topic_endpoint_id": eventSubscriptionSchemaServiceBusTopicEndpointID(
-				utils.RemoveFromStringArray(
+			"service_bus_topic_id": eventSubscriptionSchemaServiceBusTopicEndpointID(
+				helpers.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
-					string(ServiceBusTopicEndpointID),
+					string(ServiceBusTopicID),
 				),
 			),
 
 			"storage_queue_endpoint": eventSubscriptionSchemaStorageQueueEndpoint(
-				utils.RemoveFromStringArray(
+				helpers.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
 					string(StorageQueueEndpoint),
 				),
 			),
 
 			"webhook_endpoint": eventSubscriptionSchemaWebHookEndpoint(
-				utils.RemoveFromStringArray(
+				helpers.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
 					string(WebHookEndpoint),
 				),
@@ -167,15 +166,17 @@ func resourceEventGridEventSubscriptionCreateUpdate(d *pluginsdk.ResourceData, m
 
 	id := eventsubscriptions.NewScopedEventSubscriptionID(d.Get("scope").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_eventgrid_event_subscription", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_eventgrid_event_subscription", id.ID())
+			}
 		}
 	}
 
@@ -193,9 +194,9 @@ func resourceEventGridEventSubscriptionCreateUpdate(d *pluginsdk.ResourceData, m
 
 	properties := eventsubscriptions.EventSubscriptionProperties{
 		ExpirationTimeUtc:   pointer.To(d.Get("expiration_time_utc").(string)),
-		EventDeliverySchema: pointer.To(eventsubscriptions.EventDeliverySchema(d.Get("event_delivery_schema").(string))),
+		EventDeliverySchema: pointer.ToEnum[eventsubscriptions.EventDeliverySchema](d.Get("event_delivery_schema").(string)),
 		Filter:              filter,
-		Labels:              utils.ExpandStringSlice(d.Get("labels").([]interface{})),
+		Labels:              helpers.ExpandStringSlice(d.Get("labels").([]interface{})),
 		RetryPolicy:         expandEventSubscriptionRetryPolicy(d),
 	}
 
@@ -236,11 +237,17 @@ func resourceEventGridEventSubscriptionCreateUpdate(d *pluginsdk.ResourceData, m
 		Properties: &properties,
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return resourceEventGridEventSubscriptionRead(d, meta)
 }
 
@@ -314,10 +321,10 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 				return fmt.Errorf("setting `azure_function_endpoint` for %s: %+v", *id, err)
 			}
 
-			d.Set("eventhub_endpoint_id", flattenEventSubscriptionDestinationEventHub(destination))
-			d.Set("hybrid_connection_endpoint_id", flattenEventSubscriptionDestinationHybridConnection(destination))
-			d.Set("service_bus_queue_endpoint_id", flattenEventSubscriptionDestinationServiceBusQueueEndpoint(destination))
-			d.Set("service_bus_topic_endpoint_id", flattenEventSubscriptionDestinationServiceBusTopicEndpoint(destination))
+			d.Set("eventhub_id", flattenEventSubscriptionDestinationEventHub(destination))
+			d.Set("hybrid_connection_id", flattenEventSubscriptionDestinationHybridConnection(destination))
+			d.Set("service_bus_queue_id", flattenEventSubscriptionDestinationServiceBusQueueEndpoint(destination))
+			d.Set("service_bus_topic_id", flattenEventSubscriptionDestinationServiceBusTopicEndpoint(destination))
 			if err := d.Set("storage_queue_endpoint", flattenEventSubscriptionDestinationStorageQueueEndpoint(destination)); err != nil {
 				return fmt.Errorf("setting `storage_queue_endpoint` for %s: %+v", *id, err)
 			}

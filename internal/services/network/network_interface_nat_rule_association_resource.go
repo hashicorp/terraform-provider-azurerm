@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -12,10 +12,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -63,7 +64,7 @@ func resourceNetworkInterfaceNatRuleAssociation() *pluginsdk.Resource {
 }
 
 func resourceNetworkInterfaceNatRuleAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.NetworkInterfaces
+	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -85,7 +86,7 @@ func resourceNetworkInterfaceNatRuleAssociationCreate(d *pluginsdk.ResourceData,
 	read, err := client.Get(ctx, *networkInterfaceId, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(read.HttpResponse) {
-			return fmt.Errorf(" %s was not found!", networkInterfaceId)
+			return fmt.Errorf("%s was not found", networkInterfaceId)
 		}
 
 		return fmt.Errorf("retrieving %s: %+v", networkInterfaceId, err)
@@ -117,11 +118,15 @@ func resourceNetworkInterfaceNatRuleAssociationCreate(d *pluginsdk.ResourceData,
 	rules := make([]networkinterfaces.InboundNatRule, 0)
 
 	// first double-check it doesn't exist
+	exists := false
 	if ipConfigProps.LoadBalancerInboundNatRules != nil {
 		for _, existingRule := range *ipConfigProps.LoadBalancerInboundNatRules {
 			if ruleId := existingRule.Id; ruleId != nil {
 				if *ruleId == natRuleId.ID() {
-					return tf.ImportAsExistsError("azurerm_network_interface_nat_rule_association", id.ID())
+					exists = true
+					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError("azurerm_network_interface_nat_rule_association", id.ID())
+					}
 				}
 
 				rules = append(rules, existingRule)
@@ -132,12 +137,14 @@ func resourceNetworkInterfaceNatRuleAssociationCreate(d *pluginsdk.ResourceData,
 	rule := networkinterfaces.InboundNatRule{
 		Id: pointer.To(natRuleId.ID()),
 	}
-	rules = append(rules, rule)
+	if !exists {
+		rules = append(rules, rule)
+	}
 	ipConfigProps.LoadBalancerInboundNatRules = &rules
 
 	props.IPConfigurations = updateNetworkInterfaceIPConfiguration(*config, props.IPConfigurations)
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *networkInterfaceId, *read.Model); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, *networkInterfaceId, *read.Model, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("updating NAT Rule Association for %s: %+v", networkInterfaceId, err)
 	}
 
@@ -147,7 +154,7 @@ func resourceNetworkInterfaceNatRuleAssociationCreate(d *pluginsdk.ResourceData,
 }
 
 func resourceNetworkInterfaceNatRuleAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.NetworkInterfaces
+	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -214,7 +221,7 @@ func resourceNetworkInterfaceNatRuleAssociationRead(d *pluginsdk.ResourceData, m
 }
 
 func resourceNetworkInterfaceNatRuleAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.NetworkInterfaces
+	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

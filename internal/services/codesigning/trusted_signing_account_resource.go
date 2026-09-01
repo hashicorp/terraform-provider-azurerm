@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package codesigning
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview/codesigningaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2025-10-13/codesigningaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -47,16 +47,17 @@ func (m TrustedSigningAccountResource) Arguments() map[string]*pluginsdk.Schema 
 			),
 		},
 
-		"location": commonschema.Location(),
-
 		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"location": commonschema.Location(),
 
 		"sku_name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ValidateFunc: validation.StringInSlice(
 				codesigningaccounts.PossibleValuesForSkuName(),
-				false),
+				false,
+			),
 		},
 
 		"tags": commonschema.Tags(),
@@ -83,22 +84,25 @@ func (m TrustedSigningAccountResource) ResourceType() string {
 func (m TrustedSigningAccountResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.CodeSigning.Client.CodeSigningAccounts
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.CodeSigning.Client.CodeSigningAccounts
 
 			var model TrustedSigningAccountModel
-			if err := meta.Decode(&model); err != nil {
+			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			subscriptionID := meta.Client.Account.SubscriptionId
+			subscriptionID := metadata.Client.Account.SubscriptionId
 			id := codesigningaccounts.NewCodeSigningAccountID(subscriptionID, model.ResourceGroupName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if !response.WasNotFound(existing.HttpResponse) {
-				if err != nil {
-					return fmt.Errorf("retrieving %s: %v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					if err != nil {
+						return fmt.Errorf("retrieving %s: %v", id, err)
+					}
+					return metadata.ResourceRequiresImport(m.ResourceType(), id)
 				}
-				return meta.ResourceRequiresImport(m.ResourceType(), id)
 			}
 
 			req := codesigningaccounts.CodeSigningAccount{
@@ -112,12 +116,11 @@ func (m TrustedSigningAccountResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.CreateThenPoll(ctx, id, req)
-			if err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, req, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
-			meta.SetID(id)
+			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -136,6 +139,9 @@ func (m TrustedSigningAccountResource) Read() sdk.ResourceFunc {
 
 			result, err := client.Get(ctx, *id)
 			if err != nil {
+				if response.WasNotFound(result.HttpResponse) {
+					return meta.MarkAsGone(id)
+				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
@@ -179,7 +185,7 @@ func (m TrustedSigningAccountResource) Update() sdk.ResourceFunc {
 			if meta.ResourceData.HasChange("sku_name") {
 				patch.Properties = pointer.To(codesigningaccounts.CodeSigningAccountPatchProperties{
 					Sku: pointer.To(codesigningaccounts.AccountSkuPatch{
-						Name: pointer.To(codesigningaccounts.SkuName(model.SkuName)),
+						Name: pointer.ToEnum[codesigningaccounts.SkuName](model.SkuName),
 					}),
 				})
 			}
@@ -209,7 +215,7 @@ func (m TrustedSigningAccountResource) Delete() sdk.ResourceFunc {
 
 			meta.Logger.Infof("deleting %s", id)
 
-			if _, err = client.Delete(ctx, *id); err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
 			}
 			return nil

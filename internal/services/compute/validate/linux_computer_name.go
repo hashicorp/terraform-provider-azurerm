@@ -1,11 +1,12 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
 import (
-	"fmt"
-	"strings"
+	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func LinuxComputerNameFull(i interface{}, k string) (warnings []string, errors []error) {
@@ -19,39 +20,17 @@ func LinuxComputerNamePrefix(i interface{}, k string) (warnings []string, errors
 }
 
 func LinuxComputerName(i interface{}, k string, maxLength int, allowDashSuffix bool) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected %q to be a string but it wasn't!", k))
-		return
+	validator := validation.All(
+		validation.StringIsNotWhiteSpace,
+		validation.StringLenBetween(1, maxLength),
+		validation.StringDoesNotMatch(regexp.MustCompile(`^_`), "cannot begin with an underscore"),
+		validation.StringDoesNotMatch(regexp.MustCompile(`\.$`), "cannot end with a period"),
+		// Linux host name cannot contain the following characters
+		validation.StringDoesNotContainAny(`\/"[]:|<>+=;,?*@&~!#$%^()_{}'`),
+	)
+	if !allowDashSuffix {
+		validator = validation.All(validator, validation.StringDoesNotMatch(regexp.MustCompile(`-$`), "cannot end with a dash"))
 	}
 
-	// The value must not be empty.
-	if strings.TrimSpace(v) == "" {
-		errors = append(errors, fmt.Errorf("%q must not be empty", k))
-		return
-	}
-
-	if len(v) > maxLength {
-		errors = append(errors, fmt.Errorf("%q can be at most %d characters, got %d", k, maxLength, len(v)))
-	}
-
-	if strings.HasPrefix(v, "_") {
-		errors = append(errors, fmt.Errorf("%q cannot begin with an underscore", k))
-	}
-
-	if strings.HasSuffix(v, ".") {
-		errors = append(errors, fmt.Errorf("%q cannot end with a period", k))
-	}
-
-	if !allowDashSuffix && strings.HasSuffix(v, "-") {
-		errors = append(errors, fmt.Errorf("%q cannot end with a dash", k))
-	}
-
-	// Linux host name cannot contain the following characters
-	specialCharacters := `\/"[]:|<>+=;,?*@&~!#$%^()_{}'`
-	if strings.ContainsAny(v, specialCharacters) {
-		errors = append(errors, fmt.Errorf("%q cannot contain the special characters: `%s`", k, specialCharacters))
-	}
-
-	return warnings, errors
+	return validator(i, k)
 }

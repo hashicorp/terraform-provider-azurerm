@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn
@@ -15,14 +15,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
+	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
@@ -38,10 +39,10 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(4 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(4 * time.Hour),
+			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -65,12 +66,9 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 			},
 
 			"mode": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(waf.PolicyModeDetection),
-					string(waf.PolicyModePrevention),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(waf.PossibleValuesForPolicyMode(), false),
 			},
 
 			"enabled": {
@@ -79,10 +77,25 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			// NOTE: Through local testing, the new API js challenge expiration is always
+			// NOTE: 'js challenge expiration' is always
 			// enabled no matter what and cannot be disabled for Premium_AzureFrontDoor
 			// and is not supported in Standard_AzureFrontDoor...
 			"js_challenge_cookie_expiration_in_minutes": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(5, 1440),
+			},
+
+			// NOTE: 'captcha expiration' is always
+			// enabled no matter what and cannot be disabled for Premium_AzureFrontDoor
+			// and is not supported in Standard_AzureFrontDoor...
+
+			// NOTE: This field is Optional + Computed because:
+			//  * Optional: Users can override the Azure default value (e.g., 30 minutes)
+			//  * Computed: Azure automatically enables CAPTCHA policy with a default of 30 minutes on the Premium_AzureFrontDoor SKU,
+			//    so the value is defined by Azure even when not explicitly set by the user
+			"captcha_cookie_expiration_in_minutes": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
@@ -110,6 +123,16 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 					405,
 					406,
 					429,
+					990,
+					991,
+					992,
+					993,
+					994,
+					995,
+					996,
+					997,
+					998,
+					999,
 				}),
 			},
 
@@ -144,12 +167,9 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 						},
 
 						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(waf.RuleTypeMatchRule),
-								string(waf.RuleTypeRateLimitRule),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(waf.PossibleValuesForRuleType(), false),
 						},
 
 						"rate_limit_duration_in_minutes": {
@@ -173,6 +193,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 								string(waf.ActionTypeLog),
 								string(waf.ActionTypeRedirect),
 								string(waf.ActionTypeJSChallenge),
+								string(waf.ActionTypeCAPTCHA),
 							}, false),
 						},
 
@@ -183,19 +204,9 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"match_variable": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(waf.MatchVariableCookies),
-											string(waf.MatchVariablePostArgs),
-											string(waf.MatchVariableQueryString),
-											string(waf.MatchVariableRemoteAddr),
-											string(waf.MatchVariableRequestBody),
-											string(waf.MatchVariableRequestHeader),
-											string(waf.MatchVariableRequestMethod),
-											string(waf.MatchVariableRequestUri),
-											string(waf.MatchVariableSocketAddr),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(waf.PossibleValuesForMatchVariable(), false),
 									},
 
 									"match_values": {
@@ -209,22 +220,9 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 									},
 
 									"operator": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(waf.OperatorAny),
-											string(waf.OperatorBeginsWith),
-											string(waf.OperatorContains),
-											string(waf.OperatorEndsWith),
-											string(waf.OperatorEqual),
-											string(waf.OperatorGeoMatch),
-											string(waf.OperatorGreaterThan),
-											string(waf.OperatorGreaterThanOrEqual),
-											string(waf.OperatorIPMatch),
-											string(waf.OperatorLessThan),
-											string(waf.OperatorLessThanOrEqual),
-											string(waf.OperatorRegEx),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(waf.PossibleValuesForOperator(), false),
 									},
 
 									"selector": {
@@ -244,15 +242,8 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 										Optional: true,
 										MaxItems: 5,
 										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												string(waf.TransformTypeLowercase),
-												string(waf.TransformTypeRemoveNulls),
-												string(waf.TransformTypeTrim),
-												string(waf.TransformTypeUppercase),
-												string(waf.TransformTypeURLDecode),
-												string(waf.TransformTypeURLEncode),
-											}, false),
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice(waf.PossibleValuesForTransformType(), false),
 										},
 									},
 								},
@@ -298,26 +289,14 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"match_variable": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(waf.ManagedRuleExclusionMatchVariableQueryStringArgNames),
-											string(waf.ManagedRuleExclusionMatchVariableRequestBodyPostArgNames),
-											string(waf.ManagedRuleExclusionMatchVariableRequestCookieNames),
-											string(waf.ManagedRuleExclusionMatchVariableRequestHeaderNames),
-											string(waf.ManagedRuleExclusionMatchVariableRequestBodyJsonArgNames),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(waf.PossibleValuesForManagedRuleExclusionMatchVariable(), false),
 									},
 									"operator": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(waf.ManagedRuleExclusionSelectorMatchOperatorContains),
-											string(waf.ManagedRuleExclusionSelectorMatchOperatorEndsWith),
-											string(waf.ManagedRuleExclusionSelectorMatchOperatorEquals),
-											string(waf.ManagedRuleExclusionSelectorMatchOperatorEqualsAny),
-											string(waf.ManagedRuleExclusionSelectorMatchOperatorStartsWith),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(waf.PossibleValuesForManagedRuleExclusionSelectorMatchOperator(), false),
 									},
 									"selector": {
 										Type:         pluginsdk.TypeString,
@@ -347,26 +326,14 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"match_variable": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(waf.ManagedRuleExclusionMatchVariableQueryStringArgNames),
-														string(waf.ManagedRuleExclusionMatchVariableRequestBodyPostArgNames),
-														string(waf.ManagedRuleExclusionMatchVariableRequestCookieNames),
-														string(waf.ManagedRuleExclusionMatchVariableRequestHeaderNames),
-														string(waf.ManagedRuleExclusionMatchVariableRequestBodyJsonArgNames),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(waf.PossibleValuesForManagedRuleExclusionMatchVariable(), false),
 												},
 												"operator": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(waf.ManagedRuleExclusionSelectorMatchOperatorContains),
-														string(waf.ManagedRuleExclusionSelectorMatchOperatorEndsWith),
-														string(waf.ManagedRuleExclusionSelectorMatchOperatorEquals),
-														string(waf.ManagedRuleExclusionSelectorMatchOperatorEqualsAny),
-														string(waf.ManagedRuleExclusionSelectorMatchOperatorStartsWith),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(waf.PossibleValuesForManagedRuleExclusionSelectorMatchOperator(), false),
 												},
 												"selector": {
 													Type:         pluginsdk.TypeString,
@@ -402,26 +369,14 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 													Elem: &pluginsdk.Resource{
 														Schema: map[string]*pluginsdk.Schema{
 															"match_variable": {
-																Type:     pluginsdk.TypeString,
-																Required: true,
-																ValidateFunc: validation.StringInSlice([]string{
-																	string(waf.ManagedRuleExclusionMatchVariableQueryStringArgNames),
-																	string(waf.ManagedRuleExclusionMatchVariableRequestBodyPostArgNames),
-																	string(waf.ManagedRuleExclusionMatchVariableRequestCookieNames),
-																	string(waf.ManagedRuleExclusionMatchVariableRequestHeaderNames),
-																	string(waf.ManagedRuleExclusionMatchVariableRequestBodyJsonArgNames),
-																}, false),
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringInSlice(waf.PossibleValuesForManagedRuleExclusionMatchVariable(), false),
 															},
 															"operator": {
-																Type:     pluginsdk.TypeString,
-																Required: true,
-																ValidateFunc: validation.StringInSlice([]string{
-																	string(waf.ManagedRuleExclusionSelectorMatchOperatorContains),
-																	string(waf.ManagedRuleExclusionSelectorMatchOperatorEndsWith),
-																	string(waf.ManagedRuleExclusionSelectorMatchOperatorEquals),
-																	string(waf.ManagedRuleExclusionSelectorMatchOperatorEqualsAny),
-																	string(waf.ManagedRuleExclusionSelectorMatchOperatorStartsWith),
-																}, false),
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringInSlice(waf.PossibleValuesForManagedRuleExclusionSelectorMatchOperator(), false),
 															},
 															"selector": {
 																Type:         pluginsdk.TypeString,
@@ -513,53 +468,47 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			// Verify that they are not downgrading the service from Premium SKU -> Standard SKU...
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-				oSku, nSku := diff.GetChange("sku_name")
+				currentSku := diff.Get("sku_name").(string)
+				standardSku := string(waf.SkuNameStandardAzureFrontDoor)
+				oldSku, _ := diff.GetChange("sku_name")
 
-				if oSku != "" {
-					if oSku.(string) == string(waf.SkuNamePremiumAzureFrontDoor) && nSku.(string) == string(waf.SkuNameStandardAzureFrontDoor) {
-						return fmt.Errorf("downgrading from the %q sku to the %q sku is not supported, got %q", waf.SkuNamePremiumAzureFrontDoor, waf.SkuNameStandardAzureFrontDoor, nSku.(string))
-					}
-				}
+				if currentSku == standardSku {
+					premiumSku := string(waf.SkuNamePremiumAzureFrontDoor)
+					managedRules := diff.Get("managed_rule").([]interface{})
+					customRules := expandCdnFrontDoorFirewallCustomRules(diff.Get("custom_rule").([]interface{}))
 
-				return nil
-			}),
-
-			// Verify that the Standard SKU is not setting the JSChallenge policy...
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-				sku := diff.Get("sku_name").(string)
-				policyInMinutes := diff.Get("js_challenge_cookie_expiration_in_minutes").(int)
-
-				if sku == string(waf.SkuNameStandardAzureFrontDoor) && policyInMinutes > 0 {
-					return fmt.Errorf("the 'js_challenge_cookie_expiration_in_minutes' field is only supported with the %q sku, got %q", waf.SkuNamePremiumAzureFrontDoor, sku)
-				}
-
-				return nil
-			}),
-
-			// Verify that the Standard SKU is not using managed rules...
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-				sku := diff.Get("sku_name").(string)
-				managedRules := diff.Get("managed_rule").([]interface{})
-
-				if sku == string(waf.SkuNameStandardAzureFrontDoor) && len(managedRules) > 0 {
-					return fmt.Errorf("the 'managed_rule' code block is only supported with the %q sku, got %q", waf.SkuNamePremiumAzureFrontDoor, sku)
-				}
-
-				return nil
-			}),
-
-			// Verify that the Standard SKU is not using the JSChallenge Action type for custom rules...
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-				sku := diff.Get("sku_name").(string)
-				customRules := expandCdnFrontDoorFirewallCustomRules(diff.Get("custom_rule").([]interface{}))
-
-				if sku == string(waf.SkuNameStandardAzureFrontDoor) && customRules != nil {
-					for _, v := range *customRules.Rules {
-						if v.Action == waf.ActionTypeJSChallenge {
-							return fmt.Errorf("'custom_rule' blocks with the 'action' type of 'JSChallenge' are only supported for the %q sku, got action: %q (custom_rule.name: %q, sku_name: %q)", waf.SkuNamePremiumAzureFrontDoor, waf.ActionTypeJSChallenge, *v.Name, sku)
+					// Verify that they are not downgrading the service from Premium SKU -> Standard SKU...
+					if oldSku != "" {
+						if oldSku.(string) == premiumSku {
+							return fmt.Errorf("downgrading from the %q sku to the %q sku is not supported, got %q", premiumSku, standardSku, currentSku)
 						}
+					}
+
+					// Verify that the Standard SKU is not setting the JSChallenge or Captcha policy...
+					if v := diff.Get("js_challenge_cookie_expiration_in_minutes").(int); v > 0 {
+						return fmt.Errorf("'js_challenge_cookie_expiration_in_minutes' field is only supported with the %q sku, got %q", premiumSku, currentSku)
+					}
+
+					if v := diff.Get("captcha_cookie_expiration_in_minutes").(int); v > 0 {
+						return fmt.Errorf("'captcha_cookie_expiration_in_minutes' field is only supported with the %q sku, got %q", premiumSku, currentSku)
+					}
+
+					// Verify that the Standard SKU is not using the JSChallenge or CAPTCHA Action type for custom rules...
+					if customRules != nil && customRules.Rules != nil {
+						for _, v := range *customRules.Rules {
+							switch v.Action {
+							case waf.ActionTypeJSChallenge:
+								return fmt.Errorf("'custom_rule' blocks with the 'action' type of 'JSChallenge' are only supported for the %q sku, got action: %q (custom_rule.name: %q, sku_name: %q)", premiumSku, waf.ActionTypeJSChallenge, *v.Name, currentSku)
+							case waf.ActionTypeCAPTCHA:
+								return fmt.Errorf("'custom_rule' blocks with the 'action' type of 'CAPTCHA' are only supported for the %q sku, got action: %q (custom_rule.name: %q, sku_name: %q)", premiumSku, waf.ActionTypeCAPTCHA, *v.Name, currentSku)
+							}
+						}
+					}
+
+					// Verify that the Standard SKU is not using managed rules...
+					if len(managedRules) > 0 {
+						return fmt.Errorf("'managed_rule' code block is only supported with the %q sku, got %q", premiumSku, currentSku)
 					}
 				}
 
@@ -569,11 +518,37 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 			// Verify that the scrubbing_rule's are valid...
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 				if v, ok := diff.GetOk("log_scrubbing"); ok {
-					_, err := expandCdnFrontDoorFirewallLogScrubbingPolicy(v.([]interface{}))
-					if err != nil {
+					if _, err := expandCdnFrontDoorFirewallLogScrubbingPolicy(v.([]interface{})); err != nil {
 						return err
 					}
 				}
+				return nil
+			}),
+
+			// Handle default value reset when field is removed from the configuration
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				rawConfig := diff.GetRawConfig()
+
+				if diff.Get("sku_name").(string) == string(waf.SkuNamePremiumAzureFrontDoor) {
+					// Force the value to default when removed from config
+					if rawConfig.IsNull() || rawConfig.GetAttr("js_challenge_cookie_expiration_in_minutes").IsNull() {
+						if diff.Get("js_challenge_cookie_expiration_in_minutes").(int) != 30 {
+							if err := diff.SetNew("js_challenge_cookie_expiration_in_minutes", 30); err != nil {
+								return fmt.Errorf("setting default for `js_challenge_cookie_expiration_in_minutes`: %+v", err)
+							}
+						}
+					}
+
+					// Force the value to default when removed from config
+					if rawConfig.IsNull() || rawConfig.GetAttr("captcha_cookie_expiration_in_minutes").IsNull() {
+						if diff.Get("captcha_cookie_expiration_in_minutes").(int) != 30 {
+							if err := diff.SetNew("captcha_cookie_expiration_in_minutes", 30); err != nil {
+								return fmt.Errorf("setting default for `captcha_cookie_expiration_in_minutes`: %+v", err)
+							}
+						}
+					}
+				}
+
 				return nil
 			}),
 		),
@@ -591,15 +566,17 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 
 	id := waf.NewFrontDoorWebApplicationFirewallPolicyID(subscriptionId, resourceGroup, name)
 
-	result, err := client.PoliciesGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(result.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		result, err := client.PoliciesGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(result.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(result.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_firewall_policy", id.ID())
+		if !response.WasNotFound(result.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_firewall_policy", id.ID())
+		}
 	}
 
 	enabled := waf.PolicyEnabledStateDisabled
@@ -638,7 +615,7 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 	payload := waf.WebApplicationFirewallPolicy{
 		Location: pointer.To(location.Normalize("Global")),
 		Sku: &waf.Sku{
-			Name: pointer.To(waf.SkuName(sku)),
+			Name: pointer.ToEnum[waf.SkuName](sku),
 		},
 		Properties: &waf.WebApplicationFirewallPolicyProperties{
 			PolicySettings: &waf.PolicySettings{
@@ -651,18 +628,24 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	// NOTE: JS Challenge Expiration policy is enabled by default on Premium SKU's with a default of
+	// NOTE: CAPTCHA and JS Challenge Expiration policy is enabled by default on Premium SKU's with a default of
 	// 30 minutes, if it is not in the config set the default and include it in the policy settings
 	// payload block...
 	if sku == string(waf.SkuNamePremiumAzureFrontDoor) {
-		// Set the Default value...
+		// Set the Default values...
 		jsChallengeExpirationInMinutes := 30
+		captchaExpirationInMinutes := 30
 
 		if v, ok := d.GetOk("js_challenge_cookie_expiration_in_minutes"); ok {
 			jsChallengeExpirationInMinutes = v.(int)
 		}
 
-		payload.Properties.PolicySettings.JavascriptChallengeExpirationInMinutes = pointer.FromInt64(int64(jsChallengeExpirationInMinutes))
+		if v, ok := d.GetOk("captcha_cookie_expiration_in_minutes"); ok {
+			captchaExpirationInMinutes = v.(int)
+		}
+
+		payload.Properties.PolicySettings.JavascriptChallengeExpirationInMinutes = pointer.To(int64(jsChallengeExpirationInMinutes))
+		payload.Properties.PolicySettings.CaptchaExpirationInMinutes = pointer.To(int64(captchaExpirationInMinutes))
 	}
 
 	if managedRules != nil {
@@ -685,8 +668,7 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 		payload.Properties.PolicySettings.LogScrubbing = logScrubbingRules
 	}
 
-	err = client.PoliciesCreateOrUpdateThenPoll(ctx, id, payload)
-	if err != nil {
+	if err := client.PoliciesCreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -721,7 +703,18 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 
 	props := *model.Properties
 
-	if d.HasChanges("custom_block_response_body", "custom_block_response_status_code", "enabled", "mode", "redirect_url", "request_body_check_enabled", "js_challenge_cookie_expiration_in_minutes", "log_scrubbing") {
+	// lintignore:R019 // deliberate subset: only the fields feeding PolicySettings; custom_rule, managed_rule and tags are applied in separate branches below
+	if d.HasChanges(
+		"custom_block_response_body",
+		"custom_block_response_status_code",
+		"enabled",
+		"mode",
+		"redirect_url",
+		"request_body_check_enabled",
+		"js_challenge_cookie_expiration_in_minutes",
+		"captcha_cookie_expiration_in_minutes",
+		"log_scrubbing",
+	) {
 		enabled := waf.PolicyEnabledStateDisabled
 		if d.Get("enabled").(bool) {
 			enabled = waf.PolicyEnabledStateEnabled
@@ -734,21 +727,27 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 
 		props.PolicySettings = &waf.PolicySettings{
 			EnabledState:     pointer.To(enabled),
-			Mode:             pointer.To(waf.PolicyMode(d.Get("mode").(string))),
+			Mode:             pointer.ToEnum[waf.PolicyMode](d.Get("mode").(string)),
 			RequestBodyCheck: pointer.To(requestBodyCheck),
 		}
 
-		// NOTE: js_challenge_cookie_expiration_in_minutes is only valid for
-		// Premium_AzureFrontDoor skus...
-		if model.Sku != nil && *model.Sku.Name == waf.SkuNamePremiumAzureFrontDoor {
+		// NOTE: 'captcha_cookie_expiration_in_minutes' and 'js_challenge_cookie_expiration_in_minutes'
+		// is only valid for 'Premium_AzureFrontDoor' skus...
+		if model.Sku != nil && model.Sku.Name != nil && *model.Sku.Name == waf.SkuNamePremiumAzureFrontDoor {
 			// Set the Default value...
 			jsChallengeExpirationInMinutes := 30
+			captchaExpirationInMinutes := 30
 
 			if v, ok := d.GetOk("js_challenge_cookie_expiration_in_minutes"); ok {
 				jsChallengeExpirationInMinutes = v.(int)
 			}
 
-			props.PolicySettings.JavascriptChallengeExpirationInMinutes = pointer.FromInt64(int64(jsChallengeExpirationInMinutes))
+			if v, ok := d.GetOk("captcha_cookie_expiration_in_minutes"); ok {
+				captchaExpirationInMinutes = v.(int)
+			}
+
+			props.PolicySettings.JavascriptChallengeExpirationInMinutes = pointer.To(int64(jsChallengeExpirationInMinutes))
+			props.PolicySettings.CaptchaExpirationInMinutes = pointer.To(int64(captchaExpirationInMinutes))
 		}
 
 		if redirectUrl := d.Get("redirect_url").(string); redirectUrl != "" {
@@ -804,8 +803,7 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 
 	model.Properties = pointer.To(props)
 
-	err = client.PoliciesCreateOrUpdateThenPoll(ctx, *id, *model)
-	if err != nil {
+	if err = client.PoliciesCreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
@@ -822,15 +820,19 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	result, err := client.PoliciesGet(ctx, *id)
+	resp, err := client.PoliciesGet(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		if response.WasNotFound(resp.HttpResponse) {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.Set("name", id.FrontDoorWebApplicationFirewallPolicyName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := result.Model; model != nil {
+	if model := resp.Model; model != nil {
 		if sku := model.Sku; sku != nil {
 			d.Set("sku_name", string(pointer.From(sku.Name)))
 		}
@@ -856,10 +858,15 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 				d.Set("custom_block_response_status_code", int(pointer.From(policy.CustomBlockResponseStatusCode)))
 				d.Set("custom_block_response_body", policy.CustomBlockResponseBody)
 
-				// NOTE: js_challenge_cookie_expiration_in_minutes is only returned
-				// for Premium_AzureFrontDoor skus, else it will be 'nil'...
+				// NOTE: `js_challenge_cookie_expiration_in_minutes` and
+				// `captcha_cookie_expiration_in_minutes` is only returned
+				// for Premium_AzureFrontDoor skus, else they will be 'nil'...
 				if policy.JavascriptChallengeExpirationInMinutes != nil {
 					d.Set("js_challenge_cookie_expiration_in_minutes", int(pointer.From(policy.JavascriptChallengeExpirationInMinutes)))
+				}
+
+				if policy.CaptchaExpirationInMinutes != nil {
+					d.Set("captcha_cookie_expiration_in_minutes", int(pointer.From(policy.CaptchaExpirationInMinutes)))
 				}
 
 				if err := d.Set("log_scrubbing", flattenCdnFrontDoorFirewallLogScrubbingPolicy(policy.LogScrubbing)); err != nil {
@@ -886,8 +893,7 @@ func resourceCdnFrontDoorFirewallPolicyDelete(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	err = client.PoliciesDeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.PoliciesDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
@@ -947,7 +953,7 @@ func expandCdnFrontDoorFirewallMatchConditions(input []interface{}) []waf.MatchC
 		selector := match["selector"].(string)
 		operator := match["operator"].(string)
 		negateCondition := match["negation_condition"].(bool)
-		matchValues := utils.ExpandStringSlice(match["match_values"].([]interface{}))
+		matchValues := helpers.ExpandStringSlice(match["match_values"].([]interface{}))
 		transforms := match["transforms"].([]interface{})
 
 		matchCondition := waf.MatchCondition{
@@ -1025,7 +1031,7 @@ func expandCdnFrontDoorFirewallManagedRules(input []interface{}) (*waf.ManagedRu
 		}
 
 		if action != "" {
-			managedRuleSet.RuleSetAction = pointer.To(waf.ManagedRuleSetActionType(action))
+			managedRuleSet.RuleSetAction = pointer.ToEnum[waf.ManagedRuleSetActionType](action)
 		}
 
 		result = append(result, managedRuleSet)
@@ -1192,7 +1198,7 @@ func expandCdnFrontDoorFirewallScrubbingRules(input []interface{}) (*[]waf.WebAp
 		case item.SelectorMatchOperator == waf.ScrubbingRuleEntryMatchOperatorEqualsAny:
 			// NOTE: If the 'operator' is set to 'EqualsAny' the 'selector' must be 'nil'...
 			if pointer.From(item.Selector) != "" {
-				return nil, fmt.Errorf("the 'selector' field cannot be set when the %q 'operator' is used, got %q", waf.ScrubbingRuleEntryMatchOperatorEqualsAny, *item.Selector)
+				return nil, fmt.Errorf("the 'selector' field cannot be set when the %q 'operator' is used, got %q", waf.ScrubbingRuleEntryMatchOperatorEqualsAny, pointer.From(item.Selector))
 			}
 		}
 
@@ -1218,11 +1224,6 @@ func flattenCdnFrontDoorFirewallCustomRules(input *waf.CustomRuleList) []interfa
 			enabled = pointer.From(v.EnabledState) == waf.CustomRuleEnabledStateEnabled
 		}
 
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
-
 		rateLimitDurationInMinutes := 0
 		if v.RateLimitDurationInMinutes != nil {
 			rateLimitDurationInMinutes = int(*v.RateLimitDurationInMinutes)
@@ -1240,7 +1241,7 @@ func flattenCdnFrontDoorFirewallCustomRules(input *waf.CustomRuleList) []interfa
 			"rate_limit_duration_in_minutes": rateLimitDurationInMinutes,
 			"rate_limit_threshold":           rateLimitThreshold,
 			"priority":                       priority,
-			"name":                           name,
+			"name":                           pointer.From(v.Name),
 			"type":                           ruleType,
 		})
 	}
@@ -1255,22 +1256,12 @@ func flattenCdnFrontDoorFirewallMatchConditions(input []waf.MatchCondition) []in
 
 	results := make([]interface{}, 0)
 	for _, v := range input {
-		selector := ""
-		if v.Selector != nil {
-			selector = *v.Selector
-		}
-
-		negateCondition := false
-		if v.NegateCondition != nil {
-			negateCondition = *v.NegateCondition
-		}
-
 		results = append(results, map[string]interface{}{
 			"match_variable":     string(v.MatchVariable),
 			"match_values":       v.MatchValue,
-			"negation_condition": negateCondition,
+			"negation_condition": pointer.From(v.NegateCondition),
 			"operator":           string(v.Operator),
-			"selector":           selector,
+			"selector":           pointer.From(v.Selector),
 			"transforms":         flattenTransformSlice(v.Transforms),
 		})
 	}

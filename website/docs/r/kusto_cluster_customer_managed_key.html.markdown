@@ -21,11 +21,12 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                = "examplekv"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "examplekv"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 
   purge_protection_enabled = true
 }
@@ -88,9 +89,13 @@ The following arguments are supported:
 
 * `cluster_id` - (Required) The ID of the Kusto Cluster. Changing this forces a new resource to be created.
 
-* `key_vault_id` - (Required) The ID of the Key Vault. 
+* `key_vault_id` - (Optional) The ID of the Key Vault for CMK encryption.
 
-* `key_name` - (Required) The name of Key Vault Key.
+* `managed_hsm_key_id` - (Optional) The Managed HSM Key ID for CMK encryption.
+
+~> **Note:** Exactly one of `managed_hsm_key_id` or `key_vault_id` must be specified.
+
+* `key_name` - (Optional) The name of Key Vault Key.
 
 * `key_version` - (Optional) The version of Key Vault Key.
 
@@ -104,7 +109,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Kusto Cluster Customer Managed Key.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kusto Cluster Customer Managed Key.
@@ -118,3 +123,9 @@ Customer Managed Keys for a Kusto Cluster can be imported using the `resource id
 ```shell
 terraform import azurerm_kusto_cluster_customer_managed_key.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/clusters/cluster1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Kusto` - 2024-04-13

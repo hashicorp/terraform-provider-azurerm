@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
@@ -7,25 +7,26 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceprovisioningservices/2022-02-05/iotdpsresource"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
@@ -104,7 +105,7 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
-							StateFunc:    azure.NormalizeLocation,
+							StateFunc:    location.StateFunc,
 						},
 						"apply_allocation_policy": {
 							Type:     pluginsdk.TypeBool,
@@ -149,27 +150,19 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 							}, false),
 						},
 						"target": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(iotdpsresource.IPFilterTargetTypeAll),
-								string(iotdpsresource.IPFilterTargetTypeServiceApi),
-								string(iotdpsresource.IPFilterTargetTypeDeviceApi),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(iotdpsresource.PossibleValuesForIPFilterTargetType(), false),
 						},
 					},
 				},
 			},
 
 			"allocation_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(iotdpsresource.AllocationPolicyHashed),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(iotdpsresource.AllocationPolicyHashed),
-					string(iotdpsresource.AllocationPolicyGeoLatency),
-					string(iotdpsresource.AllocationPolicyStatic),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(iotdpsresource.AllocationPolicyHashed),
+				ValidateFunc: validation.StringInSlice(iotdpsresource.PossibleValuesForAllocationPolicy(), false),
 			},
 
 			"data_residency_enabled": {
@@ -200,7 +193,7 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -213,15 +206,17 @@ func resourceIotHubDPSCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	id := commonids.NewProvisioningServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing IoT Device Provisioning Service %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing IoT Device Provisioning Service %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_iothub_dps", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_iothub_dps", id.ID())
+		}
 	}
 
 	publicNetworkAccess := iotdpsresource.PublicNetworkAccessEnabled
@@ -231,20 +226,20 @@ func resourceIotHubDPSCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	allocationPolicy := iotdpsresource.AllocationPolicy(d.Get("allocation_policy").(string))
 	iotdps := iotdpsresource.ProvisioningServiceDescription{
-		Location: azure.NormalizeLocation(d.Get("location").(string)),
-		Name:     utils.String(id.ProvisioningServiceName),
+		Location: location.Normalize(d.Get("location").(string)),
+		Name:     pointer.To(id.ProvisioningServiceName),
 		Sku:      expandIoTHubDPSSku(d),
 		Properties: iotdpsresource.IotDpsPropertiesDescription{
 			IotHubs:             expandIoTHubDPSIoTHubs(d.Get("linked_hub").([]interface{})),
 			AllocationPolicy:    &allocationPolicy,
-			EnableDataResidency: utils.Bool(d.Get("data_residency_enabled").(bool)),
+			EnableDataResidency: pointer.To(d.Get("data_residency_enabled").(bool)),
 			IPFilterRules:       expandDpsIPFilterRules(d),
 			PublicNetworkAccess: &publicNetworkAccess,
 		},
 		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, iotdps); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, iotdps, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating IoT Device Provisioning Service %s: %+v", id, err)
 	}
 
@@ -276,7 +271,7 @@ func resourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("name", id.ProvisioningServiceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	if model := resp.Model; model != nil {
-		d.Set("location", azure.NormalizeLocation(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
 		sku := flattenIoTHubDPSSku(model.Sku)
 		if err := d.Set("sku", sku); err != nil {
@@ -303,11 +298,7 @@ func resourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		d.Set("allocation_policy", allocationPolicy)
 
-		enableDataResidency := false
-		if props.EnableDataResidency != nil {
-			enableDataResidency = *props.EnableDataResidency
-		}
-		d.Set("data_residency_enabled", enableDataResidency)
+		d.Set("data_residency_enabled", pointer.From(props.EnableDataResidency))
 
 		publicNetworkAccess := true
 		if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess != "" {
@@ -389,45 +380,19 @@ func resourceIotHubDPSDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
-	return waitForIotHubDPSToBeDeleted(ctx, client, *id, d)
+	return waitForIotHubDPSToBeDeleted(ctx, client, *id)
 }
 
-func waitForIotHubDPSToBeDeleted(ctx context.Context, client *iotdpsresource.IotDpsResourceClient, id commonids.ProvisioningServiceId, d *pluginsdk.ResourceData) error {
-	// we can't use the Waiter here since the API returns a 404 once it's deleted which is considered a polling status code..
+func waitForIotHubDPSToBeDeleted(ctx context.Context, client *iotdpsresource.IotDpsResourceClient, id commonids.ProvisioningServiceId) error {
 	log.Printf("[DEBUG] Waiting for IoT Device Provisioning Service %q to be deleted", id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{"200"},
-		Target:  []string{"404"},
-		Refresh: iothubdpsStateStatusCodeRefreshFunc(ctx, client, id),
-		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(1, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, id)
+		return resp.HttpResponse, err
+	}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for IoT Device Provisioning Service %q to be deleted: %+v", id, err)
 	}
-
 	return nil
-}
-
-func iothubdpsStateStatusCodeRefreshFunc(ctx context.Context, client *iotdpsresource.IotDpsResourceClient, id commonids.ProvisioningServiceId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
-
-		statusCode := "dropped connection"
-		if res.HttpResponse != nil {
-			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
-		}
-		log.Printf("Retrieving IoT Device Provisioning Service %q returned Status %q", id, statusCode)
-
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return res, statusCode, nil
-			}
-			return nil, "", fmt.Errorf("polling for the status of the IoT Device Provisioning Service %q: %+v", id, err)
-		}
-
-		return res, statusCode, nil
-	}
 }
 
 func expandIoTHubDPSSku(d *pluginsdk.ResourceData) iotdpsresource.IotDpsSkuInfo {
@@ -437,7 +402,7 @@ func expandIoTHubDPSSku(d *pluginsdk.ResourceData) iotdpsresource.IotDpsSkuInfo 
 	skuName := iotdpsresource.IotDpsSku(skuMap["name"].(string))
 	return iotdpsresource.IotDpsSkuInfo{
 		Name:     &skuName,
-		Capacity: utils.Int64(int64(skuMap["capacity"].(int))),
+		Capacity: pointer.To(int64(skuMap["capacity"].(int))),
 	}
 }
 
@@ -448,9 +413,9 @@ func expandIoTHubDPSIoTHubs(input []interface{}) *[]iotdpsresource.IotHubDefinit
 		linkedHubConfig := attr.(map[string]interface{})
 		linkedHub := iotdpsresource.IotHubDefinitionDescription{
 			ConnectionString:      linkedHubConfig["connection_string"].(string),
-			AllocationWeight:      utils.Int64(int64(linkedHubConfig["allocation_weight"].(int))),
-			ApplyAllocationPolicy: utils.Bool(linkedHubConfig["apply_allocation_policy"].(bool)),
-			Location:              azure.NormalizeLocation(linkedHubConfig["location"].(string)),
+			AllocationWeight:      pointer.To(int64(linkedHubConfig["allocation_weight"].(int))),
+			ApplyAllocationPolicy: pointer.To(linkedHubConfig["apply_allocation_policy"].(bool)),
+			Location:              location.Normalize(linkedHubConfig["location"].(string)),
 		}
 
 		linkedHubs = append(linkedHubs, linkedHub)
@@ -495,7 +460,7 @@ func flattenIoTHubDPSLinkedHub(input *[]iotdpsresource.IotHubDefinitionDescripti
 		}
 
 		linkedHub["connection_string"] = attr.ConnectionString
-		linkedHub["location"] = azure.NormalizeLocation(attr.Location)
+		linkedHub["location"] = location.Normalize(attr.Location)
 
 		linkedHubs = append(linkedHubs, linkedHub)
 	}

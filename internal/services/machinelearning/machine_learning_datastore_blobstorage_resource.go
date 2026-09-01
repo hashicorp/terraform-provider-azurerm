@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning
@@ -12,12 +12,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/datastore"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/datastore"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
+	storageAccountHelper "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -52,7 +53,10 @@ func (r MachineLearningDataStoreBlobStorage) IDValidationFunc() pluginsdk.Schema
 	return datastore.ValidateDataStoreID
 }
 
-var _ sdk.ResourceWithUpdate = MachineLearningDataStoreBlobStorage{}
+var (
+	_ sdk.ResourceWithUpdate        = MachineLearningDataStoreBlobStorage{}
+	_ sdk.ResourceWithCustomizeDiff = MachineLearningDataStoreBlobStorage{}
+)
 
 func (r MachineLearningDataStoreBlobStorage) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -74,7 +78,7 @@ func (r MachineLearningDataStoreBlobStorage) Arguments() map[string]*pluginsdk.S
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: commonids.ValidateStorageContainerID,
 		},
 
 		"description": {
@@ -92,11 +96,7 @@ func (r MachineLearningDataStoreBlobStorage) Arguments() map[string]*pluginsdk.S
 		"service_data_auth_identity": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(datastore.ServiceDataAccessAuthIdentityNone),
-				string(datastore.ServiceDataAccessAuthIdentityWorkspaceSystemAssignedIdentity),
-				string(datastore.ServiceDataAccessAuthIdentityWorkspaceUserAssignedIdentity),
-			},
+			ValidateFunc: validation.StringInSlice(datastore.PossibleValuesForServiceDataAccessAuthIdentity(),
 				false),
 			Default: string(datastore.ServiceDataAccessAuthIdentityNone),
 		},
@@ -106,7 +106,6 @@ func (r MachineLearningDataStoreBlobStorage) Arguments() map[string]*pluginsdk.S
 			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			ExactlyOneOf: []string{"account_key", "shared_access_signature"},
 		},
 
 		"shared_access_signature": {
@@ -114,10 +113,27 @@ func (r MachineLearningDataStoreBlobStorage) Arguments() map[string]*pluginsdk.S
 			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			AtLeastOneOf: []string{"account_key", "shared_access_signature"},
 		},
 
 		"tags": commonschema.TagsForceNew(),
+	}
+}
+
+func (r MachineLearningDataStoreBlobStorage) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 10 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			accountKey := metadata.ResourceDiff.GetRawConfig().AsValueMap()["account_key"]
+			sharedAccessSignature := metadata.ResourceDiff.GetRawConfig().AsValueMap()["shared_access_signature"]
+
+			if metadata.ResourceDiff.Get("service_data_auth_identity").(string) == string(datastore.ServiceDataAccessAuthIdentityNone) {
+				if accountKey.IsNull() && sharedAccessSignature.IsNull() {
+					return fmt.Errorf("one of `account_key` or `shared_access_signature` must be specified")
+				}
+			}
+
+			return nil
+		},
 	}
 }
 
@@ -140,14 +156,16 @@ func (r MachineLearningDataStoreBlobStorage) Create() sdk.ResourceFunc {
 
 			id := datastore.NewDataStoreID(subscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_machine_learning_datastore_blobstorage", id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError("azurerm_machine_learning_datastore_blobstorage", id.ID())
+				}
 			}
 
 			containerId, err := commonids.ParseStorageContainerID(model.StorageContainerID)
@@ -165,7 +183,7 @@ func (r MachineLearningDataStoreBlobStorage) Create() sdk.ResourceFunc {
 				Endpoint:                      pointer.To(metadata.Client.Storage.StorageDomainSuffix),
 				ContainerName:                 pointer.To(containerId.ContainerName),
 				Description:                   pointer.To(model.Description),
-				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataAuthIdentity)),
+				ServiceDataAccessAuthIdentity: pointer.ToEnum[datastore.ServiceDataAccessAuthIdentity](model.ServiceDataAuthIdentity),
 				IsDefault:                     pointer.To(model.IsDefault),
 				Tags:                          pointer.To(model.Tags),
 			}
@@ -187,10 +205,21 @@ func (r MachineLearningDataStoreBlobStorage) Create() sdk.ResourceFunc {
 					},
 				}
 			}
+
+			// If `service_data_auth_identity` is set to `WorkspaceSystemAssignedIdentity` or `WorkspaceUserAssignedIdentity`,
+			// explicit credentials such as `account_key` or `shared_access_signature` must not be provided.
+			// Only when `service_data_auth_identity` is set to `None`, one of `account_key` or `shared_access_signature` must be specified.
+			// In addition, when `service_data_auth_identity` is set to either `WorkspaceSystemAssignedIdentity` or `WorkspaceUserAssignedIdentity`,
+			// the `Credentials` field must include "CredentialsType": "None". Omitting this will result in a validation error.
+			if accountKey == "" && sasToken == "" {
+				props.Credentials = datastore.BaseDatastoreCredentialsImpl{
+					CredentialsType: datastore.CredentialsTypeNone,
+				}
+			}
+
 			datastoreRaw.Properties = props
 
-			_, err = client.CreateOrUpdate(ctx, id, datastoreRaw, datastore.CreateOrUpdateOperationOptions{SkipValidation: pointer.To(true)})
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id, datastoreRaw, datastore.CreateOrUpdateOperationOptions{SkipValidation: pointer.To(true)}); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -230,7 +259,7 @@ func (r MachineLearningDataStoreBlobStorage) Update() sdk.ResourceFunc {
 				AccountName:                   pointer.To(containerId.StorageAccountName),
 				ContainerName:                 pointer.To(containerId.ContainerName),
 				Description:                   pointer.To(state.Description),
-				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(state.ServiceDataAuthIdentity)),
+				ServiceDataAccessAuthIdentity: pointer.ToEnum[datastore.ServiceDataAccessAuthIdentity](state.ServiceDataAuthIdentity),
 				IsDefault:                     pointer.To(state.IsDefault),
 				Tags:                          pointer.To(state.Tags),
 			}
@@ -252,10 +281,20 @@ func (r MachineLearningDataStoreBlobStorage) Update() sdk.ResourceFunc {
 					},
 				}
 			}
+
+			// If `service_data_auth_identity` is set to `WorkspaceSystemAssignedIdentity` or `WorkspaceUserAssignedIdentity`,
+			// explicit credentials such as `account_key` or `shared_access_signature` must not be provided.
+			// Only when `service_data_auth_identity` is set to `None`, one of `account_key` or `shared_access_signature` must be specified.
+			// In addition, when `service_data_auth_identity` is set to either `WorkspaceSystemAssignedIdentity` or `WorkspaceUserAssignedIdentity`,
+			// the `Credentials` field must include "CredentialsType": "None". Omitting this will result in a validation error.
+			if accountKey == "" && sasToken == "" {
+				props.Credentials = datastore.BaseDatastoreCredentialsImpl{
+					CredentialsType: datastore.CredentialsTypeNone,
+				}
+			}
 			datastoreRaw.Properties = props
 
-			_, err = client.CreateOrUpdate(ctx, *id, datastoreRaw, datastore.CreateOrUpdateOperationOptions{SkipValidation: pointer.To(true)})
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, *id, datastoreRaw, datastore.CreateOrUpdateOperationOptions{SkipValidation: pointer.To(true)}); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -298,12 +337,26 @@ func (r MachineLearningDataStoreBlobStorage) Read() sdk.ResourceFunc {
 			}
 			model.ServiceDataAuthIdentity = serviceDataAuth
 
-			storageAccount, err := storageClient.FindAccount(ctx, subscriptionId, *data.AccountName)
-			if err != nil {
-				return fmt.Errorf("retrieving Account %q for Container %q: %s", *data.AccountName, *data.ContainerName, err)
+			var storageAccount *storageAccountHelper.AccountDetails
+			if containerIdRaw := metadata.ResourceData.Get("storage_container_id").(string); containerIdRaw != "" {
+				containerId, err := commonids.ParseStorageContainerID(containerIdRaw)
+				if err != nil {
+					return err
+				}
+				storageAccount, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
+				if err != nil {
+					return fmt.Errorf("retrieving Account %q for Container %q: %s", *data.AccountName, *data.ContainerName, err)
+				}
+			} else {
+				// In the case of import, we cannot rely on having a value for `storage_container_id` so we need to fallback on listing the accounts to search.
+				storageAccount, err = storageClient.FindAccount(ctx, subscriptionId, *data.AccountName)
+				if err != nil {
+					return fmt.Errorf("retrieving Account %q for Container %q: %s", *data.AccountName, *data.ContainerName, err)
+				}
 			}
+
 			if storageAccount == nil {
-				return fmt.Errorf("Unable to locate Storage Account %q!", *data.AccountName)
+				return fmt.Errorf("unable to locate Storage Account %q", *data.AccountName)
 			}
 			containerId := commonids.NewStorageContainerID(storageAccount.StorageAccountId.SubscriptionId, storageAccount.StorageAccountId.ResourceGroupName, *data.AccountName, *data.ContainerName)
 			model.StorageContainerID = containerId.ID()
@@ -322,11 +375,7 @@ func (r MachineLearningDataStoreBlobStorage) Read() sdk.ResourceFunc {
 				}
 			}
 
-			desc := ""
-			if v := data.Description; v != nil {
-				desc = *v
-			}
-			model.Description = desc
+			model.Description = pointer.From(data.Description)
 
 			if data.Tags != nil {
 				model.Tags = *data.Tags

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package serviceconnector_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2024-04-01/servicelinker"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ServiceConnectorAppServiceResource struct{}
@@ -28,14 +28,14 @@ func (r ServiceConnectorAppServiceResource) Exists(ctx context.Context, client *
 	resp, err := client.ServiceConnector.ServiceLinkerClient.LinkerGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
-func TestAccServiceConnectorAppServiceCosmosdb_basic(t *testing.T) {
+func TestAccServiceConnectorAppService_cosmosdbBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_connection", "test")
 	r := ServiceConnectorAppServiceResource{}
 
@@ -50,7 +50,7 @@ func TestAccServiceConnectorAppServiceCosmosdb_basic(t *testing.T) {
 	})
 }
 
-func TestAccServiceConnectorAppServiceCosmosdb_secretAuth(t *testing.T) {
+func TestAccServiceConnectorAppService_cosmosdbSecretAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_connection", "test")
 	r := ServiceConnectorAppServiceResource{}
 
@@ -65,7 +65,7 @@ func TestAccServiceConnectorAppServiceCosmosdb_secretAuth(t *testing.T) {
 	})
 }
 
-func TestAccServiceConnectorAppServiceCosmosdb_servicePrincipalSecretAuth(t *testing.T) {
+func TestAccServiceConnectorAppService_cosmosdbServicePrincipalSecretAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_connection", "test")
 	r := ServiceConnectorAppServiceResource{}
 
@@ -80,7 +80,7 @@ func TestAccServiceConnectorAppServiceCosmosdb_servicePrincipalSecretAuth(t *tes
 	})
 }
 
-func TestAccServiceConnectorAppServiceCosmosdb_userAssignedIdentity(t *testing.T) {
+func TestAccServiceConnectorAppService_cosmosdbUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_connection", "test")
 	r := ServiceConnectorAppServiceResource{}
 
@@ -95,7 +95,7 @@ func TestAccServiceConnectorAppServiceCosmosdb_userAssignedIdentity(t *testing.T
 	})
 }
 
-func TestAccServiceConnectorAppServiceStorageBlob_basic(t *testing.T) {
+func TestAccServiceConnectorAppService_storageBlobBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_connection", "test")
 	r := ServiceConnectorAppServiceResource{}
 
@@ -110,7 +110,7 @@ func TestAccServiceConnectorAppServiceStorageBlob_basic(t *testing.T) {
 	})
 }
 
-func TestAccServiceConnectorAppServiceStorageBlob_secretStore(t *testing.T) {
+func TestAccServiceConnectorAppService_storageBlobSecretStore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_connection", "test")
 	r := ServiceConnectorAppServiceResource{}
 
@@ -358,12 +358,14 @@ resource "azurerm_linux_web_app" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "accAKV-%[4]s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctest-%[4]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_app_service_connection" "test" {
@@ -448,6 +450,9 @@ resource "azurerm_subnet" "test1" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
+  service_endpoint {
+    service = "Microsoft.AzureCosmosDB"
+  }
 
   delegation {
     name = "delegation"
@@ -456,12 +461,6 @@ resource "azurerm_subnet" "test1" {
       name    = "Microsoft.Web/serverFarms"
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
-  }
-
-  lifecycle {
-    ignore_changes = [
-      service_endpoints,
-    ]
   }
 }
 

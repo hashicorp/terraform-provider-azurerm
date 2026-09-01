@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -9,6 +9,7 @@ import (
 	"log"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -19,22 +20,22 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/snapshots"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
@@ -45,7 +46,7 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 		Delete: resourceKubernetesClusterNodePoolDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.NodePoolID(id)
+			_, err := agentpools.ParseAgentPoolID(id)
 			return err
 		}),
 
@@ -65,12 +66,15 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
 			pluginsdk.ForceNewIfChange("os_sku", func(ctx context.Context, old, new, meta interface{}) bool {
+				oldStr := old.(string)
+				newStr := new.(string)
+
 				// Ubuntu and AzureLinux are currently the only allowed Linux OSSKU Migration targets.
-				if old != string(agentpools.OSSKUUbuntu) && old != string(agentpools.OSSKUAzureLinux) {
+				if !strings.HasPrefix(oldStr, string(agentpools.OSSKUUbuntu)) && !strings.HasPrefix(oldStr, string(agentpools.OSSKUAzureLinux)) {
 					return true
 				}
 
-				if new != string(agentpools.OSSKUUbuntu) && new != string(agentpools.OSSKUAzureLinux) {
+				if !strings.HasPrefix(newStr, string(agentpools.OSSKUUbuntu)) && !strings.HasPrefix(newStr, string(agentpools.OSSKUAzureLinux)) {
 					return true
 				}
 
@@ -80,12 +84,41 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("upgrade_settings.0.drain_timeout_in_minutes", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old != 0 && new == 0
 			}),
+			pluginsdk.ForceNewIfChange("upgrade_settings.0.undrainable_node_behavior", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old != "" && new == ""
+			}),
+			func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) error {
+				priority := d.Get("priority").(string)
+				isSpot := priority == string(agentpools.ScaleSetPrioritySpot)
+
+				upgradeSettingsRaw := d.Get("upgrade_settings").([]interface{})
+				if len(upgradeSettingsRaw) == 0 || upgradeSettingsRaw[0] == nil {
+					return nil
+				}
+
+				upgradeSettings := upgradeSettingsRaw[0].(map[string]interface{})
+				maxSurgeRaw := upgradeSettings["max_surge"].(string)
+				maxUnavailableRaw := upgradeSettings["max_unavailable"].(string)
+
+				if isSpot {
+					if maxSurgeRaw != "" {
+						return fmt.Errorf("`max_surge` cannot be set when `priority` is set to `Spot`. Spot pools do not support `max_surge`")
+					}
+					if maxUnavailableRaw != "" {
+						return fmt.Errorf("`max_unavailable` cannot be set when `priority` is set to `Spot`. Spot pools do not support `max_unavailable`")
+					}
+				} else if maxSurgeRaw == "" && maxUnavailableRaw == "" {
+					return fmt.Errorf("either `max_surge` or `max_unavailable` must be specified in `upgrade_settings` when `priority` is not `Spot`")
+				}
+
+				return nil
+			},
 		),
 	}
 }
 
 func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -97,7 +130,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: containerValidate.ClusterID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseKubernetesClusterIDInsensitively),
 		},
 
 		"node_count": {
@@ -110,8 +143,10 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"vm_size": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C AKS RP provides a new feature that will automatically select an available vm size when it's omitted.
+			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -131,13 +166,10 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"eviction_policy": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.ScaleSetEvictionPolicyDelete),
-				string(agentpools.ScaleSetEvictionPolicyDeallocate),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForScaleSetEvictionPolicy(), false),
 		},
 
 		"kubelet_config": schemaNodePoolKubeletConfig(),
@@ -162,14 +194,18 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
+		"gpu_driver": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForGPUDriver(), false),
+		},
+
 		"kubelet_disk_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.KubeletDiskTypeOS),
-				string(agentpools.KubeletDiskTypeTemporary),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForKubeletDiskType(), false),
 		},
 
 		"max_count": {
@@ -229,6 +265,11 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"node_image_version": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"orchestrator_version": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -244,13 +285,10 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"os_disk_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  agentpools.OSDiskTypeManaged,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.OSDiskTypeEphemeral),
-				string(agentpools.OSDiskTypeManaged),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      agentpools.OSDiskTypeManaged,
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForOSDiskType(), false),
 		},
 
 		"os_sku": {
@@ -259,21 +297,21 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Computed: true, // defaults to Ubuntu if using Linux
 			ValidateFunc: validation.StringInSlice([]string{
 				string(agentpools.OSSKUAzureLinux),
+				string(agentpools.OSSKUAzureLinuxThree),
 				string(agentpools.OSSKUUbuntu),
+				string(agentpools.OSSKUUbuntuTwoTwoZeroFour),
+				string(agentpools.OSSKUUbuntuTwoFourZeroFour),
 				string(agentpools.OSSKUWindowsTwoZeroOneNine),
 				string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
 			}, false),
 		},
 
 		"os_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(agentpools.OSTypeLinux),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.OSTypeLinux),
-				string(agentpools.OSTypeWindows),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      string(agentpools.OSTypeLinux),
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForOSType(), false),
 		},
 
 		"pod_subnet_id": {
@@ -283,14 +321,11 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"priority": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(agentpools.ScaleSetPriorityRegular),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.ScaleSetPriorityRegular),
-				string(agentpools.ScaleSetPrioritySpot),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      string(agentpools.ScaleSetPriorityRegular),
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForScaleSetPriority(), false),
 		},
 
 		"proximity_placement_group_id": {
@@ -315,13 +350,10 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"scale_down_mode": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(agentpools.ScaleDownModeDelete),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.ScaleDownModeDeallocate),
-				string(agentpools.ScaleDownModeDelete),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(agentpools.ScaleDownModeDelete),
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForScaleDownMode(), false),
 		},
 
 		"temporary_name_for_rotation": {
@@ -342,7 +374,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
-		"upgrade_settings": upgradeSettingsSchema(),
+		"upgrade_settings": upgradeSettingsSchemaNodePoolResource(),
 
 		"windows_profile": {
 			Type:     pluginsdk.TypeList,
@@ -362,12 +394,9 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"workload_runtime": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.WorkloadRuntimeOCIContainer),
-				string(agentpools.WorkloadRuntimeWasmWasi),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForWorkloadRuntime(), false),
 		},
 
 		"zones": commonschema.ZonesMultipleOptional(),
@@ -387,15 +416,13 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 	}
-
-	return s
 }
 
 func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	containersClient := meta.(*clients.Client).Containers
 	clustersClient := containersClient.KubernetesClustersClient
 	poolsClient := containersClient.AgentPoolsClient
-	subnetClient := meta.(*clients.Client).Network.Client.Subnets
+	subnetClient := meta.(*clients.Client).Network.Subnets
 	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -406,17 +433,25 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	var subnetID *commonids.SubnetId
-	if subnetIDValue, ok := d.GetOk("vnet_subnet_id"); ok {
-		subnetID, err = commonids.ParseSubnetID(subnetIDValue.(string))
-		if err != nil {
-			return err
+	parseOptionalSubnetID := func(d *pluginsdk.ResourceData, key string) (*commonids.SubnetId, error) {
+		if value, ok := d.GetOk(key); ok {
+			return commonids.ParseSubnetID(value.(string))
 		}
+		return nil, nil
+	}
+
+	nodeSubnetID, err := parseOptionalSubnetID(d, "vnet_subnet_id")
+	if err != nil {
+		return err
+	}
+
+	podSubnetID, err := parseOptionalSubnetID(d, "pod_subnet_id")
+	if err != nil {
+		return err
 	}
 
 	id := agentpools.NewAgentPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ManagedClusterName, d.Get("name").(string))
 
-	log.Printf("[DEBUG] Retrieving %s...", *clusterId)
 	cluster, err := clustersClient.Get(ctx, *clusterId)
 	if err != nil {
 		if response.WasNotFound(cluster.HttpResponse) {
@@ -443,15 +478,17 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("multiple node pools are only supported when the Default Node Pool uses a VMScaleSet (but %s doesn't)", *clusterId)
 	}
 
-	existing, err := poolsClient.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := poolsClient.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_kubernetes_cluster_node_pool", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_kubernetes_cluster_node_pool", id.ID())
+		}
 	}
 
 	count := d.Get("node_count").(int)
@@ -468,15 +505,15 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	t := d.Get("tags").(map[string]interface{})
 
 	profile := agentpools.ManagedClusterAgentPoolProfileProperties{
-		OsType:                 pointer.To(agentpools.OSType(osType)),
+		OsType:                 pointer.ToEnum[agentpools.OSType](osType),
 		EnableAutoScaling:      pointer.To(enableAutoScaling),
 		EnableFIPS:             pointer.To(d.Get("fips_enabled").(bool)),
 		EnableEncryptionAtHost: pointer.To(hostEncryption),
 		EnableUltraSSD:         pointer.To(d.Get("ultra_ssd_enabled").(bool)),
 		EnableNodePublicIP:     pointer.To(nodeIp),
-		KubeletDiskType:        pointer.To(agentpools.KubeletDiskType(d.Get("kubelet_disk_type").(string))),
+		KubeletDiskType:        pointer.ToEnum[agentpools.KubeletDiskType](d.Get("kubelet_disk_type").(string)),
 		Mode:                   pointer.To(mode),
-		ScaleSetPriority:       pointer.To(agentpools.ScaleSetPriority(d.Get("priority").(string))),
+		ScaleSetPriority:       pointer.ToEnum[agentpools.ScaleSetPriority](d.Get("priority").(string)),
 		Tags:                   tags.Expand(t),
 		Type:                   pointer.To(agentpools.AgentPoolTypeVirtualMachineScaleSets),
 		VMSize:                 pointer.To(d.Get("vm_size").(string)),
@@ -484,28 +521,34 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		WindowsProfile:         expandAgentPoolWindowsProfile(d.Get("windows_profile").([]interface{})),
 
 		// this must always be sent during creation, but is optional for auto-scaled clusters during update
-		Count: utils.Int64(int64(count)),
+		Count: pointer.To(int64(count)),
 	}
 
 	if gpuInstanceProfile := d.Get("gpu_instance").(string); gpuInstanceProfile != "" {
-		profile.GpuInstanceProfile = pointer.To(agentpools.GPUInstanceProfile(gpuInstanceProfile))
+		profile.GpuInstanceProfile = pointer.ToEnum[agentpools.GPUInstanceProfile](gpuInstanceProfile)
+	}
+
+	if gpuDriver := d.Get("gpu_driver").(string); gpuDriver != "" {
+		profile.GpuProfile = &agentpools.GPUProfile{
+			Driver: pointer.ToEnum[agentpools.GPUDriver](gpuDriver),
+		}
 	}
 
 	if osSku := d.Get("os_sku").(string); osSku != "" {
-		profile.OsSKU = pointer.To(agentpools.OSSKU(osSku))
+		profile.OsSKU = pointer.ToEnum[agentpools.OSSKU](osSku)
 	}
 
 	if scaleDownMode := d.Get("scale_down_mode").(string); scaleDownMode != "" {
-		profile.ScaleDownMode = pointer.To(agentpools.ScaleDownMode(scaleDownMode))
+		profile.ScaleDownMode = pointer.ToEnum[agentpools.ScaleDownMode](scaleDownMode)
 	}
 
 	if workloadRuntime := d.Get("workload_runtime").(string); workloadRuntime != "" {
-		profile.WorkloadRuntime = pointer.To(agentpools.WorkloadRuntime(workloadRuntime))
+		profile.WorkloadRuntime = pointer.ToEnum[agentpools.WorkloadRuntime](workloadRuntime)
 	}
 
 	if priority == string(managedclusters.ScaleSetPrioritySpot) {
-		profile.ScaleSetEvictionPolicy = pointer.To(agentpools.ScaleSetEvictionPolicy(evictionPolicy))
-		profile.SpotMaxPrice = utils.Float(spotMaxPrice)
+		profile.ScaleSetEvictionPolicy = pointer.ToEnum[agentpools.ScaleSetEvictionPolicy](evictionPolicy)
+		profile.SpotMaxPrice = pointer.To(spotMaxPrice)
 	} else {
 		if evictionPolicy != "" {
 			return fmt.Errorf("`eviction_policy` can only be set when `priority` is set to `Spot`")
@@ -522,7 +565,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 			return err
 		}
 
-		profile.OrchestratorVersion = utils.String(orchestratorVersion)
+		profile.OrchestratorVersion = pointer.To(orchestratorVersion)
 	}
 
 	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
@@ -531,7 +574,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if maxPods := int64(d.Get("max_pods").(int)); maxPods > 0 {
-		profile.MaxPods = utils.Int64(maxPods)
+		profile.MaxPods = pointer.To(maxPods)
 	}
 
 	nodeLabelsRaw := d.Get("node_labels").(map[string]interface{})
@@ -540,16 +583,16 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if nodePublicIPPrefixID := d.Get("node_public_ip_prefix_id").(string); nodePublicIPPrefixID != "" {
-		profile.NodePublicIPPrefixID = utils.String(nodePublicIPPrefixID)
+		profile.NodePublicIPPrefixID = pointer.To(nodePublicIPPrefixID)
 	}
 
 	nodeTaintsRaw := d.Get("node_taints").([]interface{})
-	if nodeTaints := utils.ExpandStringSlice(nodeTaintsRaw); len(*nodeTaints) > 0 {
+	if nodeTaints := helpers.ExpandStringSlice(nodeTaintsRaw); len(*nodeTaints) > 0 {
 		profile.NodeTaints = nodeTaints
 	}
 
 	if osDiskSizeGB := d.Get("os_disk_size_gb").(int); osDiskSizeGB > 0 {
-		profile.OsDiskSizeGB = utils.Int64(int64(osDiskSizeGB))
+		profile.OsDiskSizeGB = pointer.To(int64(osDiskSizeGB))
 	}
 
 	proximityPlacementGroupId := d.Get("proximity_placement_group_id").(string)
@@ -558,23 +601,30 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if osDiskType := d.Get("os_disk_type").(string); osDiskType != "" {
-		profile.OsDiskType = pointer.To(agentpools.OSDiskType(osDiskType))
+		profile.OsDiskType = pointer.ToEnum[agentpools.OSDiskType](osDiskType)
 	}
 
-	if podSubnetID := d.Get("pod_subnet_id").(string); podSubnetID != "" {
-		profile.PodSubnetID = utils.String(podSubnetID)
+	subnetIDsToLock := make([]string, 0)
+	if podSubnetID != nil {
+		// Lock pod subnet to avoid race condition with AKS
+		profile.PodSubnetID = pointer.To(podSubnetID.ID())
+		subnetIDsToLock = append(subnetIDsToLock, podSubnetID.ID())
 	}
 
-	if subnetID != nil {
-		profile.VnetSubnetID = utils.String(subnetID.ID())
+	if nodeSubnetID != nil {
+		// Lock node subnet to avoid race condition with AKS
+		profile.VnetSubnetID = pointer.To(nodeSubnetID.ID())
+		subnetIDsToLock = append(subnetIDsToLock, nodeSubnetID.ID())
 	}
+	locks.MultipleByID(&subnetIDsToLock)
+	defer locks.UnlockMultipleByID(&subnetIDsToLock)
 
 	if hostGroupID := d.Get("host_group_id").(string); hostGroupID != "" {
-		profile.HostGroupID = utils.String(hostGroupID)
+		profile.HostGroupID = pointer.To(hostGroupID)
 	}
 
 	if capacityReservationGroupId := d.Get("capacity_reservation_group_id").(string); capacityReservationGroupId != "" {
-		profile.CapacityReservationGroupID = utils.String(capacityReservationGroupId)
+		profile.CapacityReservationGroupID = pointer.To(capacityReservationGroupId)
 	}
 
 	maxCount := d.Get("max_count").(int)
@@ -583,17 +633,17 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	if enableAutoScaling {
 		// handle count being optional
 		if count == 0 {
-			profile.Count = utils.Int64(int64(minCount))
+			profile.Count = pointer.To(int64(minCount))
 		}
 
 		if maxCount >= 0 {
-			profile.MaxCount = utils.Int64(int64(maxCount))
+			profile.MaxCount = pointer.To(int64(maxCount))
 		} else {
 			return fmt.Errorf("`max_count` must be configured when `auto_scaling_enabled` is set to `true`")
 		}
 
 		if minCount >= 0 {
-			profile.MinCount = utils.Int64(int64(minCount))
+			profile.MinCount = pointer.To(int64(minCount))
 		} else {
 			return fmt.Errorf("`min_count` must be configured when `auto_scaling_enabled` is set to `true`")
 		}
@@ -626,53 +676,38 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 	if snapshotId := d.Get("snapshot_id").(string); snapshotId != "" {
 		profile.CreationData = &agentpools.CreationData{
-			SourceResourceId: utils.String(snapshotId),
+			SourceResourceId: pointer.To(snapshotId),
 		}
 	}
-
 	parameters := agentpools.AgentPool{
-		Name:       utils.String(id.AgentPoolName),
+		Name:       pointer.To(id.AgentPoolName),
 		Properties: &profile,
 	}
 
-	err = poolsClient.CreateOrUpdateThenPoll(ctx, id, parameters, agentpools.DefaultCreateOrUpdateOperationOptions())
-	if err != nil {
+	if err := poolsClient.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, agentpools.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
-	if subnetID != nil {
-		// Wait for vnet to come back to Succeeded before releasing any locks
-		timeout, ok := ctx.Deadline()
-		if !ok {
-			return fmt.Errorf("internal-error: context had no deadline")
-		}
-
-		// TODO: refactor this into a `custompoller` within the `network` package
-		stateConf := &pluginsdk.StateChangeConf{
-			Pending:    []string{string(subnets.ProvisioningStateUpdating)},
-			Target:     []string{string(subnets.ProvisioningStateSucceeded)},
-			Refresh:    network.SubnetProvisioningStateRefreshFunc(ctx, subnetClient, *subnetID),
-			MinTimeout: 1 * time.Minute,
-			Timeout:    time.Until(timeout),
-		}
-		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("waiting for provisioning state of subnet for AKS Node Pool creation %s: %+v", *subnetID, err)
-		}
-
-		vnetId := commonids.NewVirtualNetworkID(subnetID.SubscriptionId, subnetID.ResourceGroupName, subnetID.VirtualNetworkName)
-		vnetStateConf := &pluginsdk.StateChangeConf{
-			Pending:    []string{string(subnets.ProvisioningStateUpdating)},
-			Target:     []string{string(subnets.ProvisioningStateSucceeded)},
-			Refresh:    network.VirtualNetworkProvisioningStateRefreshFunc(ctx, vnetClient, vnetId),
-			MinTimeout: 1 * time.Minute,
-			Timeout:    time.Until(timeout),
-		}
-		if _, err = vnetStateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("waiting for provisioning state of virtual network for AKS Node Pool creation %s: %+v", vnetId, err)
+	// Wait for vnet and node subnet to come back to Succeeded before releasing any locks
+	timeout, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+	if nodeSubnetID != nil {
+		// Wait for vnet and node subnet to come back to Succeeded before releasing any locks
+		if err = network.NewSubnetAndVnetPoller(subnetClient, vnetClient, nodeSubnetID, timeout).Poll(ctx); err != nil {
+			return fmt.Errorf("waiting for provisioning state of subnet for AKS Node Pool creation %s: %+v", *nodeSubnetID, err)
 		}
 	}
 
-	d.SetId(id.ID())
+	if podSubnetID != nil {
+		// Wait for vnet and pod subnet to come back to Succeeded before releasing any locks
+		if err = network.NewSubnetAndVnetPoller(subnetClient, vnetClient, podSubnetID, timeout).Poll(ctx); err != nil {
+			return fmt.Errorf("waiting for provisioning state of the pod subnet for AKS Node Pool creation %s: %+v", *podSubnetID, err)
+		}
+	}
+
 	return resourceKubernetesClusterNodePoolRead(d, meta)
 }
 
@@ -687,9 +722,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	d.Partial(true)
-
-	log.Printf("[DEBUG] Retrieving existing %s..", *id)
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(existing.HttpResponse) {
@@ -705,17 +737,14 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	props := existing.Model.Properties
 
 	// store the existing value should the user have opted to ignore it
-	enableAutoScaling := false
-	if props.EnableAutoScaling != nil {
-		enableAutoScaling = *props.EnableAutoScaling
-	}
+	enableAutoScaling := pointer.From(props.EnableAutoScaling)
 
 	log.Printf("[DEBUG] Determining delta for existing %s..", *id)
 
 	// delta patching
 	if d.HasChange("auto_scaling_enabled") {
 		enableAutoScaling = d.Get("auto_scaling_enabled").(bool)
-		props.EnableAutoScaling = utils.Bool(enableAutoScaling)
+		props.EnableAutoScaling = pointer.To(enableAutoScaling)
 	}
 
 	if d.HasChange("fips_enabled") {
@@ -732,7 +761,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("kubelet_disk_type") {
-		props.KubeletDiskType = pointer.To(agentpools.KubeletDiskType(d.Get("kubelet_disk_type").(string)))
+		props.KubeletDiskType = pointer.ToEnum[agentpools.KubeletDiskType](d.Get("kubelet_disk_type").(string))
 	}
 
 	if d.HasChange("linux_os_config") {
@@ -748,7 +777,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("max_count") || enableAutoScaling {
-		props.MaxCount = utils.Int64(int64(d.Get("max_count").(int)))
+		props.MaxCount = pointer.To(int64(d.Get("max_count").(int)))
 	}
 
 	if d.HasChange("max_pods") {
@@ -761,11 +790,11 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("min_count") || enableAutoScaling {
-		props.MinCount = utils.Int64(int64(d.Get("min_count").(int)))
+		props.MinCount = pointer.To(int64(d.Get("min_count").(int)))
 	}
 
 	if d.HasChange("node_count") {
-		props.Count = utils.Int64(int64(d.Get("node_count").(int)))
+		props.Count = pointer.To(int64(d.Get("node_count").(int)))
 	}
 
 	if d.HasChange("node_public_ip_enabled") {
@@ -783,15 +812,12 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		}
 		if existingNodePool := existingNodePoolResp.Model; existingNodePool != nil && existingNodePool.Properties != nil {
 			orchestratorVersion := d.Get("orchestrator_version").(string)
-			currentOrchestratorVersion := ""
-			if v := existingNodePool.Properties.CurrentOrchestratorVersion; v != nil {
-				currentOrchestratorVersion = *v
-			}
+			currentOrchestratorVersion := pointer.From(existingNodePool.Properties.CurrentOrchestratorVersion)
 			if err := validateNodePoolSupportsVersion(ctx, containersClient, currentOrchestratorVersion, *id, orchestratorVersion); err != nil {
 				return err
 			}
 
-			props.OrchestratorVersion = utils.String(orchestratorVersion)
+			props.OrchestratorVersion = pointer.To(orchestratorVersion)
 		}
 	}
 
@@ -801,7 +827,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("os_disk_type") {
-		props.OsDiskType = pointer.To(agentpools.OSDiskType(d.Get("os_disk_type").(string)))
+		props.OsDiskType = pointer.ToEnum[agentpools.OSDiskType](d.Get("os_disk_type").(string))
 	}
 
 	if d.HasChange("os_disk_size_gb") {
@@ -809,7 +835,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("os_sku") {
-		props.OsSKU = pointer.To(agentpools.OSSKU(d.Get("os_sku").(string)))
+		props.OsSKU = pointer.ToEnum[agentpools.OSSKU](d.Get("os_sku").(string))
 	}
 
 	if d.HasChange("pod_subnet_id") {
@@ -860,7 +886,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("node_taints") {
-		props.NodeTaints = utils.ExpandStringSlice(d.Get("node_taints").([]interface{}))
+		props.NodeTaints = helpers.ExpandStringSlice(d.Get("node_taints").([]interface{}))
 	}
 
 	if d.HasChange("node_network_profile") {
@@ -925,10 +951,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		oldOsSkuRaw, newOsSkuRaw := d.GetChange("os_sku")
 		oldOsSku := oldOsSkuRaw.(string)
 		newOsSku := newOsSkuRaw.(string)
-		if oldOsSku != string(managedclusters.OSSKUUbuntu) && oldOsSku != string(managedclusters.OSSKUAzureLinux) {
+		if !strings.HasPrefix(oldOsSku, string(managedclusters.OSSKUUbuntu)) && !strings.HasPrefix(oldOsSku, string(managedclusters.OSSKUAzureLinux)) {
 			cycleNodePool = true
 		}
-		if newOsSku != string(managedclusters.OSSKUUbuntu) && newOsSku != string(managedclusters.OSSKUAzureLinux) {
+		if !strings.HasPrefix(newOsSku, string(managedclusters.OSSKUUbuntu)) && !strings.HasPrefix(newOsSku, string(managedclusters.OSSKUAzureLinux)) {
 			cycleNodePool = true
 		}
 	}
@@ -952,6 +978,13 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 		tempAgentProfile := *existing.Model
 		tempAgentProfile.Name = &temporaryNodePoolName
+
+		if tempAgentProfile.Properties != nil {
+			tempAgentProfile.Properties.NodeImageVersion = nil
+		}
+		if existing.Model != nil && existing.Model.Properties != nil {
+			existing.Model.Properties.NodeImageVersion = nil
+		}
 
 		// if the temp node pool already exists due to a previous failure, don't bother spinning it up.
 		// the temporary nodepool is created with the new values
@@ -980,14 +1013,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 		log.Printf("[DEBUG] Cycled Node Pool..")
 	} else {
-		log.Printf("[DEBUG] Updating existing %s..", *id)
-		err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, agentpools.DefaultCreateOrUpdateOperationOptions())
-		if err != nil {
+		if err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("updating Node Pool %s: %+v", *id, err)
 		}
 	}
-
-	d.Partial(false)
 
 	return resourceKubernetesClusterNodePoolRead(d, meta)
 }
@@ -1034,6 +1063,10 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 
 		if v := props.GpuInstanceProfile; v != nil {
 			d.Set("gpu_instance", string(*v))
+		}
+
+		if v := props.GpuProfile; v != nil {
+			d.Set("gpu_driver", string(pointer.From(v.Driver)))
 		}
 
 		if props.CreationData != nil {
@@ -1104,9 +1137,11 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 
 		d.Set("node_public_ip_prefix_id", props.NodePublicIPPrefixID)
 
-		if err := d.Set("node_taints", utils.FlattenStringSlice(props.NodeTaints)); err != nil {
+		if err := d.Set("node_taints", helpers.FlattenStringSlice(props.NodeTaints)); err != nil {
 			return fmt.Errorf("setting `node_taints`: %+v", err)
 		}
+
+		d.Set("node_image_version", props.NodeImageVersion)
 
 		// NOTE: workaround for migration from 2022-01-02-preview (<3.12.0) to 2022-03-02-preview (>=3.12.0). Before terraform apply is run against the new API, Azure will respond only with currentOrchestratorVersion, orchestratorVersion will be absent. More details: https://github.com/hashicorp/terraform-provider-azurerm/issues/17833#issuecomment-1227583353
 		if props.OrchestratorVersion != nil {
@@ -1181,15 +1216,14 @@ func resourceKubernetesClusterNodePoolDelete(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id, agentpools.DefaultDeleteOperationOptions())
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id, agentpools.DefaultDeleteOperationOptions()); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func upgradeSettingsSchema() *pluginsdk.Schema {
+func upgradeSettingsSchemaNodePoolResource() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -1197,17 +1231,31 @@ func upgradeSettingsSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"max_surge": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Type:          pluginsdk.TypeString,
+					Optional:      true,
+					ValidateFunc:  validation.StringIsNotEmpty,
+					ConflictsWith: []string{"upgrade_settings.0.max_unavailable"},
 				},
 				"drain_timeout_in_minutes": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntAtLeast(0),
+				},
+				"max_unavailable": {
+					Type:          pluginsdk.TypeString,
+					Optional:      true,
+					ValidateFunc:  validation.StringIsNotEmpty,
+					ConflictsWith: []string{"upgrade_settings.0.max_surge"},
 				},
 				"node_soak_duration_in_minutes": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(0, 30),
+				},
+				"undrainable_node_behavior": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForUndrainableNodeBehavior(), true),
 				},
 			},
 		},
@@ -1224,12 +1272,20 @@ func upgradeSettingsForDataSourceSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
+				"max_unavailable": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
 				"drain_timeout_in_minutes": {
 					Type:     pluginsdk.TypeInt,
 					Computed: true,
 				},
 				"node_soak_duration_in_minutes": {
 					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+				"undrainable_node_behavior": {
+					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
 			},
@@ -1244,35 +1300,35 @@ func expandAgentPoolKubeletConfig(input []interface{}) *agentpools.KubeletConfig
 
 	raw := input[0].(map[string]interface{})
 	result := &agentpools.KubeletConfig{
-		CpuCfsQuota: utils.Bool(raw["cpu_cfs_quota_enabled"].(bool)),
+		CpuCfsQuota: pointer.To(raw["cpu_cfs_quota_enabled"].(bool)),
 		// must be false, otherwise the backend will report error: CustomKubeletConfig.FailSwapOn must be set to false to enable swap file on nodes.
-		FailSwapOn:           utils.Bool(false),
-		AllowedUnsafeSysctls: utils.ExpandStringSlice(raw["allowed_unsafe_sysctls"].(*pluginsdk.Set).List()),
+		FailSwapOn:           pointer.To(false),
+		AllowedUnsafeSysctls: helpers.ExpandStringSlice(raw["allowed_unsafe_sysctls"].(*pluginsdk.Set).List()),
 	}
 
 	if v := raw["cpu_manager_policy"].(string); v != "" {
-		result.CpuManagerPolicy = utils.String(v)
+		result.CpuManagerPolicy = pointer.To(v)
 	}
 	if v := raw["cpu_cfs_quota_period"].(string); v != "" {
-		result.CpuCfsQuotaPeriod = utils.String(v)
+		result.CpuCfsQuotaPeriod = pointer.To(v)
 	}
 	if v := raw["image_gc_high_threshold"].(int); v != 0 {
-		result.ImageGcHighThreshold = utils.Int64(int64(v))
+		result.ImageGcHighThreshold = pointer.To(int64(v))
 	}
 	if v := raw["image_gc_low_threshold"].(int); v != 0 {
-		result.ImageGcLowThreshold = utils.Int64(int64(v))
+		result.ImageGcLowThreshold = pointer.To(int64(v))
 	}
 	if v := raw["topology_manager_policy"].(string); v != "" {
-		result.TopologyManagerPolicy = utils.String(v)
+		result.TopologyManagerPolicy = pointer.To(v)
 	}
 	if v := raw["container_log_max_size_mb"].(int); v != 0 {
-		result.ContainerLogMaxSizeMB = utils.Int64(int64(v))
+		result.ContainerLogMaxSizeMB = pointer.To(int64(v))
 	}
-	if v := raw["container_log_max_line"].(int); v != 0 {
-		result.ContainerLogMaxFiles = utils.Int64(int64(v))
+	if v := raw["container_log_max_files"].(int); v != 0 {
+		result.ContainerLogMaxFiles = pointer.To(int64(v))
 	}
 	if v := raw["pod_max_pid"].(int); v != 0 {
-		result.PodMaxPids = utils.Int64(int64(v))
+		result.PodMaxPids = pointer.To(int64(v))
 	}
 
 	return result
@@ -1285,28 +1341,43 @@ func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUp
 	}
 
 	v := input[0].(map[string]interface{})
-	if maxSurgeRaw := v["max_surge"].(string); maxSurgeRaw != "" {
-		setting.MaxSurge = utils.String(maxSurgeRaw)
+	maxSurgeRaw := v["max_surge"].(string)
+	maxUnavailableRaw := v["max_unavailable"].(string)
+
+	if maxSurgeRaw != "" {
+		setting.MaxSurge = pointer.To(maxSurgeRaw)
+		setting.MaxUnavailable = pointer.To("0")
 	}
+	if maxUnavailableRaw != "" {
+		setting.MaxUnavailable = pointer.To(maxUnavailableRaw)
+		setting.MaxSurge = pointer.To("0")
+	}
+
 	if drainTimeoutInMinutesRaw, ok := v["drain_timeout_in_minutes"].(int); ok {
 		setting.DrainTimeoutInMinutes = pointer.To(int64(drainTimeoutInMinutesRaw))
 	}
 	if nodeSoakDurationInMinutesRaw, ok := v["node_soak_duration_in_minutes"].(int); ok {
 		setting.NodeSoakDurationInMinutes = pointer.To(int64(nodeSoakDurationInMinutesRaw))
 	}
+	if undrainableNodeBehaviorRaw, ok := v["undrainable_node_behavior"].(string); ok && undrainableNodeBehaviorRaw != "" {
+		setting.UndrainableNodeBehavior = pointer.ToEnum[agentpools.UndrainableNodeBehavior](undrainableNodeBehaviorRaw)
+	}
 	return setting
 }
 
 func flattenAgentPoolUpgradeSettings(input *agentpools.AgentPoolUpgradeSettings) []interface{} {
 	// The API returns an empty upgrade settings object for spot node pools, so we need to explicitly check whether there's anything in it
-	if input == nil || (input.MaxSurge == nil && input.DrainTimeoutInMinutes == nil && input.NodeSoakDurationInMinutes == nil) {
+	if input == nil || (input.MaxSurge == nil && input.MaxUnavailable == nil && input.DrainTimeoutInMinutes == nil && input.NodeSoakDurationInMinutes == nil && input.UndrainableNodeBehavior == nil) {
 		return []interface{}{}
 	}
 
 	values := make(map[string]interface{})
 
-	if input.MaxSurge != nil && *input.MaxSurge != "" {
+	if input.MaxSurge != nil && *input.MaxSurge != "" && *input.MaxSurge != "0" && *input.MaxSurge != "0%" {
 		values["max_surge"] = *input.MaxSurge
+	}
+	if input.MaxUnavailable != nil && *input.MaxUnavailable != "" && *input.MaxUnavailable != "0" && *input.MaxUnavailable != "0%" {
+		values["max_unavailable"] = *input.MaxUnavailable
 	}
 
 	if input.DrainTimeoutInMinutes != nil {
@@ -1315,6 +1386,10 @@ func flattenAgentPoolUpgradeSettings(input *agentpools.AgentPoolUpgradeSettings)
 
 	if input.NodeSoakDurationInMinutes != nil {
 		values["node_soak_duration_in_minutes"] = *input.NodeSoakDurationInMinutes
+	}
+
+	if input.UndrainableNodeBehavior != nil && *input.UndrainableNodeBehavior != "" {
+		values["undrainable_node_behavior"] = string(*input.UndrainableNodeBehavior)
 	}
 
 	return []interface{}{values}
@@ -1341,14 +1416,14 @@ func expandAgentPoolLinuxOSConfig(input []interface{}) (*agentpools.LinuxOSConfi
 	result := &agentpools.LinuxOSConfig{
 		Sysctls: sysctlConfig,
 	}
-	if v := raw["transparent_huge_page_enabled"].(string); v != "" {
-		result.TransparentHugePageEnabled = utils.String(v)
+	if v := raw["transparent_huge_page"].(string); v != "" {
+		result.TransparentHugePageEnabled = pointer.To(v)
 	}
 	if v := raw["transparent_huge_page_defrag"].(string); v != "" {
-		result.TransparentHugePageDefrag = utils.String(v)
+		result.TransparentHugePageDefrag = pointer.To(v)
 	}
 	if v := raw["swap_file_size_mb"].(int); v != 0 {
-		result.SwapFileSizeMB = utils.Int64(int64(v))
+		result.SwapFileSizeMB = pointer.To(int64(v))
 	}
 	return result, nil
 }
@@ -1359,46 +1434,46 @@ func expandAgentPoolSysctlConfig(input []interface{}) (*agentpools.SysctlConfig,
 	}
 	raw := input[0].(map[string]interface{})
 	result := &agentpools.SysctlConfig{
-		NetIPv4TcpTwReuse: utils.Bool(raw["net_ipv4_tcp_tw_reuse"].(bool)),
+		NetIPv4TcpTwReuse: pointer.To(raw["net_ipv4_tcp_tw_reuse"].(bool)),
 	}
 	if v := raw["net_core_somaxconn"].(int); v != 0 {
-		result.NetCoreSomaxconn = utils.Int64(int64(v))
+		result.NetCoreSomaxconn = pointer.To(int64(v))
 	}
 	if v := raw["net_core_netdev_max_backlog"].(int); v != 0 {
-		result.NetCoreNetdevMaxBacklog = utils.Int64(int64(v))
+		result.NetCoreNetdevMaxBacklog = pointer.To(int64(v))
 	}
 	if v := raw["net_core_rmem_default"].(int); v != 0 {
-		result.NetCoreRmemDefault = utils.Int64(int64(v))
+		result.NetCoreRmemDefault = pointer.To(int64(v))
 	}
 	if v := raw["net_core_rmem_max"].(int); v != 0 {
-		result.NetCoreRmemMax = utils.Int64(int64(v))
+		result.NetCoreRmemMax = pointer.To(int64(v))
 	}
 	if v := raw["net_core_wmem_default"].(int); v != 0 {
-		result.NetCoreWmemDefault = utils.Int64(int64(v))
+		result.NetCoreWmemDefault = pointer.To(int64(v))
 	}
 	if v := raw["net_core_wmem_max"].(int); v != 0 {
-		result.NetCoreWmemMax = utils.Int64(int64(v))
+		result.NetCoreWmemMax = pointer.To(int64(v))
 	}
 	if v := raw["net_core_optmem_max"].(int); v != 0 {
-		result.NetCoreOptmemMax = utils.Int64(int64(v))
+		result.NetCoreOptmemMax = pointer.To(int64(v))
 	}
 	if v := raw["net_ipv4_tcp_max_syn_backlog"].(int); v != 0 {
-		result.NetIPv4TcpMaxSynBacklog = utils.Int64(int64(v))
+		result.NetIPv4TcpMaxSynBacklog = pointer.To(int64(v))
 	}
 	if v := raw["net_ipv4_tcp_max_tw_buckets"].(int); v != 0 {
-		result.NetIPv4TcpMaxTwBuckets = utils.Int64(int64(v))
+		result.NetIPv4TcpMaxTwBuckets = pointer.To(int64(v))
 	}
 	if v := raw["net_ipv4_tcp_fin_timeout"].(int); v != 0 {
-		result.NetIPv4TcpFinTimeout = utils.Int64(int64(v))
+		result.NetIPv4TcpFinTimeout = pointer.To(int64(v))
 	}
 	if v := raw["net_ipv4_tcp_keepalive_time"].(int); v != 0 {
-		result.NetIPv4TcpKeepaliveTime = utils.Int64(int64(v))
+		result.NetIPv4TcpKeepaliveTime = pointer.To(int64(v))
 	}
 	if v := raw["net_ipv4_tcp_keepalive_probes"].(int); v != 0 {
-		result.NetIPv4TcpKeepaliveProbes = utils.Int64(int64(v))
+		result.NetIPv4TcpKeepaliveProbes = pointer.To(int64(v))
 	}
 	if v := raw["net_ipv4_tcp_keepalive_intvl"].(int); v != 0 {
-		result.NetIPv4TcpkeepaliveIntvl = utils.Int64(int64(v))
+		result.NetIPv4TcpkeepaliveIntvl = pointer.To(int64(v))
 	}
 	netIpv4IPLocalPortRangeMin := raw["net_ipv4_ip_local_port_range_min"].(int)
 	netIpv4IPLocalPortRangeMax := raw["net_ipv4_ip_local_port_range_max"].(int)
@@ -1409,46 +1484,46 @@ func expandAgentPoolSysctlConfig(input []interface{}) (*agentpools.SysctlConfig,
 		return nil, fmt.Errorf("`net_ipv4_ip_local_port_range_min` should be no larger than `net_ipv4_ip_local_port_range_max`")
 	}
 	if netIpv4IPLocalPortRangeMin != 0 && netIpv4IPLocalPortRangeMax != 0 {
-		result.NetIPv4IPLocalPortRange = utils.String(fmt.Sprintf("%d %d", netIpv4IPLocalPortRangeMin, netIpv4IPLocalPortRangeMax))
+		result.NetIPv4IPLocalPortRange = pointer.To(fmt.Sprintf("%d %d", netIpv4IPLocalPortRangeMin, netIpv4IPLocalPortRangeMax))
 	}
 	if v := raw["net_ipv4_neigh_default_gc_thresh1"].(int); v != 0 {
-		result.NetIPv4NeighDefaultGcThresh1 = utils.Int64(int64(v))
+		result.NetIPv4NeighDefaultGcThresh1 = pointer.To(int64(v))
 	}
 	if v := raw["net_ipv4_neigh_default_gc_thresh2"].(int); v != 0 {
-		result.NetIPv4NeighDefaultGcThresh2 = utils.Int64(int64(v))
+		result.NetIPv4NeighDefaultGcThresh2 = pointer.To(int64(v))
 	}
 	if v := raw["net_ipv4_neigh_default_gc_thresh3"].(int); v != 0 {
-		result.NetIPv4NeighDefaultGcThresh3 = utils.Int64(int64(v))
+		result.NetIPv4NeighDefaultGcThresh3 = pointer.To(int64(v))
 	}
 	if v := raw["net_netfilter_nf_conntrack_max"].(int); v != 0 {
-		result.NetNetfilterNfConntrackMax = utils.Int64(int64(v))
+		result.NetNetfilterNfConntrackMax = pointer.To(int64(v))
 	}
 	if v := raw["net_netfilter_nf_conntrack_buckets"].(int); v != 0 {
-		result.NetNetfilterNfConntrackBuckets = utils.Int64(int64(v))
+		result.NetNetfilterNfConntrackBuckets = pointer.To(int64(v))
 	}
 	if v := raw["fs_aio_max_nr"].(int); v != 0 {
-		result.FsAioMaxNr = utils.Int64(int64(v))
+		result.FsAioMaxNr = pointer.To(int64(v))
 	}
 	if v := raw["fs_inotify_max_user_watches"].(int); v != 0 {
-		result.FsInotifyMaxUserWatches = utils.Int64(int64(v))
+		result.FsInotifyMaxUserWatches = pointer.To(int64(v))
 	}
 	if v := raw["fs_file_max"].(int); v != 0 {
-		result.FsFileMax = utils.Int64(int64(v))
+		result.FsFileMax = pointer.To(int64(v))
 	}
 	if v := raw["fs_nr_open"].(int); v != 0 {
-		result.FsNrOpen = utils.Int64(int64(v))
+		result.FsNrOpen = pointer.To(int64(v))
 	}
 	if v := raw["kernel_threads_max"].(int); v != 0 {
-		result.KernelThreadsMax = utils.Int64(int64(v))
+		result.KernelThreadsMax = pointer.To(int64(v))
 	}
 	if v := raw["vm_max_map_count"].(int); v != 0 {
-		result.VMMaxMapCount = utils.Int64(int64(v))
+		result.VMMaxMapCount = pointer.To(int64(v))
 	}
 	if v := raw["vm_swappiness"].(int); v != 0 {
-		result.VMSwappiness = utils.Int64(int64(v))
+		result.VMSwappiness = pointer.To(int64(v))
 	}
 	if v := raw["vm_vfs_cache_pressure"].(int); v != 0 {
-		result.VMVfsCachePressure = utils.Int64(int64(v))
+		result.VMVfsCachePressure = pointer.To(int64(v))
 	}
 	return result, nil
 }
@@ -1462,26 +1537,22 @@ func flattenAgentPoolLinuxOSConfig(input *agentpools.LinuxOSConfig) ([]interface
 	if input.SwapFileSizeMB != nil {
 		swapFileSizeMB = int(*input.SwapFileSizeMB)
 	}
-	var transparentHugePageDefrag string
-	if input.TransparentHugePageDefrag != nil {
-		transparentHugePageDefrag = *input.TransparentHugePageDefrag
-	}
-	var transparentHugePageEnabled string
-	if input.TransparentHugePageEnabled != nil {
-		transparentHugePageEnabled = *input.TransparentHugePageEnabled
-	}
+	transparentHugePageDefrag := pointer.From(input.TransparentHugePageDefrag)
+	transparentHugePageEnabled := pointer.From(input.TransparentHugePageEnabled)
 	sysctlConfig, err := flattenAgentPoolSysctlConfig(input.Sysctls)
 	if err != nil {
 		return nil, err
 	}
-	return []interface{}{
+	config := []interface{}{
 		map[string]interface{}{
-			"swap_file_size_mb":             swapFileSizeMB,
-			"sysctl_config":                 sysctlConfig,
-			"transparent_huge_page_defrag":  transparentHugePageDefrag,
-			"transparent_huge_page_enabled": transparentHugePageEnabled,
+			"swap_file_size_mb":            swapFileSizeMB,
+			"sysctl_config":                sysctlConfig,
+			"transparent_huge_page_defrag": transparentHugePageDefrag,
+			"transparent_huge_page":        transparentHugePageEnabled,
 		},
-	}, nil
+	}
+
+	return config, nil
 }
 
 func flattenAgentPoolSysctlConfig(input *agentpools.SysctlConfig) ([]interface{}, error) {
@@ -1589,10 +1660,7 @@ func flattenAgentPoolSysctlConfig(input *agentpools.SysctlConfig) ([]interface{}
 	if input.NetIPv4TcpMaxTwBuckets != nil {
 		netIpv4TcpMaxTwBuckets = int(*input.NetIPv4TcpMaxTwBuckets)
 	}
-	var netIpv4TcpTwReuse bool
-	if input.NetIPv4TcpTwReuse != nil {
-		netIpv4TcpTwReuse = *input.NetIPv4TcpTwReuse
-	}
+	netIpv4TcpTwReuse := pointer.From(input.NetIPv4TcpTwReuse)
 	var netNetfilterNfConntrackBuckets int
 	if input.NetNetfilterNfConntrackBuckets != nil {
 		netNetfilterNfConntrackBuckets = int(*input.NetNetfilterNfConntrackBuckets)
@@ -1656,7 +1724,7 @@ func expandAgentPoolWindowsProfile(input []interface{}) *agentpools.AgentPoolWin
 	v := input[0].(map[string]interface{})
 	outboundNatEnabled := v["outbound_nat_enabled"].(bool)
 	return &agentpools.AgentPoolWindowsProfile{
-		DisableOutboundNat: utils.Bool(!outboundNatEnabled),
+		DisableOutboundNat: pointer.To(!outboundNatEnabled),
 	}
 }
 
@@ -1684,7 +1752,7 @@ func expandAgentPoolNetworkProfile(input []interface{}) *agentpools.AgentPoolNet
 	v := input[0].(map[string]interface{})
 	return &agentpools.AgentPoolNetworkProfile{
 		AllowedHostPorts:          expandAgentPoolNetworkProfileAllowedHostPorts(v["allowed_host_ports"].([]interface{})),
-		ApplicationSecurityGroups: utils.ExpandStringSlice(v["application_security_group_ids"].([]interface{})),
+		ApplicationSecurityGroups: helpers.ExpandStringSlice(v["application_security_group_ids"].([]interface{})),
 		NodePublicIPTags:          expandAgentPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]interface{})),
 	}
 }
@@ -1724,8 +1792,8 @@ func expandAgentPoolNetworkProfileNodePublicIPTags(input map[string]interface{})
 
 	for key, val := range input {
 		ipTag := agentpools.IPTag{
-			IPTagType: utils.String(key),
-			Tag:       utils.String(val.(string)),
+			IPTagType: pointer.To(key),
+			Tag:       pointer.To(val.(string)),
 		}
 		out = append(out, ipTag)
 	}
@@ -1740,7 +1808,7 @@ func flattenAgentPoolNetworkProfile(input *agentpools.AgentPoolNetworkProfile) [
 	return []interface{}{
 		map[string]interface{}{
 			"allowed_host_ports":             flattenAgentPoolNetworkProfileAllowedHostPorts(input.AllowedHostPorts),
-			"application_security_group_ids": utils.FlattenStringSlice(input.ApplicationSecurityGroups),
+			"application_security_group_ids": helpers.FlattenStringSlice(input.ApplicationSecurityGroups),
 			"node_public_ip_tags":            flattenAgentPoolNetworkProfileNodePublicIPTags(input.NodePublicIPTags),
 		},
 	}

@@ -24,6 +24,7 @@ resource "azurerm_key_vault" "example" {
   name                       = "examplekeyvault"
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -62,7 +63,7 @@ resource "azurerm_web_pubsub_shared_private_link_resource" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -90,11 +91,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Web Pubsub Shared Private Link Resource.
-* `update` - (Defaults to 30 minutes) Used when updating the Web Pubsub Shared Private Link Resource.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Web Pubsub Shared Private Link Resource.
+* `update` - (Defaults to 30 minutes) Used when updating the Web Pubsub Shared Private Link Resource.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Web Pubsub Shared Private Link Resource.
 
 ## Import
@@ -104,3 +105,9 @@ Web Pubsub Shared Private Link Resource can be imported using the `resource id`,
 ```shell
 terraform import azurerm_web_pubsub_shared_private_link_resource.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/webPubSub/webPubSub1/sharedPrivateLinkResources/resource1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.SignalRService` - 2024-03-01

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -15,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
@@ -159,21 +160,23 @@ func resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *pluginsdk.R
 	id := parse.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory Azure File Storage Anonymous %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+			if err != nil {
+				if !response.WasNotFound(existing.Response.Response) {
+					return fmt.Errorf("checking for presence of existing Data Factory Azure File Storage Anonymous %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_azure_file_storage", id.ID())
+			if !response.WasNotFound(existing.Response.Response) {
+				return tf.ImportAsExistsError("azurerm_data_factory_linked_service_azure_file_storage", id.ID())
+			}
 		}
 	}
 
 	fileStorageProperties := &datafactory.AzureFileStorageLinkedServiceTypeProperties{
 		ConnectionString: &datafactory.SecureString{
-			Value: utils.String(d.Get("connection_string").(string)),
+			Value: pointer.To(d.Get("connection_string").(string)),
 			Type:  datafactory.TypeSecureString,
 		},
 		FileShare: d.Get("file_share").(string),
@@ -190,13 +193,13 @@ func resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *pluginsdk.R
 	password := d.Get("password").(string)
 	if password != "" {
 		fileStorageProperties.Password = &datafactory.SecureString{
-			Value: utils.String(d.Get("password").(string)),
+			Value: pointer.To(d.Get("password").(string)),
 			Type:  datafactory.TypeSecureString,
 		}
 	}
 
 	fileStorageLinkedService := &datafactory.AzureFileStorageLinkedService{
-		Description: utils.String(d.Get("description").(string)),
+		Description: pointer.To(d.Get("description").(string)),
 		AzureFileStorageLinkedServiceTypeProperties: fileStorageProperties,
 		Type: datafactory.TypeBasicLinkedServiceTypeAzureFileStorage,
 	}
@@ -250,7 +253,7 @@ func resourceDataFactoryLinkedServiceAzureFileStorageRead(d *pluginsdk.ResourceD
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -316,9 +319,9 @@ func resourceDataFactoryLinkedServiceAzureFileStorageDelete(d *pluginsdk.Resourc
 		return err
 	}
 
-	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(response) {
+		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting Data Factory Azure File Storage %s: %+v", *id, err)
 		}
 	}

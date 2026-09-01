@@ -45,7 +45,7 @@ resource "azurerm_lb_probe" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -57,6 +57,7 @@ The following arguments are supported:
 * `request_path` - (Optional) The URI used for requesting health status from the backend endpoint. Required if protocol is set to `Http` or `Https`. Otherwise, it is not allowed.
 * `interval_in_seconds` - (Optional) The interval, in seconds between probes to the backend endpoint for health status. The default value is 15, the minimum value is 5.
 * `number_of_probes` - (Optional) The number of failed probe attempts after which the backend endpoint is removed from rotation. Default to `2`. NumberOfProbes multiplied by intervalInSeconds value must be greater or equal to 10.Endpoints are returned to rotation when at least one probe is successful.
+* `no_healthy_backends_behavior` - (Optional) Determines how new connections are handled by the load balancer when all backend instances are probed down. Possible values are `AllProbedDown` and `AllProbedUp`. Defaults to `AllProbedDown`.
 
 ## Attributes Reference
 
@@ -66,11 +67,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Load Balancer Probe.
-* `update` - (Defaults to 30 minutes) Used when updating the Load Balancer Probe.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Load Balancer Probe.
+* `update` - (Defaults to 30 minutes) Used when updating the Load Balancer Probe.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Load Balancer Probe.
 
 ## Import
@@ -80,3 +81,9 @@ Load Balancer Probes can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_lb_probe.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/loadBalancers/lb1/probes/probe1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2025-01-01

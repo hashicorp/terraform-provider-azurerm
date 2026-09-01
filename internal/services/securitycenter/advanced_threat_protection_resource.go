@@ -1,15 +1,17 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -17,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceAdvancedThreatProtection() *pluginsdk.Resource {
@@ -67,21 +68,23 @@ func resourceAdvancedThreatProtectionCreateUpdate(d *pluginsdk.ResourceData, met
 
 	id := parse.NewAdvancedThreatProtectionId(d.Get("target_resource_id").(string))
 	if d.IsNewResource() {
-		server, err := client.Get(ctx, id.TargetResourceID)
-		if err != nil {
-			if !utils.ResponseWasNotFound(server.Response) {
-				return fmt.Errorf("checking for presence of existing Advanced Threat Protection for %q: %+v", id.TargetResourceID, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			server, err := client.Get(ctx, id.TargetResourceID)
+			if err != nil {
+				if !response.WasNotFound(server.Response.Response) {
+					return fmt.Errorf("checking for presence of existing Advanced Threat Protection for %q: %+v", id.TargetResourceID, err)
+				}
 			}
-		}
 
-		if server.ID != nil && *server.ID != "" && server.IsEnabled != nil && *server.IsEnabled {
-			return tf.ImportAsExistsError("azurerm_advanced_threat_protection", id.ID())
+			if server.ID != nil && *server.ID != "" && server.IsEnabled != nil && *server.IsEnabled {
+				return tf.ImportAsExistsError("azurerm_advanced_threat_protection", id.ID())
+			}
 		}
 	}
 
 	setting := security.AdvancedThreatProtectionSetting{
 		AdvancedThreatProtectionProperties: &security.AdvancedThreatProtectionProperties{
-			IsEnabled: utils.Bool(d.Get("enabled").(bool)),
+			IsEnabled: pointer.To(d.Get("enabled").(bool)),
 		},
 	}
 
@@ -111,7 +114,7 @@ func resourceAdvancedThreatProtectionCreateUpdate(d *pluginsdk.ResourceData, met
 					return resp, "diff", nil
 				}
 			}
-			return resp, "error", fmt.Errorf("Properties was nil")
+			return resp, "error", errors.New("properties was nil")
 		},
 		MinTimeout:                30 * time.Second,
 		ContinuousTargetOccurence: 10,
@@ -138,7 +141,7 @@ func resourceAdvancedThreatProtectionRead(d *pluginsdk.ResourceData, meta interf
 
 	resp, err := client.Get(ctx, id.TargetResourceID)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("Advanced Threat Protection was not found for %q: %+v", id.TargetResourceID, err)
 			d.SetId("")
 			return nil
@@ -168,7 +171,7 @@ func resourceAdvancedThreatProtectionDelete(d *pluginsdk.ResourceData, meta inte
 	// there is no delete.. so lets just do best effort and set it to false?
 	setting := security.AdvancedThreatProtectionSetting{
 		AdvancedThreatProtectionProperties: &security.AdvancedThreatProtectionProperties{
-			IsEnabled: utils.Bool(false),
+			IsEnabled: pointer.To(false),
 		},
 	}
 

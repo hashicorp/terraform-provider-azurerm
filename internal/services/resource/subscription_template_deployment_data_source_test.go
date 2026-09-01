@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource_test
@@ -13,7 +13,17 @@ import (
 
 type SubscriptionTemplateDeploymentDataSource struct{}
 
-func TestAccDataSourceSubscriptionTemplateDeployment(t *testing.T) {
+func TestAccDataSourceSubscriptionTemplateDeployment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_subscription_template_deployment", "test")
+	r := SubscriptionTemplateDeploymentDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.withDataSource(data),
+		},
+	}, "")
+}
+
+func TestAccDataSourceSubscriptionTemplateDeployment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subscription_template_deployment", "test")
 	r := SubscriptionTemplateDeploymentDataSource{}
 

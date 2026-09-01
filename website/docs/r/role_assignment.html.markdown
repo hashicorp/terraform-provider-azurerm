@@ -171,7 +171,7 @@ EOT
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -191,9 +191,9 @@ The following arguments are supported:
 
 * `principal_type` - (Optional) The type of the `principal_id`. Possible values are `User`, `Group` and `ServicePrincipal`. Changing this forces a new resource to be created. It is necessary to explicitly set this attribute when creating role assignments if the principal creating the assignment is constrained by ABAC rules that filters on the PrincipalType attribute.
 
-* `condition` - (Optional) The condition that limits the resources that the role can be assigned to. Changing this forces a new resource to be created.
+* `condition` - (Optional) The condition that limits the resources that the role can be assigned to.
 
-* `condition_version` - (Optional) The version of the condition. Possible values are `1.0` or `2.0`. Changing this forces a new resource to be created.
+* `condition_version` - (Optional) The version of the condition. Possible values are `1.0` or `2.0`.
 
 ~> **Note:** `condition` is required when `condition_version` is set.
 
@@ -201,7 +201,7 @@ The following arguments are supported:
 
 ~> **Note:** This field is only used in cross tenant scenarios.
 
-* `description` - (Optional) The description for this Role Assignment. Changing this forces a new resource to be created.
+* `description` - (Optional) The description for this Role Assignment.
 
 * `skip_service_principal_aad_check` - (Optional) If the `principal_id` is a newly provisioned `Service Principal` set this value to `true` to skip the `Azure Active Directory` check which may fail due to replication lag. This argument is only valid if the `principal_id` is a `Service Principal` identity. Defaults to `false`.
 
@@ -215,10 +215,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Role Assignment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Role Assignment.
+* `update` - (Defaults to 30 minutes) Used when updating the Role Assignment.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Role Assignment.
 
 ## Import
@@ -241,3 +242,9 @@ terraform import azurerm_role_assignment.example /subscriptions/00000000-0000-00
 ```text
 /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000|00000000-0000-0000-0000-000000000000
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Authorization` - 2022-05-01-preview, 2022-04-01

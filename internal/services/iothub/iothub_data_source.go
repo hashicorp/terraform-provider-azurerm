@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -15,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
@@ -42,7 +42,7 @@ func dataSourceIotHub() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -57,8 +57,8 @@ func dataSourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: %s was not found", id)
+		if response.WasNotFound(resp.Response.Response) {
+			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -87,7 +87,7 @@ func dataSourceFlattenIotHubIdentityDetails(input *devices.ArmIdentity) (*[]inte
 
 	if input != nil {
 		transform = &identity.SystemAndUserAssignedMap{
-			Type:        identity.Type(string(input.Type)),
+			Type:        identity.Type(input.Type),
 			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
 		}
 

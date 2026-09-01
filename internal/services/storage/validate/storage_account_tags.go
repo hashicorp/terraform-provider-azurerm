@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 )
 
+// lintignore:V011 // this validates a map of tags; the length checks are on keys and values
 func StorageAccountTags(v interface{}, _ string) (warnings []string, errors []error) {
 	tagsMap := v.(map[string]interface{})
 

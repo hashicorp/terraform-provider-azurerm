@@ -31,7 +31,7 @@ resource "azurerm_eventhub_namespace" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `maximum_throughput_units` - (Optional) Specifies the maximum number of throughput units when Auto Inflate is Enabled. Valid values range from `1` - `20`.
+* `maximum_throughput_units` - (Optional) Specifies the maximum number of throughput units when Auto Inflate is Enabled. Valid values range from `1` - `40`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Is public network access enabled for the EventHub Namespace? Defaults to `true`.
 
-* `minimum_tls_version` - (Optional) The minimum supported TLS version for this EventHub Namespace. Valid values are: `1.0`, `1.1` and `1.2`. Defaults to `1.2`.
+* `minimum_tls_version` - (Optional) The minimum supported TLS version for this EventHub Namespace. The only possible value is `1.2`. Defaults to `1.2`.
 
 ~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
 
@@ -82,6 +82,8 @@ A `identity` block supports the following:
 A `network_rulesets` block supports the following:
 
 * `default_action` - (Required) The default action to take when a rule is not matched. Possible values are `Allow` and `Deny`.
+
+~> **Note:** `default_action` can only be set to `Deny` when at least one `ip_rule` or `virtual_network_rule` block is specified, otherwise the Azure API will not honor the setting.
 
 * `public_network_access_enabled` - (Optional) Is public network access enabled for the EventHub Namespace? Defaults to `true`.
 
@@ -142,11 +144,11 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the EventHub Namespace.
-* `update` - (Defaults to 30 minutes) Used when updating the EventHub Namespace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the EventHub Namespace.
+* `update` - (Defaults to 30 minutes) Used when updating the EventHub Namespace.
 * `delete` - (Defaults to 30 minutes) Used when deleting the EventHub Namespace.
 
 ## Import
@@ -156,3 +158,9 @@ EventHub Namespaces can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_eventhub_namespace.namespace1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.EventHub` - 2024-01-01

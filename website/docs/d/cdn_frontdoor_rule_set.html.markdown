@@ -10,6 +10,8 @@ description: |-
 
 Use this data source to access information about an existing Front Door (standard/premium) Rule Set.
 
+~> **Note:** This data source can only read Rule Sets that were not provisioned in batch mode. Use the `azurerm_cdn_frontdoor_batch_rule_set` data source for Rule Sets that were provisioned in batch mode.
+
 ## Example Usage
 
 ```hcl
@@ -40,6 +42,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Rule Set.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Cdn` - 2025-12-01

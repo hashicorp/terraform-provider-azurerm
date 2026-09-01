@@ -1,27 +1,28 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package bot
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/cognitiveservicesaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
@@ -33,8 +34,15 @@ func resourceBotChannelDirectLineSpeech() *pluginsdk.Resource {
 		Update: resourceBotChannelDirectLineSpeechUpdate,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.BotChannelID(id)
+			_, err := commonids.ParseBotServiceChannelID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			// v0 -> v1 normalises the casing of IDs imported while this resource parsed them with the
+			// case-insensitive legacy parser, so they can be parsed with the case-sensitive SDK parser
+			0: migration.BotChannelDirectLineSpeechV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -58,17 +66,27 @@ func resourceBotChannelDirectLineSpeech() *pluginsdk.Resource {
 
 			"cognitive_service_access_key": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
+				RequiredWith: []string{"cognitive_service_location"},
+				AtLeastOneOf: []string{"cognitive_service_access_key", "cognitive_account_id"},
 			},
 
-			"cognitive_service_location": commonschema.LocationWithoutForceNew(),
+			"cognitive_service_location": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateFunc:     location.EnhancedValidate,
+				StateFunc:        location.StateFunc,
+				DiffSuppressFunc: location.DiffSuppressFunc,
+				RequiredWith:     []string{"cognitive_service_access_key"},
+			},
 
 			"cognitive_account_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: cognitiveservicesaccounts.ValidateAccountID,
+				AtLeastOneOf: []string{"cognitive_service_access_key", "cognitive_account_id"},
 			},
 
 			"custom_speech_model_id": {
@@ -83,6 +101,20 @@ func resourceBotChannelDirectLineSpeech() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
+
+		CustomizeDiff: pluginsdk.ForceNewIf("cognitive_account_id", func(ctx context.Context, d *schema.ResourceDiff, _ interface{}) bool {
+			if d == nil {
+				return false
+			}
+
+			o, n := d.GetChange("cognitive_account_id")
+			if o.(string) != "" && n.(string) == "" {
+				// return `IsKnown` in case of unknown values to prevent replacements on valid but unknown at plan time values
+				return d.GetRawConfig().AsValueMap()["cognitive_account_id"].IsKnown()
+			}
+
+			return false
+		}),
 	}
 }
 
@@ -92,15 +124,16 @@ func resourceBotChannelDirectLineSpeechCreate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameDirectLineSpeechChannel))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ChannelName)
+	id := commonids.NewBotServiceChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameDirectLineSpeechChannel))
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName, id.ChannelType)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_bot_channel_direct_line_speech", id.ID())
 		}
 	}
@@ -108,33 +141,42 @@ func resourceBotChannelDirectLineSpeechCreate(d *pluginsdk.ResourceData, meta in
 	channel := botservice.BotChannel{
 		Properties: botservice.DirectLineSpeechChannel{
 			Properties: &botservice.DirectLineSpeechChannelProperties{
-				CognitiveServiceRegion:          utils.String(d.Get("cognitive_service_location").(string)),
-				CognitiveServiceSubscriptionKey: utils.String(d.Get("cognitive_service_access_key").(string)),
-				IsDefaultBotForCogSvcAccount:    utils.Bool(false),
-				IsEnabled:                       utils.Bool(true),
+				IsDefaultBotForCogSvcAccount: pointer.To(false),
+				IsEnabled:                    pointer.To(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameDirectLineSpeechChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
+	}
+
+	// Set cognitive service properties if provided
+	if v, ok := d.GetOk("cognitive_service_location"); ok {
+		channel, _ := channel.Properties.AsDirectLineSpeechChannel()
+		channel.Properties.CognitiveServiceRegion = pointer.To(v.(string))
+	}
+
+	if v, ok := d.GetOk("cognitive_service_access_key"); ok {
+		channel, _ := channel.Properties.AsDirectLineSpeechChannel()
+		channel.Properties.CognitiveServiceSubscriptionKey = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("cognitive_account_id"); ok {
 		channel, _ := channel.Properties.AsDirectLineSpeechChannel()
-		channel.Properties.CognitiveServiceResourceID = utils.String(v.(string))
+		channel.Properties.CognitiveServiceResourceID = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("custom_speech_model_id"); ok {
 		channel, _ := channel.Properties.AsDirectLineSpeechChannel()
-		channel.Properties.CustomSpeechModelID = utils.String(v.(string))
+		channel.Properties.CustomSpeechModelID = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("custom_voice_deployment_id"); ok {
 		channel, _ := channel.Properties.AsDirectLineSpeechChannel()
-		channel.Properties.CustomVoiceDeploymentID = utils.String(v.(string))
+		channel.Properties.CustomVoiceDeploymentID = pointer.To(v.(string))
 	}
 
-	if _, err := client.Create(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameDirectLineSpeechChannel, channel); err != nil {
+	if _, err := client.Create(ctx, id.ResourceGroupName, id.BotServiceName, botservice.ChannelNameDirectLineSpeechChannel, channel); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -147,14 +189,14 @@ func resourceBotChannelDirectLineSpeechRead(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotChannelID(d.Id())
+	id, err := commonids.ParseBotServiceChannelID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameDirectLineSpeechChannel))
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName, string(botservice.ChannelNameDirectLineSpeechChannel))
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] %s was not found - removing from state", id)
 			d.SetId("")
 			return nil
@@ -164,13 +206,26 @@ func resourceBotChannelDirectLineSpeechRead(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.Set("bot_name", id.BotServiceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.Properties; props != nil {
 		if channel, ok := props.AsDirectLineSpeechChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
 				d.Set("cognitive_account_id", channelProps.CognitiveServiceResourceID)
+
+				// cognitive_service_access_key is currently not returned by the API.
+				d.Set("cognitive_service_access_key", d.Get("cognitive_service_access_key").(string))
+				if channelProps.CognitiveServiceSubscriptionKey != nil {
+					d.Set("cognitive_service_access_key", channelProps.CognitiveServiceSubscriptionKey)
+				}
+
+				// cognitive_service_location is currently not returned by the API.
+				d.Set("cognitive_service_location", d.Get("cognitive_service_location").(string))
+				if channelProps.CognitiveServiceRegion != nil {
+					d.Set("cognitive_service_location", channelProps.CognitiveServiceRegion)
+				}
+
 				d.Set("custom_speech_model_id", channelProps.CustomSpeechModelID)
 				d.Set("custom_voice_deployment_id", channelProps.CustomVoiceDeploymentID)
 			}
@@ -185,7 +240,7 @@ func resourceBotChannelDirectLineSpeechUpdate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotChannelID(d.Id())
+	id, err := commonids.ParseBotServiceChannelID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -193,33 +248,34 @@ func resourceBotChannelDirectLineSpeechUpdate(d *pluginsdk.ResourceData, meta in
 	channel := botservice.BotChannel{
 		Properties: botservice.DirectLineSpeechChannel{
 			Properties: &botservice.DirectLineSpeechChannelProperties{
-				CognitiveServiceRegion:          utils.String(d.Get("cognitive_service_location").(string)),
-				CognitiveServiceSubscriptionKey: utils.String(d.Get("cognitive_service_access_key").(string)),
-				IsDefaultBotForCogSvcAccount:    utils.Bool(false),
-				IsEnabled:                       utils.Bool(true),
+				IsDefaultBotForCogSvcAccount: pointer.To(false),
+				IsEnabled:                    pointer.To(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameDirectLineSpeechChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
-	if d.HasChange("cognitive_account_id") {
-		channel, _ := channel.Properties.AsDirectLineSpeechChannel()
-		channel.Properties.CognitiveServiceResourceID = utils.String(d.Get("cognitive_account_id").(string))
+	directLineSpeechChannel, _ := channel.Properties.AsDirectLineSpeechChannel()
+	directLineSpeechChannel.Properties.CognitiveServiceRegion = pointer.To(d.Get("cognitive_service_location").(string))
+	directLineSpeechChannel.Properties.CognitiveServiceSubscriptionKey = pointer.To(d.Get("cognitive_service_access_key").(string))
+
+	if v, ok := d.GetOk("cognitive_account_id"); ok {
+		directLineSpeechChannel.Properties.CognitiveServiceResourceID = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("custom_speech_model_id"); ok {
 		channel, _ := channel.Properties.AsDirectLineSpeechChannel()
-		channel.Properties.CustomSpeechModelID = utils.String(v.(string))
+		channel.Properties.CustomSpeechModelID = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("custom_voice_deployment_id"); ok {
 		channel, _ := channel.Properties.AsDirectLineSpeechChannel()
-		channel.Properties.CustomVoiceDeploymentID = utils.String(v.(string))
+		channel.Properties.CustomVoiceDeploymentID = pointer.To(v.(string))
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameDirectLineSpeechChannel, channel); err != nil {
+	if _, err := client.Update(ctx, id.ResourceGroupName, id.BotServiceName, botservice.ChannelNameDirectLineSpeechChannel, channel); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -231,12 +287,12 @@ func resourceBotChannelDirectLineSpeechDelete(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotChannelID(d.Id())
+	id, err := commonids.ParseBotServiceChannelID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameDirectLineSpeechChannel))
+	resp, err := client.Delete(ctx, id.ResourceGroupName, id.BotServiceName, string(botservice.ChannelNameDirectLineSpeechChannel))
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting %s: %+v", id, err)

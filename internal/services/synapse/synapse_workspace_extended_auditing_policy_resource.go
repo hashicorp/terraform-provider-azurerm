@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse
@@ -9,15 +9,15 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSynapseWorkspaceExtendedAuditingPolicy() *pluginsdk.Resource {
@@ -44,7 +44,7 @@ func resourceSynapseWorkspaceExtendedAuditingPolicy() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.WorkspaceID,
+				ValidateFunc: validation.AsGeneratedID(workspaces.ParseWorkspaceIDInsensitively),
 			},
 
 			"storage_endpoint": {
@@ -87,25 +87,29 @@ func resourceSynapseWorkspaceExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Res
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	workspaceId, err := parse.WorkspaceID(d.Get("synapse_workspace_id").(string))
+	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+	workspaceId, err := workspaces.ParseWorkspaceIDInsensitively(d.Get("synapse_workspace_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewWorkspaceExtendedAuditingPolicyID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, "default")
+	id := parse.NewWorkspaceExtendedAuditingPolicyID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, "default")
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName)
+			if err != nil {
+				if !response.WasNotFound(existing.Response.Response) {
+					return fmt.Errorf("checking for presence of %s: %+v", id, err)
+				}
 			}
-		}
 
-		// if state is not disabled, we should flag it for import
-		if !utils.ResponseWasNotFound(existing.Response) {
-			if props := existing.ExtendedServerBlobAuditingPolicyProperties; props != nil && props.State != synapse.BlobAuditingPolicyStateDisabled {
-				return tf.ImportAsExistsError("azurerm_synapse_workspace_extended_auditing_policy", id.ID())
+			// if state is not disabled, we should flag it for import
+			if !response.WasNotFound(existing.Response.Response) {
+				if props := existing.ExtendedServerBlobAuditingPolicyProperties; props != nil && props.State != synapse.BlobAuditingPolicyStateDisabled {
+					return tf.ImportAsExistsError("azurerm_synapse_workspace_extended_auditing_policy", id.ID())
+				}
 			}
 		}
 	}
@@ -113,20 +117,24 @@ func resourceSynapseWorkspaceExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Res
 	params := synapse.ExtendedServerBlobAuditingPolicy{
 		ExtendedServerBlobAuditingPolicyProperties: &synapse.ExtendedServerBlobAuditingPolicyProperties{
 			State:                       synapse.BlobAuditingPolicyStateEnabled,
-			StorageEndpoint:             utils.String(d.Get("storage_endpoint").(string)),
-			IsStorageSecondaryKeyInUse:  utils.Bool(d.Get("storage_account_access_key_is_secondary").(bool)),
-			RetentionDays:               utils.Int32(int32(d.Get("retention_in_days").(int))),
-			IsAzureMonitorTargetEnabled: utils.Bool(d.Get("log_monitoring_enabled").(bool)),
+			StorageEndpoint:             pointer.To(d.Get("storage_endpoint").(string)),
+			IsStorageSecondaryKeyInUse:  pointer.To(d.Get("storage_account_access_key_is_secondary").(bool)),
+			RetentionDays:               pointer.To(int32(d.Get("retention_in_days").(int))),
+			IsAzureMonitorTargetEnabled: pointer.To(d.Get("log_monitoring_enabled").(bool)),
 		},
 	}
 
 	if v, ok := d.GetOk("storage_account_access_key"); ok {
-		params.ExtendedServerBlobAuditingPolicyProperties.StorageAccountAccessKey = utils.String(v.(string))
+		params.StorageAccountAccessKey = pointer.To(v.(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, params)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	if d.IsNewResource() {
+		d.SetId(id.ID())
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -135,7 +143,6 @@ func resourceSynapseWorkspaceExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Res
 		}
 	}
 
-	d.SetId(id.ID())
 	return resourceSynapseWorkspaceExtendedAuditingPolicyRead(d, meta)
 }
 
@@ -151,7 +158,7 @@ func resourceSynapseWorkspaceExtendedAuditingPolicyRead(d *pluginsdk.ResourceDat
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] synapse %s does not exist - removing from state", id)
 			d.SetId("")
 			return nil
@@ -159,7 +166,7 @@ func resourceSynapseWorkspaceExtendedAuditingPolicyRead(d *pluginsdk.ResourceDat
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
+	workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 	d.Set("synapse_workspace_id", workspaceId.ID())
 
 	if props := resp.ExtendedServerBlobAuditingPolicyProperties; props != nil {

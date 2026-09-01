@@ -1,24 +1,18 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
 import (
-	"fmt"
 	"regexp"
 
-	"github.com/hashicorp/go-uuid"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func EmbeddedAdministratorName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile(`^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$`).MatchString(value) {
-		if _, err := uuid.ParseUUID(value); err != nil {
-			errors = append(errors, fmt.Errorf("%q isn't a valid email address.", k))
-			errors = append(errors, fmt.Errorf("%q isn't a valid UUID (%q): %+v", k, v, err))
-		}
-	}
-
-	return warnings, errors
+	// a UUID is valid in addition to an email address
+	return validation.Any(
+		validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$`), "isn't a valid email address"),
+		validation.IsUUID,
+	)(v, k)
 }

@@ -1,16 +1,17 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package schema
 
 import (
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
@@ -183,6 +184,23 @@ func (a NumberAttribute) IsRequired() bool {
 // IsSensitive returns the Sensitive field value.
 func (a NumberAttribute) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly returns false as write-only attributes are not supported in data source schemas.
+func (a NumberAttribute) IsWriteOnly() bool {
+	return false
+}
+
+// IsRequiredForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a NumberAttribute) IsRequiredForImport() bool {
+	return false
+}
+
+// IsOptionalForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a NumberAttribute) IsOptionalForImport() bool {
+	return false
 }
 
 // NumberValidators returns the Validators field value.

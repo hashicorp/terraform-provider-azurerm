@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionruleassociations"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DataCollectionRuleAssociationModel struct {
@@ -88,7 +88,6 @@ func (r DataCollectionRuleAssociationResource) ModelObject() interface{} {
 func (r DataCollectionRuleAssociationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			metadata.Logger.Info("Decoding state..")
 			var model DataCollectionRuleAssociationModel
 			if err := metadata.Decode(&model); err != nil {
 				return err
@@ -97,28 +96,29 @@ func (r DataCollectionRuleAssociationResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.Monitor.DataCollectionRuleAssociationsClient
 
 			id := datacollectionruleassociations.NewScopedDataCollectionRuleAssociationID(model.TargetResourceId, model.Name)
-			metadata.Logger.Infof("creating %s", id)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			input := datacollectionruleassociations.DataCollectionRuleAssociationProxyOnlyResource{
-				Name: utils.String(model.Name),
+				Name: pointer.To(model.Name),
 				Properties: &datacollectionruleassociations.DataCollectionRuleAssociation{
-					Description: utils.String(model.Description),
+					Description: pointer.To(model.Description),
 				},
 			}
 
 			if model.DataCollectionEndpointId != "" {
-				input.Properties.DataCollectionEndpointId = utils.String(model.DataCollectionEndpointId)
+				input.Properties.DataCollectionEndpointId = pointer.To(model.DataCollectionEndpointId)
 			}
 			if model.DataCollectionRuleId != "" {
-				input.Properties.DataCollectionRuleId = utils.String(model.DataCollectionRuleId)
+				input.Properties.DataCollectionRuleId = pointer.To(model.DataCollectionRuleId)
 			}
 
 			if _, err := client.Create(ctx, id, input); err != nil {
@@ -181,7 +181,6 @@ func (r DataCollectionRuleAssociationResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("updating %s..", *id)
 			client := metadata.Client.Monitor.DataCollectionRuleAssociationsClient
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
@@ -202,7 +201,7 @@ func (r DataCollectionRuleAssociationResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("data_collection_endpoint_id") {
 				if model.DataCollectionEndpointId != "" {
-					existing.Properties.DataCollectionEndpointId = utils.String(model.DataCollectionEndpointId)
+					existing.Properties.DataCollectionEndpointId = pointer.To(model.DataCollectionEndpointId)
 				} else {
 					existing.Properties.DataCollectionEndpointId = nil
 				}
@@ -210,14 +209,14 @@ func (r DataCollectionRuleAssociationResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("data_collection_rule_id") {
 				if model.DataCollectionRuleId != "" {
-					existing.Properties.DataCollectionRuleId = utils.String(model.DataCollectionRuleId)
+					existing.Properties.DataCollectionRuleId = pointer.To(model.DataCollectionRuleId)
 				} else {
 					existing.Properties.DataCollectionRuleId = nil
 				}
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				existing.Properties.Description = utils.String(model.Description)
+				existing.Properties.Description = pointer.To(model.Description)
 			}
 
 			if _, err := client.Create(ctx, *id, *existing); err != nil {
@@ -238,7 +237,6 @@ func (r DataCollectionRuleAssociationResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting %s..", *id)
 			resp, err := client.Delete(ctx, *id)
 			if err != nil && !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("deleting %s: %+v", *id, err)

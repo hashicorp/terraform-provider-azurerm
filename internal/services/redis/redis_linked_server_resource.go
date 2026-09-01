@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package redis
@@ -7,15 +7,18 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/redis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/linkedserver"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -28,7 +31,7 @@ func resourceRedisLinkedServer() *pluginsdk.Resource {
 		Read:   resourceRedisLinkedServerRead,
 		Delete: resourceRedisLinkedServerDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := redis.ParseLinkedServerID(id)
+			_, err := linkedserver.ParseLinkedServerID(id)
 			return err
 		}),
 
@@ -55,7 +58,7 @@ func resourceRedisLinkedServer() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: redis.ValidateRediID,
+				ValidateFunc: linkedserver.ValidateRediID,
 			},
 
 			"linked_redis_cache_location": commonschema.Location(),
@@ -63,13 +66,10 @@ func resourceRedisLinkedServer() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"server_role": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(redis.ReplicationRolePrimary),
-					string(redis.ReplicationRoleSecondary),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(linkedserver.PossibleValuesForReplicationRole(), false),
 			},
 
 			"name": {
@@ -86,24 +86,25 @@ func resourceRedisLinkedServer() *pluginsdk.Resource {
 }
 
 func resourceRedisLinkedServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Redis.Redis
+	client := meta.(*clients.Client).Redis.LinkedServerClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	linkedRedisCacheId := d.Get("linked_redis_cache_id").(string)
 	linkedRedisCacheLocation := d.Get("linked_redis_cache_location").(string)
-	serverRole := redis.ReplicationRole(d.Get("server_role").(string))
+	serverRole := linkedserver.ReplicationRole(d.Get("server_role").(string))
 
 	// The name needs to match the linked_redis_cache_id
-	cacheId, err := redis.ParseRediID(linkedRedisCacheId)
+	cacheId, err := linkedserver.ParseRediID(linkedRedisCacheId)
 	if err != nil {
 		return err
 	}
 
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	id := redis.NewLinkedServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("target_redis_cache_name").(string), cacheId.RedisName)
-	if d.IsNewResource() {
-		existing, err := client.LinkedServerGet(ctx, id)
+	id := linkedserver.NewLinkedServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("target_redis_cache_name").(string), cacheId.RedisName)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -114,18 +115,20 @@ func resourceRedisLinkedServerCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	payload := redis.RedisLinkedServerCreateParameters{
-		Properties: redis.RedisLinkedServerCreateProperties{
+	payload := linkedserver.RedisLinkedServerCreateParameters{
+		Properties: linkedserver.RedisLinkedServerCreateProperties{
 			LinkedRedisCacheId:       linkedRedisCacheId,
 			LinkedRedisCacheLocation: location.Normalize(linkedRedisCacheLocation),
 			ServerRole:               serverRole,
 		},
 	}
 
-	if err := client.LinkedServerCreateThenPoll(ctx, id, payload); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
+	// TODO: is this still required now that this is using polling methods from `go-azure-sdk`?
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("internal-error: context had no deadline")
@@ -142,21 +145,20 @@ func resourceRedisLinkedServerCreate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("waiting for %s to become available: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceRedisLinkedServerRead(d, meta)
 }
 
 func resourceRedisLinkedServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Redis.Redis
+	client := meta.(*clients.Client).Redis.LinkedServerClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := redis.ParseLinkedServerID(d.Id())
+	id, err := linkedserver.ParseLinkedServerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.LinkedServerGet(ctx, *id)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
@@ -173,7 +175,7 @@ func resourceRedisLinkedServerRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			cacheId, err := redis.ParseRediIDInsensitively(props.LinkedRedisCacheId)
+			cacheId, err := linkedserver.ParseRediIDInsensitively(props.LinkedRedisCacheId)
 			if err != nil {
 				return fmt.Errorf("parsing `linkedRedisCacheId` %q: %+v", props.LinkedRedisCacheId, err)
 			}
@@ -189,45 +191,36 @@ func resourceRedisLinkedServerRead(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceRedisLinkedServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Redis.Redis
+	client := meta.(*clients.Client).Redis.LinkedServerClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := redis.ParseLinkedServerID(d.Id())
+	id, err := linkedserver.ParseLinkedServerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.LinkedServerDelete(ctx, *id); err != nil {
+	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	// No LinkedServerDeleteFuture
 	// https://github.com/Azure/azure-sdk-for-go/issues/12159
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
-	}
 	log.Printf("[DEBUG] Waiting for %s to be eventually deleted", *id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"Exists"},
-		Target:                    []string{"NotFound"},
-		Refresh:                   redisLinkedServerDeleteStateRefreshFunc(ctx, client, *id),
-		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 10,
-		Timeout:                   time.Until(deadline),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(10, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, *id)
+		return resp.HttpResponse, err
+	}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be deleted: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func redisLinkedServerStateRefreshFunc(ctx context.Context, client *redis.RedisClient, id redis.LinkedServerId) pluginsdk.StateRefreshFunc {
+func redisLinkedServerStateRefreshFunc(ctx context.Context, client *linkedserver.LinkedServerClient, id linkedserver.LinkedServerId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		resp, err := client.LinkedServerGet(ctx, id)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("retrieving status of %s: %+v", id, err)
 		}
@@ -239,20 +232,5 @@ func redisLinkedServerStateRefreshFunc(ctx context.Context, client *redis.RedisC
 		}
 
 		return nil, "", fmt.Errorf("retrieving %s: `model` was nil", id)
-	}
-}
-
-func redisLinkedServerDeleteStateRefreshFunc(ctx context.Context, client *redis.RedisClient, id redis.LinkedServerId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.LinkedServerGet(ctx, id)
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return "NotFound", "NotFound", nil
-			}
-
-			return nil, "", fmt.Errorf("retrieving status of %s: %+v", id, err)
-		}
-
-		return res, "Exists", nil
 	}
 }

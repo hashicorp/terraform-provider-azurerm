@@ -1,18 +1,14 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
 import (
-	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func RoleName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-	if !regexp.MustCompile(`^[a-z0-9]{1,63}$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%q must be between 1 and 63 characters in length and only contain lower case letters and numbers", k))
-	}
-
-	return warnings, errors
+func RoleName(v interface{}, k string) ([]string, []error) {
+	return validation.StringMatch(regexp.MustCompile(`^[a-z0-9]{1,63}$`), "must be between 1 and 63 characters in length and only contain lower case letters and numbers")(v, k)
 }

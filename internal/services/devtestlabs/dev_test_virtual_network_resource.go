@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package devtestlabs
@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -117,12 +118,9 @@ func resourceArmDevTestVirtualNetwork() *pluginsdk.Resource {
 												},
 
 												"transport_protocol": {
-													Type:     pluginsdk.TypeString,
-													Optional: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(virtualnetworks.TransportProtocolTcp),
-														string(virtualnetworks.TransportProtocolUdp),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
+													ValidateFunc: validation.StringInSlice(virtualnetworks.PossibleValuesForTransportProtocol(), false),
 												},
 											},
 										},
@@ -150,19 +148,19 @@ func resourceArmDevTestVirtualNetworkCreate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for DevTest Virtual Network creation")
-
 	id := virtualnetworks.NewVirtualNetworkID(subscriptionId, d.Get("resource_group_name").(string), d.Get("lab_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id, virtualnetworks.GetOperationOptions{})
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, virtualnetworks.GetOperationOptions{})
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_dev_test_virtual_network", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_dev_test_virtual_network", id.ID())
+		}
 	}
 
 	description := d.Get("description").(string)
@@ -171,13 +169,13 @@ func resourceArmDevTestVirtualNetworkCreate(d *pluginsdk.ResourceData, meta inte
 
 	parameters := virtualnetworks.VirtualNetwork{
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-		Properties: &virtualnetworks.VirtualNetworkProperties{
+		Properties: virtualnetworks.VirtualNetworkProperties{
 			Description:     pointer.To(description),
 			SubnetOverrides: subnets,
 		},
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -212,17 +210,16 @@ func resourceArmDevTestVirtualNetworkRead(d *pluginsdk.ResourceData, meta interf
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := read.Model; model != nil {
-		if props := model.Properties; props != nil {
-			d.Set("description", props.Description)
+		props := model.Properties
+		d.Set("description", props.Description)
 
-			flattenedSubnets := flattenDevTestVirtualNetworkSubnets(props.SubnetOverrides)
-			if err := d.Set("subnet", flattenedSubnets); err != nil {
-				return fmt.Errorf("setting `subnet`: %+v", err)
-			}
-
-			// Computed fields
-			d.Set("unique_identifier", props.UniqueIdentifier)
+		flattenedSubnets := flattenDevTestVirtualNetworkSubnets(props.SubnetOverrides)
+		if err := d.Set("subnet", flattenedSubnets); err != nil {
+			return fmt.Errorf("setting `subnet`: %+v", err)
 		}
+
+		// Computed fields
+		d.Set("unique_identifier", props.UniqueIdentifier)
 
 		if err = tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
@@ -237,7 +234,6 @@ func resourceArmDevTestVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for DevTest Virtual Network creation")
 	id, err := virtualnetworks.ParseVirtualNetworkID(d.Id())
 	if err != nil {
 		return err
@@ -252,10 +248,6 @@ func resourceArmDevTestVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("retrieving %s: `model` was nil", id)
 	}
 
-	if existing.Model.Properties == nil {
-		return fmt.Errorf("retrieving %s: `properties` was nil", id)
-	}
-
 	payload := existing.Model
 
 	if d.HasChange("description") {
@@ -263,16 +255,14 @@ func resourceArmDevTestVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("subnet") {
-		subnets := expandDevTestVirtualNetworkSubnets(d.Get("subnet").([]interface{}), subscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
-		payload.Properties.SubnetOverrides = subnets
+		payload.Properties.SubnetOverrides = expandDevTestVirtualNetworkSubnets(d.Get("subnet").([]interface{}), subscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
 	}
 
 	if d.HasChange("tags") {
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, *id, *payload)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -302,8 +292,7 @@ func resourceArmDevTestVirtualNetworkDelete(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
@@ -313,7 +302,8 @@ func resourceArmDevTestVirtualNetworkDelete(d *pluginsdk.ResourceData, meta inte
 func ValidateDevTestVirtualNetworkName() pluginsdk.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[A-Za-z0-9_-]+$"),
-		"Virtual Network Name can only include alphanumeric characters, underscores, hyphens.")
+		"Virtual Network Name can only include alphanumeric characters, underscores, hyphens.",
+	)
 }
 
 func expandDevTestVirtualNetworkSubnets(input []interface{}, subscriptionId, resourceGroupName, virtualNetworkName string) *[]virtualnetworks.SubnetOverride {
@@ -340,8 +330,8 @@ func expandDevTestVirtualNetworkSubnets(input []interface{}, subscriptionId, res
 		subnet := virtualnetworks.SubnetOverride{
 			ResourceId:                         pointer.To(subnetId.ID()),
 			LabSubnetName:                      pointer.To(name),
-			UsePublicIPAddressPermission:       pointer.To(virtualnetworks.UsagePermissionType(v["use_public_ip_address"].(string))),
-			UseInVMCreationPermission:          pointer.To(virtualnetworks.UsagePermissionType(v["use_in_virtual_machine_creation"].(string))),
+			UsePublicIPAddressPermission:       pointer.ToEnum[virtualnetworks.UsagePermissionType](v["use_public_ip_address"].(string)),
+			UseInVMCreationPermission:          pointer.ToEnum[virtualnetworks.UsagePermissionType](v["use_in_virtual_machine_creation"].(string)),
 			SharedPublicIPAddressConfiguration: expandDevTestVirtualNetworkSubnetIpAddressConfiguration(v["shared_public_ip_address"].([]interface{})),
 		}
 		results = append(results, subnet)
@@ -370,7 +360,7 @@ func expandDevTestVirtualNetworkSubnetAllowedPorts(input []interface{}) *[]virtu
 
 		allowedPort := virtualnetworks.Port{
 			BackendPort:       pointer.To(int64(v["backend_port"].(int))),
-			TransportProtocol: pointer.To(virtualnetworks.TransportProtocol(v["transport_protocol"].(string))),
+			TransportProtocol: pointer.ToEnum[virtualnetworks.TransportProtocol](v["transport_protocol"].(string)),
 		}
 		results = append(results, allowedPort)
 	}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package elastic
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -16,11 +17,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2023-06-01/rules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceElasticsearch() *pluginsdk.Resource {
@@ -64,7 +65,7 @@ func resourceElasticsearch() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ElasticEmailAddress,
+				ValidateFunc: validation.IsEmailAddress,
 			},
 
 			"monitoring_enabled": {
@@ -96,12 +97,9 @@ func resourceElasticsearch() *pluginsdk.Resource {
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"action": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(rules.TagActionExclude),
-											string(rules.TagActionInclude),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForTagAction(), false),
 									},
 								},
 							},
@@ -165,14 +163,17 @@ func resourceElasticsearchCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	defer cancel()
 
 	id := monitorsresource.NewMonitorID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.MonitorsGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %q: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.MonitorsGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %q: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_elastic_cloud_elasticsearch", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_elastic_cloud_elasticsearch", id.ID())
+		}
 	}
 
 	monitoringStatus := monitorsresource.MonitoringStatusDisabled
@@ -185,7 +186,7 @@ func resourceElasticsearchCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Properties: &monitorsresource.MonitorProperties{
 			MonitoringStatus: &monitoringStatus,
 			UserInfo: &monitorsresource.UserInfo{
-				EmailAddress: utils.String(d.Get("elastic_cloud_email_address").(string)),
+				EmailAddress: pointer.To(d.Get("elastic_cloud_email_address").(string)),
 			},
 		},
 		Sku: &monitorsresource.ResourceSku{
@@ -194,7 +195,7 @@ func resourceElasticsearchCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.MonitorsCreateThenPoll(ctx, id, body); err != nil {
+	if err := client.MonitorsCreateCallbackThenPoll(ctx, id, body, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -360,8 +361,8 @@ func expandTagRule(input []interface{}) *rules.LogRules {
 		action := rules.TagAction(item["action"].(string))
 		filteringTags = append(filteringTags, rules.FilteringTag{
 			Action: &action,
-			Name:   utils.String(item["name"].(string)),
-			Value:  utils.String(item["value"].(string)),
+			Name:   pointer.To(item["name"].(string)),
+			Value:  pointer.To(item["value"].(string)),
 		})
 	}
 
@@ -371,9 +372,9 @@ func expandTagRule(input []interface{}) *rules.LogRules {
 
 	return &rules.LogRules{
 		FilteringTags:        &filteringTags,
-		SendAadLogs:          utils.Bool(sendAzureAdLogs),
-		SendActivityLogs:     utils.Bool(sendActivityLogs),
-		SendSubscriptionLogs: utils.Bool(sendSubscriptionLogs),
+		SendAadLogs:          pointer.To(sendAzureAdLogs),
+		SendActivityLogs:     pointer.To(sendActivityLogs),
+		SendSubscriptionLogs: pointer.To(sendSubscriptionLogs),
 	}
 }
 
@@ -391,42 +392,20 @@ func flattenTagRule(input *rules.MonitoringTagRules) []interface{} {
 			if v.Action != nil {
 				action = string(*v.Action)
 			}
-			name := ""
-			if v.Name != nil {
-				name = *v.Name
-			}
-			value := ""
-			if v.Value != nil {
-				value = *v.Value
-			}
-
 			filteringTags = append(filteringTags, map[string]interface{}{
 				"action": action,
-				"name":   name,
-				"value":  value,
+				"name":   pointer.From(v.Name),
+				"value":  pointer.From(v.Value),
 			})
 		}
-	}
-
-	sendActivityLogs := false
-	if rules.SendActivityLogs != nil {
-		sendActivityLogs = *rules.SendActivityLogs
-	}
-	sendAzureAdLogs := false
-	if rules.SendAadLogs != nil {
-		sendAzureAdLogs = *rules.SendAadLogs
-	}
-	sendSubscriptionLogs := false
-	if rules.SendSubscriptionLogs != nil {
-		sendSubscriptionLogs = *rules.SendSubscriptionLogs
 	}
 
 	return []interface{}{
 		map[string]interface{}{
 			"filtering_tag":          filteringTags,
-			"send_activity_logs":     sendActivityLogs,
-			"send_azuread_logs":      sendAzureAdLogs,
-			"send_subscription_logs": sendSubscriptionLogs,
+			"send_activity_logs":     pointer.From(rules.SendActivityLogs),
+			"send_azuread_logs":      pointer.From(rules.SendAadLogs),
+			"send_subscription_logs": pointer.From(rules.SendSubscriptionLogs),
 		},
 	}
 }

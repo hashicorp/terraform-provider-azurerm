@@ -1,25 +1,18 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
 import (
-	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func SnapshotName(v interface{}, _ string) (warnings []string, errors []error) {
+func SnapshotName(v interface{}, k string) (warnings []string, errors []error) {
 	// a-z, A-Z, 0-9, _ and -. The max name length is 80
-	value := v.(string)
-
-	if !regexp.MustCompile("^[A-Za-z0-9_-]+$").MatchString(value) {
-		errors = append(errors, fmt.Errorf("Snapshot Names can only contain alphanumeric characters and underscores."))
-	}
-
-	length := len(value)
-	if length > 80 {
-		errors = append(errors, fmt.Errorf("Snapshot Name can be up to 80 characters, currently %d.", length))
-	}
-
-	return warnings, errors
+	return validation.All(
+		validation.StringMatch(regexp.MustCompile("^[A-Za-z0-9_-]+$"), "can only contain alphanumeric characters, dashes and underscores"),
+		validation.StringLenBetween(1, 80),
+	)(v, k)
 }

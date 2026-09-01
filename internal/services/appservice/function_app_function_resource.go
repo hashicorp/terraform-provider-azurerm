@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -204,19 +204,20 @@ func (r FunctionAppFunctionResource) Create() sdk.ResourceFunc {
 
 			id := webapps.NewFunctionID(appId.SubscriptionId, appId.ResourceGroupName, appId.SiteName, appFunction.Name)
 
-			existing, err := client.GetFunction(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				if !response.WasBadRequest(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetFunction(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					if !response.WasBadRequest(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) && !response.WasBadRequest(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) && !response.WasBadRequest(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			var confJSON interface{}
-			err = json.Unmarshal([]byte(appFunction.ConfigJSON), &confJSON)
-			if err != nil {
+			if err = json.Unmarshal([]byte(appFunction.ConfigJSON), &confJSON); err != nil {
 				return fmt.Errorf("error preparing config data to send: %+v", err)
 			}
 
@@ -261,7 +262,7 @@ func (r FunctionAppFunctionResource) Create() sdk.ResourceFunc {
 			locks.ByID(appId.ID())
 			defer locks.UnlockByID(appId.ID())
 
-			if err := client.CreateFunctionThenPoll(ctx, id, fnEnvelope); err != nil {
+			if err := client.CreateFunctionCallbackThenPoll(ctx, id, fnEnvelope, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -348,8 +349,6 @@ func (r FunctionAppFunctionResource) Delete() sdk.ResourceFunc {
 			}
 			appId := commonids.NewAppServiceID(id.SubscriptionId, id.ResourceGroupName, id.SiteName)
 
-			metadata.Logger.Infof("deleting %s", *id)
-
 			deadline, ok := ctx.Deadline()
 			if !ok {
 				return fmt.Errorf("internal-error: context had no deadline")
@@ -416,8 +415,7 @@ func (r FunctionAppFunctionResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("config_json") {
 				var confJSON interface{}
-				err = json.Unmarshal([]byte(appFunction.ConfigJSON), &confJSON)
-				if err != nil {
+				if err = json.Unmarshal([]byte(appFunction.ConfigJSON), &confJSON); err != nil {
 					return fmt.Errorf("error preparing config data to send: %+v", err)
 				}
 				model.Properties.Config = pointer.To(confJSON)

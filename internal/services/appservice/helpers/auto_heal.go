@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -519,7 +519,7 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 					statusCodeTrigger.SubStatus = pointer.To(s.SubStatus)
 				}
 				if s.Win32Status != 0 {
-					statusCodeTrigger.Win32Status = pointer.To((s.Win32Status))
+					statusCodeTrigger.Win32Status = pointer.To(s.Win32Status)
 				}
 				statusCodeTriggers = append(statusCodeTriggers, statusCodeTrigger)
 			}
@@ -530,7 +530,7 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 
 	if len(autoHeal.Actions) > 0 {
 		action := autoHeal.Actions[0]
-		result.Actions.ActionType = pointer.To(webapps.AutoHealActionType(action.ActionType))
+		result.Actions.ActionType = pointer.ToEnum[webapps.AutoHealActionType](action.ActionType)
 		result.Actions.MinProcessExecutionTime = pointer.To(action.MinimumProcessTime)
 		if len(action.CustomAction) != 0 {
 			customAction := action.CustomAction[0]

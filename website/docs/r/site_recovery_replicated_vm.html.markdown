@@ -196,7 +196,6 @@ resource "azurerm_site_recovery_replicated_vm" "vm-replication" {
   target_resource_group_id                = azurerm_resource_group.secondary.id
   target_recovery_fabric_id               = azurerm_site_recovery_fabric.secondary.id
   target_recovery_protection_container_id = azurerm_site_recovery_protection_container.secondary.id
-
   managed_disk {
     disk_id                    = azurerm_virtual_machine.vm.storage_os_disk[0].managed_disk_id
     staging_storage_account_id = azurerm_storage_account.primary.id
@@ -204,11 +203,13 @@ resource "azurerm_site_recovery_replicated_vm" "vm-replication" {
     target_disk_type           = "Premium_LRS"
     target_replica_disk_type   = "Premium_LRS"
   }
-
   network_interface {
-    source_network_interface_id   = azurerm_network_interface.vm.id
-    target_subnet_name            = azurerm_subnet.secondary.name
-    recovery_public_ip_address_id = azurerm_public_ip.secondary.id
+    source_network_interface_id = azurerm_network_interface.vm.id
+    ip_configuration {
+      name                          = "vm"
+      target_subnet_name            = azurerm_subnet.secondary.name
+      recovery_public_ip_address_id = azurerm_public_ip.secondary.id
+    }
   }
 
   depends_on = [
@@ -218,7 +219,7 @@ resource "azurerm_site_recovery_replicated_vm" "vm-replication" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -274,15 +275,17 @@ The following arguments are supported:
 
 A `managed_disk` block supports the following:
 
+-> **Note:** If omitted, the API will return managed disks and terraform will commit them to state. If explicitly configured, only the specified disks will be replicated. New entries can be added non-destructively; however, entry removal will force a new resource to be created
+
 * `disk_id` - (Required) Id of disk that should be replicated. Changing this forces a new resource to be created.
 
 * `staging_storage_account_id` - (Required) Storage account that should be used for caching. Changing this forces a new resource to be created.
 
 * `target_resource_group_id` - (Required) Resource group disk should belong to when a failover is done. Changing this forces a new resource to be created.
 
-* `target_disk_type` - (Required) What type should the disk be when a failover is done. Possible values are `Standard_LRS`, `Premium_LRS`, `StandardSSD_LRS` and `UltraSSD_LRS`. Changing this forces a new resource to be created.
+* `target_disk_type` - (Required) What type should the disk be when a failover is done. Possible values are `Standard_LRS`, `Premium_LRS`, `PremiumV2_LRS`, `StandardSSD_LRS`, `UltraSSD_LRS`, `StandardSSD_ZRS` and `Premium_ZRS`.
 
-* `target_replica_disk_type` - (Required) What type should the disk be that holds the replication data. Possible values are `Standard_LRS`, `Premium_LRS`, `StandardSSD_LRS` and `UltraSSD_LRS`. Changing this forces a new resource to be created.
+* `target_replica_disk_type` - (Required) What type should the disk be that holds the replication data. Possible values are `Standard_LRS`, `Premium_LRS`, `PremiumV2_LRS`, `StandardSSD_LRS`, `UltraSSD_LRS`, `StandardSSD_ZRS` and `Premium_ZRS`.
 
 * `target_disk_encryption_set_id` - (Optional) The Disk Encryption Set that the Managed Disk will be associated with. Changing this forces a new resource to be created.
 
@@ -304,7 +307,19 @@ A `unmanaged_disk` block supports the following:
 
 A `network_interface` block supports the following:
 
-* `source_network_interface_id` - (Optional) (Required if the network_interface block is specified) Id source network interface.
+* `source_network_interface_id` - (Required) Id source network interface.
+
+* `ip_configuration` - (Optional) IP configuration to assign when a failover is done. One or more `ip_configuration` blocks as defined below.
+
+---
+
+The `ip_configuration` block supports the following:
+
+* `name` - (Optional) Name of the IP configuration, which must be consistent with the name of the IP configuration of the source virtual machine.
+
+~> **Note:** `name` is required when more than one `ip_configuration` block is specified.
+
+* `primary` - (Optional) Whether this IP configuration is primary. If only one `ip_configuration` block is specified, it will be treated as primary when omitted. Must be specified if there is more than 1 `ip_configuration`.
 
 * `target_static_ip` - (Optional) Static IP to assign when a failover is done.
 
@@ -352,11 +367,11 @@ In addition to the arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 3 hours) Used when creating the Site Recovery Replicated VM.
-* `update` - (Defaults to 80 minutes) Used when updating the Site Recovery Replicated VM.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Site Recovery Replicated VM.
+* `update` - (Defaults to 80 minutes) Used when updating the Site Recovery Replicated VM.
 * `delete` - (Defaults to 80 minutes) Used when deleting the Site Recovery Replicated VM.
 
 ## Import
@@ -366,3 +381,9 @@ Site Recovery Replicated VM's can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_site_recovery_replicated_vm.vmreplication /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource-group-name/providers/Microsoft.RecoveryServices/vaults/recovery-vault-name/replicationFabrics/fabric-name/replicationProtectionContainers/protection-container-name/replicationProtectedItems/vm-replication-name
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.RecoveryServices` - 2024-04-01

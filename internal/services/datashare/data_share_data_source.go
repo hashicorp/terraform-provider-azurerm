@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datashare
@@ -139,13 +139,8 @@ func flattenDataShareDataSourceSnapshotSchedule(input []synchronizationsetting.S
 
 	for _, setting := range input {
 		props := setting.Properties
-		name := ""
-		if props.UserName != nil {
-			name = *props.UserName
-		}
-
 		output = append(output, map[string]interface{}{
-			"name":       name,
+			"name":       pointer.From(props.UserName),
 			"recurrence": string(props.RecurrenceInterval),
 			"start_time": props.SynchronizationTime,
 		})

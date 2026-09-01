@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -11,16 +11,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMonitorScheduledQueryRulesLog() *pluginsdk.Resource {
@@ -128,7 +128,7 @@ func resourceMonitorScheduledQueryRulesLog() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -143,15 +143,17 @@ func resourceMonitorScheduledQueryRulesLogCreateUpdate(d *pluginsdk.ResourceData
 	id := scheduledqueryrules.NewScheduledQueryRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Monitor %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing Monitor %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_monitor_scheduled_query_rules_alert", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_monitor_scheduled_query_rules_alert", id.ID())
+			}
 		}
 	}
 
@@ -163,7 +165,7 @@ func resourceMonitorScheduledQueryRulesLogCreateUpdate(d *pluginsdk.ResourceData
 		enabled = scheduledqueryrules.EnabledFalse
 	}
 
-	location := azure.NormalizeLocation(d.Get("location"))
+	location := location.Normalize(d.Get("location").(string))
 
 	source := expandMonitorScheduledQueryRulesCommonSource(d)
 
@@ -172,12 +174,12 @@ func resourceMonitorScheduledQueryRulesLogCreateUpdate(d *pluginsdk.ResourceData
 	parameters := scheduledqueryrules.LogSearchRuleResource{
 		Location: location,
 		Properties: scheduledqueryrules.LogSearchRule{
-			Description: utils.String(description),
+			Description: pointer.To(description),
 			Enabled:     pointer.To(enabled),
 			Source:      source,
 			Action:      action,
 		},
-		Tags: utils.ExpandPtrMapStringString(t),
+		Tags: helpers.ExpandPtrMapStringString(t),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -213,7 +215,7 @@ func resourceMonitorScheduledQueryRulesLogRead(d *pluginsdk.ResourceData, meta i
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", azure.NormalizeLocation(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
 		props := model.Properties
 
@@ -234,12 +236,12 @@ func resourceMonitorScheduledQueryRulesLogRead(d *pluginsdk.ResourceData, meta i
 		}
 
 		if props.Source.AuthorizedResources != nil {
-			d.Set("authorized_resource_ids", utils.FlattenStringSlice(props.Source.AuthorizedResources))
+			d.Set("authorized_resource_ids", helpers.FlattenStringSlice(props.Source.AuthorizedResources))
 		}
 
 		d.Set("data_source_id", props.Source.DataSourceId)
 
-		if err = d.Set("tags", utils.FlattenPtrMapStringString(model.Tags)); err != nil {
+		if err = d.Set("tags", helpers.FlattenPtrMapStringString(model.Tags)); err != nil {
 			return err
 		}
 	}

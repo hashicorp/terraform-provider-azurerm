@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -11,16 +11,20 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-02-01/templatespecversions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/deployments"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
@@ -30,8 +34,15 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 		Update: resourceGroupTemplateDeploymentResourceUpdate,
 		Delete: resourceGroupTemplateDeploymentResourceDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ResourceGroupTemplateDeploymentID(id)
+			_, err := deployments.ParseResourceGroupProviderDeploymentID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			// v0 -> v1 normalises the casing of IDs imported while this resource parsed them with the
+			// case-insensitive legacy parser, so they can be parsed with the case-sensitive SDK parser
+			0: migration.ResourceGroupTemplateDeploymentV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -71,7 +82,7 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 					"template_content",
 					"template_spec_version_id",
 				},
-				StateFunc: utils.NormalizeJson,
+				StateFunc: helpers.NormalizeJson,
 			},
 
 			"template_spec_version_id": {
@@ -81,7 +92,7 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 					"template_content",
 					"template_spec_version_id",
 				},
-				ValidateFunc: validate.TemplateSpecVersionID,
+				ValidateFunc: validation.AsGeneratedID(templatespecversions.ParseTemplateSpecVersionIDInsensitively),
 			},
 
 			// Optional
@@ -95,10 +106,10 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 				Type:      pluginsdk.TypeString,
 				Optional:  true,
 				Computed:  true,
-				StateFunc: utils.NormalizeJson,
+				StateFunc: helpers.NormalizeJson,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			// Computed
 			"output_content": {
@@ -117,7 +128,7 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 				o, n := d.GetChange("template_content")
 
 				// the json has to be normalized and then compared against to see if a change has occurred
-				if !strings.EqualFold(o.(string), utils.NormalizeJson(n)) {
+				if !strings.EqualFold(o.(string), helpers.NormalizeJson(n)) {
 					return d.SetNewComputed("output_content")
 				}
 			}
@@ -126,7 +137,7 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 				o, n := d.GetChange("parameters_content")
 
 				// the json has to be normalized and then compared against to see if a change has occurred
-				if !strings.EqualFold(o.(string), utils.NormalizeJson(n)) {
+				if !strings.EqualFold(o.(string), helpers.NormalizeJson(n)) {
 					return d.SetNewComputed("output_content")
 				}
 			}
@@ -142,16 +153,19 @@ func resourceGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewResourceGroupTemplateDeploymentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := deployments.NewResourceGroupProviderDeploymentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.DeploymentName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Template Deployment %q (Resource Group %q): %+v", id.ResourceGroup, id.DeploymentName, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroupName, id.DeploymentName)
+		if err != nil {
+			if !response.WasNotFound(existing.Response.Response) {
+				return fmt.Errorf("checking for presence of existing Template Deployment %q (Resource Group %q): %+v", id.ResourceGroupName, id.DeploymentName, err)
+			}
 		}
-	}
-	if existing.Properties != nil {
-		return tf.ImportAsExistsError("azurerm_resource_group_template_deployment", id.ID())
+
+		if !response.WasNotFound(existing.Response.Response) {
+			return tf.ImportAsExistsError("azurerm_resource_group_template_deployment", id.ID())
+		}
 	}
 
 	deployment := resources.Deployment{
@@ -172,7 +186,7 @@ func resourceGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, me
 
 	if templateSpecVersionID, ok := d.GetOk("template_spec_version_id"); ok {
 		deployment.Properties.TemplateLink = &resources.TemplateLink{
-			ID: utils.String(templateSpecVersionID.(string)),
+			ID: pointer.To(templateSpecVersionID.(string)),
 		}
 	}
 
@@ -184,24 +198,25 @@ func resourceGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, me
 		deployment.Properties.Parameters = parameters
 	}
 
-	log.Printf("[DEBUG] Running validation of Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroup)
+	log.Printf("[DEBUG] Running validation of Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroupName)
 	if err := validateResourceGroupTemplateDeployment(ctx, id, deployment, client); err != nil {
-		return fmt.Errorf("validating Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroup, err)
+		return fmt.Errorf("validating Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroupName, err)
 	}
-	log.Printf("[DEBUG] Validated Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroup)
+	log.Printf("[DEBUG] Validated Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroupName)
 
-	log.Printf("[DEBUG] Provisioning Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroup)
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.DeploymentName, deployment)
+	log.Printf("[DEBUG] Provisioning Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroupName)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.DeploymentName, deployment)
 	if err != nil {
-		return fmt.Errorf("creating Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroup, err)
-	}
-
-	log.Printf("[DEBUG] Waiting for deployment of Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroup)
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroup, err)
+		return fmt.Errorf("creating Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroupName, err)
 	}
 
 	d.SetId(id.ID())
+
+	log.Printf("[DEBUG] Waiting for deployment of Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroupName)
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation of Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroupName, err)
+	}
+
 	return resourceGroupTemplateDeploymentResourceRead(d, meta)
 }
 
@@ -210,18 +225,17 @@ func resourceGroupTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ResourceGroupTemplateDeploymentID(d.Id())
+	id, err := deployments.ParseResourceGroupProviderDeploymentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	log.Printf("[DEBUG] Retrieving Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroup)
-	template, err := client.Get(ctx, id.ResourceGroup, id.DeploymentName)
+	template, err := client.Get(ctx, id.ResourceGroupName, id.DeploymentName)
 	if err != nil {
-		return fmt.Errorf("retrieving Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroupName, err)
 	}
 	if template.Properties == nil {
-		return fmt.Errorf("retrieving Template Deployment %q (Resource Group %q): `properties` was nil", id.DeploymentName, id.ResourceGroup)
+		return fmt.Errorf("retrieving Template Deployment %q (Resource Group %q): `properties` was nil", id.DeploymentName, id.ResourceGroupName)
 	}
 
 	// the API doesn't have a Patch operation, so we'll need to build one
@@ -256,9 +270,9 @@ func resourceGroupTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, me
 		deployment.Properties.Template = templateContents
 	} else {
 		// retrieve the existing content and reuse that
-		exportedTemplate, err := client.ExportTemplate(ctx, id.ResourceGroup, id.DeploymentName)
+		exportedTemplate, err := client.ExportTemplate(ctx, id.ResourceGroupName, id.DeploymentName)
 		if err != nil {
-			return fmt.Errorf("retrieving Contents for Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroup, err)
+			return fmt.Errorf("retrieving Contents for Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroupName, err)
 		}
 
 		deployment.Properties.Template = exportedTemplate.Template
@@ -266,7 +280,7 @@ func resourceGroupTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, me
 
 	if d.HasChange("template_spec_version_id") {
 		deployment.Properties.TemplateLink = &resources.TemplateLink{
-			ID: utils.String(d.Get("template_spec_version_id").(string)),
+			ID: pointer.To(d.Get("template_spec_version_id").(string)),
 		}
 
 		if d.Get("template_spec_version_id").(string) != "" {
@@ -278,21 +292,21 @@ func resourceGroupTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, me
 		deployment.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	log.Printf("[DEBUG] Running validation of Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroup)
+	log.Printf("[DEBUG] Running validation of Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroupName)
 	if err := validateResourceGroupTemplateDeployment(ctx, *id, deployment, client); err != nil {
-		return fmt.Errorf("validating Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroup, err)
+		return fmt.Errorf("validating Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroupName, err)
 	}
-	log.Printf("[DEBUG] Validated Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroup)
+	log.Printf("[DEBUG] Validated Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroupName)
 
-	log.Printf("[DEBUG] Provisioning Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroup)
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.DeploymentName, deployment)
+	log.Printf("[DEBUG] Provisioning Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroupName)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.DeploymentName, deployment)
 	if err != nil {
-		return fmt.Errorf("creating Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroup, err)
+		return fmt.Errorf("creating Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroupName, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for deployment of Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroup)
+	log.Printf("[DEBUG] Waiting for deployment of Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroupName)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for creation of Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroupName, err)
 	}
 
 	return resourceGroupTemplateDeploymentResourceRead(d, meta)
@@ -303,29 +317,29 @@ func resourceGroupTemplateDeploymentResourceRead(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ResourceGroupTemplateDeploymentID(d.Id())
+	id, err := deployments.ParseResourceGroupProviderDeploymentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.DeploymentName)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.DeploymentName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Template Deployment %q (Resource Group %q) was not found - removing from state", id.DeploymentName, id.ResourceGroup)
+		if response.WasNotFound(resp.Response.Response) {
+			log.Printf("[DEBUG] Template Deployment %q (Resource Group %q) was not found - removing from state", id.DeploymentName, id.ResourceGroupName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroupName, err)
 	}
 
-	templateContents, err := client.ExportTemplate(ctx, id.ResourceGroup, id.DeploymentName)
+	templateContents, err := client.ExportTemplate(ctx, id.ResourceGroupName, id.DeploymentName)
 	if err != nil {
-		return fmt.Errorf("retrieving Template Content for Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Template Content for Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroupName, err)
 	}
 
 	d.Set("name", id.DeploymentName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if props := resp.Properties; props != nil {
 		d.Set("debug_level", flattenTemplateDeploymentDebugSetting(props.DebugSetting))
@@ -367,19 +381,18 @@ func resourceGroupTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ResourceGroupTemplateDeploymentID(d.Id())
+	id, err := deployments.ParseResourceGroupProviderDeploymentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	log.Printf("[DEBUG] Retrieving Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroup)
-	template, err := client.Get(ctx, id.ResourceGroup, id.DeploymentName)
+	template, err := client.Get(ctx, id.ResourceGroupName, id.DeploymentName)
 	if err != nil {
-		if utils.ResponseWasNotFound(template.Response) {
+		if response.WasNotFound(template.Response.Response) {
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroupName, err)
 	}
 	if template.Properties == nil {
 		return fmt.Errorf("`properties` was nil for template`")
@@ -388,32 +401,30 @@ func resourceGroupTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, me
 	deleteItemsInTemplate := meta.(*clients.Client).Features.TemplateDeployment.DeleteNestedItemsDuringDeletion
 	if deleteItemsInTemplate {
 		resourceClient := meta.(*clients.Client).Resource
-		log.Printf("[DEBUG] Removing items provisioned by the Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroup)
+		log.Printf("[DEBUG] Removing items provisioned by the Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroupName)
 		if err := deleteItemsProvisionedByTemplate(ctx, resourceClient, *template.Properties, id.SubscriptionId); err != nil {
 			return fmt.Errorf("removing items provisioned by this Template Deployment: %+v", err)
 		}
-		log.Printf("[DEBUG] Removed items provisioned by the Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroup)
+		log.Printf("[DEBUG] Removed items provisioned by the Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroupName)
 	} else {
-		log.Printf("[DEBUG] Skipping removing items provisioned by the Template Deployment %q (Resource Group %q) as the feature is disabled", id.DeploymentName, id.ResourceGroup)
+		log.Printf("[DEBUG] Skipping removing items provisioned by the Template Deployment %q (Resource Group %q) as the feature is disabled", id.DeploymentName, id.ResourceGroupName)
 	}
 
-	log.Printf("[DEBUG] Deleting Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroup)
-	future, err := client.Delete(ctx, id.ResourceGroup, id.DeploymentName)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.DeploymentName)
 	if err != nil {
-		return fmt.Errorf("deleting Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroupName, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for deletion of Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroup)
+	log.Printf("[DEBUG] Waiting for deletion of Template Deployment %q (Resource Group %q)..", id.DeploymentName, id.ResourceGroupName)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroupName, err)
 	}
-	log.Printf("[DEBUG] Deleted Template Deployment %q (Resource Group %q).", id.DeploymentName, id.ResourceGroup)
 
 	return nil
 }
 
-func validateResourceGroupTemplateDeployment(ctx context.Context, id parse.ResourceGroupTemplateDeploymentId, deployment resources.Deployment, client *resources.DeploymentsClient) error {
-	validationFuture, err := client.Validate(ctx, id.ResourceGroup, id.DeploymentName, deployment)
+func validateResourceGroupTemplateDeployment(ctx context.Context, id deployments.ResourceGroupProviderDeploymentId, deployment resources.Deployment, client *resources.DeploymentsClient) error {
+	validationFuture, err := client.Validate(ctx, id.ResourceGroupName, id.DeploymentName, deployment)
 	if err != nil {
 		return fmt.Errorf("requesting validating: %+v", err)
 	}

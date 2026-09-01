@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics_test
@@ -9,13 +9,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StreamAnalyticsOutputTableResource struct{}
@@ -116,15 +116,14 @@ func (r StreamAnalyticsOutputTableResource) Exists(ctx context.Context, client *
 	resp, err := client.StreamAnalytics.OutputsClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r StreamAnalyticsOutputTableResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -139,11 +138,10 @@ resource "azurerm_stream_analytics_output_table" "test" {
   row_key                   = "bar"
   batch_size                = 100
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputTableResource) updated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -156,8 +154,8 @@ resource "azurerm_storage_account" "updated" {
 }
 
 resource "azurerm_storage_table" "updated" {
-  name                 = "accteststu%[3]d"
-  storage_account_name = azurerm_storage_account.test.name
+  name               = "accteststu%[3]d"
+  storage_account_id = azurerm_storage_account.test.id
 }
 
 resource "azurerm_stream_analytics_output_table" "test" {
@@ -171,7 +169,7 @@ resource "azurerm_stream_analytics_output_table" "test" {
   row_key                   = "rowkeyupdated"
   batch_size                = 50
 }
-`, template, data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomString, data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputTableResource) columnsToRemove(data acceptance.TestData, columns ...string) string {
@@ -180,7 +178,6 @@ func (r StreamAnalyticsOutputTableResource) columnsToRemove(data acceptance.Test
 		columnsToRemove[idx] = fmt.Sprintf(`"%s"`, columnToRemove)
 	}
 
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -196,11 +193,10 @@ resource "azurerm_stream_analytics_output_table" "test" {
   batch_size                = 100
   columns_to_remove         = [%s]
 }
-`, template, data.RandomInteger, strings.Join(columnsToRemove, ","))
+`, r.template(data), data.RandomInteger, strings.Join(columnsToRemove, ","))
 }
 
 func (r StreamAnalyticsOutputTableResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -215,7 +211,7 @@ resource "azurerm_stream_analytics_output_table" "import" {
   row_key                   = azurerm_stream_analytics_output_table.test.row_key
   batch_size                = azurerm_stream_analytics_output_table.test.batch_size
 }
-`, template)
+`, r.basic(data))
 }
 
 func (r StreamAnalyticsOutputTableResource) template(data acceptance.TestData) string {
@@ -238,8 +234,8 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_table" "test" {
-  name                 = "acctestst%[1]d"
-  storage_account_name = azurerm_storage_account.test.name
+  name               = "acctestst%[1]d"
+  storage_account_id = azurerm_storage_account.test.id
 }
 
 resource "azurerm_stream_analytics_job" "test" {
@@ -255,11 +251,11 @@ resource "azurerm_stream_analytics_job" "test" {
   streaming_units                          = 3
 
   transformation_query = <<QUERY
-    SELECT *
-    INTO [YourOutputAlias]
-    FROM [YourInputAlias]
-QUERY
+	    SELECT *
+	    INTO [YourOutputAlias]
+	    FROM [YourInputAlias]
+	QUERY
 
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

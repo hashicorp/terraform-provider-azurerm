@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package schema
@@ -222,6 +222,24 @@ func (a SetNestedAttribute) IsRequired() bool {
 // IsSensitive returns the Sensitive field value.
 func (a SetNestedAttribute) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly returns false as write-only attributes are not relevant to ephemeral resource schemas,
+// as these schemas describe data that is explicitly not saved to any artifact.
+func (a SetNestedAttribute) IsWriteOnly() bool {
+	return false
+}
+
+// IsRequiredForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a SetNestedAttribute) IsRequiredForImport() bool {
+	return false
+}
+
+// IsOptionalForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a SetNestedAttribute) IsOptionalForImport() bool {
+	return false
 }
 
 // SetValidators returns the Validators field value.

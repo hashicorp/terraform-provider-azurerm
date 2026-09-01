@@ -193,7 +193,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=4.1.0"
+      version = "=5.0.0"
     }
   }
 }
@@ -212,7 +212,7 @@ At this point running either `terraform plan` or `terraform apply` should allow 
 
 It's also possible to configure these variables either in-line or from using variables in Terraform (as the `client_secret` is in this example), like so:
 
-~> **Caution** We recommend not defining these variables in-line since they could easily be checked into Source Control.
+!> **Note:** We recommend not defining these variables in-line since they could easily be checked into Source Control.
 
 ```hcl
 variable "client_secret" {
@@ -224,7 +224,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=4.1.0"
+      version = "=5.0.0"
     }
   }
 }

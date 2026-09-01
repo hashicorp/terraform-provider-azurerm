@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package notificationhub
@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2023-09-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var notificationHubNamespaceResourceName = "azurerm_notification_hub_namespace"
@@ -62,13 +62,9 @@ func resourceNotificationHubNamespace() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(namespaces.SkuNameBasic),
-					string(namespaces.SkuNameFree),
-					string(namespaces.SkuNameStandard),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForSkuName(), false),
 			},
 
 			"enabled": {
@@ -79,13 +75,26 @@ func resourceNotificationHubNamespace() *pluginsdk.Resource {
 			},
 
 			"namespace_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForNamespaceType(), false),
+			},
+
+			"zone_redundancy_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(namespaces.NamespaceTypeMessaging),
-					string(namespaces.NamespaceTypeNotificationHub),
-				}, false),
+			},
+
+			"replication_region": {
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				Default:          namespaces.ReplicationRegionDefault,
+				ValidateFunc:     validation.StringInSlice(namespaces.PossibleValuesForReplicationRegion(), true),
+				DiffSuppressFunc: location.DiffSuppressFunc,
 			},
 
 			"tags": commonschema.Tags(),
@@ -106,15 +115,22 @@ func resourceNotificationHubNamespaceCreate(d *pluginsdk.ResourceData, meta inte
 
 	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			return tf.ImportAsExistsError("azurerm_notification_hub_namespace", id.ID())
 		}
 	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_notification_hub_namespace", id.ID())
+	zoneRedundancy := namespaces.ZoneRedundancyPreferenceDisabled
+	if v, ok := d.GetOk("zone_redundancy_enabled"); ok && v.(bool) {
+		zoneRedundancy = namespaces.ZoneRedundancyPreferenceEnabled
 	}
 
 	namespaceType := namespaces.NamespaceType(d.Get("namespace_type").(string))
@@ -124,27 +140,31 @@ func resourceNotificationHubNamespaceCreate(d *pluginsdk.ResourceData, meta inte
 			Name: namespaces.SkuName(d.Get("sku_name").(string)),
 		},
 		Properties: &namespaces.NamespaceProperties{
-			NamespaceType: &namespaceType,
-			Enabled:       utils.Bool(d.Get("enabled").(bool)),
+			NamespaceType:  &namespaceType,
+			Enabled:        pointer.To(d.Get("enabled").(bool)),
+			ZoneRedundancy: pointer.To(zoneRedundancy),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
+	if v, ok := d.GetOk("replication_region"); ok {
+		parameters.Properties.ReplicationRegion = pointer.ToEnum[namespaces.ReplicationRegion](location.Normalize(v.(string)))
+	}
+
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	log.Printf("[DEBUG] Waiting for %s to be created..", id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"404"},
-		Target:                    []string{"200"},
-		Refresh:                   notificationHubNamespaceStateRefreshFunc(ctx, client, id),
-		MinTimeout:                15 * time.Second,
-		ContinuousTargetOccurence: 10,
-	}
-
-	stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(10, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, id)
+		return resp.HttpResponse, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:              15 * time.Second,
+		TargetStatusCode:      pointer.To(http.StatusOK),
+		RetryErrorStatusCodes: []int{http.StatusNotFound},
+	})
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %ss to finish replicating: %+v", id, err)
 	}
 
@@ -164,18 +184,18 @@ func resourceNotificationHubNamespaceUpdate(d *pluginsdk.ResourceData, meta inte
 
 	parameters := namespaces.NamespacePatchParameters{
 		Properties: &namespaces.NamespaceProperties{
-			NamespaceType: pointer.To(namespaces.NamespaceType(d.Get("namespace_type").(string))),
+			NamespaceType: pointer.ToEnum[namespaces.NamespaceType](d.Get("namespace_type").(string)),
 			Enabled:       pointer.To(d.Get("enabled").(bool)),
 		},
 	}
 
-	if d.HasChanges("sku_name") {
+	if d.HasChange("sku_name") {
 		parameters.Sku = &namespaces.Sku{
 			Name: namespaces.SkuName(d.Get("sku_name").(string)),
 		}
 	}
 
-	if d.HasChanges("tags") {
+	if d.HasChange("tags") {
 		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
@@ -216,9 +236,17 @@ func resourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData, meta interf
 		if props := model.Properties; props != nil {
 			d.Set("enabled", props.Enabled)
 			d.Set("servicebus_endpoint", props.ServiceBusEndpoint)
+			d.Set("zone_redundancy_enabled", pointer.From(props.ZoneRedundancy) == namespaces.ZoneRedundancyPreferenceEnabled)
+			replicationRegion := string(namespaces.ReplicationRegionDefault)
+			if v := pointer.FromEnum(props.ReplicationRegion); v != "" {
+				replicationRegion = v
+			}
+			d.Set("replication_region", location.Normalize(replicationRegion))
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -241,24 +269,4 @@ func resourceNotificationHubNamespaceDelete(d *pluginsdk.ResourceData, meta inte
 	}
 
 	return nil
-}
-
-func notificationHubNamespaceStateRefreshFunc(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, id)
-		statusCode := "dropped connection"
-		if resp.HttpResponse != nil {
-			statusCode = strconv.Itoa(resp.HttpResponse.StatusCode)
-		}
-
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return nil, statusCode, nil
-			}
-
-			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
-		}
-
-		return resp, statusCode, nil
-	}
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -10,6 +10,7 @@ import (
 )
 
 // WindowsAdminPassword validates that admin_password meets the Azure API requirements for Windows Virtual Machines.
+// lintignore:V012,V013,V011 // false positive - this validates a password; the int comparisons check length and complexity rule counts, the string comparisons check the disallowed-passwords list
 func WindowsAdminPassword(i interface{}, k string) (warnings []string, errors []error) {
 	// adminPassword must be a string.
 	v, ok := i.(string)

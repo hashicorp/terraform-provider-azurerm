@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package toproto5
@@ -28,6 +28,11 @@ func PlanResourceChangeResponse(ctx context.Context, fw *fwserver.PlanResourceCh
 
 	proto5.Diagnostics = append(proto5.Diagnostics, Diagnostics(ctx, diags)...)
 	proto5.PlannedState = plannedState
+
+	plannedIdentity, diags := ResourceIdentity(ctx, fw.PlannedIdentity)
+
+	proto5.Diagnostics = append(proto5.Diagnostics, Diagnostics(ctx, diags)...)
+	proto5.PlannedIdentity = plannedIdentity
 
 	requiresReplace, diags := totftypes.AttributePaths(ctx, fw.RequiresReplace)
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dns
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -82,6 +83,7 @@ func resourceDnsCaaRecord() *pluginsdk.Resource {
 								"issue",
 								"issuewild",
 								"iodef",
+								"contactemail",
 							}, false),
 						},
 
@@ -121,15 +123,17 @@ func resourceDnsCaaRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	id := recordsets.NewRecordTypeID(subscriptionId, resGroup, zoneName, recordsets.RecordTypeCAA, name)
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing DNS CAA Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing DNS CAA Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_dns_caa_record", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_dns_caa_record", id.ID())
+			}
 		}
 	}
 
@@ -216,25 +220,10 @@ func flattenAzureRmDnsCaaRecords(records *[]recordsets.CaaRecord) []map[string]i
 
 	if records != nil {
 		for _, record := range *records {
-			flags := int64(0)
-			if record.Flags != nil {
-				flags = *record.Flags
-			}
-
-			tag := ""
-			if record.Tag != nil {
-				tag = *record.Tag
-			}
-
-			value := ""
-			if record.Value != nil {
-				value = *record.Value
-			}
-
 			results = append(results, map[string]interface{}{
-				"flags": flags,
-				"tag":   tag,
-				"value": value,
+				"flags": pointer.From(record.Flags),
+				"tag":   pointer.From(record.Tag),
+				"value": pointer.From(record.Value),
 			})
 		}
 	}
@@ -267,9 +256,9 @@ func resourceDnsCaaRecordHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%d-", m["flags"].(int)))
-		buf.WriteString(fmt.Sprintf("%s-", m["tag"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["value"].(string)))
+		fmt.Fprintf(&buf, "%d-", m["flags"].(int))
+		fmt.Fprintf(&buf, "%s-", m["tag"].(string))
+		fmt.Fprintf(&buf, "%s-", m["value"].(string))
 	}
 
 	return pluginsdk.HashString(buf.String())

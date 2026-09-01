@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/functions"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceStreamAnalyticsFunctionUDF() *pluginsdk.Resource {
@@ -131,15 +131,17 @@ func resourceStreamAnalyticsFunctionUDFCreateUpdate(d *pluginsdk.ResourceData, m
 
 	id := functions.NewFunctionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_function_javascript_udf", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_stream_analytics_function_javascript_udf", id.ID())
+			}
 		}
 	}
 
@@ -151,7 +153,7 @@ func resourceStreamAnalyticsFunctionUDFCreateUpdate(d *pluginsdk.ResourceData, m
 			Properties: &functions.FunctionConfiguration{
 				Binding: &functions.JavaScriptFunctionBinding{
 					Properties: &functions.JavaScriptFunctionBindingProperties{
-						Script: utils.String(d.Get("script").(string)),
+						Script: pointer.To(d.Get("script").(string)),
 					},
 				},
 				Inputs: inputs,
@@ -212,11 +214,7 @@ func resourceStreamAnalyticsFunctionUDFRead(d *pluginsdk.ResourceData, meta inte
 				return fmt.Errorf("converting to Binding")
 			}
 
-			script := ""
-			if v := binding.Properties.Script; v != nil {
-				script = *v
-			}
-			d.Set("script", script)
+			d.Set("script", pointer.From(binding.Properties.Script))
 
 			if err := d.Set("input", flattenStreamAnalyticsFunctionInputs(function.Properties.Inputs)); err != nil {
 				return fmt.Errorf("flattening `input`: %+v", err)
@@ -256,8 +254,8 @@ func expandStreamAnalyticsFunctionInputs(input []interface{}) *[]functions.Funct
 		v := raw.(map[string]interface{})
 		variableType := v["type"].(string)
 		outputs = append(outputs, functions.FunctionInput{
-			DataType:                 utils.String(variableType),
-			IsConfigurationParameter: utils.Bool(v["configuration_parameter"].(bool)),
+			DataType:                 pointer.To(variableType),
+			IsConfigurationParameter: pointer.To(v["configuration_parameter"].(bool)),
 		})
 	}
 
@@ -272,15 +270,9 @@ func flattenStreamAnalyticsFunctionInputs(input *[]functions.FunctionInput) []in
 	outputs := make([]interface{}, 0)
 
 	for _, v := range *input {
-		var variableType string
-		if v.DataType != nil {
-			variableType = *v.DataType
-		}
+		variableType := pointer.From(v.DataType)
 
-		var isConfigurationParameter bool
-		if v.IsConfigurationParameter != nil {
-			isConfigurationParameter = *v.IsConfigurationParameter
-		}
+		isConfigurationParameter := pointer.From(v.IsConfigurationParameter)
 
 		outputs = append(outputs, map[string]interface{}{
 			"type":                    variableType,
@@ -296,7 +288,7 @@ func expandStreamAnalyticsFunctionOutput(input []interface{}) *functions.Functio
 
 	dataType := output["type"].(string)
 	return &functions.FunctionOutput{
-		DataType: utils.String(dataType),
+		DataType: pointer.To(dataType),
 	}
 }
 
@@ -305,10 +297,7 @@ func flattenStreamAnalyticsFunctionOutput(input *functions.FunctionOutput) []int
 		return []interface{}{}
 	}
 
-	var variableType string
-	if input.DataType != nil {
-		variableType = *input.DataType
-	}
+	variableType := pointer.From(input.DataType)
 
 	return []interface{}{
 		map[string]interface{}{

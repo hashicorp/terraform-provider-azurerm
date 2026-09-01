@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -15,10 +15,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
@@ -26,13 +26,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 func resourceSpringCloudService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		DeprecationMessage: features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_service` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."),
+		DeprecationMessage: "Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_service` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.",
 
 		Create: resourceSpringCloudServiceCreate,
 		Read:   resourceSpringCloudServiceRead,
@@ -419,7 +418,7 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"service_registry_id": {
 				Type:     pluginsdk.TypeString,
@@ -445,41 +444,44 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	id := parse.NewSpringCloudServiceID(subscriptionId, resourceGroup, name)
-	existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName)
+		if err != nil {
+			if !response.WasNotFound(existing.Response.Response) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+		if !response.WasNotFound(existing.Response.Response) {
+			return tf.ImportAsExistsError("azurerm_spring_cloud_service", id.ID())
 		}
 	}
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_spring_cloud_service", id.ID())
-	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	resource := appplatform.ServiceResource{
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Properties: &appplatform.ClusterResourceProperties{
 			NetworkProfile:      expandSpringCloudNetwork(d.Get("network").([]interface{})),
-			ZoneRedundant:       utils.Bool(d.Get("zone_redundant").(bool)),
+			ZoneRedundant:       pointer.To(d.Get("zone_redundant").(bool)),
 			MarketplaceResource: expandSpringCloudMarketplaceResource(d.Get("marketplace").([]interface{})),
 		},
 		Sku: &appplatform.Sku{
-			Name: utils.String(d.Get("sku_name").(string)),
+			Name: pointer.To(d.Get("sku_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if enabled := d.Get("log_stream_public_endpoint_enabled").(bool); enabled {
 		resource.Properties.VnetAddons = &appplatform.ServiceVNetAddons{
-			LogStreamPublicEndpoint: utils.Bool(enabled),
+			LogStreamPublicEndpoint: pointer.To(enabled),
 		}
 	}
 
 	// we set sku_tier only when managed_environment_id is set
 	// otherwise we break the existing flows where sku_name is set to E0/Basic etc.,
 	if v, ok := d.GetOk("managed_environment_id"); ok {
-		resource.Properties.ManagedEnvironmentID = utils.String(v.(string))
-		resource.Sku.Tier = utils.String(d.Get("sku_tier").(string))
+		resource.Properties.ManagedEnvironmentID = pointer.To(v.(string))
+		resource.Sku.Tier = pointer.To(d.Get("sku_tier").(string))
 	}
 
 	gitProperty, err := expandSpringCloudConfigServerGitProperty(d.Get("config_server_git_setting").([]interface{}))
@@ -493,10 +495,12 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+
+	d.SetId(id.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
-	d.SetId(id.ID())
 
 	skuName := d.Get("sku_name").(string)
 	if skuName == "E0" && gitProperty != nil {
@@ -504,14 +508,11 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if skuName != "E0" {
-		log.Printf("[DEBUG] Updating Config Server Settings for %s..", id)
 		if err := updateConfigServerSettings(ctx, configServersClient, id, gitProperty); err != nil {
 			return err
 		}
-		log.Printf("[DEBUG] Updated Config Server Settings for %s.", id)
 	}
 
-	log.Printf("[DEBUG] Updating Monitor Settings for %s..", id)
 	monitorSettings := appplatform.MonitoringSettingResource{
 		Properties: expandSpringCloudTrace(d.Get("trace").([]interface{})),
 	}
@@ -522,7 +523,6 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	if err = updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for update of monitor settings for %s: %+v", id, err)
 	}
-	log.Printf("[DEBUG] Updated Monitor Settings for %s.", id)
 
 	if d.Get("service_registry_enabled").(bool) {
 		future, err := serviceRegistryClient.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, "default")
@@ -556,7 +556,7 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 		agentPoolResource := appplatform.BuildServiceAgentPoolResource{
 			Properties: &appplatform.BuildServiceAgentPoolProperties{
 				PoolSize: &appplatform.BuildServiceAgentPoolSizeProperties{
-					Name: utils.String(size),
+					Name: pointer.To(size),
 				},
 			},
 		}
@@ -592,7 +592,7 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 	if d.HasChange("tags") {
 		model := appplatform.ServiceResource{
 			Sku: &appplatform.Sku{
-				Name: utils.String(d.Get("sku_name").(string)),
+				Name: pointer.To(d.Get("sku_name").(string)),
 			},
 			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 		}
@@ -617,16 +617,13 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("`config_server_git_setting` is not supported for sku `E0`")
 		}
 		if skuName != "E0" {
-			log.Printf("[DEBUG] Updating Config Server Settings for %s..", *id)
 			if err := updateConfigServerSettings(ctx, configServersClient, *id, gitProperty); err != nil {
 				return err
 			}
-			log.Printf("[DEBUG] Updated Config Server Settings for %s.", *id)
 		}
 	}
 
 	if d.HasChange("trace") {
-		log.Printf("[DEBUG] Updating Monitor Settings for %s..", id)
 		monitorSettings := appplatform.MonitoringSettingResource{
 			Properties: expandSpringCloudTrace(d.Get("trace").([]interface{})),
 		}
@@ -637,7 +634,6 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 		if err = updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("waiting for update of monitor settings for %s: %+v", id, err)
 		}
-		log.Printf("[DEBUG] Updated Monitor Settings for %s.", id)
 	}
 
 	if d.HasChange("service_registry_enabled") {
@@ -684,7 +680,7 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 		agentPoolResource := appplatform.BuildServiceAgentPoolResource{
 			Properties: &appplatform.BuildServiceAgentPoolProperties{
 				PoolSize: &appplatform.BuildServiceAgentPoolSizeProperties{
-					Name: utils.String(size),
+					Name: pointer.To(size),
 				},
 			},
 		}
@@ -719,7 +715,7 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] Spring Cloud Service %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -735,12 +731,12 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 	serviceRegistryEnabled := true
 	serviceRegistry, err := serviceRegistryClient.Get(ctx, id.ResourceGroup, id.SpringName, "default")
 	if err != nil {
-		if !utils.ResponseWasNotFound(serviceRegistry.Response) {
+		if !response.WasNotFound(serviceRegistry.Response.Response) {
 			return fmt.Errorf("retrieving service registry of %s: %+v", id, err)
 		}
 		serviceRegistryEnabled = false
 	}
-	if utils.ResponseWasNotFound(serviceRegistry.Response) {
+	if response.WasNotFound(serviceRegistry.Response.Response) {
 		serviceRegistryEnabled = false
 	}
 
@@ -824,13 +820,13 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		if vnetAddons := props.VnetAddons; vnetAddons != nil {
-			if err := d.Set("log_stream_public_endpoint_enabled", utils.Bool(*vnetAddons.LogStreamPublicEndpoint)); err != nil {
+			if err := d.Set("log_stream_public_endpoint_enabled", pointer.To(*vnetAddons.LogStreamPublicEndpoint)); err != nil {
 				return fmt.Errorf("setting `log_stream_public_endpoint_enabled`: %+v", err)
 			}
 		}
 
 		if managedEnvironmentID := props.ManagedEnvironmentID; managedEnvironmentID != nil {
-			if err := d.Set("managed_environment_id", utils.String(*props.ManagedEnvironmentID)); err != nil {
+			if err := d.Set("managed_environment_id", pointer.To(*props.ManagedEnvironmentID)); err != nil {
 				return fmt.Errorf("setting `managed_environment_id`: %+v", err)
 			}
 		}
@@ -866,7 +862,6 @@ func resourceSpringCloudServiceDelete(d *pluginsdk.ResourceData, meta interface{
 }
 
 func updateConfigServerSettings(ctx context.Context, client *appplatform.ConfigServersClient, id parse.SpringCloudServiceId, gitProperty *appplatform.ConfigServerGitProperty) error {
-	log.Printf("[DEBUG] Updating Config Server Settings for %s..", id)
 	configServer := appplatform.ConfigServerResource{
 		Properties: &appplatform.ConfigServerProperties{
 			ConfigServer: &appplatform.ConfigServerSettings{
@@ -882,7 +877,6 @@ func updateConfigServerSettings(ctx context.Context, client *appplatform.ConfigS
 		return fmt.Errorf("waiting for update of config server for %s: %+v", id, err)
 	}
 
-	log.Printf("[DEBUG] Retrieving Config Server Settings for %s..", id)
 	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName)
 	if err != nil {
 		return fmt.Errorf("retrieving config server for %s: %+v", id, err)
@@ -892,7 +886,6 @@ func updateConfigServerSettings(ctx context.Context, client *appplatform.ConfigS
 			return fmt.Errorf("setting config server for %s: %+v", id, err)
 		}
 	}
-	log.Printf("[DEBUG] Updated Config Server Settings for %s.", id)
 	return nil
 }
 
@@ -934,23 +927,23 @@ func expandSpringCloudNetwork(input []interface{}) *appplatform.NetworkProfile {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	cidrRanges := utils.ExpandStringSlice(v["cidr_ranges"].([]interface{}))
+	cidrRanges := helpers.ExpandStringSlice(v["cidr_ranges"].([]interface{}))
 	network := &appplatform.NetworkProfile{
-		ServiceRuntimeSubnetID: utils.String(v["service_runtime_subnet_id"].(string)),
-		AppSubnetID:            utils.String(v["app_subnet_id"].(string)),
-		ServiceCidr:            utils.String(strings.Join(*cidrRanges, ",")),
-		OutboundType:           utils.String(v["outbound_type"].(string)),
+		ServiceRuntimeSubnetID: pointer.To(v["service_runtime_subnet_id"].(string)),
+		AppSubnetID:            pointer.To(v["app_subnet_id"].(string)),
+		ServiceCidr:            pointer.To(strings.Join(*cidrRanges, ",")),
+		OutboundType:           pointer.To(v["outbound_type"].(string)),
 	}
 	if readTimeoutInSeconds := v["read_timeout_seconds"].(int); readTimeoutInSeconds != 0 {
 		network.IngressConfig = &appplatform.IngressConfig{
-			ReadTimeoutInSeconds: utils.Int32(int32(readTimeoutInSeconds)),
+			ReadTimeoutInSeconds: pointer.To(int32(readTimeoutInSeconds)),
 		}
 	}
 	if serviceRuntimeNetworkResourceGroup := v["service_runtime_network_resource_group"].(string); serviceRuntimeNetworkResourceGroup != "" {
-		network.ServiceRuntimeNetworkResourceGroup = utils.String(serviceRuntimeNetworkResourceGroup)
+		network.ServiceRuntimeNetworkResourceGroup = pointer.To(serviceRuntimeNetworkResourceGroup)
 	}
 	if appNetworkResourceGroup := v["app_network_resource_group"].(string); appNetworkResourceGroup != "" {
-		network.AppNetworkResourceGroup = utils.String(appNetworkResourceGroup)
+		network.AppNetworkResourceGroup = pointer.To(appNetworkResourceGroup)
 	}
 	return network
 }
@@ -966,14 +959,14 @@ func expandSpringCloudConfigServerGitProperty(input []interface{}) (*appplatform
 	}
 
 	result := appplatform.ConfigServerGitProperty{
-		URI: utils.String(v["uri"].(string)),
+		URI: pointer.To(v["uri"].(string)),
 	}
 
 	if label := v["label"].(string); label != "" {
-		result.Label = utils.String(label)
+		result.Label = pointer.To(label)
 	}
 	if searchPaths := v["search_paths"].([]interface{}); len(searchPaths) > 0 {
-		result.SearchPaths = utils.ExpandStringSlice(searchPaths)
+		result.SearchPaths = helpers.ExpandStringSlice(searchPaths)
 	}
 
 	httpBasicAuth := v["http_basic_auth"].([]interface{})
@@ -983,19 +976,19 @@ func expandSpringCloudConfigServerGitProperty(input []interface{}) (*appplatform
 	}
 	if len(httpBasicAuth) > 0 {
 		v := httpBasicAuth[0].(map[string]interface{})
-		result.Username = utils.String(v["username"].(string))
-		result.Password = utils.String(v["password"].(string))
+		result.Username = pointer.To(v["username"].(string))
+		result.Password = pointer.To(v["password"].(string))
 	}
 	if len(sshAuth) > 0 {
 		v := sshAuth[0].(map[string]interface{})
-		result.PrivateKey = utils.String(v["private_key"].(string))
-		result.StrictHostKeyChecking = utils.Bool(v["strict_host_key_checking_enabled"].(bool))
+		result.PrivateKey = pointer.To(v["private_key"].(string))
+		result.StrictHostKeyChecking = pointer.To(v["strict_host_key_checking_enabled"].(bool))
 
 		if hostKey := v["host_key"].(string); hostKey != "" {
-			result.HostKey = utils.String(hostKey)
+			result.HostKey = pointer.To(hostKey)
 		}
 		if hostKeyAlgorithm := v["host_key_algorithm"].(string); hostKeyAlgorithm != "" {
-			result.HostKeyAlgorithm = utils.String(hostKeyAlgorithm)
+			result.HostKeyAlgorithm = pointer.To(hostKeyAlgorithm)
 		}
 	}
 
@@ -1016,18 +1009,18 @@ func expandSpringCloudGitPatternRepository(input []interface{}) (*[]appplatform.
 		v := item.(map[string]interface{})
 
 		result := appplatform.GitPatternRepository{
-			Name: utils.String(v["name"].(string)),
-			URI:  utils.String(v["uri"].(string)),
+			Name: pointer.To(v["name"].(string)),
+			URI:  pointer.To(v["uri"].(string)),
 		}
 
 		if label := v["label"].(string); len(label) > 0 {
-			result.Label = utils.String(label)
+			result.Label = pointer.To(label)
 		}
 		if pattern := v["pattern"].([]interface{}); len(pattern) > 0 {
-			result.Pattern = utils.ExpandStringSlice(pattern)
+			result.Pattern = helpers.ExpandStringSlice(pattern)
 		}
 		if searchPaths := v["search_paths"].([]interface{}); len(searchPaths) > 0 {
-			result.SearchPaths = utils.ExpandStringSlice(searchPaths)
+			result.SearchPaths = helpers.ExpandStringSlice(searchPaths)
 		}
 
 		httpBasicAuth := v["http_basic_auth"].([]interface{})
@@ -1037,19 +1030,19 @@ func expandSpringCloudGitPatternRepository(input []interface{}) (*[]appplatform.
 		}
 		if len(httpBasicAuth) > 0 {
 			v := httpBasicAuth[0].(map[string]interface{})
-			result.Username = utils.String(v["username"].(string))
-			result.Password = utils.String(v["password"].(string))
+			result.Username = pointer.To(v["username"].(string))
+			result.Password = pointer.To(v["password"].(string))
 		}
 		if len(sshAuth) > 0 {
 			v := sshAuth[0].(map[string]interface{})
-			result.PrivateKey = utils.String(v["private_key"].(string))
-			result.StrictHostKeyChecking = utils.Bool(v["strict_host_key_checking_enabled"].(bool))
+			result.PrivateKey = pointer.To(v["private_key"].(string))
+			result.StrictHostKeyChecking = pointer.To(v["strict_host_key_checking_enabled"].(bool))
 
 			if hostKey := v["host_key"].(string); hostKey != "" {
-				result.HostKey = utils.String(hostKey)
+				result.HostKey = pointer.To(hostKey)
 			}
 			if hostKeyAlgorithm := v["host_key_algorithm"].(string); hostKeyAlgorithm != "" {
-				result.HostKeyAlgorithm = utils.String(hostKeyAlgorithm)
+				result.HostKeyAlgorithm = pointer.To(hostKeyAlgorithm)
 			}
 		}
 
@@ -1061,15 +1054,15 @@ func expandSpringCloudGitPatternRepository(input []interface{}) (*[]appplatform.
 func expandSpringCloudTrace(input []interface{}) *appplatform.MonitoringSettingProperties {
 	if len(input) == 0 || input[0] == nil {
 		return &appplatform.MonitoringSettingProperties{
-			TraceEnabled: utils.Bool(false),
+			TraceEnabled: pointer.To(false),
 		}
 	}
 
 	v := input[0].(map[string]interface{})
 	return &appplatform.MonitoringSettingProperties{
-		TraceEnabled:                  utils.Bool(true),
-		AppInsightsInstrumentationKey: utils.String(v["connection_string"].(string)),
-		AppInsightsSamplingRate:       utils.Float(v["sample_rate"].(float64)),
+		TraceEnabled:                  pointer.To(true),
+		AppInsightsInstrumentationKey: pointer.To(v["connection_string"].(string)),
+		AppInsightsSamplingRate:       pointer.To(v["sample_rate"].(float64)),
 	}
 }
 
@@ -1081,12 +1074,12 @@ func expandSpringCloudContainerRegistries(input []interface{}) []appplatform.Con
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		out = append(out, appplatform.ContainerRegistryResource{
-			Name: utils.String(v["name"].(string)),
+			Name: pointer.To(v["name"].(string)),
 			Properties: &appplatform.ContainerRegistryProperties{
 				Credentials: &appplatform.ContainerRegistryBasicCredentials{
-					Username: utils.String(v["username"].(string)),
-					Password: utils.String(v["password"].(string)),
-					Server:   utils.String(v["server"].(string)),
+					Username: pointer.To(v["username"].(string)),
+					Password: pointer.To(v["password"].(string)),
+					Server:   pointer.To(v["server"].(string)),
 				},
 			},
 		})
@@ -1101,7 +1094,7 @@ func expandSpringCloudBuildService(input []interface{}, springId parse.SpringClo
 	v := input[0].(map[string]interface{})
 	out := appplatform.BuildServiceProperties{}
 	if value := v["container_registry_name"].(string); value != "" {
-		out.ContainerRegistry = utils.String(parse.NewSpringCloudContainerRegistryID(springId.SubscriptionId, springId.ResourceGroup, springId.SpringName, value).ID())
+		out.ContainerRegistry = pointer.To(parse.NewSpringCloudContainerRegistryID(springId.SubscriptionId, springId.ResourceGroup, springId.SpringName, value).ID())
 	}
 	return out
 }
@@ -1112,9 +1105,9 @@ func expandSpringCloudMarketplaceResource(input []interface{}) *appplatform.Mark
 	}
 	v := input[0].(map[string]interface{})
 	return &appplatform.MarketplaceResource{
-		Plan:      utils.String(v["plan"].(string)),
-		Publisher: utils.String(v["publisher"].(string)),
-		Product:   utils.String(v["product"].(string)),
+		Plan:      pointer.To(v["plan"].(string)),
+		Publisher: pointer.To(v["publisher"].(string)),
+		Product:   pointer.To(v["product"].(string)),
 	}
 }
 
@@ -1131,17 +1124,11 @@ func flattenSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerPr
 		oldGitSetting = oldGitSettings[0].(map[string]interface{})
 	}
 
-	uri := ""
-	if gitProperty.URI != nil {
-		uri = *gitProperty.URI
-	}
+	uri := pointer.From(gitProperty.URI)
 
-	label := ""
-	if gitProperty.Label != nil {
-		label = *gitProperty.Label
-	}
+	label := pointer.From(gitProperty.Label)
 
-	searchPaths := utils.FlattenStringSlice(gitProperty.SearchPaths)
+	searchPaths := helpers.FlattenStringSlice(gitProperty.SearchPaths)
 
 	httpBasicAuth := make([]interface{}, 0)
 	if gitProperty.Username != nil && gitProperty.Password != nil {
@@ -1183,10 +1170,7 @@ func flattenSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerPr
 			}
 		}
 
-		strictHostKeyChecking := false
-		if gitProperty.StrictHostKeyChecking != nil {
-			strictHostKeyChecking = *gitProperty.StrictHostKeyChecking
-		}
+		strictHostKeyChecking := pointer.From(gitProperty.StrictHostKeyChecking)
 
 		sshAuth = []interface{}{
 			map[string]interface{}{
@@ -1229,20 +1213,11 @@ func flattenSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepos
 	}
 
 	for _, item := range *input {
-		name := ""
-		if item.Name != nil {
-			name = *item.Name
-		}
+		name := pointer.From(item.Name)
 
-		uri := ""
-		if item.URI != nil {
-			uri = *item.URI
-		}
+		uri := pointer.From(item.URI)
 
-		label := ""
-		if item.Label != nil {
-			label = *item.Label
-		}
+		label := pointer.From(item.Label)
 
 		// prepare old state to find sensitive props not returned by API.
 		oldGitPatternRepository := make(map[string]interface{})
@@ -1250,8 +1225,8 @@ func flattenSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepos
 			oldGitPatternRepository = gpr.(map[string]interface{})
 		}
 
-		pattern := utils.FlattenStringSlice(item.Pattern)
-		searchPaths := utils.FlattenStringSlice(item.SearchPaths)
+		pattern := helpers.FlattenStringSlice(item.Pattern)
+		searchPaths := helpers.FlattenStringSlice(item.SearchPaths)
 
 		httpBasicAuth := []interface{}{}
 		if item.Username != nil && item.Password != nil {
@@ -1293,10 +1268,7 @@ func flattenSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepos
 				}
 			}
 
-			strictHostKeyChecking := false
-			if item.StrictHostKeyChecking != nil {
-				strictHostKeyChecking = *item.StrictHostKeyChecking
-			}
+			strictHostKeyChecking := pointer.From(item.StrictHostKeyChecking)
 
 			sshAuth = []interface{}{
 				map[string]interface{}{
@@ -1368,7 +1340,7 @@ func flattenSpringCloudNetwork(input *appplatform.NetworkProfile) []interface{} 
 	}
 	if input.ServiceCidr != nil {
 		cidrs := strings.Split(*input.ServiceCidr, ",")
-		cidrRanges = utils.FlattenStringSlice(&cidrs)
+		cidrRanges = helpers.FlattenStringSlice(&cidrs)
 	}
 	if input.ServiceRuntimeNetworkResourceGroup != nil {
 		serviceRuntimeNetworkResourceGroup = *input.ServiceRuntimeNetworkResourceGroup
@@ -1410,7 +1382,7 @@ func flattenOutboundPublicIPAddresses(input *appplatform.NetworkProfile) []inter
 		return []interface{}{}
 	}
 
-	return utils.FlattenStringSlice(input.OutboundIPs.PublicIPs)
+	return helpers.FlattenStringSlice(input.OutboundIPs.PublicIPs)
 }
 
 func flattenRequiredTraffic(input *appplatform.NetworkProfile) []interface{} {
@@ -1420,10 +1392,7 @@ func flattenRequiredTraffic(input *appplatform.NetworkProfile) []interface{} {
 
 	result := make([]interface{}, 0)
 	for _, v := range *input.RequiredTraffics {
-		protocol := ""
-		if v.Protocol != nil {
-			protocol = *v.Protocol
-		}
+		protocol := pointer.From(v.Protocol)
 
 		port := 0
 		if v.Port != nil {
@@ -1433,8 +1402,8 @@ func flattenRequiredTraffic(input *appplatform.NetworkProfile) []interface{} {
 		result = append(result, map[string]interface{}{
 			"protocol":     protocol,
 			"port":         port,
-			"ip_addresses": utils.FlattenStringSlice(v.Ips),
-			"fqdns":        utils.FlattenStringSlice(v.Fqdns),
+			"ip_addresses": helpers.FlattenStringSlice(v.Ips),
+			"fqdns":        helpers.FlattenStringSlice(v.Fqdns),
 			"direction":    string(v.Direction),
 		})
 	}

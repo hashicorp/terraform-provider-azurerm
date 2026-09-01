@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package azurestackhci
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -18,11 +19,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmStackHCICluster() *pluginsdk.Resource {
@@ -49,7 +48,7 @@ func resourceArmStackHCICluster() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ClusterName,
+				ValidateFunc: validation.StringLenBetween(1, 260),
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -72,8 +71,6 @@ func resourceArmStackHCICluster() *pluginsdk.Resource {
 			},
 
 			"automanage_configuration_id": {
-				// TODO: this field should be removed in 4.0 - there's an "association" API specifically for this purpose
-				// so we should be outputting this as an association resource.
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: configurationprofiles.ValidateConfigurationProfileID,
@@ -108,21 +105,24 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 	defer cancel()
 
 	id := clusters.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_stack_hci_cluster", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_stack_hci_cluster", id.ID())
+		}
 	}
 
 	cluster := clusters.Cluster{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &clusters.ClusterProperties{
-			AadClientId: utils.String(d.Get("client_id").(string)),
+			AadClientId: pointer.To(d.Get("client_id").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -132,15 +132,17 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if v, ok := d.GetOk("tenant_id"); ok {
-		cluster.Properties.AadTenantId = utils.String(v.(string))
+		cluster.Properties.AadTenantId = pointer.To(v.(string))
 	} else {
 		tenantId := meta.(*clients.Client).Account.TenantId
-		cluster.Properties.AadTenantId = utils.String(tenantId)
+		cluster.Properties.AadTenantId = pointer.To(tenantId)
 	}
 
 	if _, err := client.Create(ctx, id, cluster); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+
+	d.SetId(id.ID())
 
 	if v, ok := d.GetOk("automanage_configuration_id"); ok {
 		configurationProfilesClient := meta.(*clients.Client).Automanage.ConfigurationProfilesClient
@@ -164,7 +166,7 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 		if response.WasNotFound(assignmentsResp.HttpResponse) {
 			properties := configurationprofilehciassignments.ConfigurationProfileAssignment{
 				Properties: &configurationprofilehciassignments.ConfigurationProfileAssignmentProperties{
-					ConfigurationProfile: utils.String(configurationProfileId.ID()),
+					ConfigurationProfile: pointer.To(configurationProfileId.ID()),
 				},
 			}
 
@@ -173,8 +175,6 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 			}
 		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceArmStackHCIClusterRead(d, meta)
 }
@@ -280,7 +280,7 @@ func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{
 
 			properties := configurationprofilehciassignments.ConfigurationProfileAssignment{
 				Properties: &configurationprofilehciassignments.ConfigurationProfileAssignmentProperties{
-					ConfigurationProfile: utils.String(configurationProfileId.ID()),
+					ConfigurationProfile: pointer.To(configurationProfileId.ID()),
 				},
 			}
 

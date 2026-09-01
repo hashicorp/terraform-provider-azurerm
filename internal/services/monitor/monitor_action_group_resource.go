@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -15,29 +16,30 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/automationaccount"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-01-01/actiongroupsapis"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity
+
 func resourceMonitorActionGroup() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceMonitorActionGroupCreateUpdate,
 		Read:   resourceMonitorActionGroupRead,
 		Update: resourceMonitorActionGroupCreateUpdate,
 		Delete: resourceMonitorActionGroupDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := actiongroupsapis.ParseActionGroupID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&actiongroupsapis.ActionGroupId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&actiongroupsapis.ActionGroupId{}),
+		},
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -434,11 +436,9 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
-
-	return resource
 }
 
 func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -452,15 +452,17 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	id := actiongroupsapis.NewActionGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.ActionGroupsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Monitor %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.ActionGroupsGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing Monitor %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_monitor_action_group", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_monitor_action_group", id.ID())
+			}
 		}
 	}
 
@@ -503,7 +505,7 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			ArmRoleReceivers:           expandMonitorActionGroupRoleReceiver(armRoleReceiversRaw),
 			EventHubReceivers:          expandMonitorActionGroupEventHubReceiver(tenantId, subscriptionId, eventHubReceiversRaw),
 		},
-		Tags: utils.ExpandPtrMapStringString(t),
+		Tags: helpers.ExpandPtrMapStringString(t),
 	}
 
 	if _, err := client.ActionGroupsCreateOrUpdate(ctx, id, parameters); err != nil {
@@ -511,6 +513,9 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceMonitorActionGroupRead(d, meta)
 }
@@ -586,11 +591,11 @@ func resourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{})
 				return fmt.Errorf("setting `event_hub_receiver`: %+v", err)
 			}
 		}
-		if err = d.Set("tags", utils.FlattenPtrMapStringString(model.Tags)); err != nil {
+		if err = d.Set("tags", helpers.FlattenPtrMapStringString(model.Tags)); err != nil {
 			return err
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceMonitorActionGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -620,7 +625,7 @@ func expandMonitorActionGroupEmailReceiver(v []interface{}) *[]actiongroupsapis.
 		receiver := actiongroupsapis.EmailReceiver{
 			Name:                 val["name"].(string),
 			EmailAddress:         val["email_address"].(string),
-			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
+			UseCommonAlertSchema: pointer.To(val["use_common_alert_schema"].(bool)),
 		}
 		receivers = append(receivers, receiver)
 	}
@@ -637,20 +642,19 @@ func expandMonitorActionGroupItsmReceiver(v []interface{}) (*[]actiongroupsapis.
 			WorkspaceId:         val["workspace_id"].(string),
 			ConnectionId:        val["connection_id"].(string),
 			TicketConfiguration: ticketConfiguration,
-			Region:              azure.NormalizeLocation(val["region"].(string)),
+			Region:              location.Normalize(val["region"].(string)),
 		}
 
 		// https://github.com/Azure/azure-rest-api-specs/issues/20488 ticket_configuration should have `PayloadRevision` and `WorkItemType` keys
 
 		j := make(map[string]interface{})
-		err := json.Unmarshal([]byte(ticketConfiguration), &j)
-		if err != nil {
+		if err := json.Unmarshal([]byte(ticketConfiguration), &j); err != nil {
 			return nil, fmt.Errorf("`itsm_receiver.ticket_configuration` %s unmarshall json error: %+v", ticketConfiguration, err)
 		}
 
 		_, existKeyPayloadRevision := j["PayloadRevision"]
 		_, existKeyWorkItemType := j["WorkItemType"]
-		if !(existKeyPayloadRevision && existKeyWorkItemType) {
+		if !existKeyPayloadRevision || !existKeyWorkItemType {
 			return nil, fmt.Errorf("`itsm_receiver.ticket_configuration` should be JSON blob with `PayloadRevision` and `WorkItemType` keys")
 		}
 		receivers = append(receivers, receiver)
@@ -692,17 +696,17 @@ func expandMonitorActionGroupWebHookReceiver(tenantId string, v []interface{}) *
 		receiver := actiongroupsapis.WebhookReceiver{
 			Name:                 val["name"].(string),
 			ServiceUri:           val["service_uri"].(string),
-			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
+			UseCommonAlertSchema: pointer.To(val["use_common_alert_schema"].(bool)),
 		}
 		if v, ok := val["aad_auth"].([]interface{}); ok && len(v) > 0 {
 			secureWebhook := v[0].(map[string]interface{})
-			receiver.UseAadAuth = utils.Bool(true)
-			receiver.ObjectId = utils.String(secureWebhook["object_id"].(string))
-			receiver.IdentifierUri = utils.String(secureWebhook["identifier_uri"].(string))
+			receiver.UseAadAuth = pointer.To(true)
+			receiver.ObjectId = pointer.To(secureWebhook["object_id"].(string))
+			receiver.IdentifierUri = pointer.To(secureWebhook["identifier_uri"].(string))
 			if v := secureWebhook["tenant_id"].(string); v != "" {
-				receiver.TenantId = utils.String(v)
+				receiver.TenantId = pointer.To(v)
 			} else {
-				receiver.TenantId = utils.String(tenantId)
+				receiver.TenantId = pointer.To(tenantId)
 			}
 		}
 		receivers = append(receivers, receiver)
@@ -715,13 +719,13 @@ func expandMonitorActionGroupAutomationRunbookReceiver(v []interface{}) *[]actio
 	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
 		receiver := actiongroupsapis.AutomationRunbookReceiver{
-			Name:                 utils.String(val["name"].(string)),
+			Name:                 pointer.To(val["name"].(string)),
 			AutomationAccountId:  val["automation_account_id"].(string),
 			RunbookName:          val["runbook_name"].(string),
 			WebhookResourceId:    val["webhook_resource_id"].(string),
 			IsGlobalRunbook:      val["is_global_runbook"].(bool),
-			ServiceUri:           utils.String(val["service_uri"].(string)),
-			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
+			ServiceUri:           pointer.To(val["service_uri"].(string)),
+			UseCommonAlertSchema: pointer.To(val["use_common_alert_schema"].(bool)),
 		}
 		receivers = append(receivers, receiver)
 	}
@@ -750,7 +754,7 @@ func expandMonitorActionGroupLogicAppReceiver(v []interface{}) *[]actiongroupsap
 			Name:                 val["name"].(string),
 			ResourceId:           val["resource_id"].(string),
 			CallbackURL:          val["callback_url"].(string),
-			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
+			UseCommonAlertSchema: pointer.To(val["use_common_alert_schema"].(bool)),
 		}
 		receivers = append(receivers, receiver)
 	}
@@ -766,7 +770,7 @@ func expandMonitorActionGroupAzureFunctionReceiver(v []interface{}) *[]actiongro
 			FunctionAppResourceId: val["function_app_resource_id"].(string),
 			FunctionName:          val["function_name"].(string),
 			HTTPTriggerURL:        val["http_trigger_url"].(string),
-			UseCommonAlertSchema:  utils.Bool(val["use_common_alert_schema"].(bool)),
+			UseCommonAlertSchema:  pointer.To(val["use_common_alert_schema"].(bool)),
 		}
 		receivers = append(receivers, receiver)
 	}
@@ -780,7 +784,7 @@ func expandMonitorActionGroupRoleReceiver(v []interface{}) *[]actiongroupsapis.A
 		receiver := actiongroupsapis.ArmRoleReceiver{
 			Name:                 val["name"].(string),
 			RoleId:               val["role_id"].(string),
-			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
+			UseCommonAlertSchema: pointer.To(val["use_common_alert_schema"].(bool)),
 		}
 		receivers = append(receivers, receiver)
 	}
@@ -798,13 +802,13 @@ func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId st
 			EventHubNameSpace:    eventHubNameSpace,
 			EventHubName:         eventHubName,
 			Name:                 val["name"].(string),
-			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
+			UseCommonAlertSchema: pointer.To(val["use_common_alert_schema"].(bool)),
 		}
 
 		if v := val["tenant_id"].(string); v != "" {
-			receiver.TenantId = utils.String(v)
+			receiver.TenantId = pointer.To(v)
 		} else {
-			receiver.TenantId = utils.String(tenantId)
+			receiver.TenantId = pointer.To(tenantId)
 		}
 
 		if subId != "" {
@@ -846,7 +850,7 @@ func flattenMonitorActionGroupItsmReceiver(receivers *[]actiongroupsapis.ItsmRec
 			val["workspace_id"] = receiver.WorkspaceId
 			val["connection_id"] = receiver.ConnectionId
 			val["ticket_configuration"] = receiver.TicketConfiguration
-			val["region"] = azure.NormalizeLocation(receiver.Region)
+			val["region"] = location.Normalize(receiver.Region)
 
 			result = append(result, val)
 		}
@@ -889,15 +893,10 @@ func flattenMonitorActionGroupWebHookReceiver(receivers *[]actiongroupsapis.Webh
 	result := make([]interface{}, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {
-			var useCommonAlert bool
-			if receiver.UseCommonAlertSchema != nil {
-				useCommonAlert = *receiver.UseCommonAlertSchema
-			}
-
 			result = append(result, map[string]interface{}{
 				"name":                    receiver.Name,
 				"service_uri":             receiver.ServiceUri,
-				"use_common_alert_schema": useCommonAlert,
+				"use_common_alert_schema": pointer.From(receiver.UseCommonAlertSchema),
 				"aad_auth":                flattenMonitorActionGroupSecureWebHookReceiver(receiver),
 			})
 		}

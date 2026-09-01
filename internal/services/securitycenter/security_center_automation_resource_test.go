@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter_test
@@ -8,13 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2019-01-01-preview/automations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SecurityCenterAutomationResource struct{}
@@ -214,18 +213,17 @@ func TestAccSecurityCenterAutomation_sourceMulti(t *testing.T) {
 }
 
 func (t SecurityCenterAutomationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.AutomationID(state.ID)
+	id, err := automations.ParseAutomationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	automationId := automations.NewAutomationID(id.SubscriptionId, id.ResourceGroup, id.Name)
 
-	resp, err := clients.SecurityCenter.AutomationsClient.Get(ctx, automationId)
+	resp, err := clients.SecurityCenter.AutomationsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model.Properties != nil), nil
+	return pointer.To(resp.Model.Properties != nil), nil
 }
 
 func (SecurityCenterAutomationResource) logicApp(data acceptance.TestData) string {
@@ -258,7 +256,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -305,7 +303,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "loganalytics"
+    type        = "Workspace"
     resource_id = azurerm_log_analytics_workspace.test.id
   }
 
@@ -336,9 +334,8 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  name         = "acctesteventhub-%d"
+  namespace_id = azurerm_eventhub_namespace.test.id
 
   partition_count   = 2
   message_retention = 1
@@ -368,7 +365,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type              = "eventhub"
+    type              = "EventHub"
     resource_id       = azurerm_eventhub.test.id
     connection_string = azurerm_eventhub_authorization_rule.test.primary_connection_string
   }
@@ -394,7 +391,7 @@ resource "azurerm_security_center_automation" "import" {
   ]
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -436,7 +433,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -493,7 +490,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -543,7 +540,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -605,7 +602,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -681,13 +678,13 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test2.id
     trigger_url = "https://example.net/this_is_also_never_validated_by_azure"
   }
@@ -729,7 +726,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }

@@ -23,7 +23,7 @@ output "private_link_service_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -41,7 +41,11 @@ The following attributes are exported:
 
 * `auto_approval_subscription_ids` - The list of subscription(s) globally unique identifiers that will be auto approved to use the private link service.
 
+* `destination_ip_address` - The destination IP address of the Private Link Service.
+
 * `enable_proxy_protocol` - Does the Private Link Service support the Proxy Protocol?
+
+* `fqdns` - List of FQDNs allowed for the Private Link Service.
 
 * `load_balancer_frontend_ip_configuration_ids` - The list of Standard Load Balancer(SLB) resource IDs. The Private Link service is tied to the frontend IP address of a SLB. All traffic destined for the private link service will reach the frontend of the SLB. You can configure SLB rules to direct this traffic to appropriate backend pools where your applications are running.
 
@@ -69,6 +73,12 @@ The `nat_ip_configuration` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Private Link Service.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2025-01-01

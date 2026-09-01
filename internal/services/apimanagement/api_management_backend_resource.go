@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -7,21 +7,24 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/backend"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/certificate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/backend"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementBackend() *pluginsdk.Resource {
@@ -53,6 +56,90 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 			"api_management_name": schemaz.SchemaApiManagementName(),
 
 			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"circuit_breaker_rule": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringMatch(
+								regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9-]{0,78}[a-zA-Z0-9])?$`),
+								"`name` must be between 1 and 80 characters in length and may contain only numbers, letters, and hyphens (-) sign when preceded and followed by number or a letter.",
+							),
+						},
+						"trip_duration": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: azValidate.ISO8601Duration,
+						},
+						"accept_retry_after_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"failure_condition": {
+							Type:     pluginsdk.TypeList,
+							Required: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"interval_duration": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: azValidate.ISO8601Duration,
+									},
+									"count": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										ExactlyOneOf: []string{"circuit_breaker_rule.0.failure_condition.0.count", "circuit_breaker_rule.0.failure_condition.0.percentage"},
+										ValidateFunc: validation.IntBetween(1, 10000),
+									},
+									"error_reasons": {
+										Type:         pluginsdk.TypeList,
+										Optional:     true,
+										MaxItems:     10,
+										AtLeastOneOf: []string{"circuit_breaker_rule.0.failure_condition.0.status_code_range", "circuit_breaker_rule.0.failure_condition.0.error_reasons"},
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringLenBetween(1, 200),
+										},
+									},
+									"percentage": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										ExactlyOneOf: []string{"circuit_breaker_rule.0.failure_condition.0.count", "circuit_breaker_rule.0.failure_condition.0.percentage"},
+										ValidateFunc: validation.IntBetween(1, 100),
+									},
+									"status_code_range": {
+										Type:         pluginsdk.TypeList,
+										Optional:     true,
+										MaxItems:     10,
+										AtLeastOneOf: []string{"circuit_breaker_rule.0.failure_condition.0.status_code_range", "circuit_breaker_rule.0.failure_condition.0.error_reasons"},
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"min": {
+													Type:         pluginsdk.TypeInt,
+													Required:     true,
+													ValidateFunc: validation.IntBetween(200, 599),
+												},
+												"max": {
+													Type:         pluginsdk.TypeInt,
+													Required:     true,
+													ValidateFunc: validation.IntBetween(200, 599),
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 
 			"credentials": {
 				Type:     pluginsdk.TypeList,
@@ -120,12 +207,9 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 			},
 
 			"protocol": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(backend.BackendProtocolHTTP),
-					string(backend.BackendProtocolSoap),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(backend.PossibleValuesForBackendProtocol(), false),
 			},
 
 			"proxy": {
@@ -147,7 +231,7 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 						},
 						"username": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
@@ -170,7 +254,7 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validate.CertificateID,
+							ValidateFunc: validation.AsGeneratedID(certificate.ParseCertificateIDInsensitively),
 						},
 
 						"client_certificate_thumbprint": {
@@ -267,15 +351,17 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 	id := backend.NewBackendID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_backend", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_api_management_backend", id.ID())
+			}
 		}
 	}
 
@@ -291,11 +377,14 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 	backendContract := backend.BackendContract{
 		Properties: &backend.BackendContractProperties{
 			Credentials: credentials,
-			Protocol:    backend.BackendProtocol(protocol),
+			Protocol:    pointer.ToEnum[backend.BackendProtocol](protocol),
 			Proxy:       proxy,
 			Tls:         tls,
-			Url:         url,
+			Url:         pointer.To(url),
 		},
+	}
+	if v, ok := d.GetOk("circuit_breaker_rule"); ok {
+		backendContract.Properties.CircuitBreaker = expandApiManagementBackendCircuitBreaker(v.([]interface{}))
 	}
 	if description, ok := d.GetOk("description"); ok {
 		backendContract.Properties.Description = pointer.To(description.(string))
@@ -308,7 +397,7 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if serviceFabricClusterRaw, ok := d.GetOk("service_fabric_cluster"); ok {
-		err, serviceFabricCluster := expandApiManagementBackendServiceFabricCluster(serviceFabricClusterRaw.([]interface{}))
+		serviceFabricCluster, err := expandApiManagementBackendServiceFabricCluster(serviceFabricClusterRaw.([]interface{}))
 		if err != nil {
 			return err
 		}
@@ -352,10 +441,13 @@ func resourceApiManagementBackendRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("name", pointer.From(model.Name))
 		if props := model.Properties; props != nil {
 			d.Set("description", pointer.From(props.Description))
-			d.Set("protocol", string(props.Protocol))
+			d.Set("protocol", pointer.FromEnum(props.Protocol))
 			d.Set("resource_id", pointer.From(props.ResourceId))
 			d.Set("title", pointer.From(props.Title))
 			d.Set("url", props.Url)
+			if err := d.Set("circuit_breaker_rule", flattenApiManagementBackendCircuitBreaker(props.CircuitBreaker)); err != nil {
+				return fmt.Errorf("setting `circuit_breaker_rule`: %s", err)
+			}
 			if err := d.Set("credentials", flattenApiManagementBackendCredentials(props.Credentials)); err != nil {
 				return fmt.Errorf("setting `credentials`: %s", err)
 			}
@@ -402,22 +494,19 @@ func expandApiManagementBackendCredentials(input []interface{}) *backend.Backend
 	v := input[0].(map[string]interface{})
 	contract := backend.BackendCredentialsContract{}
 	if authorizationRaw := v["authorization"]; authorizationRaw != nil {
-		authorization := expandApiManagementBackendCredentialsAuthorization(authorizationRaw.([]interface{}))
-		contract.Authorization = authorization
+		contract.Authorization = expandApiManagementBackendCredentialsAuthorization(authorizationRaw.([]interface{}))
 	}
 	if certificate := v["certificate"]; certificate != nil {
-		certificates := utils.ExpandStringSlice(certificate.([]interface{}))
+		certificates := helpers.ExpandStringSlice(certificate.([]interface{}))
 		if certificates != nil && len(*certificates) > 0 {
 			contract.Certificate = certificates
 		}
 	}
 	if headerRaw := v["header"]; headerRaw != nil {
-		header := expandApiManagementBackendCredentialsObject(headerRaw.(map[string]interface{}))
-		contract.Header = header
+		contract.Header = expandApiManagementBackendCredentialsObject(headerRaw.(map[string]interface{}))
 	}
 	if queryRaw := v["query"]; queryRaw != nil {
-		query := expandApiManagementBackendCredentialsObject(queryRaw.(map[string]interface{}))
-		contract.Query = query
+		contract.Query = expandApiManagementBackendCredentialsObject(queryRaw.(map[string]interface{}))
 	}
 	return &contract
 }
@@ -463,7 +552,7 @@ func expandApiManagementBackendProxy(input []interface{}) *backend.BackendProxyC
 	return &contract
 }
 
-func expandApiManagementBackendServiceFabricCluster(input []interface{}) (error, *backend.BackendServiceFabricClusterProperties) {
+func expandApiManagementBackendServiceFabricCluster(input []interface{}) (*backend.BackendServiceFabricClusterProperties, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -471,7 +560,7 @@ func expandApiManagementBackendServiceFabricCluster(input []interface{}) (error,
 	managementEndpoints := v["management_endpoints"].(*pluginsdk.Set).List()
 	maxPartitionResolutionRetries := int64(v["max_partition_resolution_retries"].(int))
 	properties := backend.BackendServiceFabricClusterProperties{
-		ManagementEndpoints:           pointer.From(utils.ExpandStringSlice(managementEndpoints)),
+		ManagementEndpoints:           pointer.From(helpers.ExpandStringSlice(managementEndpoints)),
 		MaxPartitionResolutionRetries: pointer.To(maxPartitionResolutionRetries),
 	}
 
@@ -484,13 +573,13 @@ func expandApiManagementBackendServiceFabricCluster(input []interface{}) (error,
 	}
 
 	if properties.ClientCertificateId == nil && properties.ClientCertificatethumbprint == nil {
-		return errors.New("at least one of `client_certificate_thumbprint` and `client_certificate_id` must be set"), nil
+		return nil, errors.New("at least one of `client_certificate_thumbprint` and `client_certificate_id` must be set")
 	}
 
 	serverCertificateThumbprintsUnset := true
 	serverX509NamesUnset := true
 	if serverCertificateThumbprints := v["server_certificate_thumbprints"]; serverCertificateThumbprints != nil {
-		properties.ServerCertificateThumbprints = utils.ExpandStringSlice(serverCertificateThumbprints.(*pluginsdk.Set).List())
+		properties.ServerCertificateThumbprints = helpers.ExpandStringSlice(serverCertificateThumbprints.(*pluginsdk.Set).List())
 		serverCertificateThumbprintsUnset = false
 	}
 	if serverX509Names := v["server_x509_name"]; serverX509Names != nil {
@@ -498,9 +587,9 @@ func expandApiManagementBackendServiceFabricCluster(input []interface{}) (error,
 		serverX509NamesUnset = false
 	}
 	if serverCertificateThumbprintsUnset && serverX509NamesUnset {
-		return errors.New("one of `server_certificate_thumbprints` or `server_x509_name` must be set"), nil
+		return nil, errors.New("one of `server_certificate_thumbprints` or `server_x509_name` must be set")
 	}
-	return nil, &properties
+	return &properties, nil
 }
 
 func expandApiManagementBackendServiceFabricClusterServerX509Names(input []interface{}) *[]backend.X509CertificateName {
@@ -529,6 +618,134 @@ func expandApiManagementBackendTls(input []interface{}) *backend.BackendTlsPrope
 		properties.ValidateCertificateName = pointer.To(validateCertificateName.(bool))
 	}
 	return &properties
+}
+
+func expandApiManagementBackendCircuitBreaker(input []interface{}) *backend.BackendCircuitBreaker {
+	if len(input) == 0 {
+		return nil
+	}
+
+	rules := make([]backend.CircuitBreakerRule, 0)
+
+	v := input[0].(map[string]interface{})
+	rule := backend.CircuitBreakerRule{
+		Name:             pointer.To(v["name"].(string)),
+		TripDuration:     pointer.To(v["trip_duration"].(string)),
+		FailureCondition: expandApiManagementBackendCircuitBreakerFailureCondition(v["failure_condition"].([]interface{})),
+	}
+
+	if acceptRetryAfter, ok := v["accept_retry_after_enabled"]; ok {
+		rule.AcceptRetryAfter = pointer.To(acceptRetryAfter.(bool))
+	}
+
+	rules = append(rules, rule)
+
+	return &backend.BackendCircuitBreaker{
+		Rules: &rules,
+	}
+}
+
+func expandApiManagementBackendCircuitBreakerFailureCondition(input []interface{}) *backend.CircuitBreakerFailureCondition {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	condition := backend.CircuitBreakerFailureCondition{
+		Interval: pointer.To(v["interval_duration"].(string)),
+	}
+
+	if count, ok := v["count"]; ok && count.(int) > 0 {
+		condition.Count = pointer.To(int64(count.(int)))
+	}
+
+	if percentage, ok := v["percentage"]; ok && percentage.(int) > 0 {
+		condition.Percentage = pointer.To(int64(percentage.(int)))
+	}
+
+	if statusCodeRanges, ok := v["status_code_range"]; ok {
+		ranges := statusCodeRanges.([]interface{})
+		if len(ranges) > 0 {
+			condition.StatusCodeRanges = expandApiManagementBackendCircuitBreakerStatusCodeRanges(ranges)
+		}
+	}
+
+	if errorReasons, ok := v["error_reasons"]; ok {
+		reasons := errorReasons.([]interface{})
+		if len(reasons) > 0 {
+			condition.ErrorReasons = helpers.ExpandStringSlice(reasons)
+		}
+	}
+
+	return &condition
+}
+
+func expandApiManagementBackendCircuitBreakerStatusCodeRanges(input []interface{}) *[]backend.FailureStatusCodeRange {
+	if len(input) == 0 {
+		return nil
+	}
+
+	codeRanges := make([]backend.FailureStatusCodeRange, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		codeRange := backend.FailureStatusCodeRange{
+			Max: pointer.To(int64(v["max"].(int))),
+			Min: pointer.To(int64(v["min"].(int))),
+		}
+		codeRanges = append(codeRanges, codeRange)
+	}
+
+	return &codeRanges
+}
+
+func flattenApiManagementBackendCircuitBreaker(input *backend.BackendCircuitBreaker) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil || input.Rules == nil {
+		return results
+	}
+
+	for _, rule := range *input.Rules {
+		result := make(map[string]interface{})
+		result["name"] = pointer.From(rule.Name)
+		result["trip_duration"] = pointer.From(rule.TripDuration)
+		result["accept_retry_after_enabled"] = pointer.From(rule.AcceptRetryAfter)
+		result["failure_condition"] = flattenApiManagementBackendCircuitBreakerFailureCondition(rule.FailureCondition)
+		results = append(results, result)
+	}
+
+	return results
+}
+
+func flattenApiManagementBackendCircuitBreakerStatusCodeRanges(input *[]backend.FailureStatusCodeRange) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil || len(*input) == 0 {
+		return results
+	}
+
+	for _, item := range *input {
+		result := make(map[string]interface{})
+		result["min"] = pointer.From(item.Min)
+		result["max"] = pointer.From(item.Max)
+		results = append(results, result)
+	}
+
+	return results
+}
+
+func flattenApiManagementBackendCircuitBreakerFailureCondition(input *backend.CircuitBreakerFailureCondition) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+	result := make(map[string]interface{})
+
+	result["count"] = pointer.From(input.Count)
+	result["percentage"] = pointer.From(input.Percentage)
+	result["interval_duration"] = pointer.From(input.Interval)
+	result["status_code_range"] = flattenApiManagementBackendCircuitBreakerStatusCodeRanges(input.StatusCodeRanges)
+	result["error_reasons"] = pointer.From(input.ErrorReasons)
+
+	return append(results, result)
 }
 
 func flattenApiManagementBackendCredentials(input *backend.BackendCredentialsContract) []interface{} {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse
@@ -11,14 +11,16 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSynapseWorkspaceKey() *pluginsdk.Resource {
@@ -44,7 +46,7 @@ func resourceSynapseWorkspaceKey() *pluginsdk.Resource {
 			"synapse_workspace_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.WorkspaceID,
+				ValidateFunc: validation.AsGeneratedID(workspaces.ParseWorkspaceIDInsensitively),
 			},
 
 			"customer_managed_key_name": {
@@ -55,7 +57,7 @@ func resourceSynapseWorkspaceKey() *pluginsdk.Resource {
 			"customer_managed_key_versionless_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: keyVaultValidate.VersionlessNestedItemId,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeKey),
 			},
 
 			"active": {
@@ -68,15 +70,18 @@ func resourceSynapseWorkspaceKey() *pluginsdk.Resource {
 
 func resourceSynapseWorkspaceKeysCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.KeysClient
-	// workspaceClient := meta.(*clients.Client).Synapse.WorkspaceClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	workspaceId, err := parse.WorkspaceID(d.Get("synapse_workspace_id").(string))
+	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+	workspaceId, err := workspaces.ParseWorkspaceIDInsensitively(d.Get("synapse_workspace_id").(string))
 	if err != nil {
 		return err
 	}
+
+	// TODO: import check?
 
 	key := d.Get("customer_managed_key_versionless_id")
 	keyName := d.Get("customer_managed_key_name").(string)
@@ -86,7 +91,7 @@ func resourceSynapseWorkspaceKeysCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	keyProperties := synapse.KeyProperties{
 		IsActiveCMK: &isActiveCMK,
-		KeyVaultURL: utils.String(key.(string)),
+		KeyVaultURL: pointer.To(key.(string)),
 	}
 
 	synapseKey := synapse.Key{
@@ -98,28 +103,30 @@ func resourceSynapseWorkspaceKeysCreateUpdate(d *pluginsdk.ResourceData, meta in
 		actualKeyName = keyName
 	}
 
-	locks.ByName(workspaceId.Name, "azurerm_synapse_workspace")
-	defer locks.UnlockByName(workspaceId.Name, "azurerm_synapse_workspace")
-	keyresult, err := client.CreateOrUpdate(ctx, workspaceId.ResourceGroup, workspaceId.Name, actualKeyName, synapseKey)
+	locks.ByName(workspaceId.WorkspaceName, "azurerm_synapse_workspace")
+	defer locks.UnlockByName(workspaceId.WorkspaceName, "azurerm_synapse_workspace")
+	keyresult, err := client.CreateOrUpdate(ctx, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, actualKeyName, synapseKey)
 	if err != nil {
-		return fmt.Errorf("creating Synapse Workspace Key %q (Workspace %q): %+v", workspaceId.Name, workspaceId.Name, err)
+		return fmt.Errorf("creating Synapse Workspace Key %q (Workspace %q): %+v", workspaceId.WorkspaceName, workspaceId.WorkspaceName, err)
 	}
 
 	if keyresult.ID == nil || *keyresult.ID == "" {
 		return fmt.Errorf("empty or nil ID returned for Synapse Key 'cmk'")
 	}
 
-	// If the state of the key in the response (from Azure) is not equal to the desired target state (from plan/config), we'll wait until that change is complete
-	if isActiveCMK != *keyresult.KeyProperties.IsActiveCMK {
-		updateWait := synapseKeysWaitForStateChange(ctx, meta, d.Timeout(pluginsdk.TimeoutUpdate), workspaceId.ResourceGroup, workspaceId.Name, actualKeyName, strconv.FormatBool(*keyresult.KeyProperties.IsActiveCMK), strconv.FormatBool(isActiveCMK))
-
-		if _, err := updateWait.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("waiting for Synapse Keys to finish updating '%q' (Workspace Group %q): %v", actualKeyName, workspaceId.Name, err)
-		}
+	if d.IsNewResource() {
+		id := parse.NewWorkspaceKeysID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, actualKeyName)
+		d.SetId(id.ID())
 	}
 
-	id := parse.NewWorkspaceKeysID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, actualKeyName)
-	d.SetId(id.ID())
+	// If the state of the key in the response (from Azure) is not equal to the desired target state (from plan/config), we'll wait until that change is complete
+	if isActiveCMK != *keyresult.IsActiveCMK {
+		updateWait := synapseKeysWaitForStateChange(ctx, meta, d.Timeout(pluginsdk.TimeoutUpdate), workspaceId.ResourceGroupName, workspaceId.WorkspaceName, actualKeyName, strconv.FormatBool(*keyresult.IsActiveCMK), strconv.FormatBool(isActiveCMK))
+
+		if _, err := updateWait.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("waiting for Synapse Keys to finish updating '%q' (Workspace Group %q): %v", actualKeyName, workspaceId.WorkspaceName, err)
+		}
+	}
 
 	return resourceSynapseWorkspaceKeyRead(d, meta)
 }
@@ -137,20 +144,20 @@ func resourceSynapseWorkspaceKeyRead(d *pluginsdk.ResourceData, meta interface{}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.KeyName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving Synapse Workspace Key %q (Workspace %q): %+v", id.KeyName, id.WorkspaceName, err)
 	}
 
-	workspaceID := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
+	workspaceID := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 
 	// Set the properties
 	d.Set("synapse_workspace_id", workspaceID.ID())
-	d.Set("active", resp.KeyProperties.IsActiveCMK)
+	d.Set("active", resp.IsActiveCMK)
 	d.Set("customer_managed_key_name", id.KeyName)
-	d.Set("customer_managed_key_versionless_id", resp.KeyProperties.KeyVaultURL)
+	d.Set("customer_managed_key_versionless_id", resp.KeyVaultURL)
 
 	return nil
 }
@@ -172,9 +179,8 @@ func resourceSynapseWorkspaceKeysDelete(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	// Azure only lets you delete keys that are not active
-	if !*keyresult.KeyProperties.IsActiveCMK {
-		_, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.KeyName)
-		if err != nil {
+	if !*keyresult.IsActiveCMK {
+		if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.KeyName); err != nil {
 			return fmt.Errorf("unable to delete key %s in workspace %s: %v", id.KeyName, id.WorkspaceName, err)
 		}
 	}
@@ -203,8 +209,8 @@ func synapseKeysRefresh(ctx context.Context, meta interface{}, resourceGroup str
 			return nil, "nil", fmt.Errorf("polling for the status of encryption key '%q' (Workspace %q): %v", keyName, workspaceName, err)
 		}
 
-		if resp.KeyProperties != nil && resp.KeyProperties.IsActiveCMK != nil {
-			return resp, strconv.FormatBool(*resp.KeyProperties.IsActiveCMK), nil
+		if resp.KeyProperties != nil && resp.IsActiveCMK != nil {
+			return resp, strconv.FormatBool(*resp.IsActiveCMK), nil
 		}
 
 		// I am not returning an error here as this might have just been a bad get

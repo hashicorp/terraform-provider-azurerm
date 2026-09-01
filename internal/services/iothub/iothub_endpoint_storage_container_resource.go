@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -22,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
@@ -150,6 +151,14 @@ func resourceIothubEndpointStorageContainerSchema() map[string]*pluginsdk.Schema
 				string(devices.EncodingJSON),
 			}, true),
 		},
+
+		"subscription_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C : required since this property would always be set even if it isn't specified in the tf config, otherwise it would cause a diff and break existing users
+			Computed:     true,
+			ValidateFunc: validation.IsUUID,
+		},
 	}
 }
 
@@ -176,7 +185,7 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 
 	iothub, err := client.Get(ctx, iotHubRG, iotHubName)
 	if err != nil {
-		if utils.ResponseWasNotFound(iothub.Response) {
+		if response.WasNotFound(iothub.Response.Response) {
 			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iotHubName, iotHubRG)
 		}
 
@@ -193,7 +202,6 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 	storageContainerEndpoint := devices.RoutingStorageContainerProperties{
 		AuthenticationType:      authenticationType,
 		Name:                    &id.EndpointName,
-		SubscriptionID:          &subscriptionID,
 		ResourceGroup:           &endpointRG,
 		ContainerName:           &containerName,
 		FileNameFormat:          &fileNameFormat,
@@ -202,22 +210,31 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 		Encoding:                devices.Encoding(encoding),
 	}
 
+	// To align with the previous TF behavior, `subscription_id` needs to be set with the provider's subscription Id when it isn't specified in the tf config, otherwise TF behavior is different than before and it may block the existing users
+	// From the business perspective, the raw config handling is only meant for the case that the user has an CosmosDB Account whose Endpoint's subscription is not the provider's one. Then the user wants to reset it to the provider's one by unset the subscription_id
+	// From the TF code perspective, given `Computed: true` is enabled, TF would always get the value from the last apply when this property isn't set in the tf config. So `d.GetRawConfig()` is required to determine if it's set in the tf config
+	if v := d.GetRawConfig().AsValueMap()["subscription_id"]; v.IsNull() {
+		storageContainerEndpoint.SubscriptionID = pointer.To(subscriptionID)
+	} else {
+		storageContainerEndpoint.SubscriptionID = pointer.To(d.Get("subscription_id").(string))
+	}
+
 	if authenticationType == devices.AuthenticationTypeKeyBased {
 		if v, ok := d.GetOk("connection_string"); ok {
-			storageContainerEndpoint.ConnectionString = utils.String(v.(string))
+			storageContainerEndpoint.ConnectionString = pointer.To(v.(string))
 		} else {
 			return fmt.Errorf("`connection_string` must be specified when `authentication_type` is `keyBased`")
 		}
 	} else {
 		if v, ok := d.GetOk("endpoint_uri"); ok {
-			storageContainerEndpoint.EndpointURI = utils.String(v.(string))
+			storageContainerEndpoint.EndpointURI = pointer.To(v.(string))
 		} else {
 			return fmt.Errorf("`endpoint_uri` must be specified when `authentication_type` is `identityBased`")
 		}
 
 		if v, ok := d.GetOk("identity_id"); ok {
 			storageContainerEndpoint.Identity = &devices.ManagedIdentity{
-				UserAssignedIdentity: utils.String(v.(string)),
+				UserAssignedIdentity: pointer.To(v.(string)),
 			}
 		}
 	}
@@ -244,7 +261,9 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 		if existingEndpointName := existingEndpoint.Name; existingEndpointName != nil {
 			if strings.EqualFold(*existingEndpointName, id.EndpointName) {
 				if d.IsNewResource() {
-					return tf.ImportAsExistsError("azurerm_iothub_endpoint_storage_container", id.ID())
+					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError("azurerm_iothub_endpoint_storage_container", id.ID())
+					}
 				}
 				endpoints = append(endpoints, storageContainerEndpoint)
 				alreadyExists = true
@@ -266,11 +285,11 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the completion of the creating/updating of %s: %+v", id, err)
 	}
-
-	d.SetId(id.ID())
 
 	return resourceIotHubEndpointStorageContainerRead(d, meta)
 }
@@ -287,7 +306,7 @@ func resourceIotHubEndpointStorageContainerRead(d *pluginsdk.ResourceData, meta 
 
 	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
-		if utils.ResponseWasNotFound(iothub.Response) {
+		if response.WasNotFound(iothub.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -317,6 +336,7 @@ func resourceIotHubEndpointStorageContainerRead(d *pluginsdk.ResourceData, meta 
 					d.Set("max_chunk_size_in_bytes", endpoint.MaxChunkSizeInBytes)
 					d.Set("encoding", endpoint.Encoding)
 					d.Set("resource_group_name", endpoint.ResourceGroup)
+					d.Set("subscription_id", pointer.From(endpoint.SubscriptionID))
 
 					authenticationType := string(devices.AuthenticationTypeKeyBased)
 					if string(endpoint.AuthenticationType) != "" {
@@ -324,17 +344,9 @@ func resourceIotHubEndpointStorageContainerRead(d *pluginsdk.ResourceData, meta 
 					}
 					d.Set("authentication_type", authenticationType)
 
-					connectionStr := ""
-					if endpoint.ConnectionString != nil {
-						connectionStr = *endpoint.ConnectionString
-					}
-					d.Set("connection_string", connectionStr)
+					d.Set("connection_string", pointer.From(endpoint.ConnectionString))
 
-					endpointUri := ""
-					if endpoint.EndpointURI != nil {
-						endpointUri = *endpoint.EndpointURI
-					}
-					d.Set("endpoint_uri", endpointUri)
+					d.Set("endpoint_uri", pointer.From(endpoint.EndpointURI))
 
 					identityId := ""
 					if endpoint.Identity != nil && endpoint.Identity.UserAssignedIdentity != nil {
@@ -368,7 +380,7 @@ func resourceIotHubEndpointStorageContainerDelete(d *pluginsdk.ResourceData, met
 
 	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
-		if utils.ResponseWasNotFound(iothub.Response) {
+		if response.WasNotFound(iothub.Response.Response) {
 			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", id.IotHubName, id.ResourceGroup)
 		}
 

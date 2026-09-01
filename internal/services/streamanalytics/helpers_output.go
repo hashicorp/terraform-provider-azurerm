@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -43,20 +43,15 @@ func schemaStreamAnalyticsOutputSerialization() *pluginsdk.Schema {
 				},
 
 				"encoding": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(outputs.EncodingUTFEight),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(outputs.PossibleValuesForEncoding(), false),
 				},
 
 				"format": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(outputs.JsonOutputSerializationFormatArray),
-						string(outputs.JsonOutputSerializationFormatLineSeparated),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(outputs.PossibleValuesForJsonOutputSerializationFormat(), false),
 				},
 			},
 		},
@@ -99,7 +94,7 @@ func expandStreamAnalyticsOutputSerialization(input []interface{}) (outputs.Seri
 		}
 		return outputs.CsvSerialization{
 			Properties: &outputs.CsvSerializationProperties{
-				Encoding:       pointer.To(outputs.Encoding(encoding)),
+				Encoding:       pointer.ToEnum[outputs.Encoding](encoding),
 				FieldDelimiter: pointer.To(fieldDelimiter),
 			},
 		}, nil
@@ -117,8 +112,8 @@ func expandStreamAnalyticsOutputSerialization(input []interface{}) (outputs.Seri
 
 		return outputs.JsonSerialization{
 			Properties: &outputs.JsonSerializationProperties{
-				Encoding: pointer.To(outputs.Encoding(encoding)),
-				Format:   pointer.To(outputs.JsonOutputSerializationFormat(format)),
+				Encoding: pointer.ToEnum[outputs.Encoding](encoding),
+				Format:   pointer.ToEnum[outputs.JsonOutputSerializationFormat](format),
 			},
 		}, nil
 
@@ -139,7 +134,7 @@ func expandStreamAnalyticsOutputSerialization(input []interface{}) (outputs.Seri
 		}, nil
 	}
 
-	return nil, fmt.Errorf("Unsupported Output Type %q", outputType)
+	return nil, fmt.Errorf("unsupported Output Type %q", outputType)
 }
 
 func flattenStreamAnalyticsOutputSerialization(input outputs.Serialization) []interface{} {

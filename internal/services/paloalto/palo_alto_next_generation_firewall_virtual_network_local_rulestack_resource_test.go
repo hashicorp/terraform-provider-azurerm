@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package paloalto_test
@@ -10,11 +10,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2023-09-01/firewalls"
+	firewalls "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -112,7 +111,7 @@ func (r NextGenerationFirewallVnetResource) Exists(ctx context.Context, client *
 		return nil, err
 	}
 
-	resp, err := client.PaloAlto.PaloAltoClient_v2023_09_01.Firewalls.Get(ctx, *id)
+	resp, err := client.PaloAlto.FirewallResources.FirewallsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil
@@ -124,34 +123,6 @@ func (r NextGenerationFirewallVnetResource) Exists(ctx context.Context, client *
 }
 
 func (r NextGenerationFirewallVnetResource) basic(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%[1]s
-
-resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack" "test" {
-  name                = "acctest-ngfwvn-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  rulestack_id        = azurerm_palo_alto_local_rulestack.test.id
-  plan_id             = "panw-cngfw-payg"
-
-  network_profile {
-    public_ip_address_ids = [azurerm_public_ip.test.id]
-
-    vnet_configuration {
-      virtual_network_id  = azurerm_virtual_network.test.id
-      trusted_subnet_id   = azurerm_subnet.test1.id
-      untrusted_subnet_id = azurerm_subnet.test2.id
-    }
-  }
-
-  depends_on = [azurerm_palo_alto_local_rulestack_rule.test]
-}
-`, r.template(data), data.RandomInteger)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -180,28 +151,6 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rules
 }
 
 func (r NextGenerationFirewallVnetResource) requiresImport(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack" "import" {
-  name                = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.name
-  resource_group_name = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.resource_group_name
-  rulestack_id        = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.rulestack_id
-  plan_id             = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.plan_id
-
-  network_profile {
-    public_ip_address_ids = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.network_profile.0.public_ip_address_ids
-
-    vnet_configuration {
-      virtual_network_id  = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.network_profile.0.vnet_configuration.0.virtual_network_id
-      trusted_subnet_id   = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.network_profile.0.vnet_configuration.0.trusted_subnet_id
-      untrusted_subnet_id = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.network_profile.0.vnet_configuration.0.untrusted_subnet_id
-    }
-  }
-}
-`, r.basic(data))
-	}
 	return fmt.Sprintf(`
 %[1]s
 

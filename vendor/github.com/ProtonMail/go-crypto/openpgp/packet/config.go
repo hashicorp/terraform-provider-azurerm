@@ -173,6 +173,28 @@ type Config struct {
 	// weaknesses in the hash algo, potentially hindering e.g. some chosen-prefix attacks.
 	// The default behavior, when the config or flag is nil, is to enable the feature.
 	NonDeterministicSignaturesViaNotation *bool
+
+	// InsecureAllowAllKeyFlagsWhenMissing determines how a key without valid key flags is handled.
+	// When set to true, a key without flags is treated as if all flags are enabled.
+	// This behavior is consistent with GPG.
+	InsecureAllowAllKeyFlagsWhenMissing bool
+	// InsecureGenerateNonCriticalKeyFlags causes the "Key Flags" signature subpacket
+	// to be non-critical in newly generated signatures.
+	// This may be needed for keys to be accepted by older clients who do not recognize
+	// the subpacket.
+	// For example, rpm 4.14.3-150400.59.3.1 in OpenSUSE Leap 15.4 does not recognize it.
+	InsecureGenerateNonCriticalKeyFlags bool
+	// InsecureGenerateNonCriticalSignatureCreationTime causes the "Signature Creation Time" signature subpacket
+	// to be non-critical in newly generated signatures.
+	// This may be needed for keys to be accepted by older clients who do not recognize
+	// the subpacket.
+	// For example, yum 3.4.3-168 in CentOS 7 and yum 3.4.3-158 in Amazon Linux 2 do not recognize it.
+	InsecureGenerateNonCriticalSignatureCreationTime bool
+
+	// MaxDecompressedMessageSize specifies the maximum number of bytes that can be
+	// read from a compressed packet. This serves as an upper limit to prevent
+	// excessively large decompressed messages.
+	MaxDecompressedMessageSize *int64
 }
 
 func (c *Config) Random() io.Reader {
@@ -401,6 +423,34 @@ func (c *Config) RandomizeSignaturesViaNotation() bool {
 		return true
 	}
 	return *c.NonDeterministicSignaturesViaNotation
+}
+
+func (c *Config) AllowAllKeyFlagsWhenMissing() bool {
+	if c == nil {
+		return false
+	}
+	return c.InsecureAllowAllKeyFlagsWhenMissing
+}
+
+func (c *Config) GenerateNonCriticalKeyFlags() bool {
+	if c == nil {
+		return false
+	}
+	return c.InsecureGenerateNonCriticalKeyFlags
+}
+
+func (c *Config) GenerateNonCriticalSignatureCreationTime() bool {
+	if c == nil {
+		return false
+	}
+	return c.InsecureGenerateNonCriticalSignatureCreationTime
+}
+
+func (c *Config) DecompressedMessageSizeLimit() *int64 {
+	if c == nil {
+		return nil
+	}
+	return c.MaxDecompressedMessageSize
 }
 
 // BoolPointer is a helper function to set a boolean pointer in the Config.

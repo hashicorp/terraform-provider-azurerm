@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package azuresdkhacks
@@ -53,12 +53,12 @@ func CreateSecurityCenterContact(ctx context.Context, client *security.ContactsC
 }
 
 func createResponder(resp *http.Response) (result security.Contact, err error) {
-	err = autorest.Respond(
+	if err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	if err != nil {
+		autorest.ByClosing(),
+	); err != nil {
 		return result, err
 	}
 	result.Response = autorest.Response{Response: resp}

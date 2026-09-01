@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package function
@@ -95,8 +95,7 @@ func (p ParseResourceIDFunction) Run(ctx context.Context, request function.RunRe
 		return
 	}
 
-	err = idType.FromParseResult(*parsed)
-	if err != nil {
+	if err = idType.FromParseResult(*parsed); err != nil {
 		response.Error = function.NewFuncError(fmt.Sprintf("Expanding Parsed Resource ID Error: %s", err))
 		return
 	}

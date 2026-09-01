@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid
@@ -15,12 +15,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/systemtopics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/systemtopics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	mgmtGroupValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -62,13 +64,13 @@ func resourceEventGridSystemTopic() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
-			// TODO: remove `_arm` in 4.0. Can we be more descriptive about /what/ this is?
-			"source_arm_resource_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+			"source_resource_id": {
+				Type:             pluginsdk.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.Any(
 					azure.ValidateResourceID,
 					mgmtGroupValidate.TenantScopedManagementGroupID,
@@ -82,8 +84,7 @@ func resourceEventGridSystemTopic() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			// TODO: remove `_arm` in 4.0. Can we be more descriptive about /what/ this is?
-			"metric_arm_resource_id": {
+			"metric_resource_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -101,41 +102,48 @@ func resourceEventGridSystemTopicCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	id := systemtopics.NewSystemTopicID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_eventgrid_system_topic", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_eventgrid_system_topic", id.ID())
+			}
 		}
 	}
 
 	systemTopic := systemtopics.SystemTopic{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &systemtopics.SystemTopicProperties{
-			Source:    pointer.To(d.Get("source_arm_resource_id").(string)),
+			Source:    pointer.To(d.Get("source_resource_id").(string)),
 			TopicType: pointer.To(d.Get("topic_type").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("identity"); ok {
-		identityRaw := v.([]interface{})
-		identity, err := identity.ExpandSystemAndUserAssignedMap(identityRaw)
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(v.([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
-		systemTopic.Identity = identity
+		systemTopic.Identity = expandedIdentity
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, systemTopic); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, systemTopic, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, systemTopic); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return resourceEventGridSystemTopicRead(d, meta)
 }
 
@@ -167,8 +175,8 @@ func resourceEventGridSystemTopicRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
-			d.Set("metric_arm_resource_id", props.MetricResourceId)
-			d.Set("source_arm_resource_id", props.Source)
+			d.Set("metric_resource_id", props.MetricResourceId)
+			d.Set("source_resource_id", props.Source)
 			d.Set("topic_type", props.TopicType)
 		}
 

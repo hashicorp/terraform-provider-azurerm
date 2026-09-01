@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/machinelearningcomputes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/machinelearningcomputes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type InferenceClusterResource struct{}
@@ -159,12 +159,12 @@ func (r InferenceClusterResource) Exists(ctx context.Context, client *clients.Cl
 	resp, err := inferenceClusterClient.ComputeGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Inference Cluster %q: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.Model.Properties != nil), nil
+	return pointer.To(resp.Model.Properties != nil), nil
 }
 
 func (r InferenceClusterResource) basic(data acceptance.TestData) string {
@@ -403,10 +403,11 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  name                       = "acctest%[3]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
 
   sku_name = "standard"
 
@@ -455,6 +456,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = join("", ["acctestaks", azurerm_resource_group.test.location])
   node_resource_group = "acctestRGAKS-%d"
 
+  node_provisioning_profile {
+    mode = "Manual"
+  }
+
   default_node_pool {
     name           = "default"
     node_count     = %d
@@ -502,14 +507,16 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[3]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  name                       = "acctest%[3]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
 
   sku_name = "standard"
 
-  purge_protection_enabled = true
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_storage_account" "test" {
@@ -556,6 +563,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   node_resource_group     = "acctestRGAKS-%d"
   private_cluster_enabled = true
   private_dns_zone_id     = "System"
+
+  node_provisioning_profile {
+    mode = "Manual"
+  }
 
   default_node_pool {
     name           = "default"

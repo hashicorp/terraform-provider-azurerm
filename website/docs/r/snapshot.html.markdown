@@ -37,7 +37,50 @@ resource "azurerm_snapshot" "example" {
 }
 ```
 
-## Argument Reference
+## Example Usage (Cross-Region Incremental Snapshot Copy)
+
+```hcl
+resource "azurerm_resource_group" "source" {
+  name     = "snapshot-source-rg"
+  location = "West Europe"
+}
+
+resource "azurerm_managed_disk" "source" {
+  name                 = "source-managed-disk"
+  location             = azurerm_resource_group.source.location
+  resource_group_name  = azurerm_resource_group.source.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "10"
+}
+
+resource "azurerm_snapshot" "source" {
+  name                = "source-snapshot"
+  location            = azurerm_resource_group.source.location
+  resource_group_name = azurerm_resource_group.source.name
+  create_option       = "Copy"
+  source_uri          = azurerm_managed_disk.source.id
+  incremental_enabled = true
+}
+
+resource "azurerm_resource_group" "target" {
+  name     = "snapshot-target-rg"
+  location = "North Europe"
+}
+
+resource "azurerm_snapshot" "target" {
+  name                          = "target-snapshot"
+  location                      = azurerm_resource_group.target.location
+  resource_group_name           = azurerm_resource_group.target.name
+  create_option                 = "CopyStart"
+  source_resource_id            = azurerm_snapshot.source.id
+  incremental_enabled           = true
+  public_network_access_enabled = false
+}
+
+```
+
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -47,13 +90,15 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `create_option` - (Required) Indicates how the snapshot is to be created. Possible values are `Copy` or `Import`. 
+* `create_option` - (Required) Indicates how the snapshot is to be created. Possible values are `Copy`, `CopyStart` or `Import`.
 
 ~> **Note:** One of `source_uri`, `source_resource_id` or `storage_account_id` must be specified.
 
+-> **Note:** When `create_option` is set to `CopyStart` the snapshot is created using a background copy operation (for example when copying an incremental snapshot across regions). Terraform waits for the copy to reach 100% completion before finishing the create.
+
 * `source_uri` - (Optional) Specifies the URI to a Managed or Unmanaged Disk. Changing this forces a new resource to be created.
 
-* `source_resource_id` - (Optional) Specifies a reference to an existing snapshot, when `create_option` is `Copy`. Changing this forces a new resource to be created.
+* `source_resource_id` - (Optional) Specifies a reference to an existing snapshot, when `create_option` is `Copy` or `CopyStart`. Changing this forces a new resource to be created.
 
 * `storage_account_id` - (Optional) Specifies the ID of an storage account. Used with `source_uri` to allow authorization during import of unmanaged blobs from a different subscription. Changing this forces a new resource to be created.
 
@@ -77,7 +122,7 @@ The following arguments are supported:
 
 The `encryption_settings` block supports:
 
-* `disk_encryption_key` - (Optional) A `disk_encryption_key` block as defined below.
+* `disk_encryption_key` - (Required) A `disk_encryption_key` block as defined below.
 
 * `key_encryption_key` - (Optional) A `key_encryption_key` block as defined below.
 
@@ -109,11 +154,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Snapshot.
-* `update` - (Defaults to 30 minutes) Used when updating the Snapshot.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Snapshot.
+* `update` - (Defaults to 30 minutes) Used when updating the Snapshot.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Snapshot.
 
 ## Import
@@ -123,3 +168,9 @@ Snapshots can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_snapshot.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/snapshots/snapshot1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Compute` - 2022-03-02

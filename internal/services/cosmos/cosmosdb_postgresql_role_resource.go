@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type CosmosDbPostgreSQLRoleResourceModel struct {
@@ -58,7 +59,7 @@ func (r CosmosDbPostgreSQLRoleResource) Arguments() map[string]*pluginsdk.Schema
 			Required:     true,
 			ForceNew:     true,
 			Sensitive:    true,
-			ValidateFunc: validate.RolePassword,
+			ValidateFunc: validation.StringLenBetween(8, 256),
 		},
 	}
 }
@@ -83,13 +84,16 @@ func (r CosmosDbPostgreSQLRoleResource) Create() sdk.ResourceFunc {
 			}
 
 			id := roles.NewRoleID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ServerGroupsv2Name, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := roles.Role{
@@ -98,7 +102,7 @@ func (r CosmosDbPostgreSQLRoleResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

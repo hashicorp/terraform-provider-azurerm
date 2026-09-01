@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning
@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/managednetwork"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/managednetwork"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -43,7 +43,7 @@ func (r WorkspaceNetworkOutboundRuleFqdn) IDValidationFunc() pluginsdk.SchemaVal
 }
 
 func (r WorkspaceNetworkOutboundRuleFqdn) Arguments() map[string]*pluginsdk.Schema {
-	arguments := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -64,7 +64,6 @@ func (r WorkspaceNetworkOutboundRuleFqdn) Arguments() map[string]*pluginsdk.Sche
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
-	return arguments
 }
 
 func (r WorkspaceNetworkOutboundRuleFqdn) Attributes() map[string]*pluginsdk.Schema {
@@ -88,14 +87,17 @@ func (r WorkspaceNetworkOutboundRuleFqdn) Create() sdk.ResourceFunc {
 				return err
 			}
 			id := managednetwork.NewOutboundRuleID(subscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, model.Name)
-			existing, err := client.SettingsRuleGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.SettingsRuleGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_machine_learning_workspace_network_outbound_rule_fqdn", id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError("azurerm_machine_learning_workspace_network_outbound_rule_fqdn", id.ID())
+				}
 			}
 
 			outboundRule := managednetwork.OutboundRuleBasicResource{
@@ -107,7 +109,7 @@ func (r WorkspaceNetworkOutboundRuleFqdn) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err = client.SettingsRuleCreateOrUpdateThenPoll(ctx, id, outboundRule); err != nil {
+			if err = client.SettingsRuleCreateOrUpdateCallbackThenPoll(ctx, id, outboundRule, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

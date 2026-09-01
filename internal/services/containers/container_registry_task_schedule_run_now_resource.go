@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -18,6 +18,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
+
+// TODO: Deprecate this resource in favour of an action
 
 type ContainerRegistryTaskScheduleResource struct{}
 
@@ -96,10 +98,9 @@ func (r ContainerRegistryTaskScheduleResource) Create() sdk.ResourceFunc {
 				// If the SDK didn't parse the response body, try parsing it on our side.
 				if scheduleResp.HttpResponse != nil {
 					scheduleRunModel := registries.Run{}
-					err = json.
+					if err = json.
 						NewDecoder(scheduleResp.HttpResponse.Body).
-						Decode(&scheduleRunModel)
-					if err != nil {
+						Decode(&scheduleRunModel); err != nil {
 						return fmt.Errorf("can't decode ScheduleRun model, err: %w for taskID %s", err, taskId)
 					}
 

@@ -1,38 +1,43 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/securitypolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/securitypolicies"
 	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCdnFrontDoorSecurityPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceCdnFrontdoorSecurityPolicyCreate,
 		Read:   resourceCdnFrontdoorSecurityPolicyRead,
+		Update: resourceCdnFrontdoorSecurityPolicyUpdate,
 		Delete: resourceCdnFrontdoorSecurityPolicyDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(4 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(4 * time.Hour),
+			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -45,20 +50,19 @@ func resourceCdnFrontDoorSecurityPolicy() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validate.FrontDoorSecurityPolicyName,
 			},
 
 			"cdn_frontdoor_profile_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FrontDoorProfileID,
+				ValidateFunc: profiles.ValidateProfileID,
 			},
 
 			"security_policies": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
-				ForceNew: true,
 				MaxItems: 1,
 
 				Elem: &pluginsdk.Resource{
@@ -66,7 +70,6 @@ func resourceCdnFrontDoorSecurityPolicy() *pluginsdk.Resource {
 						"firewall": {
 							Type:     pluginsdk.TypeList,
 							Required: true,
-							ForceNew: true,
 							MaxItems: 1,
 
 							Elem: &pluginsdk.Resource{
@@ -75,13 +78,12 @@ func resourceCdnFrontDoorSecurityPolicy() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ForceNew:     true,
-										ValidateFunc: validate.FrontDoorFirewallPolicyID,
+										ValidateFunc: waf.ValidateFrontDoorWebApplicationFirewallPolicyID,
 									},
 
 									"association": {
 										Type:     pluginsdk.TypeList,
 										Required: true,
-										ForceNew: true,
 										MaxItems: 1,
 
 										Elem: &pluginsdk.Resource{
@@ -90,16 +92,17 @@ func resourceCdnFrontDoorSecurityPolicy() *pluginsdk.Resource {
 												"domain": {
 													Type:     pluginsdk.TypeList,
 													Required: true,
-													ForceNew: true,
 													MaxItems: 500,
 
 													Elem: &pluginsdk.Resource{
 														Schema: map[string]*pluginsdk.Schema{
 															"cdn_frontdoor_domain_id": {
-																Type:         pluginsdk.TypeString,
-																Required:     true,
-																ForceNew:     true,
-																ValidateFunc: validate.FrontDoorSecurityPolicyDomainID,
+																Type:     pluginsdk.TypeString,
+																Required: true,
+																ValidateFunc: validation.Any(
+																	afddomains.ValidateCustomDomainID,
+																	afdendpoints.ValidateAfdEndpointID,
+																),
 															},
 
 															"active": {
@@ -151,15 +154,17 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 	securityPolicyName := d.Get("name").(string)
 	id := securitypolicies.NewSecurityPolicyID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.ProfileName, securityPolicyName)
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_security_policy", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_security_policy", id.ID())
+		}
 	}
 
 	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
@@ -171,15 +176,14 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 	profileModel := resp.Model
 
 	if profileModel == nil {
-		return fmt.Errorf("profileModel is 'nil'")
+		return errors.New("profileModel is 'nil'")
 	}
 
-	isStandardSku := true
-	if profileModel.Sku.Name != nil {
-		isStandardSku = strings.HasPrefix(strings.ToLower(string(pointer.From(profileModel.Sku.Name))), "standard")
+	if profileModel.Sku.Name == nil {
+		return errors.New("profileModel.Sku.Name is 'nil'")
 	}
 
-	params, err := expandCdnFrontdoorFirewallPolicyParameters(d.Get("security_policies").([]interface{}), isStandardSku)
+	params, err := expandCdnFrontdoorFirewallPolicyParameters(d.Get("security_policies").([]interface{}), strings.EqualFold(pointer.FromEnum(profileModel.Sku.Name), string(profiles.SkuNameStandardAzureFrontDoor)))
 	if err != nil {
 		return fmt.Errorf("expanding 'security_policies': %+v", err)
 	}
@@ -190,8 +194,7 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 		},
 	}
 
-	err = client.CreateThenPoll(ctx, id, props)
-	if err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, props, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -223,54 +226,74 @@ func resourceCdnFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta inte
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			if props.Parameters.SecurityPolicyPropertiesParameters().Type != securitypolicies.SecurityPolicyTypeWebApplicationFirewall {
-				return fmt.Errorf("'model.Properties.Parameters.Type' of %q is unexpected, want security policy 'Type' of 'WebApplicationFirewall': %s", props.Parameters.SecurityPolicyPropertiesParameters().Type, id)
+			securityPolicies, err := flattenCdnFrontDoorSecurityPolicyResource(props.Parameters)
+			if err != nil {
+				return fmt.Errorf("flattening `security_policies`: %+v", err)
 			}
 
-			// we know it's a firewall policy at this point,
-			// create the objects to hold the policy data
-			wafParams := props.Parameters.(securitypolicies.SecurityPolicyWebApplicationFirewallParameters)
-			associations := make([]interface{}, 0)
-			wafPolicyId := ""
-
-			if wafParams.WafPolicy != nil && wafParams.WafPolicy.Id != nil {
-				parsedId, err := waf.ParseFrontDoorWebApplicationFirewallPolicyIDInsensitively(*wafParams.WafPolicy.Id)
-				if err != nil {
-					return fmt.Errorf("flattening `cdn_frontdoor_firewall_policy_id`: %+v", err)
-				}
-				wafPolicyId = parsedId.ID()
+			if err := d.Set("security_policies", securityPolicies); err != nil {
+				return fmt.Errorf("setting `security_policies`: %+v", err)
 			}
-
-			if wafParams.Associations != nil {
-				for _, item := range *wafParams.Associations {
-					domain, err := flattenSecurityPoliciesActivatedResourceReference(item.Domains)
-					if err != nil {
-						return fmt.Errorf("flattening `ActivatedResourceReference`: %+v", err)
-					}
-
-					associations = append(associations, map[string]interface{}{
-						"domain":            domain,
-						"patterns_to_match": utils.FlattenStringSlice(item.PatternsToMatch),
-					})
-				}
-			}
-
-			securityPolicy := []interface{}{
-				map[string]interface{}{
-					"firewall": []interface{}{
-						map[string]interface{}{
-							"association":                      associations,
-							"cdn_frontdoor_firewall_policy_id": wafPolicyId,
-						},
-					},
-				},
-			}
-
-			d.Set("security_policies", securityPolicy)
 		}
 	}
 
 	return nil
+}
+
+func resourceCdnFrontdoorSecurityPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Cdn.FrontDoorSecurityPoliciesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	// NOTE: The profile id is used to retrieve properties from the related profile that must match in this security policy
+	profileId, err := profiles.ParseProfileID(d.Get("cdn_frontdoor_profile_id").(string))
+	if err != nil {
+		return err
+	}
+
+	securityPolicyName := d.Get("name").(string)
+	id := securitypolicies.NewSecurityPolicyID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.ProfileName, securityPolicyName)
+
+	existing, err := client.Get(ctx, id)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
+		}
+	}
+
+	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
+	resp, err := profileClient.Get(ctx, pointer.From(profileId))
+	if err != nil {
+		return fmt.Errorf("unable to retrieve the `sku_name` from %s: %+v", pointer.From(profileId), err)
+	}
+
+	profileModel := resp.Model
+
+	if profileModel == nil {
+		return errors.New("profileModel is 'nil'")
+	}
+
+	if profileModel.Sku.Name == nil {
+		return errors.New("profileModel.Sku.Name is 'nil'")
+	}
+
+	params, err := expandCdnFrontdoorFirewallPolicyParameters(d.Get("security_policies").([]interface{}), strings.EqualFold(pointer.FromEnum(profileModel.Sku.Name), string(profiles.SkuNameStandardAzureFrontDoor)))
+	if err != nil {
+		return fmt.Errorf("expanding 'security_policies': %+v", err)
+	}
+
+	props := securitypolicies.SecurityPolicy{
+		Properties: &securitypolicies.SecurityPolicyProperties{
+			Parameters: params,
+		},
+	}
+
+	// Using 'Create' for update because it is a PUT operation
+	if err = client.CreateThenPoll(ctx, id, props); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	return resourceCdnFrontdoorSecurityPolicyRead(d, meta)
 }
 
 func resourceCdnFrontdoorSecurityPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -283,9 +306,8 @@ func resourceCdnFrontdoorSecurityPolicyDelete(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, pointer.From(id))
-	if err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
+	if err = client.DeleteThenPoll(ctx, pointer.From(id)); err != nil {
+		return fmt.Errorf("deleting %s: %+v", pointer.From(id), err)
 	}
 
 	return nil
@@ -306,7 +328,7 @@ func expandCdnFrontdoorFirewallPolicyParameters(input []interface{}, isStandardS
 
 	if id := v["cdn_frontdoor_firewall_policy_id"].(string); id != "" {
 		results.WafPolicy = &securitypolicies.ResourceReference{
-			Id: utils.String(id),
+			Id: pointer.To(id),
 		}
 	}
 
@@ -315,20 +337,21 @@ func expandCdnFrontdoorFirewallPolicyParameters(input []interface{}, isStandardS
 	for _, item := range configAssociations {
 		v := item.(map[string]interface{})
 		domains := expandSecurityPoliciesActivatedResourceReference(v["domain"].([]interface{}))
+		domainCount := len(*domains)
 
 		if isStandardSku {
-			if len(*domains) > 100 {
-				return &results, fmt.Errorf("the 'Standard_AzureFrontDoor' sku is only allowed to have 100 or less domains associated with the firewall policy, got %d", len(*domains))
+			if domainCount > 100 {
+				return &results, fmt.Errorf("the 'Standard_AzureFrontDoor' sku is only allowed to have 100 or less domains associated with the firewall policy, got %d", domainCount)
 			}
 		} else {
-			if len(*domains) > 500 {
-				return &results, fmt.Errorf("the 'Premium_AzureFrontDoor' sku is only allowed to have 500 or less domains associated with the firewall policy, got %d", len(*domains))
+			if domainCount > 500 {
+				return &results, fmt.Errorf("the 'Premium_AzureFrontDoor' sku is only allowed to have 500 or less domains associated with the firewall policy, got %d", domainCount)
 			}
 		}
 
 		association := securitypolicies.SecurityPolicyWebApplicationFirewallAssociation{
 			Domains:         domains,
-			PatternsToMatch: utils.ExpandStringSlice(v["patterns_to_match"].([]interface{})),
+			PatternsToMatch: helpers.ExpandStringSlice(v["patterns_to_match"].([]interface{})),
 		}
 
 		associations = append(associations, association)
@@ -367,9 +390,9 @@ func flattenSecurityPoliciesActivatedResourceReference(input *[]securitypolicies
 	for _, item := range *input {
 		frontDoorDomainId := ""
 		if item.Id != nil {
-			if parsedFrontDoorCustomDomainId, frontDoorCustomDomainIdErr := parse.FrontDoorCustomDomainIDInsensitively(*item.Id); frontDoorCustomDomainIdErr == nil {
+			if parsedFrontDoorCustomDomainId, frontDoorCustomDomainIdErr := afddomains.ParseCustomDomainIDInsensitively(*item.Id); frontDoorCustomDomainIdErr == nil {
 				frontDoorDomainId = parsedFrontDoorCustomDomainId.ID()
-			} else if parsedFrontDoorEndpointId, frontDoorEndpointIdErr := parse.FrontDoorEndpointIDInsensitively(*item.Id); frontDoorEndpointIdErr == nil {
+			} else if parsedFrontDoorEndpointId, frontDoorEndpointIdErr := afdendpoints.ParseAfdEndpointIDInsensitively(*item.Id); frontDoorEndpointIdErr == nil {
 				frontDoorDomainId = parsedFrontDoorEndpointId.ID()
 			} else {
 				return nil, fmt.Errorf("flattening `cdn_frontdoor_domain_id`: %+v; %+v", frontDoorCustomDomainIdErr, frontDoorEndpointIdErr)
@@ -380,6 +403,53 @@ func flattenSecurityPoliciesActivatedResourceReference(input *[]securitypolicies
 			"active":                  pointer.From(item.IsActive),
 			"cdn_frontdoor_domain_id": frontDoorDomainId,
 		})
+	}
+
+	return results, nil
+}
+
+func flattenCdnFrontDoorSecurityPolicyResource(input securitypolicies.SecurityPolicyPropertiesParameters) ([]interface{}, error) {
+	results := make([]interface{}, 0)
+	if input.SecurityPolicyPropertiesParameters().Type != securitypolicies.SecurityPolicyTypeWebApplicationFirewall {
+		return results, fmt.Errorf("unexpected security policy `Type` %q, expected `WebApplicationFirewall`", input.SecurityPolicyPropertiesParameters().Type)
+	}
+
+	wafParams := input.(securitypolicies.SecurityPolicyWebApplicationFirewallParameters)
+	associations := make([]interface{}, 0)
+	wafPolicyId := ""
+
+	if wafParams.WafPolicy != nil {
+		parsedId, err := waf.ParseFrontDoorWebApplicationFirewallPolicyIDInsensitively(pointer.From(wafParams.WafPolicy.Id))
+		if err != nil {
+			return results, err
+		}
+
+		wafPolicyId = parsedId.ID()
+	}
+
+	if wafParams.Associations != nil {
+		for _, item := range *wafParams.Associations {
+			domain, err := flattenSecurityPoliciesActivatedResourceReference(item.Domains)
+			if err != nil {
+				return results, fmt.Errorf("flattening `domain`: %+v", err)
+			}
+
+			associations = append(associations, map[string]interface{}{
+				"domain":            domain,
+				"patterns_to_match": helpers.FlattenStringSlice(item.PatternsToMatch),
+			})
+		}
+	}
+
+	results = []interface{}{
+		map[string]interface{}{
+			"firewall": []interface{}{
+				map[string]interface{}{
+					"association":                      associations,
+					"cdn_frontdoor_firewall_policy_id": wafPolicyId,
+				},
+			},
+		},
 	}
 
 	return results, nil

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storagecache
@@ -13,10 +13,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/amlfilesystems"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/amlfilesystems"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagecache/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -32,6 +32,7 @@ type ManagedLustreFileSystemModel struct {
 	MaintenanceWindow   []MaintenanceWindow          `tfschema:"maintenance_window"`
 	MgsAddress          string                       `tfschema:"mgs_address"`
 	SkuName             string                       `tfschema:"sku_name"`
+	RootSquashSettings  []RootSquashSetting          `tfschema:"root_squash"`
 	StorageCapacityInTb int64                        `tfschema:"storage_capacity_in_tb"`
 	SubnetId            string                       `tfschema:"subnet_id"`
 	Zones               []string                     `tfschema:"zones"`
@@ -47,6 +48,13 @@ type HsmSetting struct {
 type EncryptionKey struct {
 	KeyURL        string `tfschema:"key_url"`
 	SourceVaultId string `tfschema:"source_vault_id"`
+}
+
+type RootSquashSetting struct {
+	Mode            string `tfschema:"mode"`
+	NoSquashNidList string `tfschema:"no_squash_nids"`
+	SquashGID       int64  `tfschema:"squash_gid"`
+	SquashUID       int64  `tfschema:"squash_uid"`
 }
 
 type MaintenanceWindow struct {
@@ -153,6 +161,40 @@ func (r ManagedLustreFileSystemResource) Arguments() map[string]*pluginsdk.Schem
 			},
 		},
 
+		"root_squash": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"mode": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(amlfilesystems.AmlFilesystemSquashModeAll),
+							string(amlfilesystems.AmlFilesystemSquashModeRootOnly),
+						}, false),
+					},
+					"no_squash_nids": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"squash_gid": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      0,
+						ValidateFunc: validation.IntAtLeast(1),
+					},
+					"squash_uid": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      0,
+						ValidateFunc: validation.IntAtLeast(1),
+					},
+				},
+			},
+		},
+
 		"sku_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -218,7 +260,7 @@ func (r ManagedLustreFileSystemResource) Arguments() map[string]*pluginsdk.Schem
 					"key_url": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: keyVaultValidate.NestedItemId,
+						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 					},
 
 					"source_vault_id": {
@@ -285,13 +327,15 @@ func (r ManagedLustreFileSystemResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := amlfilesystems.NewAmlFilesystemID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			identity, err := identity.ExpandUserAssignedMapFromModel(model.Identity)
@@ -316,11 +360,15 @@ func (r ManagedLustreFileSystemResource) Create() sdk.ResourceFunc {
 				Tags:  pointer.To(model.Tags),
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
+			if model.RootSquashSettings != nil {
+				properties.Properties.RootSquashSettings = expandRootSquashSettings(model.RootSquashSettings)
 			}
 
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, *properties, metadata.SetIDCallback(&id)); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -352,6 +400,10 @@ func (r ManagedLustreFileSystemResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("encryption_key") {
 				properties.Properties.EncryptionSettings = expandManagedLustreFileSystemEncryptionKey(model.EncryptionKey)
+			}
+
+			if metadata.ResourceData.HasChange("root_squash") {
+				properties.Properties.RootSquashSettings = expandRootSquashSettings(model.RootSquashSettings)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -410,6 +462,7 @@ func (r ManagedLustreFileSystemResource) Read() sdk.ResourceFunc {
 					state.HsmSetting = flattenManagedLustreFileSystemHsmSetting(properties.Hsm)
 					state.Zones = pointer.From(model.Zones)
 					state.EncryptionKey = flattenManagedLustreFileSystemEncryptionKey(properties.EncryptionSettings)
+					state.RootSquashSettings = flattenRootSquashSettings(properties.RootSquashSettings)
 
 					if v := model.Sku; v != nil {
 						state.SkuName = pointer.From(v.Name)
@@ -492,6 +545,38 @@ func expandManagedLustreFileSystemEncryptionKey(input []EncryptionKey) *amlfiles
 	return &amlfilesystems.AmlFilesystemEncryptionSettings{
 		KeyEncryptionKey: result,
 	}
+}
+
+func expandRootSquashSettings(input []RootSquashSetting) *amlfilesystems.AmlFilesystemRootSquashSettings {
+	if len(input) == 0 {
+		return &amlfilesystems.AmlFilesystemRootSquashSettings{
+			Mode: pointer.To(amlfilesystems.AmlFilesystemSquashModeNone),
+		}
+	}
+
+	rootSquashSetting := &input[0]
+
+	return &amlfilesystems.AmlFilesystemRootSquashSettings{
+		Mode:             pointer.ToEnum[amlfilesystems.AmlFilesystemSquashMode](rootSquashSetting.Mode),
+		NoSquashNidLists: pointer.To(rootSquashSetting.NoSquashNidList),
+		SquashGID:        pointer.To(rootSquashSetting.SquashGID),
+		SquashUID:        pointer.To(rootSquashSetting.SquashUID),
+	}
+}
+
+func flattenRootSquashSettings(input *amlfilesystems.AmlFilesystemRootSquashSettings) []RootSquashSetting {
+	result := make([]RootSquashSetting, 0)
+	if input == nil || pointer.From(input.Mode) == amlfilesystems.AmlFilesystemSquashModeNone {
+		return nil
+	}
+
+	rootSquashSetting := RootSquashSetting{
+		Mode:            pointer.FromEnum(input.Mode),
+		NoSquashNidList: pointer.From(input.NoSquashNidLists),
+		SquashGID:       pointer.From(input.SquashGID),
+		SquashUID:       pointer.From(input.SquashUID),
+	}
+	return append(result, rootSquashSetting)
 }
 
 func flattenManagedLustreFileSystemEncryptionKey(input *amlfilesystems.AmlFilesystemEncryptionSettings) []EncryptionKey {

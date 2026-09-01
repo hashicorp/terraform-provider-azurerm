@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -8,22 +8,22 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 func resourceSpringCloudBuildServiceBuilder() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		DeprecationMessage: features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_builder` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."),
+		DeprecationMessage: "Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_builder` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.",
 
 		Create: resourceSpringCloudBuildServiceBuilderCreateUpdate,
 		Read:   resourceSpringCloudBuildServiceBuilderRead,
@@ -123,14 +123,16 @@ func resourceSpringCloudBuildServiceBuilderCreateUpdate(d *pluginsdk.ResourceDat
 	id := parse.NewSpringCloudBuildServiceBuilderID(subscriptionId, springId.ResourceGroup, springId.SpringName, "default", d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.BuildServiceName, id.BuilderName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.BuildServiceName, id.BuilderName)
+			if err != nil {
+				if !response.WasNotFound(existing.Response.Response) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_spring_cloud_builder", id.ID())
+			if !response.WasNotFound(existing.Response.Response) {
+				return tf.ImportAsExistsError("azurerm_spring_cloud_builder", id.ID())
+			}
 		}
 	}
 
@@ -145,11 +147,12 @@ func resourceSpringCloudBuildServiceBuilderCreateUpdate(d *pluginsdk.ResourceDat
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceSpringCloudBuildServiceBuilderRead(d, meta)
 }
 
@@ -165,7 +168,7 @@ func resourceSpringCloudBuildServiceBuilderRead(d *pluginsdk.ResourceData, meta 
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.BuildServiceName, id.BuilderName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] appplatform %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -212,7 +215,7 @@ func expandBuildServiceBuilderBuildPacksGroupPropertiesArray(input []interface{}
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		results = append(results, appplatform.BuildpacksGroupProperties{
-			Name:       utils.String(v["name"].(string)),
+			Name:       pointer.To(v["name"].(string)),
 			Buildpacks: expandBuildServiceBuilderBuildPackPropertiesArray(v["build_pack_ids"].([]interface{})),
 		})
 	}
@@ -225,8 +228,8 @@ func expandBuildServiceBuilderStackProperties(input []interface{}) *appplatform.
 	}
 	v := input[0].(map[string]interface{})
 	return &appplatform.StackProperties{
-		ID:      utils.String(v["id"].(string)),
-		Version: utils.String(v["version"].(string)),
+		ID:      pointer.To(v["id"].(string)),
+		Version: pointer.To(v["version"].(string)),
 	}
 }
 
@@ -234,7 +237,7 @@ func expandBuildServiceBuilderBuildPackPropertiesArray(input []interface{}) *[]a
 	results := make([]appplatform.BuildpackProperties, 0)
 	for _, item := range input {
 		results = append(results, appplatform.BuildpackProperties{
-			ID: utils.String(item.(string)),
+			ID: pointer.To(item.(string)),
 		})
 	}
 	return &results
@@ -247,12 +250,8 @@ func flattenBuildServiceBuilderBuildPacksGroupPropertiesArray(input *[]appplatfo
 	}
 
 	for _, item := range *input {
-		var name string
-		if item.Name != nil {
-			name = *item.Name
-		}
 		results = append(results, map[string]interface{}{
-			"name":           name,
+			"name":           pointer.From(item.Name),
 			"build_pack_ids": flattenBuildServiceBuilderBuildPackPropertiesArray(item.Buildpacks),
 		})
 	}
@@ -264,18 +263,10 @@ func flattenBuildServiceBuilderStackProperties(input *appplatform.StackPropertie
 		return make([]interface{}, 0)
 	}
 
-	var id string
-	if input.ID != nil {
-		id = *input.ID
-	}
-	var version string
-	if input.Version != nil {
-		version = *input.Version
-	}
 	return []interface{}{
 		map[string]interface{}{
-			"id":      id,
-			"version": version,
+			"id":      pointer.From(input.ID),
+			"version": pointer.From(input.Version),
 		},
 	}
 }
@@ -287,11 +278,7 @@ func flattenBuildServiceBuilderBuildPackPropertiesArray(input *[]appplatform.Bui
 	}
 
 	for _, item := range *input {
-		var id string
-		if item.ID != nil {
-			id = *item.ID
-		}
-		results = append(results, id)
+		results = append(results, pointer.From(item.ID))
 	}
 	return results
 }

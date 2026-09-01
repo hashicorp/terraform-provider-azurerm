@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -154,7 +154,7 @@ func policyDefinitionReadFunc(builtInOnly bool) func(d *pluginsdk.ResourceData, 
 			d.Set("metadata", metadataStr)
 		}
 
-		if parametersStr, err := flattenParameterDefinitionsValueToString(policyDefinition.Parameters); err == nil {
+		if parametersStr, err := flattenParameterDefinitionsValueToStringTrack1(policyDefinition.Parameters); err == nil {
 			d.Set("parameters", parametersStr)
 		} else {
 			return fmt.Errorf("failed to flatten Policy Parameters %q: %+v", name, err)
