@@ -62,12 +62,9 @@ func resourceArmManagementGroupPolicyExemption() *pluginsdk.Resource {
 			},
 
 			"exemption_category": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(policy.ExemptionCategoryMitigated),
-					string(policy.ExemptionCategoryWaiver),
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInEnumSlice(policy.PossibleExemptionCategoryValues(), false),
 			},
 
 			"policy_assignment_id": {
