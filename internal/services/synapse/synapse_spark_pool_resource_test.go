@@ -29,7 +29,8 @@ func TestAccSynapseSparkPool_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		// not returned by service
+		data.ImportStep("spark_events_folder", "spark_log_folder"),
 	})
 }
 

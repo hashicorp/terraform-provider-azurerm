@@ -455,7 +455,7 @@ func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta interface{})
 		props.DefaultSparkLogFolder = pointer.To(d.Get("spark_log_folder").(string))
 	}
 
-	if d.HasChange("library_requirements") {
+	if d.HasChange("library_requirement") {
 		props.LibraryRequirements = expandSynapseSparkPoolLibraryRequirements(d.Get("library_requirement").([]interface{}))
 	}
 
