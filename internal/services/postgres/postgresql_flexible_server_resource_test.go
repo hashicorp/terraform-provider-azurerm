@@ -419,9 +419,6 @@ func TestAccPostgresqlFlexibleServer_replica(t *testing.T) {
 func TestAccPostgresqlFlexibleServer_replicaWithCluster(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
-
-	t.Skip("skipping as elastic cluster support requires a subscription with cluster feature enabled and is region-restricted")
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cluster(data, 2),
