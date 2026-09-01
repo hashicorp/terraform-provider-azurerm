@@ -218,13 +218,10 @@ func (s SpringCloudCustomizedAcceleratorResource) Arguments() map[string]*schema
 		},
 
 		"accelerator_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  appplatform.CustomizedAcceleratorTypeAccelerator,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(appplatform.CustomizedAcceleratorTypeAccelerator),
-				string(appplatform.CustomizedAcceleratorTypeFragment),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      appplatform.CustomizedAcceleratorTypeAccelerator,
+			ValidateFunc: validation.StringInSlice(appplatform.PossibleValuesForCustomizedAcceleratorType(), false),
 		},
 
 		"description": {

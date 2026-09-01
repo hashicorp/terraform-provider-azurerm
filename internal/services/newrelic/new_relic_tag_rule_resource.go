@@ -82,12 +82,9 @@ func (r NewRelicTagRuleResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"action": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(tagrules.TagActionExclude),
-							string(tagrules.TagActionInclude),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(tagrules.PossibleValuesForTagAction(), false),
 					},
 
 					"value": {
@@ -116,12 +113,9 @@ func (r NewRelicTagRuleResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"action": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(tagrules.TagActionExclude),
-							string(tagrules.TagActionInclude),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(tagrules.PossibleValuesForTagAction(), false),
 					},
 
 					"value": {

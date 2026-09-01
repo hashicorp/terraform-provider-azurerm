@@ -11,19 +11,20 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-02-01/templatespecversions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/deployments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func subscriptionTemplateDeploymentResource() *pluginsdk.Resource {
@@ -33,8 +34,15 @@ func subscriptionTemplateDeploymentResource() *pluginsdk.Resource {
 		Update: subscriptionTemplateDeploymentResourceUpdate,
 		Delete: subscriptionTemplateDeploymentResourceDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SubscriptionTemplateDeploymentID(id)
+			_, err := deployments.ParseProviderDeploymentID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			// v0 -> v1 normalises the casing of IDs imported while this resource parsed them with the
+			// case-insensitive legacy parser, so they can be parsed with the case-sensitive SDK parser
+			0: migration.SubscriptionTemplateDeploymentV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -111,17 +119,17 @@ func subscriptionTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewSubscriptionTemplateDeploymentID(subscriptionId, d.Get("name").(string))
+	id := deployments.NewProviderDeploymentID(subscriptionId, d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.GetAtSubscriptionScope(ctx, id.DeploymentName)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of existing Subscription Template Deployment %q: %+v", id.DeploymentName, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_subscription_template_deployment", id.ID())
 		}
 	}
@@ -184,7 +192,7 @@ func subscriptionTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SubscriptionTemplateDeploymentID(d.Id())
+	id, err := deployments.ParseProviderDeploymentID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -273,14 +281,14 @@ func subscriptionTemplateDeploymentResourceRead(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SubscriptionTemplateDeploymentID(d.Id())
+	id, err := deployments.ParseProviderDeploymentID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resp, err := client.GetAtSubscriptionScope(ctx, id.DeploymentName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[DEBUG] Subscription Template Deployment %q was not found - removing from state", id.DeploymentName)
 			d.SetId("")
 			return nil
@@ -336,7 +344,7 @@ func subscriptionTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SubscriptionTemplateDeploymentID(d.Id())
+	id, err := deployments.ParseProviderDeploymentID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -357,7 +365,7 @@ func subscriptionTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func validateSubscriptionTemplateDeployment(ctx context.Context, id parse.SubscriptionTemplateDeploymentId, deployment resources.Deployment, client *resources.DeploymentsClient) error {
+func validateSubscriptionTemplateDeployment(ctx context.Context, id deployments.ProviderDeploymentId, deployment resources.Deployment, client *resources.DeploymentsClient) error {
 	validationFuture, err := client.ValidateAtSubscriptionScope(ctx, id.DeploymentName, deployment)
 	if err != nil {
 		return fmt.Errorf("requesting validating: %+v", err)

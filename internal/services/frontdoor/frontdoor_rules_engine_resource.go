@@ -185,13 +185,9 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"header_action_type": {
-													Type: pluginsdk.TypeString,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(frontdoors.HeaderActionTypeAppend),
-														string(frontdoors.HeaderActionTypeDelete),
-														string(frontdoors.HeaderActionTypeOverwrite),
-													}, false),
-													Optional: true,
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.StringInSlice(frontdoors.PossibleValuesForHeaderActionType(), false),
+													Optional:     true,
 												},
 
 												"header_name": {
@@ -216,13 +212,9 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"header_action_type": {
-													Type: pluginsdk.TypeString,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(frontdoors.HeaderActionTypeAppend),
-														string(frontdoors.HeaderActionTypeDelete),
-														string(frontdoors.HeaderActionTypeOverwrite),
-													}, false),
-													Optional: true,
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.StringInSlice(frontdoors.PossibleValuesForHeaderActionType(), false),
+													Optional:     true,
 												},
 
 												"header_name": {

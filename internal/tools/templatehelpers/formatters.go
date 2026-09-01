@@ -21,6 +21,7 @@ var TplFuncMap = template.FuncMap{
 	"ToLower":                        strings.ToLower,
 	"ToTitle":                        ToTitle,
 	"ToCamel":                        strcase.ToCamel,
+	"ToQuotedCommaSeparated":         ToQuotedCommaSeparated,
 	"ToSnake":                        pluginsdk.ToSnakeCase,
 	"TfName":                         TerraformResourceName,
 	"ToString":                       ToString,
@@ -147,4 +148,13 @@ func QuoteIfNeeded(input string) string {
 	}
 
 	return input
+}
+
+func ToQuotedCommaSeparated(input []string) string {
+	quoted := make([]string, 0, len(input))
+	for _, v := range input {
+		quoted = append(quoted, fmt.Sprintf("\"%s\"", v))
+	}
+
+	return strings.Join(quoted, ",")
 }

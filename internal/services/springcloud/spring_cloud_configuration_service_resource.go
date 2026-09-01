@@ -78,12 +78,9 @@ func (s SpringCloudConfigurationServiceResource) Arguments() map[string]*schema.
 		},
 
 		"generation": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(appplatform.ConfigurationServiceGenerationGenOne),
-				string(appplatform.ConfigurationServiceGenerationGenTwo),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(appplatform.PossibleValuesForConfigurationServiceGeneration(), false),
 		},
 
 		"refresh_interval_in_seconds": {

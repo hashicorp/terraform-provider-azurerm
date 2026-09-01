@@ -28,7 +28,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
@@ -264,7 +263,7 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 				kv, err := client.GetKeyValue(ctx, featureKey, model.Label, "", "", "", []appconfiguration.KeyValueFields{})
 				if err != nil {
 					if v, ok := err.(autorest.DetailedError); ok {
-						if !utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
+						if !response.WasNotFound(v.Response) {
 							return fmt.Errorf("got http status code %d while checking for key's %q existence: %+v", v.Response.StatusCode, featureKey, v.Error())
 						}
 					} else {

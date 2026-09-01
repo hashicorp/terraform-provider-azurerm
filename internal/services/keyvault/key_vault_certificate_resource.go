@@ -31,7 +31,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -489,7 +488,7 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.GetCertificate(ctx, *keyVaultBaseUrl, name, "")
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of existing Certificate %q in %s: %s", name, *keyVaultBaseUrl, err)
 			}
 		}
@@ -517,7 +516,7 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 		}
 		newCert, err = client.ImportCertificate(ctx, *keyVaultBaseUrl, name, importParameters)
 		if err != nil {
-			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && utils.ResponseWasConflict(newCert.Response) {
+			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && response.WasConflict(newCert.Response.Response) {
 				if err = recoverDeletedCertificate(ctx, d, meta, *keyVaultBaseUrl, name); err != nil {
 					return fmt.Errorf("recover deleted certificate: %+v", err)
 				}
@@ -533,7 +532,7 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 		// Generate new
 		newCert, err = createCertificate(d, meta)
 		if err != nil {
-			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && utils.ResponseWasConflict(newCert.Response) {
+			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && response.WasConflict(newCert.Response.Response) {
 				if err = recoverDeletedCertificate(ctx, d, meta, *keyVaultBaseUrl, name); err != nil {
 					return fmt.Errorf("recover deleted certificate: %+v", err)
 				}
@@ -746,7 +745,7 @@ func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface{}
 
 	cert, err := client.GetCertificate(ctx, id.KeyVaultBaseURL, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(cert.Response) {
+		if response.WasNotFound(cert.Response.Response) {
 			log.Printf("[DEBUG] Certificate %q was not found in Key Vault at URI %q - removing from state", id.Name, id.KeyVaultBaseURL)
 			d.SetId("")
 			return nil

@@ -90,13 +90,10 @@ func (StackHCIVirtualHardDiskResource) Arguments() map[string]*pluginsdk.Schema 
 		},
 
 		"disk_file_format": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(virtualharddisks.DiskFileFormatVhd),
-				string(virtualharddisks.DiskFileFormatVhdx),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(virtualharddisks.PossibleValuesForDiskFileFormat(), false),
 		},
 
 		"dynamic_enabled": {
@@ -107,13 +104,10 @@ func (StackHCIVirtualHardDiskResource) Arguments() map[string]*pluginsdk.Schema 
 		},
 
 		"hyperv_generation": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(virtualharddisks.HyperVGenerationVOne),
-				string(virtualharddisks.HyperVGenerationVTwo),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(virtualharddisks.PossibleValuesForHyperVGeneration(), false),
 		},
 
 		"logical_sector_in_bytes": {

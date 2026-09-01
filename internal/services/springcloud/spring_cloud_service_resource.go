@@ -26,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
@@ -449,11 +448,11 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_spring_cloud_service", id.ID())
 		}
 	}
@@ -716,7 +715,7 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] Spring Cloud Service %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -732,12 +731,12 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 	serviceRegistryEnabled := true
 	serviceRegistry, err := serviceRegistryClient.Get(ctx, id.ResourceGroup, id.SpringName, "default")
 	if err != nil {
-		if !utils.ResponseWasNotFound(serviceRegistry.Response) {
+		if !response.WasNotFound(serviceRegistry.Response.Response) {
 			return fmt.Errorf("retrieving service registry of %s: %+v", id, err)
 		}
 		serviceRegistryEnabled = false
 	}
-	if utils.ResponseWasNotFound(serviceRegistry.Response) {
+	if response.WasNotFound(serviceRegistry.Response.Response) {
 		serviceRegistryEnabled = false
 	}
 

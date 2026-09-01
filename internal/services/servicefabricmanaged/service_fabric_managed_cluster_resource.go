@@ -206,26 +206,19 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"lb_rule": lbRulesSchema(),
 		"sku": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "Basic",
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(managedcluster.SkuNameBasic),
-				string(managedcluster.SkuNameStandard),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      "Basic",
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(managedcluster.PossibleValuesForSkuName(), false),
 		},
 		"subnet_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.SubnetId{}),
 		"tags":      commonschema.Tags(),
 		"upgrade_wave": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  managedcluster.ClusterUpgradeCadenceWaveZero,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(managedcluster.ClusterUpgradeCadenceWaveZero),
-				string(managedcluster.ClusterUpgradeCadenceWaveOne),
-				string(managedcluster.ClusterUpgradeCadenceWaveTwo),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      managedcluster.ClusterUpgradeCadenceWaveZero,
+			ValidateFunc: validation.StringInSlice(managedcluster.PossibleValuesForClusterUpgradeCadence(), false),
 		},
 	}
 }
@@ -1004,14 +997,10 @@ func nodeTypeSchema() *pluginsdk.Schema {
 					},
 				},
 				"data_disk_type": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(nodetype.DiskTypeStandardLRS),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(nodetype.DiskTypeStandardLRS),
-						string(nodetype.DiskTypeStandardSSDLRS),
-						string(nodetype.DiskTypePremiumLRS),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(nodetype.DiskTypeStandardLRS),
+					ValidateFunc: validation.StringInSlice(nodetype.PossibleValuesForDiskType(), false),
 				},
 				"ephemeral_port_range": {
 					Type:     pluginsdk.TypeString,
@@ -1136,13 +1125,9 @@ func lbRulesSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.IntBetween(1, 65535),
 				},
 				"probe_protocol": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(managedcluster.ProbeProtocolHTTP),
-						string(managedcluster.ProbeProtocolHTTPS),
-						string(managedcluster.ProbeProtocolTcp),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(managedcluster.PossibleValuesForProbeProtocol(), false),
 				},
 				"probe_request_path": {
 					Type:         pluginsdk.TypeString,
@@ -1150,12 +1135,9 @@ func lbRulesSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotWhiteSpace,
 				},
 				"protocol": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(managedcluster.ProtocolTcp),
-						string(managedcluster.ProtocolUdp),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(managedcluster.PossibleValuesForProtocol(), false),
 				},
 			},
 		},

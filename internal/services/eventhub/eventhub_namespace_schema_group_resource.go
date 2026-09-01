@@ -51,14 +51,10 @@ func resourceEventHubNamespaceSchemaRegistry() *pluginsdk.Resource {
 			},
 
 			"schema_compatibility": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(schemaregistry.SchemaCompatibilityNone),
-					string(schemaregistry.SchemaCompatibilityBackward),
-					string(schemaregistry.SchemaCompatibilityForward),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(schemaregistry.PossibleValuesForSchemaCompatibility(), false),
 			},
 
 			"schema_type": {
