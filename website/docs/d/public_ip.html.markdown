@@ -116,7 +116,7 @@ output "public_ip_address" {
 * `public_ip_prefix_id` - If specified then public IP address allocated will be provided from the public IP prefix resource. 
 * `reverse_fqdn` - The fully qualified domain name that resolves to this public IP address.
 * `sku` - The SKU of the Public IP.
-* `sku_tier` - The SKU Tier that should be used for the Public IP. Possible values are `Regional` and `Global`. Defaults to `Regional`. Changing this forces a new resource to be created.
+* `sku_tier` - The SKU Tier that is used for the Public IP. 
 * `ip_tags` - A mapping of tags to assigned to the resource.
 * `tags` - A mapping of tags to assigned to the resource.
 * `zones` - A list of Availability Zones in which this Public IP is located.
