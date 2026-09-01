@@ -539,10 +539,15 @@ func resourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceMonitorActionGroupFlatten(d, id, resp.Model)
+}
+
+func resourceMonitorActionGroupFlatten(d *pluginsdk.ResourceData, id *actiongroupsapis.ActionGroupId, model *actiongroupsapis.ActionGroupResource) error {
+	var err error
 	d.Set("name", id.ActionGroupName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
