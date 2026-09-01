@@ -11,6 +11,9 @@ ENHANCEMENTS:
 * dependencies: `azurerm_mongo_cluster_user` - update API version to `2026-06-01` [GH-33195]
 * Data Source: `azurerm_api_management_workspace` - export the `description` property [GH-33205]
 * `azurerm_postgresql_flexible_server` - add support for the `storage_type`, `storage_iops`, and `storage_throughput` properties which allows choice of the new "Premium V2 LRS" storage type [GH-32121]
+* `azurerm_netapp_volume` - support for the `breakthrough_mode_enabled` property [GH-33215]
+* dependencies: `netapp` - update API version to `2026-05-01` [GH-33215]
+
 
 FEATURES:
 * **New List Resource**: `application_insights_workbook_template` [GH-33245]
