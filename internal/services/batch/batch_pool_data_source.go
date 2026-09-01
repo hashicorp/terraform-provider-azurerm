@@ -789,7 +789,6 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("vm_size", props.VMSize)
 			d.Set("inter_node_communication", string(pointer.From(props.InterNodeCommunication)))
 			d.Set("max_tasks_per_node", props.TaskSlotsPerNode)
-			d.Set("inter_node_communication", string(pointer.From(props.InterNodeCommunication)))
 			d.Set("target_node_communication_mode", string(pointer.From(props.TargetNodeCommunicationMode)))
 
 			if scaleSettings := props.ScaleSettings; scaleSettings != nil {
