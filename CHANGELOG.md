@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 FEATURES:
+* **New List Resource**: `dedicated_host_group` [GH-33257]
 
 BUG FIXES:
 
