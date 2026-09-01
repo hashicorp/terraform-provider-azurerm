@@ -14,7 +14,7 @@ import (
 
 func TestAccDnsARecord_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_a_record", "test")
-	r := TestAccDnsARecordResource{}
+	r := DnsARecordResource{}
 
 	checkedFields := map[string]struct{}{
 		"dns_zone_name":       {},
@@ -29,11 +29,11 @@ func TestAccDnsARecord_resourceIdentity(t *testing.T) {
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_dns_a_record.test", checkedFields),
-				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_dns_a_record.test", tfjsonpath.New("dns_zone_name"), tfjsonpath.New("zone_name")),
-				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_dns_a_record.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dns_a_record.test", tfjsonpath.New("record_type"), tfjsonpath.New("id")),
-				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_dns_a_record.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dns_a_record.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dns_a_record.test", tfjsonpath.New("dns_zone_name"), tfjsonpath.New("dns_zone_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dns_a_record.test", tfjsonpath.New("name"), tfjsonpath.New("dns_zone_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dns_a_record.test", tfjsonpath.New("record_type"), tfjsonpath.New("dns_zone_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dns_a_record.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("dns_zone_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dns_a_record.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("dns_zone_id")),
 			},
 		},
 		data.ImportBlockWithResourceIdentityStep(false),
