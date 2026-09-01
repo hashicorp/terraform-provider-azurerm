@@ -1,6 +1,7 @@
 ## 5.4.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_storage_account` - add support for an in-place migration of `account_replication_type` between matching non-zonal and zonal types instead of resource recreation [GH-33236]
 * `azurerm_storage_table` - add support for AAD authentication [GH-32997]
 * `azurerm_lb_probe ` - add support for the `no_healthy_backends_behavior` property [GH-32645]
 * Data Source: `azurerm_ip_group` - export the `firewall_ids` and `firewall_policy_ids` properties [GH-33190]
