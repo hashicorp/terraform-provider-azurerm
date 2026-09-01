@@ -275,8 +275,7 @@ func resourceDataFactoryLinkedServiceKeyVaultRead(d *pluginsdk.ResourceData, met
 
 	var keyVaultId *string
 	if baseUrl != "" {
-		_, err := url.ParseRequestURI(baseUrl)
-		if err != nil {
+		if _, err := url.ParseRequestURI(baseUrl); err != nil {
 			d.Set("key_vault_base_url_dynamic_expression", baseUrl)
 		} else {
 			subscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
