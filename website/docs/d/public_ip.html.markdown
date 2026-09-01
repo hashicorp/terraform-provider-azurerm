@@ -104,8 +104,8 @@ output "public_ip_address" {
 * `id` - The ID of the Public IP address.
 * `allocation_method` - The allocation method for this IP address. Possible values are `Static` or `Dynamic`.
 * `domain_name_label` - The label for the Domain Name.
-* `domain_name_label_scope` - Scope for the domain name label. If a domain name label scope is specified, an A DNS record is created for the public IP in the Microsoft Azure DNS system with a hashed value includes in FQDN. Possible values are `NoReuse`, `ResourceGroupReuse`, `SubscriptionReuse` and `TenantReuse`.
-* `edge_zone` - Specifies the Edge Zone within the Azure Region where this Public IP should exist. Changing this forces a new Public IP to be created.
+* `domain_name_label_scope` - Scope for the domain name label.`.
+* `edge_zone` - The Edge Zone within the Azure Region where this Public IP exists.
 * `idle_timeout_in_minutes` - Specifies the timeout for the TCP idle connection.
 * `ddos_protection_mode` - The DDoS protection mode of the public IP.
 * `ddos_protection_plan_id` - The ID of DDoS protection plan associated with the public IP. 
@@ -113,10 +113,10 @@ output "public_ip_address" {
 * `ip_address` - The IP address value that was allocated.
 * `ip_version` - The IP version being used, for example `IPv4` or `IPv6`.
 * `location` - The region that this public ip exists.
-* `public_ip_prefix_id` - If specified then public IP address allocated will be provided from the public IP prefix resource. Changing this forces a new resource to be created.
+* `public_ip_prefix_id` - If specified then public IP address allocated will be provided from the public IP prefix resource. 
 * `reverse_fqdn` - The fully qualified domain name that resolves to this public IP address.
 * `sku` - The SKU of the Public IP.
-* `sku_tier` - The SKU Tier that should be used for the Public IP. Possible values are `Regional` and `Global`. Defaults to `Regional`. Changing this forces a new resource to be created.
+* `sku_tier` - The SKU Tier that is used for the Public IP. 
 * `ip_tags` - A mapping of tags to assigned to the resource.
 * `tags` - A mapping of tags to assigned to the resource.
 * `zones` - A list of Availability Zones in which this Public IP is located.

@@ -59,7 +59,6 @@ func dataSourcePublicIP() *pluginsdk.Resource {
 
 			"sku_tier": {
 				Type:     pluginsdk.TypeString,
-				Optional: true,
 			},
 
 			"allocation_method": {
