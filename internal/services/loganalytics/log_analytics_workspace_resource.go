@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionrules"
 	sharedKeyWorkspaces "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2025-07-01/workspaces"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -32,6 +33,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity
+
+const azureLogAnalyticsWorkspaceName = "azurerm_log_analytics_workspace"
+
 func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceLogAnalyticsWorkspaceCreate,
@@ -41,10 +46,11 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(resourceLogAnalyticsWorkspaceCustomDiff),
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := workspaces.ParseWorkspaceID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&workspaces.WorkspaceId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&workspaces.WorkspaceId{}),
 
 		SchemaVersion: 3,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -336,6 +342,9 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	// `data_collection_rule_id` also needs an additional update.
 	// error message: Default dcr is not applicable on workspace creation, please provide it on update.
@@ -524,10 +533,14 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceLogAnalyticsWorkspaceFlatten(ctx, sharedKeyClient, d, id, resp.Model)
+}
+
+func resourceLogAnalyticsWorkspaceFlatten(ctx context.Context, sharedKeyClient *sharedKeyWorkspaces.WorkspacesClient, d *pluginsdk.ResourceData, id *workspaces.WorkspaceId, model *workspaces.Workspace) error {
 	d.Set("name", id.WorkspaceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if model.Identity != nil {
 			flattenedIdentity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
 			if err != nil {
@@ -600,11 +613,11 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 
 		d.Set("location", location.Normalize(model.Location))
 
-		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
 			return err
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceLogAnalyticsWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
