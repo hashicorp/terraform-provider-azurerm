@@ -48,7 +48,7 @@ func TestAccWindowsVirtualMachine_scalingCapacityReservationGroup(t *testing.T) 
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.scalingCapacityReservationGroup(data),
+			Config: r.scalingCapacityReservationGroup(data, false, "azurerm_capacity_reservation_group.test.id"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -58,69 +58,41 @@ func TestAccWindowsVirtualMachine_scalingCapacityReservationGroup(t *testing.T) 
 }
 
 func TestAccWindowsVirtualMachine_scalingCapacityReservationGroupUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
-	r := WindowsVirtualMachineResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.scalingCapacityReservationGroupInitial(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.scalingCapacityReservationGroup(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.scalingCapacityReservationGroupUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.scalingCapacityReservationGroupRemoved(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
+	testAccWindowsVirtualMachineScalingCapacityReservationGroupUpdate(t, false)
 }
 
 func TestAccWindowsVirtualMachine_scalingCapacityReservationGroupZonalUpdate(t *testing.T) {
+	testAccWindowsVirtualMachineScalingCapacityReservationGroupUpdate(t, true)
+}
+
+func testAccWindowsVirtualMachineScalingCapacityReservationGroupUpdate(t *testing.T, zonal bool) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.scalingCapacityReservationGroupZonal(data, ""),
+			Config: r.scalingCapacityReservationGroup(data, zonal, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.scalingCapacityReservationGroupZonal(data, "azurerm_capacity_reservation_group.test1.id"),
+			Config: r.scalingCapacityReservationGroup(data, zonal, "azurerm_capacity_reservation_group.test.id"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.scalingCapacityReservationGroupZonal(data, "azurerm_capacity_reservation_group.test2.id"),
+			Config: r.scalingCapacityReservationGroup(data, zonal, "azurerm_capacity_reservation_group.test2.id"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.scalingCapacityReservationGroupZonal(data, ""),
+			Config: r.scalingCapacityReservationGroup(data, zonal, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -407,7 +379,17 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r WindowsVirtualMachineResource) scalingCapacityReservationGroupInitial(data acceptance.TestData) string {
+func (r WindowsVirtualMachineResource) scalingCapacityReservationGroup(data acceptance.TestData, zonal bool, crgId string) string {
+	zones, zone, crgText := "", "", ""
+	if zonal {
+		zones = `zones = ["3"]`
+		zone = `zone = "3"`
+	}
+
+	if crgId != "" {
+		crgText = fmt.Sprintf(`capacity_reservation_group_id = %s`, crgId)
+	}
+
 	return fmt.Sprintf(`
 %[1]s
 
@@ -415,71 +397,45 @@ resource "azurerm_capacity_reservation_group" "test" {
   name                = "acctest-ccrg-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  %[3]s
 }
 
 resource "azurerm_capacity_reservation" "test" {
   name                          = "acctest-ccr-%[2]d"
   capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
   sku {
-    name     = "Standard_F2"
+    name     = "Standard_D2s_v3"
     capacity = 1
   }
+  %[4]s
 }
 
-resource "azurerm_windows_virtual_machine" "test" {
-  name                = local.vm_name
+resource "azurerm_capacity_reservation_group" "test2" {
+  name                = "acctest-ccrg2-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
-  admin_password      = "P@$$w0rd1234!"
-  network_interface_ids = [
-    azurerm_network_interface.test.id,
-  ]
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter"
-    version   = "latest"
-  }
-}
-`, r.template(data), data.RandomInteger)
+  %[3]s
 }
 
-func (r WindowsVirtualMachineResource) scalingCapacityReservationGroup(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_capacity_reservation_group" "test" {
-  name                = "acctest-ccrg-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_capacity_reservation" "test" {
-  name                          = "acctest-ccr-%[2]d"
-  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
+resource "azurerm_capacity_reservation" "test2" {
+  name                          = "acctest-ccr2-%[2]d"
+  capacity_reservation_group_id = azurerm_capacity_reservation_group.test2.id
   sku {
-    name     = "Standard_F2"
+    name     = "Standard_D2s_v3"
     capacity = 1
   }
+  %[4]s
 }
 
 resource "azurerm_windows_virtual_machine" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
+  size                = "Standard_D2s_v3"
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
-
-  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
+  %[4]s
+  %[5]s
 
   network_interface_ids = [
     azurerm_network_interface.test.id,
@@ -499,198 +455,10 @@ resource "azurerm_windows_virtual_machine" "test" {
 
   depends_on = [
     azurerm_capacity_reservation.test,
+    azurerm_capacity_reservation.test2
   ]
 }
-`, r.template(data), data.RandomInteger)
-}
-
-func (r WindowsVirtualMachineResource) scalingCapacityReservationGroupUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_capacity_reservation_group" "test" {
-  name                = "acctest-ccrg-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_capacity_reservation" "test" {
-  name                          = "acctest-ccr-%[2]d"
-  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
-  sku {
-    name     = "Standard_F2"
-    capacity = 1
-  }
-}
-
-resource "azurerm_capacity_reservation_group" "test2" {
-  name                = "acctest-ccrg2-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_capacity_reservation" "test2" {
-  name                          = "acctest-ccr-%[2]d"
-  capacity_reservation_group_id = azurerm_capacity_reservation_group.test2.id
-  sku {
-    name     = "Standard_F2"
-    capacity = 1
-  }
-}
-
-resource "azurerm_windows_virtual_machine" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
-  admin_password      = "P@$$w0rd1234!"
-
-  capacity_reservation_group_id = azurerm_capacity_reservation_group.test2.id
-
-  network_interface_ids = [
-    azurerm_network_interface.test.id,
-  ]
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter"
-    version   = "latest"
-  }
-
-  depends_on = [
-    azurerm_capacity_reservation.test2,
-  ]
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r WindowsVirtualMachineResource) scalingCapacityReservationGroupRemoved(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_capacity_reservation_group" "test2" {
-  name                = "acctest-ccrg2-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_capacity_reservation" "test2" {
-  name                          = "acctest-ccr-%[2]d"
-  capacity_reservation_group_id = azurerm_capacity_reservation_group.test2.id
-  sku {
-    name     = "Standard_F2"
-    capacity = 1
-  }
-}
-
-resource "azurerm_windows_virtual_machine" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
-  admin_password      = "P@$$w0rd1234!"
-
-  network_interface_ids = [
-    azurerm_network_interface.test.id,
-  ]
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter"
-    version   = "latest"
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r WindowsVirtualMachineResource) scalingCapacityReservationGroupZonal(data acceptance.TestData, crg string) string {
-	crgText := ""
-	if crg != "" {
-		crgText = fmt.Sprintf(`capacity_reservation_group_id = %s`, crg)
-	}
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_capacity_reservation_group" "test1" {
-  name                = "acctest-ccrg1-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  zones               = ["3"]
-}
-
-resource "azurerm_capacity_reservation" "test1" {
-  name                          = "acctest-ccr1-%[2]d"
-  capacity_reservation_group_id = azurerm_capacity_reservation_group.test1.id
-  zone                          = "3"
-  sku {
-    name     = "Standard_D2s_v3"
-    capacity = 1
-  }
-}
-
-resource "azurerm_capacity_reservation_group" "test2" {
-  name                = "acctest-ccrg2-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  zones               = ["3"]
-}
-
-resource "azurerm_capacity_reservation" "test2" {
-  name                          = "acctest-ccr2-%[2]d"
-  capacity_reservation_group_id = azurerm_capacity_reservation_group.test2.id
-  zone                          = "3"
-  sku {
-    name     = "Standard_D2s_v3"
-    capacity = 1
-  }
-}
-
-resource "azurerm_windows_virtual_machine" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_D2s_v3"
-  admin_username      = "adminuser"
-  admin_password      = "P@$$w0rd1234!"
-  zone                = "3"
-  %[3]s
-
-  network_interface_ids = [
-    azurerm_network_interface.test.id,
-  ]
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter"
-    version   = "latest"
-  }
-
-  depends_on = [
-    azurerm_capacity_reservation.test1,
-    azurerm_capacity_reservation.test2,
-  ]
-}
-`, r.template(data), data.RandomInteger, crgText)
+`, r.template(data), data.RandomInteger, zones, zone, crgText)
 }
 
 func (r WindowsVirtualMachineResource) scalingDedicatedHostInitial(data acceptance.TestData) string {
