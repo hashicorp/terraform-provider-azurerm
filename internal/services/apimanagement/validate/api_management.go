@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func ApiManagementChildName(v interface{}, k string) (warnings []string, errors []error) {
@@ -54,14 +56,12 @@ func ApiManagementServicePublisherName(v interface{}, k string) (warnings []stri
 	return warnings, errors
 }
 
-func ApiManagementServicePublisherEmail(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if matched := regexp.MustCompile(`^[\S*]{1,100}$`).Match([]byte(value)); !matched {
-		errors = append(errors, fmt.Errorf("%q may only be up to 100 characters in length", k))
-	}
-
-	return warnings, errors
+// despite the name this only validates length and the absence of whitespace, not that the value is an email address
+func ApiManagementServicePublisherEmail(v interface{}, k string) ([]string, []error) {
+	return validation.StringMatch(
+		regexp.MustCompile(`^[\S*]{1,100}$`),
+		"may only be up to 100 characters in length and must not contain whitespace",
+	)(v, k)
 }
 
 func ApiManagementApiName(v interface{}, k string) (ws []string, es []error) {

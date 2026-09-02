@@ -6,8 +6,6 @@ package validate
 import (
 	"fmt"
 	"regexp"
-	"strings"
-	"unicode"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/autonomousdatabases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -21,52 +19,15 @@ func AutonomousDatabaseName(i interface{}, k string) ([]string, []error) {
 	)(i, k)
 }
 
-// lintignore:V011 // the length check is combined with password complexity rules
-func AutonomousDatabasePassword(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		return []string{}, append(errors, fmt.Errorf("expected type of %s to be string", k))
-	}
-
-	if len(v) < 12 || len(v) > 30 {
-		return []string{}, append(errors, fmt.Errorf("%v must be 12 to 30 characters", k))
-	}
-
-	hasUpper := false
-	hasLower := false
-	hasNumber := false
-	hasDoubleQuote := false
-	for _, r := range v {
-		if r == '"' {
-			hasDoubleQuote = true
-		}
-		if unicode.IsUpper(r) {
-			hasUpper = true
-		}
-		if unicode.IsLower(r) {
-			hasLower = true
-		}
-		if unicode.IsNumber(r) {
-			hasNumber = true
-		}
-	}
-	if hasDoubleQuote {
-		return []string{}, append(errors, fmt.Errorf("%v must not contain the double quote (\") character", k))
-	}
-	if !hasUpper {
-		return []string{}, append(errors, fmt.Errorf("%v must contain at least one uppercase letter", k))
-	}
-	if !hasLower {
-		return []string{}, append(errors, fmt.Errorf("%v must contain at least one lowercase letter", k))
-	}
-	if !hasNumber {
-		return []string{}, append(errors, fmt.Errorf("%v must contain at least one number", k))
-	}
-	if strings.Contains(v, "admin") {
-		return []string{}, append(errors, fmt.Errorf("%v must not contain the username \"admin\"", k))
-	}
-
-	return []string{}, []error{}
+func AutonomousDatabasePassword(i interface{}, k string) ([]string, []error) {
+	return validation.All(
+		validation.StringLenBetween(12, 30),
+		validation.StringDoesNotContainAny(`"`),
+		validation.StringMatch(regexp.MustCompile(`\p{Lu}`), "must contain at least one uppercase letter"),
+		validation.StringMatch(regexp.MustCompile(`\p{Ll}`), "must contain at least one lowercase letter"),
+		validation.StringMatch(regexp.MustCompile(`\p{N}`), "must contain at least one number"),
+		validation.StringDoesNotMatch(regexp.MustCompile(`admin`), "must not contain the username \"admin\""),
+	)(i, k)
 }
 
 func AdbsComputeModel(i interface{}, k string) (warnings []string, errors []error) {

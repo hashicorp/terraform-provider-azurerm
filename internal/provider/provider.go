@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -36,54 +37,16 @@ func AzureProviderWithTestName(testName string) *schema.Provider {
 	return azureProvider(false, testName)
 }
 
-// lintignore:V013 // false positive - this validates a UUID with an optional pid- prefix/suffix; the string comparison checks for empty values
+// ValidatePartnerID checks if partner_id is any of the following:
+//   - empty
+//   - a valid UUID - a "pid-" prefix will be added to the ID if it is not already present
+//   - a valid UUID prefixed with "pid-"
+//   - a valid UUID prefixed with "pid-" and suffixed with "-partnercenter"
 func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
-	// ValidatePartnerID checks if partner_id is any of the following:
-	//  * a valid UUID - will add "pid-" prefix to the ID if it is not already present
-	//  * a valid UUID prefixed with "pid-"
-	//  * a valid UUID prefixed with "pid-" and suffixed with "-partnercenter"
-
-	v, ok := i.(string)
-	if !ok {
-		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
-	}
-
-	if v == "" {
-		return nil, nil
-	}
-
-	// Check for pid=<guid>-partnercenter format
-	if strings.HasPrefix(v, "pid-") && strings.HasSuffix(v, "-partnercenter") {
-		g := strings.TrimPrefix(v, "pid-")
-		g = strings.TrimSuffix(g, "-partnercenter")
-
-		if _, err := validation.IsUUID(g, ""); err != nil {
-			return nil, []error{fmt.Errorf("expected %q to contain a valid UUID", v)}
-		}
-
-		logEntry("[DEBUG] %q partner_id matches pid-<GUID>-partnercenter...", v)
-		return nil, nil
-	}
-
-	// Check for pid=<guid> (without the -partnercenter suffix)
-	if strings.HasPrefix(v, "pid-") && !strings.HasSuffix(v, "-partnercenter") {
-		g := strings.TrimPrefix(v, "pid-")
-
-		if _, err := validation.IsUUID(g, ""); err != nil {
-			return nil, []error{fmt.Errorf("expected %q to be a valid UUID", k)}
-		}
-
-		logEntry("[DEBUG] %q partner_id matches pid-<GUID>...", v)
-		return nil, nil
-	}
-
-	// Check for straight UUID
-	if _, err := validation.IsUUID(v, ""); err != nil {
-		return nil, []error{fmt.Errorf("expected %q to be a valid UUID", k)}
-	} else {
-		logEntry("[DEBUG] %q partner_id is an un-prefixed UUID...", v)
-		return nil, nil
-	}
+	return validation.StringMatch(
+		regexp.MustCompile(`^$|^(pid-)?[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$|^pid-[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}-partnercenter$`),
+		"expected an empty string, a valid UUID, or a valid UUID with a `pid-` prefix and optional `-partnercenter` suffix",
+	)(i, k)
 }
 
 func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provider {
