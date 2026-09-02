@@ -77,6 +77,8 @@ The following arguments are supported:
 
 * `compute_tier` - (Optional) The compute tier to assign to the MongoDB Cluster. Possible values are `Free`, `M10`, `M20`, `M25`, `M30`, `M40`, `M50`, `M60`, `M80`, and `M200`.
 
+~> **Note:** Only one of `compute_tier`, `storage_size_in_gb`, or `high_availability_mode` can be changed in a single update.
+
 * `high_availability_mode` - (Optional) The high availability mode for the MongoDB Cluster. Possibles values are `Disabled` and `ZoneRedundantPreferred`.
 
 * `public_network_access` - (Optional) The Public Network Access setting for the MongoDB Cluster. Possibles values are `Disabled` and `Enabled`. Defaults to `Enabled`.
@@ -84,6 +86,10 @@ The following arguments are supported:
 * `storage_size_in_gb` - (Optional) The size of the data disk space for the MongoDB Cluster.
 
 * `storage_type` - (Optional) The storage type for the MongoDB Cluster. Possible values are `PremiumSSD` and `PremiumSSDv2`. Defaults to `PremiumSSD`. Changing this forces a new resource to be created.
+
+~> **Note:** When creating a `GeoReplica` or `PointInTimeRestore` MongoDB Cluster from a source that uses `PremiumSSDv2`, `storage_type` cannot be set to `PremiumSSD`.
+
+~> **Note:** `PremiumSSDv2` cannot be used with `high_availability_mode` set to `ZoneRedundantPreferred` or with a `customer_managed_key` block.
 
 * `version` - (Optional) The version for the MongoDB Cluster. Possibles values are `5.0`, `6.0`, `7.0` and `8.0`.
 
