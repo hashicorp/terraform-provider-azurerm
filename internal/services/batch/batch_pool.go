@@ -356,7 +356,7 @@ func flattenBatchPoolMountConfig(d *pluginsdk.ResourceData, config *pool.MountCo
 		nfsMountConfigList = append(nfsMountConfigList, nfsMountConfig)
 		mountConfig["nfs_mount"] = nfsMountConfigList
 	default:
-		return nil
+		return map[string]interface{}{}
 	}
 
 	return mountConfig

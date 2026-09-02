@@ -1549,7 +1549,7 @@ func expandContainerProbeHttpHeaders(input map[string]interface{}) *[]containeri
 
 func flattenContainerProbeHttpHeaders(input *[]containerinstance.HTTPHeader) map[string]interface{} {
 	if input == nil {
-		return nil
+		return map[string]interface{}{}
 	}
 
 	output := map[string]interface{}{}

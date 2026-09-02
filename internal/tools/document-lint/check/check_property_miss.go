@@ -144,13 +144,14 @@ func levenshteinDist(str1, str2 string) int {
 		column[0] = x
 		lastKey := x - 1
 		for y := 1; y <= len(str1); y++ {
+			oldKey := column[y] // azignore:AZG005 - column[y] is overwritten below, so this must be read here
 			var incr int
 			if str1[y-1] != str2[x-1] {
 				incr = 1
 			}
 
 			column[y] = minimumOf3(column[y]+1, column[y-1]+1, lastKey+incr)
-			lastKey = column[y]
+			lastKey = oldKey
 		}
 	}
 	return column[len(str1)]
