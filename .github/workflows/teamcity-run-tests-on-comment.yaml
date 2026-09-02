@@ -119,12 +119,12 @@ jobs:
         with:
           path: ~/go/bin/tctest
           # keep this key in sync with the pinned version installed below
-          key: tctest-${{ runner.os }}-v1.4.0
+          key: tctest-${{ runner.os }}-v1.3.1
 
       - name: Install tctest
         if: steps.cache-tctest.outputs.cache-hit != 'true'
         run: |
-          go install github.com/katbyte/tctest@v1.4.0
+          go install github.com/katbyte/tctest@v1.3.1
 
       - name: Get PR commit SHA
         id: get-pr-sha
