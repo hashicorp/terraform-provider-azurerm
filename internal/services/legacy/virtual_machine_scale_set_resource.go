@@ -1458,7 +1458,7 @@ func flattenAzureRmVirtualMachineScaleSetSku(sku *virtualmachinescalesets.Sku) [
 
 func flattenAzureRmVirtualMachineScaleSetExtensionProfile(profile *virtualmachinescalesets.VirtualMachineScaleSetExtensionProfile) ([]map[string]interface{}, error) {
 	if profile.Extensions == nil {
-		return nil, nil
+		return []map[string]interface{}{}, nil
 	}
 
 	result := make([]map[string]interface{}, 0, len(*profile.Extensions))

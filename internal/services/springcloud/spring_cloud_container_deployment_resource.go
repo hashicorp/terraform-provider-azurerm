@@ -368,7 +368,7 @@ func expandSpringCloudDeploymentApms(input []interface{}) *[]appplatform.ApmRefe
 
 func flattenSpringCloudDeploymentApms(input *[]appplatform.ApmReference) ([]interface{}, error) {
 	if input == nil {
-		return nil, nil
+		return []interface{}{}, nil
 	}
 	result := make([]interface{}, 0)
 	for _, v := range *input {

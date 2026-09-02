@@ -663,7 +663,7 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) (*networkruleset
 
 func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGetNetworkRuleSetOperationResponse) ([]interface{}, error) {
 	if ruleset.Model == nil || ruleset.Model.Properties == nil {
-		return nil, nil
+		return []interface{}{}, nil
 	}
 
 	vnetBlocks := make([]interface{}, 0)

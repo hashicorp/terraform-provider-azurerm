@@ -974,7 +974,7 @@ func expandRegistryTaskBaseImageTrigger(triggers []BaseImageTrigger) *tasks.Base
 
 func flattenRegistryTaskBaseImageTrigger(trigger *tasks.BaseImageTrigger, model ContainerRegistryTaskModel) []BaseImageTrigger {
 	if trigger == nil {
-		return nil
+		return []BaseImageTrigger{}
 	}
 
 	payloadType := ""
@@ -1035,7 +1035,7 @@ func expandRegistryTaskSourceTriggers(triggers []SourceTrigger) *[]tasks.SourceT
 
 func flattenRegistryTaskSourceTriggers(triggers *[]tasks.SourceTrigger, model ContainerRegistryTaskModel) []SourceTrigger {
 	if triggers == nil {
-		return nil
+		return []SourceTrigger{}
 	}
 	out := make([]SourceTrigger, 0, len(*triggers))
 	for i, trigger := range *triggers {
@@ -1107,7 +1107,7 @@ func expandRegistryTaskTimerTriggers(triggers []TimerTrigger) *[]tasks.TimerTrig
 
 func flattenRegistryTaskTimerTriggers(triggers *[]tasks.TimerTrigger) []TimerTrigger {
 	if triggers == nil {
-		return nil
+		return []TimerTrigger{}
 	}
 	out := make([]TimerTrigger, 0, len(*triggers))
 	for _, trigger := range *triggers {
@@ -1158,12 +1158,12 @@ func expandRegistryTaskDockerStep(step DockerStep) tasks.DockerBuildStep {
 
 func flattenRegistryTaskDockerStep(step tasks.TaskStepProperties, model ContainerRegistryTaskModel) []DockerStep {
 	if step == nil {
-		return nil
+		return []DockerStep{}
 	}
 
 	dockerStep, ok := step.(tasks.DockerBuildStep)
 	if !ok {
-		return nil
+		return []DockerStep{}
 	}
 
 	obj := DockerStep{
@@ -1218,12 +1218,12 @@ func expandRegistryTaskFileTaskStep(step FileTaskStep) tasks.FileTaskStep {
 
 func flattenRegistryTaskFileTaskStep(step tasks.TaskStepProperties, model ContainerRegistryTaskModel) []FileTaskStep {
 	if step == nil {
-		return nil
+		return []FileTaskStep{}
 	}
 
 	fileTaskStep, ok := step.(tasks.FileTaskStep)
 	if !ok {
-		return nil
+		return []FileTaskStep{}
 	}
 
 	obj := FileTaskStep{
@@ -1269,12 +1269,12 @@ func expandRegistryTaskEncodedTaskStep(step EncodedTaskStep) tasks.EncodedTaskSt
 
 func flattenRegistryTaskEncodedTaskStep(step tasks.TaskStepProperties, model ContainerRegistryTaskModel) []EncodedTaskStep {
 	if step == nil {
-		return nil
+		return []EncodedTaskStep{}
 	}
 
 	encodedTaskStep, ok := step.(tasks.EncodedTaskStep)
 	if !ok {
-		return nil
+		return []EncodedTaskStep{}
 	}
 
 	obj := EncodedTaskStep{
@@ -1426,7 +1426,7 @@ func expandRegistryTaskPlatform(input []Platform) *tasks.PlatformProperties {
 
 func flattenRegistryTaskPlatform(platform *tasks.PlatformProperties) []Platform {
 	if platform == nil {
-		return nil
+		return []Platform{}
 	}
 
 	architecture := ""
@@ -1459,7 +1459,7 @@ func expandRegistryTaskCredentials(input []RegistryCredential) *tasks.Credential
 
 func flattenRegistryTaskCredentials(input *tasks.Credentials, model ContainerRegistryTaskModel) []RegistryCredential {
 	if input == nil {
-		return nil
+		return []RegistryCredential{}
 	}
 
 	// The customRegistryCredentials is sensitive and won't return from API, setting it from the config.
@@ -1486,7 +1486,7 @@ func expandSourceRegistryCredential(input []SourceRegistryCredential) *tasks.Sou
 
 func flattenSourceRegistryCredential(input *tasks.SourceRegistryCredentials) []SourceRegistryCredential {
 	if input == nil || input.LoginMode == nil {
-		return nil
+		return []SourceRegistryCredential{}
 	}
 
 	return []SourceRegistryCredential{{LoginMode: string(*input.LoginMode)}}
@@ -1540,7 +1540,7 @@ func expandRegistryTaskAgentProperties(input []AgentConfig) *tasks.AgentProperti
 
 func flattenRegistryTaskAgentProperties(input *tasks.AgentProperties) []AgentConfig {
 	if input == nil {
-		return nil
+		return []AgentConfig{}
 	}
 
 	return []AgentConfig{{CPU: pointer.From(input.Cpu)}}

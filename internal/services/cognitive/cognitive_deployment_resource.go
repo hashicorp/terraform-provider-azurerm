@@ -448,7 +448,7 @@ func flattenDeploymentModelModel(input *deployments.DeploymentModel) []Deploymen
 
 func flattenDeploymentSkuModel(input *deployments.Sku) []DeploymentSkuModel {
 	if input == nil {
-		return nil
+		return []DeploymentSkuModel{}
 	}
 	output := DeploymentSkuModel{
 		Name: input.Name,

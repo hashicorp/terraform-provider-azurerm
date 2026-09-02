@@ -4835,7 +4835,7 @@ func expandKubernetesClusterAzureMonitorProfile(input []interface{}) *managedclu
 
 func flattenKubernetesClusterAzureServiceMeshProfile(input *managedclusters.ServiceMeshProfile) []interface{} {
 	if input == nil || input.Mode != managedclusters.ServiceMeshModeIstio {
-		return nil
+		return []interface{}{}
 	}
 
 	returnMap := map[string]interface{}{
@@ -4888,7 +4888,7 @@ func flattenKubernetesClusterServiceMeshProfileCertificateAuthority(certificateA
 
 func flattenKubernetesClusterAzureMonitorProfile(input *managedclusters.ManagedClusterAzureMonitorProfile) []interface{} {
 	if input == nil || input.Metrics == nil || !input.Metrics.Enabled {
-		return nil
+		return []interface{}{}
 	}
 	if input.Metrics.KubeStateMetrics == nil {
 		return []interface{}{

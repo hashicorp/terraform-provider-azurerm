@@ -1813,7 +1813,7 @@ func findHDInsightConnectivityEndpoint(name string, input *[]clusters.Connectivi
 
 func FlattenHDInsightNodeAutoscaleDefinition(input *clusters.Autoscale) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	result := map[string]interface{}{}
@@ -1829,7 +1829,7 @@ func FlattenHDInsightNodeAutoscaleDefinition(input *clusters.Autoscale) []interf
 	if len(result) > 0 {
 		return []interface{}{result}
 	}
-	return nil
+	return []interface{}{}
 }
 
 func FlattenHDInsightAutoscaleCapacityDefinition(input *clusters.AutoscaleCapacity) []interface{} {
