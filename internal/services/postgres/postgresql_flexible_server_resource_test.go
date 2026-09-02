@@ -435,7 +435,7 @@ func TestAccPostgresqlFlexibleServer_replicaWithCluster(t *testing.T) {
 			),
 			ExpectNonEmptyPlan: false,
 		},
-                data.ImportStepFor("azurerm_postgresql_flexible_server.replica", "administrator_password", "create_mode"),
+		data.ImportStepFor("azurerm_postgresql_flexible_server.replica", "administrator_password", "create_mode"),
 	})
 }
 
