@@ -24,6 +24,7 @@ FEATURES:
 * **New List Resource**: `azurerm_availability_set` [GH-33241]
 
 BUG FIXES:
+* `azurerm_synapse_spark_pool` - fix `lifecycle.ignore_changes` support [GH-33258]
 
 ## 5.3.0 (August 27, 2026)
 
