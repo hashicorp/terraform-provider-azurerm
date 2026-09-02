@@ -22,6 +22,7 @@ func TestAccServicePlanDataSource_complete(t *testing.T) {
 			Config: d.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("location").HasValue("eastasia"),
+				check.That(data.ResourceName).Key("premium_plan_auto_scale_enabled").IsSet(),
 				// TODO - rest of the sane properties
 			),
 		},
