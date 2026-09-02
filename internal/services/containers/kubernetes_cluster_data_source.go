@@ -1408,10 +1408,9 @@ func flattenKubernetesClusterDataSourceKubeConfig(config kubernetes.KubeConfig) 
 
 	cluster := config.Clusters[0].Cluster
 	user := config.Users[0].User
-	name := config.Users[0].Name
 
 	values["host"] = cluster.Server
-	values["username"] = name
+	values["username"] = config.Users[0].Name
 	values["password"] = user.Token
 	values["client_certificate"] = user.ClientCertificteData
 	values["client_key"] = user.ClientKeyData
@@ -1424,10 +1423,9 @@ func flattenKubernetesClusterDataSourceKubeConfigAAD(config kubernetes.KubeConfi
 	values := make(map[string]interface{})
 
 	cluster := config.Clusters[0].Cluster
-	name := config.Users[0].Name
 
 	values["host"] = cluster.Server
-	values["username"] = name
+	values["username"] = config.Users[0].Name
 
 	values["password"] = ""
 	values["client_certificate"] = ""

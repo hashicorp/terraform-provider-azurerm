@@ -2451,11 +2451,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChanges("microsoft_defender") {
 		updateCluster = true
 		microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
-		microsoftDefender := expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
 		if existing.Model.Properties.SecurityProfile == nil {
 			existing.Model.Properties.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}
 		}
-		existing.Model.Properties.SecurityProfile.Defender = microsoftDefender
+		existing.Model.Properties.SecurityProfile.Defender = expandKubernetesClusterMicrosoftDefender(d, microsoftDefenderRaw)
 	}
 
 	if d.HasChanges("storage_profile") {
@@ -4828,7 +4827,6 @@ func flattenKubernetesClusterAzureServiceMeshProfile(input *managedclusters.Serv
 	if (input.Istio.Components.IngressGateways != nil) && len(*input.Istio.Components.IngressGateways) > 0 {
 		for _, value := range *input.Istio.Components.IngressGateways {
 			mode := value.Mode
-			enabled := value.Enabled
 
 			var currentIngressKey string
 
@@ -4838,7 +4836,7 @@ func flattenKubernetesClusterAzureServiceMeshProfile(input *managedclusters.Serv
 				currentIngressKey = "internal_ingress_gateway_enabled"
 			}
 
-			returnMap[currentIngressKey] = enabled
+			returnMap[currentIngressKey] = value.Enabled
 		}
 	}
 

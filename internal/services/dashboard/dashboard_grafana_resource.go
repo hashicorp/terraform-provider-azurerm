@@ -274,11 +274,9 @@ func (r DashboardGrafanaResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			identityValue := expandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
-
 			properties := expandCreateForDashboardGrafana(model)
 
-			properties.Identity = identityValue
+			properties.Identity = expandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
 
 			if err := client.GrafanaCreateCallbackThenPoll(ctx, id, *properties, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)

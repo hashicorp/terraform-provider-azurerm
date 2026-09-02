@@ -4434,13 +4434,11 @@ func flattenApplicationGatewayTrustedClientCertificates(input *[]applicationgate
 			continue
 		}
 
-		name := *v.Name
-
 		if v.Id != nil {
 			output["id"] = *v.Id
 		}
 
-		output["name"] = name
+		output["name"] = *v.Name
 
 		if props := v.Properties; props != nil {
 			if data := props.Data; data != nil {
@@ -4517,13 +4515,11 @@ func flattenApplicationGatewaySslProfiles(input *[]applicationgateways.Applicati
 			continue
 		}
 
-		name := *v.Name
-
 		if v.Id != nil {
 			output["id"] = *v.Id
 		}
 
-		output["name"] = name
+		output["name"] = *v.Name
 		output["ssl_policy"] = flattenApplicationGatewaySslPolicy(v.Properties.SslPolicy)
 
 		verifyClientCertIssuerDn := false

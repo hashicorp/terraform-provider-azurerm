@@ -663,11 +663,10 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		if d.HasChanges("source_image_id", "source_image_reference") {
 			sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 			sourceImageId := d.Get("source_image_id").(string)
-			sourceImageReference := expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
 
 			// Must include all storage profile properties when updating disk image.  See: https://github.com/hashicorp/terraform-provider-azurerm/issues/8273
 			updateProps.VirtualMachineProfile.StorageProfile.DataDisks = existing.Model.Properties.VirtualMachineProfile.StorageProfile.DataDisks
-			updateProps.VirtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
+			updateProps.VirtualMachineProfile.StorageProfile.ImageReference = expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
 			updateProps.VirtualMachineProfile.StorageProfile.OsDisk = &virtualmachinescalesets.VirtualMachineScaleSetUpdateOSDisk{
 				Caching:                 existing.Model.Properties.VirtualMachineProfile.StorageProfile.OsDisk.Caching,
 				WriteAcceleratorEnabled: existing.Model.Properties.VirtualMachineProfile.StorageProfile.OsDisk.WriteAcceleratorEnabled,

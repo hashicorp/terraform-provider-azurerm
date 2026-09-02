@@ -144,14 +144,13 @@ func levenshteinDist(str1, str2 string) int {
 		column[0] = x
 		lastKey := x - 1
 		for y := 1; y <= len(str1); y++ {
-			oldKey := column[y]
 			var incr int
 			if str1[y-1] != str2[x-1] {
 				incr = 1
 			}
 
 			column[y] = minimumOf3(column[y]+1, column[y-1]+1, lastKey+incr)
-			lastKey = oldKey
+			lastKey = column[y]
 		}
 	}
 	return column[len(str1)]
