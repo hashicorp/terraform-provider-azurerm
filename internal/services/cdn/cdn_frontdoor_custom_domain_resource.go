@@ -27,7 +27,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -parent-id cdn_frontdoor_profile_id
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id cdn_frontdoor_profile_id -test-env-vars "ARM_TEST_DATA_RESOURCE_GROUP,ARM_TEST_DNS_ZONE"
 
 const azurermCdnFrontDoorCustomDomainResourceName = "azurerm_cdn_frontdoor_custom_domain"
 

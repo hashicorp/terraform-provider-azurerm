@@ -5,7 +5,6 @@ package cdn_test
 
 import (
 	"context"
-	"os"
 	"regexp"
 	"strconv"
 	"testing"
@@ -19,12 +18,9 @@ import (
 )
 
 func TestAccCdnFrontDoorCustomDomain_listByProfileID(t *testing.T) {
-	if os.Getenv("ARM_TEST_DNS_ZONE") == "" {
-		t.Skipf("`ARM_TEST_DNS_ZONE` must be set for acceptance tests!")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "testlist1")
 	r := CdnFrontdoorCustomDomainResource{}
+	r.preCheck(t)
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{

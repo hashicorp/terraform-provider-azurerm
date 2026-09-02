@@ -14,8 +14,10 @@ import (
 )
 
 func TestAccCdnFrontdoorCustomDomain_resourceIdentity(t *testing.T) {
-	if os.Getenv("ARM_TEST_DNS_ZONE") == "" {
-		t.Skipf("`ARM_TEST_DNS_ZONE` must be set for acceptance tests!")
+	for _, v := range []string{"ARM_TEST_DATA_RESOURCE_GROUP", "ARM_TEST_DNS_ZONE"} {
+		if os.Getenv(v) == "" {
+			t.Skipf("Skipping as `%s` was not specified", v)
+		}
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
