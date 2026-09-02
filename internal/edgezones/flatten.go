@@ -5,7 +5,7 @@ package edgezones
 
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 
-func FlattenEdgeZone(input *edgezones.Model) string {
+func Flatten(input *edgezones.Model) string {
 	if input == nil || input.Name == "" {
 		return ""
 	}

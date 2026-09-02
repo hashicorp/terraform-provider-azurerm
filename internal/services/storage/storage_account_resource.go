@@ -1222,7 +1222,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	isHnsEnabled := d.Get("is_hns_enabled").(bool)
 	nfsV3Enabled := d.Get("nfsv3_enabled").(bool)
 	payload := storageaccounts.StorageAccountCreateParameters{
-		ExtendedLocation: edgezones.ExpandEdgeZone(d.Get("edge_zone").(string)),
+		ExtendedLocation: edgezones.Expand(d.Get("edge_zone").(string)),
 		Kind:             accountKind,
 		Identity:         expandedIdentity,
 		Location:         location.Normalize(d.Get("location").(string)),
@@ -1850,7 +1850,7 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 	d.Set("account_replication_type", accountReplicationType)
 	d.Set("provisioned_billing_model_version", provisionBillingModelVer)
 
-	d.Set("edge_zone", edgezones.FlattenEdgeZone(account.ExtendedLocation))
+	d.Set("edge_zone", edgezones.Flatten(account.ExtendedLocation))
 	d.Set("location", location.Normalize(account.Location))
 
 	if props := account.Properties; props != nil {

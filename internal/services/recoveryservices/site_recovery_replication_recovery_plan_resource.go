@@ -608,8 +608,8 @@ func expandA2ASettings(input ReplicationRecoveryPlanA2ASpecificInputModel) *[]re
 		replicationrecoveryplans.RecoveryPlanA2AInput{
 			PrimaryZone:              pointer.To(input.PrimaryZone),
 			RecoveryZone:             pointer.To(input.RecoveryZone),
-			PrimaryExtendedLocation:  internaledgezones.ExpandEdgeZone(input.PrimaryEdgeZone),
-			RecoveryExtendedLocation: internaledgezones.ExpandEdgeZone(input.RecoveryEdgeZone),
+			PrimaryExtendedLocation:  internaledgezones.Expand(input.PrimaryEdgeZone),
+			RecoveryExtendedLocation: internaledgezones.Expand(input.RecoveryEdgeZone),
 		},
 	}
 }
@@ -731,8 +731,8 @@ func flattenRecoveryPlanProviderSpecificInput(input *[]replicationrecoveryplans.
 			o := ReplicationRecoveryPlanA2ASpecificInputModel{
 				PrimaryZone:      pointer.From(a2aInput.PrimaryZone),
 				RecoveryZone:     pointer.From(a2aInput.RecoveryZone),
-				PrimaryEdgeZone:  internaledgezones.FlattenEdgeZone(a2aInput.PrimaryExtendedLocation),
-				RecoveryEdgeZone: internaledgezones.FlattenEdgeZone(a2aInput.RecoveryExtendedLocation),
+				PrimaryEdgeZone:  internaledgezones.Flatten(a2aInput.PrimaryExtendedLocation),
+				RecoveryEdgeZone: internaledgezones.Flatten(a2aInput.RecoveryExtendedLocation),
 			}
 			output = append(output, o)
 		}

@@ -273,7 +273,7 @@ func resourceArmLoadBalancerCreate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	loadBalancer := loadbalancers.LoadBalancer{
 		Name:             pointer.To(id.LoadBalancerName),
-		ExtendedLocation: edgezones.ExpandEdgeZone(d.Get("edge_zone").(string)),
+		ExtendedLocation: edgezones.Expand(d.Get("edge_zone").(string)),
 		Location:         pointer.To(location.Normalize(d.Get("location").(string))),
 		Tags:             tags.Expand(d.Get("tags").(map[string]interface{})),
 		Sku:              pointer.To(sku),
@@ -315,7 +315,7 @@ func resourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
-		d.Set("edge_zone", edgezones.FlattenEdgeZone(model.ExtendedLocation))
+		d.Set("edge_zone", edgezones.Flatten(model.ExtendedLocation))
 		if sku := model.Sku; sku != nil {
 			d.Set("sku", string(pointer.From(sku.Name)))
 			d.Set("sku_tier", string(pointer.From(sku.Tier)))

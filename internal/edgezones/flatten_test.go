@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 )
 
-func TestFlattenEdgeZone(t *testing.T) {
+func TestFlatten(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    *edgezones.Model
@@ -30,7 +30,7 @@ func TestFlattenEdgeZone(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Test %q", v.Name)
 
-		actual := FlattenEdgeZone(v.Input)
+		actual := Flatten(v.Input)
 		if !reflect.DeepEqual(actual, v.Expected) {
 			t.Fatalf("Expected %+v but got %+v", v.Expected, actual)
 		}

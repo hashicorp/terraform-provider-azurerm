@@ -397,7 +397,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	props := virtualmachinescalesets.VirtualMachineScaleSet{
-		ExtendedLocation: edgezones.ExpandEdgeZone(d.Get("edge_zone").(string)),
+		ExtendedLocation: edgezones.Expand(d.Get("edge_zone").(string)),
 		Location:         location,
 		Sku: &virtualmachinescalesets.Sku{
 			Name:     pointer.To(d.Get("sku").(string)),
@@ -862,7 +862,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
-		d.Set("edge_zone", edgezones.FlattenEdgeZone(model.ExtendedLocation))
+		d.Set("edge_zone", edgezones.Flatten(model.ExtendedLocation))
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 		var skuName *string
 		var instances int

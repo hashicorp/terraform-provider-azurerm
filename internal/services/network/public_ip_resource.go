@@ -239,7 +239,7 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	publicIp := publicipaddresses.PublicIPAddress{
 		Name:             pointer.To(id.PublicIPAddressesName),
-		ExtendedLocation: edgezones.ExpandEdgeZone(d.Get("edge_zone").(string)),
+		ExtendedLocation: edgezones.Expand(d.Get("edge_zone").(string)),
 		Location:         pointer.To(location.Normalize(d.Get("location").(string))),
 		Sku: &publicipaddresses.PublicIPAddressSku{
 			Name: pointer.ToEnum[publicipaddresses.PublicIPAddressSkuName](sku),
@@ -445,7 +445,7 @@ func resourcePublicIpFlatten(d *pluginsdk.ResourceData, id *commonids.PublicIPAd
 
 	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
-		d.Set("edge_zone", edgezones.FlattenEdgeZone(model.ExtendedLocation))
+		d.Set("edge_zone", edgezones.Flatten(model.ExtendedLocation))
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
 		if sku := model.Sku; sku != nil {

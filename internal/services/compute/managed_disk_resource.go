@@ -554,7 +554,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	createDisk := disks.Disk{
 		Name:             &name,
-		ExtendedLocation: edgezones.ExpandEdgeZone(d.Get("edge_zone").(string)),
+		ExtendedLocation: edgezones.Expand(d.Get("edge_zone").(string)),
 		Location:         location,
 		Properties:       props,
 		Sku: &disks.DiskSku{
@@ -840,7 +840,7 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(&model.Location))
-		d.Set("edge_zone", edgezones.FlattenEdgeZone(model.ExtendedLocation))
+		d.Set("edge_zone", edgezones.Flatten(model.ExtendedLocation))
 
 		zone := ""
 		if model.Zones != nil && len(*model.Zones) > 0 {

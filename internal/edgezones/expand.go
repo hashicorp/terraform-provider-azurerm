@@ -5,7 +5,7 @@ package edgezones
 
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 
-func ExpandEdgeZone(input string) *edgezones.Model {
+func Expand(input string) *edgezones.Model {
 	normalized := edgezones.Normalize(input)
 	if normalized == "" {
 		return nil

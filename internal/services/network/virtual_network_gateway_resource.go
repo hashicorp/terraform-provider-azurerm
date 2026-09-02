@@ -697,7 +697,7 @@ func resourceVirtualNetworkGatewayCreate(d *pluginsdk.ResourceData, meta interfa
 
 	gateway := virtualnetworkgateways.VirtualNetworkGateway{
 		Name:             pointer.To(id.VirtualNetworkGatewayName),
-		ExtendedLocation: edgezones.ExpandEdgeZone(d.Get("edge_zone").(string)),
+		ExtendedLocation: edgezones.Expand(d.Get("edge_zone").(string)),
 		Location:         pointer.To(location.Normalize(d.Get("location").(string))),
 		Tags:             tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties:       *properties,
@@ -736,7 +736,7 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
-		d.Set("edge_zone", edgezones.FlattenEdgeZone(model.ExtendedLocation))
+		d.Set("edge_zone", edgezones.Flatten(model.ExtendedLocation))
 
 		props := model.Properties
 

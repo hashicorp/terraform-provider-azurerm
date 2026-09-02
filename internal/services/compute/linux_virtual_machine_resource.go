@@ -529,7 +529,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 
 	params := virtualmachines.VirtualMachine{
 		Name:             pointer.To(id.VirtualMachineName),
-		ExtendedLocation: edgezones.ExpandEdgeZone(d.Get("edge_zone").(string)),
+		ExtendedLocation: edgezones.Expand(d.Get("edge_zone").(string)),
 		Location:         location.Normalize(d.Get("location").(string)),
 		Identity:         identityExpanded,
 		Plan:             plan,
@@ -884,7 +884,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
-		d.Set("edge_zone", edgezones.FlattenEdgeZone(model.ExtendedLocation))
+		d.Set("edge_zone", edgezones.Flatten(model.ExtendedLocation))
 
 		zone := ""
 		if model.Zones != nil {

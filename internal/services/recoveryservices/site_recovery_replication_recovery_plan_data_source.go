@@ -209,8 +209,8 @@ func flattenDataSourceRecoveryPlanProviderSpecficInput(input *[]replicationrecov
 			o := ReplicationRecoveryPlanA2ASpecificInputDataSourceModel{
 				PrimaryZone:      pointer.From(a2aInput.PrimaryZone),
 				RecoveryZone:     pointer.From(a2aInput.RecoveryZone),
-				PrimaryEdgeZone:  edgezones.FlattenEdgeZone(a2aInput.PrimaryExtendedLocation),
-				RecoveryEdgeZone: edgezones.FlattenEdgeZone(a2aInput.RecoveryExtendedLocation),
+				PrimaryEdgeZone:  edgezones.Flatten(a2aInput.PrimaryExtendedLocation),
+				RecoveryEdgeZone: edgezones.Flatten(a2aInput.RecoveryExtendedLocation),
 			}
 			output = append(output, o)
 		}

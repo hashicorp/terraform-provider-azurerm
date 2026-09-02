@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 )
 
-func TestExpandEdgeZone(t *testing.T) {
+func TestExpand(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
@@ -29,7 +29,7 @@ func TestExpandEdgeZone(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Test %q", v.Name)
 
-		actual := ExpandEdgeZone(v.Input)
+		actual := Expand(v.Input)
 		if !reflect.DeepEqual(actual, v.Expected) {
 			t.Fatalf("Expected %+v but got %+v", v.Expected, actual)
 		}

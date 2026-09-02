@@ -1878,7 +1878,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	parameters := managedclusters.ManagedCluster{
-		ExtendedLocation: edgezones.ExpandEdgeZone(d.Get("edge_zone").(string)),
+		ExtendedLocation: edgezones.Expand(d.Get("edge_zone").(string)),
 		Location:         location,
 		Sku: &managedclusters.ManagedClusterSKU{
 			Name: pointer.To(managedclusters.ManagedClusterSKUNameBase), // the only possible value at this point
@@ -2816,7 +2816,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("edge_zone", edgezones.FlattenEdgeZone(model.ExtendedLocation))
+		d.Set("edge_zone", edgezones.Flatten(model.ExtendedLocation))
 		d.Set("location", location.Normalize(model.Location))
 
 		skuTier := string(managedclusters.ManagedClusterSKUTierFree)

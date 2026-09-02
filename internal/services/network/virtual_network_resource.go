@@ -377,7 +377,7 @@ func resourceVirtualNetworkCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	vnet := virtualnetworks.VirtualNetwork{
 		Name:             pointer.To(id.VirtualNetworkName),
-		ExtendedLocation: edgezones.ExpandEdgeZone(d.Get("edge_zone").(string)),
+		ExtendedLocation: edgezones.Expand(d.Get("edge_zone").(string)),
 		Location:         pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties:       vnetProperties,
 		Tags:             tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -456,7 +456,7 @@ func resourceVirtualNetworkFlatten(d *pluginsdk.ResourceData, id commonids.Virtu
 
 	if vnet != nil {
 		d.Set("location", location.NormalizeNilable(vnet.Location))
-		d.Set("edge_zone", edgezones.FlattenEdgeZone(vnet.ExtendedLocation))
+		d.Set("edge_zone", edgezones.Flatten(vnet.ExtendedLocation))
 
 		if props := vnet.Properties; props != nil {
 			d.Set("guid", props.ResourceGuid)

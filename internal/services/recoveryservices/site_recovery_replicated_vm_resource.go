@@ -563,7 +563,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 				RecoveryVirtualMachineScaleSetId:   pointer.To(d.Get("target_virtual_machine_scale_set_id").(string)),
 				VMManagedDisks:                     &managedDisks,
 				VMDisks:                            &vmDisks,
-				RecoveryExtendedLocation:           edgezones.ExpandEdgeZone(d.Get("target_edge_zone").(string)),
+				RecoveryExtendedLocation:           edgezones.Expand(d.Get("target_edge_zone").(string)),
 			},
 		},
 	}
@@ -994,7 +994,7 @@ func flattenSiteRecoveryReplicatedItem(d *pluginsdk.ResourceData, model *replica
 
 			d.Set("target_virtual_machine_size", pointer.From(a2aDetails.RecoveryAzureVMSize))
 			d.Set("target_zone", a2aDetails.RecoveryAvailabilityZone)
-			d.Set("target_edge_zone", edgezones.FlattenEdgeZone(a2aDetails.RecoveryExtendedLocation))
+			d.Set("target_edge_zone", edgezones.Flatten(a2aDetails.RecoveryExtendedLocation))
 			d.Set("multi_vm_group_name", a2aDetails.MultiVMGroupName)
 			d.Set("test_network_id", a2aDetails.SelectedTfoAzureNetworkId)
 			if a2aDetails.ProtectedDisks != nil {
