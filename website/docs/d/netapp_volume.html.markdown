@@ -45,7 +45,7 @@ The following attributes are exported:
   
 * `zone` - The Availability Zone in which the Volume is located.
 
-* `mount_ip_addresses` - A list of IPv4 Addresses which should be used to mount the volume.
+* `mount_target` - One or more `mount_target` blocks as defined below.
 
 * `protocols` - A list of protocol types enabled on volume.
 
@@ -72,6 +72,8 @@ The following attributes are exported:
 * `smb_access_based_enumeration_enabled` - Limits enumeration of files and folders (that is, listing the contents) in SMB only to users with allowed access on the share.
 
 * `large_volume_enabled` - Indicates if the volume is a large volume.
+
+* `breakthrough_mode_enabled` - Indicates if the large volume runs in Breakthrough Mode, placing it on dedicated capacity that provides higher throughput and greater capacity.
 
 * `accept_grow_capacity_pool_for_short_term_clone_split` - The accept grow capacity pool for short term clone split property.
 
@@ -107,6 +109,12 @@ A `data_protection_advanced_ransomware` block exports the following:
 
 ---
 
+A `mount_target` block exports the following:
+
+* `ip_address` - The IP address of the mount target.
+
+* `smb_server_fqdn` - The SMB server's Fully Qualified Domain Name (FQDN). This value is populated when the volume's `protocols` include `CIFS`; otherwise, it is empty.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
@@ -117,4 +125,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.NetApp` - 2025-12-01
+* `Microsoft.NetApp` - 2026-05-01

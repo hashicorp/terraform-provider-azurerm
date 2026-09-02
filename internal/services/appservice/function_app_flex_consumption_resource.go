@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/jackofallops/kermit/sdk/web/2022-09-01/web"
 )
 
 const (
@@ -124,12 +123,10 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"storage_container_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(webapps.FunctionsDeploymentStorageTypeBlobContainer),
-			}, false),
-			Description: "The type of the storage container where the function app's code is hosted. Only `blobContainer` is supported currently.",
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFunctionsDeploymentStorageType(), false),
+			Description:  "The type of the storage container where the function app's code is hosted. Only `blobContainer` is supported currently.",
 		},
 
 		"storage_container_endpoint": {
@@ -139,13 +136,9 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"storage_authentication_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(webapps.AuthenticationTypeSystemAssignedIdentity),
-				string(webapps.AuthenticationTypeStorageAccountConnectionString),
-				string(webapps.AuthenticationTypeUserAssignedIdentity),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForAuthenticationType(), false),
 		},
 
 		"storage_access_key": {
@@ -161,16 +154,9 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"runtime_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(webapps.RuntimeNameDotnetNegativeisolated),
-				string(webapps.RuntimeNameJava),
-				string(webapps.RuntimeNameNode),
-				string(webapps.RuntimeNamePowershell),
-				string(webapps.RuntimeNamePython),
-				string(webapps.RuntimeNameCustom),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForRuntimeName(), false),
 		},
 
 		"runtime_version": {
@@ -245,15 +231,11 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"client_certificate_mode": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  web.ClientCertModeOptional,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(web.ClientCertModeOptional),
-				string(web.ClientCertModeRequired),
-				string(web.ClientCertModeOptionalInteractiveUser),
-			}, false),
-			Description: "The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser` ",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      webapps.ClientCertModeOptional,
+			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForClientCertMode(), false),
+			Description:  "The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser` ",
 		},
 
 		"client_certificate_exclusion_paths": {
@@ -411,13 +393,15 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("the sku name is %s which is not valid for a flex consumption function app", *planSKU)
 			}
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			checkName, err := resourcesClient.CheckNameAvailability(ctx, commonids.NewSubscriptionID(subscriptionId), availabilityRequest)
@@ -520,7 +504,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 					HTTPSOnly:         pointer.To(functionAppFlexConsumption.HttpsOnly),
 					FunctionAppConfig: flexFunctionAppConfig,
 					ClientCertEnabled: pointer.To(functionAppFlexConsumption.ClientCertEnabled),
-					ClientCertMode:    pointer.To(webapps.ClientCertMode(functionAppFlexConsumption.ClientCertMode)),
+					ClientCertMode:    pointer.ToEnum[webapps.ClientCertMode](functionAppFlexConsumption.ClientCertMode),
 				},
 			}
 
@@ -542,7 +526,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				siteEnvelope.Properties.ClientCertExclusionPaths = pointer.To(functionAppFlexConsumption.ClientCertExclusionPaths)
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, siteEnvelope); err != nil {
+			if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, siteEnvelope, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -779,8 +763,6 @@ func (r FunctionAppFlexConsumptionResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting %s", *id)
-
 			delOptions := webapps.DeleteOperationOptions{
 				DeleteEmptyServerFarm: pointer.To(false),
 				DeleteMetrics:         pointer.To(false),
@@ -852,7 +834,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
-				model.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(state.ClientCertMode))
+				model.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](state.ClientCertMode)
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {

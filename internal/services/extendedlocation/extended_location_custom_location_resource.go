@@ -87,12 +87,10 @@ func (r ExtendedLocationCustomLocationResource) Arguments() map[string]*pluginsd
 		},
 
 		"host_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(customlocations.HostTypeKubernetes),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(customlocations.PossibleValuesForHostType(), false),
 		},
 
 		"display_name": {
@@ -145,20 +143,23 @@ func (r ExtendedLocationCustomLocationResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.ExtendedLocation.CustomLocationsClient
 
 			id := customlocations.NewCustomLocationID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			customLocationProps := customlocations.CustomLocationProperties{
 				ClusterExtensionIds: pointer.To(model.ClusterExtensionIds),
 				DisplayName:         pointer.To(model.DisplayName),
 				HostResourceId:      pointer.To(model.HostResourceId),
-				HostType:            pointer.To(customlocations.HostType(model.HostType)),
+				HostType:            pointer.ToEnum[customlocations.HostType](model.HostType),
 				Namespace:           pointer.To(model.Namespace),
 			}
 
@@ -177,7 +178,7 @@ func (r ExtendedLocationCustomLocationResource) Create() sdk.ResourceFunc {
 				Properties: pointer.To(customLocationProps),
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, props); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, props, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -245,8 +246,6 @@ func (r ExtendedLocationCustomLocationResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("deleting %s", *id)
 
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)

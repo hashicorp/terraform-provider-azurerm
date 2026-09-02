@@ -89,14 +89,11 @@ func (r ContainerAppEnvironmentStorageResource) Arguments() map[string]*pluginsd
 		},
 
 		"access_mode": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(managedenvironmentsstorages.AccessModeReadOnly),
-				string(managedenvironmentsstorages.AccessModeReadWrite),
-			}, false),
-			Description: "The access mode to connect this storage to the Container App. Possible values include `ReadOnly` and `ReadWrite`.",
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(managedenvironmentsstorages.PossibleValuesForAccessMode(), false),
+			Description:  "The access mode to connect this storage to the Container App. Possible values include `ReadOnly` and `ReadWrite`.",
 		},
 
 		"nfs_server_url": {
@@ -132,30 +129,31 @@ func (r ContainerAppEnvironmentStorageResource) Create() sdk.ResourceFunc {
 
 			id := managedenvironmentsstorages.NewStorageID(metadata.Client.Account.SubscriptionId, containerAppEnvironmentId.ResourceGroupName, containerAppEnvironmentId.ManagedEnvironmentName, storage.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			accessMode := managedenvironmentsstorages.AccessMode(storage.AccessMode)
 			managedEnvironmentStorage := managedenvironmentsstorages.ManagedEnvironmentStorage{}
 
 			if storage.NfsServer != "" {
-				props := &managedenvironmentsstorages.ManagedEnvironmentStorageProperties{
+				managedEnvironmentStorage.Properties = &managedenvironmentsstorages.ManagedEnvironmentStorageProperties{
 					NfsAzureFile: &managedenvironmentsstorages.NfsAzureFileProperties{
 						AccessMode: &accessMode,
 						Server:     pointer.To(storage.NfsServer),
 						ShareName:  pointer.To(storage.ShareName),
 					},
 				}
-				managedEnvironmentStorage.Properties = props
 			} else {
-				props := &managedenvironmentsstorages.ManagedEnvironmentStorageProperties{
+				managedEnvironmentStorage.Properties = &managedenvironmentsstorages.ManagedEnvironmentStorageProperties{
 					AzureFile: &managedenvironmentsstorages.AzureFileProperties{
 						AccessMode:  &accessMode,
 						AccountKey:  pointer.To(storage.AccessKey),
@@ -163,7 +161,6 @@ func (r ContainerAppEnvironmentStorageResource) Create() sdk.ResourceFunc {
 						ShareName:   pointer.To(storage.ShareName),
 					},
 				}
-				managedEnvironmentStorage.Properties = props
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id, managedEnvironmentStorage); err != nil {

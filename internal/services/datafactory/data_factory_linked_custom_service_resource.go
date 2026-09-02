@@ -9,7 +9,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -17,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
@@ -64,7 +65,7 @@ func resourceDataFactoryLinkedCustomService() *pluginsdk.Resource {
 			"type_properties_json": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
-				StateFunc:        utils.NormalizeJson,
+				StateFunc:        helpers.NormalizeJson,
 				DiffSuppressFunc: suppressJsonOrderingDifference,
 			},
 
@@ -137,14 +138,16 @@ func resourceDataFactoryLinkedCustomServiceCreateUpdate(d *pluginsdk.ResourceDat
 
 	id := parse.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+			if err != nil {
+				if !response.WasNotFound(existing.Response.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_data_factory_linked_custom_service", id.ID())
+			if !response.WasNotFound(existing.Response.Response) {
+				return tf.ImportAsExistsError("azurerm_data_factory_linked_custom_service", id.ID())
+			}
 		}
 	}
 
@@ -191,7 +194,9 @@ func resourceDataFactoryLinkedCustomServiceCreateUpdate(d *pluginsdk.ResourceDat
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	return resourceDataFactoryLinkedCustomServiceRead(d, meta)
 }
@@ -209,7 +214,7 @@ func resourceDataFactoryLinkedCustomServiceRead(d *pluginsdk.ResourceData, meta 
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -331,14 +336,9 @@ func flattenDataFactoryLinkedServiceIntegrationRuntimeV2(input *datafactory.Inte
 		return []interface{}{}
 	}
 
-	name := ""
-	if input.ReferenceName != nil {
-		name = *input.ReferenceName
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"name":       name,
+			"name":       pointer.From(input.ReferenceName),
 			"parameters": input.Parameters,
 		},
 	}

@@ -10,11 +10,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/exports"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/validate"
-	resourceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -49,7 +49,7 @@ func (r ResourceGroupCostManagementExportResource) Arguments() map[string]*plugi
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: resourceValidate.ResourceGroupID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseResourceGroupIDInsensitively),
 		},
 	}
 	return r.base.arguments(schema)
@@ -84,16 +84,17 @@ func (r ResourceGroupCostManagementExportResource) Create() sdk.ResourceFunc {
 
 			id := exports.NewScopedExportID(config.ResourceGroupId, config.Name)
 
-			var opts exports.GetOperationOptions
-			existing, err := client.Get(ctx, id, opts)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id, exports.DefaultGetOperationOptions())
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				}
 			}
 
 			deliveryInfo, err := expandExportDataStorageLocationFromModel(config.ExportDataStorageLocation)

@@ -11,8 +11,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/application"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/applicationgroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/application"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/applicationgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -85,13 +85,9 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 			},
 
 			"command_line_argument_policy": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(application.CommandLineSettingAllow),
-					string(application.CommandLineSettingDoNotAllow),
-					string(application.CommandLineSettingRequire),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(application.PossibleValuesForCommandLineSetting(), false),
 			},
 
 			"command_line_arguments": {
@@ -123,8 +119,6 @@ func resourceVirtualDesktopApplicationCreateUpdate(d *pluginsdk.ResourceData, me
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 
-	log.Printf("[INFO] preparing arguments for Virtual Desktop Application creation")
-
 	applicationGroup, _ := applicationgroup.ParseApplicationGroupID(d.Get("application_group_id").(string))
 	id := application.NewApplicationID(subscriptionId, applicationGroup.ResourceGroupName, applicationGroup.ApplicationGroupName, d.Get("name").(string))
 
@@ -135,15 +129,17 @@ func resourceVirtualDesktopApplicationCreateUpdate(d *pluginsdk.ResourceData, me
 	defer cancel()
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_virtual_desktop_application", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_virtual_desktop_application", id.ID())
+			}
 		}
 	}
 
@@ -164,7 +160,9 @@ func resourceVirtualDesktopApplicationCreateUpdate(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 	return resourceVirtualDesktopApplicationRead(d, meta)
 }
 

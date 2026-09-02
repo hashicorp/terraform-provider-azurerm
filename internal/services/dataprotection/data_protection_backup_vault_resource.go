@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -27,7 +28,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_vault -service-package-name dataprotection -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -64,25 +65,17 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"datastore_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(backupvaultresources.StorageSettingStoreTypesArchiveStore),
-					string(backupvaultresources.StorageSettingStoreTypesOperationalStore),
-					string(backupvaultresources.StorageSettingStoreTypesVaultStore),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(backupvaultresources.PossibleValuesForStorageSettingStoreTypes(), false),
 			},
 
 			"redundancy": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(backupvaultresources.StorageSettingTypesGeoRedundant),
-					string(backupvaultresources.StorageSettingTypesLocallyRedundant),
-					string(backupvaultresources.StorageSettingTypesZoneRedundant),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(backupvaultresources.PossibleValuesForStorageSettingTypes(), false),
 			},
 
 			"cross_region_restore_enabled": {
@@ -157,14 +150,16 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 	id := backupvaultresources.NewBackupVaultID(subscriptionId, resourceGroup, name)
 
 	if d.IsNewResource() {
-		existing, err := client.BackupVaultsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing DataProtection BackupVault (%q): %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.BackupVaultsGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing DataProtection BackupVault (%q): %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_data_protection_backup_vault", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_data_protection_backup_vault", id.ID())
+			}
 		}
 	}
 
@@ -178,16 +173,16 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		Properties: backupvaultresources.BackupVault{
 			StorageSettings: []backupvaultresources.StorageSetting{
 				{
-					DatastoreType: pointer.To(backupvaultresources.StorageSettingStoreTypes(d.Get("datastore_type").(string))),
-					Type:          pointer.To(backupvaultresources.StorageSettingTypes(d.Get("redundancy").(string))),
+					DatastoreType: pointer.ToEnum[backupvaultresources.StorageSettingStoreTypes](d.Get("datastore_type").(string)),
+					Type:          pointer.ToEnum[backupvaultresources.StorageSettingTypes](d.Get("redundancy").(string)),
 				},
 			},
 			SecuritySettings: &backupvaultresources.SecuritySettings{
 				SoftDeleteSettings: &backupvaultresources.SoftDeleteSettings{
-					State: pointer.To(backupvaultresources.SoftDeleteState(d.Get("soft_delete").(string))),
+					State: pointer.ToEnum[backupvaultresources.SoftDeleteState](d.Get("soft_delete").(string)),
 				},
 				ImmutabilitySettings: &backupvaultresources.ImmutabilitySettings{
-					State: pointer.To(backupvaultresources.ImmutabilityState(d.Get("immutability").(string))),
+					State: pointer.ToEnum[backupvaultresources.ImmutabilityState](d.Get("immutability").(string)),
 				},
 			},
 		},
@@ -210,15 +205,21 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		parameters.Properties.SecuritySettings.SoftDeleteSettings.RetentionDurationInDays = pointer.To(v.(float64))
 	}
 
-	err = client.BackupVaultsCreateOrUpdateThenPoll(ctx, id, parameters, backupvaultresources.DefaultBackupVaultsCreateOrUpdateOperationOptions())
-	if err != nil {
-		return fmt.Errorf("creating DataProtection BackupVault (%q): %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.BackupVaultsCreateOrUpdateCallbackThenPoll(ctx, id, parameters, backupvaultresources.DefaultBackupVaultsCreateOrUpdateOperationOptions(), sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+
+		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
+	} else {
+		if err := client.BackupVaultsCreateOrUpdateThenPoll(ctx, id, parameters, backupvaultresources.DefaultBackupVaultsCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-		return err
-	}
 	return resourceDataProtectionBackupVaultRead(d, meta)
 }
 
@@ -249,8 +250,8 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 		props := model.Properties
 
 		if len(props.StorageSettings) > 0 {
-			d.Set("datastore_type", string(pointer.From((props.StorageSettings)[0].DatastoreType)))
-			d.Set("redundancy", string(pointer.From((props.StorageSettings)[0].Type)))
+			d.Set("datastore_type", string(pointer.From(props.StorageSettings[0].DatastoreType)))
+			d.Set("redundancy", string(pointer.From(props.StorageSettings[0].Type)))
 		}
 
 		immutability := backupvaultresources.ImmutabilityStateDisabled

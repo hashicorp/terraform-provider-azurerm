@@ -28,7 +28,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
@@ -247,7 +246,6 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 
 			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
 			// allow some time for role permission to be propagated
-			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Feature %q read permission to be propagated", featureKey)
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:                   []string{"Forbidden"},
 				Target:                    []string{"Error", "Exists", "NotFound"},
@@ -261,17 +259,19 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for App Configuration Feature %q read permission to be propagated: %+v", featureKey, err)
 			}
 
-			kv, err := client.GetKeyValue(ctx, featureKey, model.Label, "", "", "", []appconfiguration.KeyValueFields{})
-			if err != nil {
-				if v, ok := err.(autorest.DetailedError); ok {
-					if !utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
-						return fmt.Errorf("got http status code %d while checking for key's %q existence: %+v", v.Response.StatusCode, featureKey, v.Error())
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				kv, err := client.GetKeyValue(ctx, featureKey, model.Label, "", "", "", []appconfiguration.KeyValueFields{})
+				if err != nil {
+					if v, ok := err.(autorest.DetailedError); ok {
+						if !response.WasNotFound(v.Response) {
+							return fmt.Errorf("got http status code %d while checking for key's %q existence: %+v", v.Response.StatusCode, featureKey, v.Error())
+						}
+					} else {
+						return fmt.Errorf("while checking for key's %q existence: %+v", featureKey, err)
 					}
-				} else {
-					return fmt.Errorf("while checking for key's %q existence: %+v", featureKey, err)
+				} else if kv.StatusCode == 200 {
+					return tf.ImportAsExistsError(k.ResourceType(), nestedItemId.ID())
 				}
-			} else if kv.StatusCode == 200 {
-				return tf.ImportAsExistsError(k.ResourceType(), nestedItemId.ID())
 			}
 
 			entity := appconfiguration.KeyValue{
@@ -344,7 +344,6 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 			}
 
 			// https://github.com/Azure/AppConfiguration/issues/763
-			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Feature %q to be provisioned", model.Key)
 			stateConf = &pluginsdk.StateChangeConf{
 				Pending:                   []string{"NotFound", "Forbidden"},
 				Target:                    []string{"Exists"},
@@ -419,8 +418,7 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 			}
 
 			var fv FeatureValue
-			err = json.Unmarshal([]byte(pointer.From(kv.Value)), &fv)
-			if err != nil {
+			if err = json.Unmarshal([]byte(pointer.From(kv.Value)), &fv); err != nil {
 				return fmt.Errorf("while unmarshalling underlying key's value: %+v", err)
 			}
 
@@ -483,8 +481,7 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 			}
 
 			var fv FeatureValue
-			err = json.Unmarshal([]byte(pointer.From(kv.Value)), &fv)
-			if err != nil {
+			if err = json.Unmarshal([]byte(pointer.From(kv.Value)), &fv); err != nil {
 				return fmt.Errorf("while unmarshalling underlying key's value: %+v", err)
 			}
 
@@ -537,8 +534,7 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 						tfp := f
 						targetingFilters = append(targetingFilters, tfp)
 					case PercentageFeatureFilter:
-						pfp := f
-						percentageFilter = pfp
+						percentageFilter = f
 					case CustomFilter:
 						cf := f
 						customFilters = append(customFilters, cf)

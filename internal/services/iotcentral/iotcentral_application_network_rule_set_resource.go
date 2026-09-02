@@ -52,13 +52,10 @@ func (r IotCentralApplicationNetworkRuleSetResource) Arguments() map[string]*plu
 		},
 
 		"default_action": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(apps.NetworkActionDeny),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(apps.NetworkActionAllow),
-				string(apps.NetworkActionDeny),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(apps.NetworkActionDeny),
+			ValidateFunc: validation.StringInSlice(apps.PossibleValuesForNetworkAction(), false),
 		},
 
 		"ip_rule": {
@@ -127,7 +124,9 @@ func (r IotCentralApplicationNetworkRuleSetResource) Create() sdk.ResourceFunc {
 			if property := model.Properties; property != nil {
 				if property.NetworkRuleSets != nil {
 					if !isNetworkRuleSetNullified(*property.NetworkRuleSets) {
-						return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+						if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+							return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+						}
 					}
 				}
 			}

@@ -15,13 +15,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name network_security_rule -service-package-name network -properties "name,network_security_group_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceNetworkSecurityRule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -66,16 +67,9 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 			},
 
 			"protocol": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(securityrules.SecurityRuleProtocolAny),
-					string(securityrules.SecurityRuleProtocolTcp),
-					string(securityrules.SecurityRuleProtocolUdp),
-					string(securityrules.SecurityRuleProtocolIcmp),
-					string(securityrules.SecurityRuleProtocolAh),
-					string(securityrules.SecurityRuleProtocolEsp),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(securityrules.PossibleValuesForSecurityRuleProtocol(), false),
 			},
 
 			"source_port_range": {
@@ -161,12 +155,9 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 			},
 
 			"access": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(securityrules.SecurityRuleAccessAllow),
-					string(securityrules.SecurityRuleAccessDeny),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(securityrules.PossibleValuesForSecurityRuleAccess(), false),
 			},
 
 			"priority": {
@@ -176,12 +167,9 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 			},
 
 			"direction": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(securityrules.SecurityRuleDirectionInbound),
-					string(securityrules.SecurityRuleDirectionOutbound),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(securityrules.PossibleValuesForSecurityRuleDirection(), false),
 			},
 		},
 	}
@@ -195,15 +183,17 @@ func resourceNetworkSecurityRuleCreate(d *pluginsdk.ResourceData, meta interface
 
 	id := securityrules.NewSecurityRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("network_security_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_network_security_rule", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_network_security_rule", id.ID())
+		}
 	}
 
 	rule := securityrules.SecurityRule{
@@ -287,7 +277,7 @@ func resourceNetworkSecurityRuleCreate(d *pluginsdk.ResourceData, meta interface
 		rule.Properties.DestinationApplicationSecurityGroups = &destinationApplicationSecurityGroups
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, rule); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, rule, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

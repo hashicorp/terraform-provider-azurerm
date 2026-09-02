@@ -62,9 +62,20 @@ func (c AppPlatformClient) GatewaysUpdateCapacity(ctx context.Context, id Gatewa
 
 // GatewaysUpdateCapacityThenPoll performs GatewaysUpdateCapacity then polls until it's completed
 func (c AppPlatformClient) GatewaysUpdateCapacityThenPoll(ctx context.Context, id GatewayId, input SkuObject) error {
+	return c.GatewaysUpdateCapacityCallbackThenPoll(ctx, id, input, nil)
+}
+
+// GatewaysUpdateCapacityCallbackThenPoll performs GatewaysUpdateCapacity, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) GatewaysUpdateCapacityCallbackThenPoll(ctx context.Context, id GatewayId, input SkuObject, callback func() error) error {
 	result, err := c.GatewaysUpdateCapacity(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing GatewaysUpdateCapacity: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

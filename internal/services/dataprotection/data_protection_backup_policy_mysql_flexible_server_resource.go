@@ -80,7 +80,7 @@ func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) IDValidationFunc(
 }
 
 func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) Arguments() map[string]*pluginsdk.Schema {
-	arguments := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -255,7 +255,6 @@ func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) Arguments() map[s
 			ValidateFunc: validate.BackupPolicyMySQLFlexibleServerTimeZone(),
 		},
 	}
-	return arguments
 }
 
 func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) Attributes() map[string]*pluginsdk.Schema {
@@ -277,15 +276,17 @@ func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) Create() sdk.Reso
 			vaultId, _ := basebackuppolicyresources.ParseBackupVaultID(model.VaultId)
 			id := basebackuppolicyresources.NewBackupPolicyID(subscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, model.Name)
 
-			existing, err := client.BackupPoliciesGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.BackupPoliciesGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			policyRules := make([]basebackuppolicyresources.BasePolicyRule, 0)
@@ -670,27 +671,27 @@ func flattenBackupPolicyMySQLFlexibleServerBackupCriteria(input *[]basebackuppol
 		if criteria, ok := item.(basebackuppolicyresources.ScheduleBasedBackupCriteria); ok {
 			var absoluteCriteria string
 			if criteria.AbsoluteCriteria != nil && len(pointer.From(criteria.AbsoluteCriteria)) > 0 {
-				absoluteCriteria = string((pointer.From(criteria.AbsoluteCriteria))[0])
+				absoluteCriteria = string(pointer.From(criteria.AbsoluteCriteria)[0])
 			}
 
 			daysOfWeek := make([]string, 0)
 			if criteria.DaysOfTheWeek != nil {
 				for _, item := range pointer.From(criteria.DaysOfTheWeek) {
-					daysOfWeek = append(daysOfWeek, (string)(item))
+					daysOfWeek = append(daysOfWeek, string(item))
 				}
 			}
 
 			monthsOfYear := make([]string, 0)
 			if criteria.MonthsOfYear != nil {
 				for _, item := range pointer.From(criteria.MonthsOfYear) {
-					monthsOfYear = append(monthsOfYear, (string)(item))
+					monthsOfYear = append(monthsOfYear, string(item))
 				}
 			}
 
 			weeksOfMonth := make([]string, 0)
 			if criteria.WeeksOfTheMonth != nil {
 				for _, item := range pointer.From(criteria.WeeksOfTheMonth) {
-					weeksOfMonth = append(weeksOfMonth, (string)(item))
+					weeksOfMonth = append(weeksOfMonth, string(item))
 				}
 			}
 

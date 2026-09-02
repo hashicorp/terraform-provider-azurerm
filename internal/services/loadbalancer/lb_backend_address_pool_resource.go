@@ -11,10 +11,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -83,11 +84,8 @@ func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 						"type": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(loadbalancers.GatewayLoadBalancerTunnelInterfaceTypeNone),
-								string(loadbalancers.GatewayLoadBalancerTunnelInterfaceTypeInternal),
-								string(loadbalancers.GatewayLoadBalancerTunnelInterfaceTypeExternal),
-							},
+							ValidateFunc: validation.StringInSlice(
+								loadbalancers.PossibleValuesForGatewayLoadBalancerTunnelInterfaceType(),
 								false,
 							),
 						},
@@ -95,11 +93,8 @@ func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 						"protocol": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(loadbalancers.GatewayLoadBalancerTunnelProtocolNone),
-								string(loadbalancers.GatewayLoadBalancerTunnelProtocolNative),
-								string(loadbalancers.GatewayLoadBalancerTunnelProtocolVXLAN),
-							},
+							ValidateFunc: validation.StringInSlice(
+								loadbalancers.PossibleValuesForGatewayLoadBalancerTunnelProtocol(),
 								false,
 							),
 						},
@@ -167,15 +162,17 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 	id := loadbalancers.NewLoadBalancerBackendAddressPoolID(loadBalancerId.SubscriptionId, loadBalancerId.ResourceGroupName, loadBalancerId.LoadBalancerName, name)
 
 	if d.IsNewResource() {
-		existing, err := lbClient.LoadBalancerBackendAddressPoolsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := lbClient.LoadBalancerBackendAddressPoolsGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_lb_backend_address_pool", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_lb_backend_address_pool", id.ID())
+			}
 		}
 	}
 
@@ -235,10 +232,10 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 	if v, ok := d.GetOk("synchronous_mode"); ok {
 		if param.Properties == nil {
 			param.Properties = &loadbalancers.BackendAddressPoolPropertiesFormat{
-				SyncMode: pointer.To(loadbalancers.SyncMode(v.(string))),
+				SyncMode: pointer.ToEnum[loadbalancers.SyncMode](v.(string)),
 			}
 		} else {
-			param.Properties.SyncMode = pointer.To(loadbalancers.SyncMode(v.(string)))
+			param.Properties.SyncMode = pointer.ToEnum[loadbalancers.SyncMode](v.(string))
 		}
 	}
 
@@ -259,9 +256,14 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 
 			properties.BackendAddressPools = &backendAddressPools
 
-			err := lbClient.CreateOrUpdateThenPoll(ctx, plbId, *lb.Model)
-			if err != nil {
-				return fmt.Errorf("updating %s: %+v", *loadBalancerId, err)
+			if d.IsNewResource() {
+				if err := lbClient.CreateOrUpdateCallbackThenPoll(ctx, plbId, *lb.Model, sdk.SetIDCallback(meta, &id, d)); err != nil {
+					return fmt.Errorf("creating %s: %+v", id, err)
+				}
+			} else {
+				if err := lbClient.CreateOrUpdateThenPoll(ctx, plbId, *lb.Model); err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
+				}
 			}
 		case loadbalancers.LoadBalancerSkuNameStandard:
 			if param.Properties == nil {
@@ -270,9 +272,14 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 				}
 			}
 
-			err := lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, id, param)
-			if err != nil {
-				return fmt.Errorf("creating/updating Load Balancer Backend Address Pool %q: %+v", id, err)
+			if d.IsNewResource() {
+				if err := lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateCallbackThenPoll(ctx, id, param, sdk.SetIDCallback(meta, &id, d)); err != nil {
+					return fmt.Errorf("creating %s: %+v", id, err)
+				}
+			} else {
+				if err := lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, id, param); err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
+				}
 			}
 		case loadbalancers.LoadBalancerSkuNameGateway:
 			if param.Properties == nil {
@@ -280,13 +287,20 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 			}
 			param.Properties.TunnelInterfaces = expandGatewayLoadBalancerTunnelInterfaces(d.Get("tunnel_interface").([]interface{}))
 
-			err := lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, id, param)
-			if err != nil {
-				return fmt.Errorf("creating/updating %q: %+v", id, err)
+			if d.IsNewResource() {
+				if err := lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateCallbackThenPoll(ctx, id, param, sdk.SetIDCallback(meta, &id, d)); err != nil {
+					return fmt.Errorf("creating %s: %+v", id, err)
+				}
+			} else {
+				if err := lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, id, param); err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
+				}
 			}
 		}
 
-		d.SetId(id.ID())
+		if d.IsNewResource() {
+			d.SetId(id.ID())
+		}
 	}
 
 	return resourceArmLoadBalancerBackendAddressPoolRead(d, meta)
@@ -438,13 +452,11 @@ func resourceArmLoadBalancerBackendAddressPoolDelete(d *pluginsdk.ResourceData, 
 		backEndPools = append(backEndPools[:index], backEndPools[index+1:]...)
 		lb.Model.Properties.BackendAddressPools = &backEndPools
 
-		err := lbClient.CreateOrUpdateThenPoll(ctx, plbId, *lb.Model)
-		if err != nil {
+		if err := lbClient.CreateOrUpdateThenPoll(ctx, plbId, *lb.Model); err != nil {
 			return fmt.Errorf("updating %s: %+v", loadBalancerId, err)
 		}
 	} else {
-		err := lbClient.LoadBalancerBackendAddressPoolsDeleteThenPoll(ctx, *id)
-		if err != nil {
+		if err := lbClient.LoadBalancerBackendAddressPoolsDeleteThenPoll(ctx, *id); err != nil {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
@@ -463,8 +475,8 @@ func expandGatewayLoadBalancerTunnelInterfaces(input []interface{}) *[]loadbalan
 		e := e.(map[string]interface{})
 		result = append(result, loadbalancers.GatewayLoadBalancerTunnelInterface{
 			Identifier: pointer.To(int64(e["identifier"].(int))),
-			Type:       pointer.To(loadbalancers.GatewayLoadBalancerTunnelInterfaceType(e["type"].(string))),
-			Protocol:   pointer.To(loadbalancers.GatewayLoadBalancerTunnelProtocol(e["protocol"].(string))),
+			Type:       pointer.ToEnum[loadbalancers.GatewayLoadBalancerTunnelInterfaceType](e["type"].(string)),
+			Protocol:   pointer.ToEnum[loadbalancers.GatewayLoadBalancerTunnelProtocol](e["protocol"].(string)),
 			Port:       pointer.To(int64(e["port"].(int))),
 		})
 	}

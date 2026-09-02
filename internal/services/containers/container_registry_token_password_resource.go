@@ -132,13 +132,15 @@ func (r ContainerRegistryTokenPasswordResource) Create() sdk.ResourceFunc {
 
 			id := parse.NewContainerRegistryTokenPasswordID(tokenId.SubscriptionId, tokenId.ResourceGroupName, tokenId.RegistryName, tokenId.TokenName, "password")
 
-			pwds, _, err := r.readPassword(ctx, client, *tokenId)
-			if err != nil {
-				return err
-			}
-			// ACR token with no password returns a empty array for ".password"
-			if len(pwds) != 0 {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				pwds, _, err := r.readPassword(ctx, client, *tokenId)
+				if err != nil {
+					return err
+				}
+				// ACR token with no password returns an empty array for ".password"
+				if len(pwds) != 0 {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			passwords, err := r.expandContainerRegistryTokenPassword(plan)
@@ -149,6 +151,7 @@ func (r ContainerRegistryTokenPasswordResource) Create() sdk.ResourceFunc {
 			locks.ByID(tokenId.ID())
 			defer locks.UnlockByID(tokenId.ID())
 
+			// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
 			genPasswords, err := r.generatePassword(ctx, *metadata.Client.Containers, *tokenId, *passwords)
 			if err != nil {
 				return err
@@ -313,7 +316,7 @@ func (r ContainerRegistryTokenPasswordResource) expandContainerRegistryTokenPass
 		if len(password) == 1 {
 			password := password[0]
 			ret := &tokens.TokenPassword{
-				Name:  pointer.To(tokens.TokenPasswordName(name)),
+				Name:  pointer.ToEnum[tokens.TokenPasswordName](name),
 				Value: pointer.To(password.Value),
 			}
 			if v := password.Expiry; v != "" {

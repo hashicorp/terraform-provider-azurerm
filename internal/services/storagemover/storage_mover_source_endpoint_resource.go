@@ -87,15 +87,11 @@ func (r StorageMoverSourceEndpointResource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"nfs_version": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(endpoints.NfsVersionNFSauto),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(endpoints.NfsVersionNFSauto),
-				string(endpoints.NfsVersionNFSvFour),
-				string(endpoints.NfsVersionNFSvThree),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      string(endpoints.NfsVersionNFSauto),
+			ValidateFunc: validation.StringInSlice(endpoints.PossibleValuesForNfsVersion(), false),
 		},
 
 		"description": {
@@ -126,13 +122,16 @@ func (r StorageMoverSourceEndpointResource) Create() sdk.ResourceFunc {
 			}
 
 			id := endpoints.NewEndpointID(storageMoverId.SubscriptionId, storageMoverId.ResourceGroupName, storageMoverId.StorageMoverName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := endpoints.Endpoint{
@@ -245,11 +244,7 @@ func (r StorageMoverSourceEndpointResource) flatten(metadata sdk.ResourceMetaDat
 				state.NfsVersion = *v
 			}
 
-			description := ""
-			if v.Description != nil {
-				description = *v.Description
-			}
-			state.Description = description
+			state.Description = pointer.From(v.Description)
 		}
 	}
 

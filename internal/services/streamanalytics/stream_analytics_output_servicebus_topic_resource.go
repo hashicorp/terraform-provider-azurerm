@@ -12,13 +12,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceStreamAnalyticsOutputServiceBusTopic() *pluginsdk.Resource {
@@ -126,19 +126,20 @@ func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.Resou
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Output ServiceBus Topic creation.")
 	id := outputs.NewOutputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_output_servicebus_topic", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_stream_analytics_output_servicebus_topic", id.ID())
+			}
 		}
 	}
 
@@ -152,9 +153,9 @@ func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.Resou
 	dataSourceProperties := &outputs.ServiceBusTopicOutputDataSourceProperties{
 		TopicName:             pointer.To(d.Get("topic_name").(string)),
 		ServiceBusNamespace:   pointer.To(d.Get("servicebus_namespace").(string)),
-		PropertyColumns:       utils.ExpandStringSlice(d.Get("property_columns").([]interface{})),
+		PropertyColumns:       helpers.ExpandStringSlice(d.Get("property_columns").([]interface{})),
 		SystemPropertyColumns: expandSystemPropertyColumns(systemPropertyColumns),
-		AuthenticationMode:    pointer.To(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+		AuthenticationMode:    pointer.ToEnum[outputs.AuthenticationMode](d.Get("authentication_mode").(string)),
 	}
 
 	// Add shared access policy key/name only if required by authentication mode
@@ -220,29 +221,13 @@ func resourceStreamAnalyticsOutputServiceBusTopicRead(d *pluginsdk.ResourceData,
 				return fmt.Errorf("converting %s to a ServiceBus Topic Output", *id)
 			}
 
-			topicName := ""
-			if v := output.Properties.TopicName; v != nil {
-				topicName = *v
-			}
-			d.Set("topic_name", topicName)
+			d.Set("topic_name", pointer.From(output.Properties.TopicName))
 
-			namespace := ""
-			if v := output.Properties.ServiceBusNamespace; v != nil {
-				namespace = *v
-			}
-			d.Set("servicebus_namespace", namespace)
+			d.Set("servicebus_namespace", pointer.From(output.Properties.ServiceBusNamespace))
 
-			accessPolicy := ""
-			if v := output.Properties.SharedAccessPolicyName; v != nil {
-				accessPolicy = *v
-			}
-			d.Set("shared_access_policy_name", accessPolicy)
+			d.Set("shared_access_policy_name", pointer.From(output.Properties.SharedAccessPolicyName))
 
-			var propertyColumns []string
-			if v := output.Properties.PropertyColumns; v != nil {
-				propertyColumns = *v
-			}
-			d.Set("property_columns", propertyColumns)
+			d.Set("property_columns", pointer.From(output.Properties.PropertyColumns))
 
 			authMode := ""
 			if v := output.Properties.AuthenticationMode; v != nil {

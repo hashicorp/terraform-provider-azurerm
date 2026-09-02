@@ -12,17 +12,16 @@ import (
 	"github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/managedprivateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSynapseManagedPrivateEndpoint() *pluginsdk.Resource {
@@ -54,7 +53,7 @@ func resourceSynapseManagedPrivateEndpoint() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.WorkspaceID,
+				ValidateFunc: validation.AsGeneratedID(workspaces.ParseWorkspaceIDInsensitively),
 			},
 
 			"target_resource_id": {
@@ -116,17 +115,19 @@ func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta
 	dataPlaneID := managedprivateendpoints.NewManagedPrivateEndpointID(baseURI, id.ManagedVirtualNetworkName, id.Name)
 	client := meta.(*clients.Client).Synapse.ManagedPrivateEndpointsClient.Clone(dataPlaneID.BaseURI)
 
-	existing, err := client.Get(ctx, dataPlaneID)
-	if !response.WasNotFound(existing.HttpResponse) {
-		if err != nil {
-			return fmt.Errorf("checking for presence of existing %s: %w", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, dataPlaneID)
+		if !response.WasNotFound(existing.HttpResponse) {
+			if err != nil {
+				return fmt.Errorf("checking for presence of existing %s: %w", id, err)
+			}
+			return tf.ImportAsExistsError("azurerm_synapse_managed_private_endpoint", id.ID())
 		}
-		return tf.ImportAsExistsError("azurerm_synapse_managed_private_endpoint", id.ID())
 	}
 
 	payload := managedprivateendpoints.ManagedPrivateEndpoint{
 		Properties: &managedprivateendpoints.ManagedPrivateEndpointProperties{
-			Fqdns:                 utils.ExpandStringSlice(d.Get("fully_qualified_domain_names").([]any)),
+			Fqdns:                 helpers.ExpandStringSlice(d.Get("fully_qualified_domain_names").([]any)),
 			GroupId:               pointer.To(d.Get("subresource_name").(string)),
 			PrivateLinkResourceId: pointer.To(d.Get("target_resource_id").(string)),
 		},
@@ -136,6 +137,8 @@ func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("creating %s: %w", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	// The Create operation returns a 200 but behaves as if it is async, thus requiring polling on `provisioningState`
 	pollerType := custompollers.NewSynapseManagedPrivateEndpointCreatePoller(client, dataPlaneID)
 	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
@@ -143,7 +146,6 @@ func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("polling %s: %w", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceSynapseManagedPrivateEndpointRead(d, meta)
 }
 

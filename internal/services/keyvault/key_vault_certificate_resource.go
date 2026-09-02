@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -30,7 +31,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -121,15 +121,10 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"curve": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										Computed: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(kv.JSONWebKeyCurveNameP256),
-											string(kv.JSONWebKeyCurveNameP256K),
-											string(kv.JSONWebKeyCurveNameP384),
-											string(kv.JSONWebKeyCurveNameP521),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Computed:     true,
+										ValidateFunc: validation.StringInEnumSlice(kv.PossibleJSONWebKeyCurveNameValues(), false),
 									},
 									"exportable": {
 										Type:     pluginsdk.TypeBool,
@@ -178,12 +173,9 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"action_type": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(kv.CertificatePolicyActionAutoRenew),
-														string(kv.CertificatePolicyActionEmailContacts),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInEnumSlice(kv.PossibleCertificatePolicyActionValues(), false),
 												},
 											},
 										},
@@ -243,18 +235,8 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeSet,
 										Required: true,
 										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												string(kv.KeyUsageTypeCRLSign),
-												string(kv.KeyUsageTypeDataEncipherment),
-												string(kv.KeyUsageTypeDecipherOnly),
-												string(kv.KeyUsageTypeDigitalSignature),
-												string(kv.KeyUsageTypeEncipherOnly),
-												string(kv.KeyUsageTypeKeyAgreement),
-												string(kv.KeyUsageTypeKeyCertSign),
-												string(kv.KeyUsageTypeKeyEncipherment),
-												string(kv.KeyUsageTypeNonRepudiation),
-											}, false),
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringInEnumSlice(kv.PossibleKeyUsageTypeValues(), false),
 										},
 									},
 									"subject": {
@@ -485,15 +467,17 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("looking up Base URI for Certificate %q in %s: %+v", name, *keyVaultId, err)
 	}
 
-	existing, err := client.GetCertificate(ctx, *keyVaultBaseUrl, name, "")
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Certificate %q in %s: %s", name, *keyVaultBaseUrl, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetCertificate(ctx, *keyVaultBaseUrl, name, "")
+		if err != nil {
+			if !response.WasNotFound(existing.Response.Response) {
+				return fmt.Errorf("checking for presence of existing Certificate %q in %s: %s", name, *keyVaultBaseUrl, err)
+			}
 		}
-	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_key_vault_certificate", *existing.ID)
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_key_vault_certificate", *existing.ID)
+		}
 	}
 
 	t := d.Get("tags").(map[string]interface{})
@@ -514,7 +498,7 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 		}
 		newCert, err = client.ImportCertificate(ctx, *keyVaultBaseUrl, name, importParameters)
 		if err != nil {
-			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && utils.ResponseWasConflict(newCert.Response) {
+			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && response.WasConflict(newCert.Response.Response) {
 				if err = recoverDeletedCertificate(ctx, d, meta, *keyVaultBaseUrl, name); err != nil {
 					return fmt.Errorf("recover deleted certificate: %+v", err)
 				}
@@ -530,7 +514,7 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 		// Generate new
 		newCert, err = createCertificate(d, meta)
 		if err != nil {
-			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && utils.ResponseWasConflict(newCert.Response) {
+			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && response.WasConflict(newCert.Response.Response) {
 				if err = recoverDeletedCertificate(ctx, d, meta, *keyVaultBaseUrl, name); err != nil {
 					return fmt.Errorf("recover deleted certificate: %+v", err)
 				}
@@ -597,9 +581,6 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 
 	meta.(*clients.Client).KeyVault.AddToCache(*keyVaultId, id.KeyVaultBaseURL)
 
-	// Because certificate content is not returned from the api, we need to set partial as true in case
-	// the update fails and state is updated incorrectly causing subsequent refreshes to not update `certificate`.
-	d.Partial(true)
 	if d.HasChange("certificate") {
 		if v, ok := d.GetOk("certificate"); ok {
 			// Import new version of certificate
@@ -675,7 +656,6 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 			return err
 		}
 	}
-	d.Partial(false)
 	return resourceKeyVaultCertificateRead(d, meta)
 }
 
@@ -747,7 +727,7 @@ func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface{}
 
 	cert, err := client.GetCertificate(ctx, id.KeyVaultBaseURL, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(cert.Response) {
+		if response.WasNotFound(cert.Response.Response) {
 			log.Printf("[DEBUG] Certificate %q was not found in Key Vault at URI %q - removing from state", id.Name, id.KeyVaultBaseURL)
 			d.SetId("")
 			return nil
@@ -839,7 +819,6 @@ func resourceKeyVaultCertificateDelete(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		if response.WasNotFound(kv.HttpResponse) {
 			log.Printf("[DEBUG] Certificate %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseURL)
-			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseURL, err)
@@ -955,7 +934,7 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*kv.Certificate
 		cert := v.(map[string]interface{})
 
 		ekus := cert["extended_key_usage"].([]interface{})
-		extendedKeyUsage := utils.ExpandStringSlice(ekus)
+		extendedKeyUsage := helpers.ExpandStringSlice(ekus)
 
 		keyUsage := make([]kv.KeyUsageType, 0)
 		keys := cert["key_usage"].(*pluginsdk.Set).List()
@@ -971,17 +950,17 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*kv.Certificate
 
 					emails := san["emails"].(*pluginsdk.Set).List()
 					if len(emails) > 0 {
-						subjectAlternativeNames.Emails = utils.ExpandStringSlice(emails)
+						subjectAlternativeNames.Emails = helpers.ExpandStringSlice(emails)
 					}
 
 					dnsNames := san["dns_names"].(*pluginsdk.Set).List()
 					if len(dnsNames) > 0 {
-						subjectAlternativeNames.DNSNames = utils.ExpandStringSlice(dnsNames)
+						subjectAlternativeNames.DNSNames = helpers.ExpandStringSlice(dnsNames)
 					}
 
 					upns := san["upns"].(*pluginsdk.Set).List()
 					if len(upns) > 0 {
-						subjectAlternativeNames.Upns = utils.ExpandStringSlice(upns)
+						subjectAlternativeNames.Upns = helpers.ExpandStringSlice(upns)
 					}
 				}
 			}

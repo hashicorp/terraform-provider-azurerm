@@ -62,7 +62,7 @@ func (r LocalRuleStackRule) ResourceType() string {
 }
 
 func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -177,8 +177,6 @@ func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	return schema
 }
 
 func (r LocalRuleStackRule) Attributes() map[string]*pluginsdk.Schema {
@@ -212,15 +210,17 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 			// API uses Priority not Name for ID, despite swagger defining `ruleName` as required, not Priority - https://github.com/Azure/azure-rest-api-specs/issues/24697
 			id := localrules.NewLocalRuleID(metadata.Client.Account.SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, strconv.FormatInt(model.Priority, 10))
 
-			existing, err := client.LocalRulesGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.LocalRulesGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			destination, err := schema.ExpandDestination(model.Destination)
@@ -246,7 +246,7 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 			}
 
 			if model.Action != "" {
-				props.ActionType = pointer.To(localrules.ActionEnum(model.Action))
+				props.ActionType = pointer.ToEnum[localrules.ActionEnum](model.Action)
 			}
 
 			if len(model.Applications) != 0 {
@@ -258,7 +258,7 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 			}
 
 			if model.DecryptionRuleType != "" {
-				props.DecryptionRuleType = pointer.To(localrules.DecryptionRuleTypeEnum(model.DecryptionRuleType))
+				props.DecryptionRuleType = pointer.ToEnum[localrules.DecryptionRuleTypeEnum](model.DecryptionRuleType)
 			}
 
 			if model.Description != "" {
@@ -285,13 +285,13 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 				props.Protocol = pointer.To(model.Protocol)
 			}
 
-			if _, err = client.LocalRulesCreateOrUpdate(ctx, id, localrules.LocalRulesResource{Properties: props}); err != nil {
+			if _, err := client.LocalRulesCreateOrUpdate(ctx, id, localrules.LocalRulesResource{Properties: props}); err != nil {
 				return err
 			}
 
 			metadata.SetID(id)
 
-			if err = rulestackClient.LocalRulestackscommitThenPoll(ctx, *rulestackId); err != nil {
+			if err := rulestackClient.LocalRulestackscommitThenPoll(ctx, *rulestackId); err != nil {
 				return fmt.Errorf("committing Local Rulestack config for %s: %+v", id, err)
 			}
 
@@ -414,7 +414,7 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 			ruleEntry := *existing.Model
 
 			if metadata.ResourceData.HasChange("action") {
-				ruleEntry.Properties.ActionType = pointer.To(localrules.ActionEnum(model.Action))
+				ruleEntry.Properties.ActionType = pointer.ToEnum[localrules.ActionEnum](model.Action)
 			}
 
 			if metadata.ResourceData.HasChange("applications") {
@@ -430,7 +430,7 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("decryption_rule_type") {
-				ruleEntry.Properties.DecryptionRuleType = pointer.To(localrules.DecryptionRuleTypeEnum(model.DecryptionRuleType))
+				ruleEntry.Properties.DecryptionRuleType = pointer.ToEnum[localrules.DecryptionRuleTypeEnum](model.DecryptionRuleType)
 			}
 
 			if metadata.ResourceData.HasChange("description") {

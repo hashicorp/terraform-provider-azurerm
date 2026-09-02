@@ -38,9 +38,20 @@ func (c FrontDoorsClient) RulesEnginesCreateOrUpdate(ctx context.Context, id Rul
 
 // RulesEnginesCreateOrUpdateThenPoll performs RulesEnginesCreateOrUpdate then polls until it's completed
 func (c FrontDoorsClient) RulesEnginesCreateOrUpdateThenPoll(ctx context.Context, id RulesEngineId, input RulesEngine) error {
+	return c.RulesEnginesCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RulesEnginesCreateOrUpdateCallbackThenPoll performs RulesEnginesCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c FrontDoorsClient) RulesEnginesCreateOrUpdateCallbackThenPoll(ctx context.Context, id RulesEngineId, input RulesEngine, callback func() error) error {
 	result, err := c.RulesEnginesCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RulesEnginesCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(); err != nil {

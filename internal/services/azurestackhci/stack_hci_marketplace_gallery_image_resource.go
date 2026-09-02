@@ -159,12 +159,14 @@ func (r StackHCIMarketplaceGalleryImageResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := marketplacegalleryimages.NewMarketplaceGalleryImageID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			payload := marketplacegalleryimages.MarketplaceGalleryImages{
@@ -178,7 +180,7 @@ func (r StackHCIMarketplaceGalleryImageResource) Create() sdk.ResourceFunc {
 				Properties: &marketplacegalleryimages.MarketplaceGalleryImageProperties{
 					Identifier:       expandStackHCIMarketplaceGalleryImageIdentifier(config.Identifier),
 					OsType:           marketplacegalleryimages.OperatingSystemTypes(config.OsType),
-					HyperVGeneration: pointer.To(marketplacegalleryimages.HyperVGeneration(config.HypervGeneration)),
+					HyperVGeneration: pointer.ToEnum[marketplacegalleryimages.HyperVGeneration](config.HypervGeneration),
 					Version: &marketplacegalleryimages.GalleryImageVersion{
 						Name: pointer.To(config.Version),
 					},
@@ -189,7 +191,7 @@ func (r StackHCIMarketplaceGalleryImageResource) Create() sdk.ResourceFunc {
 				payload.Properties.ContainerId = pointer.To(config.StoragePathId)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("performing create %s: %+v", id, err)
 			}
 

@@ -6,19 +6,16 @@ package eventhub
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -28,7 +25,7 @@ import (
 var eventHubResourceName = "azurerm_eventhub"
 
 func resourceEventHub() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceEventHubCreate,
 		Read:   resourceEventHubRead,
 		Update: resourceEventHubUpdate,
@@ -83,13 +80,10 @@ func resourceEventHub() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*schema.Schema{
 						"cleanup_policy": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(eventhubs.CleanupPolicyRetentionDescriptionDelete),
-								string(eventhubs.CleanupPolicyRetentionDescriptionCompact),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(eventhubs.PossibleValuesForCleanupPolicyRetentionDescription(), false),
 						},
 
 						"retention_time_in_hours": {
@@ -123,12 +117,9 @@ func resourceEventHub() *pluginsdk.Resource {
 							Default:  false,
 						},
 						"encoding": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(eventhubs.EncodingCaptureDescriptionAvro),
-								string(eventhubs.EncodingCaptureDescriptionAvroDeflate),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(eventhubs.PossibleValuesForEncodingCaptureDescription(), false),
 						},
 						"interval_in_seconds": {
 							Type:         pluginsdk.TypeInt,
@@ -217,6 +208,10 @@ func resourceEventHub() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			if d.Id() == "" && d.Get("status").(string) == string(eventhubs.EntityStatusSendDisabled) {
+				return fmt.Errorf("`status` cannot be set to `%s` when creating an Event Hub, it can only be set on an existing Event Hub", string(eventhubs.EntityStatusSendDisabled))
+			}
+
 			capture := d.GetRawConfig().AsValueMap()["capture_description"]
 			if !capture.IsNull() && len(capture.AsValueSlice()) > 0 {
 				destination := capture.AsValueSlice()[0].AsValueMap()["destination"].AsValueSlice()[0].AsValueMap()
@@ -227,36 +222,6 @@ func resourceEventHub() *pluginsdk.Resource {
 			return nil
 		}),
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["namespace_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ExactlyOneOf: []string{"namespace_id", "namespace_name"},
-			ValidateFunc: namespaces.ValidateNamespaceID,
-		}
-
-		r.Schema["namespace_name"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validate.ValidateEventHubNamespaceName(),
-			ExactlyOneOf: []string{"namespace_id", "namespace_name"},
-			Deprecated:   "`namespace_name` has been deprecated in favour of `namespace_id` and will be removed in v5.0 of the AzureRM Provider",
-		}
-
-		r.Schema["resource_group_name"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ExactlyOneOf: []string{"namespace_id", "resource_group_name"},
-			ValidateFunc: resourcegroups.ValidateName,
-			Deprecated:   "`resource_group_name` has been deprecated in favour of `namespace_id` and will be removed in v5.0 of the AzureRM Provider",
-		}
-	}
-
-	return r
 }
 
 func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -264,8 +229,6 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure ARM EventHub creation.")
 
 	namespaceName := ""
 	resourceGroupName := ""
@@ -278,14 +241,9 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		resourceGroupName = namespaceId.ResourceGroupName
 	}
 
-	if !features.FivePointOh() && namespaceName == "" {
-		namespaceName = d.Get("namespace_name").(string)
-		resourceGroupName = d.Get("resource_group_name").(string)
-	}
-
 	id := eventhubs.NewEventhubID(subscriptionId, resourceGroupName, namespaceName, d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -293,7 +251,7 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 		}
 
-		if existing.Model != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_eventhub", id.ID())
 		}
 	}
@@ -332,8 +290,6 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure ARM EventHub update.")
 
 	id, err := eventhubs.ParseEventhubID(d.Id())
 	if err != nil {
@@ -407,11 +363,6 @@ func resourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	d.Set("name", id.EventhubName)
 
-	if !features.FivePointOh() {
-		d.Set("namespace_name", id.NamespaceName)
-		d.Set("resource_group_name", id.ResourceGroupName)
-	}
-
 	namespaceId := namespaces.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 	d.Set("namespace_id", namespaceId.ID())
 
@@ -472,7 +423,7 @@ func expandEventHubRetentionDescription(d *pluginsdk.ResourceData) *eventhubs.Re
 	cleanupPolicy := input["cleanup_policy"].(string)
 
 	retentionDescription := eventhubs.RetentionDescription{
-		CleanupPolicy: pointer.To(eventhubs.CleanupPolicyRetentionDescription(cleanupPolicy)),
+		CleanupPolicy: pointer.ToEnum[eventhubs.CleanupPolicyRetentionDescription](cleanupPolicy),
 	}
 
 	if cleanupPolicy == string(eventhubs.CleanupPolicyRetentionDescriptionDelete) {

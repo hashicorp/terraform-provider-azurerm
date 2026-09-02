@@ -21,13 +21,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name bastion_host -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 var skuWeight = map[string]int8{
 	"Developer": 1,
@@ -257,15 +258,17 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("`session_recording_enabled` is only supported when `sku` is `Premium`")
 	}
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_bastion_host", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_bastion_host", id.ID())
+		}
 	}
 
 	parameters := bastionhosts.BastionHost{
@@ -330,7 +333,7 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("`virtual_network_id` is required when `sku` is `Developer`")
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -575,11 +578,7 @@ func flattenBastionHostIPConfiguration(ipConfigs *[]bastionhosts.BastionHostIPCo
 		}
 
 		if props := config.Properties; props != nil {
-			subnetId := ""
-			if subnet := props.Subnet; subnet.Id != nil {
-				subnetId = *subnet.Id
-			}
-			ipConfig["subnet_id"] = subnetId
+			ipConfig["subnet_id"] = pointer.From(props.Subnet.Id)
 
 			publicIpId := ""
 			if pip := props.PublicIPAddress; pip != nil && pip.Id != nil {

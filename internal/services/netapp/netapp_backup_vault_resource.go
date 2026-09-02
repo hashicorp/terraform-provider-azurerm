@@ -6,6 +6,7 @@ package netapp
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -14,9 +15,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/backups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/backupvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/backups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/backupvaults"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
@@ -81,16 +83,17 @@ func (r NetAppBackupVaultResource) Create() sdk.ResourceFunc {
 
 			id := backupvaults.NewBackupVaultID(subscriptionId, model.ResourceGroupName, model.AccountName, model.Name)
 
-			metadata.Logger.Infof("Import check for %s", id)
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				}
 			}
 
 			parameters := backupvaults.BackupVault{
@@ -98,8 +101,7 @@ func (r NetAppBackupVaultResource) Create() sdk.ResourceFunc {
 				Tags:     pointer.To(model.Tags),
 			}
 
-			err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-			if err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -121,15 +123,12 @@ func (r NetAppBackupVaultResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppBackupVaultModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				metadata.Logger.Infof("Updating %s", id)
-
 				update := backupvaults.BackupVaultPatch{
 					Tags: pointer.To(state.Tags),
 				}
@@ -155,7 +154,6 @@ func (r NetAppBackupVaultResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppBackupVaultModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
@@ -186,43 +184,17 @@ func (r NetAppBackupVaultResource) Read() sdk.ResourceFunc {
 }
 
 func waitForBackupDeletion(ctx context.Context, client *backups.BackupsClient, id backups.BackupId) error {
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
-	}
-	stateConf := &pluginsdk.StateChangeConf{
-		ContinuousTargetOccurence: 5,
-		Delay:                     5 * time.Second,
-		MinTimeout:                5 * time.Second,
-		Pending:                   []string{"200", "202"},
-		Target:                    []string{"404"},
-		Refresh:                   netappBackupStateRefreshFunc(ctx, client, id),
-		Timeout:                   time.Until(deadline),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(5, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, id)
+		return resp.HttpResponse, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:         5 * time.Second,
+		TargetStatusCode: pointer.To(http.StatusNotFound),
+	})
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
 	}
-
 	return nil
-}
-
-func netappBackupStateRefreshFunc(ctx context.Context, client *backups.BackupsClient, id backups.BackupId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(res.HttpResponse) {
-				return nil, "", fmt.Errorf("retrieving %s: %s", id, err)
-			}
-		}
-
-		statusCode := "dropped connection"
-		if res.HttpResponse != nil {
-			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
-		}
-
-		return res, statusCode, nil
-	}
 }
 
 func (r NetAppBackupVaultResource) Delete() sdk.ResourceFunc {
