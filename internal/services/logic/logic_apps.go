@@ -23,7 +23,7 @@ import (
 // NOTE: this file is not a recommended way of developing Terraform resources; this exists to work around the fact that this API is dynamic (by its nature)
 func flattenLogicAppActionRunAfter(input map[string]interface{}) []interface{} {
 	if len(input) == 0 {
-		return nil
+		return []interface{}{}
 	}
 	output := []interface{}{}
 	for k, v := range input {

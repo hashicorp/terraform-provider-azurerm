@@ -965,7 +965,7 @@ func expandSubnetServiceEndpointPolicies(input []interface{}) *[]subnets.Service
 
 func flattenSubnetServiceEndpointPolicies(input *[]subnets.ServiceEndpointPolicy) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	output := make([]interface{}, 0, len(*input))

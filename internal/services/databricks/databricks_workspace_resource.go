@@ -1106,7 +1106,7 @@ func expandDatabricksWorkspaceEncryption(d *pluginsdk.ResourceData) (*workspaces
 
 func flattenWorkspaceManagedIdentity(input *workspaces.ManagedIdentityConfiguration) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	e := make(map[string]interface{})
@@ -1132,7 +1132,7 @@ func flattenWorkspaceManagedIdentity(input *workspaces.ManagedIdentityConfigurat
 
 func flattenWorkspaceCustomParameters(input *workspaces.WorkspaceCustomParameters, publicSubnetAssociation, privateSubnetAssociation *string) ([]interface{}, string) {
 	if input == nil {
-		return nil, ""
+		return []interface{}{}, ""
 	}
 
 	var backendAddressPoolId, backendName, loadBalancerId string

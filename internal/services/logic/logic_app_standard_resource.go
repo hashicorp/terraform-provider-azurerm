@@ -1010,7 +1010,7 @@ func flattenLogicAppStandardIpRestriction(input *[]webapps.IPSecurityRestriction
 	restrictions := make([]interface{}, 0)
 
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	for _, v := range *input {

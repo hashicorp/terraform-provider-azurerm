@@ -663,7 +663,7 @@ func expandMaintenanceWindow(input []MaintenanceWindow) *clusters.MaintenanceWin
 
 func flattenMaintenanceWindow(input *clusters.MaintenanceWindow) []MaintenanceWindow {
 	if input == nil || input.CustomWindow == nil || *input.CustomWindow == "Disabled" {
-		return nil
+		return []MaintenanceWindow{}
 	}
 
 	return []MaintenanceWindow{
