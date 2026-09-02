@@ -34,11 +34,12 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		AlertProcessingRuleActionGroupResource{},
 		AlertProcessingRuleSuppressionResource{},
+		AlertPrometheusRuleGroupResource{},
 		DataCollectionEndpointResource{},
 		DataCollectionRuleAssociationResource{},
 		DataCollectionRuleResource{},
+		MonitorPipelineResource{},
 		ScheduledQueryRulesAlertV2Resource{},
-		AlertPrometheusRuleGroupResource{},
 		WorkspaceResource{},
 	}
 }
@@ -102,6 +103,7 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
 		MonitorActivityLogAlertListResource{},
 		MonitorMetricAlertListResource{},
+		MonitorPipelineListResource{},
 		MonitorScheduledQueryRulesAlertListResource{},
 		ScheduledQueryRulesAlertV2ListResource{},
 	}
