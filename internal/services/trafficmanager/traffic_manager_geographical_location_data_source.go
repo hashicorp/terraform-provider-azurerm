@@ -62,8 +62,7 @@ func dataSourceArmTrafficManagerGeographicalLocationRead(d *pluginsdk.ResourceDa
 	}
 
 	// NOTE: @tombuildsstuff: this is a unique data source that outputs the location as the ID, so this is fine
-	id := *result.Code
-	d.SetId(id)
+	d.SetId(*result.Code) //azignore:AZR001 - unique data source that deliberately uses the location code as its ID
 	return nil
 }
 

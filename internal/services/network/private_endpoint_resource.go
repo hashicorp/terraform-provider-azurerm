@@ -675,18 +675,15 @@ func resourcePrivateEndpointFlatten(ctx context.Context, metaClient *clients.Cli
 				}
 			}
 
-			networkInterface := flattenNetworkInterface(networkInterfaceId)
-			if err := d.Set("network_interface", networkInterface); err != nil {
+			if err := d.Set("network_interface", flattenNetworkInterface(networkInterfaceId)); err != nil {
 				return fmt.Errorf("setting `network_interface`: %+v", err)
 			}
 
-			flattenedConnection := flattenPrivateLinkEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)
-			if err := d.Set("private_service_connection", flattenedConnection); err != nil {
+			if err := d.Set("private_service_connection", flattenPrivateLinkEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)); err != nil {
 				return fmt.Errorf("setting `private_service_connection`: %+v", err)
 			}
 
-			flattenedipconfiguration := flattenPrivateEndpointIPConfigurations(props.IPConfigurations)
-			if err := d.Set("ip_configuration", flattenedipconfiguration); err != nil {
+			if err := d.Set("ip_configuration", flattenPrivateEndpointIPConfigurations(props.IPConfigurations)); err != nil {
 				return fmt.Errorf("setting `ip_configuration`: %+v", err)
 			}
 

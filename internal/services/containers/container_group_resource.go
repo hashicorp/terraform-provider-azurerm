@@ -875,12 +875,10 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		d.Set("priority", priority)
 
-		containerConfigs := flattenContainerGroupContainers(d, &props.Containers, props.Volumes)
-		if err := d.Set("container", containerConfigs); err != nil {
+		if err := d.Set("container", flattenContainerGroupContainers(d, &props.Containers, props.Volumes)); err != nil {
 			return fmt.Errorf("setting `container`: %+v", err)
 		}
-		initContainerConfigs := flattenContainerGroupInitContainers(d, props.InitContainers, props.Volumes)
-		if err := d.Set("init_container", initContainerConfigs); err != nil {
+		if err := d.Set("init_container", flattenContainerGroupInitContainers(d, props.InitContainers, props.Volumes)); err != nil {
 			return fmt.Errorf("setting `init_container`: %+v", err)
 		}
 

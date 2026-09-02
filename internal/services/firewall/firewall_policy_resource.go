@@ -245,8 +245,7 @@ func resourceFirewallPolicySetFlatten(d *pluginsdk.ResourceData, id *firewallpol
 				return fmt.Errorf(`setting "insights": %+v`, err)
 			}
 
-			proxySettings := flattenFirewallPolicyExplicitProxy(props.ExplicitProxy)
-			if err := d.Set("explicit_proxy", proxySettings); err != nil {
+			if err := d.Set("explicit_proxy", flattenFirewallPolicyExplicitProxy(props.ExplicitProxy)); err != nil {
 				return fmt.Errorf("setting `explicit_proxy`: %+v", err)
 			}
 

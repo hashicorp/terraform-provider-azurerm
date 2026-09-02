@@ -268,13 +268,11 @@ func resourceDataFactoryDatasetSQLServerTableRead(d *pluginsdk.ResourceData, met
 		d.Set("description", sqlServerTable.Description)
 	}
 
-	parameters := flattenDataSetParameters(sqlServerTable.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenDataSetParameters(sqlServerTable.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
-	annotations := flattenDataFactoryAnnotations(sqlServerTable.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(sqlServerTable.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
@@ -299,8 +297,7 @@ func resourceDataFactoryDatasetSQLServerTableRead(d *pluginsdk.ResourceData, met
 		}
 	}
 
-	structureColumns := flattenDataFactoryStructureColumns(sqlServerTable.Structure)
-	if err := d.Set("schema_column", structureColumns); err != nil {
+	if err := d.Set("schema_column", flattenDataFactoryStructureColumns(sqlServerTable.Structure)); err != nil {
 		return fmt.Errorf("setting `schema_column`: %+v", err)
 	}
 

@@ -508,9 +508,7 @@ func (a ArcMachineDataSource) Read() sdk.ResourceFunc {
 				Location:          location.Normalize(model.Location),
 			}
 
-			identityValue := identity.FlattenSystemAssigned(model.Identity)
-
-			if err := metadata.ResourceData.Set("identity", identityValue); err != nil {
+			if err := metadata.ResourceData.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
 				return fmt.Errorf("setting `identity`: %+v", err)
 			}
 

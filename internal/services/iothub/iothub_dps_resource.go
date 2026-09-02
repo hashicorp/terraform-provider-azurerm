@@ -270,8 +270,7 @@ func resourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
-		sku := flattenIoTHubDPSSku(model.Sku)
-		if err := d.Set("sku", sku); err != nil {
+		if err := d.Set("sku", flattenIoTHubDPSSku(model.Sku)); err != nil {
 			return fmt.Errorf("setting `sku`: %+v", err)
 		}
 
@@ -280,8 +279,7 @@ func resourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return fmt.Errorf("setting `linked_hub`: %+v", err)
 		}
 
-		ipFilterRules := flattenDpsIPFilterRules(props.IPFilterRules)
-		if err := d.Set("ip_filter_rule", ipFilterRules); err != nil {
+		if err := d.Set("ip_filter_rule", flattenDpsIPFilterRules(props.IPFilterRules)); err != nil {
 			return fmt.Errorf("setting `ip_filter_rule` in IoTHub DPS %q: %+v", id.ProvisioningServiceName, err)
 		}
 

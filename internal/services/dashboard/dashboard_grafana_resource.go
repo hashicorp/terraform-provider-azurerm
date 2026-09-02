@@ -453,9 +453,7 @@ func (r DashboardGrafanaResource) Read() sdk.ResourceFunc {
 				Location:          location.NormalizeNilable(model.Location),
 			}
 
-			identityValue := flattenLegacySystemAndUserAssignedMap(model.Identity)
-
-			if err := metadata.ResourceData.Set("identity", identityValue); err != nil {
+			if err := metadata.ResourceData.Set("identity", flattenLegacySystemAndUserAssignedMap(model.Identity)); err != nil {
 				return fmt.Errorf("setting `identity`: %+v", err)
 			}
 

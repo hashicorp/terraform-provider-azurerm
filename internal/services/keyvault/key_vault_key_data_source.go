@@ -159,8 +159,7 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	if key := resp.Key; key != nil {
 		d.Set("key_type", string(key.Kty))
 
-		options := flattenKeyVaultKeyDataSourceOptions(key.KeyOps)
-		if err := d.Set("key_opts", options); err != nil {
+		if err := d.Set("key_opts", flattenKeyVaultKeyDataSourceOptions(key.KeyOps)); err != nil {
 			return err
 		}
 
