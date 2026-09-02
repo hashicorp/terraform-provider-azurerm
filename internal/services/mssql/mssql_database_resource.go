@@ -1188,7 +1188,6 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 		d.Set("name", id.DatabaseName)
 
 		if props := model.Properties; props != nil {
-
 			requestedBackupStorageRedundancy := ""
 			if props.RequestedBackupStorageRedundancy != nil {
 				requestedBackupStorageRedundancy = string(*props.RequestedBackupStorageRedundancy)

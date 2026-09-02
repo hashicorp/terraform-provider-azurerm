@@ -287,7 +287,6 @@ func (r StreamInputEventHubV2Resource) Read() sdk.ResourceFunc {
 					}
 
 					if eventHubV2InputProps := eventHubV2Input.Properties; eventHubV2InputProps != nil {
-
 						authenticationMode := ""
 						if v := eventHubV2InputProps.AuthenticationMode; v != nil {
 							authenticationMode = string(*v)
