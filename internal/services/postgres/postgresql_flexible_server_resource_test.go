@@ -433,7 +433,6 @@ func TestAccPostgresqlFlexibleServer_replicaWithCluster(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_postgresql_flexible_server.replica").ExistsInAzure(r),
 			),
-			ExpectNonEmptyPlan: false,
 		},
 		data.ImportStepFor("azurerm_postgresql_flexible_server.replica", "administrator_password", "create_mode"),
 	})
