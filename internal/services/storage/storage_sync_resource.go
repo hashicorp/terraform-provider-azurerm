@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -27,7 +28,7 @@ import (
 
 const storageSyncResourceName = "azurerm_storage_sync"
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_sync -service-package-name storage -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceStorageSync() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -62,13 +63,10 @@ func resourceStorageSync() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"incoming_traffic_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(storagesyncservicesresource.IncomingTrafficPolicyAllowAllTraffic),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(storagesyncservicesresource.IncomingTrafficPolicyAllowAllTraffic),
-					string(storagesyncservicesresource.IncomingTrafficPolicyAllowVirtualNetworksOnly),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(storagesyncservicesresource.IncomingTrafficPolicyAllowAllTraffic),
+				ValidateFunc: validation.StringInSlice(storagesyncservicesresource.PossibleValuesForIncomingTrafficPolicy(), false),
 			},
 
 			"registered_servers": {
@@ -91,30 +89,32 @@ func resourceStorageSyncCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	defer cancel()
 
 	id := storagesyncservicesresource.NewStorageSyncServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.StorageSyncServicesGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.StorageSyncServicesGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError(storageSyncResourceName, id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError(storageSyncResourceName, id.ID())
+		}
 	}
 
 	parameters := storagesyncservicesresource.StorageSyncServiceCreateParameters{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &storagesyncservicesresource.StorageSyncServiceCreateParametersProperties{
-			IncomingTrafficPolicy: pointer.To(storagesyncservicesresource.IncomingTrafficPolicy(d.Get("incoming_traffic_policy").(string))),
+			IncomingTrafficPolicy: pointer.ToEnum[storagesyncservicesresource.IncomingTrafficPolicy](d.Get("incoming_traffic_policy").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err = client.StorageSyncServicesCreateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.StorageSyncServicesCreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
-	if err = pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
 		return err
 	}
 
@@ -204,7 +204,7 @@ func resourceStorageSyncUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if d.HasChange("incoming_traffic_policy") {
 		update.Properties = &storagesyncservicesresource.StorageSyncServiceUpdateProperties{
-			IncomingTrafficPolicy: pointer.To(storagesyncservicesresource.IncomingTrafficPolicy(d.Get("incoming_traffic_policy").(string))),
+			IncomingTrafficPolicy: pointer.ToEnum[storagesyncservicesresource.IncomingTrafficPolicy](d.Get("incoming_traffic_policy").(string)),
 		}
 	}
 

@@ -62,9 +62,20 @@ func (c VirtualNetworkGatewaysClient) StopExpressRouteSiteFailoverSimulation(ctx
 
 // StopExpressRouteSiteFailoverSimulationThenPoll performs StopExpressRouteSiteFailoverSimulation then polls until it's completed
 func (c VirtualNetworkGatewaysClient) StopExpressRouteSiteFailoverSimulationThenPoll(ctx context.Context, id VirtualNetworkGatewayId, input ExpressRouteFailoverStopApiParameters) error {
+	return c.StopExpressRouteSiteFailoverSimulationCallbackThenPoll(ctx, id, input, nil)
+}
+
+// StopExpressRouteSiteFailoverSimulationCallbackThenPoll performs StopExpressRouteSiteFailoverSimulation, runs the optional callback function, then polls until it's completed
+func (c VirtualNetworkGatewaysClient) StopExpressRouteSiteFailoverSimulationCallbackThenPoll(ctx context.Context, id VirtualNetworkGatewayId, input ExpressRouteFailoverStopApiParameters, callback func() error) error {
 	result, err := c.StopExpressRouteSiteFailoverSimulation(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing StopExpressRouteSiteFailoverSimulation: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

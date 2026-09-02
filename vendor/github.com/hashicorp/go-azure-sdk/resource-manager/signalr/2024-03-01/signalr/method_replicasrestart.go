@@ -57,9 +57,20 @@ func (c SignalRClient) ReplicasRestart(ctx context.Context, id ReplicaId) (resul
 
 // ReplicasRestartThenPoll performs ReplicasRestart then polls until it's completed
 func (c SignalRClient) ReplicasRestartThenPoll(ctx context.Context, id ReplicaId) error {
+	return c.ReplicasRestartCallbackThenPoll(ctx, id, nil)
+}
+
+// ReplicasRestartCallbackThenPoll performs ReplicasRestart, runs the optional callback function, then polls until it's completed
+func (c SignalRClient) ReplicasRestartCallbackThenPoll(ctx context.Context, id ReplicaId, callback func() error) error {
 	result, err := c.ReplicasRestart(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ReplicasRestart: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

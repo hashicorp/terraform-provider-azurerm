@@ -89,13 +89,61 @@ func TestAccMsSqlManagedDatabase_withRetentionPolicies(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(""),
+		data.ImportStep(),
 		{
 			Config: r.withRetentionPoliciesUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlManagedDatabase_withPartialRetentionPolicies(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_database", "test")
+	r := MsSqlManagedDatabase{}
+
+	weekly := `weekly_retention = "P10D"`
+	monthly := `monthly_retention = "P10D"`
+	yearly := `yearly_retention = "P2Y"`
+	yearlyWithWeekOfYear := `yearly_retention = "P3Y"` + "\nweek_of_year = 42"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withPartialRetentionPolicies(data, weekly),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withPartialRetentionPolicies(data, monthly),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withPartialRetentionPolicies(data, yearly),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.withPartialRetentionPolicies(data, yearlyWithWeekOfYear),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withPartialRetentionPolicies(data, weekly),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -109,8 +157,7 @@ func TestAccMsSqlManagedDatabase_pointInTimeRestore(t *testing.T) {
 		},
 		{
 			PreConfig: func() { time.Sleep(11 * time.Minute) },
-			// Valid point in time range from 7 days early to now and not before source server creation time
-			Config: r.pointInTimeRestore(data, time.Now().Add(-15*time.Minute).UTC().Format(time.RFC3339)),
+			Config:    r.pointInTimeRestore(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -201,18 +248,43 @@ resource "azurerm_mssql_managed_database" "test" {
 `, MsSqlManagedInstanceResource{}.basic(data), data.RandomInteger)
 }
 
-func (r MsSqlManagedDatabase) pointInTimeRestore(data acceptance.TestData, restorePointInTime string) string {
+func (r MsSqlManagedDatabase) withPartialRetentionPolicies(data acceptance.TestData, retention string) string {
 	return fmt.Sprintf(`
 %[1]s
+
+resource "azurerm_mssql_managed_database" "test" {
+  managed_instance_id = azurerm_mssql_managed_instance.test.id
+  name                = "acctest-%[2]d"
+
+  long_term_retention_policy {
+    %[3]s
+  }
+}
+`, MsSqlManagedInstanceResource{}.basic(data), data.RandomInteger, retention)
+}
+
+func (r MsSqlManagedDatabase) pointInTimeRestore(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+# Valid point in time range from 7 days early to now and not before source server creation time
+resource "time_static" "pitr" {
+  depends_on = [azurerm_mssql_managed_database.test]
+}
+
+resource "time_offset" "pitr" {
+  base_rfc3339   = time_static.pitr.rfc3339
+  offset_minutes = -1
+}
 
 resource "azurerm_mssql_managed_database" "pitr" {
   managed_instance_id = azurerm_mssql_managed_instance.test.id
   name                = "acctest-%[2]d-pitr"
 
   point_in_time_restore {
-    restore_point_in_time = "%[3]s"
+    restore_point_in_time = time_offset.pitr.rfc3339
     source_database_id    = azurerm_mssql_managed_database.test.id
   }
 }
-`, MsSqlManagedDatabase{}.basic(data), data.RandomInteger, restorePointInTime)
+`, MsSqlManagedDatabase{}.basic(data), data.RandomInteger)
 }

@@ -30,7 +30,9 @@ resource "azurerm_subnet" "example" {
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.7.29.0/29"]
-  service_endpoints    = ["Microsoft.Sql"]
+  service_endpoint {
+    service = "Microsoft.Sql"
+  }
 }
 
 resource "azurerm_mssql_server" "example" {
@@ -90,4 +92,4 @@ terraform import azurerm_mssql_virtual_network_rule.rule1 /subscriptions/0000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Sql` - 2023-08-01-preview
+* `Microsoft.Sql` - 2025-01-01

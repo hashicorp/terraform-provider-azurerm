@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -29,7 +28,7 @@ func resourceSecurityCenterSetting() *pluginsdk.Resource {
 		Delete: resourceSecurityCenterSettingDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SettingID(id)
+			_, err := settings.ParseSettingID(id)
 			return err
 		}),
 
@@ -70,17 +69,19 @@ func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta interfa
 	id := settings.NewSettingID(subscriptionId, settings.SettingName(settingName))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			return fmt.Errorf("checking for presence of existing %s: %v", id, err)
-		}
-
-		if existing.Model != nil {
-			if alertSyncSettings, ok := existing.Model.(settings.AlertSyncSettings); ok && alertSyncSettings.Properties != nil && alertSyncSettings.Properties.Enabled {
-				return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				return fmt.Errorf("checking for presence of existing %s: %v", id, err)
 			}
-			if dataExportSettings, ok := existing.Model.(settings.DataExportSettings); ok && dataExportSettings.Properties != nil && dataExportSettings.Properties.Enabled {
-				return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
+
+			if existing.Model != nil {
+				if alertSyncSettings, ok := existing.Model.(settings.AlertSyncSettings); ok && alertSyncSettings.Properties != nil && alertSyncSettings.Properties.Enabled {
+					return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
+				}
+				if dataExportSettings, ok := existing.Model.(settings.DataExportSettings); ok && dataExportSettings.Properties != nil && dataExportSettings.Properties.Enabled {
+					return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
+				}
 			}
 		}
 	}

@@ -147,14 +147,16 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(4, 23),
-				validation.StringMatch(regexp.MustCompile(`^[a-z0-9]+(-*[a-z0-9])*$`), "The name of the cluster must have lowercase letters, numbers and hyphens. The first character must be a letter and the last character a letter or number")),
+				validation.StringMatch(regexp.MustCompile(`^[a-z0-9]+(-*[a-z0-9])*$`), "The name of the cluster must have lowercase letters, numbers and hyphens. The first character must be a letter and the last character a letter or number"),
+			),
 		},
 		"username": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(1, 15),
-				validation.StringMatch(regexp.MustCompile("^[^\\\\/\"\\[\\]:|<>+=;,?*$]{1,14}$"), "User names cannot contain special characters \\/\"\"[]:|<>+=;,$?*@")),
+				validation.StringMatch(regexp.MustCompile("^[^\\\\/\"\\[\\]:|<>+=;,?*$]{1,14}$"), "User names cannot contain special characters \\/\"\"[]:|<>+=;,$?*@"),
+			),
 		},
 		"password": {
 			Type:      pluginsdk.TypeString,
@@ -204,26 +206,19 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"lb_rule": lbRulesSchema(),
 		"sku": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "Basic",
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(managedcluster.SkuNameBasic),
-				string(managedcluster.SkuNameStandard),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      "Basic",
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(managedcluster.PossibleValuesForSkuName(), false),
 		},
 		"subnet_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.SubnetId{}),
 		"tags":      commonschema.Tags(),
 		"upgrade_wave": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  managedcluster.ClusterUpgradeCadenceWaveZero,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(managedcluster.ClusterUpgradeCadenceWaveZero),
-				string(managedcluster.ClusterUpgradeCadenceWaveOne),
-				string(managedcluster.ClusterUpgradeCadenceWaveTwo),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      managedcluster.ClusterUpgradeCadenceWaveZero,
+			ValidateFunc: validation.StringInSlice(managedcluster.PossibleValuesForClusterUpgradeCadence(), false),
 		},
 	}
 }
@@ -267,18 +262,21 @@ func (k ClusterResource) Create() sdk.ResourceFunc {
 			}
 			cluster.Tags = &tagsMap
 
-			existing, err := clusterClient.Get(ctx, managedClusterId)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("while checking if cluster %q already exists: %+v", managedClusterId.String(), err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := clusterClient.Get(ctx, managedClusterId)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("while checking if cluster %q already exists: %+v", managedClusterId.String(), err)
+					}
+				} else {
+					return metadata.ResourceRequiresImport("azurerm_service_fabric_managed_cluster", managedClusterId)
 				}
-			} else {
-				return metadata.ResourceRequiresImport("azurerm_service_fabric_managed_cluster", managedClusterId)
 			}
 
-			if err := clusterClient.CreateOrUpdateThenPoll(ctx, managedClusterId, cluster); err != nil {
+			if err := clusterClient.CreateOrUpdateCallbackThenPoll(ctx, managedClusterId, cluster, metadata.SetIDCallback(&managedClusterId)); err != nil {
 				return fmt.Errorf("creating %s: %+v", managedClusterId, err)
 			}
+			metadata.SetID(managedClusterId)
 
 			toDelete := make([]string, 0)
 			if metadata.ResourceData.HasChange("node_type") {
@@ -329,7 +327,6 @@ func (k ClusterResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.SetID(managedClusterId)
 			return nil
 		},
 
@@ -480,8 +477,7 @@ func (k ClusterResource) Delete() sdk.ResourceFunc {
 			}
 			clusterClient := metadata.Client.ServiceFabricManaged.ManagedClusterClient
 
-			err = clusterClient.DeleteThenPoll(ctx, *resourceId)
-			if err != nil {
+			if err = clusterClient.DeleteThenPoll(ctx, *resourceId); err != nil {
 				return fmt.Errorf("while deleting cluster %q: %+v", resourceId.String(), err)
 			}
 			return nil
@@ -987,8 +983,7 @@ func nodeTypeSchema() *pluginsdk.Schema {
 					ValidateFunc: func(i interface{}, s string) ([]string, []error) {
 						input := i.(string)
 						errors := make([]error, 0)
-						_, _, err := parsePortRange(input)
-						if err != nil {
+						if _, _, err := parsePortRange(input); err != nil {
 							errors = append(errors, err)
 						}
 						return nil, errors
@@ -1002,14 +997,10 @@ func nodeTypeSchema() *pluginsdk.Schema {
 					},
 				},
 				"data_disk_type": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(nodetype.DiskTypeStandardLRS),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(nodetype.DiskTypeStandardLRS),
-						string(nodetype.DiskTypeStandardSSDLRS),
-						string(nodetype.DiskTypePremiumLRS),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(nodetype.DiskTypeStandardLRS),
+					ValidateFunc: validation.StringInSlice(nodetype.PossibleValuesForDiskType(), false),
 				},
 				"ephemeral_port_range": {
 					Type:     pluginsdk.TypeString,
@@ -1134,13 +1125,9 @@ func lbRulesSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.IntBetween(1, 65535),
 				},
 				"probe_protocol": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(managedcluster.ProbeProtocolHTTP),
-						string(managedcluster.ProbeProtocolHTTPS),
-						string(managedcluster.ProbeProtocolTcp),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(managedcluster.PossibleValuesForProbeProtocol(), false),
 				},
 				"probe_request_path": {
 					Type:         pluginsdk.TypeString,
@@ -1148,12 +1135,9 @@ func lbRulesSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotWhiteSpace,
 				},
 				"protocol": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(managedcluster.ProtocolTcp),
-						string(managedcluster.ProtocolUdp),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(managedcluster.PossibleValuesForProtocol(), false),
 				},
 			},
 		},

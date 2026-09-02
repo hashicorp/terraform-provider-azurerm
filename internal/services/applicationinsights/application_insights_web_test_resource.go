@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name application_insights_web_test -properties "name,resource_group_name" -service-package-name applicationinsights -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 package applicationinsights
 
@@ -146,8 +146,6 @@ func resourceApplicationInsightsWebTestsCreate(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Application Insights WebTest creation.")
-
 	appInsightsId, err := components.ParseComponentID(d.Get("application_insights_id").(string))
 	if err != nil {
 		return err
@@ -155,15 +153,17 @@ func resourceApplicationInsightsWebTestsCreate(d *pluginsdk.ResourceData, meta i
 
 	id := webtests.NewWebTestID(appInsightsId.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.WebTestsGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.WebTestsGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_application_insights_web_test", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_application_insights_web_test", id.ID())
+		}
 	}
 
 	// Azure uses a special "hidden-link" tag to associate a web test with its parent Application Insights
@@ -178,7 +178,7 @@ func resourceApplicationInsightsWebTestsCreate(d *pluginsdk.ResourceData, meta i
 	webTest := webtests.WebTest{
 		Name:     pointer.To(id.WebTestName),
 		Location: location.Normalize(d.Get("location").(string)),
-		Kind:     pointer.To(webtests.WebTestKind(d.Get("kind").(string))),
+		Kind:     pointer.ToEnum[webtests.WebTestKind](d.Get("kind").(string)),
 		Properties: &webtests.WebTestProperties{
 			SyntheticMonitorId: id.WebTestName,
 			Name:               id.WebTestName,
@@ -297,8 +297,6 @@ func resourceApplicationInsightsWebTestsRead(d *pluginsdk.ResourceData, meta int
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Reading AzureRM Application Insights %q", *id)
 
 	resp, err := client.WebTestsGet(ctx, *id)
 	if err != nil {

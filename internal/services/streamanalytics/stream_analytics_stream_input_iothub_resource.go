@@ -104,19 +104,19 @@ func resourceStreamAnalyticsStreamInputIoTHubCreateUpdate(d *pluginsdk.ResourceD
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Stream Input IoTHub creation.")
-
 	id := inputs.NewInputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_iothub", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_iothub", id.ID())
+			}
 		}
 	}
 
@@ -201,29 +201,13 @@ func resourceStreamAnalyticsStreamInputIoTHubRead(d *pluginsdk.ResourceData, met
 			}
 
 			if streamIotHubInputProps := streamIotHubInput.Properties; streamIotHubInputProps != nil {
-				eventHubConsumerGroupName := ""
-				if v := streamIotHubInputProps.ConsumerGroupName; v != nil {
-					eventHubConsumerGroupName = *v
-				}
-				d.Set("eventhub_consumer_group_name", eventHubConsumerGroupName)
+				d.Set("eventhub_consumer_group_name", pointer.From(streamIotHubInputProps.ConsumerGroupName))
 
-				endpoint := ""
-				if v := streamIotHubInputProps.Endpoint; v != nil {
-					endpoint = *v
-				}
-				d.Set("endpoint", endpoint)
+				d.Set("endpoint", pointer.From(streamIotHubInputProps.Endpoint))
 
-				iothubNamespace := ""
-				if v := streamIotHubInputProps.IotHubNamespace; v != nil {
-					iothubNamespace = *v
-				}
-				d.Set("iothub_namespace", iothubNamespace)
+				d.Set("iothub_namespace", pointer.From(streamIotHubInputProps.IotHubNamespace))
 
-				sharedAccessPolicyName := ""
-				if v := streamIotHubInputProps.SharedAccessPolicyName; v != nil {
-					sharedAccessPolicyName = *v
-				}
-				d.Set("shared_access_policy_name", sharedAccessPolicyName)
+				d.Set("shared_access_policy_name", pointer.From(streamIotHubInputProps.SharedAccessPolicyName))
 
 				if err := d.Set("serialization", flattenStreamAnalyticsStreamInputSerialization(streamInput.Serialization)); err != nil {
 					return fmt.Errorf("setting `serialization`: %+v", err)

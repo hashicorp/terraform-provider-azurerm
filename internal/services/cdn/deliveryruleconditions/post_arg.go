@@ -8,9 +8,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func PostArg() *pluginsdk.Resource {
@@ -58,11 +58,8 @@ func PostArg() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(cdn.TransformLowercase),
-						string(cdn.TransformUppercase),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInEnumSlice(cdn.PossibleTransformValues(), false),
 				},
 			},
 		},
@@ -82,7 +79,7 @@ func ExpandArmCdnEndpointConditionPostArg(input []interface{}) []cdn.BasicDelive
 				Selector:        pointer.To(item["selector"].(string)),
 				Operator:        cdn.PostArgsOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
+				MatchValues:     helpers.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
 			},
 		}
 
@@ -124,7 +121,7 @@ func FlattenArmCdnEndpointConditionPostArg(input cdn.BasicDeliveryRuleCondition)
 		}
 
 		if params.MatchValues != nil {
-			matchValues = utils.FlattenStringSlice(params.MatchValues)
+			matchValues = helpers.FlattenStringSlice(params.MatchValues)
 		}
 
 		if params.Transforms != nil {

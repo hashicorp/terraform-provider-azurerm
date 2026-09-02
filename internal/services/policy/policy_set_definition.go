@@ -5,16 +5,12 @@ package policy
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"reflect"
 	"regexp"
-	"strconv"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policysetdefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
@@ -312,29 +308,4 @@ func expandParameterDefinitionsValue(input string) (*map[string]policysetdefinit
 	err := json.Unmarshal([]byte(input), &result)
 
 	return &result, err
-}
-
-func getPolicySetDefinitionByID(ctx context.Context, client *policysetdefinitions.PolicySetDefinitionsClient, id any) (*http.Response, *policysetdefinitions.PolicySetDefinition, error) {
-	// TODO: Remove post 5.0
-	switch id := id.(type) {
-	case policysetdefinitions.ProviderPolicySetDefinitionId:
-		return getPolicySetDefinition(ctx, client, id)
-	case policysetdefinitions.Providers2PolicySetDefinitionId:
-		resp, err := client.GetAtManagementGroup(ctx, id, policysetdefinitions.DefaultGetAtManagementGroupOperationOptions())
-		return resp.HttpResponse, resp.Model, err
-	default:
-		return nil, nil, fmt.Errorf("`id` was not one of the expected types: %T", id)
-	}
-}
-
-func policySetDefinitionRefreshFunc(ctx context.Context, client *policysetdefinitions.PolicySetDefinitionsClient, id any) pluginsdk.StateRefreshFunc {
-	// TODO: Remove post 5.0
-	return func() (interface{}, string, error) {
-		resp, _, err := getPolicySetDefinitionByID(ctx, client, id)
-		if err != nil && !response.WasNotFound(resp) {
-			return nil, strconv.Itoa(resp.StatusCode), fmt.Errorf("retrieving %s: %+v", id, err)
-		}
-
-		return resp, strconv.Itoa(resp.StatusCode), nil
-	}
 }

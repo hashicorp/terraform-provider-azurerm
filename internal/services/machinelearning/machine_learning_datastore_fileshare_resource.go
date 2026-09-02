@@ -14,12 +14,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/datastore"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/fileshares"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	storageAccountHelper "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
-	storageparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -50,7 +51,21 @@ func (r MachineLearningDataStoreFileShare) IDValidationFunc() pluginsdk.SchemaVa
 	return datastore.ValidateDataStoreID
 }
 
-var _ sdk.ResourceWithUpdate = MachineLearningDataStoreFileShare{}
+var (
+	_ sdk.ResourceWithUpdate         = MachineLearningDataStoreFileShare{}
+	_ sdk.ResourceWithStateMigration = MachineLearningDataStoreFileShare{}
+)
+
+func (r MachineLearningDataStoreFileShare) StateUpgraders() sdk.StateUpgradeData {
+	// rewrite `storage_fileshare_id` to account for azurerm_storage_share.resource_manager_id deprecation
+	// in favour of azurerm_storage_share.id in 5.0
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.MachineLearningDataStoreFileShareV0ToV1{},
+		},
+	}
+}
 
 func (r MachineLearningDataStoreFileShare) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -72,7 +87,7 @@ func (r MachineLearningDataStoreFileShare) Arguments() map[string]*pluginsdk.Sch
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: fileshares.ValidateShareID,
 		},
 
 		"description": {
@@ -84,11 +99,7 @@ func (r MachineLearningDataStoreFileShare) Arguments() map[string]*pluginsdk.Sch
 		"service_data_identity": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(datastore.ServiceDataAccessAuthIdentityNone),
-				string(datastore.ServiceDataAccessAuthIdentityWorkspaceSystemAssignedIdentity),
-				string(datastore.ServiceDataAccessAuthIdentityWorkspaceUserAssignedIdentity),
-			},
+			ValidateFunc: validation.StringInSlice(datastore.PossibleValuesForServiceDataAccessAuthIdentity(),
 				false),
 			Default: string(datastore.ServiceDataAccessAuthIdentityNone),
 		},
@@ -141,17 +152,19 @@ func (r MachineLearningDataStoreFileShare) Create() sdk.ResourceFunc {
 
 			id := datastore.NewDataStoreID(subscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
+				}
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					return tf.ImportAsExistsError("azurerm_machine_learning_datastore_fileshare", id.ID())
 				}
 			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_machine_learning_datastore_fileshare", id.ID())
-			}
 
-			fileShareId, err := storageparse.StorageShareResourceManagerID(model.StorageFileShareID)
+			shareId, err := parseStorageFileShareID(model.StorageFileShareID)
 			if err != nil {
 				return err
 			}
@@ -162,11 +175,11 @@ func (r MachineLearningDataStoreFileShare) Create() sdk.ResourceFunc {
 			}
 
 			props := &datastore.AzureFileDatastore{
-				AccountName:                   fileShareId.StorageAccountName,
+				AccountName:                   shareId.StorageAccountName,
 				Endpoint:                      pointer.To(metadata.Client.Storage.StorageDomainSuffix),
-				FileShareName:                 fileShareId.FileshareName,
+				FileShareName:                 shareId.ShareName,
 				Description:                   pointer.To(model.Description),
-				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataIdentity)),
+				ServiceDataAccessAuthIdentity: pointer.ToEnum[datastore.ServiceDataAccessAuthIdentity](model.ServiceDataIdentity),
 				Tags:                          pointer.To(model.Tags),
 			}
 
@@ -215,7 +228,7 @@ func (r MachineLearningDataStoreFileShare) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			fileShareId, err := storageparse.StorageShareResourceManagerID(state.StorageFileShareID)
+			shareId, err := parseStorageFileShareID(state.StorageFileShareID)
 			if err != nil {
 				return err
 			}
@@ -226,10 +239,10 @@ func (r MachineLearningDataStoreFileShare) Update() sdk.ResourceFunc {
 			}
 
 			props := &datastore.AzureFileDatastore{
-				AccountName:                   fileShareId.StorageAccountName,
-				FileShareName:                 fileShareId.FileshareName,
+				AccountName:                   shareId.StorageAccountName,
+				FileShareName:                 shareId.ShareName,
 				Description:                   pointer.To(state.Description),
-				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(state.ServiceDataIdentity)),
+				ServiceDataAccessAuthIdentity: pointer.ToEnum[datastore.ServiceDataAccessAuthIdentity](state.ServiceDataIdentity),
 				Tags:                          pointer.To(state.Tags),
 			}
 
@@ -297,11 +310,11 @@ func (r MachineLearningDataStoreFileShare) Read() sdk.ResourceFunc {
 
 			var storageAccount *storageAccountHelper.AccountDetails
 			if fileShareIdStr := metadata.ResourceData.Get("storage_fileshare_id").(string); fileShareIdStr != "" {
-				fileShareId, err := storageparse.StorageShareResourceManagerID(fileShareIdStr)
+				shareId, err := parseStorageFileShareID(fileShareIdStr)
 				if err != nil {
 					return err
 				}
-				storageAccount, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(fileShareId.SubscriptionId, fileShareId.ResourceGroup, fileShareId.StorageAccountName))
+				storageAccount, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(shareId.SubscriptionId, shareId.ResourceGroupName, shareId.StorageAccountName))
 				if err != nil {
 					return fmt.Errorf("retrieving Account %q for Share %q: %s", data.AccountName, data.FileShareName, err)
 				}
@@ -316,8 +329,8 @@ func (r MachineLearningDataStoreFileShare) Read() sdk.ResourceFunc {
 			if storageAccount == nil {
 				return fmt.Errorf("unable to locate Storage Account %q", data.AccountName)
 			}
-			fileShareId := storageparse.NewStorageShareResourceManagerID(storageAccount.StorageAccountId.SubscriptionId, storageAccount.StorageAccountId.ResourceGroupName, data.AccountName, "default", data.FileShareName)
-			model.StorageFileShareID = fileShareId.ID()
+
+			model.StorageFileShareID = fileshares.NewShareID(storageAccount.StorageAccountId.SubscriptionId, storageAccount.StorageAccountId.ResourceGroupName, data.AccountName, data.FileShareName).ID()
 
 			model.IsDefault = *data.IsDefault
 
@@ -333,11 +346,7 @@ func (r MachineLearningDataStoreFileShare) Read() sdk.ResourceFunc {
 				}
 			}
 
-			desc := ""
-			if v := data.Description; v != nil {
-				desc = *v
-			}
-			model.Description = desc
+			model.Description = pointer.From(data.Description)
 
 			if data.Tags != nil {
 				model.Tags = *data.Tags
@@ -366,4 +375,12 @@ func (r MachineLearningDataStoreFileShare) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+// parses the `storage_fileshare_id` into a fileshares.ShareId needed for 5.0 where the id changes
+// from  "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s/fileServices/%s/fileshares/%s"
+// to "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s/fileServices/default/shares/%s"
+// since we only use id.StorageAccountName and id.FileshareName parsing into a fileshares.ShareId works for both 4.0 and 5.0
+func parseStorageFileShareID(input string) (*fileshares.ShareId, error) {
+	return fileshares.ParseShareID(input)
 }

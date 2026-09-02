@@ -195,14 +195,16 @@ func (r ElasticSANVolumeGroupResource) Create() sdk.ResourceFunc {
 
 			id := volumegroups.NewVolumeGroupID(subscriptionId, elasticSanId.ResourceGroupName, elasticSanId.ElasticSanName, config.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			expandedIdentity, err := identity.ExpandSystemOrUserAssignedMapFromModel(config.Identity)
@@ -218,14 +220,14 @@ func (r ElasticSANVolumeGroupResource) Create() sdk.ResourceFunc {
 			payload := volumegroups.VolumeGroup{
 				Identity: expandedIdentity,
 				Properties: &volumegroups.VolumeGroupProperties{
-					Encryption:           pointer.To(volumegroups.EncryptionType(config.EncryptionType)),
+					Encryption:           pointer.ToEnum[volumegroups.EncryptionType](config.EncryptionType),
 					EncryptionProperties: encryption,
 					NetworkAcls:          ExpandVolumeGroupNetworkRules(config.NetworkRule),
-					ProtocolType:         pointer.To(volumegroups.StorageTargetType(config.ProtocolType)),
+					ProtocolType:         pointer.ToEnum[volumegroups.StorageTargetType](config.ProtocolType),
 				},
 			}
 
-			if err := client.CreateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -328,7 +330,7 @@ func (r ElasticSANVolumeGroupResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("encryption_type") {
-				payload.Properties.Encryption = pointer.To(volumegroups.EncryptionType(config.EncryptionType))
+				payload.Properties.Encryption = pointer.ToEnum[volumegroups.EncryptionType](config.EncryptionType)
 			}
 
 			if metadata.ResourceData.HasChange("encryption") {
@@ -350,7 +352,7 @@ func (r ElasticSANVolumeGroupResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("protocol_type") {
-				payload.Properties.ProtocolType = pointer.To(volumegroups.StorageTargetType(config.ProtocolType))
+				payload.Properties.ProtocolType = pointer.ToEnum[volumegroups.StorageTargetType](config.ProtocolType)
 			}
 
 			if metadata.ResourceData.HasChange("network_rule") {
@@ -445,7 +447,7 @@ func ExpandVolumeGroupNetworkRules(input []ElasticSANVolumeGroupResourceNetworkR
 	for _, rule := range input {
 		networkRules = append(networkRules, volumegroups.VirtualNetworkRule{
 			Id:     rule.SubnetId,
-			Action: pointer.To(volumegroups.Action(rule.Action)),
+			Action: pointer.ToEnum[volumegroups.Action](rule.Action),
 		})
 	}
 

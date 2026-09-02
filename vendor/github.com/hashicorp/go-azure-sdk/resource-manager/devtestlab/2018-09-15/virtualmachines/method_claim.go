@@ -57,9 +57,20 @@ func (c VirtualMachinesClient) Claim(ctx context.Context, id VirtualMachineId) (
 
 // ClaimThenPoll performs Claim then polls until it's completed
 func (c VirtualMachinesClient) ClaimThenPoll(ctx context.Context, id VirtualMachineId) error {
+	return c.ClaimCallbackThenPoll(ctx, id, nil)
+}
+
+// ClaimCallbackThenPoll performs Claim, runs the optional callback function, then polls until it's completed
+func (c VirtualMachinesClient) ClaimCallbackThenPoll(ctx context.Context, id VirtualMachineId, callback func() error) error {
 	result, err := c.Claim(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Claim: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

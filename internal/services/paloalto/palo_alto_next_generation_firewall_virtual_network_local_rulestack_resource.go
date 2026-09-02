@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	firewalls "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
 	localrulestacks "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
@@ -45,7 +44,7 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) ModelObject() interfac
 }
 
 func (r NextGenerationFirewallVNetLocalRulestackResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -85,12 +84,6 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Arguments() map[string
 
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.FivePointOh() {
-		args["plan_id"].Default = "panw-cloud-ngfw-payg"
-	}
-
-	return args
 }
 
 func (r NextGenerationFirewallVNetLocalRulestackResource) Attributes() map[string]*pluginsdk.Schema {
@@ -116,14 +109,16 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Create() sdk.ResourceF
 
 			id := firewalls.NewFirewallID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.FirewallsGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.FirewallsGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			ruleStackID, err := localrulestacks.ParseLocalRulestackID(model.RuleStackId)
@@ -163,10 +158,9 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Create() sdk.ResourceF
 			locks.ByID(ruleStackID.ID())
 			defer locks.UnlockByID(ruleStackID.ID())
 
-			if err = client.FirewallsCreateOrUpdateThenPoll(ctx, id, firewall); err != nil {
+			if err = client.FirewallsCreateOrUpdateCallbackThenPoll(ctx, id, firewall, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
 
 			return nil
@@ -280,13 +274,11 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Update() sdk.ResourceF
 					return err
 				}
 
-				ruleStack := &firewalls.RulestackDetails{
+				props.AssociatedRulestack = &firewalls.RulestackDetails{
 					Location:    props.AssociatedRulestack.Location,
 					ResourceId:  nil,
 					RulestackId: pointer.To(ruleStackID.ID()),
 				}
-
-				props.AssociatedRulestack = ruleStack
 				locks.ByID(ruleStackID.ID())
 				defer locks.UnlockByID(ruleStackID.ID())
 			}

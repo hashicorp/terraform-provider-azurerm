@@ -12,13 +12,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceStreamAnalyticsOutputServiceBusQueue() *pluginsdk.Resource {
@@ -128,15 +128,17 @@ func resourceStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *pluginsdk.Resou
 
 	id := outputs.NewOutputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_output_servicebus_queue", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_stream_analytics_output_servicebus_queue", id.ID())
+			}
 		}
 	}
 
@@ -156,9 +158,9 @@ func resourceStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *pluginsdk.Resou
 	dataSourceProperties := &outputs.ServiceBusQueueOutputDataSourceProperties{
 		QueueName:             pointer.To(queueName),
 		ServiceBusNamespace:   pointer.To(serviceBusNamespace),
-		PropertyColumns:       utils.ExpandStringSlice(d.Get("property_columns").([]interface{})),
+		PropertyColumns:       helpers.ExpandStringSlice(d.Get("property_columns").([]interface{})),
 		SystemPropertyColumns: &systemPropertyColumns,
-		AuthenticationMode:    pointer.To(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+		AuthenticationMode:    pointer.ToEnum[outputs.AuthenticationMode](d.Get("authentication_mode").(string)),
 	}
 
 	// Add shared access policy key/name only if required by authentication mode
@@ -225,35 +227,15 @@ func resourceStreamAnalyticsOutputServiceBusQueueRead(d *pluginsdk.ResourceData,
 				return fmt.Errorf("converting %s to a ServiceBus Queue Output", *id)
 			}
 
-			queue := ""
-			if v := output.Properties.QueueName; v != nil {
-				queue = *v
-			}
-			d.Set("queue_name", queue)
+			d.Set("queue_name", pointer.From(output.Properties.QueueName))
 
-			namespace := ""
-			if v := output.Properties.ServiceBusNamespace; v != nil {
-				namespace = *v
-			}
-			d.Set("servicebus_namespace", namespace)
+			d.Set("servicebus_namespace", pointer.From(output.Properties.ServiceBusNamespace))
 
-			policyName := ""
-			if v := output.Properties.SharedAccessPolicyName; v != nil {
-				policyName = *v
-			}
-			d.Set("shared_access_policy_name", policyName)
+			d.Set("shared_access_policy_name", pointer.From(output.Properties.SharedAccessPolicyName))
 
-			var columns []string
-			if v := output.Properties.PropertyColumns; v != nil {
-				columns = *v
-			}
-			d.Set("property_columns", columns)
+			d.Set("property_columns", pointer.From(output.Properties.PropertyColumns))
 
-			var systemColumns interface{}
-			if v := output.Properties.SystemPropertyColumns; v != nil {
-				systemColumns = *v
-			}
-			d.Set("system_property_columns", systemColumns)
+			d.Set("system_property_columns", pointer.From(output.Properties.SystemPropertyColumns))
 
 			authMode := ""
 			if v := output.Properties.AuthenticationMode; v != nil {

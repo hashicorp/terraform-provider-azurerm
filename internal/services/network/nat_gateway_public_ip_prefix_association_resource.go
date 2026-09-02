@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -111,22 +112,28 @@ func resourceNATGatewayPublicIpPrefixAssociationCreate(d *pluginsdk.ResourceData
 	if isIPv6 {
 		publicIpPrefixes = pointer.From(gatewayProperties.PublicIPPrefixesV6)
 	}
+	exists := false
 	for _, existingPublicIPPrefix := range publicIpPrefixes {
 		if strings.EqualFold(pointer.From(existingPublicIPPrefix.Id), publicIpPrefixId.ID()) {
-			return tf.ImportAsExistsError("azurerm_nat_gateway_public_ip_prefix_association", id.ID())
+			exists = true
+			if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				return tf.ImportAsExistsError("azurerm_nat_gateway_public_ip_prefix_association", id.ID())
+			}
 		}
 	}
 
-	publicIpPrefixes = append(publicIpPrefixes, natgateways.SubResource{
-		Id: pointer.To(publicIpPrefixId.ID()),
-	})
+	if !exists {
+		publicIpPrefixes = append(publicIpPrefixes, natgateways.SubResource{
+			Id: pointer.To(publicIpPrefixId.ID()),
+		})
+	}
 	if isIPv6 {
 		gatewayProperties.PublicIPPrefixesV6 = pointer.To(publicIpPrefixes)
 	} else {
 		gatewayProperties.PublicIPPrefixes = pointer.To(publicIpPrefixes)
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *natGatewayId, *natGateway.Model); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, *natGatewayId, *natGateway.Model, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("updating %s: %+v", natGatewayId, err)
 	}
 

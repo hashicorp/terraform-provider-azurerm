@@ -21,16 +21,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-07-01/account"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const (
@@ -39,7 +39,7 @@ const (
 )
 
 func resourceSynapseWorkspace() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceSynapseWorkspaceCreate,
 		Read:   resourceSynapseWorkspaceRead,
 		Update: resourceSynapseWorkspaceUpdate,
@@ -53,8 +53,15 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.WorkspaceID(id)
+			_, err := workspaces.ParseWorkspaceID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			// v0 -> v1 normalises the casing of IDs imported while this resource parsed them with the
+			// case-insensitive legacy parser, so they can be parsed with the case-sensitive SDK parser
+			0: migration.SynapseWorkspaceV0ToV1{},
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -272,12 +279,6 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["customer_managed_key"].Elem.(*pluginsdk.Resource).Schema["key_versionless_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeAny)
-	}
-
-	return r
 }
 
 func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -287,15 +288,18 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewWorkspaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	id := workspaces.NewWorkspaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroupName, id.WorkspaceName)
+		if err != nil {
+			if !response.WasNotFound(existing.Response.Response) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_synapse_workspace", id.ID())
+		if !response.WasNotFound(existing.Response.Response) {
+			return tf.ImportAsExistsError("azurerm_synapse_workspace", id.ID())
+		}
 	}
 
 	managedVirtualNetwork := ""
@@ -354,13 +358,15 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		if workspaceInfo.ManagedVirtualNetworkSettings == nil {
 			workspaceInfo.ManagedVirtualNetworkSettings = &synapse.ManagedVirtualNetworkSettings{}
 		}
-		workspaceInfo.ManagedVirtualNetworkSettings.AllowedAadTenantIdsForLinking = utils.ExpandStringSlice(allowedLinkingTenantIds.([]interface{}))
+		workspaceInfo.ManagedVirtualNetworkSettings.AllowedAadTenantIdsForLinking = helpers.ExpandStringSlice(allowedLinkingTenantIds.([]interface{}))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, workspaceInfo)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.WorkspaceName, workspaceInfo)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+
+	d.SetId(id.ID())
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
@@ -371,7 +377,7 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	sqlControlSettings := expandIdentityControlSQLSettings(d.Get("sql_identity_control_enabled").(bool))
-	future2, err := identitySQLControlClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlControlSettings)
+	future2, err := identitySQLControlClient.CreateOrUpdate(ctx, id.ResourceGroupName, id.WorkspaceName, *sqlControlSettings)
 	if err != nil {
 		return fmt.Errorf("configuring Sql Identity Control for %s: %+v", id, err)
 	}
@@ -383,7 +389,6 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceSynapseWorkspaceRead(d, meta)
 }
 
@@ -393,14 +398,14 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WorkspaceID(d.Id())
+	id, err := workspaces.ParseWorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.WorkspaceName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] %s does not exist - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -408,13 +413,13 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	sqlControlSettings, err := identitySQLControlClient.Get(ctx, id.ResourceGroup, id.Name)
+	sqlControlSettings, err := identitySQLControlClient.Get(ctx, id.ResourceGroupName, id.WorkspaceName)
 	if err != nil {
 		return fmt.Errorf("retrieving Sql Identity Control for %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.WorkspaceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	flattenIdenties, err := flattenIdentity(resp.Identity)
@@ -431,14 +436,14 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 			managedVirtualNetworkEnabled = true
 			if props.ManagedVirtualNetworkSettings != nil {
 				d.Set("data_exfiltration_protection_enabled", props.ManagedVirtualNetworkSettings.PreventDataExfiltration)
-				d.Set("linking_allowed_for_aad_tenant_ids", utils.FlattenStringSlice(props.ManagedVirtualNetworkSettings.AllowedAadTenantIdsForLinking))
+				d.Set("linking_allowed_for_aad_tenant_ids", helpers.FlattenStringSlice(props.ManagedVirtualNetworkSettings.AllowedAadTenantIdsForLinking))
 			}
 		}
 		d.Set("managed_virtual_network_enabled", managedVirtualNetworkEnabled)
 		d.Set("storage_data_lake_gen2_filesystem_id", flattenArmWorkspaceDataLakeStorageAccountDetails(props.DefaultDataLakeStorage))
 		d.Set("sql_administrator_login", props.SQLAdministratorLogin)
 		d.Set("managed_resource_group_name", props.ManagedResourceGroupName)
-		d.Set("connectivity_endpoints", utils.FlattenMapStringPtrString(props.ConnectivityEndpoints))
+		d.Set("connectivity_endpoints", helpers.FlattenMapStringPtrString(props.ConnectivityEndpoints))
 		d.Set("public_network_access_enabled", resp.PublicNetworkAccess == synapse.WorkspacePublicNetworkAccessEnabled)
 		d.Set("azuread_authentication_only", props.AzureADOnlyAuthentication)
 		cmk, err := flattenEncryptionDetails(props.Encryption)
@@ -483,12 +488,20 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WorkspaceID(d.Id())
+	id, err := workspaces.ParseWorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if d.HasChanges("tags", "sql_administrator_login_password", "github_repo", "azure_devops_repo", "customer_managed_key", "public_network_access_enabled") {
+	// lintignore:R019 // deliberate subset: only the fields feeding WorkspacePatchInfo; aad_admin, sql_aad_admin and identity settings are updated via separate API calls below
+	if d.HasChanges(
+		"tags",
+		"sql_administrator_login_password",
+		"github_repo",
+		"azure_devops_repo",
+		"customer_managed_key",
+		"public_network_access_enabled",
+	) {
 		publicNetworkAccess := synapse.WorkspacePublicNetworkAccessEnabled
 		if !d.Get("public_network_access_enabled").(bool) {
 			publicNetworkAccess = synapse.WorkspacePublicNetworkAccessDisabled
@@ -507,7 +520,7 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 			if workspacePatchInfo.ManagedVirtualNetworkSettings == nil {
 				workspacePatchInfo.ManagedVirtualNetworkSettings = &synapse.ManagedVirtualNetworkSettings{}
 			}
-			workspacePatchInfo.ManagedVirtualNetworkSettings.AllowedAadTenantIdsForLinking = utils.ExpandStringSlice(allowedLinkingTenantIds.([]interface{}))
+			workspacePatchInfo.ManagedVirtualNetworkSettings.AllowedAadTenantIdsForLinking = helpers.ExpandStringSlice(allowedLinkingTenantIds.([]interface{}))
 		}
 
 		if purviewId, ok := d.GetOk("purview_id"); ok {
@@ -520,13 +533,13 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
 		}
 
-		future, err := client.Update(ctx, id.ResourceGroup, id.Name, workspacePatchInfo)
+		future, err := client.Update(ctx, id.ResourceGroupName, id.WorkspaceName, workspacePatchInfo)
 		if err != nil {
-			return fmt.Errorf("updating Synapse Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("updating Synapse Workspace %q (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroupName, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting on updating future for Synapse Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting on updating future for Synapse Workspace %q (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroupName, err)
 		}
 
 		if err := waitSynapseWorkspaceCMKState(ctx, client, id); err != nil {
@@ -535,7 +548,7 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("azuread_authentication_only") {
-		future, err := azureADOnlyAuthenticationsClient.Create(ctx, id.ResourceGroup, id.Name, synapse.AzureADOnlyAuthentication{
+		future, err := azureADOnlyAuthenticationsClient.Create(ctx, id.ResourceGroupName, id.WorkspaceName, synapse.AzureADOnlyAuthentication{
 			AzureADOnlyAuthenticationProperties: &synapse.AzureADOnlyAuthenticationProperties{
 				AzureADOnlyAuthentication: pointer.To(d.Get("azuread_authentication_only").(bool)),
 			},
@@ -554,7 +567,7 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if err := waitSynapseWorkspaceProvisioningState(ctx, client, id); err != nil {
 			return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
 		}
-		future, err := identitySQLControlClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlControlSettings)
+		future, err := identitySQLControlClient.CreateOrUpdate(ctx, id.ResourceGroupName, id.WorkspaceName, *sqlControlSettings)
 		if err != nil {
 			return fmt.Errorf("updating workspace identity control for SQL pool: %+v", err)
 		}
@@ -575,27 +588,27 @@ func resourceSynapseWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WorkspaceID(d.Id())
+	id, err := workspaces.ParseWorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.WorkspaceName)
 	if err != nil {
-		return fmt.Errorf("deleting Synapse Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Synapse Workspace %q (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroupName, err)
 	}
 
 	// sometimes the waitForCompletion rest api will return 404
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for Synapse Workspace %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for Synapse Workspace %q (Resource Group %q) to be deleted: %+v", id.WorkspaceName, id.ResourceGroupName, err)
 		}
 	}
 
 	return nil
 }
 
-func waitSynapseWorkspaceCMKState(ctx context.Context, client *synapse.WorkspacesClient, id *parse.WorkspaceId) error {
+func waitSynapseWorkspaceCMKState(ctx context.Context, client *synapse.WorkspacesClient, id *workspaces.WorkspaceId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("internal-error: context had no deadline")
@@ -622,9 +635,9 @@ func waitSynapseWorkspaceCMKState(ctx context.Context, client *synapse.Workspace
 	return nil
 }
 
-func synapseWorkspaceCMKUpdateStateRefreshFunc(ctx context.Context, client *synapse.WorkspacesClient, id *parse.WorkspaceId) pluginsdk.StateRefreshFunc {
+func synapseWorkspaceCMKUpdateStateRefreshFunc(ctx context.Context, client *synapse.WorkspacesClient, id *workspaces.WorkspaceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		res, err := client.Get(ctx, id.ResourceGroupName, id.WorkspaceName)
 		if err != nil {
 			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
 		}
@@ -635,7 +648,7 @@ func synapseWorkspaceCMKUpdateStateRefreshFunc(ctx context.Context, client *syna
 	}
 }
 
-func waitSynapseWorkspaceProvisioningState(ctx context.Context, client *synapse.WorkspacesClient, id *parse.WorkspaceId) error {
+func waitSynapseWorkspaceProvisioningState(ctx context.Context, client *synapse.WorkspacesClient, id *workspaces.WorkspaceId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("internal-error: context had no deadline")
@@ -659,9 +672,9 @@ func waitSynapseWorkspaceProvisioningState(ctx context.Context, client *synapse.
 	return nil
 }
 
-func synapseWorkspaceProvisioningStateRefreshFunc(ctx context.Context, client *synapse.WorkspacesClient, id *parse.WorkspaceId) pluginsdk.StateRefreshFunc {
+func synapseWorkspaceProvisioningStateRefreshFunc(ctx context.Context, client *synapse.WorkspacesClient, id *workspaces.WorkspaceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		res, err := client.Get(ctx, id.ResourceGroupName, id.WorkspaceName)
 		if err != nil {
 			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
 		}

@@ -139,7 +139,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 
   tags = {
-    triggerme = %[3]s
+    triggerme = "%[3]s"
   }
 
   lifecycle {

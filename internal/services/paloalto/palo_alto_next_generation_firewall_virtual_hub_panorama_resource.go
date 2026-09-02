@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	firewalls "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
 	helpersValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
@@ -56,7 +55,7 @@ func (r NextGenerationFirewallVHubPanoramaResource) ResourceType() string {
 }
 
 func (r NextGenerationFirewallVHubPanoramaResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -97,12 +96,6 @@ func (r NextGenerationFirewallVHubPanoramaResource) Arguments() map[string]*plug
 
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.FivePointOh() {
-		args["plan_id"].Default = "panw-cloud-ngfw-payg"
-	}
-
-	return args
 }
 
 func (r NextGenerationFirewallVHubPanoramaResource) Attributes() map[string]*pluginsdk.Schema {
@@ -125,14 +118,16 @@ func (r NextGenerationFirewallVHubPanoramaResource) Create() sdk.ResourceFunc {
 
 			id := firewalls.NewFirewallID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.FirewallsGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.FirewallsGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			firewall := firewalls.FirewallResource{
@@ -157,10 +152,9 @@ func (r NextGenerationFirewallVHubPanoramaResource) Create() sdk.ResourceFunc {
 				Tags: tags.Expand(model.Tags),
 			}
 
-			if err = client.FirewallsCreateOrUpdateThenPoll(ctx, id, firewall); err != nil {
+			if err := client.FirewallsCreateOrUpdateCallbackThenPoll(ctx, id, firewall, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
 
 			return nil

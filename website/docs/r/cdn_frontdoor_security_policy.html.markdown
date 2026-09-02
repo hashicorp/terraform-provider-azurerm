@@ -167,10 +167,10 @@ A `domain` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Front Door Security Policy.
+* `create` - (Defaults to 4 hours) Used when creating the Front Door Security Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Security Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the Front Door Security Policy.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Security Policy.
+* `update` - (Defaults to 4 hours) Used when updating the Front Door Security Policy.
+* `delete` - (Defaults to 6 hours) Used when deleting the Front Door Security Policy.
 
 ## Import
 
@@ -184,4 +184,4 @@ terraform import azurerm_cdn_frontdoor_security_policy.example /subscriptions/00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Cdn` - 2024-02-01
+* `Microsoft.Cdn` - 2025-12-01

@@ -131,15 +131,17 @@ func resourceStreamAnalyticsFunctionUDFCreateUpdate(d *pluginsdk.ResourceData, m
 
 	id := functions.NewFunctionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_function_javascript_udf", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_stream_analytics_function_javascript_udf", id.ID())
+			}
 		}
 	}
 
@@ -212,11 +214,7 @@ func resourceStreamAnalyticsFunctionUDFRead(d *pluginsdk.ResourceData, meta inte
 				return fmt.Errorf("converting to Binding")
 			}
 
-			script := ""
-			if v := binding.Properties.Script; v != nil {
-				script = *v
-			}
-			d.Set("script", script)
+			d.Set("script", pointer.From(binding.Properties.Script))
 
 			if err := d.Set("input", flattenStreamAnalyticsFunctionInputs(function.Properties.Inputs)); err != nil {
 				return fmt.Errorf("flattening `input`: %+v", err)
@@ -272,15 +270,9 @@ func flattenStreamAnalyticsFunctionInputs(input *[]functions.FunctionInput) []in
 	outputs := make([]interface{}, 0)
 
 	for _, v := range *input {
-		var variableType string
-		if v.DataType != nil {
-			variableType = *v.DataType
-		}
+		variableType := pointer.From(v.DataType)
 
-		var isConfigurationParameter bool
-		if v.IsConfigurationParameter != nil {
-			isConfigurationParameter = *v.IsConfigurationParameter
-		}
+		isConfigurationParameter := pointer.From(v.IsConfigurationParameter)
 
 		outputs = append(outputs, map[string]interface{}{
 			"type":                    variableType,
@@ -305,10 +297,7 @@ func flattenStreamAnalyticsFunctionOutput(input *functions.FunctionOutput) []int
 		return []interface{}{}
 	}
 
-	var variableType string
-	if input.DataType != nil {
-		variableType = *input.DataType
-	}
+	variableType := pointer.From(input.DataType)
 
 	return []interface{}{
 		map[string]interface{}{
