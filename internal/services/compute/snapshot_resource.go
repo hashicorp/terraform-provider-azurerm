@@ -126,6 +126,7 @@ func resourceSnapshot() *pluginsdk.Resource {
 			"disk_size_gb": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
+				// Note: O+C because Azure computes disk size when not specified
 				Computed: true,
 			},
 

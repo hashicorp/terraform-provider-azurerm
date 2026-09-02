@@ -61,14 +61,14 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"dotnet_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{ // Note: DotNet versions are abstracted between API and Portal displayed values, so do not match 1:1. A table of the converted values is provided in the resource doc.
 						"v2.0",
 						"v3.0",
@@ -96,7 +96,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"php_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{
 						PhpVersionSevenPointOne,  // Deprecated
 						PhpVersionSevenPointFour, // Deprecated
@@ -136,7 +136,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"java_embedded_server_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.tomcat_version",
 					},
@@ -213,7 +213,8 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"current_stack": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true, // This will be set to the configured type from above if not explicitly set
+					// Note: O+C because This will be set to the configured type from above if not explicitly set
+					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"dotnet",
 						"dotnetcore",
@@ -349,7 +350,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{

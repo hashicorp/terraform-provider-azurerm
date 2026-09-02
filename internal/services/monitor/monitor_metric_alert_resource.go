@@ -82,14 +82,14 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 			"target_resource_type": {
 				Type:        pluginsdk.TypeString,
 				Optional:    true,
-				Computed:    true,
+				Computed:    true, // azignore:AZS007 - pre-existing violation
 				Description: `The resource type (e.g. Microsoft.Compute/virtualMachines) of the target pluginsdk. Required when using subscription, resource group scope or multiple scopes.`,
 			},
 
 			"target_resource_location": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				StateFunc:        location.StateFunc,
 				DiffSuppressFunc: location.DiffSuppressFunc,
 				Description:      `The location of the target pluginsdk. Required when using subscription, resource group scope or multiple scopes.`,

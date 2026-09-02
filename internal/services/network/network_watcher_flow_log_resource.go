@@ -166,7 +166,7 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 			"location": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				ForceNew:         true,
 				ValidateFunc:     location.EnhancedValidate,
 				StateFunc:        location.StateFunc,

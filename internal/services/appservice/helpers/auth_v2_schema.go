@@ -1460,7 +1460,7 @@ func FacebookAuthV2SettingsSchema() *pluginsdk.Schema {
 				"graph_api_version": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The version of the Facebook API to be used while logging in.",
 				},

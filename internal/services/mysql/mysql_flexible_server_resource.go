@@ -78,7 +78,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			"administrator_login": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validate.FlexibleServerAdministratorLogin,
 			},
@@ -241,7 +241,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			"public_network_access": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				// NOTE: O+C: Azure normally defaults this to `Enabled` unless values are provided for `delegated_subnet_id` and `private_dns_zone_id`
+				// NOTE: O+C because Azure normally defaults this to `Enabled` unless values are provided for `delegated_subnet_id` and `private_dns_zone_id`
 				Computed:     true,
 				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForEnableStatusEnum(), false),
 			},
@@ -249,7 +249,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			"replication_role": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servers.ReplicationRoleNone),
 				}, false),
@@ -258,7 +258,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			"sku_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validate.FlexibleServerSkuName,
 			},
 
@@ -272,7 +272,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			"storage": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -285,7 +285,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 						"iops": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.IntBetween(360, 48000),
 						},
 
@@ -298,7 +298,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 						"size_gb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.IntBetween(20, 16384),
 						},
 						"io_scaling_enabled": {
@@ -313,6 +313,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			"version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				// Note: O+C because Azure assigns a version when not explicitly set
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servers.ServerVersionFivePointSeven),

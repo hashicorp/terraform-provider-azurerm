@@ -94,10 +94,17 @@ linters:
             - AZR004 #Resource IDs should not be compared with == or != - to fix in a later commit
             - AZR003 # d.Get should not be used within a Delete function as it does not work as expected during deletion - 9 findings to fix later
             - AZR007 # StateChangeConf should be replaced with a custom poller implementing pollers.PollerType - 159 findings, being migrated over time (eventual consistency poller series was the start)
+            - AZR008 # flattenX should not return nil
             - AZS003 # TypeList blocks where every property is optional with no default allow empty blocks - 290 findings to fix later
-            - AZS004 # hand-written enum value lists instead of PossibleValuesFor<Enum>() - 304 findings: 235 lists missing values to review + 69 track-1 SDK enums whose helpers return typed slices
             - AZS005 # resources with no corresponding data source - 768 findings, to determine if to be fixed later
             - AZS006 # data sources missing properties that exist on the resource - 185 findings, todo later
+          AZS004:
+            # exact-match only: report hand-written lists that exactly match the enum (a pure
+            # PossibleValuesFor<Enum>() swap); deliberate subsets/supersets are left alone
+            allow-missing-values: true
+            allow-extra-values: true
+          AZS007:
+            exclude-packages: "migration"
       tfproviderlint:
         type: module
         settings:

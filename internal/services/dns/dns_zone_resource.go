@@ -66,7 +66,7 @@ func (DnsZoneResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"email": {

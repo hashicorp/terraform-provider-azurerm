@@ -86,9 +86,10 @@ func resourceStorageDataLakeGen2FileSystem() *pluginsdk.Resource {
 			"properties": MetaDataSchema(),
 
 			"default_encryption_scope": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true, // needed because a dummy value is returned when unspecified
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C because needed because a dummy value is returned when unspecified
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageEncryptionScopeName,
 			},
@@ -96,21 +97,21 @@ func resourceStorageDataLakeGen2FileSystem() *pluginsdk.Resource {
 			"owner": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.Any(validation.IsUUID, validation.StringInSlice([]string{"$superuser"}, false)),
 			},
 
 			"group": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.Any(validation.IsUUID, validation.StringInSlice([]string{"$superuser"}, false)),
 			},
 
 			"ace": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"scope": {

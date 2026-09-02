@@ -86,5 +86,6 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
 		ApplicationInsightsStandardWebTestListResource{},
 		ApplicationInsightsWorkbookListResource{},
+		ApplicationInsightsWorkbookTemplateListResource{},
 	}
 }

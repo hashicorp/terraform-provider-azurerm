@@ -1215,7 +1215,7 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 
 			// Computed since we reuse the VM name if one's not specified
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 
 			ValidateFunc: validate.LinuxComputerNamePrefix,
@@ -1283,7 +1283,7 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
 			// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     validate.HostGroupID,
+			ValidateFunc:     validation.AsGeneratedID(commonids.ParseDedicatedHostGroupIDInsensitively),
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -1307,7 +1307,7 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
 			ForceNew: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"priority": {

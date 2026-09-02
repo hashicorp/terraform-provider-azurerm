@@ -397,6 +397,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"private_ip_address": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							// Note: O+C because Azure assigns a private IP from the subnet when not specified
 							Computed: true,
 						},
 
@@ -751,6 +752,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 									"private_ip_address": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
+										// Note: O+C because Azure assigns a private IP from the subnet when not specified
 										Computed: true,
 									},
 

@@ -123,10 +123,11 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"network_profile_id": {
-				Type:       pluginsdk.TypeString,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "the 'network_profile_id' has been removed from the latest versions of the container instance API and has been deprecated. It no longer functions and will be removed from the 4.0 AzureRM provider. Please use the 'subnet_ids' field instead",
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
+				// TODO: 6.0 - remove this, was meant to be removed in 4.0...
+				Deprecated: "the 'network_profile_id' has been removed from the latest versions of the container instance API and has been deprecated. It no longer functions and will be removed from the 6.0 AzureRM provider. Please use the 'subnet_ids' field instead",
 			},
 
 			// lintignore:S018
@@ -180,7 +181,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			"exposed_port": {
 				Type:       pluginsdk.TypeSet,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ForceNew:   true,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Set:        resourceContainerGroupPortsHash,
@@ -246,7 +247,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 						"commands": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
@@ -354,7 +355,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 						"commands": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,

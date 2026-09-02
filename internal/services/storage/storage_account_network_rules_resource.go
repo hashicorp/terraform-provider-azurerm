@@ -57,7 +57,8 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 			"bypass": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true, // Defaults to storageaccounts.BypassAzureServices in the API, but schema does not support defaults for lists/sets.
+				// Note: O+C because this defaults to storageaccounts.BypassAzureServices in the API, but schema does not support defaults for lists/sets.
+				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForBypass(), false),
@@ -105,7 +106,7 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 						"endpoint_tenant_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.IsUUID,
 						},
 					},

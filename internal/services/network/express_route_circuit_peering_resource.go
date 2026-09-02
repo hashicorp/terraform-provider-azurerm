@@ -95,7 +95,7 @@ func resourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 			"peer_asn": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"microsoft_peering_config": {
