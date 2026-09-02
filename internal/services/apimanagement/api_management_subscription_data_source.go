@@ -25,16 +25,18 @@ var _ sdk.DataSource = ApiManagementSubscriptionDataSource{}
 type ApiManagementSubscriptionDataSource struct{}
 
 type ApiManagementSubscriptionDataSourceModel struct {
-	ApiManagementId string `tfschema:"api_management_id"`
-	SubscriptionId  string `tfschema:"subscription_id"`
-	AllowTracing    bool   `tfschema:"allow_tracing"`
-	ApiId           string `tfschema:"api_id"`
-	DisplayName     string `tfschema:"display_name"`
-	PrimaryKey      string `tfschema:"primary_key"`
-	ProductId       string `tfschema:"product_id"`
-	SecondaryKey    string `tfschema:"secondary_key"`
-	State           string `tfschema:"state"`
-	UserId          string `tfschema:"user_id"`
+	ApiManagementId   string `tfschema:"api_management_id"`
+	ApiManagementName string `tfschema:"api_management_name"`
+	ResourceGroupName string `tfschema:"resource_group_name"`
+	SubscriptionId    string `tfschema:"subscription_id"`
+	AllowTracing      bool   `tfschema:"allow_tracing"`
+	ApiId             string `tfschema:"api_id"`
+	DisplayName       string `tfschema:"display_name"`
+	PrimaryKey        string `tfschema:"primary_key"`
+	ProductId         string `tfschema:"product_id"`
+	SecondaryKey      string `tfschema:"secondary_key"`
+	State             string `tfschema:"state"`
+	UserId            string `tfschema:"user_id"`
 }
 
 func (ApiManagementSubscriptionDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -62,6 +64,11 @@ func (ApiManagementSubscriptionDataSource) Attributes() map[string]*pluginsdk.Sc
 			Computed: true,
 		},
 
+		"api_management_name": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"display_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -74,6 +81,11 @@ func (ApiManagementSubscriptionDataSource) Attributes() map[string]*pluginsdk.Sc
 		},
 
 		"product_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"resource_group_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -119,6 +131,9 @@ func (ApiManagementSubscriptionDataSource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("parsing: %+v", err)
 			}
+
+			state.ApiManagementName = api_management_id.ServiceName
+			state.ResourceGroupName = api_management_id.ResourceGroupName
 
 			id := subscription.NewSubscriptions2ID(api_management_id.SubscriptionId, api_management_id.ResourceGroupName, api_management_id.ServiceName, state.SubscriptionId)
 
