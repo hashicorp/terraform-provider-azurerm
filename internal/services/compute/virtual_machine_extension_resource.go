@@ -4,6 +4,7 @@
 package compute
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -19,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -45,6 +47,8 @@ func resourceVirtualMachineExtension() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(resourceVirtualMachineExtensionCustomizeDiff),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -127,6 +131,149 @@ func resourceVirtualMachineExtension() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+}
+
+// expandCreateForVirtualMachineExtension builds the full ARM PUT body for a VM extension from
+// a ResourceDiff at plan time. location must be resolved beforehand from the parent VM.
+func expandCreateForVirtualMachineExtension(d *schema.ResourceDiff, location string) (virtualmachineextensions.VirtualMachineExtension, error) {
+	publisher := d.Get("publisher").(string)
+	extensionType := d.Get("type").(string)
+	typeHandlerVersion := d.Get("type_handler_version").(string)
+	autoUpgradeMinor := d.Get("auto_upgrade_minor_version").(bool)
+	enableAutomaticUpgrade := d.Get("automatic_upgrade_enabled").(bool)
+	suppressFailure := d.Get("failure_suppression_enabled").(bool)
+
+	extension := virtualmachineextensions.VirtualMachineExtension{
+		Location: &location,
+		Properties: &virtualmachineextensions.VirtualMachineExtensionProperties{
+			Publisher:                     &publisher,
+			Type:                          &extensionType,
+			TypeHandlerVersion:            &typeHandlerVersion,
+			AutoUpgradeMinorVersion:       &autoUpgradeMinor,
+			EnableAutomaticUpgrade:        &enableAutomaticUpgrade,
+			ProtectedSettingsFromKeyVault: expandProtectedSettingsFromKeyVault(d.Get("protected_settings_from_key_vault").([]interface{})),
+			SuppressFailures:              &suppressFailure,
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if settingsString := d.Get("settings").(string); settingsString != "" {
+		var result interface{}
+		if err := json.Unmarshal([]byte(settingsString), &result); err != nil {
+			return extension, fmt.Errorf("unmarshaling `settings`: %+v", err)
+		}
+		extension.Properties.Settings = pointer.To(result)
+	}
+
+	if protectedSettingsString := d.Get("protected_settings").(string); protectedSettingsString != "" {
+		var result interface{}
+		if err := json.Unmarshal([]byte(protectedSettingsString), &result); err != nil {
+			return extension, fmt.Errorf("unmarshaling `protected_settings`: %+v", err)
+		}
+		extension.Properties.ProtectedSettings = pointer.To(result)
+	}
+
+	if provisionAfterExtensionsValue, exists := d.GetOk("provision_after_extensions"); exists {
+		extension.Properties.ProvisionAfterExtensions = helpers.ExpandStringSlice(provisionAfterExtensionsValue.([]interface{}))
+	}
+
+	return extension, nil
+}
+
+// resolvePreflightVMLocation looks up the location of the parent VM for use in preflight
+// validation. Returns skip=true if the virtual_machine_id is not yet known (cross-resource
+// computed value) or if the VM cannot be found, so that validation is gracefully skipped
+// rather than failing the plan.
+func resolvePreflightVMLocation(ctx context.Context, client *clients.Client, d *schema.ResourceDiff) (loc string, skip bool) {
+	vmIdRaw := d.Get("virtual_machine_id").(string)
+	if vmIdRaw == "" {
+		// virtual_machine_id is (known after apply) — skip gracefully.
+		return "", true
+	}
+
+	vmId, err := virtualmachines.ParseVirtualMachineID(vmIdRaw)
+	if err != nil {
+		return "", true
+	}
+
+	vm, err := client.Compute.VirtualMachinesClient.Get(ctx, *vmId, virtualmachines.DefaultGetOperationOptions())
+	if err != nil {
+		if response.WasNotFound(vm.HttpResponse) {
+			// VM doesn't exist yet — gracefully skip.
+			return "", true
+		}
+		// For any other error also skip rather than failing plan.
+		return "", true
+	}
+
+	if vm.Model == nil || vm.Model.Location == "" {
+		return "", true
+	}
+
+	return vm.Model.Location, false
+}
+
+// resourceVirtualMachineExtensionCustomizeDiff implements preflight validation for
+// azurerm_virtual_machine_extension. It uses Pattern 2 (create and ForceNew replacement
+// only) because in-place updates do not change the extension type or its parent VM, so
+// running the full ARM PUT payload against the preflight API on every update would produce
+// false positives from immutable fields (publisher, virtual_machine_id) that cannot change
+// without a ForceNew destroy+create.
+func resourceVirtualMachineExtensionCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+	client := meta.(*clients.Client)
+
+	if !client.Features.EnhancedValidation.PreflightEnabled {
+		return nil
+	}
+
+	isNewResource := d.Id() == ""
+	isForceNewReplacement := false
+
+	if !isNewResource {
+		forceNewKeys := []string{"name", "virtual_machine_id", "publisher"}
+		for _, key := range forceNewKeys {
+			if d.HasChange(key) {
+				isForceNewReplacement = true
+				break
+			}
+		}
+	}
+
+	if !isNewResource && !isForceNewReplacement {
+		return nil
+	}
+
+	loc, skip := resolvePreflightVMLocation(ctx, client, d)
+	if skip {
+		return nil
+	}
+
+	vmIdRaw := d.Get("virtual_machine_id").(string)
+	vmId, err := virtualmachines.ParseVirtualMachineID(vmIdRaw)
+	if err != nil {
+		return nil
+	}
+
+	extensionName := d.Get("name").(string)
+	id := virtualmachineextensions.NewExtensionID(vmId.SubscriptionId, vmId.ResourceGroupName, vmId.VirtualMachineName, extensionName)
+
+	req, err := expandCreateForVirtualMachineExtension(d, loc)
+	if err != nil {
+		return err
+	}
+
+	preflightValidate, err := preflight.NewValidationRequest(pointer.To(loc), pointer.To(id), "2024-03-01", req)
+	if err != nil {
+		return fmt.Errorf("constructing preflight validation request: %w", err)
+	}
+
+	metadata := sdk.ResourceMetaData{
+		Client:       client,
+		ResourceDiff: d,
+		Logger:       sdk.ConsoleLogger{},
+	}
+
+	return preflightValidate.ValidateResource(ctx, metadata)
 }
 
 func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
