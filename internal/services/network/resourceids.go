@@ -26,7 +26,7 @@ package network
 
 // Private Link
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=PrivateDnsZoneConfig -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/privateEndpoints/endpoint1/privateDnsZoneGroups/privateDnsZoneGroup1/privateDnsZoneConfigs/privateDnsZoneConfig1
-// ^ these two looks like it should be in Private DNS - alas no, it's actually nested and entirely managed within the Private Endpoint
+// ^ this one looks like it should be in Private DNS - alas no, it's actually nested and entirely managed within the Private Endpoint
 
 // Virtual Hubs
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=HubRouteTableRoute -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/virtualHubs/virtualHub1/hubRouteTables/routeTable1/routes/route1
