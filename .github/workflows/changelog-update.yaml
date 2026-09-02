@@ -26,7 +26,7 @@ jobs:
         run: |
           OTHER_REPO="${{ github.repository }}"
           WF_NAME="GetChangelogEntry"
-          RUN_ID=`gh run --repo ${OTHER_REPO} list --workflow ${WF_NAME} --json databaseId --jq .[0].databaseId`
+          RUN_ID=$(gh run --repo "${OTHER_REPO}" list --workflow "${WF_NAME}" --json databaseId --jq .[0].databaseId)
           echo "Detected latest run id of ${RUN_ID} for workflow ${WF_NAME}"
           echo "run-id=${RUN_ID}" >> "$GITHUB_OUTPUT"
         env:
@@ -41,7 +41,7 @@ jobs:
       - name: 'Store entry'
         id: pull
         run: |
-          echo message="$(cat changelog_entry.txt)"  >> $GITHUB_OUTPUT
+          echo message="$(cat changelog_entry.txt)"  >> "$GITHUB_OUTPUT"
   # check-for-changelog-entry
   changelog-entry:
     # if contains to check for bug, enhancement, feature
@@ -55,7 +55,9 @@ jobs:
       - name: changelog entry opt in
         id: in
         continue-on-error: true
-        run: echo "opted in to changelog entry" | echo bool="true" >> $GITHUB_OUTPUT
+        run: |
+          echo "opted in to changelog entry"
+          echo bool="true" >> "$GITHUB_OUTPUT"
   # if there is a changelog entry, check for PR Open
   update-changelog:
     if: needs.changelog-entry.outputs.optIn
@@ -106,9 +108,9 @@ jobs:
           #new pull request for new release needs the headers all added to the top
           FILE="CHANGELOG.md"
           version=$(grep -m1 '^## [0-9]' "$FILE")
-          IFS='.' read major minor patch <<< "$version"
+          IFS='.' read -r major minor patch <<< "$version"
           ((minor++))
-          patch=$(echo $patch | sed 's/ (.*)//')
+          patch="${patch%% (*}"
           new_version="${major}.$minor.${patch} (Unreleased)"
           headers="${new_version}\n\nENHANCEMENTS:\n\nFEATURES:\n\nBUG FIXES:\n"
           temp_file=$(mktemp)
@@ -117,7 +119,7 @@ jobs:
           mv "$temp_file" "$FILE"
           echo "File has been updated."
 
-          major=$(echo $major | sed 's/## //')
+          major="${major#"## "}"
           RELEASENUM="${major}.$minor.${patch}"
 
           git add CHANGELOG.md

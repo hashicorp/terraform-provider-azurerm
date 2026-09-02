@@ -26,7 +26,7 @@ jobs:
         run: |
          pull_number="$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" 
          commit_message="$(git log --pretty="format:%b")"
-         echo message="$commit_message [GH-$pull_number]"  >> $GITHUB_OUTPUT
+         echo message="$commit_message [GH-$pull_number]"  >> "$GITHUB_OUTPUT"
       - name: Save changelog entry
         env:
             CHANGELOG_ENTRY: ${{ steps.pull.outputs.message }}
