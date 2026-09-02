@@ -5,31 +5,20 @@ package validate
 
 import (
 	"fmt"
-	"slices"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/cloudexadatainfrastructures"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 // MaintenanceWindow validation
 
-func DaysOfWeek(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
-	}
-
-	validDaysOfWeek := []string{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
-
-	if !slices.Contains(validDaysOfWeek, v) {
-		errors = append(errors, fmt.Errorf("days of week must be %v", validDaysOfWeek))
-		return
-	}
-
-	return
+func DaysOfWeek(i interface{}, k string) ([]string, []error) {
+	return validation.IsDayOfTheWeek(false)(i, k)
 }
 
 // lintignore:V012 // valid values are multiples of 4, error message documents the time slots
+// intentionally not validation.IntInSlice([0,4,8,12,16,20]): its generic error would lose the
+// message below documenting which maintenance-window time slot each value represents
 func HoursOfDay(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(int)
 	if !ok {
@@ -50,51 +39,20 @@ func HoursOfDay(i interface{}, k string) (warnings []string, errors []error) {
 	return
 }
 
-func Month(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
-	}
-
-	validMonth := []string{"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"}
-
-	if !slices.Contains(validMonth, v) {
-		errors = append(errors, fmt.Errorf("month must be %v", validMonth))
-		return
-	}
-
-	return
+func Month(i interface{}, k string) ([]string, []error) {
+	return validation.IsMonth(false)(i, k)
 }
 
-func Preference(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
-	}
-
-	if v != string(cloudexadatainfrastructures.PreferenceCustomPreference) && v != string(cloudexadatainfrastructures.PreferenceNoPreference) {
-		errors = append(errors, fmt.Errorf("%v must be %v or %v", k,
-			string(cloudexadatainfrastructures.PreferenceCustomPreference), string(cloudexadatainfrastructures.PreferenceNoPreference)))
-		return
-	}
-
-	return
+func Preference(i interface{}, k string) ([]string, []error) {
+	return validation.StringInSlice([]string{
+		string(cloudexadatainfrastructures.PreferenceCustomPreference),
+		string(cloudexadatainfrastructures.PreferenceNoPreference),
+	}, false)(i, k)
 }
 
-func PatchingMode(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
-	}
-
-	if v != string(cloudexadatainfrastructures.PatchingModeRolling) && v != string(cloudexadatainfrastructures.PatchingModeNonRolling) {
-		errors = append(errors, fmt.Errorf("%v must be %v or %v", k,
-			string(cloudexadatainfrastructures.PatchingModeRolling), string(cloudexadatainfrastructures.PatchingModeNonRolling)))
-		return
-	}
-
-	return
+func PatchingMode(i interface{}, k string) ([]string, []error) {
+	return validation.StringInSlice([]string{
+		string(cloudexadatainfrastructures.PatchingModeRolling),
+		string(cloudexadatainfrastructures.PatchingModeNonRolling),
+	}, false)(i, k)
 }

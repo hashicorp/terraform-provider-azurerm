@@ -4,15 +4,11 @@
 package validate
 
 import (
-	"fmt"
+	"regexp"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func FrontDoorRouteName(i interface{}, k string) (_ []string, errors []error) {
-	if m, regexErrs := validate.RegExHelper(i, k, `^[\da-zA-Z][-\da-zA-Z]{0,88}[\da-zA-Z]$`); !m {
-		return nil, append(regexErrs, fmt.Errorf(`%q must be between 2 and 90 characters begin with a letter or number, end with a letter or number and may contain only letters, numbers or hyphens, got %q`, k, i))
-	}
-
-	return nil, nil
+func FrontDoorRouteName(v interface{}, k string) ([]string, []error) {
+	return validation.StringMatch(regexp.MustCompile(`^[\da-zA-Z][-\da-zA-Z]{0,88}[\da-zA-Z]$`), "must be between 2 and 90 characters begin with a letter or number, end with a letter or number and may contain only letters, numbers or hyphens")(v, k)
 }
