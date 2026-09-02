@@ -105,6 +105,7 @@ jobs:
       TCTEST_SKIP_QUEUE: 'true'
       TCTEST_TOKEN_TC: ${{ secrets.TCTEST_TOKEN_TC }}
       TCTEST_BUILD_TYPE_ID: TF_AzureRM_AZURERM_SERVICE_PUBLIC
+      TCTEST_BUILD_TYPE_ID_ADD_SERVICE_SUFFIX: true
       TCTEST_REPO: terraform-providers/terraform-provider-azurerm
     steps:
       - name: Setup Go
@@ -118,12 +119,12 @@ jobs:
         with:
           path: ~/go/bin/tctest
           # keep this key in sync with the pinned version installed below
-          key: tctest-${{ runner.os }}-v1.2.0
+          key: tctest-${{ runner.os }}-v1.4.0
 
       - name: Install tctest
         if: steps.cache-tctest.outputs.cache-hit != 'true'
         run: |
-          go install github.com/katbyte/tctest@v1.2.0
+          go install github.com/katbyte/tctest@v1.4.0
 
       - name: Get PR commit SHA
         id: get-pr-sha
