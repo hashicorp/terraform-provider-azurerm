@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -165,12 +166,14 @@ func (r ServicePlanDataSource) Read() sdk.ResourceFunc {
 						servicePlan.AppServiceEnvironmentId = pointer.From(props.HostingEnvironmentProfile.Id)
 					}
 
+					if pointer.From(props.ElasticScaleEnabled) && servicePlan.Sku != "" && helpers.PlanIsPremium(servicePlan.Sku) {
+						servicePlan.PremiumPlanAutoScaleEnabled = pointer.From(props.ElasticScaleEnabled)
+					}
+
 					servicePlan.PerSiteScaling = pointer.From(props.PerSiteScaling)
 					servicePlan.Reserved = pointer.From(props.Reserved)
 					servicePlan.ZoneBalancing = pointer.From(props.ZoneRedundant)
 					servicePlan.MaximumElasticWorkerCount = pointer.From(props.MaximumElasticWorkerCount)
-					servicePlan.PremiumPlanAutoScaleEnabled = pointer.From(props.ElasticScaleEnabled)
-
 				}
 				servicePlan.Tags = pointer.From(model.Tags)
 			}
