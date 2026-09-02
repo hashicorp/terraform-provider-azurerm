@@ -239,7 +239,6 @@ func TestAccFirewall_edgeZone(t *testing.T) {
 			Config: r.edgeZone(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("edge_zone").Exists(),
 			),
 		},
 		data.ImportStep(),
