@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
@@ -25,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/edgezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -273,7 +273,7 @@ func resourceArmLoadBalancerCreate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	loadBalancer := loadbalancers.LoadBalancer{
 		Name:             pointer.To(id.LoadBalancerName),
-		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		ExtendedLocation: edgezones.ExpandEdgeZone(d.Get("edge_zone").(string)),
 		Location:         pointer.To(location.Normalize(d.Get("location").(string))),
 		Tags:             tags.Expand(d.Get("tags").(map[string]interface{})),
 		Sku:              pointer.To(sku),
@@ -315,7 +315,7 @@ func resourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
-		d.Set("edge_zone", flattenEdgeZone(model.ExtendedLocation))
+		d.Set("edge_zone", edgezones.FlattenEdgeZone(model.ExtendedLocation))
 		if sku := model.Sku; sku != nil {
 			d.Set("sku", string(pointer.From(sku.Name)))
 			d.Set("sku_tier", string(pointer.From(sku.Tier)))
@@ -565,22 +565,4 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]loadbalancers.Front
 		result = append(result, out)
 	}
 	return result
-}
-
-func expandEdgeZone(input string) *edgezones.Model {
-	normalized := edgezones.Normalize(input)
-	if normalized == "" {
-		return nil
-	}
-
-	return &edgezones.Model{
-		Name: normalized,
-	}
-}
-
-func flattenEdgeZone(input *edgezones.Model) string {
-	if input == nil || input.Name == "" {
-		return ""
-	}
-	return edgezones.NormalizeNilable(&input.Name)
 }

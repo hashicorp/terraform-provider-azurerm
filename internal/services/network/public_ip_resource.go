@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/edgezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -238,7 +239,7 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	publicIp := publicipaddresses.PublicIPAddress{
 		Name:             pointer.To(id.PublicIPAddressesName),
-		ExtendedLocation: expandEdgeZoneNew(d.Get("edge_zone").(string)),
+		ExtendedLocation: edgezones.ExpandEdgeZone(d.Get("edge_zone").(string)),
 		Location:         pointer.To(location.Normalize(d.Get("location").(string))),
 		Sku: &publicipaddresses.PublicIPAddressSku{
 			Name: pointer.ToEnum[publicipaddresses.PublicIPAddressSkuName](sku),
@@ -444,7 +445,7 @@ func resourcePublicIpFlatten(d *pluginsdk.ResourceData, id *commonids.PublicIPAd
 
 	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
-		d.Set("edge_zone", flattenEdgeZoneNew(model.ExtendedLocation))
+		d.Set("edge_zone", edgezones.FlattenEdgeZone(model.ExtendedLocation))
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
 		if sku := model.Sku; sku != nil {

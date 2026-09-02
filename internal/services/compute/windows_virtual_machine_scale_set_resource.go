@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/edgezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
@@ -402,7 +403,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	}
 
 	props := virtualmachinescalesets.VirtualMachineScaleSet{
-		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		ExtendedLocation: edgezones.ExpandEdgeZone(d.Get("edge_zone").(string)),
 		Location:         location.Normalize(d.Get("location").(string)),
 		Sku: &virtualmachinescalesets.Sku{
 			Name:     pointer.To(d.Get("sku").(string)),
@@ -875,7 +876,7 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
-		d.Set("edge_zone", flattenEdgeZone(model.ExtendedLocation))
+		d.Set("edge_zone", edgezones.FlattenEdgeZone(model.ExtendedLocation))
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
 		var skuName *string

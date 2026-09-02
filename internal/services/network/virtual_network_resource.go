@@ -31,6 +31,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/edgezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -376,7 +377,7 @@ func resourceVirtualNetworkCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	vnet := virtualnetworks.VirtualNetwork{
 		Name:             pointer.To(id.VirtualNetworkName),
-		ExtendedLocation: expandEdgeZoneModel(d.Get("edge_zone").(string)),
+		ExtendedLocation: edgezones.ExpandEdgeZone(d.Get("edge_zone").(string)),
 		Location:         pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties:       vnetProperties,
 		Tags:             tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -455,7 +456,7 @@ func resourceVirtualNetworkFlatten(d *pluginsdk.ResourceData, id commonids.Virtu
 
 	if vnet != nil {
 		d.Set("location", location.NormalizeNilable(vnet.Location))
-		d.Set("edge_zone", flattenEdgeZoneModel(vnet.ExtendedLocation))
+		d.Set("edge_zone", edgezones.FlattenEdgeZone(vnet.ExtendedLocation))
 
 		if props := vnet.Properties; props != nil {
 			d.Set("guid", props.ResourceGuid)

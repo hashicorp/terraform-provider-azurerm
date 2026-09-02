@@ -27,6 +27,7 @@ import (
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/edgezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -551,7 +552,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 
 	params := virtualmachines.VirtualMachine{
 		Name:             pointer.To(id.VirtualMachineName),
-		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		ExtendedLocation: edgezones.ExpandEdgeZone(d.Get("edge_zone").(string)),
 		Location:         location.Normalize(d.Get("location").(string)),
 		Identity:         identityExpanded,
 		Plan:             plan,
@@ -910,7 +911,7 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
-		d.Set("edge_zone", flattenEdgeZone(model.ExtendedLocation))
+		d.Set("edge_zone", edgezones.FlattenEdgeZone(model.ExtendedLocation))
 
 		zone := ""
 		if model.Zones != nil {
