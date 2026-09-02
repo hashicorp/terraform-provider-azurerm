@@ -1,0 +1,39 @@
+---
+name: Actionlint
+
+# Lints .github/workflows/ with rhysd/actionlint (expression/context errors,
+# shellcheck on run: blocks, action input validation).
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    types: ["opened", "synchronize"]
+    paths:
+      - ".github/workflows/**"
+      - ".github/actionlint.yaml"
+      - ".github/actionlint-matcher.json"
+      - "GNUmakefile"
+
+concurrency:
+  group: "actionlint-${{ github.head_ref }}"
+  cancel-in-progress: true
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+          cache: false
+      # Single source of truth for the actionlint version (GNUmakefile seds it
+      # out). Pinned by hand: dependabot's github-actions ecosystem only bumps
+      # `uses:` lines, and a go.mod tool directive would drag actionlint's
+      # dependencies into vendor/ (this module vendors).
+      - run: go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+      # Surfaces findings as inline PR annotations.
+      - run: echo "::add-matcher::.github/actionlint-matcher.json"
+      - run: make actionlint
