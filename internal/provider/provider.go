@@ -43,9 +43,11 @@ func AzureProviderWithTestName(testName string) *schema.Provider {
 //   - a valid UUID prefixed with "pid-"
 //   - a valid UUID prefixed with "pid-" and suffixed with "-partnercenter"
 func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
-	return validation.StringMatch(
-		regexp.MustCompile(`^$|^(pid-)?[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$|^pid-[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}-partnercenter$`),
-		"expected an empty string, a valid UUID, or a valid UUID with a `pid-` prefix and optional `-partnercenter` suffix",
+	uuid := `[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}`
+	return validation.Any(
+		validation.StringIsEmpty,
+		validation.StringMatch(regexp.MustCompile(`^(pid-)?`+uuid+`$`), "expected a valid UUID with an optional `pid-` prefix"),
+		validation.StringMatch(regexp.MustCompile(`^pid-`+uuid+`-partnercenter$`), "expected a valid UUID with a `pid-` prefix and `-partnercenter` suffix"),
 	)(i, k)
 }
 

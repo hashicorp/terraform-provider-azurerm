@@ -4,5 +4,5 @@
 package validate
 
 func ElasticSanVolumeName(i interface{}, k string) ([]string, []error) {
-	return elasticSanResourceName(3, 63)(i, k)
+	return elasticSanResourceName(63)(i, k)
 }
