@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"maps"
 	"math"
 	"slices"
 	"strconv"
@@ -459,7 +460,10 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 				// get the valid mappings for the passed
 				// storage_mb size...
-				storageTiers := storageTierMappings[newMb]
+				storageTiers, ok := storageTierMappings[newMb]
+				if !ok {
+					return nil
+				}
 
 				if newTier == "" {
 					newTier = string(storageTiers.DefaultTier)
@@ -633,7 +637,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 					return nil
 				}
 
-				validStorageMb := []int{int(math.Exp2(15)), int(math.Exp2(16)), int(math.Exp2(17)), int(math.Exp2(18)), int(math.Exp2(19)), int(math.Exp2(20)), int(math.Exp2(21)), 4193280, int(math.Exp2(22)), int(math.Exp2(23)), int(math.Exp2(24)), 33553408}
+				validStorageMb := slices.Sorted(maps.Keys(validate.InitializeFlexibleServerStorageTierDefaults()))
 				if !slices.Contains(validStorageMb, storageMb) {
 					return fmt.Errorf("`storage_mb` must be one of %v when `storage_type` is `Premium_LRS`, got `%d`", validStorageMb, storageMb)
 				}
