@@ -23,13 +23,13 @@ resource "azurerm_oracle_autonomous_database" "example" {
   mtls_connection_required         = false
   backup_retention_period_in_days  = 42
   compute_model                    = "example"
-  data_storage_size_in_gbs         = 42
   auto_scaling_for_storage_enabled = false
   virtual_network_id               = "example"
   admin_password                   = "example"
   auto_scaling_enabled             = "example"
   character_set                    = "example"
   compute_count                    = 1.23456
+  data_storage_size_in_gb          = 40
   national_character_set           = "example"
   license_model                    = false
   db_version                       = "example"
@@ -56,7 +56,9 @@ The following arguments are supported:
 
 * `compute_model` - (Required) The compute model of the Autonomous Database. This is required if using the `computeCount` parameter. If using `cpuCoreCount` then it is an error to specify `computeModel` to a non-null value. ECPU compute model is the recommended model and OCPU compute model is legacy. Changing this forces a new Autonomous Database to be created.
 
-* `data_storage_size_in_tbs` - (Required) The maximum storage that can be allocated for the database, in terabytes.
+* `data_storage_size_in_gb` - (Optional) The maximum storage that can be allocated for the database, in gigabytes. Exactly one of `data_storage_size_in_gb` and `data_storage_size_in_tb` must be specified.
+
+* `data_storage_size_in_tb` - (Optional) The maximum storage that can be allocated for the database, in terabytes. Exactly one of `data_storage_size_in_gb` and `data_storage_size_in_tb` must be specified.
 
 * `db_version` - (Required) A valid Oracle Database version for Autonomous Database. Changing this forces a new Autonomous Database to be created.
 

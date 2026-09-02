@@ -36,7 +36,8 @@ type AutonomousDatabaseRegularResourceModel struct {
 	CharacterSet                 string                          `tfschema:"character_set"`
 	ComputeCount                 float64                         `tfschema:"compute_count"`
 	ComputeModel                 string                          `tfschema:"compute_model"`
-	DataStorageSizeInTbs         int64                           `tfschema:"data_storage_size_in_tbs"`
+	DataStorageSizeInGb          int64                           `tfschema:"data_storage_size_in_gb"`
+	DataStorageSizeInTb          int64                           `tfschema:"data_storage_size_in_tb"`
 	DbVersion                    string                          `tfschema:"db_version"`
 	DbWorkload                   string                          `tfschema:"db_workload"`
 	DisplayName                  string                          `tfschema:"display_name"`
@@ -101,9 +102,17 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 			ValidateFunc: validate.AdbsComputeModel,
 		},
 
-		"data_storage_size_in_tbs": {
+		"data_storage_size_in_gb": {
 			Type:         pluginsdk.TypeInt,
-			Required:     true,
+			Optional:     true,
+			ExactlyOneOf: []string{"data_storage_size_in_gb", "data_storage_size_in_tb"},
+			ValidateFunc: validation.IntBetween(1, 393216),
+		},
+
+		"data_storage_size_in_tb": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ExactlyOneOf: []string{"data_storage_size_in_gb", "data_storage_size_in_tb"},
 			ValidateFunc: validation.IntBetween(1, 384),
 		},
 
@@ -271,7 +280,6 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 				ComputeCount:                   pointer.To(model.ComputeCount),
 				ComputeModel:                   pointer.ToEnum[autonomousdatabases.ComputeModel](model.ComputeModel),
 				DataBaseType:                   "Regular",
-				DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTbs),
 				DbWorkload:                     pointer.ToEnum[autonomousdatabases.WorkloadType](model.DbWorkload),
 				DbVersion:                      pointer.To(model.DbVersion),
 				DisplayName:                    pointer.To(model.DisplayName),
@@ -281,6 +289,12 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 				LicenseModel:                   pointer.ToEnum[autonomousdatabases.LicenseModel](model.LicenseModel),
 				NcharacterSet:                  pointer.To(model.NationalCharacterSet),
 				WhitelistedIPs:                 pointer.To(model.AllowedIps),
+			}
+
+			if _, ok := metadata.ResourceData.GetOk("data_storage_size_in_gb"); ok {
+				properties.DataStorageSizeInGbs = pointer.To(model.DataStorageSizeInGb)
+			} else {
+				properties.DataStorageSizeInTbs = pointer.To(model.DataStorageSizeInTb)
 			}
 
 			if len(model.CustomerContacts) > 0 {
@@ -356,8 +370,12 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 				if metadata.ResourceData.HasChange("tags") {
 					generalUpdate.Tags = pointer.To(model.Tags)
 				}
-				if metadata.ResourceData.HasChange("data_storage_size_in_tbs") {
-					generalUpdate.Properties.DataStorageSizeInTbs = pointer.To(model.DataStorageSizeInTbs)
+				if metadata.ResourceData.HasChange("data_storage_size_in_gb") || metadata.ResourceData.HasChange("data_storage_size_in_tb") {
+					if _, ok := metadata.ResourceData.GetOk("data_storage_size_in_gb"); ok {
+						generalUpdate.Properties.DataStorageSizeInGbs = pointer.To(model.DataStorageSizeInGb)
+					} else {
+						generalUpdate.Properties.DataStorageSizeInTbs = pointer.To(model.DataStorageSizeInTb)
+					}
 				}
 				if metadata.ResourceData.HasChange("compute_count") {
 					generalUpdate.Properties.ComputeCount = pointer.To(model.ComputeCount)
@@ -455,7 +473,8 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				state.ComputeCount = pointer.From(props.ComputeCount)
 				state.ComputeModel = pointer.FromEnum(props.ComputeModel)
 				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
-				state.DataStorageSizeInTbs = pointer.From(props.DataStorageSizeInTbs)
+				state.DataStorageSizeInGb = pointer.From(props.DataStorageSizeInGbs)
+				state.DataStorageSizeInTb = pointer.From(props.DataStorageSizeInTbs)
 				state.DbWorkload = string(pointer.From(props.DbWorkload))
 				state.DbVersion = pointer.From(props.DbVersion)
 				state.DisplayName = pointer.From(props.DisplayName)
@@ -536,7 +555,8 @@ func (r AutonomousDatabaseRegularResource) hasGeneralUpdates(metadata sdk.Resour
 	// lintignore:R019 // deliberate subset: only the fields covered by the general update payload; the remaining attributes are updated via separate calls
 	return metadata.ResourceData.HasChanges(
 		"tags",
-		"data_storage_size_in_tbs",
+		"data_storage_size_in_gb",
+		"data_storage_size_in_tb",
 		"compute_count",
 		"auto_scaling_enabled",
 		"auto_scaling_for_storage_enabled",
