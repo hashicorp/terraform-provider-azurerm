@@ -225,27 +225,47 @@ func resourceKustoCluster() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
-			// `trusted_external_tenants` is semantically an unordered set of tenant IDs, but it is modelled
-			// as a `TypeList` and the Azure Data Explorer API returns the tenants in its own canonical
-			// order, which frequently differs from the configured order. That reordering surfaces as a
-			// permanent no-op diff, so suppress it when the configured set matches what is already in
-			// state; a genuine add/removal changes the set and still applies.
-			//
-			// Only compare when the configured collection and all its elements are known. `GetChange`
-			// can expose an unknown (known-after-apply) list as its zero value (`[]interface{}{}`); if
-			// state is also empty the sets would compare equal and `SetNew` would incorrectly replace
-			// the unknown planned value with the old state, suppressing a legitimate change.
-			rawTrustedExternalTenants, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("trusted_external_tenants"))
-			if !diags.HasError() && rawTrustedExternalTenants.IsWhollyKnown() {
-				oldTenants, newTenants := d.GetChange("trusted_external_tenants")
-				if oldList, ok := oldTenants.([]interface{}); ok {
-					if newList, ok := newTenants.([]interface{}); ok {
-						if trustedExternalTenantsEqual(oldList, newList) {
-							if err := d.SetNew("trusted_external_tenants", oldList); err != nil {
-								return err
-							}
-						}
-					}
+			// `trusted_external_tenants` is semantically an unordered set of tenant IDs, but it is
+			// modelled as a `TypeList` and the Azure Data Explorer API returns the tenants in its own
+			// canonical order, which frequently differs from the configured order. That reordering
+			// surfaces as a permanent no-op diff, so suppress it when the configured set matches what
+			// is already in state; a genuine add/removal changes the set and still applies.
+
+			// Only reconcile an existing cluster - at create time there is nothing in state to compare
+			// against and, since this property is O+C, `SetNew` would replace a legitimate
+			// `(known after apply)` plan with an empty list.
+			if d.Id() == "" {
+				return nil
+			}
+
+			// Only compare when the property is set in the config and is wholly known. `GetChange`
+			// surfaces an unknown (known-after-apply) list as its zero value (`[]interface{}{}`), which
+			// would compare equal to an empty state and cause `SetNew` to suppress a legitimate change.
+			// Note that `IsWhollyKnown` returns `true` for a null value, so `IsNull` is checked first.
+			rawConfig := d.GetRawConfig()
+			if rawConfig.IsNull() {
+				return nil
+			}
+
+			rawTrustedExternalTenants := rawConfig.GetAttr("trusted_external_tenants")
+			if rawTrustedExternalTenants.IsNull() || !rawTrustedExternalTenants.IsWhollyKnown() {
+				return nil
+			}
+
+			oldTenants, newTenants := d.GetChange("trusted_external_tenants")
+			oldList, ok := oldTenants.([]interface{})
+			if !ok {
+				return nil
+			}
+
+			newList, ok := newTenants.([]interface{})
+			if !ok {
+				return nil
+			}
+
+			if trustedExternalTenantsEqual(oldList, newList) {
+				if err := d.SetNew("trusted_external_tenants", oldList); err != nil {
+					return fmt.Errorf("setting new value for `trusted_external_tenants`: %+v", err)
 				}
 			}
 
