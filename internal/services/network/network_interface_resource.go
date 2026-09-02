@@ -84,6 +84,7 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 						"private_ip_address": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							// Note: O+C because Azure assigns a private IP from the subnet when not specified
 							Computed: true,
 						},
 
@@ -109,13 +110,13 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 						"primary": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 						},
 
 						"gateway_load_balancer_frontend_ip_configuration_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.AsGeneratedID(loadbalancers.ParseFrontendIPConfigurationIDInsensitively),
 						},
 					},

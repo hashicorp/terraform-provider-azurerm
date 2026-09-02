@@ -117,7 +117,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 		"citus_version": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringInSlice([]string{
 				"8.3",
 				"9.0",
@@ -238,7 +238,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 		"node_storage_quota_in_mb": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.All(
 				validation.IntBetween(32768, 16777216),
 				validation.IntDivisibleBy(1024),
@@ -248,7 +248,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 		"node_vcores": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.IntInSlice([]int{
 				1,
 				2,
@@ -275,7 +275,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 		"shards_on_coordinator_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"source_location": {
@@ -298,7 +298,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 		"sql_version": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringInSlice([]string{
 				"11",
 				"12",

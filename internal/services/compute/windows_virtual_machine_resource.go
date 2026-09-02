@@ -111,12 +111,12 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"os_disk": virtualMachineOSDiskSchema(),
 
 			"os_managed_disk_id": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
 				// Note: O+C as this is the same value as `os_disk.0.id` - which gains a value from implicit
 				// disk creation with a VM when an existing disk is not specified here. This is a top-level property
 				// to enable schema validation to guard against any values for `OsProfile` being set, as these are
 				// incompatible with specifying an existing disk. i.e. the OsProfile becomes unmanageable.
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: commonids.ValidateManagedDiskID,
@@ -140,7 +140,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"allow_extension_operations": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"availability_set_id": {
@@ -185,8 +185,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"computer_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-
-				// Computed since we reuse the VM name if one's not specified
+				// Note: O+C since we reuse the VM name if one's not specified
 				Computed: true,
 				ForceNew: true,
 
@@ -234,7 +233,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"disk_controller_type": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForDiskControllerTypes(), false),
 			},
 
@@ -243,7 +242,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"automatic_updates_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true, // updating this is not allowed "Changing property 'windowsConfiguration.enableAutomaticUpdates' is not allowed." Target="windowsConfiguration.enableAutomaticUpdates"
 				ConflictsWith: []string{
 					"os_managed_disk_id",
@@ -301,7 +300,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"patch_mode": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForWindowsVMGuestPatchMode(), false),
 				ConflictsWith: []string{
 					"os_managed_disk_id",
@@ -311,7 +310,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"patch_assessment_mode": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForWindowsPatchAssessmentMode(), false),
 				ConflictsWith: []string{
 					"os_managed_disk_id",
@@ -321,7 +320,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"hotpatching_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ConflictsWith: []string{
 					"os_managed_disk_id",
 				},
@@ -343,7 +342,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"provision_vm_agent": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 				ConflictsWith: []string{
 					"os_managed_disk_id",

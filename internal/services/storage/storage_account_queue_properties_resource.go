@@ -167,7 +167,7 @@ func (s AccountQueuePropertiesResource) Arguments() map[string]*pluginsdk.Schema
 		"hour_metrics": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -193,7 +193,7 @@ func (s AccountQueuePropertiesResource) Arguments() map[string]*pluginsdk.Schema
 		"logging": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -226,7 +226,7 @@ func (s AccountQueuePropertiesResource) Arguments() map[string]*pluginsdk.Schema
 		"minute_metrics": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{

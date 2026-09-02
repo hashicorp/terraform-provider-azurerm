@@ -104,7 +104,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"default_documents": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -176,7 +176,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"remote_debugging_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2022",
 					}, false),
@@ -223,7 +223,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"worker_count": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(1, 100),
 				},
 
@@ -503,7 +503,7 @@ func autoHealActionSchemaLinux() *pluginsdk.Schema {
 				"minimum_process_execution_time": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					// ValidateFunc: // TODO - Time in hh:mm:ss, because why not...
 				},
 			},

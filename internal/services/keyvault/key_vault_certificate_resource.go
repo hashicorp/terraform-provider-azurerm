@@ -93,7 +93,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 			"certificate_policy": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				AtLeastOneOf: []string{
 					"certificate_policy",
 					"certificate",
@@ -123,7 +123,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 									"curve": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										Computed:     true,
+										Computed:     true, // azignore:AZS007 - pre-existing violation
 										ValidateFunc: validation.StringInEnumSlice(kv.PossibleJSONWebKeyCurveNameValues(), false),
 									},
 									"exportable": {
@@ -133,7 +133,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 									"key_size": {
 										Type:     pluginsdk.TypeInt,
 										Optional: true,
-										Computed: true,
+										Computed: true, // azignore:AZS007 - pre-existing violation
 										ValidateFunc: validation.IntInSlice([]int{
 											256,
 											384,
@@ -218,14 +218,14 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 						"x509_certificate_properties": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"extended_key_usage": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
-										Computed: true,
+										Computed: true, // azignore:AZS007 - pre-existing violation
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
@@ -246,7 +246,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 									"subject_alternative_names": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
-										Computed: true,
+										Computed: true, // azignore:AZS007 - pre-existing violation
 										MaxItems: 1,
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{

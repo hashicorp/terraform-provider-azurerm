@@ -119,7 +119,7 @@ func (r ArcKubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk
 		"release_train": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
@@ -127,7 +127,7 @@ func (r ArcKubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk
 		"release_namespace": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			Computed:      true,
+			Computed:      true, // azignore:AZS007 - pre-existing violation
 			ForceNew:      true,
 			ConflictsWith: []string{"target_namespace"},
 			ValidateFunc:  validation.StringIsNotEmpty,
@@ -136,7 +136,7 @@ func (r ArcKubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk
 		"target_namespace": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			Computed:      true,
+			Computed:      true, // azignore:AZS007 - pre-existing violation
 			ForceNew:      true,
 			ConflictsWith: []string{"release_namespace"},
 			ValidateFunc:  validation.StringIsNotEmpty,

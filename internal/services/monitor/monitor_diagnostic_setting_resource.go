@@ -104,7 +104,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: false,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice([]string{
 					"Dedicated",
 					"AzureDiagnostics", // Not documented in azure API, but some resource has skew. See: https://github.com/Azure/azure-rest-api-specs/issues/9281

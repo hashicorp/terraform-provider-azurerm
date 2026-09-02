@@ -102,7 +102,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"instances": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.IntBetween(0, 1000),
 			},
 
@@ -271,7 +271,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			// for this bool
 			"single_placement_group": {
 				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Optional: true,
 			},
 

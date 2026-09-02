@@ -55,6 +55,7 @@ func dataSourceKeyVaultCertificate() *pluginsdk.Resource {
 			"version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				// Note: O+C because Azure returns a version in the ID, which is set into state
 				Computed: true,
 			},
 

@@ -498,7 +498,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 												"source_port_ranges": {
 													Type:     pluginsdk.TypeList,
 													Optional: true,
-													Computed: true,
+													Computed: true, // azignore:AZS007 - pre-existing violation
 													ForceNew: true,
 													Elem: &pluginsdk.Schema{
 														Type:         pluginsdk.TypeString,
@@ -691,13 +691,13 @@ func resourceBatchPool() *pluginsdk.Resource {
 			"task_scheduling_policy": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"node_fill_type": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForComputeNodeFillType(), false),
 						},
 					},

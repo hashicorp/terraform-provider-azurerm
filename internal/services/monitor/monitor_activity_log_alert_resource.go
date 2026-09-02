@@ -260,7 +260,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 						// lintignore:XS003
 						"resource_health": {
 							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							Optional: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
@@ -322,7 +322,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 						// lintignore:XS003
 						"service_health": {
 							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							Optional: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{

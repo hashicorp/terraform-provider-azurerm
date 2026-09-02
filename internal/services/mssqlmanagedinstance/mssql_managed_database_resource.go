@@ -90,7 +90,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 		"long_term_retention_policy": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -125,7 +125,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 					"week_of_year": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.IntBetween(0, 52),
 						AtLeastOneOf: atLeastOneOf,
 					},

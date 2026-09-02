@@ -59,7 +59,7 @@ func resourceRouteFilter() *pluginsdk.Resource {
 			"rule": {
 				Type:       pluginsdk.TypeList,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				MaxItems:   1,
 				Elem: &pluginsdk.Resource{

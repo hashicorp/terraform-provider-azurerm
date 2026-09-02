@@ -97,7 +97,7 @@ func (r AzureBotServiceResource) Arguments() map[string]*pluginsdk.Schema {
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 

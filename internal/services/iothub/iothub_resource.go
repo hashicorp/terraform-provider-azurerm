@@ -230,7 +230,7 @@ func resourceIotHub() *pluginsdk.Resource {
 			"endpoint": {
 				Type:       pluginsdk.TypeList,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -343,7 +343,7 @@ func resourceIotHub() *pluginsdk.Resource {
 			"route": {
 				Type:       pluginsdk.TypeList,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -395,7 +395,7 @@ func resourceIotHub() *pluginsdk.Resource {
 				// Currently only 10 enrichments is allowed for standard or basic tier, 2 for Free tier.
 				MaxItems:   10,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -427,7 +427,7 @@ func resourceIotHub() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				MaxItems: 1,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"source": {
@@ -454,7 +454,7 @@ func resourceIotHub() *pluginsdk.Resource {
 						"endpoint_names": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringLenBetween(0, 64),
@@ -517,7 +517,7 @@ func resourceIotHub() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"max_delivery_count": {

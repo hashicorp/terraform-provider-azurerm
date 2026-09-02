@@ -78,14 +78,14 @@ func resourceVirtualHubConnection() *pluginsdk.Resource {
 			"routing": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"associated_route_table_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: virtualwans.ValidateHubRouteTableID,
 							AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table", "routing.0.static_vnet_route"},
 						},
@@ -105,14 +105,14 @@ func resourceVirtualHubConnection() *pluginsdk.Resource {
 						"propagated_route_table": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"labels": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
-										Computed: true,
+										Computed: true, // azignore:AZS007 - pre-existing violation
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
@@ -123,7 +123,7 @@ func resourceVirtualHubConnection() *pluginsdk.Resource {
 									"route_table_ids": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
-										Computed: true,
+										Computed: true, // azignore:AZS007 - pre-existing violation
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
 											ValidateFunc: virtualwans.ValidateHubRouteTableID,

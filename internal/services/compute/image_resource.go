@@ -96,7 +96,7 @@ func resourceImage() *pluginsdk.Resource {
 
 						"managed_disk_id": {
 							Type:             pluginsdk.TypeString,
-							Computed:         true,
+							Computed:         true, // azignore:AZS007 - pre-existing violation
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     commonids.ValidateManagedDiskID,
@@ -105,7 +105,7 @@ func resourceImage() *pluginsdk.Resource {
 						"blob_uri": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ForceNew:     true,
 							ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 						},
@@ -119,7 +119,7 @@ func resourceImage() *pluginsdk.Resource {
 
 						"size_gb": {
 							Type:         pluginsdk.TypeInt,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.NoZeroValues,
@@ -164,7 +164,7 @@ func resourceImage() *pluginsdk.Resource {
 						"blob_uri": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 						},
 
@@ -178,7 +178,7 @@ func resourceImage() *pluginsdk.Resource {
 						"size_gb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.NoZeroValues,
 						},
 

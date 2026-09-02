@@ -199,14 +199,14 @@ func resourceDataFactory() *pluginsdk.Resource {
 
 			"customer_managed_key_id": {
 				Type:         pluginsdk.TypeString,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				Optional:     true,
 				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 			},
 
 			"customer_managed_key_identity_id": {
 				Type:         pluginsdk.TypeString,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				Optional:     true,
 				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 			},

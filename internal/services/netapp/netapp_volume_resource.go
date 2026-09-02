@@ -124,7 +124,8 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			"network_features": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true, // O+C - This is Optional/Computed because the service team is changing network features on the backend to upgrade everyone from Basic to Standard and there is a feature that allows customers to change network features from portal but not the API. This could cause drift that forces data loss that we want to avoid
+				// Note: O+C because the service team is changing network features on the backend to upgrade everyone from Basic to Standard and there is a feature that allows customers to change network features from portal but not the API. This could cause drift that forces data loss that we want to avoid
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(volumes.NetworkFeaturesBasic),
 					string(volumes.NetworkFeaturesStandard),
@@ -134,7 +135,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			"protocols": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 2,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
@@ -172,7 +173,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForSecurityStyle(), false),
 			},
 
@@ -187,7 +188,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			"throughput_in_mibps": {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.FloatAtLeast(1.0),
 			},
 
@@ -404,7 +405,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForEncryptionKeySource(), false),
 			},
 
@@ -412,7 +413,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: azure.ValidateResourceID,
 				RequiredWith: []string{"encryption_key_source"},
 			},

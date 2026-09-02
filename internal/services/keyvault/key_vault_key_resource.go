@@ -111,7 +111,7 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 			"curve": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 					return old == "SECP256K1" && new == string(keys.JsonWebKeyCurveNamePNegativeTwoFiveSixK)

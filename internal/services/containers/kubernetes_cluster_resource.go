@@ -275,7 +275,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			"auto_scaler_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -313,7 +313,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"max_graceful_termination_sec": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 						},
 
 						"max_node_provisioning_time": {
@@ -340,62 +340,62 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"new_pod_scale_up_delay": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: containerValidate.Duration,
 						},
 
 						"scan_interval": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: containerValidate.Duration,
 						},
 
 						"scale_down_delay_after_add": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: containerValidate.Duration,
 						},
 
 						"scale_down_delay_after_delete": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: containerValidate.Duration,
 						},
 
 						"scale_down_delay_after_failure": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: containerValidate.Duration,
 						},
 
 						"scale_down_unneeded": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: containerValidate.Duration,
 						},
 
 						"scale_down_unready": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: containerValidate.Duration,
 						},
 
 						"scale_down_utilization_threshold": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 						},
 
 						"empty_bulk_delete_max": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 						},
 
 						"skip_nodes_with_local_storage": {
@@ -421,7 +421,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"tenant_id": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							// OrEmpty since this can be sourced from the client config if it's not specified
 							ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
 							AtLeastOneOf: []string{
@@ -686,7 +686,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 			"kubelet_identity": {
 				Type:     pluginsdk.TypeList,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Optional: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
@@ -694,7 +694,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"client_id": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ForceNew: true,
 							RequiredWith: []string{
 								"kubelet_identity.0.object_id",
@@ -706,7 +706,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"object_id": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ForceNew: true,
 							RequiredWith: []string{
 								"kubelet_identity.0.client_id",
@@ -718,7 +718,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"user_assigned_identity_id": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ForceNew: true,
 							RequiredWith: []string{
 								"kubelet_identity.0.client_id",
@@ -732,8 +732,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"kubernetes_version": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C because AKS assigns a Kubernetes version when not specified
 				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -911,7 +912,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"start_date": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 						},
 
 						"start_time": {
@@ -1004,7 +1005,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"start_date": {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
-							Computed:         true,
+							Computed:         true, // azignore:AZS007 - pre-existing violation
 							DiffSuppressFunc: suppress.RFC3339Time,
 							ValidateFunc:     validation.IsRFC3339Time,
 						},
@@ -1105,7 +1106,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			"network_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
@@ -1119,7 +1120,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"network_mode": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ForceNew:     true,
 							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForNetworkMode(), false),
 						},
@@ -1127,7 +1128,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"network_policy": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.StringInSlice([]string{
 								string(managedclusters.NetworkPolicyCalico),
 								string(managedclusters.NetworkPolicyAzure),
@@ -1138,7 +1139,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"dns_service_ip": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ForceNew:     true,
 							ValidateFunc: validate.IPv4Address,
 						},
@@ -1162,14 +1163,14 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"pod_cidr": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validate.CIDR,
 						},
 
 						"pod_cidrs": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
@@ -1179,7 +1180,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"service_cidr": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ForceNew:     true,
 							ValidateFunc: validate.CIDR,
 						},
@@ -1187,7 +1188,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"service_cidrs": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
@@ -1215,7 +1216,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							MaxItems: 1,
 							ForceNew: true,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"outbound_ports_allocated": {
@@ -1235,7 +1236,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 									"managed_outbound_ip_count": {
 										Type:          pluginsdk.TypeInt,
 										Optional:      true,
-										Computed:      true,
+										Computed:      true, // azignore:AZS007 - pre-existing violation
 										ValidateFunc:  validation.IntBetween(1, 100),
 										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
 									},
@@ -1243,7 +1244,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 									"managed_outbound_ipv6_count": {
 										Type:          pluginsdk.TypeInt,
 										Optional:      true,
-										Computed:      true,
+										Computed:      true, // azignore:AZS007 - pre-existing violation
 										ValidateFunc:  validation.IntBetween(1, 100),
 										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
 									},
@@ -1291,7 +1292,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							MaxItems: 1,
 							ForceNew: true,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"idle_timeout_in_minutes": {
@@ -1303,7 +1304,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 									"managed_outbound_ip_count": {
 										Type:         pluginsdk.TypeInt,
 										Optional:     true,
-										Computed:     true,
+										Computed:     true, // azignore:AZS007 - pre-existing violation
 										ValidateFunc: validation.IntBetween(1, 100),
 									},
 									"effective_outbound_ips": {
@@ -1321,7 +1322,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							ForceNew: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForIPFamily(), false),
@@ -1363,7 +1364,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			"node_resource_group": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 			},
 
@@ -1414,7 +1415,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			"private_dns_zone_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true, // a Private Cluster is `System` by default even if unspecified
+				// Note: O+C because a Private Cluster is `System` by default even if unspecified
+				Computed: true,
 				ForceNew: true,
 				ValidateFunc: validation.Any(
 					privatezones.ValidatePrivateDnsZoneID,
@@ -1596,7 +1598,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			"windows_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{

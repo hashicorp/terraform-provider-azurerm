@@ -146,7 +146,7 @@ func resourceIotSecuritySolution() *pluginsdk.Resource {
 			"recommendations": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -252,13 +252,13 @@ func resourceIotSecuritySolution() *pluginsdk.Resource {
 			"query_for_resources": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"query_subscription_ids": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.IsUUID,

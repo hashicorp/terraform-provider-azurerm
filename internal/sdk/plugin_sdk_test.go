@@ -230,16 +230,19 @@ func TestAccPluginSDK_decoderOptionalComputed(t *testing.T) {
 		"hello": {
 			Type:     schema.TypeString,
 			Optional: true,
+			// Note: O+C because this is an Optional+Computed test
 			Computed: true,
 		},
 		"number": {
 			Type:     schema.TypeInt,
 			Optional: true,
+			// Note: O+C because this is an Optional+Computed test
 			Computed: true,
 		},
 		"enabled": {
 			Type:     schema.TypeBool,
 			Optional: true,
+			// Note: O+C because this is an Optional+Computed test
 			Computed: true,
 		},
 	}
@@ -362,16 +365,19 @@ func TestAccPluginSDK_decoderOptionalComputedOverride(t *testing.T) {
 								"hello": {
 									Type:     schema.TypeString,
 									Optional: true,
+									// Note: O+C because this is an Optional+Computed test
 									Computed: true,
 								},
 								"number": {
 									Type:     schema.TypeInt,
 									Optional: true,
+									// Note: O+C because this is an Optional+Computed test
 									Computed: true,
 								},
 								"enabled": {
 									Type:     schema.TypeBool,
 									Optional: true,
+									// Note: O+C because this is an Optional+Computed test
 									Computed: true,
 								},
 							},
