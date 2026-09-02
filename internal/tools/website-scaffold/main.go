@@ -873,7 +873,6 @@ func (gen documentationGenerator) uniqueBlockNamesForArgument(fields map[string]
 
 			innerBlockNames, innerBlocks := gen.uniqueBlockNamesForArgument(innerV.Schema)
 			for _, innerBlockName := range innerBlockNames {
-
 				blockNames = append(blockNames, innerBlockName)
 				blocks[innerBlockName] = innerBlocks[innerBlockName]
 			}
@@ -941,7 +940,6 @@ func (gen documentationGenerator) uniqueBlockNamesForAttribute(fields map[string
 
 			innerBlockNames, innerBlocks := gen.uniqueBlockNamesForAttribute(innerV.Schema)
 			for _, innerBlockName := range innerBlockNames {
-
 				blockNames = append(blockNames, innerBlockName)
 				blocks[innerBlockName] = innerBlocks[innerBlockName]
 			}
