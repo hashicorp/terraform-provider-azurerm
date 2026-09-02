@@ -760,7 +760,7 @@ func expandBackupProtectionPolicyVMArchivedRP(input []interface{}) protectionpol
 
 func flattenBackupProtectionPolicyVMResourceGroup(rpDetail protectionpolicies.InstantRPAdditionalDetails) []interface{} {
 	if rpDetail.AzureBackupRGNamePrefix == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	block := map[string]interface{}{}

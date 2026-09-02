@@ -504,7 +504,7 @@ func (r LocalUserResource) expandPermissionScopes(input []PermissionScopeModel) 
 
 func (r LocalUserResource) flattenPermissionScopes(input *[]localuseroperationgroup.PermissionScope) []PermissionScopeModel {
 	if input == nil {
-		return nil
+		return []PermissionScopeModel{}
 	}
 
 	output := make([]PermissionScopeModel, 0, len(*input))

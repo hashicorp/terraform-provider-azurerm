@@ -1563,7 +1563,7 @@ func flattenContainerProbeHttpHeaders(input *[]containerinstance.HTTPHeader) map
 
 func flattenContainerImageRegistryCredentials(d *pluginsdk.ResourceData, input *[]containerinstance.ImageRegistryCredential) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 	configsOld := d.Get("image_registry_credential").([]interface{})
 
@@ -1591,7 +1591,7 @@ func flattenContainerImageRegistryCredentials(d *pluginsdk.ResourceData, input *
 
 func flattenContainerGroupInitContainers(d *pluginsdk.ResourceData, initContainers *[]containerinstance.InitContainerDefinition, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
 	if initContainers == nil {
-		return nil
+		return []interface{}{}
 	}
 	// map old container names to index so we can look up things up
 	nameIndexMap := map[string]int{}

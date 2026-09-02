@@ -942,7 +942,7 @@ func expandKeyVaultKeyReleasePolicy(input []any) *keys.KeyReleasePolicy {
 
 func flattenKeyVaultKeyReleasePolicy(input *keys.KeyReleasePolicy) ([]any, error) {
 	if input == nil {
-		return nil, nil
+		return []any{}, nil
 	}
 
 	data := ""

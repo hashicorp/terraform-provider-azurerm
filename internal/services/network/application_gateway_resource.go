@@ -3219,7 +3219,7 @@ func expandApplicationGatewayGlobalConfiguration(input []interface{}) *applicati
 
 func flattenApplicationGatewayGlobalConfiguration(input *applicationgateways.ApplicationGatewayGlobalConfiguration) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	output := make(map[string]interface{})

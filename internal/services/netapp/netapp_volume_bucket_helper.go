@@ -259,7 +259,7 @@ func expandNetAppBucketCifsUser(input string) *buckets.CifsUser {
 
 func flattenNetAppBucketNfsUser(input *buckets.NfsUser) []netAppModels.NetAppVolumeBucketNfsUser {
 	if input == nil {
-		return nil
+		return []netAppModels.NetAppVolumeBucketNfsUser{}
 	}
 
 	return []netAppModels.NetAppVolumeBucketNfsUser{

@@ -1177,7 +1177,7 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 	}
 	props := *logsConfig.Properties
 	if onlyDefaultLoggingConfig(props) {
-		return nil
+		return []LogsConfig{}
 	}
 
 	logs := LogsConfig{}
