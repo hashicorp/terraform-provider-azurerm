@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/monitor/2026-04-01/pipelinegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -171,10 +171,13 @@ type PipelineGroupPrivateKeySourceModel struct {
 func (r MonitorPipelineResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.PipelineGroupComponentName,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-]{2,31}[a-zA-Z0-9]$`),
+				"must be between 4 and 33 characters, contain only letters, numbers and hyphens, and must not start or end with a hyphen",
+			),
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -201,9 +204,12 @@ func (r MonitorPipelineResource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validate.PipelineGroupComponentName,
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringMatch(
+										regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-]{2,31}[a-zA-Z0-9]$`),
+										"must be between 4 and 33 characters, contain only letters, numbers and hyphens, and must not start or end with a hyphen",
+									),
 								},
 
 								"exporters": {
@@ -211,8 +217,11 @@ func (r MonitorPipelineResource) Arguments() map[string]*pluginsdk.Schema {
 									Required: true,
 									MinItems: 1,
 									Elem: &pluginsdk.Schema{
-										Type:         pluginsdk.TypeString,
-										ValidateFunc: validate.PipelineGroupComponentName,
+										Type: pluginsdk.TypeString,
+										ValidateFunc: validation.StringMatch(
+											regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-]{2,31}[a-zA-Z0-9]$`),
+											"must be between 4 and 33 characters, contain only letters, numbers and hyphens, and must not start or end with a hyphen",
+										),
 									},
 								},
 
@@ -221,8 +230,11 @@ func (r MonitorPipelineResource) Arguments() map[string]*pluginsdk.Schema {
 									Required: true,
 									MinItems: 1,
 									Elem: &pluginsdk.Schema{
-										Type:         pluginsdk.TypeString,
-										ValidateFunc: validate.PipelineGroupComponentName,
+										Type: pluginsdk.TypeString,
+										ValidateFunc: validation.StringMatch(
+											regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-]{2,31}[a-zA-Z0-9]$`),
+											"must be between 4 and 33 characters, contain only letters, numbers and hyphens, and must not start or end with a hyphen",
+										),
 									},
 								},
 
@@ -230,8 +242,11 @@ func (r MonitorPipelineResource) Arguments() map[string]*pluginsdk.Schema {
 									Type:     pluginsdk.TypeList,
 									Optional: true,
 									Elem: &pluginsdk.Schema{
-										Type:         pluginsdk.TypeString,
-										ValidateFunc: validate.PipelineGroupComponentName,
+										Type: pluginsdk.TypeString,
+										ValidateFunc: validation.StringMatch(
+											regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-]{2,31}[a-zA-Z0-9]$`),
+											"must be between 4 and 33 characters, contain only letters, numbers and hyphens, and must not start or end with a hyphen",
+										),
 									},
 								},
 							},
@@ -283,9 +298,12 @@ func (r MonitorPipelineResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validate.PipelineGroupComponentName,
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringMatch(
+							regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-]{2,31}[a-zA-Z0-9]$`),
+							"must be between 4 and 33 characters, contain only letters, numbers and hyphens, and must not start or end with a hyphen",
+						),
 					},
 
 					"azure_monitor_workspace_logs": {
@@ -307,9 +325,12 @@ func (r MonitorPipelineResource) Arguments() map[string]*pluginsdk.Schema {
 											},
 
 											"data_collection_rule_immutable_id": {
-												Type:         pluginsdk.TypeString,
-												Required:     true,
-												ValidateFunc: validate.DataCollectionRuleImmutableId,
+												Type:     pluginsdk.TypeString,
+												Required: true,
+												ValidateFunc: validation.StringMatch(
+													regexp.MustCompile(`^dcr-[0-9a-fA-F]{32}$`),
+													"must be a Data Collection Rule immutable ID in the form `dcr-<guid>`",
+												),
 											},
 
 											"schema": {
@@ -358,7 +379,6 @@ func (r MonitorPipelineResource) Arguments() map[string]*pluginsdk.Schema {
 											"maximum_storage_usage_in_gb": {
 												Type:         pluginsdk.TypeInt,
 												Optional:     true,
-												AtLeastOneOf: []string{"exporter.0.azure_monitor_workspace_logs.0.persistence.0.maximum_storage_usage_in_gb", "exporter.0.azure_monitor_workspace_logs.0.persistence.0.retention_period_in_minutes"},
 												ValidateFunc: validation.IntAtLeast(1),
 											},
 
@@ -366,7 +386,6 @@ func (r MonitorPipelineResource) Arguments() map[string]*pluginsdk.Schema {
 											"retention_period_in_minutes": {
 												Type:         pluginsdk.TypeInt,
 												Optional:     true,
-												AtLeastOneOf: []string{"exporter.0.azure_monitor_workspace_logs.0.persistence.0.maximum_storage_usage_in_gb", "exporter.0.azure_monitor_workspace_logs.0.persistence.0.retention_period_in_minutes"},
 												ValidateFunc: validation.IntBetween(1, 2880),
 											},
 										},
@@ -385,9 +404,12 @@ func (r MonitorPipelineResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validate.PipelineGroupComponentName,
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringMatch(
+							regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-]{2,31}[a-zA-Z0-9]$`),
+							"must be between 4 and 33 characters, contain only letters, numbers and hyphens, and must not start or end with a hyphen",
+						),
 					},
 
 					"type": {
@@ -405,14 +427,12 @@ func (r MonitorPipelineResource) Arguments() map[string]*pluginsdk.Schema {
 								"batch_size": {
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
-									AtLeastOneOf: []string{"processor.0.batch.0.batch_size", "processor.0.batch.0.timeout_in_milliseconds"},
 									ValidateFunc: validation.IntBetween(10, 100000),
 								},
 
 								"timeout_in_milliseconds": {
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
-									AtLeastOneOf: []string{"processor.0.batch.0.batch_size", "processor.0.batch.0.timeout_in_milliseconds"},
 									ValidateFunc: validation.IntBetween(10, 300000),
 								},
 							},
@@ -434,9 +454,12 @@ func (r MonitorPipelineResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validate.PipelineGroupComponentName,
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringMatch(
+							regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-]{2,31}[a-zA-Z0-9]$`),
+							"must be between 4 and 33 characters, contain only letters, numbers and hyphens, and must not start or end with a hyphen",
+						),
 					},
 
 					"type": {
@@ -452,9 +475,12 @@ func (r MonitorPipelineResource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"endpoint": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validate.PipelineGroupReceiverEndpoint,
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringMatch(
+										regexp.MustCompile(`^(?:[a-zA-Z][a-zA-Z0-9+.-]*://)?(?:\[[0-9a-fA-F:.]+\]|[^:/?#[:space:]]*):(?:[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$`),
+										"must be in the form `<host>:<port>` with a numeric port between `1` and `65535`",
+									),
 								},
 							},
 						},
@@ -467,9 +493,12 @@ func (r MonitorPipelineResource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"endpoint": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validate.PipelineGroupReceiverEndpoint,
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringMatch(
+										regexp.MustCompile(`^(?:[a-zA-Z][a-zA-Z0-9+.-]*://)?(?:\[[0-9a-fA-F:.]+\]|[^:/?#[:space:]]*):(?:[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$`),
+										"must be in the form `<host>:<port>` with a numeric port between `1` and `65535`",
+									),
 								},
 
 								"allow_skip_priority_header": {
@@ -500,9 +529,12 @@ func (r MonitorPipelineResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"tls_configuration_name": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validate.PipelineGroupComponentName,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringMatch(
+							regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-]{2,31}[a-zA-Z0-9]$`),
+							"must be between 4 and 33 characters, contain only letters, numbers and hyphens, and must not start or end with a hyphen",
+						),
 					},
 				},
 			},
@@ -520,9 +552,12 @@ func (r MonitorPipelineResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validate.PipelineGroupComponentName,
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringMatch(
+							regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-]{2,31}[a-zA-Z0-9]$`),
+							"must be between 4 and 33 characters, contain only letters, numbers and hyphens, and must not start or end with a hyphen",
+						),
 					},
 
 					"client_certificate_authority": {
@@ -553,9 +588,10 @@ func (r MonitorPipelineResource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								"private_key": {
-									Type:     pluginsdk.TypeList,
-									Required: true,
-									MaxItems: 1,
+									Type:      pluginsdk.TypeList,
+									Required:  true,
+									MaxItems:  1,
+									Sensitive: true,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"location": {
