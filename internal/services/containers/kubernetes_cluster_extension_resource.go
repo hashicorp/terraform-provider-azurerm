@@ -441,7 +441,7 @@ func expandPlanModel(inputList []PlanModel) *extensions.Plan {
 func flattenPlanModel(input *extensions.Plan) []PlanModel {
 	var outputList []PlanModel
 	if input == nil {
-		return outputList
+		return []PlanModel{}
 	}
 	output := PlanModel{
 		Name:      input.Name,

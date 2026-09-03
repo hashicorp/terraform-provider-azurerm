@@ -285,13 +285,11 @@ func resourceDataFactoryDatasetHTTPRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("description", httpTable.Description)
 	}
 
-	parameters := flattenDataSetParameters(httpTable.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenDataSetParameters(httpTable.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
-	annotations := flattenDataFactoryAnnotations(httpTable.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(httpTable.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
@@ -328,8 +326,7 @@ func resourceDataFactoryDatasetHTTPRead(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
-	structureColumns := flattenDataFactoryStructureColumns(httpTable.Structure)
-	if err := d.Set("schema_column", structureColumns); err != nil {
+	if err := d.Set("schema_column", flattenDataFactoryStructureColumns(httpTable.Structure)); err != nil {
 		return fmt.Errorf("setting `schema_column`: %+v", err)
 	}
 

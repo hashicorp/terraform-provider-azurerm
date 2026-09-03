@@ -437,9 +437,8 @@ func resourceSynapseSqlPoolRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving Geo Backup Policy of %s: %+v", *id, err)
 	}
 
-	workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID()
 	d.Set("name", id.Name)
-	d.Set("synapse_workspace_id", workspaceId)
+	d.Set("synapse_workspace_id", workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
 	if resp.Sku != nil {
 		d.Set("sku_name", resp.Sku.Name)
 	}

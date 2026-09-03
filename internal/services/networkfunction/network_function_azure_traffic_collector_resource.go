@@ -225,7 +225,7 @@ func (r NetworkFunctionAzureTrafficCollectorResource) Delete() sdk.ResourceFunc 
 func flattenCollectorPolicyModelArray(inputList *[]azuretrafficcollectors.ResourceReference) []string {
 	var outputList []string
 	if inputList == nil {
-		return outputList
+		return []string{}
 	}
 
 	for _, input := range *inputList {

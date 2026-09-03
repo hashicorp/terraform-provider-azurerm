@@ -761,7 +761,7 @@ func flattenDomainServiceNotifications(input *domainservices.NotificationSetting
 
 func flattenDomainServiceReplicaSets(input *[]domainservices.ReplicaSet) (ret []interface{}) {
 	if input == nil {
-		return
+		return []interface{}{}
 	}
 
 	for _, in := range *input {

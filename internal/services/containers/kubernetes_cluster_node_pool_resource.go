@@ -578,8 +578,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.MaxPods = pointer.To(maxPods)
 	}
 
-	nodeLabelsRaw := d.Get("node_labels").(map[string]interface{})
-	if nodeLabels := expandNodeLabels(nodeLabelsRaw); len(*nodeLabels) > 0 {
+	if nodeLabels := expandNodeLabels(d.Get("node_labels").(map[string]interface{})); len(*nodeLabels) > 0 {
 		profile.NodeLabels = nodeLabels
 	}
 
@@ -587,8 +586,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.NodePublicIPPrefixID = pointer.To(nodePublicIPPrefixID)
 	}
 
-	nodeTaintsRaw := d.Get("node_taints").([]interface{})
-	if nodeTaints := helpers.ExpandStringSlice(nodeTaintsRaw); len(*nodeTaints) > 0 {
+	if nodeTaints := helpers.ExpandStringSlice(d.Get("node_taints").([]interface{})); len(*nodeTaints) > 0 {
 		profile.NodeTaints = nodeTaints
 	}
 

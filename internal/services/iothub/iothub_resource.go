@@ -985,9 +985,7 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.Name); err == nil {
 		keyList := keysResp.Response()
-		keys := flattenIoTHubSharedAccessPolicy(keyList.Value)
-
-		if err := d.Set("shared_access_policy", keys); err != nil {
+		if err := d.Set("shared_access_policy", flattenIoTHubSharedAccessPolicy(keyList.Value)); err != nil {
 			return fmt.Errorf("setting `shared_access_policy` in IoTHub %q: %+v", id.Name, err)
 		}
 	}
@@ -1020,33 +1018,27 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		d.Set("hostname", properties.HostName)
 
-		endpoints := flattenIoTHubEndpoint(properties.Routing)
-		if err := d.Set("endpoint", endpoints); err != nil {
+		if err := d.Set("endpoint", flattenIoTHubEndpoint(properties.Routing)); err != nil {
 			return fmt.Errorf("setting `endpoint` in IoTHub %q: %+v", id.Name, err)
 		}
 
-		routes := flattenIoTHubRoute(properties.Routing)
-		if err := d.Set("route", routes); err != nil {
+		if err := d.Set("route", flattenIoTHubRoute(properties.Routing)); err != nil {
 			return fmt.Errorf("setting `route` in IoTHub %q: %+v", id.Name, err)
 		}
 
-		enrichments := flattenIoTHubEnrichment(properties.Routing)
-		if err := d.Set("enrichment", enrichments); err != nil {
+		if err := d.Set("enrichment", flattenIoTHubEnrichment(properties.Routing)); err != nil {
 			return fmt.Errorf("setting `enrichment` in IoTHub %q: %+v", id.Name, err)
 		}
 
-		fallbackRoute := flattenIoTHubFallbackRoute(properties.Routing)
-		if err := d.Set("fallback_route", fallbackRoute); err != nil {
+		if err := d.Set("fallback_route", flattenIoTHubFallbackRoute(properties.Routing)); err != nil {
 			return fmt.Errorf("setting `fallbackRoute` in IoTHub %q: %+v", id.Name, err)
 		}
 
-		networkRuleSet := flattenNetworkRuleSetProperties(properties.NetworkRuleSets)
-		if err := d.Set("network_rule_set", networkRuleSet); err != nil {
+		if err := d.Set("network_rule_set", flattenNetworkRuleSetProperties(properties.NetworkRuleSets)); err != nil {
 			return fmt.Errorf("setting `network_rule_set` in IoTHub %q: %+v", id.Name, err)
 		}
 
-		fileUpload := flattenIoTHubFileUpload(properties.StorageEndpoints, properties.MessagingEndpoints, properties.EnableFileUploadNotifications)
-		if err := d.Set("file_upload", fileUpload); err != nil {
+		if err := d.Set("file_upload", flattenIoTHubFileUpload(properties.StorageEndpoints, properties.MessagingEndpoints, properties.EnableFileUploadNotifications)); err != nil {
 			return fmt.Errorf("setting `file_upload` in IoTHub %q: %+v", id.Name, err)
 		}
 
@@ -1054,8 +1046,7 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("public_network_access_enabled", enabled == devices.PublicNetworkAccessEnabled)
 		}
 
-		cloudToDevice := flattenIoTHubCloudToDevice(properties.CloudToDevice)
-		if err := d.Set("cloud_to_device", cloudToDevice); err != nil {
+		if err := d.Set("cloud_to_device", flattenIoTHubCloudToDevice(properties.CloudToDevice)); err != nil {
 			return fmt.Errorf("setting `cloudToDevice` in IoTHub %q: %+v", id.Name, err)
 		}
 
@@ -1081,8 +1072,7 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	if loc := hub.Location; loc != nil {
 		d.Set("location", location.Normalize(*loc))
 	}
-	sku := flattenIoTHubSku(hub.Sku)
-	if err := d.Set("sku", sku); err != nil {
+	if err := d.Set("sku", flattenIoTHubSku(hub.Sku)); err != nil {
 		return fmt.Errorf("setting `sku`: %+v", err)
 	}
 	d.Set("type", hub.Type)
