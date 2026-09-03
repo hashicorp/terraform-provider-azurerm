@@ -111,9 +111,9 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 			}),
 
 			pluginsdk.ForceNewIf("capacity_reservation_group_id", func(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) bool {
-				oldZones, _ := d.GetChange("zones")
 				oldCRG, _ := d.GetChange("capacity_reservation_group_id")
-				// in-place association is only supported when adding a CRG to an already-zonal scale set
+				oldZones, _ := d.GetChange("zones")
+				// In-place association is only supported when adding a CRG to an already-zonal scale set. Updating or de-associating still requires a force new (actually requires deallocation).
 				return oldZones.(*schema.Set).Len() == 0 || oldCRG.(string) != ""
 			}),
 		),
@@ -705,6 +705,23 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		updateProps.VirtualMachineProfile.DiagnosticsProfile = expandBootDiagnosticsVMSS(bootDiagnosticsRaw)
 	}
 
+	if d.HasChange("capacity_reservation_group_id") {
+		// capacityReservation is not exposed on the PATCH update model, so it can only be set via PUT,
+		// which preserves the write-only values omitted from the GET model
+		existing.Model.Properties.VirtualMachineProfile.CapacityReservation = &virtualmachinescalesets.CapacityReservationProfile{
+			CapacityReservationGroup: &virtualmachinescalesets.SubResource{
+				Id: pointer.To(d.Get("capacity_reservation_group_id").(string)),
+			},
+		}
+
+		// The API rejects a CRG unless singlePlacementGroup is false. Existing still holds the stale value
+		// when both change together. So applied the new value here.
+		existing.Model.Properties.SinglePlacementGroup = pointer.To(d.Get("single_placement_group").(bool))
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("updating capacity reservation group for Linux %s: %+v", id, err)
+		}
+	}
+
 	if d.HasChange("do_not_run_extensions_on_overprovisioned_machines") {
 		v := d.Get("do_not_run_extensions_on_overprovisioned_machines").(bool)
 		updateProps.DoNotRunExtensionsOnOverprovisionedVMs = pointer.To(v)
@@ -764,38 +781,20 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		updateProps.AutomaticRepairsPolicy = automaticRepairsPolicy
 	}
 
-	if d.HasChange("identity") || d.HasChange("capacity_reservation_group_id") {
-		if d.HasChange("identity") {
-			identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
-			if err != nil {
-				return fmt.Errorf("expanding `identity`: %+v", err)
-			}
-
-			existing.Model.Identity = identityExpanded
-			// Removing a user-assigned identity using PATCH requires setting it to `null` in the payload which
-			// 1. The go-azure-sdk for resource manager doesn't support at the moment
-			// 2. The expand identity function doesn't behave this way
-			// For the moment updating the identity with the PUT circumvents this API behaviour
-			// See https://github.com/hashicorp/terraform-provider-azurerm/issues/25058 for more details
+	if d.HasChange("identity") {
+		identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 
-		if d.HasChange("capacity_reservation_group_id") {
-			capacityReservation := &virtualmachinescalesets.CapacityReservationProfile{
-				CapacityReservationGroup: &virtualmachinescalesets.SubResource{},
-			}
-			if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
-				capacityReservation.CapacityReservationGroup.Id = pointer.To(v.(string))
-			}
-			// capacityReservation is not exposed on the PATCH update model, so it can only be set via PUT, which preserves the write-only values omitted from the GET model
-			existing.Model.Properties.VirtualMachineProfile.CapacityReservation = capacityReservation
-
-			// singlePlacementGroup must be false before the API will accept a capacity reservation, and this
-			// PUT runs ahead of the PATCH in performUpdate that would otherwise carry the change
-			existing.Model.Properties.SinglePlacementGroup = pointer.To(d.Get("single_placement_group").(bool))
-		}
-
+		existing.Model.Identity = identityExpanded
+		// Removing a user-assigned identity using PATCH requires setting it to `null` in the payload which
+		// 1. The go-azure-sdk for resource manager doesn't support at the moment
+		// 2. The expand identity function doesn't behave this way
+		// For the moment updating the identity with the PUT circumvents this API behaviour
+		// See https://github.com/hashicorp/terraform-provider-azurerm/issues/25058 for more details
 		if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
-			return fmt.Errorf("updating identity / capacity reservation group for Linux %s: %+v", id, err)
+			return fmt.Errorf("updating identity for Linux %s: %+v", id, err)
 		}
 	}
 

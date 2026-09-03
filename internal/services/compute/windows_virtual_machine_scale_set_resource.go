@@ -109,9 +109,9 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 			}),
 
 			pluginsdk.ForceNewIf("capacity_reservation_group_id", func(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) bool {
-				oldZones, _ := d.GetChange("zones")
 				oldCRG, _ := d.GetChange("capacity_reservation_group_id")
-				// in-place association is only supported when adding a CRG to an already-zonal scale set
+				oldZones, _ := d.GetChange("zones")
+				// In-place association is only supported when adding a CRG to an already-zonal scale set. Updating or de-associating still requires a force new (actually requires deallocation).
 				return oldZones.(*schema.Set).Len() == 0 || oldCRG.(string) != ""
 			}),
 		),
@@ -716,19 +716,17 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if d.HasChange("capacity_reservation_group_id") {
-		capacityReservation := &virtualmachinescalesets.CapacityReservationProfile{
-			CapacityReservationGroup: &virtualmachinescalesets.SubResource{},
+		// capacityReservation is not exposed on the PATCH update model, so it can only be set via PUT,
+		// which preserves the write-only values omitted from the GET model
+		existing.Model.Properties.VirtualMachineProfile.CapacityReservation = &virtualmachinescalesets.CapacityReservationProfile{
+			CapacityReservationGroup: &virtualmachinescalesets.SubResource{
+				Id: pointer.To(d.Get("capacity_reservation_group_id").(string)),
+			},
 		}
-		if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
-			capacityReservation.CapacityReservationGroup.Id = pointer.To(v.(string))
-		}
-		// capacityReservation is not exposed on the PATCH update model, so it can only be set via PUT, which preserves the write-only values omitted from the GET model
-		existing.Model.Properties.VirtualMachineProfile.CapacityReservation = capacityReservation
 
-		// singlePlacementGroup must be false before the API will accept a capacity reservation, and this
-		// PUT runs ahead of the PATCH in performUpdate that would otherwise carry the change
+		// The API rejects a CRG unless singlePlacementGroup is false. Existing still holds the stale value
+		// when both change together. So applied the new value here.
 		existing.Model.Properties.SinglePlacementGroup = pointer.To(d.Get("single_placement_group").(bool))
-
 		if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("updating capacity reservation group for Windows %s: %+v", id, err)
 		}
