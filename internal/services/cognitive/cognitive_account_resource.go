@@ -853,13 +853,13 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 	}
 
 	ruleSet := cognitiveservicesaccounts.NetworkRuleSet{
-		DefaultAction:       pointer.To(cognitiveservicesaccounts.NetworkRuleAction(v["default_action"].(string))),
+		DefaultAction:       pointer.ToEnum[cognitiveservicesaccounts.NetworkRuleAction](v["default_action"].(string)),
 		IPRules:             &ipRules,
 		VirtualNetworkRules: &networkRules,
 	}
 
 	if b, ok := d.GetOk("network_acls.0.bypass"); ok && b != "" {
-		ruleSet.Bypass = pointer.To(cognitiveservicesaccounts.ByPassSelection(v["bypass"].(string)))
+		ruleSet.Bypass = pointer.ToEnum[cognitiveservicesaccounts.ByPassSelection](v["bypass"].(string))
 	}
 
 	return &ruleSet, subnetIds
@@ -1058,7 +1058,7 @@ func expandCognitiveAccountNetworkInjection(input []interface{}) *[]cognitiveser
 		}
 
 		results = append(results, cognitiveservicesaccounts.NetworkInjection{
-			Scenario:    pointer.To(cognitiveservicesaccounts.ScenarioType(m["scenario"].(string))),
+			Scenario:    pointer.ToEnum[cognitiveservicesaccounts.ScenarioType](m["scenario"].(string)),
 			SubnetArmId: subnetId,
 		})
 	}

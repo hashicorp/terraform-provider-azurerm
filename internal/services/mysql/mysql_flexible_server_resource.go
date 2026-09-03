@@ -1106,7 +1106,7 @@ func expandFlexibleServerIdentity(input []interface{}) (*servers.MySQLServerIden
 	}
 
 	out := servers.MySQLServerIdentity{
-		Type: pointer.To(servers.ManagedServiceIdentityType(string(expanded.Type))),
+		Type: pointer.ToEnum[servers.ManagedServiceIdentityType](string(expanded.Type)),
 	}
 	if expanded.Type == identity.TypeUserAssigned {
 		ids := make(map[string]interface{})

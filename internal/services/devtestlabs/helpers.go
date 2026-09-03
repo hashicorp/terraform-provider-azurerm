@@ -52,7 +52,7 @@ func expandDevTestLabVirtualMachineNatRules(input *pluginsdk.Set) []virtualmachi
 		backendPort := v["backend_port"].(int)
 
 		rule := virtualmachines.InboundNatRule{
-			TransportProtocol: pointer.To(virtualmachines.TransportProtocol(v["protocol"].(string))),
+			TransportProtocol: pointer.ToEnum[virtualmachines.TransportProtocol](v["protocol"].(string)),
 			BackendPort:       pointer.To(int64(backendPort)),
 		}
 

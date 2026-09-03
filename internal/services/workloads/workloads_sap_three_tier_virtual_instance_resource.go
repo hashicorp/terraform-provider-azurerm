@@ -1412,7 +1412,7 @@ func expandDiskVolumeConfigurations(input []DiskVolumeConfiguration) *sapvirtual
 			Count:  pointer.To(v.NumberOfDisks),
 			SizeGB: pointer.To(v.SizeGb),
 			Sku: &sapvirtualinstances.DiskSku{
-				Name: pointer.To(sapvirtualinstances.DiskSkuName(v.SkuName)),
+				Name: pointer.ToEnum[sapvirtualinstances.DiskSkuName](v.SkuName),
 			},
 		}
 	}
@@ -1465,7 +1465,7 @@ func expandDatabaseServer(input []DatabaseServerConfiguration) *sapvirtualinstan
 	}
 
 	if v := databaseServer.DatabaseType; v != "" {
-		result.DatabaseType = pointer.To(sapvirtualinstances.SAPDatabaseType(v))
+		result.DatabaseType = pointer.ToEnum[sapvirtualinstances.SAPDatabaseType](v)
 	}
 
 	return result

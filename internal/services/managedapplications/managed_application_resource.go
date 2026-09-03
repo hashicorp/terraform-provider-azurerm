@@ -504,7 +504,7 @@ func expandManagedApplicationIdentity(input []interface{}) (*applications.Identi
 	}
 
 	out := &applications.Identity{
-		Type: pointer.To(applications.ResourceIdentityType(expanded.Type)),
+		Type: pointer.ToEnum[applications.ResourceIdentityType](string(expanded.Type)),
 	}
 
 	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {

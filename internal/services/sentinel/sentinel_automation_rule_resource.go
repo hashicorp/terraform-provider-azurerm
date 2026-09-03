@@ -486,12 +486,12 @@ func expandAutomationRuleActionIncident(input []interface{}) ([]automationrules.
 			Order: int64(b["order"].(int)),
 			ActionConfiguration: &automationrules.IncidentPropertiesAction{
 				Status:                &status,
-				Classification:        pointer.To(automationrules.IncidentClassification(classification)),
+				Classification:        pointer.ToEnum[automationrules.IncidentClassification](classification),
 				ClassificationComment: &classificationComment,
-				ClassificationReason:  pointer.To(automationrules.IncidentClassificationReason(clr)),
+				ClassificationReason:  pointer.ToEnum[automationrules.IncidentClassificationReason](clr),
 				Labels:                labelsPtr,
 				Owner:                 ownerPtr,
-				Severity:              pointer.To(automationrules.IncidentSeverity(severity)),
+				Severity:              pointer.ToEnum[automationrules.IncidentSeverity](severity),
 			},
 		})
 	}

@@ -303,7 +303,7 @@ func expandDataCollectionEndpointKind(input string) *datacollectionendpoints.Kno
 		return nil
 	}
 
-	return pointer.To(datacollectionendpoints.KnownDataCollectionEndpointResourceKind(input))
+	return pointer.ToEnum[datacollectionendpoints.KnownDataCollectionEndpointResourceKind](input)
 }
 
 func expandDataCollectionEndpointPublicNetworkAccess(input bool) *datacollectionendpoints.KnownPublicNetworkAccessOptions {

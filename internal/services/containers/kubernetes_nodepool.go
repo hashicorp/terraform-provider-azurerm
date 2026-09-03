@@ -690,7 +690,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 	}
 
 	if osDisktypeNodePool := defaultCluster.OsDiskType; osDisktypeNodePool != nil {
-		agentpool.Properties.OsDiskType = pointer.To(agentpools.OSDiskType(string(*osDisktypeNodePool)))
+		agentpool.Properties.OsDiskType = pointer.ToEnum[agentpools.OSDiskType](string(*osDisktypeNodePool))
 	}
 	if kubeletConfigNodePool := defaultCluster.KubeletConfig; kubeletConfigNodePool != nil {
 		kubeletConfig := agentpools.KubeletConfig{

@@ -926,7 +926,7 @@ func parsePublicNetworkAccess(input string) *configurationstores.PublicNetworkAc
 	}
 
 	// otherwise presume it's an undefined value and best-effort it
-	return pointer.To(configurationstores.PublicNetworkAccess(input))
+	return pointer.ToEnum[configurationstores.PublicNetworkAccess](input)
 }
 
 func userIsMissingNecessaryPermission(name, location string) string {

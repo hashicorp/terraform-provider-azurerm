@@ -440,7 +440,7 @@ func expandAlertProcessingRuleSingleConditions(input []AlertProcessingRuleSingle
 	for _, v := range input {
 		*conditions = append(*conditions, alertprocessingrules.Condition{
 			Field:    &field,
-			Operator: pointer.To(alertprocessingrules.Operator(v.Operator)),
+			Operator: pointer.ToEnum[alertprocessingrules.Operator](v.Operator),
 			Values:   pointer.To(v.Values),
 		})
 	}

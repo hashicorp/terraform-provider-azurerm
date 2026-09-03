@@ -442,7 +442,7 @@ func expandAgentUpdateSchedule(input []interface{}) *[]hostpool.MaintenanceWindo
 		hourOfDay := int64(v["hour_of_day"].(int))
 
 		results = append(results, hostpool.MaintenanceWindowProperties{
-			DayOfWeek: pointer.To(hostpool.DayOfWeek(v["day_of_week"].(string))),
+			DayOfWeek: pointer.ToEnum[hostpool.DayOfWeek](v["day_of_week"].(string)),
 			Hour:      pointer.To(hourOfDay),
 		})
 	}
@@ -519,7 +519,7 @@ func expandAgentUpdateSchedulePatch(input []interface{}) *[]hostpool.Maintenance
 		hourOfDay := int64(v["hour_of_day"].(int))
 
 		results = append(results, hostpool.MaintenanceWindowPatchProperties{
-			DayOfWeek: pointer.To(hostpool.DayOfWeek(v["day_of_week"].(string))),
+			DayOfWeek: pointer.ToEnum[hostpool.DayOfWeek](v["day_of_week"].(string)),
 			Hour:      pointer.To(hourOfDay),
 		})
 	}

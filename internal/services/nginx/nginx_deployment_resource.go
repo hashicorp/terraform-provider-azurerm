@@ -103,7 +103,7 @@ func expandNetworkProfile(public []FrontendPublic, private []FrontendPrivate, ne
 		for _, ip := range private {
 			privateIPs = append(privateIPs, nginxdeployment.NginxPrivateIPAddress{
 				PrivateIPAddress:          pointer.To(ip.IpAddress),
-				PrivateIPAllocationMethod: pointer.To(nginxdeployment.NginxPrivateIPAllocationMethod(ip.AllocationMethod)),
+				PrivateIPAllocationMethod: pointer.ToEnum[nginxdeployment.NginxPrivateIPAllocationMethod](ip.AllocationMethod),
 				SubnetId:                  pointer.To(ip.SubnetId),
 			})
 		}

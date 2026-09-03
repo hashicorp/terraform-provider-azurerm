@@ -29,7 +29,7 @@ func retrieveDiskEncryptionSetEncryptionType(ctx context.Context, client *disken
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil && props.EncryptionType != nil {
 			s := props.EncryptionType
-			encryptionType = pointer.To(disks.EncryptionType(*s))
+			encryptionType = pointer.ToEnum[disks.EncryptionType](string(*s))
 		}
 	}
 

@@ -1007,7 +1007,7 @@ func expandSqlVirtualMachineAutoPatchingSettings(input []interface{}) *sqlvirtua
 		Enable:                        pointer.To(true),
 		MaintenanceWindowDuration:     pointer.To(int64(autoPatchingSetting["maintenance_window_duration_in_minutes"].(int))),
 		MaintenanceWindowStartingHour: pointer.To(int64(autoPatchingSetting["maintenance_window_starting_hour"].(int))),
-		DayOfWeek:                     pointer.To(sqlvirtualmachines.DayOfWeek(autoPatchingSetting["day_of_week"].(string))),
+		DayOfWeek:                     pointer.ToEnum[sqlvirtualmachines.DayOfWeek](autoPatchingSetting["day_of_week"].(string)),
 	}
 }
 
@@ -1062,7 +1062,7 @@ func expandSqlVirtualMachineAssessmentSettingsSchedule(input []interface{}) *sql
 
 	schedule := &sqlvirtualmachines.Schedule{
 		Enable:    pointer.To(true),
-		DayOfWeek: pointer.To(sqlvirtualmachines.AssessmentDayOfWeek(scheduleConfig["day_of_week"].(string))),
+		DayOfWeek: pointer.ToEnum[sqlvirtualmachines.AssessmentDayOfWeek](scheduleConfig["day_of_week"].(string)),
 		StartTime: pointer.To(scheduleConfig["start_time"].(string)),
 	}
 
@@ -1196,8 +1196,8 @@ func expandSqlVirtualMachineStorageConfigurationSettings(input []interface{}) *s
 	storageSettings := input[0].(map[string]interface{})
 
 	return &sqlvirtualmachines.StorageConfigurationSettings{
-		DiskConfigurationType: pointer.To(sqlvirtualmachines.DiskConfigurationType(storageSettings["disk_type"].(string))),
-		StorageWorkloadType:   pointer.To(sqlvirtualmachines.StorageWorkloadType(storageSettings["storage_workload_type"].(string))),
+		DiskConfigurationType: pointer.ToEnum[sqlvirtualmachines.DiskConfigurationType](storageSettings["disk_type"].(string)),
+		StorageWorkloadType:   pointer.ToEnum[sqlvirtualmachines.StorageWorkloadType](storageSettings["storage_workload_type"].(string)),
 		SqlSystemDbOnDataDisk: pointer.To(storageSettings["system_db_on_data_disk_enabled"].(bool)),
 		SqlDataSettings:       expandSqlVirtualMachineDataStorageSettings(storageSettings["data_settings"].([]interface{})),
 		SqlLogSettings:        expandSqlVirtualMachineDataStorageSettings(storageSettings["log_settings"].([]interface{})),

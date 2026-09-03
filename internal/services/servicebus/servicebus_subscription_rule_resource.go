@@ -218,7 +218,7 @@ func resourceServiceBusSubscriptionRuleCreateUpdate(d *pluginsdk.ResourceData, m
 
 	rule := rules.Rule{
 		Properties: &rules.Ruleproperties{
-			FilterType: pointer.To(rules.FilterType(filterType)),
+			FilterType: pointer.ToEnum[rules.FilterType](filterType),
 		},
 	}
 

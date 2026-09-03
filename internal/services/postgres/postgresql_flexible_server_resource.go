@@ -752,11 +752,11 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if createMode != "" {
-		parameters.Properties.CreateMode = pointer.To(servers.CreateMode(createMode))
+		parameters.Properties.CreateMode = pointer.ToEnum[servers.CreateMode](createMode)
 	}
 
 	if v, ok := d.GetOk("version"); ok && v.(string) != "" {
-		parameters.Properties.Version = pointer.To(servers.PostgresMajorVersion(v.(string)))
+		parameters.Properties.Version = pointer.ToEnum[servers.PostgresMajorVersion](v.(string))
 	}
 
 	if v, ok := d.GetOk("zone"); ok && v.(string) != "" {
@@ -1406,7 +1406,7 @@ func expandFlexibleServerHighAvailability(inputs []interface{}, isCreate bool) *
 	input := inputs[0].(map[string]interface{})
 
 	result := servers.HighAvailability{
-		Mode: pointer.To(servers.PostgreSqlFlexibleServerHighAvailabilityMode(input["mode"].(string))),
+		Mode: pointer.ToEnum[servers.PostgreSqlFlexibleServerHighAvailabilityMode](input["mode"].(string)),
 	}
 
 	// service team confirmed it doesn't support to update `high_availability.0.standby_availability_zone` after the PostgreSQL Flexible Server resource is created
@@ -1429,7 +1429,7 @@ func expandFlexibleServerHighAvailabilityForPatch(inputs []interface{}, isCreate
 	input := inputs[0].(map[string]interface{})
 
 	result := servers.HighAvailabilityForPatch{
-		Mode: pointer.To(servers.PostgreSqlFlexibleServerHighAvailabilityMode(input["mode"].(string))),
+		Mode: pointer.ToEnum[servers.PostgreSqlFlexibleServerHighAvailabilityMode](input["mode"].(string)),
 	}
 
 	// service team confirmed it doesn't support to update `high_availability.0.standby_availability_zone` after the PostgreSQL Flexible Server resource is created

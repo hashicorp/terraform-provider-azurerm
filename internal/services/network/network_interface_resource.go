@@ -587,7 +587,7 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]networkinte
 		privateIpAddressVersion := networkinterfaces.IPVersion(data["private_ip_address_version"].(string))
 
 		properties := networkinterfaces.NetworkInterfaceIPConfigurationPropertiesFormat{
-			PrivateIPAllocationMethod: pointer.To(networkinterfaces.IPAllocationMethod(privateIpAllocationMethod)),
+			PrivateIPAllocationMethod: pointer.ToEnum[networkinterfaces.IPAllocationMethod](privateIpAllocationMethod),
 			PrivateIPAddressVersion:   &privateIpAddressVersion,
 		}
 

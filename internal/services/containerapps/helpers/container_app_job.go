@@ -499,7 +499,7 @@ func expandContainerAppJobVolumes(input []ContainerVolume) *[]jobs.Volume {
 			volume.StorageName = pointer.To(v.StorageName)
 		}
 		if v.StorageType != "" {
-			volume.StorageType = pointer.To(jobs.StorageType(v.StorageType))
+			volume.StorageType = pointer.ToEnum[jobs.StorageType](v.StorageType)
 		}
 		if v.MountOptions != "" {
 			volume.MountOptions = pointer.To(v.MountOptions)
@@ -559,7 +559,7 @@ func expandContainerAppJobLivenessProbe(input ContainerAppLivenessProbe) jobs.Co
 			Host:   pointer.To(input.Host),
 			Path:   pointer.To(input.Path),
 			Port:   input.Port,
-			Scheme: pointer.To(jobs.Scheme(p)),
+			Scheme: pointer.ToEnum[jobs.Scheme](p),
 		}
 		if input.Headers != nil {
 			headers := make([]jobs.ContainerAppProbeHTTPGetHTTPHeadersInlined, 0)
@@ -599,7 +599,7 @@ func expandContainerAppJobReadinessProbe(input ContainerAppReadinessProbe) jobs.
 			Host:   pointer.To(input.Host),
 			Path:   pointer.To(input.Path),
 			Port:   input.Port,
-			Scheme: pointer.To(jobs.Scheme(p)),
+			Scheme: pointer.ToEnum[jobs.Scheme](p),
 		}
 		if input.Headers != nil {
 			headers := make([]jobs.ContainerAppProbeHTTPGetHTTPHeadersInlined, 0)
@@ -638,7 +638,7 @@ func expandContainerAppJobStartupProbe(input ContainerAppStartupProbe) jobs.Cont
 			Host:   pointer.To(input.Host),
 			Path:   pointer.To(input.Path),
 			Port:   input.Port,
-			Scheme: pointer.To(jobs.Scheme(p)),
+			Scheme: pointer.ToEnum[jobs.Scheme](p),
 		}
 		if input.Headers != nil {
 			headers := make([]jobs.ContainerAppProbeHTTPGetHTTPHeadersInlined, 0)

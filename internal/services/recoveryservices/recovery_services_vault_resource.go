@@ -700,7 +700,7 @@ func expandRecoveryServicesVaultSecuritySettings(input interface{}) *vaults.Secu
 	}
 	return &vaults.SecuritySettings{
 		ImmutabilitySettings: &vaults.ImmutabilitySettings{
-			State: pointer.To(vaults.ImmutabilityState(input.(string))),
+			State: pointer.ToEnum[vaults.ImmutabilityState](input.(string)),
 		},
 	}
 }

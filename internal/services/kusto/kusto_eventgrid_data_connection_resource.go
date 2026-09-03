@@ -201,11 +201,11 @@ func resourceKustoEventGridDataConnectionCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	if df, ok := d.GetOk("data_format"); ok {
-		dataConnection.Properties.DataFormat = pointer.To(dataconnections.EventGridDataFormat(df.(string)))
+		dataConnection.Properties.DataFormat = pointer.ToEnum[dataconnections.EventGridDataFormat](df.(string))
 	}
 
 	if databaseRouting, ok := d.GetOk("database_routing_type"); ok {
-		dataConnection.Properties.DatabaseRouting = pointer.To(dataconnections.DatabaseRouting(databaseRouting.(string)))
+		dataConnection.Properties.DatabaseRouting = pointer.ToEnum[dataconnections.DatabaseRouting](databaseRouting.(string))
 	}
 
 	if eventGridRID, ok := d.GetOk("eventgrid_event_subscription_id"); ok {

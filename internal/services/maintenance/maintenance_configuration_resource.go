@@ -492,7 +492,7 @@ func expandMaintenanceConfigurationInstallPatches(input []interface{}) *maintena
 	installPatches := maintenanceconfigurations.InputPatchConfiguration{
 		WindowsParameters: expandMaintenanceConfigurationInstallPatchesWindows(v["windows"].([]interface{})),
 		LinuxParameters:   expandMaintenanceConfigurationInstallPatchesLinux(v["linux"].([]interface{})),
-		RebootSetting:     pointer.To(maintenanceconfigurations.RebootOptions(v["reboot"].(string))),
+		RebootSetting:     pointer.ToEnum[maintenanceconfigurations.RebootOptions](v["reboot"].(string)),
 	}
 	return &installPatches
 }

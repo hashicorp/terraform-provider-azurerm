@@ -301,7 +301,7 @@ func resourceServiceBusNamespaceCreate(d *pluginsdk.ResourceData, meta interface
 		Identity: identity,
 		Sku: &namespaces.SBSku{
 			Name: namespaces.SkuName(sku),
-			Tier: pointer.To(namespaces.SkuTier(sku)),
+			Tier: pointer.ToEnum[namespaces.SkuTier](sku),
 		},
 		Properties: &namespaces.SBNamespaceProperties{
 			Encryption:          expandServiceBusNamespaceEncryption(d.Get("customer_managed_key").([]interface{})),
@@ -312,7 +312,7 @@ func resourceServiceBusNamespaceCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if tlsValue := d.Get("minimum_tls_version").(string); tlsValue != "" {
-		parameters.Properties.MinimumTlsVersion = pointer.To(namespaces.TlsVersion(tlsValue))
+		parameters.Properties.MinimumTlsVersion = pointer.ToEnum[namespaces.TlsVersion](tlsValue)
 	}
 
 	if capacity := d.Get("capacity"); capacity != nil {
@@ -394,7 +394,7 @@ func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface
 		sku := d.Get("sku").(string)
 		payload.Sku = &namespaces.SBSku{
 			Name: namespaces.SkuName(sku),
-			Tier: pointer.To(namespaces.SkuTier(sku)),
+			Tier: pointer.ToEnum[namespaces.SkuTier](sku),
 		}
 	}
 
@@ -714,7 +714,7 @@ func createNetworkRuleSetForNamespace(ctx context.Context, client *namespaces.Na
 			DefaultAction:               &defaultAction,
 			VirtualNetworkRules:         vnetRule,
 			IPRules:                     ipRule,
-			PublicNetworkAccess:         pointer.To(namespaces.PublicNetworkAccessFlag(publicNetworkAcc)),
+			PublicNetworkAccess:         pointer.ToEnum[namespaces.PublicNetworkAccessFlag](publicNetworkAcc),
 			TrustedServiceAccessEnabled: pointer.To(item["trusted_services_allowed"].(bool)),
 		},
 	}

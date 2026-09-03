@@ -366,7 +366,7 @@ func expandIntegrationAccountBatchConfigurationWorkflowTriggerRecurrence(input [
 	v := input[0].(map[string]interface{})
 
 	result := integrationaccountbatchconfigurations.WorkflowTriggerRecurrence{
-		Frequency: pointer.To(integrationaccountbatchconfigurations.RecurrenceFrequency(v["frequency"].(string))),
+		Frequency: pointer.ToEnum[integrationaccountbatchconfigurations.RecurrenceFrequency](v["frequency"].(string)),
 		Interval:  pointer.To(int64(v["interval"].(int))),
 	}
 
@@ -431,7 +431,7 @@ func expandIntegrationAccountBatchConfigurationRecurrenceScheduleOccurrences(inp
 		v := item.(map[string]interface{})
 
 		results = append(results, integrationaccountbatchconfigurations.RecurrenceScheduleOccurrence{
-			Day:        pointer.To(integrationaccountbatchconfigurations.DayOfWeek(v["weekday"].(string))),
+			Day:        pointer.ToEnum[integrationaccountbatchconfigurations.DayOfWeek](v["weekday"].(string)),
 			Occurrence: pointer.To(int64(v["week"].(int))),
 		})
 	}

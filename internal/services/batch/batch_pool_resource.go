@@ -1298,7 +1298,7 @@ func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*pool.ScaleSetting
 		targetLowPriorityNodes := int32(fixedScaleSettings["target_low_priority_nodes"].(int))
 
 		scaleSettings.FixedScale = &pool.FixedScaleSettings{
-			NodeDeallocationOption: pointer.To(pool.ComputeNodeDeallocationOption(fixedScaleSettings["node_deallocation_method"].(string))),
+			NodeDeallocationOption: pointer.ToEnum[pool.ComputeNodeDeallocationOption](fixedScaleSettings["node_deallocation_method"].(string)),
 			ResizeTimeout:          pointer.To(fixedScaleSettings["resize_timeout"].(string)),
 			TargetDedicatedNodes:   pointer.To(int64(targetDedicatedNodes)),
 			TargetLowPriorityNodes: pointer.To(int64(targetLowPriorityNodes)),

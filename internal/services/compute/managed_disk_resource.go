@@ -518,7 +518,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		props.SecurityProfile = &disks.DiskSecurityProfile{
-			SecurityType: pointer.To(disks.DiskSecurityTypes(securityType)),
+			SecurityType: pointer.ToEnum[disks.DiskSecurityTypes](securityType),
 		}
 	}
 
@@ -545,7 +545,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if v, ok := d.GetOk("hyper_v_generation"); ok {
-		props.HyperVGeneration = pointer.To(disks.HyperVGeneration(v.(string)))
+		props.HyperVGeneration = pointer.ToEnum[disks.HyperVGeneration](v.(string))
 	}
 
 	createDisk := disks.Disk{

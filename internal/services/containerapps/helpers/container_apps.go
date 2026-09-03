@@ -406,9 +406,9 @@ func ExpandContainerAppIngress(input []Ingress, appName string) *containerapps.I
 		IPSecurityRestrictions: expandIpSecurityRestrictions(ingress.IpSecurityRestrictions),
 		CorsPolicy:             expandCorsPolicy(ingress.Cors),
 	}
-	result.Transport = pointer.To(containerapps.IngressTransportMethod(ingress.Transport))
+	result.Transport = pointer.ToEnum[containerapps.IngressTransportMethod](ingress.Transport)
 	if ingress.ClientCertificateMode != "" {
-		result.ClientCertificateMode = pointer.To(containerapps.IngressClientCertificateMode(ingress.ClientCertificateMode))
+		result.ClientCertificateMode = pointer.ToEnum[containerapps.IngressClientCertificateMode](ingress.ClientCertificateMode)
 	}
 
 	return result
@@ -534,7 +534,7 @@ func expandContainerAppIngressCustomDomain(input []CustomDomain) *[]containerapp
 			Name:          v.Name,
 			CertificateId: pointer.To(v.CertificateId),
 		}
-		customDomain.BindingType = pointer.To(containerapps.BindingType(v.CertBinding))
+		customDomain.BindingType = pointer.ToEnum[containerapps.BindingType](v.CertBinding)
 
 		result = append(result, customDomain)
 	}
@@ -887,7 +887,7 @@ func ExpandContainerAppDapr(input []Dapr) *containerapps.Dapr {
 	return &containerapps.Dapr{
 		AppId:       pointer.To(dapr.AppId),
 		AppPort:     pointer.To(dapr.AppPort),
-		AppProtocol: pointer.To(containerapps.AppProtocol(dapr.AppProtocol)),
+		AppProtocol: pointer.ToEnum[containerapps.AppProtocol](dapr.AppProtocol),
 		Enabled:     pointer.To(true),
 	}
 }
@@ -1694,7 +1694,7 @@ func expandContainerAppVolumes(input []ContainerVolume) *[]containerapps.Volume 
 			volume.StorageName = pointer.To(v.StorageName)
 		}
 		if v.StorageType != "" {
-			volume.StorageType = pointer.To(containerapps.StorageType(v.StorageType))
+			volume.StorageType = pointer.ToEnum[containerapps.StorageType](v.StorageType)
 		}
 		if v.MountOptions != "" {
 			volume.MountOptions = pointer.To(v.MountOptions)
@@ -2171,7 +2171,7 @@ func expandContainerAppReadinessProbe(input ContainerAppReadinessProbe) containe
 			Host:   pointer.To(input.Host),
 			Path:   pointer.To(input.Path),
 			Port:   input.Port,
-			Scheme: pointer.To(containerapps.Scheme(p)),
+			Scheme: pointer.ToEnum[containerapps.Scheme](p),
 		}
 		if input.Headers != nil {
 			headers := make([]containerapps.ContainerAppProbeHTTPGetHTTPHeadersInlined, 0)
@@ -2437,7 +2437,7 @@ func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containera
 			Host:   pointer.To(input.Host),
 			Path:   pointer.To(input.Path),
 			Port:   input.Port,
-			Scheme: pointer.To(containerapps.Scheme(p)),
+			Scheme: pointer.ToEnum[containerapps.Scheme](p),
 		}
 		if input.Headers != nil {
 			headers := make([]containerapps.ContainerAppProbeHTTPGetHTTPHeadersInlined, 0)
@@ -2697,7 +2697,7 @@ func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapp
 			Host:   pointer.To(input.Host),
 			Path:   pointer.To(input.Path),
 			Port:   input.Port,
-			Scheme: pointer.To(containerapps.Scheme(p)),
+			Scheme: pointer.ToEnum[containerapps.Scheme](p),
 		}
 		if input.Headers != nil {
 			headers := make([]containerapps.ContainerAppProbeHTTPGetHTTPHeadersInlined, 0)

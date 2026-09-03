@@ -294,7 +294,7 @@ func expandAADBasedSecurityPrincipal(input []interface{}) *[]confidentialledger.
 		tenantId := v["tenant_id"].(string)
 
 		result := confidentialledger.AADBasedSecurityPrincipal{
-			LedgerRoleName: pointer.To(confidentialledger.LedgerRoleName(v["ledger_role_name"].(string))),
+			LedgerRoleName: pointer.ToEnum[confidentialledger.LedgerRoleName](v["ledger_role_name"].(string)),
 			PrincipalId:    pointer.To(principalId),
 			TenantId:       pointer.To(tenantId),
 		}
@@ -313,7 +313,7 @@ func expandCertBasedSecurityPrincipal(input []interface{}) *[]confidentialledger
 
 		output = append(output, confidentialledger.CertBasedSecurityPrincipal{
 			Cert:           pointer.To(v["pem_public_key"].(string)),
-			LedgerRoleName: pointer.To(confidentialledger.LedgerRoleName(v["ledger_role_name"].(string))),
+			LedgerRoleName: pointer.ToEnum[confidentialledger.LedgerRoleName](v["ledger_role_name"].(string)),
 		})
 	}
 

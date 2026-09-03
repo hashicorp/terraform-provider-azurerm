@@ -595,8 +595,8 @@ func expandFrontDoorHealthProbeSettingsModel(input []interface{}, frontDoorId fr
 			Properties: &frontdoors.HealthProbeSettingsProperties{
 				IntervalInSeconds: pointer.To(intervalInSeconds),
 				Path:              pointer.To(path),
-				Protocol:          pointer.To(frontdoors.FrontDoorProtocol(v["protocol"].(string))),
-				HealthProbeMethod: pointer.To(frontdoors.FrontDoorHealthProbeMethod(v["probe_method"].(string))),
+				Protocol:          pointer.ToEnum[frontdoors.FrontDoorProtocol](v["protocol"].(string)),
+				HealthProbeMethod: pointer.ToEnum[frontdoors.FrontDoorHealthProbeMethod](v["probe_method"].(string)),
 				EnabledState:      &healthProbeEnabled,
 			},
 		}
@@ -747,8 +747,8 @@ func expandFrontDoorRedirectConfiguration(input []interface{}) frontdoors.Redire
 
 	redirectConfiguration := frontdoors.RedirectConfiguration{
 		CustomHost:       pointer.To(customHost),
-		RedirectType:     pointer.To(frontdoors.FrontDoorRedirectType(v["redirect_type"].(string))),
-		RedirectProtocol: pointer.To(frontdoors.FrontDoorRedirectProtocol(v["redirect_protocol"].(string))),
+		RedirectType:     pointer.ToEnum[frontdoors.FrontDoorRedirectType](v["redirect_type"].(string)),
+		RedirectProtocol: pointer.ToEnum[frontdoors.FrontDoorRedirectProtocol](v["redirect_protocol"].(string)),
 	}
 	// The way the API works is if you don't include the attribute in the structure
 	// it is treated as Preserve instead of Replace...
@@ -794,7 +794,7 @@ func expandFrontDoorForwardingConfiguration(input []interface{}, frontDoorId fro
 	}
 
 	forwardingConfiguration := frontdoors.ForwardingConfiguration{
-		ForwardingProtocol: pointer.To(frontdoors.FrontDoorForwardingProtocol(v["forwarding_protocol"].(string))),
+		ForwardingProtocol: pointer.ToEnum[frontdoors.FrontDoorForwardingProtocol](v["forwarding_protocol"].(string)),
 		BackendPool:        backend,
 	}
 	// Per the portal, if you enable the cache the cache_query_parameter_strip_directive

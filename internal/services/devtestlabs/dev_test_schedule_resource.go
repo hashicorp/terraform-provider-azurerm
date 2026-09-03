@@ -414,7 +414,7 @@ func expandDevTestScheduleNotificationSettings(d *pluginsdk.ResourceData) *sched
 	return &schedules.NotificationSettings{
 		WebhookURL:    pointer.To(notificationSettingsConfig["webhook_url"].(string)),
 		TimeInMinutes: pointer.To(int64(notificationSettingsConfig["time_in_minutes"].(int))),
-		Status:        pointer.To(schedules.EnableStatus(notificationSettingsConfig["status"].(string))),
+		Status:        pointer.ToEnum[schedules.EnableStatus](notificationSettingsConfig["status"].(string)),
 	}
 }
 

@@ -1172,11 +1172,11 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 
 				ports = append(ports, containerinstance.ContainerPort{
 					Port:     port,
-					Protocol: pointer.To(containerinstance.ContainerNetworkProtocol(proto)),
+					Protocol: pointer.ToEnum[containerinstance.ContainerNetworkProtocol](proto),
 				})
 				containerInstancePorts = append(containerInstancePorts, containerinstance.Port{
 					Port:     port,
-					Protocol: pointer.To(containerinstance.ContainerGroupNetworkProtocol(proto)),
+					Protocol: pointer.ToEnum[containerinstance.ContainerGroupNetworkProtocol](proto),
 				})
 			}
 			container.Properties.Ports = &ports
@@ -1267,7 +1267,7 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 			}
 			containerGroupPorts = append(containerGroupPorts, containerinstance.Port{
 				Port:     port,
-				Protocol: pointer.To(containerinstance.ContainerGroupNetworkProtocol(proto)),
+				Protocol: pointer.ToEnum[containerinstance.ContainerGroupNetworkProtocol](proto),
 			})
 		}
 	} else {
@@ -1516,7 +1516,7 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 				probe.HTTPGet = &containerinstance.ContainerHTTPGet{
 					Path:        pointer.To(path),
 					Port:        int64(port),
-					Scheme:      pointer.To(containerinstance.Scheme(scheme)),
+					Scheme:      pointer.ToEnum[containerinstance.Scheme](scheme),
 					HTTPHeaders: expandContainerProbeHttpHeaders(x["http_headers"].(map[string]interface{})),
 				}
 			}
@@ -1893,7 +1893,7 @@ func expandContainerGroupDiagnostics(input []interface{}) *containerinstance.Con
 	}
 
 	if logType := analyticsV["log_type"].(string); logType != "" {
-		logAnalytics.LogType = pointer.To(containerinstance.LogAnalyticsLogType(logType))
+		logAnalytics.LogType = pointer.ToEnum[containerinstance.LogAnalyticsLogType](logType)
 
 		metadataMap := analyticsV["metadata"].(map[string]interface{})
 		metadata := make(map[string]string)

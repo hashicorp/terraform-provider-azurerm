@@ -451,7 +451,7 @@ func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.Capt
 	captureDescription := eventhubs.CaptureDescription{
 		Enabled: pointer.To(enabled),
 		Encoding: func() *eventhubs.EncodingCaptureDescription {
-			return pointer.To(eventhubs.EncodingCaptureDescription(encoding))
+			return pointer.ToEnum[eventhubs.EncodingCaptureDescription](encoding)
 		}(),
 		IntervalInSeconds: pointer.To(int64(intervalInSeconds)),
 		SizeLimitInBytes:  pointer.To(int64(sizeLimitInBytes)),

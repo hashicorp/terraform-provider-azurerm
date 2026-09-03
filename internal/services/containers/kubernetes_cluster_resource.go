@@ -3388,10 +3388,10 @@ func expandKubernetesClusterNodeProvisioningProfile(input []interface{}) *manage
 	config := input[0].(map[string]interface{})
 	profile := &managedclusters.ManagedClusterNodeProvisioningProfile{}
 	if v := config["mode"].(string); v != "" {
-		profile.Mode = pointer.To(managedclusters.NodeProvisioningMode(v))
+		profile.Mode = pointer.ToEnum[managedclusters.NodeProvisioningMode](v)
 	}
 	if v := config["default_node_pools"].(string); v != "" {
-		profile.DefaultNodePools = pointer.To(managedclusters.NodeProvisioningDefaultNodePools(v))
+		profile.DefaultNodePools = pointer.ToEnum[managedclusters.NodeProvisioningDefaultNodePools](v)
 	}
 	return profile
 }
@@ -3870,7 +3870,7 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 	sku := profile.LoadBalancerSku
 	for _, v := range managedclusters.PossibleValuesForLoadBalancerSku() {
 		if strings.EqualFold(v, string(*sku)) {
-			sku = pointer.To(managedclusters.LoadBalancerSku(v))
+			sku = pointer.ToEnum[managedclusters.LoadBalancerSku](v)
 		}
 	}
 

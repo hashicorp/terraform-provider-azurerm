@@ -1132,7 +1132,7 @@ func expandOpenshiftApiServerProfile(input []ApiServerProfile) *openshiftcluster
 	}
 
 	return &openshiftclusters.APIServerProfile{
-		Visibility: pointer.To(openshiftclusters.Visibility(input[0].Visibility)),
+		Visibility: pointer.ToEnum[openshiftclusters.Visibility](input[0].Visibility),
 	}
 }
 

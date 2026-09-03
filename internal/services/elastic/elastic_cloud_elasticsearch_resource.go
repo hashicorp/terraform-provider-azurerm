@@ -359,7 +359,7 @@ func expandTagRule(input []interface{}) *rules.LogRules {
 		item := v.(map[string]interface{})
 
 		filteringTags = append(filteringTags, rules.FilteringTag{
-			Action: pointer.To(rules.TagAction(item["action"].(string))),
+			Action: pointer.ToEnum[rules.TagAction](item["action"].(string)),
 			Name:   pointer.To(item["name"].(string)),
 			Value:  pointer.To(item["value"].(string)),
 		})

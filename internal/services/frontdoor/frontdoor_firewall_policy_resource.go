@@ -717,7 +717,7 @@ func expandFrontDoorFirewallRuleOverride(input []interface{}) *[]webapplicationf
 		managedRuleOverride := webapplicationfirewallpolicies.ManagedRuleOverride{
 			RuleId:       ruleId,
 			EnabledState: &enabled,
-			Action:       pointer.To(webapplicationfirewallpolicies.ActionType(rule["action"].(string))),
+			Action:       pointer.ToEnum[webapplicationfirewallpolicies.ActionType](rule["action"].(string)),
 		}
 
 		if exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(rule["exclusion"].([]interface{})); exclusions != nil {

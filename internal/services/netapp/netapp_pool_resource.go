@@ -176,7 +176,7 @@ func resourceNetAppPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if qosType, ok := d.GetOk("qos_type"); ok {
-		capacityPoolParameters.Properties.QosType = pointer.To(capacitypools.QosType(qosType.(string)))
+		capacityPoolParameters.Properties.QosType = pointer.ToEnum[capacitypools.QosType](qosType.(string))
 	}
 
 	if customThroughputMibps, ok := d.GetOk("custom_throughput_mibps"); ok {

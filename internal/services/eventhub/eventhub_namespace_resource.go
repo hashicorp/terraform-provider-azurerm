@@ -303,7 +303,7 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 		Sku: &namespaces.Sku{
 			Name: namespaces.SkuName(sku),
 			Tier: func() *namespaces.SkuTier {
-				return pointer.To(namespaces.SkuTier(sku))
+				return pointer.ToEnum[namespaces.SkuTier](sku)
 			}(),
 			Capacity: pointer.To(int64(capacity)),
 		},
@@ -321,7 +321,7 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if tlsValue := d.Get("minimum_tls_version").(string); tlsValue != "" {
-		parameters.Properties.MinimumTlsVersion = pointer.To(namespaces.TlsVersion(tlsValue))
+		parameters.Properties.MinimumTlsVersion = pointer.ToEnum[namespaces.TlsVersion](tlsValue)
 	}
 
 	if v, ok := d.GetOk("maximum_throughput_units"); ok {
@@ -397,7 +397,7 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Sku: &namespaces.Sku{
 			Name: namespaces.SkuName(sku),
 			Tier: func() *namespaces.SkuTier {
-				return pointer.To(namespaces.SkuTier(sku))
+				return pointer.ToEnum[namespaces.SkuTier](sku)
 			}(),
 			Capacity: pointer.To(int64(capacity)),
 		},
@@ -415,7 +415,7 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if tlsValue := d.Get("minimum_tls_version").(string); tlsValue != "" {
-		parameters.Properties.MinimumTlsVersion = pointer.To(namespaces.TlsVersion(tlsValue))
+		parameters.Properties.MinimumTlsVersion = pointer.ToEnum[namespaces.TlsVersion](tlsValue)
 	}
 
 	if d.HasChange("maximum_throughput_units") {
@@ -638,7 +638,7 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) (*networkruleset
 				rules = append(rules, networkrulesets.NWRuleSetIPRules{
 					IPMask: pointer.To(rblock["ip_mask"].(string)),
 					Action: func() *networkrulesets.NetworkRuleIPAction {
-						return pointer.To(networkrulesets.NetworkRuleIPAction(rblock["action"].(string)))
+						return pointer.ToEnum[networkrulesets.NetworkRuleIPAction](rblock["action"].(string))
 					}(),
 				})
 			}

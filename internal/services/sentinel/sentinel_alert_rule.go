@@ -150,7 +150,7 @@ func expandAlertRuleEventGroupingSetting(input []interface{}) *alertrules.EventG
 	result := alertrules.EventGroupingSettings{}
 
 	if aggregationKind := v["aggregation_method"].(string); aggregationKind != "" {
-		result.AggregationKind = pointer.To(alertrules.EventGroupingAggregationKind(aggregationKind))
+		result.AggregationKind = pointer.ToEnum[alertrules.EventGroupingAggregationKind](aggregationKind)
 	}
 
 	return &result
@@ -325,7 +325,7 @@ func expandAlertRuleAlertDynamicProperties(input []interface{}) *[]alertrules.Al
 	for _, v := range input {
 		b := v.(map[string]interface{})
 		output = append(output, alertrules.AlertPropertyMapping{
-			AlertProperty: pointer.To(alertrules.AlertProperty(b["name"].(string))),
+			AlertProperty: pointer.ToEnum[alertrules.AlertProperty](b["name"].(string)),
 			Value:         pointer.To(b["value"].(string)),
 		})
 	}
@@ -362,7 +362,7 @@ func expandAlertRuleEntityMapping(input []interface{}) *[]alertrules.EntityMappi
 	for _, e := range input {
 		b := e.(map[string]interface{})
 		result = append(result, alertrules.EntityMapping{
-			EntityType:    pointer.To(alertrules.EntityMappingType(b["entity_type"].(string))),
+			EntityType:    pointer.ToEnum[alertrules.EntityMappingType](b["entity_type"].(string)),
 			FieldMappings: expandAlertRuleFieldMapping(b["field_mapping"].([]interface{})),
 		})
 	}

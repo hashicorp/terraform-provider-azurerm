@@ -395,7 +395,7 @@ func expandIoTHubDPSSku(d *pluginsdk.ResourceData) iotdpsresource.IotDpsSkuInfo 
 	skuMap := skuList[0].(map[string]interface{})
 
 	return iotdpsresource.IotDpsSkuInfo{
-		Name:     pointer.To(iotdpsresource.IotDpsSku(skuMap["name"].(string))),
+		Name:     pointer.ToEnum[iotdpsresource.IotDpsSku](skuMap["name"].(string)),
 		Capacity: pointer.To(int64(skuMap["capacity"].(int))),
 	}
 }
@@ -476,7 +476,7 @@ func expandDpsIPFilterRules(d *pluginsdk.ResourceData) *[]iotdpsresource.IPFilte
 			FilterName: rawRule["name"].(string),
 			Action:     iotdpsresource.IPFilterActionType(rawRule["action"].(string)),
 			IPMask:     rawRule["ip_mask"].(string),
-			Target:     pointer.To(iotdpsresource.IPFilterTargetType(rawRule["target"].(string))),
+			Target:     pointer.ToEnum[iotdpsresource.IPFilterTargetType](rawRule["target"].(string)),
 		}
 
 		rules = append(rules, *rule)

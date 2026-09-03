@@ -228,7 +228,7 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if status, ok := d.GetOk("profile_status"); ok {
-		profile.Properties.ProfileStatus = pointer.To(profiles.ProfileStatus(status.(string)))
+		profile.Properties.ProfileStatus = pointer.ToEnum[profiles.ProfileStatus](status.(string))
 	}
 
 	trafficRoutingMethodPtr := profile.Properties.TrafficRoutingMethod
@@ -394,7 +394,7 @@ func expandArmTrafficManagerMonitorConfig(d *pluginsdk.ResourceData) *profiles.M
 	customHeaders := expandArmTrafficManagerCustomHeadersConfig(monitor["custom_header"].([]interface{}))
 
 	cfg := profiles.MonitorConfig{
-		Protocol:                  pointer.To(profiles.MonitorProtocol(monitor["protocol"].(string))),
+		Protocol:                  pointer.ToEnum[profiles.MonitorProtocol](monitor["protocol"].(string)),
 		CustomHeaders:             customHeaders,
 		Port:                      pointer.To(int64(monitor["port"].(int))),
 		Path:                      pointer.To(monitor["path"].(string)),

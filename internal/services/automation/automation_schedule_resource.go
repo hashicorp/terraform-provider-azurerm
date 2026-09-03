@@ -474,7 +474,7 @@ func expandArmAutomationScheduleAdvanced(d *pluginsdk.ResourceData, isUpdate boo
 
 		expandedMonthlyOccurrences[i] = schedule.AdvancedScheduleMonthlyOccurrence{
 			Occurrence: pointer.To(int64(m["occurrence"].(int))),
-			Day:        pointer.To(schedule.ScheduleDay(m["day"].(string))),
+			Day:        pointer.ToEnum[schedule.ScheduleDay](m["day"].(string)),
 		}
 	}
 	expandedAdvancedSchedule.MonthlyOccurrences = &expandedMonthlyOccurrences
