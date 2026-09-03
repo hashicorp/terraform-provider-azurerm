@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2025-11-01/nginxdeployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -21,11 +21,11 @@ import (
 type DeploymentResource struct{}
 
 func (a DeploymentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := nginxdeployment.ParseNginxDeploymentID(state.ID)
+	id, err := nginxdeployments.ParseNginxDeploymentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Nginx.NginxDeployment.DeploymentsGet(ctx, *id)
+	resp, err := client.Nginx.NginxDeployments.DeploymentsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Deployment %s: %+v", id, err)
 	}
@@ -150,12 +150,12 @@ func TestAccNginxDeployment_systemAssignedIdentity(t *testing.T) {
 	})
 }
 
-func TestAccNginxDeployment_userAssignedIdentity(t *testing.T) {
+func TestAccNginxDeployment_withUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, nginx.DeploymentResource{}.ResourceType(), "test")
 	r := DeploymentResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.userAssignedIdentity(data),
+			Config: r.withUserAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -521,7 +521,7 @@ resource "azurerm_nginx_deployment" "test" {
 `, a.template(data), data.RandomInteger)
 }
 
-func (a DeploymentResource) userAssignedIdentity(data acceptance.TestData) string {
+func (a DeploymentResource) withUserAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
@@ -725,7 +725,7 @@ resource "azurerm_nginx_deployment" "test" {
   location            = azurerm_resource_group.test.location
 
   identity {
-    type         = "UserAssigned"
+    type         = "SystemAssigned, UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
