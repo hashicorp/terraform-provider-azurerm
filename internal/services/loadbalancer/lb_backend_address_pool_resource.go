@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -21,7 +22,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-var backendAddressPoolResourceName = "azurerm_lb_backend_address_pool"
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "load_balancer_name:loadbalancer_id,resource_group_name:loadbalancer_id,subscription_id:loadbalancer_id"
+
+const backendAddressPoolResourceName = "azurerm_lb_backend_address_pool"
 
 func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -30,15 +33,11 @@ func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 		Read:   resourceArmLoadBalancerBackendAddressPoolRead,
 		Delete: resourceArmLoadBalancerBackendAddressPoolDelete,
 
-		Importer: loadBalancerSubResourceImporter(func(input string) (*loadbalancers.LoadBalancerId, error) {
-			id, err := loadbalancers.ParseLoadBalancerBackendAddressPoolID(input)
-			if err != nil {
-				return nil, err
-			}
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&loadbalancers.LoadBalancerBackendAddressPoolId{}),
+		},
 
-			lbId := loadbalancers.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroupName, id.LoadBalancerName)
-			return &lbId, nil
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&loadbalancers.LoadBalancerBackendAddressPoolId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -171,7 +170,7 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_lb_backend_address_pool", id.ID())
+				return tf.ImportAsExistsError(backendAddressPoolResourceName, id.ID())
 			}
 		}
 	}
@@ -300,6 +299,10 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 
 		if d.IsNewResource() {
 			d.SetId(id.ID())
+			if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+				return err
+			}
+
 		}
 	}
 
@@ -316,8 +319,6 @@ func resourceArmLoadBalancerBackendAddressPoolRead(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	lbId := loadbalancers.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroupName, id.LoadBalancerName)
-
 	resp, err := lbClient.LoadBalancerBackendAddressPoolsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -328,10 +329,15 @@ func resourceArmLoadBalancerBackendAddressPoolRead(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceArmLoadBalancerBackendAddressPoolFlatten(d, id, resp.Model)
+}
+
+func resourceArmLoadBalancerBackendAddressPoolFlatten(d *pluginsdk.ResourceData, id *loadbalancers.LoadBalancerBackendAddressPoolId, model *loadbalancers.BackendAddressPool) error {
 	d.Set("name", id.BackendAddressPoolName)
+	lbId := loadbalancers.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroupName, id.LoadBalancerName)
 	d.Set("loadbalancer_id", lbId.ID())
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if properties := model.Properties; properties != nil {
 			if err := d.Set("tunnel_interface", flattenGatewayLoadBalancerTunnelInterfaces(properties.TunnelInterfaces)); err != nil {
 				return fmt.Errorf("setting `tunnel_interface`: %v", err)
@@ -399,7 +405,7 @@ func resourceArmLoadBalancerBackendAddressPoolRead(d *pluginsdk.ResourceData, me
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceArmLoadBalancerBackendAddressPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error {
