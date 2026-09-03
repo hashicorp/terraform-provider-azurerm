@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -226,13 +227,11 @@ func resourceStorageDataLakeGen2PathCreate(d *pluginsdk.ResourceData, meta inter
 
 	var owner *string
 	if v, ok := d.GetOk("owner"); ok {
-		sv := v.(string)
-		owner = &sv
+		owner = pointer.To(v.(string))
 	}
 	var group *string
 	if v, ok := d.GetOk("group"); ok {
-		sv := v.(string)
-		group = &sv
+		group = pointer.To(v.(string))
 	}
 
 	input := paths.CreateInput{
@@ -299,13 +298,11 @@ func resourceStorageDataLakeGen2PathUpdate(d *pluginsdk.ResourceData, meta inter
 
 	var owner *string
 	if v, ok := d.GetOk("owner"); ok {
-		sv := v.(string)
-		owner = &sv
+		owner = pointer.To(v.(string))
 	}
 	var group *string
 	if v, ok := d.GetOk("group"); ok {
-		sv := v.(string)
-		group = &sv
+		group = pointer.To(v.(string))
 	}
 
 	if acl != nil || owner != nil || group != nil {

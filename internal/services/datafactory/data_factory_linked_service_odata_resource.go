@@ -189,8 +189,7 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		odataLinkedService.Annotations = &annotations
+		odataLinkedService.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{

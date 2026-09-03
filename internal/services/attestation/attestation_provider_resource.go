@@ -391,11 +391,10 @@ func expandArmAttestationProviderJSONWebKeySet(pem string) *attestationproviders
 
 func expandArmAttestationProviderJSONWebKeyArray(pem string) *[]attestationproviders.JSONWebKey {
 	results := make([]attestationproviders.JSONWebKey, 0)
-	certs := []string{pem}
 
 	result := attestationproviders.JSONWebKey{
 		Kty: "RSA",
-		X5c: &certs,
+		X5c: pointer.To([]string{pem}),
 	}
 
 	results = append(results, result)
@@ -425,6 +424,5 @@ func base64DataFromAttestationJWT(input *string) (*string, error) {
 		return nil, nil
 	}
 
-	out := *firstResult.Policy
-	return &out, nil
+	return pointer.To(*firstResult.Policy), nil
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -209,9 +210,8 @@ func expandAzureRmDnsPtrRecords(d *pluginsdk.ResourceData) *[]recordsets.PtrReco
 	records := make([]recordsets.PtrRecord, 0)
 
 	for _, v := range recordStrings {
-		fqdn := v.(string)
 		records = append(records, recordsets.PtrRecord{
-			Ptrdname: &fqdn,
+			Ptrdname: pointer.To(v.(string)),
 		})
 	}
 

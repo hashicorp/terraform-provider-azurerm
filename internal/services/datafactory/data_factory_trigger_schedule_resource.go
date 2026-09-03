@@ -314,8 +314,7 @@ func resourceDataFactoryTriggerScheduleCreate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		scheduleProps.Annotations = &annotations
+		scheduleProps.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	trigger := datafactory.TriggerResource{
@@ -408,8 +407,7 @@ func resourceDataFactoryTriggerScheduleUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		scheduleProps.Annotations = &annotations
+		scheduleProps.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	trigger := datafactory.TriggerResource{

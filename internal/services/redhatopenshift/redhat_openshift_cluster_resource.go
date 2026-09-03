@@ -1131,10 +1131,8 @@ func expandOpenshiftApiServerProfile(input []ApiServerProfile) *openshiftcluster
 		return nil
 	}
 
-	visibility := openshiftclusters.Visibility(input[0].Visibility)
-
 	return &openshiftclusters.APIServerProfile{
-		Visibility: &visibility,
+		Visibility: pointer.To(openshiftclusters.Visibility(input[0].Visibility)),
 	}
 }
 

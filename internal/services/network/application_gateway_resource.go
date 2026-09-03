@@ -1831,9 +1831,8 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if v, ok := d.GetOk("firewall_policy_id"); ok {
-		id := v.(string)
 		gateway.Properties.FirewallPolicy = &applicationgateways.SubResource{
-			Id: &id,
+			Id: pointer.To(v.(string)),
 		}
 	}
 
@@ -2470,7 +2469,6 @@ func expandApplicationGatewayBackendHTTPSettings(input []interface{}, gatewayID 
 	for _, raw := range input {
 		v := raw.(map[string]interface{})
 
-		name := v["name"].(string)
 		path := v["path"].(string)
 		port := int64(v["port"].(int))
 		protocol := v["protocol"].(string)
@@ -2479,7 +2477,7 @@ func expandApplicationGatewayBackendHTTPSettings(input []interface{}, gatewayID 
 		requestTimeout := int64(v["request_timeout"].(int))
 
 		setting := applicationgateways.ApplicationGatewayBackendHTTPSettings{
-			Name: &name,
+			Name: pointer.To(v["name"].(string)),
 			Properties: &applicationgateways.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 				ConnectionDraining:             expandApplicationGatewayConnectionDraining(v),
 				CookieBasedAffinity:            pointer.ToEnum[applicationgateways.ApplicationGatewayCookieBasedAffinity](cookieBasedAffinity),
@@ -3536,11 +3534,10 @@ func expandApplicationGatewayPrivateLinkConfigurations(d *pluginsdk.ResourceData
 			v := rawIp.(map[string]interface{})
 			name := v["name"].(string)
 			subnetId := v["subnet_id"].(string)
-			primary := v["primary"].(bool)
 			ipConfiguration := applicationgateways.ApplicationGatewayPrivateLinkIPConfiguration{
 				Name: pointer.To(name),
 				Properties: &applicationgateways.ApplicationGatewayPrivateLinkIPConfigurationProperties{
-					Primary: &primary,
+					Primary: pointer.To(v["primary"].(bool)),
 					Subnet: &applicationgateways.SubResource{
 						Id: pointer.To(subnetId),
 					},

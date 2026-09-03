@@ -503,9 +503,8 @@ func expandManagedApplicationIdentity(input []interface{}) (*applications.Identi
 		return nil, err
 	}
 
-	resourceType := applications.ResourceIdentityType(expanded.Type)
 	out := &applications.Identity{
-		Type: &resourceType,
+		Type: pointer.To(applications.ResourceIdentityType(expanded.Type)),
 	}
 
 	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
