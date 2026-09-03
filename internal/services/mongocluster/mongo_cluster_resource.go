@@ -269,12 +269,16 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_type": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			Default:      string(mongoclusters.StorageTypePremiumSSD),
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
+			// No `Default` here on purpose. A static default would be sent to the service
+			// even when the practitioner never configured `storage_type`, which prevents the
+			// service from applying its own contextual default. `Computed` lets the service
+			// supply the value and keeps existing resources (which already have a concrete
+			// type in state) from generating a spurious ForceNew diff.
 			ValidateFunc: validation.StringInSlice(mongoclusters.PossibleValuesForStorageType(), false),
-			RequiredWith: []string{"storage_size_in_gb"},
 		},
 
 		"tags": commonschema.Tags(),
@@ -410,10 +414,18 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 			parameter.Properties.PublicNetworkAccess = pointer.ToEnum[mongoclusters.PublicNetworkAccess](state.PublicNetworkAccess)
 
 			if state.StorageSizeInGb != 0 {
-				parameter.Properties.Storage = &mongoclusters.StorageProperties{
+				storage := &mongoclusters.StorageProperties{
 					SizeGb: pointer.To(state.StorageSizeInGb),
-					Type:   pointer.ToEnum[mongoclusters.StorageType](state.StorageType),
 				}
+				// Send `type` only when a value is actually known at this point. It is empty
+				// exactly when the practitioner left `storage_type` unset and the service is
+				// therefore the one choosing, which covers both a brand new cluster and a
+				// cluster being recreated by a replacement. An explicitly configured value is
+				// populated here and must be sent.
+				if state.StorageType != "" {
+					storage.Type = pointer.ToEnum[mongoclusters.StorageType](state.StorageType)
+				}
+				parameter.Properties.Storage = storage
 			}
 
 			if state.Tags != nil {

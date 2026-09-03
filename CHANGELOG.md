@@ -1,3 +1,9 @@
+## 5.5.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_mongo_cluster` - the `storage_type` property is now `Computed` and no longer defaults to `PremiumSSD`, so omitting it no longer plans a destructive replacement of an existing cluster that uses `PremiumSSDv2`, and allows the service to select the storage type
+
 ## 5.4.0 (September 03, 2026)
 
 FEATURES:
