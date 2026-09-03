@@ -58,7 +58,7 @@ gencheck: generate ## Check that generated code matches what is committed
 
 ##@ Formatting & Quick Checks
 # All top-level locations containing Go source, excluding vendor.
-GOPATHS=main.go helpers internal utils version
+GOPATHS=main.go helpers internal version
 
 # The fixers here (plus goimports below) should match the checks in scripts/checks/fmt-check.sh
 fmt: ## Fix Go formatting (gofmt, gofumpt, whitespace)
