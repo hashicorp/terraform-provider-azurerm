@@ -58,7 +58,17 @@ func dataSourceStorageBlob() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"cache_control": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"encryption_scope": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"source_uri": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -135,6 +145,7 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	d.Set("access_tier", string(props.AccessTier))
 	d.Set("content_type", props.ContentType)
+	d.Set("cache_control", props.CacheControl)
 
 	// Set the ContentMD5 value to md5 hash in hex
 	contentMD5 := ""
@@ -145,8 +156,11 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 	d.Set("content_md5", contentMD5)
-
 	d.Set("encryption_scope", props.EncryptionScope)
+
+	if props.CopySource != "" {
+		d.Set("source_uri", props.CopySource)
+	}
 
 	d.Set("type", strings.TrimSuffix(string(props.BlobType), "Blob"))
 
