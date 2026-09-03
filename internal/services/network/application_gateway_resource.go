@@ -2226,8 +2226,7 @@ func resourceApplicationGatewaySetFlatten(d *pluginsdk.ResourceData, id *applica
 				return fmt.Errorf("setting `redirect_configuration`: %+v", setErr)
 			}
 
-			rewriteRuleSets := flattenApplicationGatewayRewriteRuleSets(props.RewriteRuleSets)
-			if setErr := d.Set("rewrite_rule_set", rewriteRuleSets); setErr != nil {
+			if setErr := d.Set("rewrite_rule_set", flattenApplicationGatewayRewriteRuleSets(props.RewriteRuleSets)); setErr != nil {
 				return fmt.Errorf("setting `rewrite_rule_set`: %+v", setErr)
 			}
 
@@ -4435,13 +4434,11 @@ func flattenApplicationGatewayTrustedClientCertificates(input *[]applicationgate
 			continue
 		}
 
-		name := *v.Name
-
 		if v.Id != nil {
 			output["id"] = *v.Id
 		}
 
-		output["name"] = name
+		output["name"] = *v.Name
 
 		if props := v.Properties; props != nil {
 			if data := props.Data; data != nil {
@@ -4518,13 +4515,11 @@ func flattenApplicationGatewaySslProfiles(input *[]applicationgateways.Applicati
 			continue
 		}
 
-		name := *v.Name
-
 		if v.Id != nil {
 			output["id"] = *v.Id
 		}
 
-		output["name"] = name
+		output["name"] = *v.Name
 		output["ssl_policy"] = flattenApplicationGatewaySslPolicy(v.Properties.SslPolicy)
 
 		verifyClientCertIssuerDn := false
@@ -5084,8 +5079,7 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 		return fmt.Errorf("the Application Gateway must specify either `capacity` or `autoscale_configuration` for the selected SKU tier %q", tier)
 	}
 
-	sslPolicy := d.Get("ssl_policy").([]interface{})
-	if err := checkSslPolicy(sslPolicy); err != nil {
+	if err := checkSslPolicy(d.Get("ssl_policy").([]interface{})); err != nil {
 		return err
 	}
 

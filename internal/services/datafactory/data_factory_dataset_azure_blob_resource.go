@@ -284,13 +284,11 @@ func resourceDataFactoryDatasetAzureBlobRead(d *pluginsdk.ResourceData, meta int
 		d.Set("description", azureBlobTable.Description)
 	}
 
-	parameters := flattenDataSetParameters(azureBlobTable.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenDataSetParameters(azureBlobTable.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
-	annotations := flattenDataFactoryAnnotations(azureBlobTable.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(azureBlobTable.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
@@ -315,8 +313,7 @@ func resourceDataFactoryDatasetAzureBlobRead(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	structureColumns := flattenDataFactoryStructureColumns(azureBlobTable.Structure)
-	if err := d.Set("schema_column", structureColumns); err != nil {
+	if err := d.Set("schema_column", flattenDataFactoryStructureColumns(azureBlobTable.Structure)); err != nil {
 		return fmt.Errorf("setting `schema_column`: %+v", err)
 	}
 

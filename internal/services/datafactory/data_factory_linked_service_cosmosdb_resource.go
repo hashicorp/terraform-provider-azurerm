@@ -159,12 +159,11 @@ func resourceDataFactoryLinkedServiceCosmosDbCreateUpdate(d *pluginsdk.ResourceD
 	isAccountDetailUsed := endpoint != "" && accountKey != "" && databaseName != ""
 
 	if isAccountDetailUsed {
-		accountKeySecureString := datafactory.SecureString{
+		cosmosdbProperties.AccountEndpoint = endpoint
+		cosmosdbProperties.AccountKey = datafactory.SecureString{
 			Value: &accountKey,
 			Type:  datafactory.TypeSecureString,
 		}
-		cosmosdbProperties.AccountEndpoint = endpoint
-		cosmosdbProperties.AccountKey = accountKeySecureString
 		cosmosdbProperties.Database = databaseName
 	} else {
 		connectionString := d.Get("connection_string").(string)
@@ -246,13 +245,11 @@ func resourceDataFactoryLinkedServiceCosmosDbRead(d *pluginsdk.ResourceData, met
 	d.Set("additional_properties", cosmosdb.AdditionalProperties)
 	d.Set("description", cosmosdb.Description)
 
-	annotations := flattenDataFactoryAnnotations(cosmosdb.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(cosmosdb.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenLinkedServiceParameters(cosmosdb.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(cosmosdb.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
@@ -267,8 +264,7 @@ func resourceDataFactoryLinkedServiceCosmosDbRead(d *pluginsdk.ResourceData, met
 		d.Set("account_endpoint", accountEndpoint)
 	}
 
-	databaseName := cosmosdb.Database
-	d.Set("database", databaseName)
+	d.Set("database", cosmosdb.Database)
 
 	return nil
 }

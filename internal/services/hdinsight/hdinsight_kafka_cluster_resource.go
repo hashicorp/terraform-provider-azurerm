@@ -417,17 +417,13 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 				ZookeeperNodeDef:       hdInsightKafkaClusterZookeeperNodeDefinition,
 				KafkaManagementNodeDef: &hdInsightKafkaClusterKafkaManagementNodeDefinition,
 			}
-			flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, kafkaRoles)
-			if err := d.Set("roles", flattenedRoles); err != nil {
+			if err := d.Set("roles", flattenHDInsightRoles(d, props.ComputeProfile, kafkaRoles)); err != nil {
 				return fmt.Errorf("failure flattening `roles`: %+v", err)
 			}
 
-			httpEndpoint := findHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
-			d.Set("https_endpoint", httpEndpoint)
-			sshEndpoint := findHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
-			d.Set("ssh_endpoint", sshEndpoint)
-			kafkaRestProxyEndpoint := findHDInsightConnectivityEndpoint("KafkaRestProxyPublicEndpoint", props.ConnectivityEndpoints)
-			d.Set("kafka_rest_proxy_endpoint", kafkaRestProxyEndpoint)
+			d.Set("https_endpoint", findHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints))
+			d.Set("ssh_endpoint", findHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints))
+			d.Set("kafka_rest_proxy_endpoint", findHDInsightConnectivityEndpoint("KafkaRestProxyPublicEndpoint", props.ConnectivityEndpoints))
 
 			if props.EncryptionInTransitProperties != nil {
 				d.Set("encryption_in_transit_enabled", props.EncryptionInTransitProperties.IsEncryptionInTransitEnabled)

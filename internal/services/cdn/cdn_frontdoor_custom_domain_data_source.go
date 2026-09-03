@@ -155,13 +155,11 @@ func dataSourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta inte
 		if props := model.Properties; props != nil {
 			d.Set("host_name", props.HostName)
 
-			dnsZoneId := flattenAfdDNSZoneResourceReference(props.AzureDnsZone)
-			if err := d.Set("dns_zone_id", dnsZoneId); err != nil {
+			if err := d.Set("dns_zone_id", flattenAfdDNSZoneResourceReference(props.AzureDnsZone)); err != nil {
 				return fmt.Errorf("setting `dns_zone_id`: %+v", err)
 			}
 
-			tls := flattenAfdDomainHttpsParameters(props.TlsSettings, true)
-			if err := d.Set("tls", tls); err != nil {
+			if err := d.Set("tls", flattenAfdDomainHttpsParameters(props.TlsSettings, true)); err != nil {
 				return fmt.Errorf("setting `tls`: %+v", err)
 			}
 

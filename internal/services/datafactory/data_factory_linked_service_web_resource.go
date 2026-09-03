@@ -260,13 +260,11 @@ func resourceDataFactoryLinkedServiceWebRead(d *pluginsdk.ResourceData, meta int
 	d.Set("additional_properties", web.AdditionalProperties)
 	d.Set("description", web.Description)
 
-	annotations := flattenDataFactoryAnnotations(web.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(web.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenLinkedServiceParameters(web.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(web.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 

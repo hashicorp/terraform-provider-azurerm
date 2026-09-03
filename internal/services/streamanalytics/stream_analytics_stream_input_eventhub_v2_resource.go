@@ -287,31 +287,21 @@ func (r StreamInputEventHubV2Resource) Read() sdk.ResourceFunc {
 					}
 
 					if eventHubV2InputProps := eventHubV2Input.Properties; eventHubV2InputProps != nil {
-						servicebusNamespace := pointer.From(eventHubV2InputProps.ServiceBusNamespace)
-
-						eventHubName := pointer.From(eventHubV2InputProps.EventHubName)
-
-						eventHubConsumerGroup := pointer.From(eventHubV2InputProps.ConsumerGroupName)
-
 						authenticationMode := ""
 						if v := eventHubV2InputProps.AuthenticationMode; v != nil {
 							authenticationMode = string(*v)
 						}
 
-						sharedAccessPolicyName := pointer.From(eventHubV2InputProps.SharedAccessPolicyName)
-
 						serialization := flattenStreamAnalyticsStreamInputSerializationTyped(streamInput.Serialization)
 
-						partitionKey := pointer.From(streamInput.PartitionKey)
-
-						state.ServiceBusNamespace = servicebusNamespace
-						state.EventHubName = eventHubName
-						state.EventHubConsumerGroupName = eventHubConsumerGroup
+						state.ServiceBusNamespace = pointer.From(eventHubV2InputProps.ServiceBusNamespace)
+						state.EventHubName = pointer.From(eventHubV2InputProps.EventHubName)
+						state.EventHubConsumerGroupName = pointer.From(eventHubV2InputProps.ConsumerGroupName)
 						state.AuthenticationMode = authenticationMode
-						state.SharedAccessPolicyName = sharedAccessPolicyName
+						state.SharedAccessPolicyName = pointer.From(eventHubV2InputProps.SharedAccessPolicyName)
 						state.SharedAccessPolicyKey = metadata.ResourceData.Get("shared_access_policy_key").(string)
 						state.Serialization = []Serialization{serialization}
-						state.PartitionKey = partitionKey
+						state.PartitionKey = pointer.From(streamInput.PartitionKey)
 
 						return metadata.Encode(&state)
 					}

@@ -394,8 +394,7 @@ func resourceHDInsightInteractiveQueryClusterRead(d *pluginsdk.ResourceData, met
 				WorkerNodeDef:    hdInsightInteractiveQueryClusterWorkerNodeDefinition,
 				ZookeeperNodeDef: hdInsightInteractiveQueryClusterZookeeperNodeDefinition,
 			}
-			flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, interactiveQueryRoles)
-			if err := d.Set("roles", flattenedRoles); err != nil {
+			if err := d.Set("roles", flattenHDInsightRoles(d, props.ComputeProfile, interactiveQueryRoles)); err != nil {
 				return fmt.Errorf("flattening `roles`: %+v", err)
 			}
 
@@ -403,10 +402,8 @@ func resourceHDInsightInteractiveQueryClusterRead(d *pluginsdk.ResourceData, met
 				return fmt.Errorf("failed setting `compute_isolation`: %+v", err)
 			}
 
-			httpEndpoint := findHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
-			d.Set("https_endpoint", httpEndpoint)
-			sshEndpoint := findHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
-			d.Set("ssh_endpoint", sshEndpoint)
+			d.Set("https_endpoint", findHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints))
+			d.Set("ssh_endpoint", findHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints))
 
 			d.Set("monitor", flattenHDInsightMonitoring(monitor.Model))
 
