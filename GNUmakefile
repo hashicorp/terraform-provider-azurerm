@@ -170,6 +170,33 @@ prepare: ## Remove all generated files ahead of a full regeneration
 	@find . -iname \*_gen_test.go -type f -delete
 
 ##@ Website & Documentation
+# Remap website link conventions to checkable targets: rendered .html links -> the
+# .html.markdown source files, and old terraform.io root-relative paths -> live URLs.
+# \# escapes the hash from make; remaps do not chain, so each maps to its final form.
+LYCHEE_REMAPS=--root-dir $(CURDIR) \
+	--remap 'file://$(CURDIR)/docs/providers/azurerm/(.*)\.html(\#.*)?$$ file://$(CURDIR)/website/docs/$$1.html.markdown$$2' \
+	--remap 'file://$(CURDIR)/docs/(.*)$$ https://www.terraform.io/docs/$$1' \
+	--remap 'file://$(CURDIR)/providers/(.*)$$ https://registry.terraform.io/providers/$$1' \
+	--remap 'file://(.*)\.html(\#.*)?$$ file://$$1.html.markdown$$2'
+
+# markdown checked by lychee: website docs, README, contributing docs, and the
+# .github markdown (PR/issue templates etc)
+LYCHEE_INPUTS='$(CURDIR)/website/docs/**/*.markdown' '$(CURDIR)/README.md' '$(CURDIR)/contributing/**/*.md' '$(CURDIR)/.github/**/*.md'
+
+# lychee runs from .github/ so its cwd-hardwired files (lychee.toml config,
+# .lycheecache cache) live there instead of the repo root; inputs are absolute paths
+linkcheck: linkcheck-local linkcheck-external ## Check all doc links, internal and external
+
+linkcheck-local: ## Check internal doc links and anchors with lychee (offline, run on PRs)
+	@command -v lychee >/dev/null || (echo "lychee not installed. Install via: brew install lychee" && exit 1)
+	@echo "==> Checking internal website doc links with lychee..."
+	@cd .github && lychee --offline --include-fragments --no-progress $(LYCHEE_REMAPS) $(LYCHEE_INPUTS)
+
+linkcheck-external: ## Check external doc links with lychee (network access, cached)
+	@command -v lychee >/dev/null || (echo "lychee not installed. Install via: brew install lychee" && exit 1)
+	@echo "==> Checking external website doc links with lychee..."
+	@cd .github && lychee --no-progress --scheme https --scheme http $(LYCHEE_REMAPS) $(LYCHEE_INPUTS)
+
 website-lint: ## Check website documentation for issues
 	@echo "==> Checking documentation for .html.markdown extension present"
 	@if ! find website/docs -type f -not -name "*.html.markdown" -print -exec false {} +; then \
@@ -216,4 +243,4 @@ resource-counts: ## Print the number of resources and data sources in the provid
 
 pr-check: generate build test lint website-lint ## Run the same set of checks CI runs against a PR
 
-.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint actionlint yamllint shellcheck depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check
+.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint actionlint yamllint linkcheck linkcheck-local linkcheck-external shellcheck depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check

@@ -15,8 +15,8 @@ If this is a breaking change for users please detail how it cannot be avoided an
 
 ## PR Checklist
 
-- [ ] I have followed the guidelines in our [Contributing Documentation](../blob/main/contributing/README.md).
-- [ ] I have checked to ensure there aren't other open [Pull Requests](../pulls) for the same update/change.
+- [ ] I have followed the guidelines in our [Contributing Documentation](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/contributing/README.md).
+- [ ] I have checked to ensure there aren't other open [Pull Requests](https://github.com/hashicorp/terraform-provider-azurerm/pulls) for the same update/change.
 - [ ] I have checked if my changes close any open issues. If so please include appropriate [closing keywords](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword) below.
 - [ ] I have updated/added Documentation as required written in a helpful and kind way to assist users that may be unfamiliar with the resource / data source.
 - [ ] I have used a meaningful PR title to help maintainers and other users understand this change and help prevent duplicate work. 
@@ -36,7 +36,7 @@ For example: “`resource_name_here` - description of change e.g. adding propert
 
 ## Testing 
 
-- [ ] My submission includes Test coverage as described in the [Contribution Guide](../blob/main/contributing/topics/guide-new-resource.md) and the tests pass. (if this is not possible for any reason, please include details of why you did or could not add test coverage)
+- [ ] My submission includes Test coverage as described in the [Contribution Guide](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/contributing/topics/guide-new-resource.md) and the tests pass. (if this is not possible for any reason, please include details of why you did or could not add test coverage)
 
 <!-- Please include testing logs or evidence here or an explanation on why no testing evidence can be provided. 
 
@@ -45,7 +45,7 @@ For state migrations please test the changes locally and provide details here, s
 
 ## Change Log
 
-Below please provide what should go into the changelog (if anything) conforming to the [Changelog Format documented here](../blob/main/contributing/topics/maintainer-merging.md).
+Below please provide what should go into the changelog (if anything) conforming to the [Changelog Format documented here](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/contributing/topics/maintainer-merging.md).
 
 <!-- Replace the changelog example below with your entry. One resource per line. -->
 

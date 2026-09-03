@@ -90,7 +90,7 @@ provider "azurerm" {
 }
 ```
 
-For more information, see the [Resource Provider Registrations](index.html#resource-provider-registrations) section in the provider documentation.
+For more information, see the [Resource Provider Registrations](../index.html#resource-provider-registrations) section in the provider documentation.
 
 
 #### Enhanced Validation

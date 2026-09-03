@@ -3,12 +3,12 @@ subcategory: "Spring Cloud"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_spring_cloud_app_mysql_association"
 description: |-
-  Associates a [Spring Cloud Application](spring_cloud_app.html) with a [MySQL Database](mysql_database.html).
+  Associates a [Spring Cloud Application](spring_cloud_app.html) with a MySQL Database.
 ---
 
 # azurerm_spring_cloud_app_mysql_association
 
-Associates a [Spring Cloud Application](spring_cloud_app.html) with a [MySQL Database](mysql_database.html).
+Associates a [Spring Cloud Application](spring_cloud_app.html) with a MySQL Database.
 
 !> **Note:** Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_app_mysql_association` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.
 

@@ -535,7 +535,7 @@ A `fixed_date` block supports the following:
 
 A `recurrence` block supports the following:
 
-* `timezone` - (Optional) The Time Zone used for the `hours` field. A list of [possible values can be found here]([https://msdn.microsoft.com/en-us/library/azure/dn931928.aspx](https://learn.microsoft.com/en-us/rest/api/monitor/autoscale-settings/create-or-update?view=rest-monitor-2022-10-01&tabs=HTTP#recurrentschedule)). Defaults to `UTC`.
+* `timezone` - (Optional) The Time Zone used for the `hours` field. A list of [possible values can be found here](https://learn.microsoft.com/en-us/rest/api/monitor/autoscale-settings/create-or-update?view=rest-monitor-2022-10-01&tabs=HTTP#recurrentschedule). Defaults to `UTC`.
 
 * `days` - (Required) A list of days that this profile takes effect on. Possible values include `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday` and `Sunday`.
 

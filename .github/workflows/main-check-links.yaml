@@ -1,0 +1,57 @@
+name: Check Links
+
+# Checks internal and external links on pushes to main. External link rot is a maintainer
+# cleanup task, not something a PR author should be blocked on (PRs get only the offline
+# internal check, in pr-check-links-local.yaml). External results live in a .lycheecache
+# persisted via actions/cache with a 30d max age; on the first seed the timestamps are
+# skewed across the whole window, so each run rechecks a rolling ~1/30 slice instead of
+# the world all at once (and learn.microsoft.com's rate limits never see a stampede).
+# Failures are never cached, so a rotten link stays red on every run until fixed.
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: 'main-check-links-${{ github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  linkcheck-external:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - name: Install lychee
+        run: |
+          curl -sSfL https://github.com/lycheeverse/lychee/releases/download/lychee-v0.24.2/lychee-x86_64-unknown-linux-gnu.tar.gz | tar -xz lychee
+          sudo mv lychee /usr/local/bin/
+      - name: Restore link cache
+        id: cache-restore
+        uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: .github/.lycheecache
+          key: lychee-cache-${{ github.run_id }}
+          restore-keys: lychee-cache-
+      # internal links re-checked on main too: two individually-green PRs can merge into a
+      # broken cross-reference (one deletes a page, the other links to it). External runs
+      # only recheck the expired cache slice.
+      - name: Check internal and external links
+        run: make linkcheck
+      # first seed only: spread entry ages uniformly across the 30d window so expiry
+      # (and thus rechecking) trickles instead of arriving all at once in a month
+      - name: Skew fresh cache across the 30d window
+        if: steps.cache-restore.outputs.cache-matched-key == ''
+        run: |
+          awk -F, -v OFS=, 'BEGIN{srand()} {$NF = $NF - int(rand() * 30*24*3600); print}' .github/.lycheecache > .github/.lycheecache.skewed
+          mv .github/.lycheecache.skewed .github/.lycheecache
+      - name: Save link cache
+        if: always()
+        uses: actions/cache/save@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: .github/.lycheecache
+          key: lychee-cache-${{ github.run_id }}
