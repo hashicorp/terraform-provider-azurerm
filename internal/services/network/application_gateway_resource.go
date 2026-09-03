@@ -397,6 +397,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"private_ip_address": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							// Note: O+C because Azure assigns a private IP from the subnet when not specified
 							Computed: true,
 						},
 
@@ -751,6 +752,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 									"private_ip_address": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
+										// Note: O+C because Azure assigns a private IP from the subnet when not specified
 										Computed: true,
 									},
 
@@ -3219,7 +3221,7 @@ func expandApplicationGatewayGlobalConfiguration(input []interface{}) *applicati
 
 func flattenApplicationGatewayGlobalConfiguration(input *applicationgateways.ApplicationGatewayGlobalConfiguration) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	output := make(map[string]interface{})

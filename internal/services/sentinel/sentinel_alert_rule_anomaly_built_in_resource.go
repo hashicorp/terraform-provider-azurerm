@@ -60,7 +60,7 @@ func (r AlertRuleAnomalyBuiltInResource) Arguments() map[string]*schema.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			ExactlyOneOf: []string{"name", "display_name"},
@@ -69,7 +69,7 @@ func (r AlertRuleAnomalyBuiltInResource) Arguments() map[string]*schema.Schema {
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			ExactlyOneOf: []string{"name", "display_name"},

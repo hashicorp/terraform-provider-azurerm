@@ -142,12 +142,9 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 							ValidateFunc: validate.CIDR,
 						},
 						"action": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(devices.IPFilterActionTypeAccept),
-								string(devices.IPFilterActionTypeReject),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInEnumSlice(devices.PossibleIPFilterActionTypeValues(), false),
 						},
 						"target": {
 							Type:         pluginsdk.TypeString,

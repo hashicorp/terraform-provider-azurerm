@@ -497,7 +497,7 @@ func expandGalleryApplicationVersionManageAction(input []ManageAction) *gallerya
 
 func flattenGalleryApplicationVersionManageAction(input *galleryapplicationversions.UserArtifactManage) []ManageAction {
 	if input == nil {
-		return nil
+		return []ManageAction{}
 	}
 
 	output := make([]ManageAction, 0)

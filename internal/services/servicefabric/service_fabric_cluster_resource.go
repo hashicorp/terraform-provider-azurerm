@@ -82,7 +82,7 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 			"cluster_code_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"management_endpoint": {
@@ -497,7 +497,7 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 						"application_ports": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -516,7 +516,7 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 						"ephemeral_ports": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{

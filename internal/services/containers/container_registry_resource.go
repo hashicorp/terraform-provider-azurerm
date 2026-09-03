@@ -161,7 +161,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			"network_rule_set": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				// ConfigModeAttr ensures we can set this to an empty array for Premium -> Basic
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				MaxItems:   1,
@@ -177,7 +177,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 						"ip_rule": {
 							Type:       pluginsdk.TypeSet,
 							Optional:   true,
-							Computed:   true,
+							Computed:   true, // azignore:AZS007 - pre-existing violation
 							ConfigMode: pluginsdk.SchemaConfigModeAttr,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{

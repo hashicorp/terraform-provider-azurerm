@@ -105,7 +105,7 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 			"immutability": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice(vaults.PossibleValuesForImmutabilityState(), false),
 			},
 

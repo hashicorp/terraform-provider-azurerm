@@ -120,7 +120,7 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 						"cdn_frontdoor_secret_id": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							// O+C because if the secret is managed by FrontDoor this will cause a perpetual diff
+							// Note: O+C because if the secret is managed by FrontDoor this will cause a perpetual diff
 							Computed:     true,
 							ValidateFunc: secrets.ValidateSecretID,
 						},

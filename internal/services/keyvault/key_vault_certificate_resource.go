@@ -93,7 +93,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 			"certificate_policy": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				AtLeastOneOf: []string{
 					"certificate_policy",
 					"certificate",
@@ -121,15 +121,10 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"curve": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										Computed: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(kv.JSONWebKeyCurveNameP256),
-											string(kv.JSONWebKeyCurveNameP256K),
-											string(kv.JSONWebKeyCurveNameP384),
-											string(kv.JSONWebKeyCurveNameP521),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Computed:     true, // azignore:AZS007 - pre-existing violation
+										ValidateFunc: validation.StringInEnumSlice(kv.PossibleJSONWebKeyCurveNameValues(), false),
 									},
 									"exportable": {
 										Type:     pluginsdk.TypeBool,
@@ -138,7 +133,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 									"key_size": {
 										Type:     pluginsdk.TypeInt,
 										Optional: true,
-										Computed: true,
+										Computed: true, // azignore:AZS007 - pre-existing violation
 										ValidateFunc: validation.IntInSlice([]int{
 											256,
 											384,
@@ -178,12 +173,9 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"action_type": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(kv.CertificatePolicyActionAutoRenew),
-														string(kv.CertificatePolicyActionEmailContacts),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInEnumSlice(kv.PossibleCertificatePolicyActionValues(), false),
 												},
 											},
 										},
@@ -226,14 +218,14 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 						"x509_certificate_properties": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"extended_key_usage": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
-										Computed: true,
+										Computed: true, // azignore:AZS007 - pre-existing violation
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
@@ -243,18 +235,8 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeSet,
 										Required: true,
 										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												string(kv.KeyUsageTypeCRLSign),
-												string(kv.KeyUsageTypeDataEncipherment),
-												string(kv.KeyUsageTypeDecipherOnly),
-												string(kv.KeyUsageTypeDigitalSignature),
-												string(kv.KeyUsageTypeEncipherOnly),
-												string(kv.KeyUsageTypeKeyAgreement),
-												string(kv.KeyUsageTypeKeyCertSign),
-												string(kv.KeyUsageTypeKeyEncipherment),
-												string(kv.KeyUsageTypeNonRepudiation),
-											}, false),
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringInEnumSlice(kv.PossibleKeyUsageTypeValues(), false),
 										},
 									},
 									"subject": {
@@ -264,7 +246,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 									"subject_alternative_names": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
-										Computed: true,
+										Computed: true, // azignore:AZS007 - pre-existing violation
 										MaxItems: 1,
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{

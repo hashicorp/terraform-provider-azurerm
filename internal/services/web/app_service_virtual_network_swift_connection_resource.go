@@ -19,8 +19,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	networkpoller "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
@@ -48,7 +48,7 @@ func resourceAppServiceVirtualNetworkSwiftConnection() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AppServiceID,
+				ValidateFunc: validation.AsGeneratedID(commonids.ParseAppServiceIDInsensitively),
 			},
 			"subnet_id": {
 				Type:         pluginsdk.TypeString,
