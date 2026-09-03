@@ -26,47 +26,47 @@ The steps outlined below uses an example resource that is deprecated, but the sa
     For Typed Resources
 
     ```go
-    
-    // For resources that have no replacement
-    
-    var _ sdk.ResourceWithDeprecationAndNoReplacement = ResourceWithNoReplacement{}
-    
-    func (r ResourceWithNoReplacement) DeprecationMessage() string {
-        return "The `azurerm_resource_with_no_replacement` resource has been deprecated and will be removed in v6.0 of the AzureRM Provider"
-    }
-     
-    
-    // For resources that have a replacement
-    
-    var _ sdk.ResourceWithDeprecationReplacedBy = ResourceWithReplacement{}
-    
-    func (r ResourceWithReplacement) DeprecatedInFavourOfResource() string {
-        return "azurerm_new_resource"
-    }
-    
+
+        // For resources that have no replacement
+
+        var _ sdk.ResourceWithDeprecationAndNoReplacement = ResourceWithNoReplacement{}
+
+        func (r ResourceWithNoReplacement) DeprecationMessage() string {
+            return "The `azurerm_resource_with_no_replacement` resource has been deprecated and will be removed in v6.0 of the AzureRM Provider"
+        }
+
+
+        // For resources that have a replacement
+
+        var _ sdk.ResourceWithDeprecationReplacedBy = ResourceWithReplacement{}
+
+        func (r ResourceWithReplacement) DeprecatedInFavourOfResource() string {
+            return "azurerm_new_resource"
+        }
+
     ```
 
     For Untyped Resources
 
     ```go
-    func resourceExample() *pluginsdk.Resource {
-        return &pluginsdk.Resource{
-            Create: resourceExampleCreate,
-            Read:   resourceExampleRead,
-            Update: resourceExampleUpdate,
-            Delete: resourceExampleDelete,
-            
-            Timeouts: &pluginsdk.ResourceTimeout{
-            Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-            Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-            Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-            Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
-            },
-            
-            DeprecationMessage: "The `azurerm_example` resource has been deprecated and will be removed in v6.0 of the AzureRM Provider"
-            ...
+        func resourceExample() *pluginsdk.Resource {
+            return &pluginsdk.Resource{
+                Create: resourceExampleCreate,
+                Read:   resourceExampleRead,
+                Update: resourceExampleUpdate,
+                Delete: resourceExampleDelete,
+
+                Timeouts: &pluginsdk.ResourceTimeout{
+                Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+                Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+                Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+                Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+                },
+
+                DeprecationMessage: "The `azurerm_example` resource has been deprecated and will be removed in v6.0 of the AzureRM Provider"
+                ...
+            }
         }
-    }
     ```
 
 2. Conditionally register the resource in the `registration.go` file of the service package.
@@ -74,34 +74,34 @@ The steps outlined below uses an example resource that is deprecated, but the sa
     For Typed Resources
 
     ```go
-    func (r Registration) Resources() []sdk.Resource {
-        resources := []sdk.Resource{
-            MySqlFlexibleServerResource{},
+        func (r Registration) Resources() []sdk.Resource {
+            resources := []sdk.Resource{
+                MySqlFlexibleServerResource{},
+            }
+
+            if !features.SixPointOh() {
+                resources = append(resources, ExampleResource{})
+            }
+
+            return resources
         }
-        
-        if !features.SixPointOh() {
-            resources = append(resources, ExampleResource{})
-        }
-        
-        return resources
-    }
     ```
 
     For Untyped Resources
 
     ```go
-    func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-        resources := map[string]*pluginsdk.Resource{
-            "azurerm_mysql_flexible_server": resourceMysqlFlexibleServer(),
-    
+        func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+            resources := map[string]*pluginsdk.Resource{
+                "azurerm_mysql_flexible_server": resourceMysqlFlexibleServer(),
+
+            }
+
+            if !features.SixPointOh() {
+                resources["azurerm_example"] = resourceExample()
+            }
+
+            return resources
         }
-    
-        if !features.SixPointOh() {
-            resources["azurerm_example"] = resourceExample()
-        }
-    
-        return resources
-    }
     ```
 
 3. Handle tests for the deprecated resource.
@@ -111,23 +111,23 @@ The steps outlined below uses an example resource that is deprecated, but the sa
     If the Azure API can still provision the resource, conditionally skip the tests using the major release feature flag, this allows the tests to run until the next major release is published:
 
     ```go
-    func TestAccExample_basic(t *testing.T) {
-        if features.SixPointOh() {
-            t.Skipf("Skipping since `azurerm_example` is deprecated and will be removed in 6.0")
+        func TestAccExample_basic(t *testing.T) {
+            if features.SixPointOh() {
+                t.Skipf("Skipping since `azurerm_example` is deprecated and will be removed in 6.0")
+            }
+            data := acceptance.BuildTestData(t, "azurerm_example", "test")
+            r := ExampleResource{}
+
+            data.ResourceTest(t, r, []acceptance.TestStep{
+            {
+                Config: r.basic(data),
+                Check: acceptance.ComposeTestCheckFunc(
+                    check.That(data.ResourceName).ExistsInAzure(r),
+                ),
+            },
+                data.ImportStep()
+            })
         }
-        data := acceptance.BuildTestData(t, "azurerm_example", "test")
-        r := ExampleResource{}
-        
-        data.ResourceTest(t, r, []acceptance.TestStep{
-        {
-            Config: r.basic(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r),
-            ),
-        },
-            data.ImportStep()
-        })
-    }
     ```
 
     **Option B: Remove tests (when API no longer works)**
@@ -139,17 +139,17 @@ The steps outlined below uses an example resource that is deprecated, but the sa
 4. Update the upgrade guide under `website/docs/6.0-upgrade-guide.markdown`.
 
     ```markdown
-    ## Removed Resources
-   
-    ### `azurerm_example`
-   
-    This deprecated resources has been removed from the Azure Provider.
+       ## Removed Resources
+
+       ### `azurerm_example`
+
+       This deprecated resources has been removed from the Azure Provider.
     ```
 
 5. Update the resource (or data source) documentation
 
    ```markdown
-   ~> **Note:** The `azurerm_example` resource has been deprecated because [reason here e.g. the service is retiring by 2025-10-10] and will be removed in v6.0 of the AzureRM Provider.
+      ~> **Note:** The `azurerm_example` resource has been deprecated because [reason here e.g. the service is retiring by 2025-10-10] and will be removed in v6.0 of the AzureRM Provider.
    ```
 
 ## Breaking Schema Changes and Deprecations
@@ -173,44 +173,44 @@ The following example follows a fictional resource that will have the following 
 1. Update the Schema with the target or desired breaking schema change and patch over the breaking schema change with the current behaviour using the major release feature flag.
 
     ```go
-    func (r ExampleResource) Arguments() map[string]*pluginsdk.Schema{
-      args := map[string]*pluginsdk.Schema{
-         "scaling_enabled": {
-            Type:     pluginsdk.TypeBool,
-            Optional: true,
-            Default: false,
-         },
-         "version": {
-            Type:     pluginsdk.TypeString,
-            Optional: true,
-            Default: 2,
-         },
-      }
+       func (r ExampleResource) Arguments() map[string]*pluginsdk.Schema{
+          args := map[string]*pluginsdk.Schema{
+             "scaling_enabled": {
+                Type:     pluginsdk.TypeBool,
+                Optional: true,
+                Default: false,
+             },      
+             "version": {
+                Type:     pluginsdk.TypeString,
+                Optional: true,
+                Default: 2,
+             },
+          }
 
-      // Regardless of the number of arguments changing, the whole schema definition should be updated like the following rather than inline changes for the current schema definition.
-      // This is to make cleanup easy so we can delete this block when the next major version releases.
-      if !features.SixPointOh() {
-         args["enable_scaling"] = &pluginsdk.Schema{
-            Type:          pluginsdk.TypeBool,
-            Optional:      true,
-            Computed:      true,
-            ConflictsWith: []string{"scaling_enabled"},
-            Deprecated:    "`enable_scaling` has been deprecated in favour of `scaling_enabled` and will be removed in v6.0 of the AzureRM Provider",
-         }
-         // When renaming a property both properties need to have `Computed` set on them until the old property is removed in the next major release
-         // We also need to remember to set ConflictsWith on both the old and the renamed property to ensure users don't set both in their config
-         args["scaling_enabled"] = &pluginsdk.Schema{
-            Type:          pluginsdk.TypeBool,
-            Optional:      true,
-            Computed:      true,
-            ConflictsWith: []string{"enable_scaling"},
-         }
+          // Regardless of the number of arguments changing, the whole schema definition should be updated like the following rather than inline changes for the current schema definition.
+          // This is to make cleanup easy so we can delete this block when the next major version releases.
+          if !features.SixPointOh() {
+             args["enable_scaling"] = &pluginsdk.Schema{
+                Type:          pluginsdk.TypeBool,
+                Optional:      true,
+                Computed:      true,
+                ConflictsWith: []string{"scaling_enabled"},
+                Deprecated:    "`enable_scaling` has been deprecated in favour of `scaling_enabled` and will be removed in v6.0 of the AzureRM Provider",
+             }
+             // When renaming a property both properties need to have `Computed` set on them until the old property is removed in the next major release
+             // We also need to remember to set ConflictsWith on both the old and the renamed property to ensure users don't set both in their config
+             args["scaling_enabled"] = &pluginsdk.Schema{
+                Type:          pluginsdk.TypeBool,
+                Optional:      true,
+                Computed:      true,
+                ConflictsWith: []string{"enable_scaling"},
+             }
 
-         args["version"].Default = 1
-      }
+             args["version"].Default = 1
+          }
 
-      return args
-    }
+          return args
+       }
     ```
 
     > **Note:** In the past we've accepted in-lined anonymous functions in a property's schema definition to conditionally change the default value, validation function etc. these will no longer be accepted in the provider. This is a deliberate decision to reduce the variation in how deprecations are done in the provider and also simplifies the clean-up effort of feature flagged code after the major release.
@@ -220,18 +220,18 @@ The following example follows a fictional resource that will have the following 
     For Create function, you can do:
 
     ```go
-   
-    payload := example.Payload{
-     // ...
-     EnableScaling: pointer.To(model.ScalingEnabled),
-     // ...
-    }
 
-    if !features.SixPointOh() {
-     if !pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "enable_scaling") {
-    payload.EnableScaling = pointer.To(model.EnableScaling);
-     }
-    }
+       payload := example.Payload{
+         // ...
+         EnableScaling: pointer.To(model.ScalingEnabled),
+         // ...
+       }
+
+       if !features.SixPointOh() {
+         if !pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "enable_scaling") {
+           payload.EnableScaling = pointer.To(model.EnableScaling);
+         }
+       }
     ```
 
 3. Update the test configurations.
@@ -241,40 +241,40 @@ The following example follows a fictional resource that will have the following 
     * One test configuration should continue using the old property to ensure that it still works as expected, but switch to using the renamed property in the major release mode. An example of what that looks like is provided below.
 
     ```go
-    func (ExampleResource) complete(data acceptance.TestData) string {
-    if !features.SixPointOh() {
-        return fmt.Sprintf(`
-    provider "azurerm" {
-     features {}
-    }
+       func (ExampleResource) complete(data acceptance.TestData) string {
+       if !features.SixPointOh() {
+            return fmt.Sprintf(`
+       provider "azurerm" {
+         features {}
+       }
 
-    resource "azurerm_resource_group" "test" {
-     name     = "acctestRG-example-%[1]d"
-     location = "%[2]s"
-    }
+       resource "azurerm_resource_group" "test" {
+         name     = "acctestRG-example-%[1]d"
+         location = "%[2]s"
+       }
 
-    resource "azurerm_example" "test" {
-     name           = "acctestexample%[1]d"
-     enable_scaling = true
-    }
-    `, data.RandomInteger, data.Locations.Primary)
-        }
-    return fmt.Sprintf(`
-    provider "azurerm" {
-     features {}
-    }
+       resource "azurerm_example" "test" {
+         name           = "acctestexample%[1]d"
+         enable_scaling = true
+       }
+       `, data.RandomInteger, data.Locations.Primary)
+            }
+       return fmt.Sprintf(`
+       provider "azurerm" {
+         features {}
+       }
 
-    resource "azurerm_resource_group" "test" {
-     name     = "acctestRG-example-%[1]d"
-     location = "%[2]s"
-    }
+       resource "azurerm_resource_group" "test" {
+         name     = "acctestRG-example-%[1]d"
+         location = "%[2]s"
+       }
 
-    resource "azurerm_example" "test" {
-     name            = "acctestexample%[1]d"
-     scaling_enabled = true
-    }
-    `, data.RandomInteger, data.Locations.Primary)
-    }
+       resource "azurerm_example" "test" {
+         name            = "acctestexample%[1]d"
+         scaling_enabled = true
+       }
+       `, data.RandomInteger, data.Locations.Primary)
+       }
     ```
 
     > **Note:** Wherever possible, only update the test configuration and avoid updating the test case since changes to the test cases are more involved and higher effort to clean up.
@@ -284,12 +284,12 @@ The following example follows a fictional resource that will have the following 
     Under the appropriate section of the upgrade guide, add a line for the deprecation
 
     ```markdown
-    ## Breaking changes in Resources
-   
-    ### `azurerm_example_resource`
-   
-    * The deprecated `enable_scaling` property has been removed in favour of the `scaling_enabled` property.
-    * The property `version` now defaults to `2`.
+       ## Breaking changes in Resources
+
+       ### `azurerm_example_resource`
+
+       * The deprecated `enable_scaling` property has been removed in favour of the `scaling_enabled` property.
+       * The property `version` now defaults to `2`.
     ```
 
     The resources/data sources should be added in alphabetical order.

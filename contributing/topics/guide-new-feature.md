@@ -18,11 +18,11 @@ Following are the steps needed to add a new Feature to the Feature Block:
 
     ```go
     type UserFeatures struct {
-    KeyVault KeyVaultFeatures
+        KeyVault KeyVaultFeatures
     }
 
     type KeyVaultFeatures struct {
-    PurgeSoftDeleteOnDestroy bool
+        PurgeSoftDeleteOnDestroy bool
     }
     ```
 
@@ -45,38 +45,38 @@ func Default() UserFeatures {
 
     ```go
     func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
-    featuresMap := map[string]*pluginsdk.Schema{
-        ...
-        "key_vault": {
-            Type:     pluginsdk.TypeList,
-            Optional: true,
-            MaxItems: 1,
-            Elem: &pluginsdk.Resource{
-            Schema: map[string]*pluginsdk.Schema{
-                "purge_soft_delete_on_destroy": {
-                    Description: "When enabled soft-deleted `azurerm_key_vault` resources will be permanently deleted (e.g purged), when destroyed",
-                    Type:        pluginsdk.TypeBool,
-                    Optional:    true,
-                    Default:     true,
+        featuresMap := map[string]*pluginsdk.Schema{
+            ...
+            "key_vault": {
+                Type:     pluginsdk.TypeList,
+                Optional: true,
+                MaxItems: 1,
+                Elem: &pluginsdk.Resource{
+                Schema: map[string]*pluginsdk.Schema{
+                    "purge_soft_delete_on_destroy": {
+                        Description: "When enabled soft-deleted `azurerm_key_vault` resources will be permanently deleted (e.g purged), when destroyed",
+                        Type:        pluginsdk.TypeBool,
+                        Optional:    true,
+                        Default:     true,
+                    },
                 },
             },
-        },
-        ...
-    }
+            ...
+        }
     }
 
     func expandFeatures(input []interface{}) features.UserFeatures {
-    ...
-    if raw, ok := val["key_vault"]; ok {
-        items := raw.([]interface{})
-        if len(items) > 0 && items[0] != nil {
-            keyVaultRaw := items[0].(map[string]interface{})
-            if v, ok := keyVaultRaw["purge_soft_delete_on_destroy"]; ok {
-                featuresMap.KeyVault.PurgeSoftDeleteOnDestroy = v.(bool)
+        ...
+        if raw, ok := val["key_vault"]; ok {
+            items := raw.([]interface{})
+            if len(items) > 0 && items[0] != nil {
+                keyVaultRaw := items[0].(map[string]interface{})
+                if v, ok := keyVaultRaw["purge_soft_delete_on_destroy"]; ok {
+                    featuresMap.KeyVault.PurgeSoftDeleteOnDestroy = v.(bool)
+                }
             }
         }
-    }
-    ...
+        ...
     }
     ```
 
@@ -220,26 +220,26 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
     ```go
     // For new services, add a List type for the new block with a `tfsdk` struct tag that matches the schema name for the block, for new features in an existing block/service, this can be skipped.
     type Features struct {
-    ...
-    KeyVault types.List `tfsdk:"key_vault"`
-    ...
+        ...
+        KeyVault types.List `tfsdk:"key_vault"`
+        ...
     }
 
     // and an attribute map variable for the block, or add to the appropriate existing var
     var FeaturesAttributes = map[string]attr.Type{
-    ...
-    "key_vault": types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(KeyVaultAttributes)),
-    ...
+        ...
+        "key_vault": types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(KeyVaultAttributes)),
+        ...
     }
 
     // Add a Go struct that matches the new block or add to the appropriate existing struct
     type KeyVault struct {
-    PurgeSoftDeleteOnDestroy types.Bool `tfsdk:"purge_soft_delete_on_destroy"`
+        PurgeSoftDeleteOnDestroy types.Bool `tfsdk:"purge_soft_delete_on_destroy"`
     }
 
     // finally, create the attribute map variable for the new block, or add the feature to the appropriate existing map
     var KeyVaultAttributes = map[string]attr.Type{
-    "purge_soft_delete_on_destroy": types.BoolType
+        "purge_soft_delete_on_destroy": types.BoolType
     }
     ```
 
@@ -247,34 +247,34 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 
     ```go
     func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRequest, response *provider.SchemaResponse) {
-    response.Schema = schema.Schema{
-        ...
-        Blocks: map[string]schema.Block{
-            "features": schema.ListNestedBlock{
-                Validators: []validator.List{
-                    listvalidator.SizeBetween(1, 1),
-                },
-                NestedObject: schema.NestedBlockObject{
-                    Blocks: map[string]schema.Block{
-                        ...
-                        // Add an attribute map variable for the new block or add to the existing map inside the Nested Object
-                        "key_vault": schema.ListNestedBlock{
-                            NestedObject: schema.NestedBlockObject{
-                            	Attributes: map[string]schema.Attribute{
-                                	"purge_soft_delete_on_destroy": schema.BoolAttribute{
-                            	    	Description: "When enabled soft-deleted `azurerm_key_vault` resources will be permanently deleted (e.g purged), when destroyed",
-                            	    	Optional:    true,
-                                   },
+        response.Schema = schema.Schema{
+            ...
+            Blocks: map[string]schema.Block{
+                "features": schema.ListNestedBlock{
+                    Validators: []validator.List{
+                        listvalidator.SizeBetween(1, 1),
+                    },
+                    NestedObject: schema.NestedBlockObject{
+                        Blocks: map[string]schema.Block{
+                            ...
+                            // Add an attribute map variable for the new block or add to the existing map inside the Nested Object
+                            "key_vault": schema.ListNestedBlock{
+                                NestedObject: schema.NestedBlockObject{
+                                	Attributes: map[string]schema.Attribute{
+                                    	"purge_soft_delete_on_destroy": schema.BoolAttribute{
+                                	    	Description: "When enabled soft-deleted `azurerm_key_vault` resources will be permanently deleted (e.g purged), when destroyed",
+                                	    	Optional:    true,
+                                       },
+                                    },
                                 },
                             },
+                            ...
                         },
-                        ...
                     },
                 },
-            },
-        },	
-        ...
-    }
+            },	
+            ...
+        }
     }
     ```
 
@@ -283,21 +283,21 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
     ```go
     // Add a new check that the feature has been specified in the config that then loads the feature into the provider or add the new feature to the existing block.
     func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersion string, diags *diag.Diagnostics) {
-    ...
-    if !features.KeyVault.IsNull() && !features.KeyVault.IsUnknown() {
-        var feature []KeyVault
-        d := features.KeyVault.ElementsAs(ctx, &feature, true)
-        diags.Append(d...)
-        if diags.HasError() {
-            return
-        }
+        ...
+        if !features.KeyVault.IsNull() && !features.KeyVault.IsUnknown() {
+            var feature []KeyVault
+            d := features.KeyVault.ElementsAs(ctx, &feature, true)
+            diags.Append(d...)
+            if diags.HasError() {
+                return
+            }
 
-        f.KeyVault.PurgeSoftDeleteOnDestroy = true
-        if !feature[0].PurgeSoftDeleteOnDestroy.IsNull() && !feature[0].PurgeSoftDeleteOnDestroy.IsUnknown() {
-            f.KeyVault.PurgeSoftDeleteOnDestroy = feature[0].PurgeSoftDeleteOnDestroy.ValueBool()
+            f.KeyVault.PurgeSoftDeleteOnDestroy = true
+            if !feature[0].PurgeSoftDeleteOnDestroy.IsNull() && !feature[0].PurgeSoftDeleteOnDestroy.IsUnknown() {
+                f.KeyVault.PurgeSoftDeleteOnDestroy = feature[0].PurgeSoftDeleteOnDestroy.ValueBool()
+            }
         }
-    }
-    ...
+        ...
     }
     ```
 
@@ -327,11 +327,11 @@ func defaultFeaturesList() types.List {
 
     ```go
     func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-    ...
-    if meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy {
-        // Purge the Keyvault
-    }
-    ...
+        ...
+        if meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy {
+            // Purge the Keyvault
+        }
+        ...
     }
     ```
 
