@@ -33,7 +33,6 @@ At a high-level, the Provider structure is:
 | `./internal/timeouts` | Helpers for computing the Timeouts for a Data Source / Resource - used in Untyped Data Sources and Untyped Resources. |
 | `./internal/tools` | Tooling used to generate functionality within the Provider, for example for Resource IDs and Website Documentation. |
 | `./scripts` | Scripts used during testing, linting, and building the provider. |
-| `./utils` | Helper functions for converting simple types (e.g. bool/int/strings) to pointers (e.g. `pointer.To(“someValue”)`). **We intend to deprecate this folder in time** and new functionality should be added to individual service packages where possible. The existing functions will be gradually moved (via aliasing) into another repository. |
 | `./vendor` | Vendored copies of the go modules the provider uses. For more information please refer to the official [Go Documentation](https://go.dev/ref/mod#vendoring). |
 | `./website` | Guides and documentation for each resource (in `./website/docs/r`) and data source (in `./website/docs/d`) that are published to the Terraform [registry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs). |
 
