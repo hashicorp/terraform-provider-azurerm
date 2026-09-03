@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	edgezonesutil "github.com/hashicorp/terraform-provider-azurerm/internal/edgezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -607,8 +608,8 @@ func expandA2ASettings(input ReplicationRecoveryPlanA2ASpecificInputModel) *[]re
 		replicationrecoveryplans.RecoveryPlanA2AInput{
 			PrimaryZone:              pointer.To(input.PrimaryZone),
 			RecoveryZone:             pointer.To(input.RecoveryZone),
-			PrimaryExtendedLocation:  expandEdgeZone(input.PrimaryEdgeZone),
-			RecoveryExtendedLocation: expandEdgeZone(input.RecoveryEdgeZone),
+			PrimaryExtendedLocation:  edgezonesutil.Expand(input.PrimaryEdgeZone),
+			RecoveryExtendedLocation: edgezonesutil.Expand(input.RecoveryEdgeZone),
 		},
 	}
 }
@@ -730,8 +731,8 @@ func flattenRecoveryPlanProviderSpecificInput(input *[]replicationrecoveryplans.
 			o := ReplicationRecoveryPlanA2ASpecificInputModel{
 				PrimaryZone:      pointer.From(a2aInput.PrimaryZone),
 				RecoveryZone:     pointer.From(a2aInput.RecoveryZone),
-				PrimaryEdgeZone:  flattenEdgeZone(a2aInput.PrimaryExtendedLocation),
-				RecoveryEdgeZone: flattenEdgeZone(a2aInput.RecoveryExtendedLocation),
+				PrimaryEdgeZone:  edgezonesutil.Flatten(a2aInput.PrimaryExtendedLocation),
+				RecoveryEdgeZone: edgezonesutil.Flatten(a2aInput.RecoveryExtendedLocation),
 			}
 			output = append(output, o)
 		}

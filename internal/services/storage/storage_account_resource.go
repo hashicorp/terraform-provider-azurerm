@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -29,6 +28,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/edgezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyVaultsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
@@ -1261,7 +1261,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	isHnsEnabled := d.Get("is_hns_enabled").(bool)
 	nfsV3Enabled := d.Get("nfsv3_enabled").(bool)
 	payload := storageaccounts.StorageAccountCreateParameters{
-		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		ExtendedLocation: edgezones.Expand(d.Get("edge_zone").(string)),
 		Kind:             accountKind,
 		Identity:         expandedIdentity,
 		Location:         location.Normalize(d.Get("location").(string)),
@@ -1923,7 +1923,7 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 	d.Set("account_replication_type", accountReplicationType)
 	d.Set("provisioned_billing_model_version", provisionBillingModelVer)
 
-	d.Set("edge_zone", flattenEdgeZone(account.ExtendedLocation))
+	d.Set("edge_zone", edgezones.Flatten(account.ExtendedLocation))
 	d.Set("location", location.Normalize(account.Location))
 
 	if props := account.Properties; props != nil {
@@ -3008,24 +3008,5 @@ func flattenAccountSASPolicy(input *storageaccounts.SasPolicy) []interface{} {
 		})
 	}
 
-	return output
-}
-
-func expandEdgeZone(input string) *edgezones.Model {
-	normalized := edgezones.Normalize(input)
-	if normalized == "" {
-		return nil
-	}
-
-	return &edgezones.Model{
-		Name: normalized,
-	}
-}
-
-func flattenEdgeZone(input *edgezones.Model) string {
-	output := ""
-	if input != nil {
-		output = edgezones.Normalize(input.Name)
-	}
 	return output
 }
