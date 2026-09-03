@@ -1,6 +1,7 @@
 ## 5.5.0 (Unreleased)
 
 ENHANCEMENTS:
+* **New List Resource**:`virtual_hub_connection` [GH-33311]
 * dependencies: `go-azure-sdk` - update to `v0.20260901.1173158` [GH-33274]
 
 FEATURES:
