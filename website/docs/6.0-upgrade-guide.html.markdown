@@ -80,6 +80,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 ---
 
+### `azurerm_application_insights_workbook`
+
+* The `storage_container_id` property is now validated case-sensitively.
+
 ### `azurerm_databricks_workspace`
 
 * The deprecated `managed_disk_cmk_key_vault_id` property has been removed.

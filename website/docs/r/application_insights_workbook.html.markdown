@@ -70,8 +70,6 @@ The following arguments are supported:
 
 * `storage_container_id` - (Optional) Specifies the Resource Manager ID of the Storage Container when bring your own storage is used. Changing this forces a new Workbook to be created.
 
--> **Note:** This is the Resource Manager ID of the Storage Container, rather than the regular ID - and can be accessed on the `azurerm_storage_container` Data Source/Resource as `resource_manager_id`.
-
 * `tags` - (Optional) A mapping of tags which should be assigned to the Workbook.
 
 ---

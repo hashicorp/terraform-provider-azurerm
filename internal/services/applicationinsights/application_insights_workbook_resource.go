@@ -12,11 +12,13 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	workbooks "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/workbooksapis"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -60,7 +62,7 @@ func (r ApplicationInsightsWorkbookResource) Identity() resourceids.ResourceId {
 }
 
 func (r ApplicationInsightsWorkbookResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	a := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -114,7 +116,7 @@ func (r ApplicationInsightsWorkbookResource) Arguments() map[string]*pluginsdk.S
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: commonids.ValidateStorageContainerID,
 			RequiredWith: []string{
 				"identity",
 			},
@@ -129,6 +131,20 @@ func (r ApplicationInsightsWorkbookResource) Arguments() map[string]*pluginsdk.S
 			},
 		},
 	}
+
+	if !features.SixPointOh() {
+		a["storage_container_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{
+				"identity",
+			},
+		}
+	}
+
+	return a
 }
 
 func (r ApplicationInsightsWorkbookResource) Attributes() map[string]*pluginsdk.Schema {
@@ -300,21 +316,17 @@ func (r ApplicationInsightsWorkbookResource) Read() sdk.ResourceFunc {
 
 			if properties := model.Properties; properties != nil {
 				state.Category = properties.Category
-
-				if properties.Description != nil {
-					state.Description = *properties.Description
-				}
-
+				state.Description = pointer.From(properties.Description)
 				state.DisplayName = properties.DisplayName
-
 				state.DataJson = properties.SerializedData
-
-				if properties.SourceId != nil {
-					state.SourceId = *properties.SourceId
-				}
+				state.SourceId = pointer.From(properties.SourceId)
 
 				if properties.StorageUri != nil {
-					state.StorageContainerId = *properties.StorageUri
+					storageContainerID, err := commonids.ParseStorageContainerIDInsensitively(*properties.StorageUri)
+					if err != nil {
+						return err
+					}
+					state.StorageContainerId = storageContainerID.ID()
 				}
 			}
 
