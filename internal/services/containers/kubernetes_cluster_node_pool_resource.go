@@ -261,7 +261,8 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: containerValidate.KubernetesNodeTaint,
 			},
 		},
 
@@ -588,14 +589,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	}
 
 	nodeTaintsRaw := d.Get("node_taints").([]interface{})
-	// see https://kubernetes.io/docs/reference/kubectl/generated/kubectl_taint/
-	validTaintRegex := `^([\w\-\.\/]{1,253})=([\w\-\.\/]{0,63}):(NoSchedule|PreferNoSchedule|NoExecute)$`
-	if nodeTaints := utils.ExpandStringSlice(nodeTaintsRaw); len(*nodeTaints) > 0 {
-		for index, taint := range nodeTaints {
-			if matched, _ := regexp.MatchString(validTaintRegex, taint); !matched {
-				return fmt.Errorf("`node_taints` contains an invalid taint (\"%s\") - must be expressed as 'key=value:effect' where 'key' is any word character including [-./] up to 253 characters, 'value' (optional) is any character including [-./] up to 63 characters and 'effect' is one of [NoSchedule, PreferNoSchedule, NoExecute]", taint)
-			}
-		}
+	if nodeTaints := helpers.ExpandStringSlice(nodeTaintsRaw); len(*nodeTaints) > 0 {
 		profile.NodeTaints = nodeTaints
 	}
 

@@ -112,7 +112,7 @@ The following arguments are supported:
 
 * `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `node_public_ip_enabled` should be `true`. Changing this forces a new resource to be created.
 
-* `node_taints` - (Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g `key=value:NoSchedule`).
+* `node_taints` - (Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool. Each taint must be expressed as `key=value:effect` (e.g. `key=value:NoSchedule`), where `value` is optional and `effect` is one of `NoSchedule`, `PreferNoSchedule` or `NoExecute`.
 
 * `orchestrator_version` - (Optional) Version of Kubernetes used for the Agents. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade). AKS does not require an exact patch version to be specified, minor version aliases such as `1.22` are also supported. - The minor version's latest GA patch is automatically chosen in that case. More details can be found in [the documentation](https://docs.microsoft.com/en-us/azure/aks/supported-kubernetes-versions?tabs=azure-cli#alias-minor-version).
 
