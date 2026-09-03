@@ -10,6 +10,12 @@ func Default() UserFeatures {
 			PurgeSoftDeleteOnDestroy: true,
 			RecoverSoftDeleted:       true,
 		},
+		EnhancedValidation: EnhancedValidationFeatures{
+			Locations:         false,
+			ResourceProviders: false,
+			PreflightEnabled:  false,
+			LocationFallback:  nil,
+		},
 		AppConfiguration: AppConfigurationFeatures{
 			PurgeSoftDeleteOnDestroy: true,
 			RecoverSoftDeleted:       true,
@@ -21,6 +27,7 @@ func Default() UserFeatures {
 			PurgeSoftDeleteOnDestroy: true,
 		},
 		KeyVault: KeyVaultFeatures{
+			// Standard
 			PurgeSoftDeleteOnDestroy:         true,
 			PurgeSoftDeletedKeysOnDestroy:    true,
 			PurgeSoftDeletedCertsOnDestroy:   true,
@@ -30,7 +37,7 @@ func Default() UserFeatures {
 			RecoverSoftDeletedCerts:          true,
 			RecoverSoftDeletedSecrets:        true,
 
-			// todo 4.0 move all HSM flags into their own features HSMFeatures block
+			// HSM
 			PurgeSoftDeletedHSMsOnDestroy:    true,
 			PurgeSoftDeletedHSMKeysOnDestroy: true,
 			RecoverSoftDeletedHSMKeys:        true,
@@ -53,7 +60,6 @@ func Default() UserFeatures {
 		VirtualMachine: VirtualMachineFeatures{
 			DetachImplicitDataDiskOnDeletion: false,
 			DeleteOSDiskOnDeletion:           true,
-			GracefulShutdown:                 false,
 			SkipShutdownAndForceDelete:       false,
 		},
 		VirtualMachineScaleSet: VirtualMachineScaleSetFeatures{
@@ -85,6 +91,9 @@ func Default() UserFeatures {
 		},
 		DatabricksWorkspace: DatabricksWorkspaceFeatures{
 			ForceDelete: false,
+		},
+		ServiceBus: ServiceBusFeatures{
+			AutoDeleteSubscriptionDefaultRule: false,
 		},
 	}
 }

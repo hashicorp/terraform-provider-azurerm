@@ -17,15 +17,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CosmosDbPostgreSQLCoordinatorConfigurationResource struct{}
+type CosmosdbPostgresqlCoordinatorConfigurationResource struct{}
 
-func TestCosmosDbPostgreSQLCoordinatorConfiguration_basic(t *testing.T) {
+func TestAccCosmosDbPostgreSQLCoordinatorConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_coordinator_configuration", "test")
-	r := CosmosDbPostgreSQLCoordinatorConfigurationResource{}
+	r := CosmosdbPostgresqlCoordinatorConfigurationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "array_nulls", "on"),
+			Config: r.basic(data, "on"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -34,20 +34,20 @@ func TestCosmosDbPostgreSQLCoordinatorConfiguration_basic(t *testing.T) {
 	})
 }
 
-func TestCosmosDbPostgreSQLCoordinatorConfiguration_update(t *testing.T) {
+func TestAccCosmosDbPostgreSQLCoordinatorConfiguration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_coordinator_configuration", "test")
-	r := CosmosDbPostgreSQLCoordinatorConfigurationResource{}
+	r := CosmosdbPostgresqlCoordinatorConfigurationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "array_nulls", "on"),
+			Config: r.basic(data, "on"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data, "array_nulls", "off"),
+			Config: r.basic(data, "off"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -56,7 +56,7 @@ func TestCosmosDbPostgreSQLCoordinatorConfiguration_update(t *testing.T) {
 	})
 }
 
-func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CosmosdbPostgresqlCoordinatorConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := configurations.ParseCoordinatorConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) Exists(ctx context.C
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) template(data acceptance.TestData) string {
+func (r CosmosdbPostgresqlCoordinatorConfigurationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -91,21 +91,19 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
   administrator_login_password    = "H@Sh1CoR3!"
   coordinator_storage_quota_in_mb = 131072
   coordinator_vcore_count         = 2
-  node_count                      = 2
-  node_storage_quota_in_mb        = 131072
-  node_vcores                     = 2
+  node_count                      = 0
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) basic(data acceptance.TestData, name, value string) string {
+func (r CosmosdbPostgresqlCoordinatorConfigurationResource) basic(data acceptance.TestData, value string) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_cosmosdb_postgresql_coordinator_configuration" "test" {
-  name       = "%s"
+  name       = "array_nulls"
   cluster_id = azurerm_cosmosdb_postgresql_cluster.test.id
   value      = "%s"
 }
-`, r.template(data), name, value)
+`, r.template(data), value)
 }

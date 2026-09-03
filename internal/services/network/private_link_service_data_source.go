@@ -7,16 +7,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/privatelinkservices"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourcePrivateLinkService() *pluginsdk.Resource {
@@ -44,8 +45,20 @@ func dataSourcePrivateLinkService() *pluginsdk.Resource {
 				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_proxy_protocol": {
+			"destination_ip_address": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"fqdns": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"proxy_protocol_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -125,15 +138,18 @@ func dataSourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{
 
 		if props := model.Properties; props != nil {
 			d.Set("alias", props.Alias)
-			d.Set("enable_proxy_protocol", props.EnableProxyProtocol)
+
+			d.Set("proxy_protocol_enabled", props.EnableProxyProtocol)
+
+			d.Set("destination_ip_address", pointer.From(props.DestinationIPAddress))
 
 			if autoApproval := props.AutoApproval; autoApproval != nil {
-				if err := d.Set("auto_approval_subscription_ids", utils.FlattenStringSlice(autoApproval.Subscriptions)); err != nil {
+				if err := d.Set("auto_approval_subscription_ids", helpers.FlattenStringSlice(autoApproval.Subscriptions)); err != nil {
 					return fmt.Errorf("setting `auto_approval_subscription_ids`: %+v", err)
 				}
 			}
 			if visibility := props.Visibility; visibility != nil {
-				if err := d.Set("visibility_subscription_ids", utils.FlattenStringSlice(visibility.Subscriptions)); err != nil {
+				if err := d.Set("visibility_subscription_ids", helpers.FlattenStringSlice(visibility.Subscriptions)); err != nil {
 					return fmt.Errorf("setting `visibility_subscription_ids`: %+v", err)
 				}
 			}
@@ -147,6 +163,9 @@ func dataSourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{
 				if err := d.Set("load_balancer_frontend_ip_configuration_ids", dataSourceFlattenPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
 					return fmt.Errorf("setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
 				}
+			}
+			if err := d.Set("fqdns", helpers.FlattenStringSlice(props.Fqdns)); err != nil {
+				return fmt.Errorf("setting `fqdns`: %+v", err)
 			}
 		}
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {

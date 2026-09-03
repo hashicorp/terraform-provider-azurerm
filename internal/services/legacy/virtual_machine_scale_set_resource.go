@@ -18,18 +18,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	validate2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/legacy/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // NOTE: the `azurerm_virtual_machine_scale_set` resource has been superseded by the
@@ -103,7 +103,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						"tier": {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
-							Computed:         true,
+							Computed:         true, // azignore:AZS007 - pre-existing violation
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
@@ -119,7 +119,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 			"license_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice([]string{
 					"Windows_Client",
 					"Windows_Server",
@@ -127,13 +127,9 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 			},
 
 			"upgrade_policy_mode": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachinescalesets.UpgradeModeAutomatic),
-					string(virtualmachinescalesets.UpgradeModeManual),
-					string(virtualmachinescalesets.UpgradeModeRolling),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForUpgradeMode(), false),
 			},
 
 			"health_probe_id": {
@@ -210,13 +206,10 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 			},
 
 			"eviction_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachinescalesets.VirtualMachineEvictionPolicyTypesDeallocate),
-					string(virtualmachinescalesets.VirtualMachineEvictionPolicyTypesDelete),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForVirtualMachineEvictionPolicyTypes(), false),
 			},
 
 			"os_profile": {
@@ -350,7 +343,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 			"os_profile_linux_config": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -478,7 +471,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 									"load_balancer_inbound_nat_rules_ids": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
-										Computed: true,
+										Computed: true, // azignore:AZS007 - pre-existing violation
 										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 										Set:      pluginsdk.HashString,
 									},
@@ -567,7 +560,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						"managed_disk_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.StringInSlice([]string{
 								string(virtualmachinescalesets.StorageAccountTypesPremiumLRS),
 								string(virtualmachinescalesets.StorageAccountTypesStandardLRS),
@@ -578,7 +571,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						"caching": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 						},
 
 						"os_type": {
@@ -613,20 +606,21 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						"caching": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 						},
 
 						"disk_size_gb": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
+							Type:     pluginsdk.TypeInt,
+							Optional: true,
+							// Note: O+C because Azure computes disk size when not specified
 							Computed:     true,
-							ValidateFunc: validate2.DiskSizeGB,
+							ValidateFunc: validation.IntBetween(0, 32767),
 						},
 
 						"managed_disk_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.StringInSlice([]string{
 								string(virtualmachinescalesets.StorageAccountTypesPremiumLRS),
 								string(virtualmachinescalesets.StorageAccountTypesStandardLRS),
@@ -641,7 +635,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 			"storage_profile_image_reference": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -784,20 +778,20 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Virtual Machine Scale Set creation.")
-
 	id := virtualmachinescalesets.NewVirtualMachineScaleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, virtualmachinescalesets.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id, virtualmachinescalesets.DefaultGetOperationOptions())
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_virtual_machine_scale_set", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_virtual_machine_scale_set", id.ID())
+			}
 		}
 	}
 
@@ -821,9 +815,6 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	osProfile := expandAzureRMVirtualMachineScaleSetsOsProfile(d)
-	if err != nil {
-		return err
-	}
 
 	extensions, err := expandAzureRMVirtualMachineScaleSetExtensions(d)
 	if err != nil {
@@ -839,7 +830,7 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 	scaleSetProps := virtualmachinescalesets.VirtualMachineScaleSetProperties{
 		UpgradePolicy: &virtualmachinescalesets.UpgradePolicy{
-			Mode: pointer.To(virtualmachinescalesets.UpgradeMode(upgradePolicy)),
+			Mode: pointer.ToEnum[virtualmachinescalesets.UpgradeMode](upgradePolicy),
 			AutomaticOSUpgradePolicy: &virtualmachinescalesets.AutomaticOSUpgradePolicy{
 				EnableAutomaticOSUpgrade: pointer.To(automaticOsUpgrade),
 			},
@@ -850,7 +841,7 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 			StorageProfile:   &storageProfile,
 			OsProfile:        osProfile,
 			ExtensionProfile: extensions,
-			Priority:         pointer.To(virtualmachinescalesets.VirtualMachinePriorityTypes(priority)),
+			Priority:         pointer.ToEnum[virtualmachinescalesets.VirtualMachinePriorityTypes](priority),
 		},
 		// OrchestrationMode needs to be hardcoded to Uniform, for the
 		// standard VMSS resource, since virtualMachineProfile is now supported
@@ -861,7 +852,7 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if strings.EqualFold(priority, string(virtualmachinescalesets.VirtualMachinePriorityTypesLow)) {
-		scaleSetProps.VirtualMachineProfile.EvictionPolicy = pointer.To(virtualmachinescalesets.VirtualMachineEvictionPolicyTypes(evictionPolicy))
+		scaleSetProps.VirtualMachineProfile.EvictionPolicy = pointer.ToEnum[virtualmachinescalesets.VirtualMachineEvictionPolicyTypes](evictionPolicy)
 	}
 
 	if _, ok := d.GetOk("boot_diagnostics"); ok {
@@ -906,11 +897,16 @@ func resourceVirtualMachineScaleSetCreateUpdate(d *pluginsdk.ResourceData, meta 
 		payload.Plan = expandAzureRmVirtualMachineScaleSetPlan(d)
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, payload, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, payload, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceVirtualMachineScaleSetRead(d, meta)
 }
@@ -1072,7 +1068,9 @@ func resourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interfac
 				}
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1361,15 +1359,14 @@ func flattenAzureRMVirtualMachineScaleSetOsProfile(d *pluginsdk.ResourceData, pr
 
 	// admin password isn't returned, so let's look it up
 	if v, ok := d.GetOk("os_profile.0.admin_password"); ok {
-		password := v.(string)
-		result["admin_password"] = password
+		result["admin_password"] = v.(string)
 	}
 
 	if profile.CustomData != nil {
 		result["custom_data"] = *profile.CustomData
 	} else {
 		// look up the current custom data
-		result["custom_data"] = utils.Base64EncodeIfNot(d.Get("os_profile.0.custom_data").(string))
+		result["custom_data"] = helpers.Base64EncodeIfNot(d.Get("os_profile.0.custom_data").(string))
 	}
 
 	return []interface{}{result}
@@ -1461,7 +1458,7 @@ func flattenAzureRmVirtualMachineScaleSetSku(sku *virtualmachinescalesets.Sku) [
 
 func flattenAzureRmVirtualMachineScaleSetExtensionProfile(profile *virtualmachinescalesets.VirtualMachineScaleSetExtensionProfile) ([]map[string]interface{}, error) {
 	if profile.Extensions == nil {
-		return nil, nil
+		return []map[string]interface{}{}, nil
 	}
 
 	result := make([]map[string]interface{}, 0, len(*profile.Extensions))
@@ -1505,19 +1502,19 @@ func resourceVirtualMachineScaleSetStorageProfileImageReferenceHash(v interface{
 
 	if m, ok := v.(map[string]interface{}); ok {
 		if v, ok := m["publisher"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 		if v, ok := m["offer"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 		if v, ok := m["sku"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 		if v, ok := m["version"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 		if v, ok := m["id"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 	}
 
@@ -1528,10 +1525,10 @@ func resourceVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
+		fmt.Fprintf(&buf, "%s-", m["name"].(string))
 
 		if v, ok := m["vhd_containers"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(*pluginsdk.Set).List()))
+			fmt.Fprintf(&buf, "%s-", v.(*pluginsdk.Set).List())
 		}
 	}
 
@@ -1542,58 +1539,58 @@ func resourceVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-		buf.WriteString(fmt.Sprintf("%t-", m["primary"].(bool)))
+		fmt.Fprintf(&buf, "%s-", m["name"].(string))
+		fmt.Fprintf(&buf, "%t-", m["primary"].(bool))
 
 		if v, ok := m["accelerated_networking"]; ok {
-			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+			fmt.Fprintf(&buf, "%t-", v.(bool))
 		}
 		if v, ok := m["ip_forwarding"]; ok {
-			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+			fmt.Fprintf(&buf, "%t-", v.(bool))
 		}
 		if v, ok := m["network_security_group_id"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			fmt.Fprintf(&buf, "%s-", v.(string))
 		}
 		if v, ok := m["dns_settings"].(map[string]interface{}); ok {
 			if k, ok := v["dns_servers"]; ok {
-				buf.WriteString(fmt.Sprintf("%s-", k))
+				fmt.Fprintf(&buf, "%s-", k)
 			}
 		}
 		if ipConfig, ok := m["ip_configuration"].([]interface{}); ok {
 			for _, it := range ipConfig {
 				config := it.(map[string]interface{})
 				if name, ok := config["name"]; ok {
-					buf.WriteString(fmt.Sprintf("%s-", name.(string)))
+					fmt.Fprintf(&buf, "%s-", name.(string))
 				}
 				if subnetid, ok := config["subnet_id"]; ok {
-					buf.WriteString(fmt.Sprintf("%s-", subnetid.(string)))
+					fmt.Fprintf(&buf, "%s-", subnetid.(string))
 				}
 				if appPoolId, ok := config["application_gateway_backend_address_pool_ids"]; ok {
-					buf.WriteString(fmt.Sprintf("%s-", appPoolId.(*pluginsdk.Set).List()))
+					fmt.Fprintf(&buf, "%s-", appPoolId.(*pluginsdk.Set).List())
 				}
 				if appSecGroup, ok := config["application_security_group_ids"]; ok {
-					buf.WriteString(fmt.Sprintf("%s-", appSecGroup.(*pluginsdk.Set).List()))
+					fmt.Fprintf(&buf, "%s-", appSecGroup.(*pluginsdk.Set).List())
 				}
 				if lbPoolIds, ok := config["load_balancer_backend_address_pool_ids"]; ok {
-					buf.WriteString(fmt.Sprintf("%s-", lbPoolIds.(*pluginsdk.Set).List()))
+					fmt.Fprintf(&buf, "%s-", lbPoolIds.(*pluginsdk.Set).List())
 				}
 				if lbInNatRules, ok := config["load_balancer_inbound_nat_rules_ids"]; ok {
-					buf.WriteString(fmt.Sprintf("%s-", lbInNatRules.(*pluginsdk.Set).List()))
+					fmt.Fprintf(&buf, "%s-", lbInNatRules.(*pluginsdk.Set).List())
 				}
 				if primary, ok := config["primary"]; ok {
-					buf.WriteString(fmt.Sprintf("%t-", primary.(bool)))
+					fmt.Fprintf(&buf, "%t-", primary.(bool))
 				}
 				if publicIPConfig, ok := config["public_ip_address_configuration"].([]interface{}); ok {
 					for _, publicIPIt := range publicIPConfig {
 						publicip := publicIPIt.(map[string]interface{})
 						if publicIPConfigName, ok := publicip["name"]; ok {
-							buf.WriteString(fmt.Sprintf("%s-", publicIPConfigName.(string)))
+							fmt.Fprintf(&buf, "%s-", publicIPConfigName.(string))
 						}
 						if idle_timeout, ok := publicip["idle_timeout"]; ok {
-							buf.WriteString(fmt.Sprintf("%d-", idle_timeout.(int)))
+							fmt.Fprintf(&buf, "%d-", idle_timeout.(int))
 						}
 						if dnsLabel, ok := publicip["domain_name_label"]; ok {
-							buf.WriteString(fmt.Sprintf("%s-", dnsLabel.(string)))
+							fmt.Fprintf(&buf, "%s-", dnsLabel.(string))
 						}
 					}
 				}
@@ -1608,16 +1605,16 @@ func resourceVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%t-", m["disable_password_authentication"].(bool)))
+		fmt.Fprintf(&buf, "%t-", m["disable_password_authentication"].(bool))
 
 		if sshKeys, ok := m["ssh_keys"].([]interface{}); ok {
 			for _, item := range sshKeys {
 				k := item.(map[string]interface{})
 				if path, ok := k["path"]; ok {
-					buf.WriteString(fmt.Sprintf("%s-", path.(string)))
+					fmt.Fprintf(&buf, "%s-", path.(string))
 				}
 				if data, ok := k["key_data"]; ok {
-					buf.WriteString(fmt.Sprintf("%s-", data.(string)))
+					fmt.Fprintf(&buf, "%s-", data.(string))
 				}
 			}
 		}
@@ -1631,10 +1628,10 @@ func resourceVirtualMachineScaleSetOsProfileWindowsConfigHash(v interface{}) int
 
 	if m, ok := v.(map[string]interface{}); ok {
 		if v, ok := m["provision_vm_agent"]; ok {
-			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+			fmt.Fprintf(&buf, "%t-", v.(bool))
 		}
 		if v, ok := m["enable_automatic_upgrades"]; ok {
-			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+			fmt.Fprintf(&buf, "%t-", v.(bool))
 		}
 	}
 
@@ -1645,17 +1642,17 @@ func resourceVirtualMachineScaleSetExtensionHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["publisher"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["type"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["type_handler_version"].(string)))
+		fmt.Fprintf(&buf, "%s-", m["name"].(string))
+		fmt.Fprintf(&buf, "%s-", m["publisher"].(string))
+		fmt.Fprintf(&buf, "%s-", m["type"].(string))
+		fmt.Fprintf(&buf, "%s-", m["type_handler_version"].(string))
 
 		if v, ok := m["auto_upgrade_minor_version"]; ok {
-			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+			fmt.Fprintf(&buf, "%t-", v.(bool))
 		}
 
 		if v, ok := m["provision_after_extensions"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(*pluginsdk.Set).List()))
+			fmt.Fprintf(&buf, "%s-", v.(*pluginsdk.Set).List())
 		}
 
 		// we need to ensure the whitespace is consistent
@@ -1665,7 +1662,7 @@ func resourceVirtualMachineScaleSetExtensionHash(v interface{}) int {
 			if err == nil {
 				serializedSettings, err := pluginsdk.FlattenJsonToString(expandedSettings)
 				if err == nil {
-					buf.WriteString(fmt.Sprintf("%s-", serializedSettings))
+					fmt.Fprintf(&buf, "%s-", serializedSettings)
 				}
 			}
 		}
@@ -1870,7 +1867,7 @@ func expandAzureRMVirtualMachineScaleSetsOsProfile(d *pluginsdk.ResourceData) *v
 	}
 
 	if customData != "" {
-		customData = utils.Base64EncodeIfNot(customData)
+		customData = helpers.Base64EncodeIfNot(customData)
 		osProfile.CustomData = &customData
 	}
 
@@ -1907,11 +1904,9 @@ func expandAzureRMVirtualMachineScaleSetsDiagnosticProfile(d *pluginsdk.Resource
 		StorageUri: &storageUri,
 	}
 
-	diagnosticsProfile := virtualmachinescalesets.DiagnosticsProfile{
+	return virtualmachinescalesets.DiagnosticsProfile{
 		BootDiagnostics: bootDiagnostic,
 	}
-
-	return diagnosticsProfile
 }
 
 func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *pluginsdk.ResourceData) (*virtualmachinescalesets.VirtualMachineScaleSetOSDisk, error) {
@@ -1932,8 +1927,8 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *pluginsdk.Resou
 
 	osDisk := &virtualmachinescalesets.VirtualMachineScaleSetOSDisk{
 		Name:         &name,
-		Caching:      pointer.To(virtualmachinescalesets.CachingTypes(caching)),
-		OsType:       pointer.To(virtualmachinescalesets.OperatingSystemTypes(osType)),
+		Caching:      pointer.ToEnum[virtualmachinescalesets.CachingTypes](caching),
+		OsType:       pointer.ToEnum[virtualmachinescalesets.OperatingSystemTypes](osType),
 		CreateOption: virtualmachinescalesets.DiskCreateOptionTypes(createOption),
 	}
 
@@ -1960,7 +1955,7 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *pluginsdk.Resou
 		}
 
 		osDisk.Name = nil
-		managedDisk.StorageAccountType = pointer.To(virtualmachinescalesets.StorageAccountTypes(managedDiskType))
+		managedDisk.StorageAccountType = pointer.ToEnum[virtualmachinescalesets.StorageAccountTypes](managedDiskType)
 		osDisk.ManagedDisk = managedDisk
 	}
 
@@ -1991,7 +1986,7 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(d *pluginsdk.Res
 		managedDiskVMSS := &virtualmachinescalesets.VirtualMachineScaleSetManagedDiskParameters{}
 
 		if managedDiskType != "" {
-			managedDiskVMSS.StorageAccountType = pointer.To(virtualmachinescalesets.StorageAccountTypes(managedDiskType))
+			managedDiskVMSS.StorageAccountType = pointer.ToEnum[virtualmachinescalesets.StorageAccountTypes](managedDiskType)
 		} else {
 			managedDiskVMSS.StorageAccountType = pointer.To(virtualmachinescalesets.StorageAccountTypesStandardLRS)
 		}
@@ -1999,7 +1994,7 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(d *pluginsdk.Res
 		// assume that data disks in VMSS can only be Managed Disks
 		dataDisk.ManagedDisk = managedDiskVMSS
 		if v := config["caching"].(string); v != "" {
-			dataDisk.Caching = pointer.To(virtualmachinescalesets.CachingTypes(v))
+			dataDisk.Caching = pointer.ToEnum[virtualmachinescalesets.CachingTypes](v)
 		}
 
 		if v := config["disk_size_gb"]; v != nil {
@@ -2067,14 +2062,12 @@ func expandAzureRmVirtualMachineScaleSetOsProfileLinuxConfig(d *pluginsdk.Resour
 		sshPublicKeys = append(sshPublicKeys, sshPublicKey)
 	}
 
-	config := &virtualmachinescalesets.LinuxConfiguration{
+	return &virtualmachinescalesets.LinuxConfiguration{
 		DisablePasswordAuthentication: &disablePasswordAuth,
 		Ssh: &virtualmachinescalesets.SshConfiguration{
 			PublicKeys: &sshPublicKeys,
 		},
 	}
-
-	return config
 }
 
 func expandAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(d *pluginsdk.ResourceData) *virtualmachinescalesets.WindowsConfiguration {
@@ -2102,7 +2095,7 @@ func expandAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(d *pluginsdk.Reso
 
 				protocol := config["protocol"].(string)
 				winRmListener := virtualmachinescalesets.WinRMListener{
-					Protocol: pointer.To(virtualmachinescalesets.ProtocolTypes(protocol)),
+					Protocol: pointer.ToEnum[virtualmachinescalesets.ProtocolTypes](protocol),
 				}
 				if v := config["certificate_url"].(string); v != "" {
 					winRmListener.CertificateURL = &v
@@ -2127,9 +2120,9 @@ func expandAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(d *pluginsdk.Reso
 				content := config["content"].(string)
 
 				addContent := virtualmachinescalesets.AdditionalUnattendContent{
-					PassName:      pointer.To(virtualmachinescalesets.PassName(pass)),
-					ComponentName: pointer.To(virtualmachinescalesets.ComponentName(component)),
-					SettingName:   pointer.To(virtualmachinescalesets.SettingNames(settingName)),
+					PassName:      pointer.ToEnum[virtualmachinescalesets.PassName](pass),
+					ComponentName: pointer.ToEnum[virtualmachinescalesets.ComponentName](component),
+					SettingName:   pointer.ToEnum[virtualmachinescalesets.SettingNames](settingName),
 				}
 
 				if content != "" {
@@ -2221,8 +2214,7 @@ func expandAzureRMVirtualMachineScaleSetExtensions(d *pluginsdk.ResourceData) (*
 
 		if s := config["settings"].(string); s != "" {
 			var result interface{}
-			err := json.Unmarshal([]byte(s), &result)
-			if err != nil {
+			if err := json.Unmarshal([]byte(s), &result); err != nil {
 				return nil, fmt.Errorf("unmarshaling `settings`: %+v", err)
 			}
 			extension.Properties.Settings = pointer.To(result)
@@ -2230,8 +2222,7 @@ func expandAzureRMVirtualMachineScaleSetExtensions(d *pluginsdk.ResourceData) (*
 
 		if s := config["protected_settings"].(string); s != "" {
 			var result interface{}
-			err := json.Unmarshal([]byte(s), &result)
-			if err != nil {
+			if err := json.Unmarshal([]byte(s), &result); err != nil {
 				return nil, fmt.Errorf("unmarshaling `protected_settings`: %+v", err)
 			}
 			extension.Properties.ProtectedSettings = pointer.To(result)

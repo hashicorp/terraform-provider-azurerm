@@ -21,7 +21,8 @@ func TestAccHealthCareWorkspaceIotConnectorDataSource_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("name").Exists()),
+				check.That(data.ResourceName).Key("name").Exists(),
+			),
 		},
 	})
 }

@@ -3,6 +3,8 @@
 
 package workloads
 
+//go:generate go run ../../tools/generator-tests resourceidentity -test-params "10+(data.RandomInteger%90)" -test-expect-non-empty true
+
 import (
 	"context"
 	"errors"
@@ -16,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -154,7 +157,14 @@ type SharedStorage struct {
 
 type WorkloadsSAPThreeTierVirtualInstanceResource struct{}
 
-var _ sdk.ResourceWithUpdate = WorkloadsSAPThreeTierVirtualInstanceResource{}
+var (
+	_ sdk.ResourceWithUpdate   = WorkloadsSAPThreeTierVirtualInstanceResource{}
+	_ sdk.ResourceWithIdentity = WorkloadsSAPThreeTierVirtualInstanceResource{}
+)
+
+func (WorkloadsSAPThreeTierVirtualInstanceResource) Identity() resourceids.ResourceId {
+	return &sapvirtualinstances.SapVirtualInstanceId{}
+}
 
 func (r WorkloadsSAPThreeTierVirtualInstanceResource) ResourceType() string {
 	return "azurerm_workloads_sap_three_tier_virtual_instance"
@@ -1103,13 +1113,15 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Create() sdk.ResourceFunc 
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := sapvirtualinstances.NewSapVirtualInstanceID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			identity, err := identity.ExpandUserAssignedMapFromModel(model.Identity)
@@ -1122,7 +1134,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Create() sdk.ResourceFunc 
 				Location: location.Normalize(model.Location),
 				Properties: &sapvirtualinstances.SAPVirtualInstanceProperties{
 					Environment:                       sapvirtualinstances.SAPEnvironmentType(model.Environment),
-					ManagedResourcesNetworkAccessType: pointer.To(sapvirtualinstances.ManagedResourcesNetworkAccessType(model.ManagedResourcesNetworkAccessType)),
+					ManagedResourcesNetworkAccessType: pointer.ToEnum[sapvirtualinstances.ManagedResourcesNetworkAccessType](model.ManagedResourcesNetworkAccessType),
 					SapProduct:                        sapvirtualinstances.SAPProductType(model.SapProduct),
 				},
 				Tags: &model.Tags,
@@ -1149,11 +1161,15 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Create() sdk.ResourceFunc 
 				}
 			}
 
-			if err := client.CreateThenPoll(ctx, id, *parameters); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, *parameters, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
+
 			return nil
 		},
 	}
@@ -1188,7 +1204,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Update() sdk.ResourceFunc 
 			}
 
 			if metadata.ResourceData.HasChange("managed_resources_network_access_type") {
-				parameters.Properties.ManagedResourcesNetworkAccessType = pointer.To(sapvirtualinstances.ManagedResourcesNetworkAccessType(model.ManagedResourcesNetworkAccessType))
+				parameters.Properties.ManagedResourcesNetworkAccessType = pointer.ToEnum[sapvirtualinstances.ManagedResourcesNetworkAccessType](model.ManagedResourcesNetworkAccessType)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -1209,7 +1225,6 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Workloads.SAPVirtualInstances
-			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id, err := sapvirtualinstances.ParseSapVirtualInstanceID(metadata.ResourceData.Id())
 			if err != nil {
@@ -1225,53 +1240,65 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := WorkloadsSAPThreeTierVirtualInstanceModel{}
-			if model := resp.Model; model != nil {
-				state.Name = id.SapVirtualInstanceName
-				state.ResourceGroupName = id.ResourceGroupName
-				state.Location = location.Normalize(model.Location)
+			return r.flatten(metadata, id, resp.Model)
+		},
+	}
+}
 
-				identity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
-				if err != nil {
-					return fmt.Errorf("flattening `identity`: %+v", err)
-				}
-				state.Identity = pointer.From(identity)
+func (WorkloadsSAPThreeTierVirtualInstanceResource) flatten(metadata sdk.ResourceMetaData, id *sapvirtualinstances.SapVirtualInstanceId, model *sapvirtualinstances.SAPVirtualInstance) error {
+	subscriptionId := metadata.Client.Account.SubscriptionId
 
-				if props := model.Properties; props != nil {
-					state.Environment = string(props.Environment)
-					state.ManagedResourcesNetworkAccessType = string(pointer.From(props.ManagedResourcesNetworkAccessType))
-					state.SapProduct = string(props.SapProduct)
-					state.Tags = pointer.From(model.Tags)
+	state := WorkloadsSAPThreeTierVirtualInstanceModel{
+		Name:              id.SapVirtualInstanceName,
+		ResourceGroupName: id.ResourceGroupName,
+	}
 
-					if config := props.Configuration; config != nil {
-						if v, ok := config.(sapvirtualinstances.DeploymentWithOSConfiguration); ok {
-							state.AppLocation = location.Normalize(pointer.From(v.AppLocation))
+	if model != nil {
+		state.Location = location.Normalize(model.Location)
 
-							if osSapConfiguration := v.OsSapConfiguration; osSapConfiguration != nil {
-								state.SapFqdn = pointer.From(osSapConfiguration.SapFqdn)
-							}
+		identity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		state.Identity = pointer.From(identity)
 
-							if configuration := v.InfrastructureConfiguration; configuration != nil {
-								if threeTierConfiguration, threeTierConfigurationExists := configuration.(sapvirtualinstances.ThreeTierConfiguration); threeTierConfigurationExists {
-									threeTierConfig, err := flattenThreeTierConfiguration(threeTierConfiguration, metadata.ResourceData, subscriptionId)
-									if err != nil {
-										return err
-									}
-									state.ThreeTierConfiguration = threeTierConfig
-								}
-							}
-						}
+		if props := model.Properties; props != nil {
+			state.Environment = string(props.Environment)
+			state.ManagedResourcesNetworkAccessType = string(pointer.From(props.ManagedResourcesNetworkAccessType))
+			state.SapProduct = string(props.SapProduct)
+			state.Tags = pointer.From(model.Tags)
+
+			if config := props.Configuration; config != nil {
+				if v, ok := config.(sapvirtualinstances.DeploymentWithOSConfiguration); ok {
+					state.AppLocation = location.Normalize(pointer.From(v.AppLocation))
+
+					if osSapConfiguration := v.OsSapConfiguration; osSapConfiguration != nil {
+						state.SapFqdn = pointer.From(osSapConfiguration.SapFqdn)
 					}
 
-					if v := props.ManagedResourceGroupConfiguration; v != nil {
-						state.ManagedResourceGroupName = pointer.From(v.Name)
+					if configuration := v.InfrastructureConfiguration; configuration != nil {
+						if threeTierConfiguration, threeTierConfigurationExists := configuration.(sapvirtualinstances.ThreeTierConfiguration); threeTierConfigurationExists {
+							threeTierConfig, err := flattenThreeTierConfiguration(threeTierConfiguration, metadata.ResourceData, subscriptionId)
+							if err != nil {
+								return err
+							}
+							state.ThreeTierConfiguration = threeTierConfig
+						}
 					}
 				}
 			}
 
-			return metadata.Encode(&state)
-		},
+			if v := props.ManagedResourceGroupConfiguration; v != nil {
+				state.ManagedResourceGroupName = pointer.From(v.Name)
+			}
+		}
 	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r WorkloadsSAPThreeTierVirtualInstanceResource) Delete() sdk.ResourceFunc {
@@ -1301,13 +1328,11 @@ func expandVirtualMachineConfiguration(input []VirtualMachineConfiguration) *sap
 
 	virtualMachineConfiguration := input[0]
 
-	result := &sapvirtualinstances.VirtualMachineConfiguration{
+	return &sapvirtualinstances.VirtualMachineConfiguration{
 		ImageReference: pointer.From(expandImageReference(virtualMachineConfiguration.ImageReference)),
 		OsProfile:      pointer.From(expandOsProfile(virtualMachineConfiguration.OSProfile)),
 		VMSize:         virtualMachineConfiguration.VmSize,
 	}
-
-	return result
 }
 
 func expandImageReference(input []ImageReference) *sapvirtualinstances.ImageReference {
@@ -1317,14 +1342,12 @@ func expandImageReference(input []ImageReference) *sapvirtualinstances.ImageRefe
 
 	imageReference := input[0]
 
-	result := &sapvirtualinstances.ImageReference{
+	return &sapvirtualinstances.ImageReference{
 		Offer:     pointer.To(imageReference.Offer),
 		Publisher: pointer.To(imageReference.Publisher),
 		Sku:       pointer.To(imageReference.Sku),
 		Version:   pointer.To(imageReference.Version),
 	}
-
-	return result
 }
 
 func expandOsProfile(input []OSProfile) *sapvirtualinstances.OSProfile {
@@ -1334,7 +1357,7 @@ func expandOsProfile(input []OSProfile) *sapvirtualinstances.OSProfile {
 
 	osProfile := input[0]
 
-	result := &sapvirtualinstances.OSProfile{
+	return &sapvirtualinstances.OSProfile{
 		AdminUsername: pointer.To(osProfile.AdminUsername),
 		OsConfiguration: &sapvirtualinstances.LinuxConfiguration{
 			DisablePasswordAuthentication: pointer.To(true),
@@ -1344,8 +1367,6 @@ func expandOsProfile(input []OSProfile) *sapvirtualinstances.OSProfile {
 			},
 		},
 	}
-
-	return result
 }
 
 func expandNetworkInterfaceNames(input []string) *[]sapvirtualinstances.NetworkInterfaceResourceNames {
@@ -1409,13 +1430,11 @@ func expandApplicationServer(input []ApplicationServerConfiguration) *sapvirtual
 
 	applicationServer := input[0]
 
-	result := &sapvirtualinstances.ApplicationServerConfiguration{
+	return &sapvirtualinstances.ApplicationServerConfiguration{
 		InstanceCount:               applicationServer.InstanceCount,
 		SubnetId:                    applicationServer.SubnetId,
 		VirtualMachineConfiguration: pointer.From(expandVirtualMachineConfiguration(applicationServer.VirtualMachineConfiguration)),
 	}
-
-	return result
 }
 
 func expandCentralServer(input []CentralServerConfiguration) *sapvirtualinstances.CentralServerConfiguration {
@@ -1425,13 +1444,11 @@ func expandCentralServer(input []CentralServerConfiguration) *sapvirtualinstance
 
 	centralServer := input[0]
 
-	result := &sapvirtualinstances.CentralServerConfiguration{
+	return &sapvirtualinstances.CentralServerConfiguration{
 		InstanceCount:               centralServer.InstanceCount,
 		SubnetId:                    centralServer.SubnetId,
 		VirtualMachineConfiguration: pointer.From(expandVirtualMachineConfiguration(centralServer.VirtualMachineConfiguration)),
 	}
-
-	return result
 }
 
 func expandDatabaseServer(input []DatabaseServerConfiguration) *sapvirtualinstances.DatabaseConfiguration {
@@ -1507,14 +1524,12 @@ func expandResourceNames(input []ResourceNames) *sapvirtualinstances.ThreeTierFu
 
 	resourceNames := input[0]
 
-	result := &sapvirtualinstances.ThreeTierFullResourceNames{
+	return &sapvirtualinstances.ThreeTierFullResourceNames{
 		ApplicationServer: expandApplicationServerResourceNames(resourceNames.ApplicationServer),
 		CentralServer:     expandCentralServerResourceNames(resourceNames.CentralServer),
 		DatabaseServer:    expandDatabaseServerResourceNames(resourceNames.DatabaseServer),
 		SharedStorage:     expandSharedStorage(resourceNames.SharedStorage),
 	}
-
-	return result
 }
 
 func expandApplicationServerResourceNames(input []ApplicationServerResourceNames) *sapvirtualinstances.ApplicationServerFullResourceNames {

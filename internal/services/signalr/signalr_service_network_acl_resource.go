@@ -10,13 +10,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/privateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
@@ -52,12 +53,9 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 			},
 
 			"default_action": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(signalr.ACLActionAllow),
-					string(signalr.ACLActionDeny),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(signalr.PossibleValuesForACLAction(), false),
 			},
 
 			"public_network": {
@@ -71,13 +69,8 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 							Optional:      true,
 							ConflictsWith: []string{"public_network.0.denied_request_types"},
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(signalr.SignalRRequestTypeClientConnection),
-									string(signalr.SignalRRequestTypeRESTAPI),
-									string(signalr.SignalRRequestTypeServerConnection),
-									string(signalr.SignalRRequestTypeTrace),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(signalr.PossibleValuesForSignalRRequestType(), false),
 							},
 						},
 
@@ -86,13 +79,8 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 							Optional:      true,
 							ConflictsWith: []string{"public_network.0.allowed_request_types"},
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(signalr.SignalRRequestTypeClientConnection),
-									string(signalr.SignalRRequestTypeRESTAPI),
-									string(signalr.SignalRRequestTypeServerConnection),
-									string(signalr.SignalRRequestTypeTrace),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(signalr.PossibleValuesForSignalRRequestType(), false),
 							},
 						},
 					},
@@ -114,13 +102,8 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(signalr.SignalRRequestTypeClientConnection),
-									string(signalr.SignalRRequestTypeRESTAPI),
-									string(signalr.SignalRRequestTypeServerConnection),
-									string(signalr.SignalRRequestTypeTrace),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(signalr.PossibleValuesForSignalRRequestType(), false),
 							},
 						},
 
@@ -128,13 +111,8 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(signalr.SignalRRequestTypeClientConnection),
-									string(signalr.SignalRRequestTypeRESTAPI),
-									string(signalr.SignalRRequestTypeServerConnection),
-									string(signalr.SignalRRequestTypeTrace),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(signalr.PossibleValuesForSignalRRequestType(), false),
 							},
 						},
 					},
@@ -200,11 +178,17 @@ func resourceSignalRServiceNetworkACLCreateUpdate(d *pluginsdk.ResourceData, met
 		model.Properties.NetworkACLs = &networkACL
 	}
 
-	if err := client.UpdateThenPoll(ctx, *id, model); err != nil {
-		return fmt.Errorf("creating/updating NetworkACL for %s: %v", id, err)
+	if d.IsNewResource() {
+		if err := client.UpdateCallbackThenPoll(ctx, *id, model, sdk.SetIDCallback(meta, id, d)); err != nil {
+			return fmt.Errorf("creating Network ACL for %s: %v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.UpdateThenPoll(ctx, *id, model); err != nil {
+			return fmt.Errorf("updating Network ACL for %s: %v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return resourceSignalRServiceNetworkACLRead(d, meta)
 }
 
@@ -316,11 +300,11 @@ func expandSignalRServicePublicNetwork(input []interface{}) *signalr.NetworkACL 
 	if len(input) != 0 && input[0] != nil {
 		v := input[0].(map[string]interface{})
 
-		for _, item := range *(utils.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List())) {
+		for _, item := range *helpers.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List()) {
 			allowedRTs = append(allowedRTs, signalr.SignalRRequestType(item))
 		}
 
-		for _, item := range *(utils.ExpandStringSlice(v["denied_request_types"].(*pluginsdk.Set).List())) {
+		for _, item := range *helpers.ExpandStringSlice(v["denied_request_types"].(*pluginsdk.Set).List()) {
 			deniedRTs = append(deniedRTs, signalr.SignalRRequestType(item))
 		}
 	}
@@ -357,13 +341,13 @@ func expandSignalRServicePrivateEndpoint(input []interface{}, privateEndpointCon
 				}
 
 				allowedRTs := make([]signalr.SignalRRequestType, 0)
-				for _, item := range *(utils.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List())) {
+				for _, item := range *helpers.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List()) {
 					allowedRTs = append(allowedRTs, signalr.SignalRRequestType(item))
 				}
 				result.Allow = &allowedRTs
 
 				deniedRTs := make([]signalr.SignalRRequestType, 0)
-				for _, item := range *(utils.ExpandStringSlice(v["denied_request_types"].(*pluginsdk.Set).List())) {
+				for _, item := range *helpers.ExpandStringSlice(v["denied_request_types"].(*pluginsdk.Set).List()) {
 					deniedRTs = append(deniedRTs, signalr.SignalRRequestType(item))
 				}
 				result.Deny = &deniedRTs
@@ -386,18 +370,18 @@ func flattenSignalRServicePublicNetwork(input *signalr.NetworkACL) []interface{}
 	allowRequestTypes := make([]string, 0)
 	if input.Allow != nil {
 		for _, item := range *input.Allow {
-			allowRequestTypes = append(allowRequestTypes, (string)(item))
+			allowRequestTypes = append(allowRequestTypes, string(item))
 		}
 	}
-	allow := utils.FlattenStringSlice(&allowRequestTypes)
+	allow := helpers.FlattenStringSlice(&allowRequestTypes)
 
 	deniedRequestTypes := make([]string, 0)
 	if input.Deny != nil {
 		for _, item := range *input.Deny {
-			deniedRequestTypes = append(deniedRequestTypes, (string)(item))
+			deniedRequestTypes = append(deniedRequestTypes, string(item))
 		}
 	}
-	deny := utils.FlattenStringSlice(&deniedRequestTypes)
+	deny := helpers.FlattenStringSlice(&deniedRequestTypes)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -430,18 +414,18 @@ func flattenSignalRServicePrivateEndpoint(input *[]signalr.PrivateEndpointACL, p
 				allowedRequestTypes := make([]string, 0)
 				if item.Allow != nil {
 					for _, item := range *item.Allow {
-						allowedRequestTypes = append(allowedRequestTypes, (string)(item))
+						allowedRequestTypes = append(allowedRequestTypes, string(item))
 					}
 				}
-				allow := utils.FlattenStringSlice(&allowedRequestTypes)
+				allow := helpers.FlattenStringSlice(&allowedRequestTypes)
 
 				deniedRequestTypes := make([]string, 0)
 				if item.Deny != nil {
 					for _, item := range *item.Deny {
-						deniedRequestTypes = append(deniedRequestTypes, (string)(item))
+						deniedRequestTypes = append(deniedRequestTypes, string(item))
 					}
 				}
-				deny := utils.FlattenStringSlice(&deniedRequestTypes)
+				deny := helpers.FlattenStringSlice(&deniedRequestTypes)
 
 				results = append(results, map[string]interface{}{
 					"id":                    *props.PrivateEndpoint.Id,

@@ -171,7 +171,7 @@ func (r KubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk.Sc
 		"release_train": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			Computed:      true,
+			Computed:      true, // azignore:AZS007 - pre-existing violation
 			ForceNew:      true,
 			ConflictsWith: []string{"version"},
 			ValidateFunc:  validation.StringIsNotEmpty,
@@ -180,7 +180,7 @@ func (r KubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk.Sc
 		"release_namespace": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			Computed:      true,
+			Computed:      true, // azignore:AZS007 - pre-existing violation
 			ForceNew:      true,
 			ConflictsWith: []string{"target_namespace"},
 			ValidateFunc:  validation.StringIsNotEmpty,
@@ -189,7 +189,7 @@ func (r KubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk.Sc
 		"target_namespace": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			Computed:      true,
+			Computed:      true, // azignore:AZS007 - pre-existing violation
 			ForceNew:      true,
 			ConflictsWith: []string{"release_namespace"},
 			ValidateFunc:  validation.StringIsNotEmpty,
@@ -233,13 +233,16 @@ func (r KubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 
 			// defined as strings because they're not enums in the swagger https://github.com/Azure/azure-rest-api-specs/pull/23545
 			id := extensions.NewScopedExtensionID(clusterID.ID(), model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			autoUpgradeMinorVersion := model.Version == ""
@@ -281,7 +284,7 @@ func (r KubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 				properties.Properties.Version = &model.Version
 			}
 
-			if err = client.CreateThenPoll(ctx, id, *properties); err != nil {
+			if err = client.CreateCallbackThenPoll(ctx, id, *properties, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

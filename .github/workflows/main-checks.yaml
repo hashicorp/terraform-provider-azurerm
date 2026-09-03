@@ -1,0 +1,180 @@
+---
+name: Main Branch Checks
+
+# Runs the tree-state CI checks on every push to main (and release branches).
+# PR checks only run on pull_request events, so without this workflow a merge to
+# main is never validated: two PRs that are each green in isolation can still
+# break main when combined (semantic merge conflicts, a renamed helper another
+# PR started using, etc.).
+#
+# Every job runs on every push - deliberately no path filtering. A per-push
+# paths filter makes the branch tip's green check meaningless: a docs-only or
+# workflow-only push would skip the Go checks and show green even when the
+# previous (code) push failed or had its run cancelled. Since every run covers
+# the complete tree state, cancelling a superseded run loses nothing.
+#
+# This intentionally duplicates the check jobs in pr-checks-combined.yaml (and
+# the tree-based standalone pr-check-* workflows) rather than adding a push
+# trigger to them: those workflows feed the PR comment/labeling machinery
+# (pr-save-artifacts.yaml -> workflow_run watchers matched by display name),
+# which has no PR to act on for a push event. Keep the check steps here in sync
+# with their PR counterparts when updating either side.
+#
+# Diff-based PR checks (Breaking-change gating advice, gradually-deprecated,
+# list-resource enforcement, guide suggestions) compare against origin/main and
+# are meaningless on main itself, so they are not run here. The OIDC provider
+# acceptance tests are also excluded — nightly TeamCity runs cover main.
+# quick-checks, tfproviderlint, static-analysis and breaking-change detection
+# are also deliberately absent: those checks are planned to consolidate into
+# azproviderlint, which can be added here once it exists.
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - release/**
+
+concurrency:
+  # Only the newest push per branch matters - the tip includes earlier merges,
+  # and since every run executes all checks the newest run supersedes any it cancels.
+  group: 'main-checks-${{ github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+
+  # Unlike the PR workflow there is no fail-fast phasing here: on main we want
+  # the complete picture of everything broken in one run, not saved runner time.
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+      - name: Build Provider
+        run: go build -v -o /dev/null main.go
+
+  depscheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+      - run: make depscheck
+
+  golangci-lint:
+    runs-on: custom-linux-large
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+      # The azproviderlint/tfproviderlint module plugins require a custom-built golangci-lint
+      # binary (see scripts/.custom-gcl.yml); cache it so it is only rebuilt when the plugin
+      # config (which pins the golangci-lint version) changes. The make target rebuilds the
+      # binary when it is missing or its version is stale.
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: scripts/golangci-with-modules
+          key: golangci-with-modules-${{ hashFiles('scripts/.custom-gcl.yml') }}
+      - name: Build golangci-lint with plugins
+        run: make golangci-with-modules
+      - name: Run golangci-lint
+        run: ./scripts/golangci-with-modules run -v ./...
+
+  gencheck:
+    runs-on: custom-linux-large
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+      - run: make gencheck
+
+  unit-tests:
+    runs-on: custom-linux-xl
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          cache-dependency-path: go.mod
+          go-version-file: ./.go-version
+      - name: Install gotestsum
+        run: go install gotest.tools/gotestsum@v1.13.0
+      - name: Run tests
+        run: |
+          gotestsum \
+           --format pkgname-and-test-fails \
+           --format-hide-empty-pkg -- \
+           -timeout=30s \
+           -parallel=32 \
+           -run='^Test[^A]|^TestA[^c]|^TestAc[^c]' \
+           ./...
+
+  preview-api-version-linter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+      - run: go run internal/tools/preview-api-version-linter/main.go
+
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - name: Run ShellCheck
+        run: make shellcheck
+
+  website-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+      - run: make tools
+      - run: make website-lint
+
+  document-validate:
+    runs-on: custom-linux-large
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+      - run: make document-validate
+
+  validate-examples:
+    runs-on: custom-linux-small
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+      - run: make tools
+      - run: make validate-examples
+
+  teamcity-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: zulu
+          java-version: 21
+          java-package: jdk
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - run: make teamcity-test

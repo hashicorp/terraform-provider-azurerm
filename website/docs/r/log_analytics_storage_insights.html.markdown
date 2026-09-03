@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `workspace_id` - (Required) The ID of the Log Analytics Workspace within which the Storage Insights should exist. Changing this forces a new Log Analytics Storage Insights to be created.
 
-* `storage_account_id` - (Required) The ID of the Storage Account used by this Log Analytics Storage Insights.
+* `storage_account_id` - (Required) The ID of the Storage Account used by this Log Analytics Storage Insights. Changing this forces a new resource to be created.
 
 * `storage_account_key` - (Required) The storage access key to be used to connect to the storage account.
 

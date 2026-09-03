@@ -58,9 +58,20 @@ func (c ReplicationProtectedItemsClient) RepairReplication(ctx context.Context, 
 
 // RepairReplicationThenPoll performs RepairReplication then polls until it's completed
 func (c ReplicationProtectedItemsClient) RepairReplicationThenPoll(ctx context.Context, id ReplicationProtectedItemId) error {
+	return c.RepairReplicationCallbackThenPoll(ctx, id, nil)
+}
+
+// RepairReplicationCallbackThenPoll performs RepairReplication, runs the optional callback function, then polls until it's completed
+func (c ReplicationProtectedItemsClient) RepairReplicationCallbackThenPoll(ctx context.Context, id ReplicationProtectedItemId, callback func() error) error {
 	result, err := c.RepairReplication(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing RepairReplication: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

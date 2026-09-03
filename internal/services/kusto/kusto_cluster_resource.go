@@ -4,9 +4,7 @@
 package kusto
 
 import (
-	"context"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -22,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
@@ -33,7 +30,7 @@ import (
 )
 
 func resourceKustoCluster() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceKustoClusterCreate,
 		Read:   resourceKustoClusterRead,
 		Update: resourceKustoClusterUpdate,
@@ -87,7 +84,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 						"capacity": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.IntBetween(1, 1000),
 						},
 					},
@@ -115,7 +112,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			"trusted_external_tenants": {
 				Type:       pluginsdk.TypeList,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
@@ -226,110 +223,6 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["language_extension"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeList,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"language_extensions"},
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionName(), false),
-					},
-					"image": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionImageName(), false),
-					},
-				},
-			},
-		}
-
-		resource.Schema["language_extensions"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeList,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"language_extension"},
-			Deprecated:    "`language_extensions` has been deprecated in favour of `language_extension` and will be removed in v5.0 of the AzureRM provider",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionName(), false),
-					},
-					"image": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionImageName(), false),
-					},
-				},
-			},
-		}
-
-		resource.Schema["virtual_network_configuration"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			MaxItems:   1,
-			Deprecated: "The `virtual_network_configuration` block has been deprecated as it is no longer supported by Azure and will be removed in v5.0 of the AzureRM Provider - for more information see https://techcommunity.microsoft.com/blog/azuredataexplorer/deprecation-of-virtual-network-injection-for-azure-data-explorer/4198192",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"subnet_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: commonids.ValidateSubnetID,
-					},
-					"engine_public_ip_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: commonids.ValidatePublicIPAddressID,
-					},
-					"data_management_public_ip_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: commonids.ValidatePublicIPAddressID,
-					},
-				},
-			},
-		}
-
-		resource.CustomizeDiff = func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
-			rawLanguageExtensions, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("language_extensions"))
-			if diags.HasError() {
-				return nil
-			}
-
-			rawLanguageExtension, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("language_extension"))
-			if diags.HasError() {
-				return nil
-			}
-
-			// If neither the `language_extensions` nor the `language_extension` block is defined in config, set both to an empty slice.
-			// This ensures removal of these blocks from config still triggers an update while these 2 blocks are O+C for 4.x.
-			if !rawLanguageExtensions.IsNull() && rawLanguageExtensions.IsKnown() && !rawLanguageExtension.IsNull() && rawLanguageExtension.IsKnown() {
-				if len(rawLanguageExtensions.AsValueSlice()) == 0 && len(rawLanguageExtension.AsValueSlice()) == 0 {
-					if err := d.SetNew("language_extensions", make([]any, 0)); err != nil {
-						return err
-					}
-
-					if err := d.SetNew("language_extension", make([]any, 0)); err != nil {
-						return err
-					}
-				}
-			}
-
-			return nil
-		}
-	}
-
-	return resource
 }
 
 func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -338,16 +231,17 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Kusto Cluster creation.")
-
 	id := commonids.NewKustoClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
-	if err != nil && !response.WasNotFound(existing.HttpResponse) {
-		return fmt.Errorf("checking for existing %s: %+v", id, err)
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_kusto_cluster", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil && !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_kusto_cluster", id.ID())
+		}
 	}
 
 	locks.ByName(id.KustoClusterName, "azurerm_kusto_cluster")
@@ -395,12 +289,6 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		TrustedExternalTenants: expandTrustedExternalTenants(d.Get("trusted_external_tenants").([]interface{})),
 	}
 
-	if !features.FivePointOh() {
-		if v, ok := d.GetOk("virtual_network_configuration"); ok {
-			vnet := expandKustoClusterVNET(v.([]interface{}))
-			clusterProperties.VirtualNetworkConfiguration = vnet
-		}
-	}
 	if v, ok := d.GetOk("allowed_fqdns"); ok {
 		clusterProperties.AllowedFqdnList = expandKustoListString(v.([]interface{}))
 	}
@@ -421,13 +309,6 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		clusterProperties.LanguageExtensions = expandKustoClusterLanguageExtensionList(v.([]any))
 	}
 
-	if !features.FivePointOh() {
-		if v, ok := d.GetOk("language_extensions"); ok {
-			extList := v.([]interface{})
-			clusterProperties.LanguageExtensions = expandKustoClusterLanguageExtensionList(extList)
-		}
-	}
-
 	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
@@ -446,7 +327,7 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		kustoCluster.Zones = &zones
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, kustoCluster, clusters.CreateOrUpdateOperationOptions{}); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, kustoCluster, clusters.CreateOrUpdateOperationOptions{}, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -483,7 +364,7 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	model := existing.Model
 	props := model.Properties
 
-	if d.HasChange("sku") || d.HasChange("optimized_auto_scale") {
+	if d.HasChanges("sku", "optimized_auto_scale") {
 		sku, err := expandKustoClusterSku(d.Get("sku").([]interface{}))
 		if err != nil {
 			return err
@@ -553,32 +434,6 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		props.LanguageExtensions = expandKustoClusterLanguageExtensionList(d.Get("language_extension").([]any))
 	}
 
-	if !features.FivePointOh() {
-		if d.HasChange("language_extensions") {
-			props.LanguageExtensions = expandKustoClusterLanguageExtensionList(d.Get("language_extensions").([]any))
-		} else if len(d.Get("language_extensions").([]any)) > 0 || len(d.Get("language_extension").([]any)) > 0 {
-			hasError := false
-			rawLanguageExtensions, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("language_extensions"))
-			if diags.HasError() {
-				hasError = true
-			}
-
-			rawLanguageExtension, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("language_extension"))
-			if diags.HasError() {
-				hasError = true
-			}
-
-			// If RawConfig has a slice of len 0 for both blocks we want to ensure the API payload contains an empty slice to remove any language extensions.
-			// This is a workaround to the O+C behaviour where removing all blocks from config doesn't trigger a change.
-			// While the `CustomizeDiff` does update `*ResourceDiff` with the updated (empty) value, it doesn't seem to propagate through to the `*ResourceData` in `Update()`
-			if !hasError && !rawLanguageExtensions.IsNull() && rawLanguageExtensions.IsKnown() && !rawLanguageExtension.IsNull() && rawLanguageExtension.IsKnown() {
-				if len(rawLanguageExtensions.AsValueSlice()) == 0 && len(rawLanguageExtension.AsValueSlice()) == 0 {
-					props.LanguageExtensions = expandKustoClusterLanguageExtensionList(make([]any, 0))
-				}
-			}
-		}
-	}
-
 	if d.HasChange("outbound_network_access_restricted") {
 		restrictOutboundNetworkAccess := clusters.ClusterNetworkAccessFlagDisabled
 		if d.Get("outbound_network_access_restricted").(bool) {
@@ -610,20 +465,6 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if d.HasChange("trusted_external_tenants") {
 		props.TrustedExternalTenants = expandTrustedExternalTenants(d.Get("trusted_external_tenants").([]interface{}))
-	}
-
-	if !features.FivePointOh() {
-		if d.HasChange("virtual_network_configuration") {
-			if v, ok := d.GetOk("virtual_network_configuration"); ok {
-				if vnetConfig := expandKustoClusterVNET(v.([]interface{})); vnetConfig != nil {
-					props.VirtualNetworkConfiguration = vnetConfig
-				}
-			} else {
-				// 'State' is hardcoded to 'Disabled' for the 'None' pattern.
-				// If the vNet block is present it is enabled, if the vNet block is removed it is disabled.
-				props.VirtualNetworkConfiguration.State = pointer.To(clusters.VnetStateDisabled)
-			}
-		}
 	}
 
 	if d.HasChange("zones") {
@@ -708,17 +549,11 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 			d.Set("disk_encryption_enabled", props.EnableDiskEncryption)
 			d.Set("streaming_ingestion_enabled", props.EnableStreamingIngest)
 			d.Set("purge_enabled", props.EnablePurge)
-			if !features.FivePointOh() {
-				d.Set("virtual_network_configuration", flattenKustoClusterVNET(props.VirtualNetworkConfiguration))
-			}
 			d.Set("uri", props.Uri)
 			d.Set("data_ingestion_uri", props.DataIngestionUri)
 			d.Set("public_ip_type", string(pointer.From(props.PublicIPType)))
 
 			d.Set("language_extension", flattenKustoClusterLanguageExtensionList(props.LanguageExtensions))
-			if !features.FivePointOh() {
-				d.Set("language_extensions", flattenKustoClusterLanguageExtensionList(props.LanguageExtensions))
-			}
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -739,8 +574,7 @@ func resourceKustoClusterDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 	return nil
@@ -752,14 +586,12 @@ func expandOptimizedAutoScale(input []interface{}) *clusters.OptimizedAutoscale 
 	}
 
 	config := input[0].(map[string]interface{})
-	optimizedAutoScale := &clusters.OptimizedAutoscale{
+	return &clusters.OptimizedAutoscale{
 		Version:   1,
 		IsEnabled: true,
 		Minimum:   int64(config["minimum_instances"].(int)),
 		Maximum:   int64(config["maximum_instances"].(int)),
 	}
-
-	return optimizedAutoScale
 }
 
 func flattenOptimizedAutoScale(optimizedAutoScale *clusters.OptimizedAutoscale) []interface{} {
@@ -810,34 +642,14 @@ func expandKustoClusterSku(input []interface{}) (*clusters.AzureSku, error) {
 	return &azureSku, nil
 }
 
-func expandKustoClusterVNET(input []interface{}) *clusters.VirtualNetworkConfiguration {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	vnet := input[0].(map[string]interface{})
-	subnetID := vnet["subnet_id"].(string)
-	enginePublicIPID := vnet["engine_public_ip_id"].(string)
-	dataManagementPublicIPID := vnet["data_management_public_ip_id"].(string)
-
-	return &clusters.VirtualNetworkConfiguration{
-		// 'State' is hardcoded to 'Enabled' for the 'None' pattern.
-		// If the vNet block is present it is enabled, if the vNet block is removed it is disabled.
-		SubnetId:                 subnetID,
-		EnginePublicIPId:         enginePublicIPID,
-		DataManagementPublicIPId: dataManagementPublicIPID,
-		State:                    pointer.To(clusters.VnetStateEnabled),
-	}
-}
-
 func expandKustoClusterLanguageExtensionList(input []interface{}) *clusters.LanguageExtensionsList {
 	extensions := make([]clusters.LanguageExtension, 0)
 
 	for _, ext := range input {
 		extMap := ext.(map[string]interface{})
 		extensions = append(extensions, clusters.LanguageExtension{
-			LanguageExtensionName:      pointer.To(clusters.LanguageExtensionName(extMap["name"].(string))),
-			LanguageExtensionImageName: pointer.To(clusters.LanguageExtensionImageName(extMap["image"].(string))),
+			LanguageExtensionName:      pointer.ToEnum[clusters.LanguageExtensionName](extMap["name"].(string)),
+			LanguageExtensionImageName: pointer.ToEnum[clusters.LanguageExtensionImageName](extMap["image"].(string)),
 		})
 	}
 
@@ -860,20 +672,6 @@ func flattenKustoClusterSku(sku *clusters.AzureSku) []interface{} {
 	}
 
 	return []interface{}{s}
-}
-
-func flattenKustoClusterVNET(vnet *clusters.VirtualNetworkConfiguration) []interface{} {
-	if vnet == nil || *vnet.State == clusters.VnetStateDisabled {
-		return []interface{}{}
-	}
-
-	output := map[string]interface{}{
-		"subnet_id":                    vnet.SubnetId,
-		"engine_public_ip_id":          vnet.EnginePublicIPId,
-		"data_management_public_ip_id": vnet.DataManagementPublicIPId,
-	}
-
-	return []interface{}{output}
 }
 
 func flattenKustoClusterLanguageExtensionList(extensions *clusters.LanguageExtensionsList) []interface{} {

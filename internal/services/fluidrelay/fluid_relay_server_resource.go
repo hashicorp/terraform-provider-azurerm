@@ -13,12 +13,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26/fluidrelayservers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/validate"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -85,9 +84,10 @@ func (s Server) Arguments() map[string]*pluginsdk.Schema {
 		"tags":                commonschema.Tags(),
 		"identity":            commonschema.SystemAssignedUserAssignedIdentityOptional(),
 		"storage_sku": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C due to the issue linked below
 			// todo remove computed when https://github.com/Azure/azure-rest-api-specs/issues/19700 is fixed
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
 			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(fluidrelayservers.PossibleValuesForStorageSKU(), false),
@@ -102,7 +102,7 @@ func (s Server) Arguments() map[string]*pluginsdk.Schema {
 					"key_vault_key_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 					},
 
 					"user_assigned_identity_id": {
@@ -172,23 +172,25 @@ func (s Server) ResourceType() string {
 func (s Server) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, meta sdk.ResourceMetaData) (err error) {
-			client := meta.Client.FluidRelay.FluidRelayServers
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) (err error) {
+			client := metadata.Client.FluidRelay.FluidRelayServers
 
 			var model ServerModel
-			if err = meta.Decode(&model); err != nil {
+			if err = metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			id := fluidrelayservers.NewFluidRelayServerID(meta.Client.Account.SubscriptionId, model.ResourceGroup, model.Name)
+			id := fluidrelayservers.NewFluidRelayServerID(metadata.Client.Account.SubscriptionId, model.ResourceGroup, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if !response.WasNotFound(existing.HttpResponse) {
-				if err != nil {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					if err != nil {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
+
+					return metadata.ResourceRequiresImport(s.ResourceType(), id)
 				}
-
-				return meta.ResourceRequiresImport(s.ResourceType(), id)
 			}
 
 			payload := fluidrelayservers.FluidRelayServer{
@@ -202,7 +204,7 @@ func (s Server) Create() sdk.ResourceFunc {
 			}
 
 			if model.StorageSKU != "" {
-				payload.Properties.Storagesku = pointer.To(fluidrelayservers.StorageSKU(model.StorageSKU))
+				payload.Properties.Storagesku = pointer.ToEnum[fluidrelayservers.StorageSKU](model.StorageSKU)
 			}
 
 			if customerManagedKey := expandFluidRelayServerCustomerManagedKey(model.CustomerManagedKey); customerManagedKey != nil {
@@ -212,7 +214,7 @@ func (s Server) Create() sdk.ResourceFunc {
 			if _, err = client.CreateOrUpdate(ctx, id, payload); err != nil {
 				return fmt.Errorf("creating %v err: %+v", id, err)
 			}
-			meta.SetID(id)
+			metadata.SetID(id)
 
 			return nil
 		},
@@ -363,7 +365,7 @@ func expandFluidRelayServerCustomerManagedKey(input []CustomerManagedKey) *fluid
 	}
 
 	v := input[0]
-	encryption := &fluidrelayservers.EncryptionProperties{
+	return &fluidrelayservers.EncryptionProperties{
 		CustomerManagedKeyEncryption: &fluidrelayservers.CustomerManagedKeyEncryptionProperties{
 			KeyEncryptionKeyURL: pointer.To(v.KeyVaultKeyID),
 			KeyEncryptionKeyIdentity: &fluidrelayservers.CustomerManagedKeyEncryptionPropertiesKeyEncryptionKeyIdentity{
@@ -372,8 +374,6 @@ func expandFluidRelayServerCustomerManagedKey(input []CustomerManagedKey) *fluid
 			},
 		},
 	}
-
-	return encryption
 }
 
 func flattenFluidRelayServerCustomerManagedKey(input *fluidrelayservers.EncryptionProperties) ([]CustomerManagedKey, error) {
@@ -385,7 +385,7 @@ func flattenFluidRelayServerCustomerManagedKey(input *fluidrelayservers.Encrypti
 
 	if input.CustomerManagedKeyEncryption.KeyEncryptionKeyURL != nil {
 		if v := pointer.From(input.CustomerManagedKeyEncryption.KeyEncryptionKeyURL); v != "" {
-			id, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(v)
+			id, err := keyvault.ParseNestedItemID(v, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 			if err != nil {
 				return nil, err
 			}

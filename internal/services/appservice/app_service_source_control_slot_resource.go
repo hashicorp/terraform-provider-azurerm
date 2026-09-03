@@ -49,7 +49,7 @@ func (r SourceControlSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		"repo_url": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			RequiredWith: []string{
@@ -61,7 +61,7 @@ func (r SourceControlSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		"branch": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			RequiredWith: []string{
@@ -160,12 +160,14 @@ func (r SourceControlSlotResource) Create() sdk.ResourceFunc {
 			locks.ByID(appId)
 			defer locks.UnlockByID(appId)
 
-			existing, err := client.GetConfigurationSlot(ctx, *id)
-			if err != nil || existing.Model == nil || existing.Model.Properties == nil {
-				return fmt.Errorf("checking for existing Source Control configuration on %s: %+v", id, err)
-			}
-			if pointer.From(existing.Model.Properties.ScmType) != webapps.ScmTypeNone {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetConfigurationSlot(ctx, *id)
+				if err != nil || existing.Model == nil || existing.Model.Properties == nil {
+					return fmt.Errorf("checking for existing Source Control configuration on %s: %+v", id, err)
+				}
+				if pointer.From(existing.Model.Properties.ScmType) != webapps.ScmTypeNone {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			if appSourceControlSlot.LocalGitSCM {
@@ -211,8 +213,7 @@ func (r SourceControlSlotResource) Create() sdk.ResourceFunc {
 					sourceControl.Properties.GitHubActionConfiguration = ghaConfig
 				}
 
-				_, err = client.UpdateSourceControlSlot(ctx, *id, sourceControl)
-				if err != nil {
+				if _, err = client.UpdateSourceControlSlot(ctx, *id, sourceControl); err != nil {
 					return fmt.Errorf("creating Source Control configuration for %s: %v", id, err)
 				}
 			}

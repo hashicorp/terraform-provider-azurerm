@@ -125,7 +125,8 @@ JSON
 
 * `type` - (Required) The type of dataset that will be associated with Data Factory. Changing this forces a new resource to be created.
 
-* `type_properties_json` - (Required) A JSON object that contains the properties of the Data Factory Dataset.
+* `type_properties_json` - (Required) A JSON object that contains the properties of the Data Factory Dataset. Refer to
+[datafactory/models.go](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/vendor/github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory/models.go) for the shape of the expected JSON. For example, the JSON object for `AzureBlob`-typed Dataset will be unmarshaled into `AzureBlobDatasetTypeProperties struct`.
 
 * `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Dataset.
 

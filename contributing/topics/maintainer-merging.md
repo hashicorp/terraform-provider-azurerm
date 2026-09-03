@@ -20,10 +20,11 @@ When a PR is merged it may or may not be included in the changelog. While most P
 - Unit and acceptance test fixes
 - Refactoring
 - Documentation changes
+- Deprecations (these must have an entry in the `{major}.0-upgrade-guide.html.markdown` file instead)
 
 Otherwise, every PR that affects users should be added to the appropriate section:
 
-* `FEATURES` - new resources and data sources
+* `FEATURES` - new resources, data sources, actions, and list resources
 * `ENHANCEMENTS` - new properties, functionality, and features (including SDK/API upgrades)
 * `BUG FIXES` - bug fixes
 
@@ -44,7 +45,9 @@ Here is a list of common changelog entries and how they should be formatted:
 
 FEATURES:
 
+* **New Action**: `azurerm_action` [GH-12345]
 * **New Data Source**: `azurerm_data_source` [GH-12345]
+* **New List Resource**: `azurerm_resource` [GH-12345]
 * **New Resource**: `azurerm_resource` [GH-12345]
 
 ENHANCEMENTS:
@@ -59,6 +62,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* provider: `provider_feature` now correctly reads the default value from an environment variable [GH-12345]
 * Data Source: `azurerm_data_source` - prevent a possible crash by setting `queue_name` correctly [GH-12345]
 * Data Source: `azurerm_data_source` - correctly populate the `kind` and `os_type` attributes [GH-12345]
 * `azurerm_data_factory_dataset_delimited_text` - set defaults properly for `column_delimiter`, `quote_character`, `escape_character`, `first_row_as_header`, and `null_value` [GH-12345]

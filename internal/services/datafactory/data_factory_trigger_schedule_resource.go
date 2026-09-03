@@ -10,7 +10,9 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -19,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
@@ -143,7 +144,7 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 			"start_time": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				DiffSuppressFunc: suppress.RFC3339Time,
 				ValidateFunc:     validation.IsRFC3339Time, // times in the past just start immediately
 			},
@@ -193,7 +194,7 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 			"pipeline": {
 				Type:          pluginsdk.TypeList,
 				Optional:      true,
-				Computed:      true,
+				Computed:      true, // azignore:AZS007 - pre-existing violation
 				ConflictsWith: []string{"pipeline_parameters"},
 				ExactlyOneOf:  []string{"pipeline", "pipeline_name"},
 				Elem: &pluginsdk.Resource{
@@ -218,7 +219,7 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 			"pipeline_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ExactlyOneOf: []string{"pipeline", "pipeline_name"},
 				ValidateFunc: validate.DataFactoryPipelineAndTriggerName(),
 			},
@@ -226,7 +227,7 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 			"pipeline_parameters": {
 				Type:          pluginsdk.TypeMap,
 				Optional:      true,
-				Computed:      true,
+				Computed:      true, // azignore:AZS007 - pre-existing violation
 				ConflictsWith: []string{"pipeline"},
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
@@ -258,15 +259,17 @@ func resourceDataFactoryTriggerScheduleCreate(d *pluginsdk.ResourceData, meta in
 
 	id := parse.NewTriggerID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+		if err != nil {
+			if !response.WasNotFound(existing.Response.Response) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_data_factory_trigger_schedule", id.ID())
+		if !response.WasNotFound(existing.Response.Response) {
+			return tf.ImportAsExistsError("azurerm_data_factory_trigger_schedule", id.ID())
+		}
 	}
 
 	props := &datafactory.ScheduleTriggerTypeProperties{
@@ -348,8 +351,7 @@ func resourceDataFactoryTriggerScheduleUpdate(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	_, err = client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-	if err != nil {
+	if _, err = client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, ""); err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
@@ -445,7 +447,7 @@ func resourceDataFactoryTriggerScheduleRead(d *pluginsdk.ResourceData, meta inte
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			return nil
@@ -556,13 +558,13 @@ func expandDataFactorySchedule(input []interface{}) *datafactory.RecurrenceSched
 	}
 
 	if monthdays := value["days_of_month"].([]interface{}); len(monthdays) > 0 {
-		schedule.MonthDays = utils.ExpandInt32Slice(monthdays)
+		schedule.MonthDays = helpers.ExpandInt32Slice(monthdays)
 	}
 	if minutes := value["minutes"].([]interface{}); len(minutes) > 0 {
-		schedule.Minutes = utils.ExpandInt32Slice(minutes)
+		schedule.Minutes = helpers.ExpandInt32Slice(minutes)
 	}
 	if hours := value["hours"].([]interface{}); len(hours) > 0 {
-		schedule.Hours = utils.ExpandInt32Slice(hours)
+		schedule.Hours = helpers.ExpandInt32Slice(hours)
 	}
 
 	return &schedule
@@ -574,10 +576,10 @@ func flattenDataFactorySchedule(schedule *datafactory.RecurrenceSchedule) []inte
 	}
 	value := make(map[string]interface{})
 	if schedule.Minutes != nil {
-		value["minutes"] = utils.FlattenInt32Slice(schedule.Minutes)
+		value["minutes"] = helpers.FlattenInt32Slice(schedule.Minutes)
 	}
 	if schedule.Hours != nil {
-		value["hours"] = utils.FlattenInt32Slice(schedule.Hours)
+		value["hours"] = helpers.FlattenInt32Slice(schedule.Hours)
 	}
 	if schedule.WeekDays != nil {
 		weekDays := make([]interface{}, 0)
@@ -587,7 +589,7 @@ func flattenDataFactorySchedule(schedule *datafactory.RecurrenceSchedule) []inte
 		value["days_of_week"] = weekDays
 	}
 	if schedule.MonthDays != nil {
-		value["days_of_month"] = utils.FlattenInt32Slice(schedule.MonthDays)
+		value["days_of_month"] = helpers.FlattenInt32Slice(schedule.MonthDays)
 	}
 	if schedule.MonthlyOccurrences != nil {
 		monthlyOccurrences := make([]interface{}, 0)

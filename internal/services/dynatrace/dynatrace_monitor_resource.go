@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dynatrace/2023-04-27/monitors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -73,13 +72,10 @@ func (r MonitorsResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"marketplace_subscription": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(monitors.MarketplaceSubscriptionStatusActive),
-				string(monitors.MarketplaceSubscriptionStatusSuspended),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(monitors.PossibleValuesForMarketplaceSubscriptionStatus(), false),
 		},
 
 		"identity": commonschema.SystemAssignedIdentityRequired(),
@@ -138,7 +134,7 @@ func (r MonitorsResource) Arguments() map[string]*pluginsdk.Schema {
 					"email": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validate.EmailAddress,
+						ValidateFunc: validation.IsEmailAddress,
 					},
 
 					"first_name": {
@@ -219,12 +215,14 @@ func (r MonitorsResource) Create() sdk.ResourceFunc {
 
 			id := monitors.NewMonitorID(subscriptionId, model.ResourceGroup, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			monitoringStatus := monitors.MonitoringStatusEnabled
@@ -232,7 +230,7 @@ func (r MonitorsResource) Create() sdk.ResourceFunc {
 				monitoringStatus = monitors.MonitoringStatusDisabled
 			}
 			monitorsProps := monitors.MonitorProperties{
-				MarketplaceSubscriptionStatus:  pointer.To(monitors.MarketplaceSubscriptionStatus(model.MarketplaceSubscriptionStatus)),
+				MarketplaceSubscriptionStatus:  pointer.ToEnum[monitors.MarketplaceSubscriptionStatus](model.MarketplaceSubscriptionStatus),
 				MonitoringStatus:               pointer.To(monitoringStatus),
 				PlanData:                       ExpandDynatracePlanData(model.PlanData),
 				UserInfo:                       ExpandDynatraceUserInfo(model.UserInfo),
@@ -252,7 +250,7 @@ func (r MonitorsResource) Create() sdk.ResourceFunc {
 				Tags:       pointer.To(model.Tags),
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, monitor); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, monitor, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -327,8 +325,6 @@ func (r MonitorsResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("deleting %s", *id)
 
 			if resp, err := client.Delete(ctx, *id); err != nil {
 				if !response.WasNotFound(resp.HttpResponse) {

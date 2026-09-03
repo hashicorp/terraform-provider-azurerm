@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -79,13 +80,10 @@ func resourceVirtualHubIP() *pluginsdk.Resource {
 			},
 
 			"private_ip_allocation_method": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  virtualwans.IPAllocationMethodDynamic,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualwans.IPAllocationMethodDynamic),
-					string(virtualwans.IPAllocationMethodStatic),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      virtualwans.IPAllocationMethodDynamic,
+				ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForIPAllocationMethod(), false),
 			},
 		},
 	}
@@ -106,14 +104,16 @@ func resourceVirtualHubIPCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	id := commonids.NewVirtualHubIPConfigurationID(virtualHubId.SubscriptionId, virtualHubId.ResourceGroupName, virtualHubId.VirtualHubName, d.Get("name").(string))
 
-	existing, err := client.VirtualHubIPConfigurationGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.VirtualHubIPConfigurationGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_virtual_hub_ip", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_virtual_hub_ip", id.ID())
+		}
 	}
 
 	parameters := virtualwans.HubIPConfiguration{
@@ -130,7 +130,7 @@ func resourceVirtualHubIPCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if v, ok := d.GetOk("private_ip_allocation_method"); ok {
-		parameters.Properties.PrivateIPAllocationMethod = pointer.To(virtualwans.IPAllocationMethod(v.(string)))
+		parameters.Properties.PrivateIPAllocationMethod = pointer.ToEnum[virtualwans.IPAllocationMethod](v.(string))
 	}
 
 	if v, ok := d.GetOk("public_ip_address_id"); ok {
@@ -139,7 +139,7 @@ func resourceVirtualHubIPCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	if err := client.VirtualHubIPConfigurationCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.VirtualHubIPConfigurationCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -188,7 +188,7 @@ func resourceVirtualHubIPUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("private_ip_allocation_method") {
-		payload.Properties.PrivateIPAllocationMethod = pointer.To(virtualwans.IPAllocationMethod(d.Get("private_ip_allocation_method").(string)))
+		payload.Properties.PrivateIPAllocationMethod = pointer.ToEnum[virtualwans.IPAllocationMethod](d.Get("private_ip_allocation_method").(string))
 	}
 
 	if err := client.VirtualHubIPConfigurationCreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {

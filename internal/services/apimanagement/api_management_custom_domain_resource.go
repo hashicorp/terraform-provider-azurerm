@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -112,8 +111,10 @@ func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if d.IsNewResource() {
-		if existing.Model != nil && existing.Model.Properties.HostnameConfigurations != nil && len(*existing.Model.Properties.HostnameConfigurations) > 1 {
-			return tf.ImportAsExistsError(apiManagementCustomDomainResourceName, *existing.Model.Id)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if existing.Model != nil && existing.Model.Properties.HostnameConfigurations != nil && len(*existing.Model.Properties.HostnameConfigurations) > 1 {
+				return tf.ImportAsExistsError(apiManagementCustomDomainResourceName, *existing.Model.Id)
+			}
 		}
 	}
 
@@ -147,6 +148,7 @@ func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		}
 	}
 
+	// TODO: implement callback, requires migrating to an ID implementing `resourceids.ResourceId`
 	if err := client.CreateOrUpdateThenPoll(ctx, *apiMgmtId, *existing.Model); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -245,8 +247,6 @@ func apiManagementCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("waiting for %s to become ready: %+v", *id, err)
 	}
 
-	log.Printf("[DEBUG] Deleting %s", *id)
-
 	if resp.Model != nil {
 		resp.Model.Properties.HostnameConfigurations = nil
 	}
@@ -275,6 +275,7 @@ func expandApiManagementCustomDomains(input *pluginsdk.ResourceData) *[]apimanag
 			results = append(results, output)
 		}
 	}
+
 	if portalRawVal, ok := input.GetOk("portal"); ok {
 		vs := portalRawVal.([]interface{})
 		for _, rawVal := range vs {
@@ -283,6 +284,7 @@ func expandApiManagementCustomDomains(input *pluginsdk.ResourceData) *[]apimanag
 			results = append(results, output)
 		}
 	}
+
 	if developerPortalRawVal, ok := input.GetOk("developer_portal"); ok {
 		vs := developerPortalRawVal.([]interface{})
 		for _, rawVal := range vs {
@@ -297,9 +299,11 @@ func expandApiManagementCustomDomains(input *pluginsdk.ResourceData) *[]apimanag
 		for _, rawVal := range vs {
 			v := rawVal.(map[string]interface{})
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeProxy)
+
 			if value, ok := v["default_ssl_binding"]; ok {
 				output.DefaultSslBinding = pointer.To(value.(bool))
 			}
+
 			results = append(results, output)
 		}
 	}
@@ -339,10 +343,6 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagementservice.Hos
 		output["negotiate_client_certificate"] = pointer.From(config.NegotiateClientCertificate)
 		output["key_vault_certificate_id"] = pointer.From(config.KeyVaultId)
 		output["ssl_keyvault_identity_client_id"] = pointer.From(config.IdentityClientId)
-
-		if !features.FivePointOh() {
-			output["key_vault_id"] = pointer.From(config.KeyVaultId)
-		}
 
 		var configType string
 		switch strings.ToLower(string(config.Type)) {

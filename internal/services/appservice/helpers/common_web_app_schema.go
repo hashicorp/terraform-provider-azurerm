@@ -402,7 +402,7 @@ func BackupSchema() *pluginsdk.Schema {
 							"start_time": {
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
-								Computed:     true,
+								Computed:     true, // azignore:AZS007 - pre-existing violation
 								Description:  "When the schedule should start working in RFC-3339 format.",
 								ValidateFunc: validation.IsRFC3339Time,
 							},
@@ -651,15 +651,9 @@ func applicationLogSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"file_system_level": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{ // webapps.LoglevelOff is the implied value when this block is removed.
-						string(webapps.LogLevelError),
-						string(webapps.LogLevelOff),
-						string(webapps.LogLevelInformation),
-						string(webapps.LogLevelVerbose),
-						string(webapps.LogLevelWarning),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForLogLevel(), false),
 				},
 
 				"azure_blob_storage": appLogBlobStorageSchema(),
@@ -900,13 +894,13 @@ func ExpandLogsConfig(config []LogsConfig) *webapps.SiteLogsConfig {
 		appLogs := logsConfig.ApplicationLogs[0]
 		result.Properties.ApplicationLogs = &webapps.ApplicationLogsConfig{
 			FileSystem: &webapps.FileSystemApplicationLogsConfig{
-				Level: pointer.To(webapps.LogLevel(appLogs.FileSystemLevel)),
+				Level: pointer.ToEnum[webapps.LogLevel](appLogs.FileSystemLevel),
 			},
 		}
 		if len(appLogs.AzureBlobStorage) == 1 {
 			appLogsBlobs := appLogs.AzureBlobStorage[0]
 			result.Properties.ApplicationLogs.AzureBlobStorage = &webapps.AzureBlobStorageApplicationLogsConfig{
-				Level:           pointer.To(webapps.LogLevel(appLogsBlobs.Level)),
+				Level:           pointer.ToEnum[webapps.LogLevel](appLogsBlobs.Level),
 				SasURL:          pointer.To(appLogsBlobs.SasURL),
 				RetentionInDays: pointer.To(appLogsBlobs.RetentionInDays),
 			}
@@ -988,7 +982,7 @@ func ExpandStorageConfig(storageConfigs []StorageAccount) *webapps.AzureStorageP
 
 	for _, v := range storageConfigs {
 		storageAccounts[v.Name] = webapps.AzureStorageInfoValue{
-			Type:        pointer.To(webapps.AzureStorageType(v.Type)),
+			Type:        pointer.ToEnum[webapps.AzureStorageType](v.Type),
 			AccountName: pointer.To(v.AccountName),
 			ShareName:   pointer.To(v.ShareName),
 			AccessKey:   pointer.To(v.AccessKey),
@@ -1183,7 +1177,7 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 	}
 	props := *logsConfig.Properties
 	if onlyDefaultLoggingConfig(props) {
-		return nil
+		return []LogsConfig{}
 	}
 
 	logs := LogsConfig{}

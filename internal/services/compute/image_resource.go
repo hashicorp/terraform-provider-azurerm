@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -61,14 +61,11 @@ func resourceImage() *pluginsdk.Resource {
 			},
 
 			"hyper_v_generation": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(images.HyperVGenerationTypesVOne),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(images.HyperVGenerationTypesVOne),
-					string(images.HyperVGenerationTypesVTwo),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(images.HyperVGenerationTypesVOne),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(images.PossibleValuesForHyperVGenerationTypes(), false),
 			},
 
 			"source_virtual_machine_id": {
@@ -86,26 +83,20 @@ func resourceImage() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"os_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(images.OperatingSystemTypesLinux),
-								string(images.OperatingSystemTypesWindows),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(images.PossibleValuesForOperatingSystemTypes(), false),
 						},
 
 						"os_state": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(images.OperatingSystemStateTypesGeneralized),
-								string(images.OperatingSystemStateTypesSpecialized),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(images.PossibleValuesForOperatingSystemStateTypes(), false),
 						},
 
 						"managed_disk_id": {
 							Type:             pluginsdk.TypeString,
-							Computed:         true,
+							Computed:         true, // azignore:AZS007 - pre-existing violation
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     commonids.ValidateManagedDiskID,
@@ -114,25 +105,21 @@ func resourceImage() *pluginsdk.Resource {
 						"blob_uri": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ForceNew:     true,
 							ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 						},
 
 						"caching": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(images.CachingTypesNone),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(images.CachingTypesNone),
-								string(images.CachingTypesReadOnly),
-								string(images.CachingTypesReadWrite),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(images.CachingTypesNone),
+							ValidateFunc: validation.StringInSlice(images.PossibleValuesForCachingTypes(), false),
 						},
 
 						"size_gb": {
 							Type:         pluginsdk.TypeInt,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.NoZeroValues,
@@ -142,7 +129,7 @@ func resourceImage() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.DiskEncryptionSetID,
+							ValidateFunc: validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 						},
 
 						"storage_type": {
@@ -177,25 +164,21 @@ func resourceImage() *pluginsdk.Resource {
 						"blob_uri": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 						},
 
 						"caching": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(images.CachingTypesNone),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(images.CachingTypesNone),
-								string(images.CachingTypesReadOnly),
-								string(images.CachingTypesReadWrite),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(images.CachingTypesNone),
+							ValidateFunc: validation.StringInSlice(images.PossibleValuesForCachingTypes(), false),
 						},
 
 						"size_gb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.NoZeroValues,
 						},
 
@@ -203,7 +186,7 @@ func resourceImage() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.DiskEncryptionSetID,
+							ValidateFunc: validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 						},
 
 						"storage_type": {
@@ -230,20 +213,22 @@ func resourceImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	id := images.NewImageID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, images.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id, images.DefaultGetOperationOptions())
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_image", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_image", id.ID())
+			}
 		}
 	}
 
 	props := images.ImageProperties{
-		HyperVGeneration: pointer.To(images.HyperVGenerationTypes(d.Get("hyper_v_generation").(string))),
+		HyperVGeneration: pointer.ToEnum[images.HyperVGenerationTypes](d.Get("hyper_v_generation").(string)),
 	}
 
 	sourceVM := images.SubResource{}
@@ -275,11 +260,17 @@ func resourceImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Properties: &props,
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
-	if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
+	}
 
 	return resourceImageRead(d, meta)
 }
@@ -374,17 +365,16 @@ func expandImageOSDisk(input []interface{}) *images.ImageOSDisk {
 		}
 		managedDiskID := config["managed_disk_id"].(string)
 		if managedDiskID != "" {
-			managedDisk := &images.SubResource{
+			out.ManagedDisk = &images.SubResource{
 				Id: &managedDiskID,
 			}
-			out.ManagedDisk = managedDisk
 		}
 
 		blobURI := config["blob_uri"].(string)
 		out.BlobUri = &blobURI
 
 		if v := config["caching"].(string); v != "" {
-			out.Caching = pointer.To(images.CachingTypes(v))
+			out.Caching = pointer.ToEnum[images.CachingTypes](v)
 		}
 
 		if size := config["size_gb"]; size != 0 {
@@ -397,7 +387,7 @@ func expandImageOSDisk(input []interface{}) *images.ImageOSDisk {
 			}
 		}
 
-		out.StorageAccountType = pointer.To(images.StorageAccountTypes(config["storage_type"].(string)))
+		out.StorageAccountType = pointer.ToEnum[images.StorageAccountTypes](config["storage_type"].(string))
 
 		return out
 	}
@@ -420,14 +410,13 @@ func expandImageDataDisks(disks []interface{}) *[]images.ImageDataDisk {
 		}
 
 		if v := config["caching"].(string); v != "" {
-			item.Caching = pointer.To(images.CachingTypes(v))
+			item.Caching = pointer.ToEnum[images.CachingTypes](v)
 		}
 
 		if managedDiskID := config["managed_disk_id"].(string); managedDiskID != "" {
-			managedDisk := &images.SubResource{
+			item.ManagedDisk = &images.SubResource{
 				Id: &managedDiskID,
 			}
-			item.ManagedDisk = managedDisk
 		}
 
 		if id := config["disk_encryption_set_id"].(string); id != "" {
@@ -436,7 +425,7 @@ func expandImageDataDisks(disks []interface{}) *[]images.ImageDataDisk {
 			}
 		}
 
-		item.StorageAccountType = pointer.To(images.StorageAccountTypes(config["storage_type"].(string)))
+		item.StorageAccountType = pointer.ToEnum[images.StorageAccountTypes](config["storage_type"].(string))
 
 		output = append(output, item)
 	}
@@ -449,10 +438,7 @@ func flattenImageOSDisk(input *images.ImageStorageProfile) []interface{} {
 
 	if input != nil {
 		if v := input.OsDisk; v != nil {
-			blobUri := ""
-			if uri := v.BlobUri; uri != nil {
-				blobUri = *uri
-			}
+			blobUri := pointer.From(v.BlobUri)
 			caching := ""
 			if v.Caching != nil {
 				caching = string(*v.Caching)
@@ -500,10 +486,7 @@ func flattenImageDataDisks(input *images.ImageStorageProfile) []interface{} {
 	if input != nil {
 		if v := input.DataDisks; v != nil {
 			for _, disk := range *input.DataDisks {
-				blobUri := ""
-				if disk.BlobUri != nil {
-					blobUri = *disk.BlobUri
-				}
+				blobUri := pointer.From(disk.BlobUri)
 				caching := ""
 				if disk.Caching != nil {
 					caching = string(*disk.Caching)

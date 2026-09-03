@@ -1,0 +1,11 @@
+# The single source of truth for the golangci-lint version - the GNUmakefile (and via
+# 'make golangci-with-modules', the CI workflows) derive it from this field.
+version: v2.12.2
+name: golangci-with-modules
+plugins:
+  - module: "github.com/katbyte/azproviderlint"
+    import: "github.com/katbyte/azproviderlint/plugin"
+    version: v0.4.0
+  - module: "github.com/katbyte/tfproviderlint-golangci"
+    import: "github.com/katbyte/tfproviderlint-golangci/plugin"
+    version: v0.31.0

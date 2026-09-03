@@ -221,6 +221,9 @@ func TestAccLinuxFunctionApp_authV2Update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.auth_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.active_directory_v2.#").HasValue("1"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.active_directory_v2.0.client_id").IsNotEmpty(),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -229,6 +232,32 @@ func TestAccLinuxFunctionApp_authV2Update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.auth_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.active_directory_v2.#").HasValue("0"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.google_v2.#").HasValue("1"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.google_v2.0.client_id").IsNotEmpty(),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.authV2Removed(data, SkuBasicPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.auth_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.active_directory_v2.#").HasValue("0"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.google_v2.#").HasValue("0"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.authV2AzureActiveDirectory(data, SkuBasicPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.auth_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.active_directory_v2.#").HasValue("1"),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.active_directory_v2.0.client_id").IsNotEmpty(),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -259,7 +288,7 @@ func TestAccLinuxFunctionApp_authV2UpgradeFromV1(t *testing.T) {
 	})
 }
 
-func (r LinuxFunctionAppResource) authV2AzureActiveDirectory(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppResource) authV2AzureActiveDirectory(data acceptance.TestData, planSku string) string { // nolint: unparam
 	secretSettingName := "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
 	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
 	return fmt.Sprintf(`
@@ -1009,4 +1038,28 @@ resource "azurerm_linux_function_app" "test" {
   }
 }
 `, r.storageContainerTemplate(data, planSku), data.RandomInteger, secretSettingValue)
+}
+
+func (r LinuxFunctionAppResource) authV2Removed(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger)
 }

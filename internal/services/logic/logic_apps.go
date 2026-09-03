@@ -23,7 +23,7 @@ import (
 // NOTE: this file is not a recommended way of developing Terraform resources; this exists to work around the fact that this API is dynamic (by its nature)
 func flattenLogicAppActionRunAfter(input map[string]interface{}) []interface{} {
 	if len(input) == 0 {
-		return nil
+		return []interface{}{}
 	}
 	output := []interface{}{}
 	for k, v := range input {
@@ -91,7 +91,9 @@ func resourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	if d.IsNewResource() {
 		if _, hasExisting := vs[name]; hasExisting {
-			return tf.ImportAsExistsError(resourceName, resourceId)
+			if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				return tf.ImportAsExistsError(resourceName, resourceId)
+			}
 		}
 	}
 

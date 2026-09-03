@@ -63,9 +63,20 @@ func (c DataConnectionsClient) DataConnectionValidation(ctx context.Context, id 
 
 // DataConnectionValidationThenPoll performs DataConnectionValidation then polls until it's completed
 func (c DataConnectionsClient) DataConnectionValidationThenPoll(ctx context.Context, id commonids.KustoDatabaseId, input DataConnectionValidation) error {
+	return c.DataConnectionValidationCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DataConnectionValidationCallbackThenPoll performs DataConnectionValidation, runs the optional callback function, then polls until it's completed
+func (c DataConnectionsClient) DataConnectionValidationCallbackThenPoll(ctx context.Context, id commonids.KustoDatabaseId, input DataConnectionValidation, callback func() error) error {
 	result, err := c.DataConnectionValidation(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DataConnectionValidation: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -37,5 +37,5 @@ data "azurerm_data_share_dataset_kusto_cluster" "test" {
   name     = azurerm_data_share_dataset_kusto_cluster.test.name
   share_id = azurerm_data_share_dataset_kusto_cluster.test.share_id
 }
-`, ShareKustoClusterDataSetResource{}.basic(data))
+`, DataShareDatasetKustoClusterResource{}.basic(data))
 }

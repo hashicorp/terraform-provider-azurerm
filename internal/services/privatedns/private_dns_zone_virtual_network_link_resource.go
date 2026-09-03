@@ -4,8 +4,9 @@
 package privatedns
 
 import (
+	"context"
 	"fmt"
-	"log"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -13,18 +14,19 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/virtualnetworklinks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name private_dns_zone_virtual_network_link -service-package-name privatedns -properties "name,private_dns_zone_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name private_dns_zone_virtual_network_link -properties "name" -compare-values "subscription_id:private_dns_zone_id,resource_group_name:private_dns_zone_id,private_dns_zone_name:private_dns_zone_id"
 
 func resourcePrivateDnsZoneVirtualNetworkLink() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -46,25 +48,18 @@ func resourcePrivateDnsZoneVirtualNetworkLink() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			// TODO: these can become case-sensitive with a state migration
 			"name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
-				// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/10933
-				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
-			// TODO: in 4.0 switch this to `private_dns_zone_id`
-			"private_dns_zone_name": {
+			"private_dns_zone_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: privatezones.ValidatePrivateDnsZoneID,
 			},
-
-			// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/10933
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"virtual_network_id": {
 				Type:         pluginsdk.TypeString,
@@ -80,9 +75,10 @@ func resourcePrivateDnsZoneVirtualNetworkLink() *pluginsdk.Resource {
 			},
 
 			"resolution_policy": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true, // When the `name` of `azurerm_private_dns_zone` is a private link endpoint, the service will set default value for this.
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C because when the `name` of `azurerm_private_dns_zone` is a private link endpoint, the service will set default value for this.
+				Computed:     true,
 				ValidateFunc: validation.StringInSlice(virtualnetworklinks.PossibleValuesForResolutionPolicy(), false),
 			},
 
@@ -93,21 +89,28 @@ func resourcePrivateDnsZoneVirtualNetworkLink() *pluginsdk.Resource {
 
 func resourcePrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PrivateDns.VirtualNetworkLinksClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := virtualnetworklinks.NewVirtualNetworkLinkID(subscriptionId, d.Get("resource_group_name").(string), d.Get("private_dns_zone_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
+	privateDNSZoneID, err := privatezones.ParsePrivateDnsZoneID(d.Get("private_dns_zone_id").(string))
+	if err != nil {
+		return err
+	}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_private_dns_zone_virtual_network_link", id.ID())
+	id := virtualnetworklinks.NewVirtualNetworkLinkID(privateDNSZoneID.SubscriptionId, privateDNSZoneID.ResourceGroupName, privateDNSZoneID.PrivateDnsZoneName, d.Get("name").(string))
+
+	if d.IsNewResource() {
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
+			}
+
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_private_dns_zone_virtual_network_link", id.ID())
+			}
 		}
 	}
 
@@ -123,7 +126,7 @@ func resourcePrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if v, ok := d.GetOk("resolution_policy"); ok {
-		parameters.Properties.ResolutionPolicy = pointer.To(virtualnetworklinks.ResolutionPolicy(v.(string)))
+		parameters.Properties.ResolutionPolicy = pointer.ToEnum[virtualnetworklinks.ResolutionPolicy](v.(string))
 	}
 
 	options := virtualnetworklinks.CreateOrUpdateOperationOptions{
@@ -131,13 +134,18 @@ func resourcePrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *pluginsdk.ResourceD
 		IfNoneMatch: pointer.To(""),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, options); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-		return err
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, options, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, options); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
 	return resourcePrivateDnsZoneVirtualNetworkLinkRead(d, meta)
@@ -161,12 +169,14 @@ func resourcePrivateDnsZoneVirtualNetworkLinkRead(d *pluginsdk.ResourceData, met
 		}
 		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
+	return resourcePrivateDnsZoneVirtualNetworkLinkFlatten(d, id, resp.Model)
+}
 
+func resourcePrivateDnsZoneVirtualNetworkLinkFlatten(d *pluginsdk.ResourceData, id *virtualnetworklinks.VirtualNetworkLinkId, model *virtualnetworklinks.VirtualNetworkLink) error {
 	d.Set("name", id.VirtualNetworkLinkName)
-	d.Set("private_dns_zone_name", id.PrivateDnsZoneName)
-	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("private_dns_zone_id", privatezones.NewPrivateDnsZoneID(id.SubscriptionId, id.ResourceGroupName, id.PrivateDnsZoneName).ID())
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("registration_enabled", props.RegistrationEnabled)
 			d.Set("resolution_policy", pointer.From(props.ResolutionPolicy))
@@ -201,32 +211,11 @@ func resourcePrivateDnsZoneVirtualNetworkLinkDelete(d *pluginsdk.ResourceData, m
 
 	// whilst the Delete above returns a Future, the Azure API's broken such that even though it's marked as "gone"
 	// it's still kicking around - so we have to poll until this is actually gone
-	log.Printf("[DEBUG] Waiting for %s to be deleted", *id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{"Available"},
-		Target:  []string{"NotFound"},
-		Refresh: func() (interface{}, string, error) {
-			log.Printf("[DEBUG] Checking to see if %s is still available", *id)
-			resp, err := client.Get(ctx, *id)
-			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
-					log.Printf("[DEBUG] %s was not found", *id)
-					return "NotFound", "NotFound", nil
-				}
-
-				return "", "error", err
-			}
-
-			log.Printf("[DEBUG] %s still exists", *id)
-			return "Available", "Available", nil
-		},
-		Delay:                     30 * time.Second,
-		PollInterval:              10 * time.Second,
-		ContinuousTargetOccurence: 10,
-		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(10, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, *id)
+		return resp.HttpResponse, err
+	}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 

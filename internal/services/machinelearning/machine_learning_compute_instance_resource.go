@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -51,7 +52,8 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9-]{3,24}$`),
-					"It can include letters, digits and dashes. It must start with a letter, end with a letter or digit, and be between 3 and 24 characters in length."),
+					"It can include letters, digits and dashes. It must start with a letter, end with a letter or digit, and be between 3 and 24 characters in length.",
+				),
 			},
 
 			"machine_learning_workspace_id": {
@@ -69,12 +71,10 @@ func resourceComputeInstance() *pluginsdk.Resource {
 			},
 
 			"authorization_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(machinelearningcomputes.ComputeInstanceAuthorizationTypePersonal),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(machinelearningcomputes.PossibleValuesForComputeInstanceAuthorizationType(), false),
 			},
 
 			"assign_to_user": {
@@ -170,7 +170,7 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	workspaceID, _ := workspaces.ParseWorkspaceID(d.Get("machine_learning_workspace_id").(string))
 	id := machinelearningcomputes.NewComputeID(subscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.ComputeGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -246,19 +246,14 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	// https://learn.microsoft.com/azure/machine-learning/how-to-create-attach-compute-cluster?view=azureml-api-2&tabs=python#limitations
 
 	if v, ok := d.GetOk("authorization_type"); ok {
-		props.Properties.ComputeInstanceAuthorizationType = pointer.To(machinelearningcomputes.ComputeInstanceAuthorizationType(v.(string)))
+		props.Properties.ComputeInstanceAuthorizationType = pointer.ToEnum[machinelearningcomputes.ComputeInstanceAuthorizationType](v.(string))
 	}
 
 	parameters.Properties = props
 
-	future, err := client.ComputeCreateOrUpdate(ctx, id, parameters)
-	if err != nil {
+	if err := client.ComputeCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating Machine Learning %s: %+v", id, err)
 	}
-	if err := future.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("waiting for creation of Machine Learning %s: %+v", id, err)
-	}
-
 	d.SetId(id.ID())
 
 	return resourceComputeInstanceRead(d, meta)
@@ -326,7 +321,7 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 		}
 
-		d.Set("node_public_ip_enabled", props.Properties.ConnectivityEndpoints != nil && props.Properties.ConnectivityEndpoints.PublicIPAddress != nil)
+		d.Set("node_public_ip_enabled", pointer.From(props.Properties.EnableNodePublicIP))
 	}
 
 	return tags.FlattenAndSet(d, resp.Model.Tags)

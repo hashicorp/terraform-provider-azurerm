@@ -9,12 +9,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SpringCloudGatewayRouteConfigResource struct{}
@@ -111,13 +111,13 @@ func TestAccSpringCloudGatewayRouteConfig_update(t *testing.T) {
 }
 
 func (r SpringCloudGatewayRouteConfigResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SpringCloudGatewayRouteConfigID(state.ID)
+	id, err := appplatform.ParseRouteConfigID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.AppPlatform.GatewayRouteConfigClient.Get(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.RouteConfigName)
+	resp, err := client.AppPlatform.GatewayRouteConfigClient.Get(ctx, id.ResourceGroupName, id.SpringName, id.GatewayName, id.RouteConfigName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
@@ -209,7 +209,7 @@ resource "azurerm_spring_cloud_gateway_route_config" "test" {
     classification_tags    = ["tag1", "tag2"]
   }
   open_api {
-    uri = "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/examples/v3.0/petstore.json"
+    uri = "https://raw.githubusercontent.com/OAI/learn.openapis.org/main/examples/v3.0/petstore.json"
   }
 }
 `, template, data.RandomInteger)
@@ -248,7 +248,7 @@ resource "azurerm_spring_cloud_gateway_route_config" "test" {
     classification_tags    = ["route2_tag1", "route2_tag2"]
   }
   open_api {
-    uri = "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/examples/v3.0/petstore.json"
+    uri = "https://raw.githubusercontent.com/OAI/learn.openapis.org/main/examples/v3.0/petstore.json"
   }
 }
 `, template, data.RandomInteger)

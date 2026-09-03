@@ -11,129 +11,21 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
-	keyvaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyvaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
-	schema := map[string]*pluginsdk.Schema{
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.CdnEndpointCustomDomainName(),
-		},
-
-		"cdn_endpoint_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.EndpointID,
-		},
-
-		"host_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-		"cdn_managed_https": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MinItems: 1,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"certificate_type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(cdn.CertificateTypeShared),
-							string(cdn.CertificateTypeDedicated),
-						}, false),
-					},
-					"protocol_type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(cdn.ProtocolTypeServerNameIndication),
-							string(cdn.ProtocolTypeIPBased),
-						}, false),
-					},
-					"tls_version": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(cdn.MinimumTLSVersionTLS12),
-						}, false),
-						Default: string(cdn.MinimumTLSVersionTLS12),
-					},
-				},
-			},
-			ConflictsWith: []string{"user_managed_https"},
-		},
-
-		"user_managed_https": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MinItems: 1,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"tls_version": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(cdn.MinimumTLSVersionTLS12),
-						}, false),
-						Default: string(cdn.MinimumTLSVersionTLS12),
-					},
-				},
-			},
-			ConflictsWith: []string{"cdn_managed_https"},
-		},
-	}
-
-	schema["user_managed_https"].Elem.(*pluginsdk.Resource).Schema["key_vault_secret_id"] = &pluginsdk.Schema{
-		Type:         pluginsdk.TypeString,
-		Required:     true,
-		ValidateFunc: keyvaultValidate.NestedItemIdWithOptionalVersion,
-	}
-
-	if !features.FivePointOh() {
-		schema["cdn_managed_https"].Elem.(*pluginsdk.Resource).Schema["tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(cdn.MinimumTLSVersionNone),
-				string(cdn.MinimumTLSVersionTLS10),
-				string(cdn.MinimumTLSVersionTLS12),
-			}, false),
-			Default: string(cdn.MinimumTLSVersionTLS12),
-		}
-		schema["user_managed_https"].Elem.(*pluginsdk.Resource).Schema["tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(cdn.MinimumTLSVersionNone),
-				string(cdn.MinimumTLSVersionTLS10),
-				string(cdn.MinimumTLSVersionTLS12),
-			}, false),
-			Default: string(cdn.MinimumTLSVersionTLS12),
-		}
-	}
-
 	return &pluginsdk.Resource{
 		Create: resourceArmCdnEndpointCustomDomainCreate,
 		Read:   resourceArmCdnEndpointCustomDomainRead,
@@ -152,7 +44,83 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(12 * time.Hour),
 		},
 
-		Schema: schema,
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.CdnEndpointCustomDomainName(),
+			},
+
+			"cdn_endpoint_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.AsGeneratedID(endpoints.ParseEndpointIDInsensitively),
+			},
+
+			"host_name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+			"cdn_managed_https": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MinItems: 1,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"certificate_type": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInEnumSlice(cdn.PossibleCertificateTypeValues(), false),
+						},
+						"protocol_type": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInEnumSlice(cdn.PossibleProtocolTypeValues(), false),
+						},
+						"tls_version": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(cdn.MinimumTLSVersionTLS12),
+							}, false),
+							Default: string(cdn.MinimumTLSVersionTLS12),
+						},
+					},
+				},
+				ConflictsWith: []string{"user_managed_https"},
+			},
+
+			"user_managed_https": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MinItems: 1,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"tls_version": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(cdn.MinimumTLSVersionTLS12),
+							}, false),
+							Default: string(cdn.MinimumTLSVersionTLS12),
+						},
+
+						"key_vault_secret_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny),
+						},
+					},
+				},
+				ConflictsWith: []string{"cdn_managed_https"},
+			},
+		},
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			if IsCdnFullyRetired() {
@@ -173,25 +141,26 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	epid := d.Get("cdn_endpoint_id").(string)
-
-	cdnEndpointId, err := parse.EndpointID(epid)
+	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+	cdnEndpointId, err := endpoints.ParseEndpointIDInsensitively(d.Get("cdn_endpoint_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewCustomDomainID(cdnEndpointId.SubscriptionId, cdnEndpointId.ResourceGroup, cdnEndpointId.ProfileName, cdnEndpointId.Name, name)
+	id := parse.NewCustomDomainID(cdnEndpointId.SubscriptionId, cdnEndpointId.ResourceGroupName, cdnEndpointId.ProfileName, cdnEndpointId.EndpointName, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for existing %q: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
+		if err != nil {
+			if !response.WasNotFound(existing.Response.Response) {
+				return fmt.Errorf("checking for existing %q: %+v", id, err)
+			}
 		}
-	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_cdn_endpoint_custom_domain", id.ID())
+		if !response.WasNotFound(existing.Response.Response) {
+			return tf.ImportAsExistsError("azurerm_cdn_endpoint_custom_domain", id.ID())
+		}
 	}
 
 	props := cdn.CustomDomainParameters{
@@ -367,7 +336,7 @@ func resourceArmCdnEndpointCustomDomainRead(d *pluginsdk.ResourceData, meta inte
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[DEBUG] %q was not found - removing from state!", id)
 			d.SetId("")
 			return nil
@@ -376,7 +345,7 @@ func resourceArmCdnEndpointCustomDomainRead(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
-	cdnEndpointId := parse.NewEndpointID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.EndpointName)
+	cdnEndpointId := endpoints.NewEndpointID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.EndpointName)
 
 	d.Set("name", resp.Name)
 	d.Set("cdn_endpoint_id", cdnEndpointId.ID())
@@ -395,9 +364,9 @@ func resourceArmCdnEndpointCustomDomainRead(d *pluginsdk.ResourceData, meta inte
 
 				secretIdRaw := b["key_vault_secret_id"].(string)
 				if secretIdRaw != "" {
-					id, err := keyvaultParse.ParseOptionallyVersionedNestedItemID(secretIdRaw)
+					id, err := keyvault.ParseNestedItemID(secretIdRaw, keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
 					if err != nil {
-						return fmt.Errorf("parsing Key Vault Secret Id %q: %v", secretIdRaw, err)
+						return err
 					}
 					isVersioned = id.Version != ""
 				}
@@ -445,7 +414,7 @@ func expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input []interface{}
 	}
 
 	raw := input[0].(map[string]interface{})
-	output := &cdn.ManagedHTTPSParameters{
+	return &cdn.ManagedHTTPSParameters{
 		CertificateSourceParameters: &cdn.CertificateSourceParameters{
 			OdataType:       pointer.To("#Microsoft.Azure.Cdn.Models.CdnCertificateSourceParameters"),
 			CertificateType: cdn.CertificateType(raw["certificate_type"].(string)),
@@ -454,8 +423,6 @@ func expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input []interface{}
 		ProtocolType:      cdn.ProtocolType(raw["protocol_type"].(string)),
 		MinimumTLSVersion: cdn.MinimumTLSVersion(raw["tls_version"].(string)),
 	}
-
-	return output
 }
 
 func expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Context, input []interface{}, clients *clients.Client) (cdn.BasicCustomDomainHTTPSParameters, error) {
@@ -467,18 +434,18 @@ func expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Contex
 
 	idLiteral := raw["key_vault_secret_id"].(string)
 
-	keyVaultSecretId, err := keyvaultParse.ParseOptionallyVersionedNestedItemID(idLiteral)
+	keyVaultSecretId, err := keyvault.ParseNestedItemID(idLiteral, keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
 	if err != nil {
 		return nil, err
 	}
 
 	subscriptionId := commonids.NewSubscriptionID(clients.Account.SubscriptionId)
-	keyVaultIdRaw, err := clients.KeyVault.KeyVaultIDFromBaseUrl(ctx, subscriptionId, keyVaultSecretId.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := clients.KeyVault.KeyVaultIDFromBaseUrl(ctx, subscriptionId, keyVaultSecretId.KeyVaultBaseURL)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultSecretId.KeyVaultBaseUrl, err)
+		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultSecretId.KeyVaultBaseURL, err)
 	}
 	if keyVaultIdRaw == nil {
-		return nil, fmt.Errorf("unable to find the Resource Manager ID for the Key Vault URI %q in %s", keyVaultSecretId.KeyVaultBaseUrl, subscriptionId)
+		return nil, fmt.Errorf("unable to find the Resource Manager ID for the Key Vault URI %q in %s", keyVaultSecretId.KeyVaultBaseURL, subscriptionId)
 	}
 	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {
@@ -551,10 +518,7 @@ func flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Conte
 	}
 	secretName := *params.SecretName
 
-	var secretVersion string
-	if params.SecretVersion != nil {
-		secretVersion = *params.SecretVersion
-	}
+	secretVersion := pointer.From(params.SecretVersion)
 
 	keyVaultId := commonids.NewKeyVaultID(subscriptionId, resourceGroupName, vaultName)
 	keyVaultBaseUrl, err := keyVaultsClient.BaseUriForKeyVault(ctx, keyVaultId)
@@ -571,7 +535,7 @@ func flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Conte
 		return nil, fmt.Errorf("unexpected null Key Vault Secret retrieved for Key Vault %s / Secret Name %s / Secret Version %s", keyVaultId, secretName, secretVersion)
 	}
 
-	secretId, err := keyvaultParse.ParseOptionallyVersionedNestedItemID(*secret.ID)
+	secretId, err := keyvault.ParseNestedItemID(*secret.ID, keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
 	if err != nil {
 		return nil, err
 	}

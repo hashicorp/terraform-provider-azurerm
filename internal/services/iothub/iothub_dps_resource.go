@@ -7,8 +7,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -21,6 +21,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -140,35 +142,24 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 							ValidateFunc: validate.CIDR,
 						},
 						"action": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(devices.IPFilterActionTypeAccept),
-								string(devices.IPFilterActionTypeReject),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInEnumSlice(devices.PossibleIPFilterActionTypeValues(), false),
 						},
 						"target": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(iotdpsresource.IPFilterTargetTypeAll),
-								string(iotdpsresource.IPFilterTargetTypeServiceApi),
-								string(iotdpsresource.IPFilterTargetTypeDeviceApi),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(iotdpsresource.PossibleValuesForIPFilterTargetType(), false),
 						},
 					},
 				},
 			},
 
 			"allocation_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(iotdpsresource.AllocationPolicyHashed),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(iotdpsresource.AllocationPolicyHashed),
-					string(iotdpsresource.AllocationPolicyGeoLatency),
-					string(iotdpsresource.AllocationPolicyStatic),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(iotdpsresource.AllocationPolicyHashed),
+				ValidateFunc: validation.StringInSlice(iotdpsresource.PossibleValuesForAllocationPolicy(), false),
 			},
 
 			"data_residency_enabled": {
@@ -212,15 +203,17 @@ func resourceIotHubDPSCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	id := commonids.NewProvisioningServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing IoT Device Provisioning Service %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing IoT Device Provisioning Service %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_iothub_dps", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_iothub_dps", id.ID())
+		}
 	}
 
 	publicNetworkAccess := iotdpsresource.PublicNetworkAccessEnabled
@@ -243,7 +236,7 @@ func resourceIotHubDPSCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, iotdps); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, iotdps, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating IoT Device Provisioning Service %s: %+v", id, err)
 	}
 
@@ -302,11 +295,7 @@ func resourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		d.Set("allocation_policy", allocationPolicy)
 
-		enableDataResidency := false
-		if props.EnableDataResidency != nil {
-			enableDataResidency = *props.EnableDataResidency
-		}
-		d.Set("data_residency_enabled", enableDataResidency)
+		d.Set("data_residency_enabled", pointer.From(props.EnableDataResidency))
 
 		publicNetworkAccess := true
 		if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess != "" {
@@ -388,45 +377,19 @@ func resourceIotHubDPSDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
-	return waitForIotHubDPSToBeDeleted(ctx, client, *id, d)
+	return waitForIotHubDPSToBeDeleted(ctx, client, *id)
 }
 
-func waitForIotHubDPSToBeDeleted(ctx context.Context, client *iotdpsresource.IotDpsResourceClient, id commonids.ProvisioningServiceId, d *pluginsdk.ResourceData) error {
-	// we can't use the Waiter here since the API returns a 404 once it's deleted which is considered a polling status code..
+func waitForIotHubDPSToBeDeleted(ctx context.Context, client *iotdpsresource.IotDpsResourceClient, id commonids.ProvisioningServiceId) error {
 	log.Printf("[DEBUG] Waiting for IoT Device Provisioning Service %q to be deleted", id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{"200"},
-		Target:  []string{"404"},
-		Refresh: iothubdpsStateStatusCodeRefreshFunc(ctx, client, id),
-		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(1, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, id)
+		return resp.HttpResponse, err
+	}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for IoT Device Provisioning Service %q to be deleted: %+v", id, err)
 	}
-
 	return nil
-}
-
-func iothubdpsStateStatusCodeRefreshFunc(ctx context.Context, client *iotdpsresource.IotDpsResourceClient, id commonids.ProvisioningServiceId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
-
-		statusCode := "dropped connection"
-		if res.HttpResponse != nil {
-			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
-		}
-		log.Printf("Retrieving IoT Device Provisioning Service %q returned Status %q", id, statusCode)
-
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return res, statusCode, nil
-			}
-			return nil, "", fmt.Errorf("polling for the status of the IoT Device Provisioning Service %q: %+v", id, err)
-		}
-
-		return res, statusCode, nil
-	}
 }
 
 func expandIoTHubDPSSku(d *pluginsdk.ResourceData) iotdpsresource.IotDpsSkuInfo {

@@ -85,7 +85,7 @@ func TestAccVPNServerConfiguration_radius(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("radius.0.server.0.secret"),
 	})
 }
 
@@ -100,21 +100,21 @@ func TestAccVPNServerConfiguration_multipleRadius(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("radius.0.server.0.secret"),
 		{
 			Config: r.multipleRadius(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("radius.0.server.0.secret", "radius.0.server.1.secret"),
 		{
 			Config: r.singleRadius(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("radius.0.server.0.secret"),
 		{
 			Config: r.azureAD(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -150,7 +150,7 @@ func TestAccVPNServerConfiguration_multipleAuth(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("radius.0.server.0.secret"),
 	})
 }
 
@@ -195,7 +195,7 @@ func TestAccVPNServerConfiguration_withoutRadiusServerRootCertificate(t *testing
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("radius.0.server.0.secret"),
 	})
 }
 

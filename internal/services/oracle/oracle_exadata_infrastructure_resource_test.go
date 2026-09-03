@@ -10,11 +10,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/cloudexadatainfrastructures"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -38,6 +37,20 @@ func TestExaInfra_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestExaInfra_noZones(t *testing.T) {
+	data := acceptance.BuildTestData(t, oracle.ExadataInfraResource{}.ResourceType(), "test")
+	r := ExadataInfraResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.noZones(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -111,9 +124,31 @@ resource "azurerm_oracle_exadata_infrastructure" "test" {
   display_name        = "OFakeacctest%[2]d"
   shape               = "Exadata.X9M"
   storage_count       = "3"
-  zones               = ["2"]
+  zones               = local.zones
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (a ExadataInfraResource) noZones(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_oracle_exadata_infrastructure" "test" {
+  name                 = "OFakeacctest%[2]d"
+  location             = "australiasoutheast"
+  resource_group_name  = azurerm_resource_group.test.name
+  compute_count        = "2"
+  display_name         = "OFakeacctest%[2]d"
+  shape                = "Exadata.X11M"
+  database_server_type = "X11M"
+  storage_server_type  = "X11M-HC"
+  storage_count        = "3"
+}
+`, a.template(data), data.RandomInteger)
 }
 
 func (a ExadataInfraResource) complete(data acceptance.TestData) string {
@@ -132,7 +167,7 @@ resource "azurerm_oracle_exadata_infrastructure" "test" {
   display_name        = "OFakeacctest%[2]d"
   shape               = "Exadata.X11M"
   storage_count       = "3"
-  zones               = ["2"]
+  zones               = local.zones
   customer_contacts   = ["test@test.com"]
 
   database_server_type = "X11M"
@@ -171,7 +206,7 @@ resource "azurerm_oracle_exadata_infrastructure" "test" {
   display_name        = "OFakeacctest%[2]d"
   shape               = "Exadata.X9M"
   storage_count       = "3"
-  zones               = ["2"]
+  zones               = local.zones
   tags = {
     test = "testTag1"
   }
@@ -198,6 +233,10 @@ resource "azurerm_oracle_exadata_infrastructure" "import" {
 
 func (a ExadataInfraResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+locals {
+  zones = ["3"]
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {

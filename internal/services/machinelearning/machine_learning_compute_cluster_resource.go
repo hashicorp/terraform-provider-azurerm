@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -67,7 +68,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{string(machinelearningcomputes.VMPriorityDedicated), string(machinelearningcomputes.VMPriorityLowPriority)}, false),
+				ValidateFunc: validation.StringInSlice(machinelearningcomputes.PossibleValuesForVMPriority(), false),
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -124,6 +125,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
+							Sensitive:    true,
 							AtLeastOneOf: []string{"ssh.0.admin_password", "ssh.0.key_value"},
 						},
 						"key_value": {
@@ -150,9 +152,9 @@ func resourceComputeCluster() *pluginsdk.Resource {
 			},
 
 			"subnet_resource_id": {
-				Type: pluginsdk.TypeString,
-				// NOTE: O+C as you don't have to specify it for Azure to assign one to the cluster
+				Type:     pluginsdk.TypeString,
 				Optional: true,
+				// NOTE: O+C as you don't have to specify it for Azure to assign one to the cluster
 				Computed: true,
 				ForceNew: true,
 			},
@@ -198,15 +200,17 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	existing, err := client.ComputeGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.ComputeGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_machine_learning_compute_cluster", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_machine_learning_compute_cluster", id.ID())
+		}
 	}
 
 	vmPriority := machinelearningcomputes.VMPriority(d.Get("vm_priority").(string))
@@ -245,18 +249,13 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 		Sku: &machinelearningcomputes.Sku{
 			Name: workspaceModel.Sku.Name,
-			Tier: pointer.To(machinelearningcomputes.SkuTier(*workspaceModel.Sku.Tier)),
+			Tier: pointer.ToEnum[machinelearningcomputes.SkuTier](string(*workspaceModel.Sku.Tier)),
 		},
 	}
 
-	future, err := client.ComputeCreateOrUpdate(ctx, id, computeClusterParameters)
-	if err != nil {
+	if err := client.ComputeCreateOrUpdateCallbackThenPoll(ctx, id, computeClusterParameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-	if err := future.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
-	}
-
 	d.SetId(id.ID())
 
 	return resourceComputeClusterRead(d, meta)
@@ -453,21 +452,11 @@ func flattenUserAccountCredentials(credentials *machinelearningcomputes.UserAcco
 		username = credentials.AdminUserName
 	}
 
-	var adminPassword string
-	if credentials.AdminUserPassword != nil {
-		adminPassword = *credentials.AdminUserPassword
-	}
-
-	var sshPublicKey string
-	if credentials.AdminUserSshPublicKey != nil {
-		sshPublicKey = *credentials.AdminUserSshPublicKey
-	}
-
 	return []interface{}{
 		map[string]interface{}{
 			"admin_username": username,
-			"admin_password": adminPassword,
-			"key_value":      sshPublicKey,
+			"admin_password": pointer.From(credentials.AdminUserPassword),
+			"key_value":      pointer.From(credentials.AdminUserSshPublicKey),
 		},
 	}
 }

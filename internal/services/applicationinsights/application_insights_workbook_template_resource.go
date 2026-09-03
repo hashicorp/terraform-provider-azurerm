@@ -1,6 +1,8 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
+//go:generate go run ../../tools/generator-tests resourceidentity
+
 package applicationinsights
 
 import (
@@ -13,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	workbooktemplates "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-11-20/workbooktemplatesapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -41,7 +44,10 @@ type WorkbookTemplateGalleryModel struct {
 
 type ApplicationInsightsWorkbookTemplateResource struct{}
 
-var _ sdk.ResourceWithUpdate = ApplicationInsightsWorkbookTemplateResource{}
+var (
+	_ sdk.ResourceWithUpdate   = ApplicationInsightsWorkbookTemplateResource{}
+	_ sdk.ResourceWithIdentity = ApplicationInsightsWorkbookTemplateResource{}
+)
 
 func (r ApplicationInsightsWorkbookTemplateResource) ResourceType() string {
 	return "azurerm_application_insights_workbook_template"
@@ -53,6 +59,10 @@ func (r ApplicationInsightsWorkbookTemplateResource) ModelObject() interface{} {
 
 func (r ApplicationInsightsWorkbookTemplateResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return workbooktemplates.ValidateWorkbookTemplateID
+}
+
+func (r ApplicationInsightsWorkbookTemplateResource) Identity() resourceids.ResourceId {
+	return &workbooktemplates.WorkbookTemplateId{}
 }
 
 func (r ApplicationInsightsWorkbookTemplateResource) Arguments() map[string]*pluginsdk.Schema {
@@ -154,18 +164,20 @@ func (r ApplicationInsightsWorkbookTemplateResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.AppInsights.WorkbookTemplateClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := workbooktemplates.NewWorkbookTemplateID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.WorkbookTemplatesGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.WorkbookTemplatesGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			var templateDataValue interface{}
-			err = json.Unmarshal([]byte(model.TemplateData), &templateDataValue)
-			if err != nil {
+			if err := json.Unmarshal([]byte(model.TemplateData), &templateDataValue); err != nil {
 				return err
 			}
 
@@ -202,6 +214,9 @@ func (r ApplicationInsightsWorkbookTemplateResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -250,8 +265,7 @@ func (r ApplicationInsightsWorkbookTemplateResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("template_data") {
 				var templateDataValue interface{}
-				err := json.Unmarshal([]byte(model.TemplateData), &templateDataValue)
-				if err != nil {
+				if err := json.Unmarshal([]byte(model.TemplateData), &templateDataValue); err != nil {
 					return err
 				}
 
@@ -305,49 +319,57 @@ func (r ApplicationInsightsWorkbookTemplateResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state := ApplicationInsightsWorkbookTemplateModel{
-				Name:              id.WorkbookTemplateName,
-				ResourceGroupName: id.ResourceGroupName,
-				Location:          location.Normalize(model.Location),
-			}
-
-			if properties := model.Properties; properties != nil {
-				if properties.Author != nil {
-					state.Author = *properties.Author
-				}
-
-				state.Galleries = flattenWorkbookTemplateGalleryModel(&properties.Galleries)
-
-				if properties.Priority != nil {
-					state.Priority = *properties.Priority
-				}
-
-				if properties.TemplateData != nil {
-					templateDataValue, err := json.Marshal(properties.TemplateData)
-					if err != nil {
-						return err
-					}
-
-					state.TemplateData = string(templateDataValue)
-				}
-
-				if properties.Localized != nil {
-					localizedValue, err := json.Marshal(properties.Localized)
-					if err != nil {
-						return err
-					}
-
-					state.Localized = string(localizedValue)
-				}
-			}
-
-			if model.Tags != nil {
-				state.Tags = *model.Tags
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r ApplicationInsightsWorkbookTemplateResource) flatten(metadata sdk.ResourceMetaData, id *workbooktemplates.WorkbookTemplateId, model *workbooktemplates.WorkbookTemplate) error {
+	state := ApplicationInsightsWorkbookTemplateModel{
+		Name:              id.WorkbookTemplateName,
+		ResourceGroupName: id.ResourceGroupName,
+		Location:          location.Normalize(model.Location),
+	}
+
+	if properties := model.Properties; properties != nil {
+		if properties.Author != nil {
+			state.Author = *properties.Author
+		}
+
+		state.Galleries = flattenWorkbookTemplateGalleryModel(&properties.Galleries)
+
+		if properties.Priority != nil {
+			state.Priority = *properties.Priority
+		}
+
+		if properties.TemplateData != nil {
+			templateDataValue, err := json.Marshal(properties.TemplateData)
+			if err != nil {
+				return err
+			}
+
+			state.TemplateData = string(templateDataValue)
+		}
+
+		if properties.Localized != nil {
+			localizedValue, err := json.Marshal(properties.Localized)
+			if err != nil {
+				return err
+			}
+
+			state.Localized = string(localizedValue)
+		}
+	}
+
+	if model.Tags != nil {
+		state.Tags = *model.Tags
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r ApplicationInsightsWorkbookTemplateResource) Delete() sdk.ResourceFunc {

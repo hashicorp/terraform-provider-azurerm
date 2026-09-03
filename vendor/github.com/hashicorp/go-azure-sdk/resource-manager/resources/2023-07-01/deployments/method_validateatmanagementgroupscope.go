@@ -62,9 +62,20 @@ func (c DeploymentsClient) ValidateAtManagementGroupScope(ctx context.Context, i
 
 // ValidateAtManagementGroupScopeThenPoll performs ValidateAtManagementGroupScope then polls until it's completed
 func (c DeploymentsClient) ValidateAtManagementGroupScopeThenPoll(ctx context.Context, id Providers2DeploymentId, input ScopedDeployment) error {
+	return c.ValidateAtManagementGroupScopeCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ValidateAtManagementGroupScopeCallbackThenPoll performs ValidateAtManagementGroupScope, runs the optional callback function, then polls until it's completed
+func (c DeploymentsClient) ValidateAtManagementGroupScopeCallbackThenPoll(ctx context.Context, id Providers2DeploymentId, input ScopedDeployment, callback func() error) error {
 	result, err := c.ValidateAtManagementGroupScope(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ValidateAtManagementGroupScope: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

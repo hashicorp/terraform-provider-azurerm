@@ -97,15 +97,11 @@ func getDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 		},
 
 		"cleanup_preference": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(deploymentscripts.CleanupOptionsOnSuccess),
-				string(deploymentscripts.CleanupOptionsOnExpiration),
-				string(deploymentscripts.CleanupOptionsAlways),
-			}, false),
-			Default: string(deploymentscripts.CleanupOptionsAlways),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(deploymentscripts.PossibleValuesForCleanupOptions(), false),
+			Default:      string(deploymentscripts.CleanupOptionsAlways),
 		},
 
 		"container": {
@@ -433,6 +429,6 @@ func flattenStorageAccountConfigurationModel(input *deploymentscripts.StorageAcc
 func hashEnvironmentVariables(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["name"].(string))))
+	fmt.Fprintf(&buf, "%s-", strings.ToLower(m["name"].(string)))
 	return pluginsdk.HashString(buf.String())
 }

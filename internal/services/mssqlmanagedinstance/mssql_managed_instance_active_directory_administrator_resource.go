@@ -54,7 +54,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Arguments() ma
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ManagedInstanceID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlManagedInstanceIDInsensitively),
 		},
 
 		"login_username": {
@@ -106,14 +106,15 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Create() sdk.R
 			id := parse.NewManagedInstanceAzureActiveDirectoryAdministratorID(managedInstanceId.SubscriptionId,
 				managedInstanceId.ResourceGroupName, managedInstanceId.ManagedInstanceName, string(managedinstanceadministrators.ManagedInstanceAdministratorTypeActiveDirectory))
 
-			metadata.Logger.Infof("Import check for %s", id)
-			existing, err := client.Get(ctx, *managedInstanceId)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, *managedInstanceId)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := managedinstanceadministrators.ManagedInstanceAdministrator{
@@ -125,13 +126,10 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Create() sdk.R
 				},
 			}
 
-			metadata.Logger.Infof("Creating %s", id)
-
-			err = client.CreateOrUpdateThenPoll(ctx, *managedInstanceId, parameters)
-			if err != nil {
+			// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
+			if err := client.CreateOrUpdateThenPoll(ctx, *managedInstanceId, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
 
 			aadAuthOnlyParams := managedinstanceazureadonlyauthentications.ManagedInstanceAzureADOnlyAuthentication{
@@ -140,8 +138,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Create() sdk.R
 				},
 			}
 
-			err = aadAuthOnlyClient.CreateOrUpdateThenPoll(ctx, *managedInstanceId, aadAuthOnlyParams)
-			if err != nil {
+			if err = aadAuthOnlyClient.CreateOrUpdateThenPoll(ctx, *managedInstanceId, aadAuthOnlyParams); err != nil {
 				return fmt.Errorf("setting `azuread_authentication_only` for %s: %+v", id, err)
 			}
 
@@ -162,7 +159,6 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Update() sdk.R
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state MsSqlManagedInstanceActiveDirectoryAdministratorModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -182,10 +178,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Update() sdk.R
 				},
 			}
 
-			metadata.Logger.Infof("Updating %s", id)
-
-			err = client.CreateOrUpdateThenPoll(ctx, *managedInstanceId, parameters)
-			if err != nil {
+			if err = client.CreateOrUpdateThenPoll(ctx, *managedInstanceId, parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -195,8 +188,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Update() sdk.R
 				},
 			}
 
-			err = aadAuthOnlyClient.CreateOrUpdateThenPoll(ctx, *managedInstanceId, aadAuthOnlyProperties)
-			if err != nil {
+			if err = aadAuthOnlyClient.CreateOrUpdateThenPoll(ctx, *managedInstanceId, aadAuthOnlyProperties); err != nil {
 				return fmt.Errorf("setting `azuread_authentication_only` for %s: %+v", id, err)
 			}
 
@@ -217,7 +209,6 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Read() sdk.Res
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state MsSqlManagedInstanceActiveDirectoryAdministratorModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -284,13 +275,11 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Delete() sdk.R
 				},
 			}
 
-			err = aadAuthOnlyClient.CreateOrUpdateThenPoll(ctx, managedInstanceId, aadAuthOnlyParams)
-			if err != nil {
+			if err = aadAuthOnlyClient.CreateOrUpdateThenPoll(ctx, managedInstanceId, aadAuthOnlyParams); err != nil {
 				return fmt.Errorf("disabling `azuread_authentication_only` for %s: %+v", id, err)
 			}
 
-			err = client.DeleteThenPoll(ctx, managedInstanceId)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, managedInstanceId); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

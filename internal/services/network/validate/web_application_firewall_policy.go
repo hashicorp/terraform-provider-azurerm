@@ -55,6 +55,7 @@ var ValidateWebApplicationFirewallPolicyRuleGroupName = validation.StringInSlice
 	"MS-ThreatIntel-AppSec",
 	"MS-ThreatIntel-SQLI",
 	"MS-ThreatIntel-CVEs",
+	"MS-ThreatIntel-XSS",
 }, false)
 
 var ValidateWebApplicationFirewallPolicyRuleSetVersion = validation.StringInSlice([]string{
@@ -62,6 +63,7 @@ var ValidateWebApplicationFirewallPolicyRuleSetVersion = validation.StringInSlic
 	"1.0",
 	"1.1",
 	"2.1",
+	"2.2",
 	"2.2.9",
 	"3.0",
 	"3.1",
@@ -78,6 +80,7 @@ var ValidateWebApplicationFirewallPolicyExclusionRuleSetVersion = validation.Str
 	"1.0",
 	"1.1",
 	"2.1",
+	"2.2",
 	"3.2",
 }, false)
 

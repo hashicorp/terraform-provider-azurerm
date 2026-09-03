@@ -13,10 +13,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/failovergroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/failovergroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type MsSqlFailoverGroupDataSourceModel struct {
@@ -49,7 +50,7 @@ func (d MsSqlFailoverGroupDataSource) ResourceType() string {
 }
 
 func (d MsSqlFailoverGroupDataSource) ModelObject() interface{} {
-	return nil
+	return &MsSqlFailoverGroupDataSourceModel{}
 }
 
 func (d MsSqlFailoverGroupDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -63,7 +64,7 @@ func (d MsSqlFailoverGroupDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"server_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.ServerID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlServerIDInsensitively),
 		},
 	}
 }
@@ -144,9 +145,6 @@ func (d MsSqlFailoverGroupDataSource) Read() sdk.ResourceFunc {
 			}
 
 			id := failovergroups.NewFailoverGroupID(subscriptionId, serverId.ResourceGroupName, serverId.ServerName, state.Name)
-			if err != nil {
-				return err
-			}
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
