@@ -61,14 +61,14 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true, // azignore:AZS007 - pre-existing violation
+		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"dotnet_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{ // Note: DotNet versions are abstracted between API and Portal displayed values, so do not match 1:1. A table of the converted values is provided in the resource doc.
 						"v2.0",
 						"v3.0",
@@ -96,7 +96,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"php_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						PhpVersionSevenPointOne,  // Deprecated
 						PhpVersionSevenPointFour, // Deprecated
@@ -136,7 +136,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"java_embedded_server_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Computed: true,
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.tomcat_version",
 					},
@@ -213,8 +213,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				"current_stack": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					// Note: O+C because This will be set to the configured type from above if not explicitly set
-					Computed: true,
+					Computed: true, // This will be set to the configured type from above if not explicitly set
 					ValidateFunc: validation.StringInSlice([]string{
 						"dotnet",
 						"dotnetcore",
@@ -334,6 +333,8 @@ type ApplicationStackLinux struct {
 	DockerRegistryUsername string `tfschema:"docker_registry_username"`
 	DockerRegistryPassword string `tfschema:"docker_registry_password"`
 	DockerImageName        string `tfschema:"docker_image_name"`
+
+	SiteContainersEnabled bool `tfschema:"site_containers_enabled"`
 }
 
 var linuxApplicationStackConstraint = []string{
@@ -344,13 +345,14 @@ var linuxApplicationStackConstraint = []string{
 	"site_config.0.application_stack.0.php_version",
 	"site_config.0.application_stack.0.python_version",
 	"site_config.0.application_stack.0.go_version",
+	"site_config.0.application_stack.0.site_containers_enabled",
 }
 
 func linuxApplicationStackSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true, // azignore:AZS007 - pre-existing violation
+		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -389,7 +391,6 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"8.2",
 						"8.3",
 						"8.4",
-						"8.5",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 				},
@@ -487,6 +488,13 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					Optional:  true,
 					Sensitive: true,
 				},
+
+				"site_containers_enabled": {
+					Type:         pluginsdk.TypeBool,
+					Optional:     true,
+					Default:      false,
+					ExactlyOneOf: linuxApplicationStackConstraint,
+				},
 			},
 		},
 	}
@@ -557,6 +565,11 @@ func linuxApplicationStackSchemaComputed() *pluginsdk.Schema {
 					Type:      pluginsdk.TypeString,
 					Computed:  true,
 					Sensitive: true,
+				},
+
+				"site_containers_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
 				},
 			},
 		},
