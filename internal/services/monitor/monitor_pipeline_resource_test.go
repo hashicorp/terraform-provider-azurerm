@@ -299,9 +299,9 @@ resource "tls_self_signed_cert" "pipeline_tls" {
 resource "local_file" "pipeline_persistent_volume" {
   content = templatefile("testdata/pipeline_persistent_volume.yaml.tftpl", {
     pipeline_namespace = "monitoring"
-    resource_group      = azurerm_resource_group.test.name
-    storage_account     = azurerm_storage_account.test.name
-    storage_share       = azurerm_storage_share.test.name
+    resource_group     = azurerm_resource_group.test.name
+    storage_account    = azurerm_storage_account.test.name
+    storage_share      = azurerm_storage_share.test.name
   })
   filename = "${path.root}/pipeline-persistent-volume.yaml"
 }
@@ -509,7 +509,7 @@ locals {
 }
 
 resource "azurerm_monitor_pipeline" "test" {
-  name                = "acctest-pg-%[2]d"
+  name                = "acctest-mp-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   custom_location_id  = azurerm_extended_location_custom_location.test.id
@@ -632,7 +632,7 @@ locals {
 }
 
 resource "azurerm_monitor_pipeline" "test" {
-  name                = "acctest-pg-%[2]d"
+  name                = "acctest-mp-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   custom_location_id  = azurerm_extended_location_custom_location.test.id
@@ -830,7 +830,7 @@ locals {
 }
 
 resource "azurerm_monitor_pipeline" "test" {
-  name                = "acctest-pg-%[2]d"
+  name                = "acctest-mp-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   custom_location_id  = azurerm_extended_location_custom_location.test.id

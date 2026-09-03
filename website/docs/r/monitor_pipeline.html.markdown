@@ -40,6 +40,14 @@ resource "azurerm_log_analytics_workspace_table_custom_log" "example" {
     name = "Message"
     type = "string"
   }
+  column {
+    name = "ResourceColumnUpd"
+    type = "string"
+  }
+  column {
+    name = "ScopeColumnUpd"
+    type = "string"
+  }
 }
 
 resource "azurerm_monitor_data_collection_endpoint" "example" {
@@ -49,9 +57,10 @@ resource "azurerm_monitor_data_collection_endpoint" "example" {
 }
 
 resource "azurerm_monitor_data_collection_rule" "example" {
-  name                = "example-monitor-data-collection-rule"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
+  name                        = "example-monitor-data-collection-rule"
+  resource_group_name         = azurerm_resource_group.example.name
+  location                    = azurerm_resource_group.example.location
+  data_collection_endpoint_id = azurerm_monitor_data_collection_endpoint.example.id
 
   destinations {
     log_analytics {
@@ -75,6 +84,14 @@ resource "azurerm_monitor_data_collection_rule" "example" {
       name = "Message"
       type = "string"
     }
+    column {
+      name = "ResourceColumnUpd"
+      type = "string"
+    }
+    column {
+      name = "ScopeColumnUpd"
+      type = "string"
+    }
   }
 }
 
@@ -83,6 +100,18 @@ resource "azurerm_monitor_pipeline" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   custom_location_id  = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.ExtendedLocation/customLocations/cl1"
+  replicas            = 1
+
+  execution_placement_constraint {
+    capability = "gpu-enabled"
+    operator   = "Exists"
+  }
+
+  execution_placement_constraint {
+    capability = "node-type"
+    operator   = "In"
+    values     = ["high-cpu", "dedicated"]
+  }
 
   exporter {
     name = "example-exporter"
@@ -102,30 +131,142 @@ resource "azurerm_monitor_pipeline" "example" {
             from = "time_unix_nano"
             to   = "TimeGenerated"
           }
+          resource_map {
+            from = "ResourceColumn"
+            to   = "ResourceColumnUpd"
+          }
+          scope_map {
+            from = "ScopeColumn"
+            to   = "ScopeColumnUpd"
+          }
         }
+      }
+
+      persistence {
+        maximum_storage_usage_in_gb = 100
+        retention_period_in_minutes = 10
       }
     }
   }
 
+  processor {
+    name = "example-batch-processor"
+    type = "Batch"
+
+    batch {
+      batch_size              = 8192
+      timeout_in_milliseconds = 300000
+    }
+  }
+
+  processor {
+    name                = "example-transform-processor"
+    type                = "TransformLanguage"
+    transform_statement = "source | extend FooColumn = 'bar'"
+  }
+
+  processor {
+    name = "example-cef-processor"
+    type = "MicrosoftCommonSecurityLog"
+  }
+
+  processor {
+    name = "example-syslog-processor"
+    type = "MicrosoftSyslog"
+  }
+
   receiver {
-    name = "example-receiver"
-    type = "Syslog"
+    name                   = "example-syslog-receiver"
+    type                   = "Syslog"
+    tls_configuration_name = "example-disabled-tls"
 
     syslog {
-      endpoint = "0.0.0.0:514"
+      allow_skip_priority_header = true
+      endpoint                   = "0.0.0.0:514"
+      allowed_formats            = ["syslogRfc5424", "syslogRfc3164"]
+    }
+  }
+
+  receiver {
+    name                   = "example-otlp-receiver"
+    type                   = "OTLP"
+    tls_configuration_name = "example-mutual-tls"
+
+    otlp {
+      endpoint = "0.0.0.0:4317"
+    }
+  }
+
+  tls_configuration {
+    name = "example-disabled-tls"
+    mode = "disabled"
+  }
+
+  tls_configuration {
+    name = "example-mutual-tls"
+    mode = "mutualTls"
+
+    client_certificate_authority {
+      location     = "client-ca-bundle"
+      sub_location = "ca.crt"
+      type         = "kubernetesSecret"
+    }
+
+    tls_certificate {
+      certificate {
+        location     = "pipeline-tls-cert"
+        sub_location = "tls.crt"
+        type         = "kubernetesSecret"
+      }
+      private_key {
+        location     = "pipeline-tls-cert"
+        sub_location = "tls.key"
+      }
+    }
+  }
+
+  tls_configuration {
+    name = "example-server-only-tls"
+    mode = "serverOnly"
+
+    tls_certificate {
+      certificate {
+        location     = "pipeline-tls-cert"
+        sub_location = "tls.crt"
+        type         = "kubernetesSecret"
+      }
+      private_key {
+        location     = "pipeline-tls-cert"
+        sub_location = "tls.key"
+      }
     }
   }
 
   service {
+    persistent_volume_name = "example-monitor-pipeline-pv"
+
     pipeline {
-      name      = "example-pipeline"
-      exporters = ["example-exporter"]
-      receivers = ["example-receiver"]
+      name       = "example-syslog-pipeline"
+      exporters  = ["example-exporter"]
+      receivers  = ["example-syslog-receiver"]
+      processors = ["example-batch-processor", "example-cef-processor", "example-syslog-processor"]
+    }
+
+    pipeline {
+      name       = "example-otlp-pipeline"
+      exporters  = ["example-exporter"]
+      receivers  = ["example-otlp-receiver"]
+      processors = ["example-transform-processor"]
     }
   }
 
+  tags = {
+    environment = "example"
+  }
 }
 ```
+
+-> **Note:** A complete example that provisions an Arc-enabled Kubernetes cluster and its Azure Monitor pipeline prerequisites can be found in [the `./examples/azure-monitoring/monitor-pipeline` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/azure-monitoring/monitor-pipeline).
 
 ## Arguments Reference
 
