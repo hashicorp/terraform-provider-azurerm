@@ -42,8 +42,9 @@ type LinuxWebAppSiteContainerModel struct {
 }
 
 var (
-	_ sdk.ResourceWithUpdate   = LinuxWebAppSiteContainerResource{}
-	_ sdk.ResourceWithIdentity = LinuxWebAppSiteContainerResource{}
+	_ sdk.ResourceWithUpdate        = LinuxWebAppSiteContainerResource{}
+	_ sdk.ResourceWithIdentity      = LinuxWebAppSiteContainerResource{}
+	_ sdk.ResourceWithCustomizeDiff = LinuxWebAppSiteContainerResource{}
 )
 
 func (r LinuxWebAppSiteContainerResource) Identity() resourceids.ResourceId {
@@ -187,6 +188,20 @@ func (r LinuxWebAppSiteContainerResource) Arguments() map[string]*pluginsdk.Sche
 
 func (r LinuxWebAppSiteContainerResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
+}
+
+func (r LinuxWebAppSiteContainerResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var model LinuxWebAppSiteContainerModel
+			if err := metadata.DecodeDiff(&model); err != nil {
+				return err
+			}
+
+			return helpers.ValidateSiteContainerEnvironmentVariables(model.EnvironmentVariables)
+		},
+	}
 }
 
 func (r LinuxWebAppSiteContainerResource) Create() sdk.ResourceFunc {

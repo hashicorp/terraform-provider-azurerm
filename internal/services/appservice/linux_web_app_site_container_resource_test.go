@@ -6,6 +6,7 @@ package appservice_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -90,6 +91,18 @@ func TestAccLinuxWebAppSiteContainer_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccLinuxWebAppSiteContainer_duplicateEnvironmentVariableName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_site_container", "test")
+	r := LinuxWebAppSiteContainerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.duplicateEnvironmentVariableName(data),
+			ExpectError: regexp.MustCompile("`environment_variable` blocks must have unique `name` values"),
+		},
 	})
 }
 
@@ -247,4 +260,28 @@ resource "azurerm_linux_web_app_site_container" "import" {
   primary          = azurerm_linux_web_app_site_container.test.primary
 }
 `, r.basic(data))
+}
+
+func (r LinuxWebAppSiteContainerResource) duplicateEnvironmentVariableName(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_web_app_site_container" "test" {
+  name             = "app"
+  linux_web_app_id = azurerm_linux_web_app.test.id
+  image            = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
+  target_port      = 80
+  primary          = true
+
+  environment_variable {
+    name             = "EXAMPLE"
+    app_setting_name = "EXAMPLE_SETTING"
+  }
+
+  environment_variable {
+    name             = "EXAMPLE"
+    app_setting_name = "EXAMPLE_UPDATED"
+  }
+}
+`, r.template(data))
 }

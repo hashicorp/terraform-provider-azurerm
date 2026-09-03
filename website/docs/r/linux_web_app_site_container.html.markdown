@@ -101,6 +101,10 @@ An `environment_variable` block supports the following:
 
 * `name` - (Required) The name of the environment variable as it appears inside the container.
 
+~> **Note:** Each `environment_variable` block must have a unique `name`. Defining two blocks with the same `name` (even with different `app_setting_name` values) is not allowed, as the container environment variable name would be ambiguous.
+
+~> **Note:** `app_settings` on the parent `azurerm_linux_web_app` define the values shared with the web app and its site containers, whereas `environment_variable` here maps one of those App Settings to an environment variable `name` exposed inside this specific container. Use `app_settings` to set a value once, then `environment_variable` to surface it (optionally under a different name) to a container.
+
 ---
 
 A `volume_mount` block supports the following:
