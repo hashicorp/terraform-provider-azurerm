@@ -909,7 +909,6 @@ var (
 )
 
 func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([]webapps.NameValuePair, error) {
-
 	var storageConnection string
 	if d.StorageKeyVaultSecretID != "" {
 		storageConnection = fmt.Sprintf(helpers.StorageStringFmtKV, d.StorageKeyVaultSecretID)

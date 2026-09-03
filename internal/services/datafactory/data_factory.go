@@ -27,7 +27,6 @@ const (
 )
 
 func expandDataFactoryLinkedServiceIntegrationRuntime(integrationRuntimeName string) *datafactory.IntegrationRuntimeReference {
-
 	return &datafactory.IntegrationRuntimeReference{
 		ReferenceName: &integrationRuntimeName,
 		Type:          pointer.To("IntegrationRuntimeReference"),

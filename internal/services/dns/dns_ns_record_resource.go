@@ -254,7 +254,6 @@ func flattenAzureRmDnsNsRecords(records *[]recordsets.NsRecord) []interface{} {
 func expandAzureRmDnsNsRecords(input []interface{}) *[]recordsets.NsRecord {
 	records := make([]recordsets.NsRecord, 0)
 	for _, v := range input {
-
 		records = append(records, recordsets.NsRecord{
 			Nsdname: pointer.To(v.(string)),
 		})

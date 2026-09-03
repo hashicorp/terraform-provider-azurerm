@@ -1676,7 +1676,6 @@ func expandAzureRmVirtualMachineImageReference(d *pluginsdk.ResourceData) (*virt
 	if imageID != "" {
 		imageReference.Id = pointer.To(storageImageRef["id"].(string))
 	} else {
-
 		imageReference = virtualmachines.ImageReference{
 			Publisher: &publisher,
 			Offer:     pointer.To(storageImageRef["offer"].(string)),

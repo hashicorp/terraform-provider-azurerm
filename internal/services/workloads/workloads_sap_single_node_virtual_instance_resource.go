@@ -780,7 +780,6 @@ func expandSAPSingleNodeVirtualInstanceDiskVolumeConfigurations(input []SingleSe
 	result := make(map[string]sapvirtualinstances.DiskVolumeConfiguration, 0)
 
 	for _, v := range input {
-
 		result[v.VolumeName] = sapvirtualinstances.DiskVolumeConfiguration{
 			Count:  pointer.To(v.NumberOfDisks),
 			SizeGB: pointer.To(v.SizeGb),
