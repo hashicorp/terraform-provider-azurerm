@@ -473,8 +473,15 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				state.ComputeCount = pointer.From(props.ComputeCount)
 				state.ComputeModel = pointer.FromEnum(props.ComputeModel)
 				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
-				state.DataStorageSizeInGb = pointer.From(props.DataStorageSizeInGbs)
-				state.DataStorageSizeInTb = pointer.From(props.DataStorageSizeInTbs)
+				if _, ok := metadata.ResourceData.GetOk("data_storage_size_in_gb"); ok {
+					state.DataStorageSizeInGb = pointer.From(props.DataStorageSizeInGbs)
+				} else if _, ok := metadata.ResourceData.GetOk("data_storage_size_in_tb"); ok {
+					state.DataStorageSizeInTb = pointer.From(props.DataStorageSizeInTbs)
+				} else if props.DataStorageSizeInTbs != nil {
+					state.DataStorageSizeInTb = pointer.From(props.DataStorageSizeInTbs)
+				} else {
+					state.DataStorageSizeInGb = pointer.From(props.DataStorageSizeInGbs)
+				}
 				state.DbWorkload = string(pointer.From(props.DbWorkload))
 				state.DbVersion = pointer.From(props.DbVersion)
 				state.DisplayName = pointer.From(props.DisplayName)
