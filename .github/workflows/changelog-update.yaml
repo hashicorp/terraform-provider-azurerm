@@ -26,7 +26,7 @@ jobs:
         run: |
           OTHER_REPO="${{ github.repository }}"
           WF_NAME="GetChangelogEntry"
-          RUN_ID=`gh run --repo ${OTHER_REPO} list --workflow ${WF_NAME} --json databaseId --jq .[0].databaseId`
+          RUN_ID=$(gh run --repo "${OTHER_REPO}" list --workflow "${WF_NAME}" --json databaseId --jq .[0].databaseId)
           echo "Detected latest run id of ${RUN_ID} for workflow ${WF_NAME}"
           echo "run-id=${RUN_ID}" >> "$GITHUB_OUTPUT"
         env:
@@ -41,7 +41,7 @@ jobs:
       - name: 'Store entry'
         id: pull
         run: |
-          echo message="$(cat changelog_entry.txt)"  >> $GITHUB_OUTPUT
+          echo message="$(cat changelog_entry.txt)"  >> "$GITHUB_OUTPUT"
   # check-for-changelog-entry
   changelog-entry:
     # if contains to check for bug, enhancement, feature
@@ -55,7 +55,9 @@ jobs:
       - name: changelog entry opt in
         id: in
         continue-on-error: true
-        run: echo "opted in to changelog entry" | echo bool="true" >> $GITHUB_OUTPUT
+        run: |
+          echo "opted in to changelog entry"
+          echo bool="true" >> "$GITHUB_OUTPUT"
   # if there is a changelog entry, check for PR Open
   update-changelog:
     if: needs.changelog-entry.outputs.optIn
@@ -91,10 +93,10 @@ jobs:
             echo "Branch does not exist on remote, creating locally..."
             git checkout -b $BRANCH
           fi
-          
+
       - name: Create pull request
-      #if changelog PR isn't already open, open one
-      #create a new PR, start with appending the release number and (unreleased)
+        # if changelog PR isn't already open, open one
+        # create a new PR, start with appending the release number and (unreleased)
         if: '!steps.check.outputs.existing'
         env:
           GH_TOKEN: ${{ secrets.SERVICE_ACCOUNT_TERRAFORM_TOKEN }}
@@ -102,13 +104,13 @@ jobs:
         run: |
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
-          
+
           #new pull request for new release needs the headers all added to the top
           FILE="CHANGELOG.md"
           version=$(grep -m1 '^## [0-9]' "$FILE")
-          IFS='.' read major minor patch <<< "$version"
+          IFS='.' read -r major minor patch <<< "$version"
           ((minor++))
-          patch=$(echo $patch | sed 's/ (.*)//')
+          patch="${patch%% (*}"
           new_version="${major}.$minor.${patch} (Unreleased)"
           headers="${new_version}\n\nENHANCEMENTS:\n\nFEATURES:\n\nBUG FIXES:\n"
           temp_file=$(mktemp)
@@ -117,7 +119,7 @@ jobs:
           mv "$temp_file" "$FILE"
           echo "File has been updated."
 
-          major=$(echo $major | sed 's/## //')
+          major="${major#"## "}"
           RELEASENUM="${major}.$minor.${patch}"
 
           git add CHANGELOG.md
@@ -137,24 +139,23 @@ jobs:
         run: |
           gh pr edit automated-changelog \
           --add-label "changelog"
-          
+
       - name: Set up Go
         uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
 
       - name: Add commit message to changelog pull request
-      # at this point a PR is opened for sure, now add entry
+        # at this point a PR is opened for sure, now add entry
         env:
-            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
         run: |
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
-          
+
           go run internal/tools/changelog-updater/update_changelog.go CHANGELOG.md '${{ needs.changelog-entry.outputs.entry }}'
-          
+
           git add CHANGELOG.md
           git commit -m "Update changelog"
           git push --set-upstream origin automated-changelog
-      

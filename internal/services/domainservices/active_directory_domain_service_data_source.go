@@ -299,8 +299,7 @@ func dataSourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta 
 			return fmt.Errorf("setting `security`: %+v", err)
 		}
 
-		replicaSets := flattenDomainServiceReplicaSets(props.ReplicaSets)
-		if err := d.Set("replica_sets", replicaSets); err != nil {
+		if err := d.Set("replica_sets", flattenDomainServiceReplicaSets(props.ReplicaSets)); err != nil {
 			return fmt.Errorf("setting `replica_sets`: %+v", err)
 		}
 	}

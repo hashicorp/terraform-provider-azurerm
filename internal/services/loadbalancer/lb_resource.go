@@ -400,9 +400,7 @@ func resourceArmLoadBalancerDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroupName, LoadBalancerName: id.LoadBalancerName}
-
-	if err = client.DeleteThenPoll(ctx, plbId); err != nil {
+	if err = client.DeleteThenPoll(ctx, loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroupName, LoadBalancerName: id.LoadBalancerName}); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

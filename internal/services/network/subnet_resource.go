@@ -730,8 +730,7 @@ func resourceSubnetFlatten(d *pluginsdk.ResourceData, id commonids.SubnetId, sub
 			}
 			d.Set("default_outbound_access_enabled", defaultOutboundAccessEnabled)
 
-			delegation := flattenSubnetDelegation(props.Delegations)
-			if err := d.Set("delegation", delegation); err != nil {
+			if err := d.Set("delegation", flattenSubnetDelegation(props.Delegations)); err != nil {
 				return fmt.Errorf("flattening `delegation`: %+v", err)
 			}
 
@@ -747,8 +746,7 @@ func resourceSubnetFlatten(d *pluginsdk.ResourceData, id commonids.SubnetId, sub
 				return fmt.Errorf("setting `service_endpoint`: %+v", err)
 			}
 
-			serviceEndpointPolicies := flattenSubnetServiceEndpointPolicies(props.ServiceEndpointPolicies)
-			if err := d.Set("service_endpoint_policy_ids", serviceEndpointPolicies); err != nil {
+			if err := d.Set("service_endpoint_policy_ids", flattenSubnetServiceEndpointPolicies(props.ServiceEndpointPolicies)); err != nil {
 				return fmt.Errorf("setting `service_endpoint_policy_ids`: %+v", err)
 			}
 

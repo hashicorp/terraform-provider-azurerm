@@ -940,10 +940,9 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		dataProtectionSnapshotPolicyRaw := d.Get("data_protection_snapshot_policy").([]interface{})
-		dataProtectionSnapshotPolicy := expandNetAppVolumeDataProtectionSnapshotPolicyPatch(dataProtectionSnapshotPolicyRaw)
 
 		update.Properties.DataProtection = &volumes.VolumePatchPropertiesDataProtection{}
-		update.Properties.DataProtection.Snapshot = dataProtectionSnapshotPolicy
+		update.Properties.DataProtection.Snapshot = expandNetAppVolumeDataProtectionSnapshotPolicyPatch(dataProtectionSnapshotPolicyRaw)
 	}
 
 	if d.HasChange("data_protection_backup_policy") {
@@ -956,22 +955,20 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		dataProtectionBackupPolicyRaw := d.Get("data_protection_backup_policy").([]interface{})
-		dataProtectionBackupPolicy := expandNetAppVolumeDataProtectionBackupPolicyPatch(dataProtectionBackupPolicyRaw)
 
 		if update.Properties.DataProtection == nil {
 			update.Properties.DataProtection = &volumes.VolumePatchPropertiesDataProtection{}
 		}
-		update.Properties.DataProtection.Backup = dataProtectionBackupPolicy
+		update.Properties.DataProtection.Backup = expandNetAppVolumeDataProtectionBackupPolicyPatch(dataProtectionBackupPolicyRaw)
 	}
 
 	if d.HasChange("data_protection_advanced_ransomware") {
 		dataProtectionARPRaw := d.Get("data_protection_advanced_ransomware").([]interface{})
-		dataProtectionARP := expandNetAppVolumeDataProtectionAdvancedRansomwareProtectionPatch(dataProtectionARPRaw)
 
 		if update.Properties.DataProtection == nil {
 			update.Properties.DataProtection = &volumes.VolumePatchPropertiesDataProtection{}
 		}
-		update.Properties.DataProtection.RansomwareProtection = dataProtectionARP
+		update.Properties.DataProtection.RansomwareProtection = expandNetAppVolumeDataProtectionAdvancedRansomwareProtectionPatch(dataProtectionARPRaw)
 	}
 
 	if d.HasChange("throughput_in_mibps") {

@@ -599,8 +599,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		if key := resp.Model.Key; key != nil {
 			d.Set("key_type", string(pointer.From(key.Kty)))
 
-			options := flattenKeyVaultKeyOptions(key.KeyOps)
-			if err := d.Set("key_opts", options); err != nil {
+			if err := d.Set("key_opts", flattenKeyVaultKeyOptions(key.KeyOps)); err != nil {
 				return err
 			}
 
@@ -713,8 +712,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 
 	if respPolicy.Model != nil {
-		rotationPolicy := flattenKeyVaultKeyRotationPolicy(*respPolicy.Model)
-		if err := d.Set("rotation_policy", rotationPolicy); err != nil {
+		if err := d.Set("rotation_policy", flattenKeyVaultKeyRotationPolicy(*respPolicy.Model)); err != nil {
 			return fmt.Errorf("setting Key Vault Key Rotation Policy: %+v", err)
 		}
 	}

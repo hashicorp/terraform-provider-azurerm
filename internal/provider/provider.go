@@ -67,9 +67,7 @@ func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
 
 	// Check for pid=<guid> (without the -partnercenter suffix)
 	if strings.HasPrefix(v, "pid-") && !strings.HasSuffix(v, "-partnercenter") {
-		g := strings.TrimPrefix(v, "pid-")
-
-		if _, err := validation.IsUUID(g, ""); err != nil {
+		if _, err := validation.IsUUID(strings.TrimPrefix(v, "pid-"), ""); err != nil {
 			return nil, []error{fmt.Errorf("expected %q to be a valid UUID", k)}
 		}
 
