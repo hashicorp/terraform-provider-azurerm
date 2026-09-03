@@ -86,11 +86,13 @@ See the [official documentation](https://docs.microsoft.com/en-us/azure/active-d
 An application or managed identity requires a federated credential for each Azure DevOps service connection. In common scenarios, there will be one registration/identity per environment with one credential for the environment's service connection.
 
 #### Automatic configuration - App registration
+
 The simplest method for setting up federation is to create a new **Workload Identity federation (automatic)** in Azure DevOps. This will automatically create a new app registration in your tenant. Alternatively, if you want to retain your existing connection, you can convert an existing secret-based connection to a federated one using the provided `Convert` option in the service connection overview. This may have some implications for your pipelines, but there is a rollback option available.
 
 For more details, refer to [the official documentation](https://learn.microsoft.com/en-gb/azure/devops/pipelines/library/connect-to-azure?view=azure-devops#create-a-new-workload-identity-federation-service-connection) for more details.
 
 #### Manual Configuration - Managed Identity / App Registration
+
 To configure a Managed Identity for federation, select the **Workload Identity federation (manual)** option in the creation wizard. After providing a name for the new connection, you will be presented with the issuer URL and subject identifier values required to configure federated credentials in the Managed Identity resource.
 
 In Azure Managed Identity resource settings, select **Other** from the **Federated credential scenario** options and provide the issuer URL, subject identifier provided by Azure DevOps, and a display name for your credentials. Then, proceed with the **Verify and save** option in the Azure DevOps `New Azure service connection` wizard.
@@ -126,9 +128,10 @@ export ARM_TENANT_ID="00000000-0000-0000-0000-000000000000"
 ```
 
 ### OIDC token
+
 The provider will use the `ARM_OIDC_TOKEN` environment variable as an OIDC token. You can use this variable to specify the token provided by your OIDC provider.
 
-**GitHub Actions**
+#### GitHub Actions
 
 When running Terraform in GitHub Actions, the provider will detect the `ACTIONS_ID_TOKEN_REQUEST_URL` and `ACTIONS_ID_TOKEN_REQUEST_TOKEN` environment variables set by the GitHub Actions runtime. You can also specify the `ARM_OIDC_REQUEST_TOKEN` and `ARM_OIDC_REQUEST_URL` environment variables.
 
@@ -142,7 +145,7 @@ permissions:
 
 For more information about OIDC in GitHub Actions, see [official documentation](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-cloud-providers).
 
-**Azure DevOps Pipelines**
+#### Azure DevOps Pipelines
 
 When running Terraform in Azure DevOps Pipelines, the provider use `ARM_OIDC_REQUEST_TOKEN` and `ARM_OIDC_REQUEST_URL` environment variables, if these are absent, it will attempt to fall back on `SYSTEM_ACCESSTOKEN` and `SYSTEM_OIDCREQUESTURI` environment variables respectively.
 
@@ -156,12 +159,12 @@ For Azure DevOps Pipelines, at least one task in the pipeline has Service Connec
 It is provided by the **Terraform** extension published by Microsoft DevLabs and must be installed in the Azure DevOps **organization** before it appears in the pipeline editor.
 
 For installation and usage details, refer to:
+
 - [Terraform extension for Azure DevOps (Marketplace)](https://marketplace.visualstudio.com/items?itemName=ms-devlabs.custom-terraform-tasks)
 - [TerraformTaskV4 documentation](https://github.com/microsoft/azure-pipelines-terraform/tree/main/Tasks/TerraformTask/TerraformTaskV4)
 
 Issues related to the `TerraformTaskV4` task itself should be reported in the
 [azure-pipelines-terraform](https://github.com/microsoft/azure-pipelines-terraform) repository.
-
 
 It is recommend to use the `AzureCLI@2` task as below (note the `azureSubscription` input parameter):
 

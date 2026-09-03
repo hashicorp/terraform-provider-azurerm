@@ -1,10 +1,10 @@
 # Guide: Breaking Changes and Deprecations
 
-To keep up with and accommodate the changing pace of Azure, the provider needs to be able to gracefully introduce and handle breaking changes. A "breaking change" within the provider is considered to be anything that requires an end user to modify previously valid terraform configuration after a provider upgrade to either deploy new resources or to maintain existing deployments. Even if a change does not affect the user's current deployment, it is still considered a breaking change if it requires the user to modify their configuration to deploy new resources. 
+To keep up with and accommodate the changing pace of Azure, the provider needs to be able to gracefully introduce and handle breaking changes. A "breaking change" within the provider is considered to be anything that requires an end user to modify previously valid terraform configuration after a provider upgrade to either deploy new resources or to maintain existing deployments. Even if a change does not affect the user's current deployment, it is still considered a breaking change if it requires the user to modify their configuration to deploy new resources.
 
 The `azurerm` provider attempts to be as "surface stable" as possible during minor and patch releases meaning breaking changes are typically only made during major releases, however exceptions are sometimes made for minor releases when the breaking change is deemed necessary or is unavoidable. Terraform users rely on the stability of Terraform providers as not only can configuration changes be costly to make, test, and deploy they can also affect downstream tooling such as modules. Even as part of a major release, breaking changes that are overly large or have little benefit can delay users upgrading to the next major version.
 
-Generally we can safely introduce breaking changes into the provider for the major release using a feature flag. For the next major release that would be the `features.SixPointOh()` flag which is available in the provider today. This guide includes several topics on how to do common deprecations and breaking changes in the provider using this feature flag, as well as additional guidance on how to deal with changing default values in the Azure API. 
+Generally we can safely introduce breaking changes into the provider for the major release using a feature flag. For the next major release that would be the `features.SixPointOh()` flag which is available in the provider today. This guide includes several topics on how to do common deprecations and breaking changes in the provider using this feature flag, as well as additional guidance on how to deal with changing default values in the Azure API.
 
 Types of breaking changes covered are:
 
@@ -22,8 +22,9 @@ In all cases the resources cannot be removed from the provider in a minor releas
 The steps outlined below uses an example resource that is deprecated, but the same principles and steps apply for data sources as well.
 
 1. Add the appropriate deprecation message to the resource.
-    
+
    For Typed Resources
+
     ```go
     
     // For resources that have no replacement
@@ -46,6 +47,7 @@ The steps outlined below uses an example resource that is deprecated, but the sa
     ```
 
     For Untyped Resources
+
     ```go
     func resourceExample() *pluginsdk.Resource {
         return &pluginsdk.Resource{
@@ -68,8 +70,9 @@ The steps outlined below uses an example resource that is deprecated, but the sa
     ```
 
 2. Conditionally register the resource in the `registration.go` file of the service package.
-    
+
    For Typed Resources
+
     ```go
     func (r Registration) Resources() []sdk.Resource {
         resources := []sdk.Resource{
@@ -83,8 +86,9 @@ The steps outlined below uses an example resource that is deprecated, but the sa
         return resources
     }
     ```
-    
+
     For Untyped Resources
+
     ```go
     func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
         resources := map[string]*pluginsdk.Resource{
@@ -103,9 +107,9 @@ The steps outlined below uses an example resource that is deprecated, but the sa
 3. Handle tests for the deprecated resource.
 
     **Option A: Skip tests (when API still works)**
-    
+
     If the Azure API can still provision the resource, conditionally skip the tests using the major release feature flag, this allows the tests to run until the next major release is published:
-    
+
     ```go
     func TestAccExample_basic(t *testing.T) {
         if features.SixPointOh() {
@@ -127,9 +131,9 @@ The steps outlined below uses an example resource that is deprecated, but the sa
     ```
 
     **Option B: Remove tests (when API no longer works)**
-    
+
     If the Azure API can no longer provision new instances of the resource (e.g., the service is retired, the API returns errors, or provisioning is blocked), **remove the test file entirely** rather than skipping the tests.
-    
+
     > **Why remove instead of skip?** Skipped tests still need to compile and maintain valid references. When the API no longer works, keeping tests around adds maintenance burden with no benefit. Removing them keeps the codebase clean and avoids confusion about why tests exist but never execute.
 
 4. Update the upgrade guide under `website/docs/6.0-upgrade-guide.markdown`.
@@ -151,6 +155,7 @@ The steps outlined below uses an example resource that is deprecated, but the sa
 ## Breaking Schema Changes and Deprecations
 
 Breaking schema changes can include:
+
 - Property renames
 - When properties become Required
 - When properties have Computed removed and need to be added to `ignore_changes` to prevent diffs
@@ -161,6 +166,7 @@ Breaking schema changes can include:
 In all cases the deprecation is handled the same way and will be illustrated by the example below.
 
 The following example follows a fictional resource that will have the following breaking changes made:
+
 - The property `enable_scaling` renamed to `scaling_enabled`
 - The property `version` has its default changed from `1` to `2`
 
@@ -206,11 +212,13 @@ The following example follows a fictional resource that will have the following 
       return args
    }
    ```
+
    > **Note:** In the past we've accepted in-lined anonymous functions in a property's schema definition to conditionally change the default value, validation function etc. these will no longer be accepted in the provider. This is a deliberate decision to reduce the variation in how deprecations are done in the provider and also simplifies the clean-up effort of feature flagged code after the major release.
 
 2. Update the Create/Read/Update methods.
 
-   For Create function, you can do: 
+   For Create function, you can do:
+
    ```go
    
    payload := example.Payload{
@@ -268,11 +276,13 @@ The following example follows a fictional resource that will have the following 
    `, data.RandomInteger, data.Locations.Primary)
    }
    ```
+
    > **Note:** Wherever possible, only update the test configuration and avoid updating the test case since changes to the test cases are more involved and higher effort to clean up.
 
 4. Update the upgrade guide under `website/docs/6.0-upgrade-guide.markdown`
-   
+
    Under the appropriate section of the upgrade guide, add a line for the deprecation
+
    ```markdown
    ## Breaking changes in Resources
    
@@ -281,20 +291,20 @@ The following example follows a fictional resource that will have the following 
    * The deprecated `enable_scaling` property has been removed in favour of the `scaling_enabled` property.
    * The property `version` now defaults to `2`.
    ```
-   
+
    The resources/data sources should be added in alphabetical order.
-   
+
 5. Update the resource documentation
 
    * The resource documentation should only be updated when a property is undergoing a soft deprecation. In the example above the only update to the resource documentation we need to do is to remove the property `enable_scaling` and add the property `scaling_enabled`.
 
-   * Breaking changes such as the default value changing, or other property behaviour changing in a way that will only be active when the major release has gone out *should not* be added to the documentation since these do not apply yet. Please do not add any `**Note:** This property will do x in 6.0` notes in the documentation. 
+   * Breaking changes such as the default value changing, or other property behaviour changing in a way that will only be active when the major release has gone out *should not* be added to the documentation since these do not apply yet. Please do not add any `**Note:** This property will do x in 6.0` notes in the documentation.
 
 ## Updating Default Values
 
 There are some cases where Azure updates the default value for an attribute when creating a new resource, and we would want to do the same for the provider but this is an easy breaking change to miss.
 
-We have a property like the following and Azure added a new spark version `3.4` and said that all new resources being created will be created with `3.4` as the default. 
+We have a property like the following and Azure added a new spark version `3.4` and said that all new resources being created will be created with `3.4` as the default.
 
 In Terraform, we start with:
 
@@ -415,7 +425,7 @@ func (r SparkResource) Arguments() map[string]*pluginsdk.Schema{
 ## Adding a new property with a default value
 
 When adding a new property with a default value, we can introduce a similar breaking change as the one noted above, but it's even harder to pinpoint. Take for example the following property recently added to `azurerm_kusto_account`:
-                             
+
 It originally came in like this:
 
 ```hcl
@@ -441,6 +451,6 @@ There are many ways to accidentally add a breaking change when looking at proper
 
 Once the next major release has happened, all blocks of code that were conditionally included for that version (e.g. `if !features.SixPointOh() { ... }`) need to be removed. Most should be fine to simply remove, however there are a few things to watch out for:
 
-1. For typed resources, if you are removing a property, make sure you also remove it from the model(s). The fields should have a `removedInNextMajorVersion` tag. 
+1. For typed resources, if you are removing a property, make sure you also remove it from the model(s). The fields should have a `removedInNextMajorVersion` tag.
 2. For typed resources, there may be properties that were only included once the major version was released, make sure you remove the `addedInNextMajorVersion` tag from these properties in the model(s).
 3. Confirm the documentation is up-to-date with what is in code, generally this should already be the case, but it's good to double-check.

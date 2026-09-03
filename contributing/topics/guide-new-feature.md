@@ -26,7 +26,7 @@ type KeyVaultFeatures struct {
 }
 ```
 
-2. Update `internal/features/defaults.go` with what the default value for the new feature will be. This must represent the current default behaviour of the resource(s) to avoid this becoming a breaking change when the feature flagged behaviour is added to the target resource(s).
+1. Update `internal/features/defaults.go` with what the default value for the new feature will be. This must represent the current default behaviour of the resource(s) to avoid this becoming a breaking change when the feature flagged behaviour is added to the target resource(s).
 
 ```go
 func Default() UserFeatures {
@@ -38,6 +38,7 @@ func Default() UserFeatures {
     ...
 }
 ```
+
 ### Updating `internal/provider`
 
 1. Update `internal/provider/feature.go` with what the Terraform schema will look like and how to thread it into the features block
@@ -79,7 +80,7 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 }
 ```
 
-2. Update `internal/provider/feature_test.go` to include a test for every permutation of the feature you are adding to the TestExpandFeatures test and a test dedicated to the service package of the feature.
+1. Update `internal/provider/feature_test.go` to include a test for every permutation of the feature you are adding to the TestExpandFeatures test and a test dedicated to the service package of the feature.
 
 ```go
 func TestExpandFeatures(t *testing.T) {
@@ -211,6 +212,7 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
     }
 }
 ```
+
 ### Updating `internal/provider/framework`
 
 1. Update `internal/provider/framework/model.go`
@@ -241,7 +243,7 @@ var KeyVaultAttributes = map[string]attr.Type{
 }
 ```
 
-2. Update `internal/provider/framework/provider.go`
+1. Update `internal/provider/framework/provider.go`
 
 ```go
 func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRequest, response *provider.SchemaResponse) {
@@ -276,7 +278,7 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 }
 ```
 
-3. Update `internal/provider/framework/config.go`
+1. Update `internal/provider/framework/config.go`
 
 ```go
 // Add a new check that the feature has been specified in the config that then loads the feature into the provider or add the new feature to the existing block.
@@ -299,7 +301,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 }
 ```
 
-4. Update  `internal/provider/framework/config_test.go` with the Features Model and Attributes
+1. Update  `internal/provider/framework/config_test.go` with the Features Model and Attributes
 
 ```go
 func defaultFeaturesList() types.List {
@@ -318,6 +320,7 @@ func defaultFeaturesList() types.List {
     }
 }
 ```
+
 ### Update the resource
 
 1. Update `internal/service/serviceName/resourceName.go` in this case `internal/service/keyvault/key_vault_resource.go` to include the functionality of the added feature.
@@ -332,7 +335,7 @@ func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 ```
 
-2. Update `internal/service/serviceName/resourceName_test.go` in this case `internal/service/keyvault/key_vault_resource_test.go` to test the new feature.
+1. Update `internal/service/serviceName/resourceName_test.go` in this case `internal/service/keyvault/key_vault_resource_test.go` to test the new feature.
 
 ```go
 func TestAccKeyVault_softDeleteRecoveryDisabled(t *testing.T) {
@@ -375,4 +378,4 @@ provider "azurerm" {
 }
 ```
 
-At this point, if all tests have passed including the tests found in `internal/provider/function/normalise_resource_id_test.go` and `internal/provider/function/parse_resource_id_test.go`, the Feature should be implemented and ready for use. 
+At this point, if all tests have passed including the tests found in `internal/provider/function/normalise_resource_id_test.go` and `internal/provider/function/parse_resource_id_test.go`, the Feature should be implemented and ready for use.

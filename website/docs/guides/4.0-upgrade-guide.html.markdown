@@ -60,7 +60,6 @@ More information on [how to pin the version of a Terraform Provider being used c
 
 ---
 
-
 ## What's available in Version 4.0 of the Azure Provider?
 
 Below is an overview of the changes coming 4.0. Each topic is covered in more detail further down.
@@ -85,17 +84,18 @@ RP registration in 4.0 has been revamped to provide users with more control over
 We've introduced two new feature flags in the provider block:
 
 * `resource_provider_registrations` - This has 5 possible modes which are detailed below, that determine the set of RPs to automatically register on the subscription.
-    * `core` - A minimal set of RPs that are deemed necessary for a subscription, the list of RPs in this set can be found [here](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/resourceproviders/required.go#L33-L44)
-    * `extended` - An expanded set of RPs as suggested by the community, the list of RPs in this set can be found [here](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/resourceproviders/required.go#L47-L91)
-    * `all` - A complete set of RPs that might be needed to utilize any functionality in the provider, the list of RPs in this set can be found [here](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/resourceproviders/required.go#L47-L91)
-    * `none` - No resource providers should be automatically registered, this is equivalent to setting `skip_provider_registration = true`
-    * `legacy` - A set of automatically registered RPs from earlier versions of the provider, this is only provided for forwards compatibility and will be removed in a future major version release, the list of RPs in this set can be found [here](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/resourceproviders/required.go#L120-L191)
+  * `core` - A minimal set of RPs that are deemed necessary for a subscription, the list of RPs in this set can be found [here](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/resourceproviders/required.go#L33-L44)
+  * `extended` - An expanded set of RPs as suggested by the community, the list of RPs in this set can be found [here](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/resourceproviders/required.go#L47-L91)
+  * `all` - A complete set of RPs that might be needed to utilize any functionality in the provider, the list of RPs in this set can be found [here](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/resourceproviders/required.go#L47-L91)
+  * `none` - No resource providers should be automatically registered, this is equivalent to setting `skip_provider_registration = true`
+  * `legacy` - A set of automatically registered RPs from earlier versions of the provider, this is only provided for forwards compatibility and will be removed in a future major version release, the list of RPs in this set can be found [here](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/resourceproviders/required.go#L120-L191)
 
 * `resource_providers_to_register` - A custom list of RPs to explicitly register for the subscription, in addition to those specified by the `resource_provider_registrations` property
 
 Below are examples of how the two properties can be used.
 
 Only register a minimal set of `core` RPs on the subscription
+
 ```hcl
 provider "azurerm" {
   resource_provider_registrations = "core"
@@ -103,6 +103,7 @@ provider "azurerm" {
 ```
 
 Register a set of specific RPs in addition to the `core` RPs on the subscription
+
 ```hcl
 provider "azurerm" {
   resource_provider_registrations = "core"
@@ -115,6 +116,7 @@ provider "azurerm" {
 ```
 
 Only register a custom set of RPs defined under `resource_providers_to_register` on the subscription
+
 ```hcl
 provider "azurerm" {
   resource_provider_registrations = "none"
@@ -136,6 +138,7 @@ provider "azurerm" {
 In version 4.0 of the Azure Provider, it's now required to specify the Azure Subscription ID when configuring a provider instance in your configuration. This can be done by specifying the `subscription_id` provider property, or by exporting the `ARM_SUBSCRIPTION_ID` environment variable. For example:
 
 Specify the subscription ID in the provider block
+
 ```hcl
 provider "azurerm" {
   subscription_id = "00000000-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
@@ -143,10 +146,12 @@ provider "azurerm" {
 ```
 
 Specify the subscription ID using an environment variable
+
 ```shell
 # Bash etc.
 export ARM_SUBSCRIPTION_ID=00000000-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ```
+
 ```powershell
 # PowerShell
 [System.Environment]::SetEnvironmentVariable('ARM_SUBSCRIPTION_ID', '00000000-xxxx-xxxx-xxxx-xxxxxxxxxxxx', [System.EnvironmentVariableTarget]::User)
@@ -162,9 +167,10 @@ By making it mandatory to specify the subscription ID for all authentication met
 
 With the addition of Provider Functions in Terraform 1.8, we've added two Azure specific provider functions to give users the ability to correct the casing of their Resource IDs, or to access the individual components of it.
 
-`normalise_resource_id` - Takes an Azure Resource ID and attempts to normalise the case-sensitive system segments as required by the Azure Provider. User specified segments are not affected or corrected. 
+`normalise_resource_id` - Takes an Azure Resource ID and attempts to normalise the case-sensitive system segments as required by the Azure Provider. User specified segments are not affected or corrected.
 
 Below is an example of how the function can be used. The input is a resource ID with segments that are not camel-cased.
+
 ```hcl
 output "test" {
   value = provider::azurerm::normalise_resource_id("/Subscriptions/12345678-1234-9876-4563-123456789012/ResourceGroups/resGroup1/PROVIDERS/microsoft.apimanagement/service/service1/gateWays/gateway1/hostnameconfigurations/config1")
@@ -176,6 +182,7 @@ output "test" {
 `parse_resource_id` - Takes an Azure Resource ID and splits it into its component parts.
 
 Below is an example of how the function can be used. Any resource ID can be provided as input and will be output as a map.
+
 ## Example Usage
 
 ```hcl
