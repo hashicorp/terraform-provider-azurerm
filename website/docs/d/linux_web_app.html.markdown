@@ -103,6 +103,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `virtual_network_subnet_id` - The subnet id which the Linux Web App is vNet Integrated with.
 
+* `vnet_image_pull_enabled` - Should the traffic for the image pull be routed over virtual network enabled. 
+
 * `usage` - The current usage state. Possible values are `Normal` and `Exceeded`.
 
 * `webdeploy_publish_basic_authentication_enabled` - Are the default WebDeploy Basic Authentication publishing credentials enabled.
