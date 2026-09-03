@@ -278,17 +278,16 @@ func (r ApplicationInsightsWorkbookResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
 			return r.flatten(metadata, id, resp.Model)
 		},
 	}
 }
 
 func (r ApplicationInsightsWorkbookResource) flatten(metadata sdk.ResourceMetaData, id *workbooks.WorkbookId, model *workbooks.Workbook) error {
+	if model == nil {
+		return fmt.Errorf("retrieving %s: model was nil", id)
+	}
+
 	state := ApplicationInsightsWorkbookModel{
 		Name:              id.WorkbookName,
 		ResourceGroupName: id.ResourceGroupName,
@@ -328,10 +327,6 @@ func (r ApplicationInsightsWorkbookResource) flatten(metadata sdk.ResourceMetaDa
 		// The backend returns a tags with key `hidden-title` by default. Since it has the same value with `display_name` and will cause inconsistency with user's configuration, remove it as a workaround.
 		delete(*model.Tags, "hidden-title")
 		state.Tags = *model.Tags
-	}
-
-	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-		return err
 	}
 
 	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
