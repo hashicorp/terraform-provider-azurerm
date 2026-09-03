@@ -41,6 +41,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the Storage Sync exists.
 
+* `registered_servers` - A list of registered servers owned by this Storage Sync.
+
 * `tags` - A mapping of tags assigned to the Storage Sync.
 
 ## Timeouts

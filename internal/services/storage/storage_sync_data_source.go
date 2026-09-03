@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/registeredserverresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/storagesyncservicesresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -43,6 +44,14 @@ func dataSourceStorageSync() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"registered_servers": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
@@ -50,6 +59,7 @@ func dataSourceStorageSync() *pluginsdk.Resource {
 
 func dataSourceStorageSyncRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.SyncServiceClient
+	registeredServerClient := meta.(*clients.Client).Storage.SyncRegisteredServerClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -78,5 +88,27 @@ func dataSourceStorageSyncRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("setting `tags`: %+v", err)
 		}
 	}
+
+	storageSyncId := registeredserverresource.NewStorageSyncServiceID(id.SubscriptionId, id.ResourceGroupName, id.StorageSyncServiceName)
+	registeredServersResp, err := registeredServerClient.RegisteredServersListByStorageSyncService(ctx, storageSyncId)
+	if err != nil {
+		if !response.WasNotFound(registeredServersResp.HttpResponse) {
+			return fmt.Errorf("retrieving registered servers for %s: %+v", id, err)
+		}
+	}
+
+	if serverModel := registeredServersResp.Model; serverModel != nil {
+		registeredServerValues := pointer.From(serverModel.Value)
+		registeredServers := make([]interface{}, 0, len(registeredServerValues))
+		for _, registeredServer := range registeredServerValues {
+			if serverId := pointer.From(registeredServer.Id); serverId != "" {
+				registeredServers = append(registeredServers, serverId)
+			}
+		}
+		if err := d.Set("registered_servers", registeredServers); err != nil {
+			return fmt.Errorf("setting `registered_servers`: %+v", err)
+		}
+	}
+
 	return nil
 }
