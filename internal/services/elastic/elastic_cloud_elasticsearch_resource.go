@@ -4,6 +4,7 @@
 package elastic
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -15,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2023-06-01/monitorsresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2023-06-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2025-06-01/elasticmonitorresources"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -38,10 +40,10 @@ func resourceElasticsearch() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := monitorsresource.ParseMonitorID(id)
 			return err
-		}),
+		}, resourceElasticsearchImporter),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -157,6 +159,25 @@ func resourceElasticsearch() *pluginsdk.Resource {
 			},
 		},
 	}
+}
+
+func resourceElasticsearchImporter(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+	id, err := elasticmonitorresources.ParseMonitorID(d.Id())
+	if err != nil {
+		return []*pluginsdk.ResourceData{d}, err
+	}
+
+	client := meta.(*clients.Client).Elastic.ServerlessMonitorClient
+	resp, err := client.MonitorsGet(ctx, *id)
+	if err != nil {
+		return []*pluginsdk.ResourceData{d}, fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if err := validateElasticCloudHostedMonitor(id, resp.Model); err != nil {
+		return []*pluginsdk.ResourceData{d}, err
+	}
+
+	return []*pluginsdk.ResourceData{d}, nil
 }
 
 func resourceElasticsearchCreate(d *pluginsdk.ResourceData, meta interface{}) error {

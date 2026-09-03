@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2023-06-01/monitorsresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2023-06-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2025-06-01/elasticmonitorresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/validate"
@@ -133,6 +134,7 @@ func dataSourceElasticsearch() *pluginsdk.Resource {
 
 func dataSourceElasticsearchRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Elastic.MonitorClient
+	hostingTypeClient := meta.(*clients.Client).Elastic.ServerlessMonitorClient
 	logsClient := meta.(*clients.Client).Elastic.TagRuleClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -146,6 +148,15 @@ func dataSourceElasticsearchRead(d *schema.ResourceData, meta interface{}) error
 		}
 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	hostingTypeId := elasticmonitorresources.NewMonitorID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName)
+	hostingTypeResp, err := hostingTypeClient.MonitorsGet(ctx, hostingTypeId)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", hostingTypeId, err)
+	}
+	if err := validateElasticCloudHostedMonitor(&hostingTypeId, hostingTypeResp.Model); err != nil {
+		return err
 	}
 
 	tagRuleId := rules.NewTagRuleID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName, "default")
