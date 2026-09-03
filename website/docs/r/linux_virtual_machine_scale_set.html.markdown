@@ -146,7 +146,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 * `disable_password_authentication` - (Optional) Should Password Authentication be disabled on this Virtual Machine Scale Set? Defaults to `true`.
 
--> **Note:** In general we'd recommend using SSH Keys for authentication rather than Passwords - but there's tradeoff's to each - please [see this thread for more information](https://learn.microsoft.com/en-us/azure/virtual-machines/linux/create-ssh-keys-detailed).
+-> **Note:** In general we'd recommend using SSH Keys for authentication rather than Passwords - but there's tradeoff's to each - please [see this thread for more information](https://learn.microsoft.com/en-us/azure/virtual-machines/linux/create-ssh-keys-detailed#ssh-keys-use-and-benefits).
 
 -> **Note:** When a `admin_password` is specified `disable_password_authentication` must be set to `false`.
 
