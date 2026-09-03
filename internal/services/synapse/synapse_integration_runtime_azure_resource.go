@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/integrationruntimes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -30,13 +30,14 @@ func resourceSynapseIntegrationRuntimeAzure() *pluginsdk.Resource {
 		Delete: resourceSynapseIntegrationRuntimeAzureDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.IntegrationRuntimeID(id)
+			_, err := integrationruntimes.ParseIntegrationRuntimeID(id)
 			return err
 		}),
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.SynapseIntegrationRuntimeAzureV0ToV1{},
+			1: migration.SynapseIntegrationRuntimeAzureV1ToV2{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -119,11 +120,11 @@ func resourceSynapseIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.ResourceDat
 		return err
 	}
 
-	id := parse.NewIntegrationRuntimeID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, d.Get("name").(string))
+	id := integrationruntimes.NewIntegrationRuntimeID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, "")
+			existing, err := client.Get(ctx, id.ResourceGroupName, id.WorkspaceName, id.IntegrationRuntimeName, "")
 			if err != nil {
 				if !response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -136,7 +137,7 @@ func resourceSynapseIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.ResourceDat
 	}
 
 	integrationRuntime := synapse.IntegrationRuntimeResource{
-		Name: pointer.To(id.Name),
+		Name: pointer.To(id.IntegrationRuntimeName),
 		Properties: synapse.ManagedIntegrationRuntime{
 			Description: pointer.To(d.Get("description").(string)),
 			Type:        synapse.TypeBasicIntegrationRuntimeTypeManaged,
@@ -153,7 +154,7 @@ func resourceSynapseIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.ResourceDat
 		},
 	}
 
-	future, err := client.Create(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, integrationRuntime, "")
+	future, err := client.Create(ctx, id.ResourceGroupName, id.WorkspaceName, id.IntegrationRuntimeName, integrationRuntime, "")
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -174,12 +175,12 @@ func resourceSynapseIntegrationRuntimeAzureRead(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IntegrationRuntimeID(d.Id())
+	id, err := integrationruntimes.ParseIntegrationRuntimeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, "")
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.WorkspaceName, id.IntegrationRuntimeName, "")
 	if err != nil {
 		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
@@ -189,8 +190,8 @@ func resourceSynapseIntegrationRuntimeAzureRead(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("synapse_workspace_id", workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
+	d.Set("name", id.IntegrationRuntimeName)
+	d.Set("synapse_workspace_id", workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID())
 
 	managedIntegrationRuntime, convertSuccess := resp.Properties.AsManagedIntegrationRuntime()
 	if !convertSuccess {
@@ -215,12 +216,12 @@ func resourceSynapseIntegrationRuntimeAzureDelete(d *pluginsdk.ResourceData, met
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IntegrationRuntimeID(d.Id())
+	id, err := integrationruntimes.ParseIntegrationRuntimeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.WorkspaceName, id.IntegrationRuntimeName)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}

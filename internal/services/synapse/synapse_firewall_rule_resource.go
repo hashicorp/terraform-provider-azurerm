@@ -11,10 +11,11 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/ipfirewallrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -29,8 +30,13 @@ func resourceSynapseFirewallRule() *pluginsdk.Resource {
 		Delete: resourceSynapseFirewallRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FirewallRuleID(id)
+			_, err := ipfirewallrules.ParseFirewallRuleID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SynapseFirewallRuleV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -82,10 +88,10 @@ func resourceSynapseFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	id := parse.NewFirewallRuleID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, d.Get("name").(string))
+	id := ipfirewallrules.NewFirewallRuleID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, d.Get("name").(string))
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+			existing, err := client.Get(ctx, id.ResourceGroupName, id.WorkspaceName, id.FirewallRuleName)
 			if err != nil {
 				if !response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -105,7 +111,7 @@ func resourceSynapseFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, parameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.WorkspaceName, id.FirewallRuleName, parameters)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -128,7 +134,7 @@ func resourceSynapseFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 		Pending: []string{string(synapse.ProvisioningStateProvisioning)},
 		Target:  []string{string(synapse.ProvisioningStateSucceeded)},
 		Refresh: func() (result interface{}, state string, err error) {
-			resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+			resp, err := client.Get(ctx, id.ResourceGroupName, id.WorkspaceName, id.FirewallRuleName)
 			if err != nil {
 				return nil, "Error", err
 			}
@@ -151,12 +157,12 @@ func resourceSynapseFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FirewallRuleID(d.Id())
+	id, err := ipfirewallrules.ParseFirewallRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.WorkspaceName, id.FirewallRuleName)
 	if err != nil {
 		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] Error reading Synapse Firewall Rule %q - removing from state", d.Id())
@@ -164,11 +170,11 @@ func resourceSynapseFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}
 			return nil
 		}
 
-		return fmt.Errorf("reading Synapse Firewall Rule %q (Workspace %q / Resource Group %q): %+v", id.Name, id.WorkspaceName, id.ResourceGroup, err)
+		return fmt.Errorf("reading Synapse Firewall Rule %q (Workspace %q / Resource Group %q): %+v", id.FirewallRuleName, id.WorkspaceName, id.ResourceGroupName, err)
 	}
 
-	workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID()
-	d.Set("name", id.Name)
+	workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID()
+	d.Set("name", id.FirewallRuleName)
 	d.Set("synapse_workspace_id", workspaceId)
 
 	if props := resp.IPFirewallRuleProperties; props != nil {
@@ -184,12 +190,12 @@ func resourceSynapseFirewallRuleDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FirewallRuleID(d.Id())
+	id, err := ipfirewallrules.ParseFirewallRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.WorkspaceName, id.FirewallRuleName)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
