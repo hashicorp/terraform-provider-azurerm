@@ -64,7 +64,7 @@ type LinuxWebAppDataSourceModel struct {
 	SiteCredentials                    []helpers.SiteCredential                   `tfschema:"site_credential"`
 	VirtualNetworkBackupRestoreEnabled bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
 	VirtualNetworkSubnetID             string                                     `tfschema:"virtual_network_subnet_id"`
-	VnetImagePullEnabled               bool                                       `tfschema:"vnet_image_pull_enabled"`
+	VirtualNetworkImagePullEnabled     bool                                       `tfschema:"virtual_network_image_pull_enabled"`
 }
 
 var _ sdk.DataSource = LinuxWebAppDataSource{}
@@ -379,7 +379,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 					webApp.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
 					webApp.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					webApp.DefaultHostname = pointer.From(props.DefaultHostName)
-					webApp.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
+					webApp.VirtualNetworkImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 
 					if props.Enabled != nil {
 						webApp.Enabled = *props.Enabled
@@ -401,7 +401,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 						webApp.HostingEnvId = pointer.From(hostingEnv.Id)
 					}
 
-					webApp.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
+					webApp.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetImagePullEnabled)
 
 					if subnetId := pointer.From(props.VirtualNetworkSubnetId); subnetId != "" {
 						webApp.VirtualNetworkSubnetID = subnetId
