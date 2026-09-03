@@ -17,8 +17,8 @@ func TestAccPrivateDnsResolverForwardingRule_resourceIdentity(t *testing.T) {
 	r := PrivateDnsResolverForwardingRuleResource{}
 
 	checkedFields := map[string]struct{}{
-		"dns_forwarding_ruleset_name": {},
 		"name":                        {},
+		"dns_forwarding_ruleset_name": {},
 		"resource_group_name":         {},
 		"subscription_id":             {},
 	}
@@ -28,8 +28,8 @@ func TestAccPrivateDnsResolverForwardingRule_resourceIdentity(t *testing.T) {
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_private_dns_resolver_forwarding_rule.test", checkedFields),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_private_dns_resolver_forwarding_rule.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_private_dns_resolver_forwarding_rule.test", tfjsonpath.New("dns_forwarding_ruleset_name"), tfjsonpath.New("dns_forwarding_ruleset_id")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_private_dns_resolver_forwarding_rule.test", tfjsonpath.New("name"), tfjsonpath.New("dns_forwarding_ruleset_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_private_dns_resolver_forwarding_rule.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("dns_forwarding_ruleset_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_private_dns_resolver_forwarding_rule.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("dns_forwarding_ruleset_id")),
 			},

@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -parent-id dns_forwarding_ruleset_id
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "subscription_id:dns_forwarding_ruleset_id,resource_group_name:dns_forwarding_ruleset_id,dns_forwarding_ruleset_name:dns_forwarding_ruleset_id"
 
 type PrivateDNSResolverForwardingRuleModel struct {
 	Name                   string                 `tfschema:"name"`
