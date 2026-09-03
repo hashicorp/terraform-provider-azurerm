@@ -1,6 +1,7 @@
 ## 5.4.0 (Unreleased)
 
 ENHANCEMENTS:
+* **NEW LIST RESOURCE**: `azurerm_batch_application` [GH-33254]
 * `azurerm_linux_web_app`, `linux_web_app_slot` - add support for the `8.5` value in the  `site_config.application_stack.php_version` property [GH-33308]
 * `azurerm_synapse_spark_pool` - migrate to `go-azure-sdk` [GH-33258]
 * `azurerm_storage_account` - add support for an in-place migration of `account_replication_type` between matching non-zonal and zonal types instead of resource recreation [GH-33236]
