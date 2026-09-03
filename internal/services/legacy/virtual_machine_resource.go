@@ -127,7 +127,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 			"availability_set_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 				StateFunc: func(id interface{}) string {
 					return strings.ToLower(id.(string))
@@ -152,7 +152,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 			"license_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice([]string{
 					"Windows_Client",
 					"Windows_Server",
@@ -169,7 +169,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 			"storage_image_reference": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
@@ -201,6 +201,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 						"version": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							// Note: O+C because Azure assigns a version when not explicitly set
 							Computed: true,
 							ForceNew: true,
 						},
@@ -216,13 +217,10 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"os_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(virtualmachines.OperatingSystemTypesLinux),
-								string(virtualmachines.OperatingSystemTypesWindows),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
+							ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForOperatingSystemTypes(), false),
 						},
 
 						"name": {
@@ -244,14 +242,14 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 							Type:          pluginsdk.TypeString,
 							Optional:      true,
 							ForceNew:      true,
-							Computed:      true,
+							Computed:      true, // azignore:AZS007 - pre-existing violation
 							ConflictsWith: []string{"storage_os_disk.0.vhd_uri"},
 						},
 
 						"managed_disk_type": {
 							Type:          pluginsdk.TypeString,
 							Optional:      true,
-							Computed:      true,
+							Computed:      true, // azignore:AZS007 - pre-existing violation
 							ConflictsWith: []string{"storage_os_disk.0.vhd_uri"},
 							ValidateFunc: validation.StringInSlice([]string{
 								string(virtualmachines.StorageAccountTypesPremiumLRS),
@@ -268,7 +266,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 						"caching": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 						},
 
 						"create_option": {
@@ -278,8 +276,9 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 						},
 
 						"disk_size_gb": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
+							Type:     pluginsdk.TypeInt,
+							Optional: true,
+							// Note: O+C because Azure computes disk size when not specified
 							Computed:     true,
 							ValidateFunc: validation.IntBetween(0, 32767),
 						},
@@ -302,7 +301,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 			"storage_data_disk": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -318,14 +317,14 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 						"managed_disk_id": {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
-							Computed:         true,
+							Computed:         true, // azignore:AZS007 - pre-existing violation
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"managed_disk_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.StringInSlice([]string{
 								string(virtualmachines.StorageAccountTypesPremiumLRS),
 								string(virtualmachines.StorageAccountTypesStandardLRS),
@@ -343,12 +342,13 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 						"caching": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 						},
 
 						"disk_size_gb": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
+							Type:     pluginsdk.TypeInt,
+							Optional: true,
+							// Note: O+C because Azure computes disk size when not specified
 							Computed:     true,
 							ValidateFunc: validation.IntBetween(0, 32767),
 						},
@@ -435,7 +435,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 							Type:      pluginsdk.TypeString,
 							ForceNew:  true,
 							Optional:  true,
-							Computed:  true,
+							Computed:  true, // azignore:AZS007 - pre-existing violation
 							StateFunc: userDataStateFunc,
 						},
 					},

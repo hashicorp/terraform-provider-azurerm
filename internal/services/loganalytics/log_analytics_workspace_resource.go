@@ -92,31 +92,23 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"internet_ingestion_access_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(workspaces.PublicNetworkAccessTypeEnabled),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(workspaces.PublicNetworkAccessTypeEnabled),
-					string(workspaces.PublicNetworkAccessTypeDisabled),
-					string(workspaces.PublicNetworkAccessTypeSecuredByPerimeter),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(workspaces.PublicNetworkAccessTypeEnabled),
+				ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForPublicNetworkAccessType(), false),
 			},
 
 			"internet_query_access_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(workspaces.PublicNetworkAccessTypeEnabled),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(workspaces.PublicNetworkAccessTypeEnabled),
-					string(workspaces.PublicNetworkAccessTypeDisabled),
-					string(workspaces.PublicNetworkAccessTypeSecuredByPerimeter),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(workspaces.PublicNetworkAccessTypeEnabled),
+				ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForPublicNetworkAccessType(), false),
 			},
 
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice([]string{
 					// creation with `Premium` and `Standard` is not allowed on API side, keep these values for existing resources.
 					string(workspaces.WorkspaceSkuNameEnumPerGBTwoZeroOneEight),
@@ -149,8 +141,9 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 			},
 
 			"retention_in_days": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because Azure assigns a default retention period when not specified
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(30, 730),
 			},

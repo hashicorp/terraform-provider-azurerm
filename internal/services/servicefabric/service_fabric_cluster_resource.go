@@ -56,48 +56,33 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"reliability_level": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cluster.ReliabilityLevelNone),
-					string(cluster.ReliabilityLevelBronze),
-					string(cluster.ReliabilityLevelSilver),
-					string(cluster.ReliabilityLevelGold),
-					string(cluster.ReliabilityLevelPlatinum),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(cluster.PossibleValuesForReliabilityLevel(), false),
 			},
 
 			"upgrade_mode": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cluster.UpgradeModeAutomatic),
-					string(cluster.UpgradeModeManual),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(cluster.PossibleValuesForUpgradeMode(), false),
 			},
 
 			"service_fabric_zonal_upgrade_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cluster.SfZonalUpgradeModeHierarchical),
-					string(cluster.SfZonalUpgradeModeParallel),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(cluster.PossibleValuesForSfZonalUpgradeMode(), false),
 			},
 
 			"vmss_zonal_upgrade_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cluster.VMSSZonalUpgradeModeHierarchical),
-					string(cluster.VMSSZonalUpgradeModeParallel),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(cluster.PossibleValuesForVMSSZonalUpgradeMode(), false),
 			},
 
 			"cluster_code_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"management_endpoint": {
@@ -503,20 +488,16 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 							ValidateFunc: validate.PortNumber,
 						},
 						"durability_level": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(cluster.DurabilityLevelBronze),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cluster.DurabilityLevelBronze),
-								string(cluster.DurabilityLevelSilver),
-								string(cluster.DurabilityLevelGold),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(cluster.DurabilityLevelBronze),
+							ValidateFunc: validation.StringInSlice(cluster.PossibleValuesForDurabilityLevel(), false),
 						},
 
 						"application_ports": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -535,7 +516,7 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 						"ephemeral_ports": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{

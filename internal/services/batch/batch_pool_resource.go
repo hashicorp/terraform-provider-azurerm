@@ -92,14 +92,9 @@ func resourceBatchPool() *pluginsdk.Resource {
 						// Here we treat `node_deallocation_method` the same as a secret value.
 						// Issue link: https://github.com/Azure/azure-rest-api-specs/issues/20948
 						"node_deallocation_method": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(pool.ComputeNodeDeallocationOptionRequeue),
-								string(pool.ComputeNodeDeallocationOptionRetainedData),
-								string(pool.ComputeNodeDeallocationOptionTaskCompletion),
-								string(pool.ComputeNodeDeallocationOptionTerminate),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForComputeNodeDeallocationOption(), false),
 						},
 						"target_dedicated_nodes": {
 							Type:         pluginsdk.TypeInt,
@@ -415,10 +410,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 							ForceNew:         true,
 							Default:          string(pool.DynamicVNetAssignmentScopeNone),
 							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(pool.DynamicVNetAssignmentScopeNone),
-								string(pool.DynamicVNetAssignmentScopeJob),
-							}, false),
+							ValidateFunc:     validation.StringInSlice(pool.PossibleValuesForDynamicVNetAssignmentScope(), false),
 						},
 						"accelerated_networking_enabled": {
 							Type:     pluginsdk.TypeBool,
@@ -442,13 +434,9 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Set: pluginsdk.HashString,
 						},
 						"public_address_provisioning_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(pool.IPAddressProvisioningTypeBatchManaged),
-								string(pool.IPAddressProvisioningTypeUserManaged),
-								string(pool.IPAddressProvisioningTypeNoPublicIPAddresses),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForIPAddressProvisioningType(), false),
 						},
 						"endpoint_configuration": {
 							Type:     pluginsdk.TypeList,
@@ -463,13 +451,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"protocol": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ForceNew: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(pool.InboundEndpointProtocolTCP),
-											string(pool.InboundEndpointProtocolUDP),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validation.StringInSlice(pool.PossibleValuesForInboundEndpointProtocol(), false),
 									},
 									"backend_port": {
 										Type:     pluginsdk.TypeInt,
@@ -499,13 +484,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 													ValidateFunc: validation.IntAtLeast(150),
 												},
 												"access": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ForceNew: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(pool.NetworkSecurityGroupRuleAccessAllow),
-														string(pool.NetworkSecurityGroupRuleAccessDeny),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ForceNew:     true,
+													ValidateFunc: validation.StringInSlice(pool.PossibleValuesForNetworkSecurityGroupRuleAccess(), false),
 												},
 												"source_address_prefix": {
 													Type:         pluginsdk.TypeString,
@@ -516,7 +498,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 												"source_port_ranges": {
 													Type:     pluginsdk.TypeList,
 													Optional: true,
-													Computed: true,
+													Computed: true, // azignore:AZS007 - pre-existing violation
 													ForceNew: true,
 													Elem: &pluginsdk.Schema{
 														Type:         pluginsdk.TypeString,
@@ -544,14 +526,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 							ValidateFunc: validation.IntBetween(0, 63),
 						},
 						"caching": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(pool.CachingTypeReadOnly),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(pool.CachingTypeNone),
-								string(pool.CachingTypeReadOnly),
-								string(pool.CachingTypeReadWrite),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(pool.CachingTypeReadOnly),
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForCachingType(), false),
 						},
 						"disk_size_gb": {
 							Type:         pluginsdk.TypeInt,
@@ -576,12 +554,9 @@ func resourceBatchPool() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"disk_encryption_target": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(pool.DiskEncryptionTargetTemporaryDisk),
-								string(pool.DiskEncryptionTargetOsDisk),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForDiskEncryptionTarget(), false),
 						},
 					},
 				},
@@ -646,13 +621,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"policy": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(pool.NodePlacementPolicyTypeRegional),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(pool.NodePlacementPolicyTypeZonal),
-								string(pool.NodePlacementPolicyTypeRegional),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(pool.NodePlacementPolicyTypeRegional),
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForNodePlacementPolicyType(), false),
 						},
 					},
 				},
@@ -666,19 +638,14 @@ func resourceBatchPool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice(
-					[]string{
-						string(pool.DiffDiskPlacementCacheDisk),
-					}, false,
+					pool.PossibleValuesForDiffDiskPlacement(), false,
 				),
 			},
 			"inter_node_communication": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(pool.InterNodeCommunicationStateEnabled),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(pool.InterNodeCommunicationStateEnabled),
-					string(pool.InterNodeCommunicationStateDisabled),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(pool.InterNodeCommunicationStateEnabled),
+				ValidateFunc: validation.StringInSlice(pool.PossibleValuesForInterNodeCommunicationState(), false),
 			},
 
 			"security_profile": {
@@ -724,17 +691,14 @@ func resourceBatchPool() *pluginsdk.Resource {
 			"task_scheduling_policy": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"node_fill_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(pool.ComputeNodeFillTypeSpread),
-								string(pool.ComputeNodeFillTypePack),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForComputeNodeFillType(), false),
 						},
 					},
 				},
@@ -756,12 +720,9 @@ func resourceBatchPool() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"elevation_level": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(pool.ElevationLevelNonAdmin),
-								string(pool.ElevationLevelAdmin),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForElevationLevel(), false),
 						},
 						"linux_user_configuration": {
 							Type:     pluginsdk.TypeList,
@@ -790,12 +751,9 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"login_mode": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(pool.LoginModeBatch),
-											string(pool.LoginModeInteractive),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(pool.PossibleValuesForLoginMode(), false),
 									},
 								},
 							},
@@ -1466,12 +1424,9 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"working_directory": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(pool.ContainerWorkingDirectoryTaskWorkingDirectory),
-							string(pool.ContainerWorkingDirectoryContainerImageDefault),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(pool.PossibleValuesForContainerWorkingDirectory(), false),
 					},
 				},
 			},
@@ -1515,22 +1470,16 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"elevation_level": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  string(pool.ElevationLevelNonAdmin),
-									ValidateFunc: validation.StringInSlice([]string{
-										string(pool.ElevationLevelNonAdmin),
-										string(pool.ElevationLevelAdmin),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Default:      string(pool.ElevationLevelNonAdmin),
+									ValidateFunc: validation.StringInSlice(pool.PossibleValuesForElevationLevel(), false),
 								},
 								"scope": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  string(pool.AutoUserScopeTask),
-									ValidateFunc: validation.StringInSlice([]string{
-										string(pool.AutoUserScopeTask),
-										string(pool.AutoUserScopePool),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Default:      string(pool.AutoUserScopeTask),
+									ValidateFunc: validation.StringInSlice(pool.PossibleValuesForAutoUserScope(), false),
 								},
 							},
 						},

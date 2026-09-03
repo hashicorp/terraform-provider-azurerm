@@ -125,14 +125,11 @@ func (r NewRelicMonitorResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"usage_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						Default:  string(monitors.UsageTypePAYG),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(monitors.UsageTypeCOMMITTED),
-							string(monitors.UsageTypePAYG),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						Default:      string(monitors.UsageTypePAYG),
+						ValidateFunc: validation.StringInSlice(monitors.PossibleValuesForUsageType(), false),
 					},
 				},
 			},
@@ -177,21 +174,18 @@ func (r NewRelicMonitorResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"account_creation_source": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(monitors.AccountCreationSourceLIFTR),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(monitors.AccountCreationSourceLIFTR),
-				string(monitors.AccountCreationSourceNEWRELIC),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      string(monitors.AccountCreationSourceLIFTR),
+			ValidateFunc: validation.StringInSlice(monitors.PossibleValuesForAccountCreationSource(), false),
 		},
 
 		"account_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -209,19 +203,16 @@ func (r NewRelicMonitorResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"org_creation_source": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(monitors.OrgCreationSourceLIFTR),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(monitors.OrgCreationSourceLIFTR),
-				string(monitors.OrgCreationSourceNEWRELIC),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      string(monitors.OrgCreationSourceLIFTR),
+			ValidateFunc: validation.StringInSlice(monitors.PossibleValuesForOrgCreationSource(), false),
 		},
 
 		"user_id": {

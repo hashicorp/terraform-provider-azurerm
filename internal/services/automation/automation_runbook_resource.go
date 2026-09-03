@@ -117,22 +117,10 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"runbook_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(runbook.RunbookTypeEnumGraph),
-					string(runbook.RunbookTypeEnumGraphPowerShell),
-					string(runbook.RunbookTypeEnumGraphPowerShellWorkflow),
-					string(runbook.RunbookTypeEnumPowerShell),
-					string(runbook.RunbookTypeEnumPowerShellSevenTwo),
-					string(runbook.RunbookTypeEnumPython),
-					string(runbook.RunbookTypeEnumPythonTwo),
-					string(runbook.RunbookTypeEnumPythonThree),
-					string(runbook.RunbookTypeEnumPowerShellWorkflow),
-					string(runbook.RunbookTypeEnumPowerShellSevenTwo),
-					string(runbook.RunbookTypeEnumScript),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(runbook.PossibleValuesForRunbookTypeEnum(), false),
 			},
 
 			"log_progress": {
@@ -162,7 +150,7 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 			"job_schedule": {
 				Type:       pluginsdk.TypeSet,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{

@@ -249,7 +249,7 @@ func expandAzureKeyVaultSecretReference(input []interface{}) *datafactory.AzureK
 
 func flattenAzureKeyVaultConnectionString(input map[string]interface{}) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	parameters := make(map[string]interface{})
@@ -267,7 +267,7 @@ func flattenAzureKeyVaultConnectionString(input map[string]interface{}) []interf
 
 func flattenAzureKeyVaultSecretReference(secretReference *datafactory.AzureKeyVaultSecretReference) []interface{} {
 	if secretReference == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	parameters := make(map[string]interface{})
@@ -365,7 +365,7 @@ func expandDataFactoryDatasetAzureBlobFSLocation(d *pluginsdk.ResourceData) data
 
 func flattenDataFactoryDatasetHTTPServerLocation(input *datafactory.HTTPServerLocation) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 	result := make(map[string]interface{})
 
@@ -388,7 +388,7 @@ func flattenDataFactoryDatasetHTTPServerLocation(input *datafactory.HTTPServerLo
 
 func flattenDataFactoryDatasetAzureBlobStorageLocation(input *datafactory.AzureBlobStorageLocation) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 	result := make(map[string]interface{})
 
@@ -438,7 +438,7 @@ func flattenDataFactoryDatasetAzureBlobFSLocation(input *datafactory.AzureBlobFS
 
 func flattenDataFactoryDatasetSFTPLocation(input *datafactory.SftpLocation) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 	result := make(map[string]interface{})
 

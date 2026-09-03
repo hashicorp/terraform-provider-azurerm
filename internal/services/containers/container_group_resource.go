@@ -75,13 +75,10 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			},
 
 			"os_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(containerinstance.OperatingSystemTypesWindows),
-					string(containerinstance.OperatingSystemTypesLinux),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForOperatingSystemTypes(), false),
 			},
 
 			"image_registry_credential": {
@@ -126,10 +123,11 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"network_profile_id": {
-				Type:       pluginsdk.TypeString,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "the 'network_profile_id' has been removed from the latest versions of the container instance API and has been deprecated. It no longer functions and will be removed from the 4.0 AzureRM provider. Please use the 'subnet_ids' field instead",
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
+				// TODO: 6.0 - remove this, was meant to be removed in 4.0...
+				Deprecated: "the 'network_profile_id' has been removed from the latest versions of the container instance API and has been deprecated. It no longer functions and will be removed from the 6.0 AzureRM provider. Please use the 'subnet_ids' field instead",
 			},
 
 			// lintignore:S018
@@ -159,15 +157,11 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			},
 
 			"restart_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(containerinstance.ContainerGroupRestartPolicyAlways),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(containerinstance.ContainerGroupRestartPolicyAlways),
-					string(containerinstance.ContainerGroupRestartPolicyNever),
-					string(containerinstance.ContainerGroupRestartPolicyOnFailure),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(containerinstance.ContainerGroupRestartPolicyAlways),
+				ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForContainerGroupRestartPolicy(), false),
 			},
 
 			"dns_name_label": {
@@ -177,23 +171,17 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			},
 
 			"dns_name_label_reuse_policy": {
-				Type:     pluginsdk.TypeString,
-				ForceNew: true,
-				Optional: true,
-				Default:  string(containerinstance.DnsNameLabelReusePolicyUnsecure),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(containerinstance.DnsNameLabelReusePolicyNoreuse),
-					string(containerinstance.DnsNameLabelReusePolicyResourceGroupReuse),
-					string(containerinstance.DnsNameLabelReusePolicySubscriptionReuse),
-					string(containerinstance.DnsNameLabelReusePolicyTenantReuse),
-					string(containerinstance.DnsNameLabelReusePolicyUnsecure),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				ForceNew:     true,
+				Optional:     true,
+				Default:      string(containerinstance.DnsNameLabelReusePolicyUnsecure),
+				ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForDnsNameLabelReusePolicy(), false),
 			},
 
 			"exposed_port": {
 				Type:       pluginsdk.TypeSet,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ForceNew:   true,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Set:        resourceContainerGroupPortsHash,
@@ -207,14 +195,11 @@ func resourceContainerGroup() *pluginsdk.Resource {
 						},
 
 						"protocol": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ForceNew: true,
-							Default:  string(containerinstance.ContainerGroupNetworkProtocolTCP),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(containerinstance.ContainerGroupNetworkProtocolTCP),
-								string(containerinstance.ContainerGroupNetworkProtocolUDP),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							Default:      string(containerinstance.ContainerGroupNetworkProtocolTCP),
+							ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForContainerGroupNetworkProtocol(), false),
 						},
 					},
 				},
@@ -262,7 +247,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 						"commands": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
@@ -370,7 +355,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 						"commands": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
@@ -419,13 +404,10 @@ func resourceContainerGroup() *pluginsdk.Resource {
 									},
 
 									"log_type": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										ForceNew: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(containerinstance.LogAnalyticsLogTypeContainerInsights),
-											string(containerinstance.LogAnalyticsLogTypeContainerInstanceLogs),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForLogAnalyticsLogType(), false),
 									},
 
 									"metadata": {
@@ -1582,7 +1564,7 @@ func flattenContainerProbeHttpHeaders(input *[]containerinstance.HTTPHeader) map
 
 func flattenContainerImageRegistryCredentials(d *pluginsdk.ResourceData, input *[]containerinstance.ImageRegistryCredential) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 	configsOld := d.Get("image_registry_credential").([]interface{})
 
@@ -1610,7 +1592,7 @@ func flattenContainerImageRegistryCredentials(d *pluginsdk.ResourceData, input *
 
 func flattenContainerGroupInitContainers(d *pluginsdk.ResourceData, initContainers *[]containerinstance.InitContainerDefinition, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
 	if initContainers == nil {
-		return nil
+		return []interface{}{}
 	}
 	// map old container names to index so we can look up things up
 	nameIndexMap := map[string]int{}

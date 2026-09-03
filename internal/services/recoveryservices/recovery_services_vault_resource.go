@@ -103,25 +103,18 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 
 			// set `immutability` to Computed, because it will start to return from the service once it has been set.
 			"immutability": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(vaults.ImmutabilityStateLocked),
-					string(vaults.ImmutabilityStateUnlocked),
-					string(vaults.ImmutabilityStateDisabled),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
+				ValidateFunc: validation.StringInSlice(vaults.PossibleValuesForImmutabilityState(), false),
 			},
 
 			"tags": commonschema.Tags(),
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(vaults.SkuNameRSZero),
-					string(vaults.SkuNameStandard),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(vaults.PossibleValuesForSkuName(), false),
 			},
 
 			"storage_mode_type": {

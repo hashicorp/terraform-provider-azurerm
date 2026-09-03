@@ -150,20 +150,20 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 			"use_policy_based_traffic_selectors": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"routing_weight": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.IntBetween(0, 32000),
 			},
 
 			"express_route_gateway_bypass": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"private_link_fast_path_enabled": {
@@ -173,26 +173,19 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 			},
 
 			"connection_protocol": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionProtocolIKEvOne),
-					string(virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionProtocolIKEvTwo),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(virtualnetworkgatewayconnections.PossibleValuesForVirtualNetworkGatewayConnectionProtocol(), false),
 			},
 
 			"connection_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionModeInitiatorOnly),
-					string(virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionModeResponderOnly),
-					string(virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionModeDefault),
-				}, false),
-				Default: string(virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionModeDefault),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(virtualnetworkgatewayconnections.PossibleValuesForVirtualNetworkGatewayConnectionMode(), false),
+				Default:      string(virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionModeDefault),
 			},
 
 			"traffic_selector_policy": {
@@ -245,103 +238,52 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"dh_group": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(virtualnetworkgatewayconnections.DhGroupDHGroupOne),
-								string(virtualnetworkgatewayconnections.DhGroupDHGroupOneFour),
-								string(virtualnetworkgatewayconnections.DhGroupDHGroupTwo),
-								string(virtualnetworkgatewayconnections.DhGroupDHGroupTwoZeroFourEight),
-								string(virtualnetworkgatewayconnections.DhGroupDHGroupTwoFour),
-								string(virtualnetworkgatewayconnections.DhGroupECPTwoFiveSix),
-								string(virtualnetworkgatewayconnections.DhGroupECPThreeEightFour),
-								string(virtualnetworkgatewayconnections.DhGroupNone),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(virtualnetworkgatewayconnections.PossibleValuesForDhGroup(), false),
 						},
 
 						"ike_encryption": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(virtualnetworkgatewayconnections.IkeEncryptionAESOneTwoEight),
-								string(virtualnetworkgatewayconnections.IkeEncryptionAESOneNineTwo),
-								string(virtualnetworkgatewayconnections.IkeEncryptionAESTwoFiveSix),
-								string(virtualnetworkgatewayconnections.IkeEncryptionDES),
-								string(virtualnetworkgatewayconnections.IkeEncryptionDESThree),
-								string(virtualnetworkgatewayconnections.IkeEncryptionGCMAESOneTwoEight),
-								string(virtualnetworkgatewayconnections.IkeEncryptionGCMAESTwoFiveSix),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(virtualnetworkgatewayconnections.PossibleValuesForIkeEncryption(), false),
 						},
 
 						"ike_integrity": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(virtualnetworkgatewayconnections.IkeIntegrityGCMAESOneTwoEight),
-								string(virtualnetworkgatewayconnections.IkeIntegrityGCMAESTwoFiveSix),
-								string(virtualnetworkgatewayconnections.IkeIntegrityMDFive),
-								string(virtualnetworkgatewayconnections.IkeIntegritySHAOne),
-								string(virtualnetworkgatewayconnections.IkeIntegritySHATwoFiveSix),
-								string(virtualnetworkgatewayconnections.IkeIntegritySHAThreeEightFour),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(virtualnetworkgatewayconnections.PossibleValuesForIkeIntegrity(), false),
 						},
 
 						"ipsec_encryption": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(virtualnetworkgatewayconnections.IPsecEncryptionAESOneTwoEight),
-								string(virtualnetworkgatewayconnections.IPsecEncryptionAESOneNineTwo),
-								string(virtualnetworkgatewayconnections.IPsecEncryptionAESTwoFiveSix),
-								string(virtualnetworkgatewayconnections.IPsecEncryptionDES),
-								string(virtualnetworkgatewayconnections.IPsecEncryptionDESThree),
-								string(virtualnetworkgatewayconnections.IPsecEncryptionGCMAESOneTwoEight),
-								string(virtualnetworkgatewayconnections.IPsecEncryptionGCMAESOneNineTwo),
-								string(virtualnetworkgatewayconnections.IPsecEncryptionGCMAESTwoFiveSix),
-								string(virtualnetworkgatewayconnections.IPsecEncryptionNone),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(virtualnetworkgatewayconnections.PossibleValuesForIPsecEncryption(), false),
 						},
 
 						"ipsec_integrity": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(virtualnetworkgatewayconnections.IPsecIntegrityGCMAESOneTwoEight),
-								string(virtualnetworkgatewayconnections.IPsecIntegrityGCMAESOneNineTwo),
-								string(virtualnetworkgatewayconnections.IPsecIntegrityGCMAESTwoFiveSix),
-								string(virtualnetworkgatewayconnections.IPsecIntegrityMDFive),
-								string(virtualnetworkgatewayconnections.IPsecIntegritySHAOne),
-								string(virtualnetworkgatewayconnections.IPsecIntegritySHATwoFiveSix),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(virtualnetworkgatewayconnections.PossibleValuesForIPsecIntegrity(), false),
 						},
 
 						"pfs_group": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(virtualnetworkgatewayconnections.PfsGroupECPTwoFiveSix),
-								string(virtualnetworkgatewayconnections.PfsGroupECPThreeEightFour),
-								string(virtualnetworkgatewayconnections.PfsGroupNone),
-								string(virtualnetworkgatewayconnections.PfsGroupPFSOne),
-								string(virtualnetworkgatewayconnections.PfsGroupPFSOneFour),
-								string(virtualnetworkgatewayconnections.PfsGroupPFSTwo),
-								string(virtualnetworkgatewayconnections.PfsGroupPFSTwoZeroFourEight),
-								string(virtualnetworkgatewayconnections.PfsGroupPFSTwoFour),
-								string(virtualnetworkgatewayconnections.PfsGroupPFSMM),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(virtualnetworkgatewayconnections.PossibleValuesForPfsGroup(), false),
 						},
 
 						"sa_datasize": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.IntBetween(0, math.MaxInt32),
 						},
 
 						"sa_lifetime": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.IntAtLeast(300),
 						},
 					},

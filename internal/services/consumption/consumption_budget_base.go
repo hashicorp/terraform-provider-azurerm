@@ -85,9 +85,10 @@ func getDimensionNames() []string {
 
 func (br consumptionBudgetBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
 	output := map[string]*pluginsdk.Schema{
-		"etag": {
+		"etag": { // TODO 6.0: this should probably be computed only?
 			Type:     pluginsdk.TypeString,
 			Computed: true,
+			// Note: O+C because Azure will always return a new value for this
 			Optional: true,
 		},
 
@@ -193,13 +194,9 @@ func (br consumptionBudgetBaseResource) arguments(fields map[string]*pluginsdk.S
 						}, false),
 					},
 					"operator": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(budgets.OperatorTypeEqualTo),
-							string(budgets.OperatorTypeGreaterThan),
-							string(budgets.OperatorTypeGreaterThanOrEqualTo),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(budgets.PossibleValuesForOperatorType(), false),
 					},
 
 					"contact_emails": {
@@ -233,18 +230,11 @@ func (br consumptionBudgetBaseResource) arguments(fields map[string]*pluginsdk.S
 		},
 
 		"time_grain": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(budgets.TimeGrainTypeMonthly),
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(budgets.TimeGrainTypeBillingAnnual),
-				string(budgets.TimeGrainTypeBillingMonth),
-				string(budgets.TimeGrainTypeBillingQuarter),
-				string(budgets.TimeGrainTypeAnnually),
-				string(budgets.TimeGrainTypeMonthly),
-				string(budgets.TimeGrainTypeQuarterly),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(budgets.TimeGrainTypeMonthly),
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(budgets.PossibleValuesForTimeGrainType(), false),
 		},
 
 		"time_period": {
@@ -263,7 +253,7 @@ func (br consumptionBudgetBaseResource) arguments(fields map[string]*pluginsdk.S
 					"end_date": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.IsRFC3339Time,
 					},
 				},

@@ -51,7 +51,7 @@ func resourceApiManagementSubscription() *pluginsdk.Resource {
 			"subscription_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validation.Any(validate.ApiManagementChildName, validation.StringIsEmpty),
 			},
@@ -91,29 +91,24 @@ func resourceApiManagementSubscription() *pluginsdk.Resource {
 			},
 
 			"state": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(subscription.SubscriptionStateSubmitted),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(subscription.SubscriptionStateActive),
-					string(subscription.SubscriptionStateCancelled),
-					string(subscription.SubscriptionStateExpired),
-					string(subscription.SubscriptionStateRejected),
-					string(subscription.SubscriptionStateSubmitted),
-					string(subscription.SubscriptionStateSuspended),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(subscription.SubscriptionStateSubmitted),
+				ValidateFunc: validation.StringInSlice(subscription.PossibleValuesForSubscriptionState(), false),
 			},
 
 			"primary_key": {
-				Type:      pluginsdk.TypeString,
-				Optional:  true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C because the API generates a subscription key when not specified
 				Computed:  true,
 				Sensitive: true,
 			},
 
 			"secondary_key": {
-				Type:      pluginsdk.TypeString,
-				Optional:  true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C because the API generates a subscription key when not specified
 				Computed:  true,
 				Sensitive: true,
 			},

@@ -4,16 +4,11 @@
 package validate
 
 import (
-	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func VirtualHubName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile(`^.{1,256}$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%q must be between 1 and 256 characters in length", k))
-	}
-
-	return warnings, errors
+func VirtualHubName(v interface{}, k string) ([]string, []error) {
+	return validation.StringMatch(regexp.MustCompile(`^.{1,256}$`), "must be between 1 and 256 characters in length")(v, k)
 }

@@ -61,14 +61,11 @@ func resourceImage() *pluginsdk.Resource {
 			},
 
 			"hyper_v_generation": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(images.HyperVGenerationTypesVOne),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(images.HyperVGenerationTypesVOne),
-					string(images.HyperVGenerationTypesVTwo),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(images.HyperVGenerationTypesVOne),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(images.PossibleValuesForHyperVGenerationTypes(), false),
 			},
 
 			"source_virtual_machine_id": {
@@ -86,26 +83,20 @@ func resourceImage() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"os_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(images.OperatingSystemTypesLinux),
-								string(images.OperatingSystemTypesWindows),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(images.PossibleValuesForOperatingSystemTypes(), false),
 						},
 
 						"os_state": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(images.OperatingSystemStateTypesGeneralized),
-								string(images.OperatingSystemStateTypesSpecialized),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(images.PossibleValuesForOperatingSystemStateTypes(), false),
 						},
 
 						"managed_disk_id": {
 							Type:             pluginsdk.TypeString,
-							Computed:         true,
+							Computed:         true, // azignore:AZS007 - pre-existing violation
 							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     commonids.ValidateManagedDiskID,
@@ -114,25 +105,21 @@ func resourceImage() *pluginsdk.Resource {
 						"blob_uri": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ForceNew:     true,
 							ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 						},
 
 						"caching": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(images.CachingTypesNone),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(images.CachingTypesNone),
-								string(images.CachingTypesReadOnly),
-								string(images.CachingTypesReadWrite),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(images.CachingTypesNone),
+							ValidateFunc: validation.StringInSlice(images.PossibleValuesForCachingTypes(), false),
 						},
 
 						"size_gb": {
 							Type:         pluginsdk.TypeInt,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.NoZeroValues,
@@ -177,25 +164,21 @@ func resourceImage() *pluginsdk.Resource {
 						"blob_uri": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 						},
 
 						"caching": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(images.CachingTypesNone),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(images.CachingTypesNone),
-								string(images.CachingTypesReadOnly),
-								string(images.CachingTypesReadWrite),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(images.CachingTypesNone),
+							ValidateFunc: validation.StringInSlice(images.PossibleValuesForCachingTypes(), false),
 						},
 
 						"size_gb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.NoZeroValues,
 						},
 

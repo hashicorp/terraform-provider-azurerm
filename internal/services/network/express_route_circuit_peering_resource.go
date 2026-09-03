@@ -45,13 +45,9 @@ func resourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"peering_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(expressroutecircuitpeerings.ExpressRoutePeeringTypeAzurePrivatePeering),
-					string(expressroutecircuitpeerings.ExpressRoutePeeringTypeAzurePublicPeering),
-					string(expressroutecircuitpeerings.ExpressRoutePeeringTypeMicrosoftPeering),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(expressroutecircuitpeerings.PossibleValuesForExpressRoutePeeringType(), false),
 			},
 
 			"express_route_circuit_name": {
@@ -99,7 +95,7 @@ func resourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 			"peer_asn": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"microsoft_peering_config": {

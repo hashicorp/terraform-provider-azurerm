@@ -193,9 +193,9 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 					},
 
 					"tenant_id": {
-						Type: pluginsdk.TypeString,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
 						// NOTE: O+C We'll use the current tenant id if this property is absent.
-						Optional:     true,
 						Computed:     true,
 						ValidateFunc: validation.IsUUID,
 					},

@@ -60,29 +60,24 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 			"display_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"path": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validate.ApiManagementApiPath,
 			},
 
 			"protocols": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(api.ProtocolHTTP),
-						string(api.ProtocolHTTPS),
-						string(api.ProtocolWs),
-						string(api.ProtocolWss),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(api.PossibleValuesForProtocol(), false),
 				},
 			},
 
@@ -103,13 +98,9 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 			"api_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(api.ApiTypeGraphql),
-					string(api.ApiTypeHTTP),
-					string(api.ApiTypeSoap),
-					string(api.ApiTypeWebsocket),
-				}, false),
+				// Note: O+C because the API sets a default api_type (http) when not specified
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(api.PossibleValuesForApiType(), false),
 			},
 
 			"contact": {
@@ -220,12 +211,14 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 			"service_url": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				// Note: O+C because Azure returns a computed service_url when not specified
 				Computed: true,
 			},
 
 			"subscription_key_parameter_names": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				// Note: O+C because the API returns default subscription key parameter names when not specified
 				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
@@ -299,11 +292,8 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(api.BearerTokenSendingMethodsAuthorizationHeader),
-									string(api.BearerTokenSendingMethodsQuery),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(api.PossibleValuesForBearerTokenSendingMethods(), false),
 							},
 						},
 					},
@@ -324,6 +314,7 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 			"version": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+				// Note: O+C because the API assigns a version identifier when not explicitly set
 				Optional: true,
 			},
 
@@ -336,6 +327,7 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 			"version_set_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+				// Note: O+C because the API assigns a version set ID when not explicitly set
 				Optional: true,
 			},
 		},

@@ -46,7 +46,7 @@ func dataSourceNatGateway() *pluginsdk.Resource {
 			"public_ip_address_ids": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
@@ -55,7 +55,7 @@ func dataSourceNatGateway() *pluginsdk.Resource {
 			"public_ip_prefix_ids": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},

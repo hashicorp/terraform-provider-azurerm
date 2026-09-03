@@ -71,17 +71,9 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"storage_account_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(disks.DiskStorageAccountTypesStandardLRS),
-					string(disks.DiskStorageAccountTypesStandardSSDZRS),
-					string(disks.DiskStorageAccountTypesPremiumLRS),
-					string(disks.DiskStorageAccountTypesPremiumVTwoLRS),
-					string(disks.DiskStorageAccountTypesPremiumZRS),
-					string(disks.DiskStorageAccountTypesStandardSSDLRS),
-					string(disks.DiskStorageAccountTypesUltraSSDLRS),
-				}, false),
+				Type:             pluginsdk.TypeString,
+				Required:         true,
+				ValidateFunc:     validation.StringInSlice(disks.PossibleValuesForDiskStorageAccountTypes(), false),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
@@ -110,7 +102,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 					512,
 					4096,
 				}),
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"optimized_frequent_attach_enabled": {
@@ -129,7 +121,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			"source_uri": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 			},
 
@@ -162,17 +154,15 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			},
 
 			"os_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(disks.OperatingSystemTypesWindows),
-					string(disks.OperatingSystemTypesLinux),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(disks.PossibleValuesForOperatingSystemTypes(), false),
 			},
 
 			"disk_size_gb": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because Azure computes disk size when not specified
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(0, 65536),
 			},
@@ -185,29 +175,33 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			},
 
 			"disk_iops_read_write": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because Azure assigns IOPS based on disk size when not specified
 				Computed:     true,
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"disk_mbps_read_write": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because Azure assigns throughput based on disk size when not specified
 				Computed:     true,
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"disk_iops_read_only": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because Azure assigns read-only IOPS based on disk size when not specified
 				Computed:     true,
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"disk_mbps_read_only": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because Azure assigns read-only throughput based on disk size when not specified
 				Computed:     true,
 				ValidateFunc: validation.IntAtLeast(1),
 			},
@@ -225,14 +219,10 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			"encryption_settings": encryptionSettingsSchema(),
 
 			"network_access_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  disks.NetworkAccessPolicyAllowAll,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(disks.NetworkAccessPolicyAllowAll),
-					string(disks.NetworkAccessPolicyAllowPrivate),
-					string(disks.NetworkAccessPolicyDenyAll),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      disks.NetworkAccessPolicyAllowAll,
+				ValidateFunc: validation.StringInSlice(disks.PossibleValuesForNetworkAccessPolicy(), false),
 			},
 			"disk_access_id": {
 				Type:     pluginsdk.TypeString,
@@ -252,13 +242,13 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			"tier": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"max_shares": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.IntBetween(2, 10),
 			},
 
@@ -288,13 +278,10 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			},
 
 			"hyper_v_generation": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true, // Not supported by disk update
-				ValidateFunc: validation.StringInSlice([]string{
-					string(disks.HyperVGenerationVOne),
-					string(disks.HyperVGenerationVTwo),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true, // Not supported by disk update
+				ValidateFunc: validation.StringInSlice(disks.PossibleValuesForHyperVGeneration(), false),
 			},
 
 			"on_demand_bursting_enabled": {

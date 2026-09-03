@@ -82,7 +82,7 @@ func IpRestrictionSchema() *pluginsdk.Schema {
 				"name": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The name which should be used for this `ip_restriction`.",
 				},
@@ -123,7 +123,7 @@ func IpRestrictionSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"ip_address": {
@@ -501,7 +501,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 				"allowed_external_redirect_urls": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -512,16 +512,10 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 				"default_provider": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true, // Once set, cannot be unset
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.BuiltInAuthenticationProviderAzureActiveDirectory),
-						string(webapps.BuiltInAuthenticationProviderFacebook),
-						string(webapps.BuiltInAuthenticationProviderGithub),
-						string(webapps.BuiltInAuthenticationProviderGoogle),
-						string(webapps.BuiltInAuthenticationProviderMicrosoftAccount),
-						string(webapps.BuiltInAuthenticationProviderTwitter),
-					}, false),
-					Description: "The default authentication provider to use when multiple providers are configured. Possible values include: `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount`, `Twitter`, `Github`.",
+					// Note: O+C because Once set, cannot be unset
+					Computed:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForBuiltInAuthenticationProvider(), false),
+					Description:  "The default authentication provider to use when multiple providers are configured. Possible values include: `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount`, `Twitter`, `Github`.",
 				},
 
 				"issuer": {
@@ -534,7 +528,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 				"runtime_version": {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					Description: "The RuntimeVersion of the Authentication / Authorization feature in use.",
 				},
 
@@ -567,12 +561,10 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 				"unauthenticated_client_action": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true, // Once set, cannot be removed
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.UnauthenticatedClientActionAllowAnonymous),
-						string(webapps.UnauthenticatedClientActionRedirectToLoginPage),
-					}, false),
-					Description: "The action to take when an unauthenticated client attempts to access the app. Possible values include: `RedirectToLoginPage`, `AllowAnonymous`.",
+					// Note: O+C because Once set, cannot be removed
+					Computed:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForUnauthenticatedClientAction(), false),
+					Description:  "The action to take when an unauthenticated client attempts to access the app. Possible values include: `RedirectToLoginPage`, `AllowAnonymous`.",
 				},
 
 				"active_directory": AadAuthSettingsSchema(),

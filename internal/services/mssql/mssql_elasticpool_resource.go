@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/elasticpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/elasticpools"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -160,16 +160,18 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			},
 
 			"max_size_bytes": {
-				Type:          pluginsdk.TypeInt,
-				Optional:      true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because this value is computed based on `max_size_gb` if not set
 				Computed:      true,
 				ConflictsWith: []string{"max_size_gb"},
 				ValidateFunc:  validation.IntAtLeast(0),
 			},
 
 			"max_size_gb": {
-				Type:          pluginsdk.TypeFloat,
-				Optional:      true,
+				Type:     pluginsdk.TypeFloat,
+				Optional: true,
+				// Note: O+C because this value is computed based on `max_size_bytes` if not set
 				Computed:      true,
 				ConflictsWith: []string{"max_size_bytes"},
 				ValidateFunc:  validation.FloatAtLeast(0),
@@ -185,28 +187,22 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			// DC skus, where elasticpools allows 'Default' but will error if you try to set the
 			// 'enclave_type' to 'VBS' for DC skus...
 			"enclave_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(databases.AlwaysEncryptedEnclaveTypeVBS),
-					string(databases.AlwaysEncryptedEnclaveTypeDefault),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(databases.PossibleValuesForAlwaysEncryptedEnclaveType(), false),
 			},
 
 			"license_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(elasticpools.ElasticPoolLicenseTypeBasePrice),
-					string(elasticpools.ElasticPoolLicenseTypeLicenseIncluded),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
+				ValidateFunc: validation.StringInSlice(elasticpools.PossibleValuesForElasticPoolLicenseType(), false),
 			},
 
 			"high_availability_replica_count": {
-				Type: pluginsdk.TypeInt,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
 				// NOTE: O+C can only be set for Hyperscale skus, which have a default value of 1
-				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(0, 4),
 			},

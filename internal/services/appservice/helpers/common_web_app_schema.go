@@ -402,7 +402,7 @@ func BackupSchema() *pluginsdk.Schema {
 							"start_time": {
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
-								Computed:     true,
+								Computed:     true, // azignore:AZS007 - pre-existing violation
 								Description:  "When the schedule should start working in RFC-3339 format.",
 								ValidateFunc: validation.IsRFC3339Time,
 							},
@@ -651,15 +651,9 @@ func applicationLogSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"file_system_level": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{ // webapps.LoglevelOff is the implied value when this block is removed.
-						string(webapps.LogLevelError),
-						string(webapps.LogLevelOff),
-						string(webapps.LogLevelInformation),
-						string(webapps.LogLevelVerbose),
-						string(webapps.LogLevelWarning),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForLogLevel(), false),
 				},
 
 				"azure_blob_storage": appLogBlobStorageSchema(),
@@ -1183,7 +1177,7 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 	}
 	props := *logsConfig.Properties
 	if onlyDefaultLoggingConfig(props) {
-		return nil
+		return []LogsConfig{}
 	}
 
 	logs := LogsConfig{}

@@ -65,26 +65,19 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(loadbalancers.LoadBalancerSkuNameStandard),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(loadbalancers.LoadBalancerSkuNameBasic),
-					string(loadbalancers.LoadBalancerSkuNameStandard),
-					string(loadbalancers.LoadBalancerSkuNameGateway),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(loadbalancers.LoadBalancerSkuNameStandard),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForLoadBalancerSkuName(), false),
 			},
 
 			"sku_tier": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(loadbalancers.LoadBalancerSkuTierRegional),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(loadbalancers.LoadBalancerSkuTierRegional),
-					string(loadbalancers.LoadBalancerSkuTierGlobal),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(loadbalancers.LoadBalancerSkuTierRegional),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForLoadBalancerSkuTier(), false),
 			},
 
 			"frontend_ip_configuration": {
@@ -108,7 +101,7 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 						"private_ip_address": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							// Not using O+C here causes drift
+							// Note: O+C because Azure assigns a private IP from the subnet when not specified
 							Computed: true,
 							ValidateFunc: validation.Any(
 								validation.IsIPAddress,
@@ -120,11 +113,8 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							// Not using O+C here causes drift
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(loadbalancers.IPVersionIPvFour),
-								string(loadbalancers.IPVersionIPvSix),
-							}, false),
+							Computed:     true, // azignore:AZS007 - pre-existing violation
+							ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForIPVersion(), false),
 						},
 
 						"public_ip_address_id": {
@@ -136,25 +126,22 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 						"public_ip_prefix_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: publicipprefixes.ValidatePublicIPPrefixID,
 						},
 
 						"private_ip_address_allocation": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(loadbalancers.IPAllocationMethodDynamic),
-								string(loadbalancers.IPAllocationMethodStatic),
-							}, true),
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							Computed:         true, // azignore:AZS007 - pre-existing violation
+							ValidateFunc:     validation.StringInSlice(loadbalancers.PossibleValuesForIPAllocationMethod(), true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"gateway_load_balancer_frontend_ip_configuration_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: loadbalancers.ValidateFrontendIPConfigurationID,
 						},
 

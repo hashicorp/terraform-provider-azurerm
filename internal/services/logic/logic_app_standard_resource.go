@@ -102,7 +102,7 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"app_settings": {
 			Type:     pluginsdk.TypeMap,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -123,7 +123,7 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"client_affinity_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"client_certificate_mode": {
@@ -164,7 +164,7 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"connection_string": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -173,21 +173,9 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(webapps.ConnectionStringTypeApiHub),
-							string(webapps.ConnectionStringTypeCustom),
-							string(webapps.ConnectionStringTypeDocDb),
-							string(webapps.ConnectionStringTypeEventHub),
-							string(webapps.ConnectionStringTypeMySql),
-							string(webapps.ConnectionStringTypeNotificationHub),
-							string(webapps.ConnectionStringTypePostgreSQL),
-							string(webapps.ConnectionStringTypeRedisCache),
-							string(webapps.ConnectionStringTypeServiceBus),
-							string(webapps.ConnectionStringTypeSQLAzure),
-							string(webapps.ConnectionStringTypeSQLServer),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForConnectionStringType(), false),
 					},
 
 					"value": {
@@ -256,7 +244,7 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_account_share_name": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"version": {
@@ -1022,7 +1010,7 @@ func flattenLogicAppStandardIpRestriction(input *[]webapps.IPSecurityRestriction
 	restrictions := make([]interface{}, 0)
 
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	for _, v := range *input {

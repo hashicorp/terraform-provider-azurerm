@@ -71,7 +71,7 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 			"display_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validate.ApplicationDisplayName,
 			},
 
@@ -84,14 +84,10 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 			},
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(apps.AppSkuSTOne),
-					string(apps.AppSkuSTTwo),
-					string(apps.AppSkuSTZero),
-				}, false),
-				Default: string(apps.AppSkuSTOne),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(apps.PossibleValuesForAppSku(), false),
+				Default:      string(apps.AppSkuSTOne),
 			},
 			"template": {
 				Type:         pluginsdk.TypeString,

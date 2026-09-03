@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/capacitypools"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -81,24 +81,18 @@ func resourceNetAppPool() *pluginsdk.Resource {
 			},
 
 			"qos_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(capacitypools.QosTypeAuto),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(capacitypools.QosTypeAuto),
-					string(capacitypools.QosTypeManual),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(capacitypools.QosTypeAuto),
+				ValidateFunc: validation.StringInSlice(capacitypools.PossibleValuesForQosType(), false),
 			},
 
 			"encryption_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  capacitypools.EncryptionTypeSingle,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(capacitypools.EncryptionTypeSingle),
-					string(capacitypools.EncryptionTypeDouble),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      capacitypools.EncryptionTypeSingle,
+				ValidateFunc: validation.StringInSlice(capacitypools.PossibleValuesForEncryptionType(), false),
 			},
 
 			"cool_access_enabled": {

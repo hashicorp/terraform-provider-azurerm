@@ -10,6 +10,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -20,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
@@ -144,7 +144,7 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 			"start_time": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				DiffSuppressFunc: suppress.RFC3339Time,
 				ValidateFunc:     validation.IsRFC3339Time, // times in the past just start immediately
 			},
@@ -194,7 +194,7 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 			"pipeline": {
 				Type:          pluginsdk.TypeList,
 				Optional:      true,
-				Computed:      true,
+				Computed:      true, // azignore:AZS007 - pre-existing violation
 				ConflictsWith: []string{"pipeline_parameters"},
 				ExactlyOneOf:  []string{"pipeline", "pipeline_name"},
 				Elem: &pluginsdk.Resource{
@@ -219,7 +219,7 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 			"pipeline_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ExactlyOneOf: []string{"pipeline", "pipeline_name"},
 				ValidateFunc: validate.DataFactoryPipelineAndTriggerName(),
 			},
@@ -227,7 +227,7 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 			"pipeline_parameters": {
 				Type:          pluginsdk.TypeMap,
 				Optional:      true,
-				Computed:      true,
+				Computed:      true, // azignore:AZS007 - pre-existing violation
 				ConflictsWith: []string{"pipeline"},
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
@@ -262,12 +262,12 @@ func resourceDataFactoryTriggerScheduleCreate(d *pluginsdk.ResourceData, meta in
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_data_factory_trigger_schedule", id.ID())
 		}
 	}
@@ -447,7 +447,7 @@ func resourceDataFactoryTriggerScheduleRead(d *pluginsdk.ResourceData, meta inte
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			return nil

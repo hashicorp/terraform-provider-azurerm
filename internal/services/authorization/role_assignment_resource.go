@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -22,13 +23,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	billingValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // TODO: this wants splitting into virtual resources with Virtual IDs
@@ -56,7 +57,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
@@ -84,7 +85,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"role_definition_id": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				ForceNew:         true,
 				ExactlyOneOf:     []string{"role_definition_id", "role_definition_name"},
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -93,7 +94,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"role_definition_name": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				ForceNew:         true,
 				ExactlyOneOf:     []string{"role_definition_name", "role_definition_id"},
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -109,7 +110,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"principal_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"User",
@@ -121,7 +122,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"skip_service_principal_aad_check": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"delegated_managed_identity_resource_id": {
@@ -146,7 +147,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"condition_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice([]string{
 					"1.0",
 					"2.0",
@@ -442,8 +443,6 @@ func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, id parse.ScopedRoleAs
 		resp, err := roleAssignmentsClient.Create(ctx, id.ScopedId, param)
 		if err != nil {
 			switch {
-			case utils.ResponseErrorIsRetryable(err):
-				return pluginsdk.RetryableError(err)
 			case response.WasStatusCode(resp.HttpResponse, 400) && strings.Contains(err.Error(), "PrincipalNotFound"):
 				// When waiting for service principal to become available
 				return pluginsdk.RetryableError(err)
@@ -458,42 +457,23 @@ func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, id parse.ScopedRoleAs
 			return pluginsdk.NonRetryableError(fmt.Errorf("creation of %s did not return an id value", id))
 		}
 
-		stateConf := &pluginsdk.StateChangeConf{
-			Pending: []string{
-				"pending",
-			},
-			Target: []string{
-				"ready",
-			},
-			Refresh:                   roleAssignmentCreateStateRefreshFunc(ctx, roleAssignmentsClient, id),
-			MinTimeout:                5 * time.Second,
-			ContinuousTargetOccurence: 5,
-			Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
+		pollerOpts := &custompollers.EventualConsistencyPollerOptions{
+			Interval:              5 * time.Second,
+			RetryErrorStatusCodes: []int{http.StatusNotFound},
 		}
-
-		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-			return pluginsdk.NonRetryableError(fmt.Errorf("failed waiting for Role Assignment %s to finish replicating: %+v", id, err))
-		}
-
-		return nil
-	}
-}
-
-func roleAssignmentCreateStateRefreshFunc(ctx context.Context, client *roleassignments.RoleAssignmentsClient, id parse.ScopedRoleAssignmentId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
 		options := roleassignments.DefaultGetOperationOptions()
 		if id.TenantId != "" {
 			options.TenantId = pointer.To(id.TenantId)
 		}
-
-		resp, err := client.Get(ctx, id.ScopedId, options)
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return resp, "pending", nil
-			}
-			return resp, "failed", err
+		poller := custompollers.NewEventualConsistencyPoller(5, func(pollerCtx context.Context) (*http.Response, error) {
+			resp, err := roleAssignmentsClient.Get(pollerCtx, id.ScopedId, options)
+			return resp.HttpResponse, err
+		}, pollerOpts)
+		if err := poller.PollUntilDone(ctx); err != nil {
+			return pluginsdk.NonRetryableError(fmt.Errorf("failed waiting for Role Assignment %s to finish replicating: %+v", id, err))
 		}
-		return resp, "ready", nil
+
+		return nil
 	}
 }
 

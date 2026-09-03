@@ -56,12 +56,8 @@ func resourceVPNServerConfiguration() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Required: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualwans.VpnAuthenticationTypeAAD),
-						string(virtualwans.VpnAuthenticationTypeCertificate),
-						string(virtualwans.VpnAuthenticationTypeRadius),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForVpnAuthenticationType(), false),
 				},
 			},
 
@@ -256,7 +252,7 @@ func resourceVPNServerConfiguration() *pluginsdk.Resource {
 			"vpn_protocols": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForVpnGatewayTunnelingProtocol(), false),

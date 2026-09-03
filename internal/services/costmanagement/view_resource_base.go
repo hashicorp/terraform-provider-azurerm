@@ -70,11 +70,9 @@ func (br costManagementViewBaseResource) arguments(fields map[string]*pluginsdk.
 		},
 
 		"report_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(views.ReportTypeUsage),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(views.PossibleValuesForReportType(), false),
 		},
 
 		"timeframe": {

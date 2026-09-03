@@ -79,11 +79,7 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) Arguments() map[string]*pl
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Default:  string(dataconnectors.PollingFrequencyOnceAnHour),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(dataconnectors.PollingFrequencyOnceAMinute),
-				string(dataconnectors.PollingFrequencyOnceAnHour),
-				string(dataconnectors.PollingFrequencyOnceADay),
-			},
+			ValidateFunc: validation.StringInSlice(dataconnectors.PossibleValuesForPollingFrequency(),
 				false),
 		},
 		"lookback_date": {
@@ -95,7 +91,7 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) Arguments() map[string]*pl
 		"tenant_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},

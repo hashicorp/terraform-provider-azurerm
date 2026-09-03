@@ -7,15 +7,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceSpringCloudService() *pluginsdk.Resource {
@@ -167,11 +167,11 @@ func dataSourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewSpringCloudServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewSpringCloudServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.ServiceName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -179,12 +179,12 @@ func dataSourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.SpringName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.ServiceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if resp.Sku != nil && resp.Sku.Name != nil && *resp.Sku.Name != "E0" {
-		configServer, err := configServersClient.Get(ctx, id.ResourceGroup, id.SpringName)
+		configServer, err := configServersClient.Get(ctx, id.ResourceGroupName, id.ServiceName)
 		if err != nil {
 			return fmt.Errorf("retrieving config server configuration for %s: %+v", id, err)
 		}

@@ -4,9 +4,10 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"strconv"
+	"net/http"
 	"strings"
 	"time"
 
@@ -20,12 +21,15 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimages"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/custompoller"
@@ -90,12 +94,12 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			"os_disk": virtualMachineOSDiskSchema(),
 
 			"os_managed_disk_id": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
 				// Note: O+C as this is the same value as `os_disk.0.id` - which gains a value from implicit
 				// disk creation with a VM when an existing disk is not specified here. This is a top-level property
 				// to enable schema validation to guard against any values for `OsProfile` being set, as these are
 				// incompatible with specifying an existing disk. i.e. the OsProfile becomes unmanageable.
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: commonids.ValidateManagedDiskID,
@@ -131,7 +135,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			"allow_extension_operations": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"availability_set_id": {
@@ -176,8 +180,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			"computer_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-
-				// Computed since we reuse the VM name if one's not specified
+				// Note: O+C since we reuse the VM name if one's not specified
 				Computed: true,
 				ForceNew: true,
 
@@ -223,21 +226,18 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"disable_password_authentication": {
-				// O+C OsProfile vs os_managed_disk_id
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				// Note: O+C OsProfile vs os_managed_disk_id
 				ForceNew: true,
 				Computed: true,
 			},
 
 			"disk_controller_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachines.DiskControllerTypesNVMe),
-					string(virtualmachines.DiskControllerTypesSCSI),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
+				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForDiskControllerTypes(), false),
 			},
 
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
@@ -249,13 +249,10 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 
 			"eviction_policy": {
 				// only applicable when `priority` is set to `Spot`
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachines.VirtualMachineEvictionPolicyTypesDeallocate),
-					string(virtualmachines.VirtualMachineEvictionPolicyTypesDelete),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForVirtualMachineEvictionPolicyTypes(), false),
 			},
 
 			"extensions_time_budget": {
@@ -311,7 +308,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				// O+C due to incompatibility between specifying `os_managed_disk_id` and sending OsProfile in the create/update requests
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 				ConflictsWith: []string{
 					"os_managed_disk_id",
@@ -319,13 +316,10 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"patch_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachines.LinuxVMGuestPatchModeAutomaticByPlatform),
-					string(virtualmachines.LinuxVMGuestPatchModeImageDefault),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
+				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForLinuxVMGuestPatchMode(), false),
 				ConflictsWith: []string{
 					"os_managed_disk_id",
 				},
@@ -333,13 +327,10 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 
 			"patch_assessment_mode": {
 				// O+C due to incompatibility between `os_managed_disk_id` and sending `OsProfile` in create/update
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachines.LinuxPatchAssessmentModeAutomaticByPlatform),
-					string(virtualmachines.LinuxPatchAssessmentModeImageDefault),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
+				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForLinuxPatchAssessmentMode(), false),
 				ConflictsWith: []string{
 					"os_managed_disk_id",
 				},
@@ -384,8 +375,8 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.Any(
 					images.ValidateImageID,
-					computeValidate.SharedImageID,
-					computeValidate.SharedImageVersionID,
+					validation.AsGeneratedID(galleryimages.ParseGalleryImageIDInsensitively),
+					validation.AsGeneratedID(galleryimageversions.ParseImageVersionIDInsensitively),
 					computeValidate.CommunityGalleryImageID,
 					computeValidate.CommunityGalleryImageVersionID,
 					computeValidate.SharedGalleryImageID,
@@ -1830,25 +1821,15 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 	if !response.WasNotFound(virtualMachine.HttpResponse) {
 		log.Printf("[INFO] %s still exists, waiting on vm to be deleted", id)
 
-		deleteWait := &pluginsdk.StateChangeConf{
-			Pending:    []string{"200"},
-			Target:     []string{"404"},
-			MinTimeout: 30 * time.Second,
-			Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
-			Refresh: func() (interface{}, string, error) {
-				log.Printf("[INFO] checking on state of Linux %s", id)
-				resp, err := client.Get(ctx, *id, virtualmachines.DefaultGetOperationOptions())
-				if err != nil {
-					if response.WasNotFound(resp.HttpResponse) {
-						return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil
-					}
-					return nil, "nil", fmt.Errorf("polling for the status of Linux %s: %v", id, err)
-				}
-				return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil
-			},
-		}
-
-		if _, err := deleteWait.WaitForStateContext(ctx); err != nil {
+		poller := custompollers.NewEventualConsistencyPoller(1, func(pollerCtx context.Context) (*http.Response, error) {
+			log.Printf("[INFO] checking on state of Linux %s", id)
+			resp, err := client.Get(pollerCtx, *id, virtualmachines.DefaultGetOperationOptions())
+			return resp.HttpResponse, err
+		}, &custompollers.EventualConsistencyPollerOptions{
+			Interval:         30 * time.Second,
+			TargetStatusCode: pointer.To(http.StatusNotFound),
+		})
+		if err := poller.PollUntilDone(ctx); err != nil {
 			return fmt.Errorf("waiting for the deletion of Linux %s: %v", id, err)
 		}
 	}

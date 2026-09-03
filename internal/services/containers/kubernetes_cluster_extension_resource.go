@@ -171,7 +171,7 @@ func (r KubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk.Sc
 		"release_train": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			Computed:      true,
+			Computed:      true, // azignore:AZS007 - pre-existing violation
 			ForceNew:      true,
 			ConflictsWith: []string{"version"},
 			ValidateFunc:  validation.StringIsNotEmpty,
@@ -180,7 +180,7 @@ func (r KubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk.Sc
 		"release_namespace": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			Computed:      true,
+			Computed:      true, // azignore:AZS007 - pre-existing violation
 			ForceNew:      true,
 			ConflictsWith: []string{"target_namespace"},
 			ValidateFunc:  validation.StringIsNotEmpty,
@@ -189,7 +189,7 @@ func (r KubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk.Sc
 		"target_namespace": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			Computed:      true,
+			Computed:      true, // azignore:AZS007 - pre-existing violation
 			ForceNew:      true,
 			ConflictsWith: []string{"release_namespace"},
 			ValidateFunc:  validation.StringIsNotEmpty,

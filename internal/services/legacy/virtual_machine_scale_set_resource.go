@@ -103,7 +103,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						"tier": {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
-							Computed:         true,
+							Computed:         true, // azignore:AZS007 - pre-existing violation
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
@@ -119,7 +119,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 			"license_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice([]string{
 					"Windows_Client",
 					"Windows_Server",
@@ -127,13 +127,9 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 			},
 
 			"upgrade_policy_mode": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachinescalesets.UpgradeModeAutomatic),
-					string(virtualmachinescalesets.UpgradeModeManual),
-					string(virtualmachinescalesets.UpgradeModeRolling),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForUpgradeMode(), false),
 			},
 
 			"health_probe_id": {
@@ -210,13 +206,10 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 			},
 
 			"eviction_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachinescalesets.VirtualMachineEvictionPolicyTypesDeallocate),
-					string(virtualmachinescalesets.VirtualMachineEvictionPolicyTypesDelete),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForVirtualMachineEvictionPolicyTypes(), false),
 			},
 
 			"os_profile": {
@@ -350,7 +343,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 			"os_profile_linux_config": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -478,7 +471,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 									"load_balancer_inbound_nat_rules_ids": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
-										Computed: true,
+										Computed: true, // azignore:AZS007 - pre-existing violation
 										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 										Set:      pluginsdk.HashString,
 									},
@@ -567,7 +560,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						"managed_disk_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.StringInSlice([]string{
 								string(virtualmachinescalesets.StorageAccountTypesPremiumLRS),
 								string(virtualmachinescalesets.StorageAccountTypesStandardLRS),
@@ -578,7 +571,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						"caching": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 						},
 
 						"os_type": {
@@ -613,12 +606,13 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						"caching": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 						},
 
 						"disk_size_gb": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
+							Type:     pluginsdk.TypeInt,
+							Optional: true,
+							// Note: O+C because Azure computes disk size when not specified
 							Computed:     true,
 							ValidateFunc: validation.IntBetween(0, 32767),
 						},
@@ -626,7 +620,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						"managed_disk_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.StringInSlice([]string{
 								string(virtualmachinescalesets.StorageAccountTypesPremiumLRS),
 								string(virtualmachinescalesets.StorageAccountTypesStandardLRS),
@@ -641,7 +635,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 			"storage_profile_image_reference": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -1464,7 +1458,7 @@ func flattenAzureRmVirtualMachineScaleSetSku(sku *virtualmachinescalesets.Sku) [
 
 func flattenAzureRmVirtualMachineScaleSetExtensionProfile(profile *virtualmachinescalesets.VirtualMachineScaleSetExtensionProfile) ([]map[string]interface{}, error) {
 	if profile.Extensions == nil {
-		return nil, nil
+		return []map[string]interface{}{}, nil
 	}
 
 	result := make([]map[string]interface{}, 0, len(*profile.Extensions))
