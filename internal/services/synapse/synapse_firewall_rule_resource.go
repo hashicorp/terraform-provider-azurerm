@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -31,6 +32,11 @@ func resourceSynapseFirewallRule() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := ipfirewallrules.ParseFirewallRuleID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SynapseFirewallRuleV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
