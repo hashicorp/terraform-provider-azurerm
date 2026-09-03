@@ -1,40 +1,42 @@
-## 5.4.0 (Unreleased)
-
-ENHANCEMENTS:
-* `azurerm_linux_web_app` - add support for the `8.5` value in the  `site_config.application_stack.php_version` property [GH-33308]
-* `azurerm_linux_web_app_slot` - add support for the `8.5` value in the  `site_config.application_stack.php_version` property [GH-33308]
-* `azurerm_synapse_spark_pool` - migrate to `go-azure-sdk` [GH-33258]
-* `azurerm_storage_account` - add support for an in-place migration of `account_replication_type` between matching non-zonal and zonal types instead of resource recreation [GH-33236]
-* `azurerm_storage_table` - add support for AAD authentication [GH-32997]
-* `azurerm_lb_probe ` - add support for the `no_healthy_backends_behavior` property [GH-32645]
-* Data Source: `azurerm_ip_group` - export the `firewall_ids` and `firewall_policy_ids` properties [GH-33190]
-* Data Source: `azurerm_private_link_service` - export the `fqdns` and `destination_ip_address` properties [GH-33191]
-* dependencies: `azurerm_mongo_cluster` - update API version to `2026-06-01` [GH-33195]
-* dependencies: `azurerm_mongo_cluster_firewall_rule` - update API version to `2026-06-01` [GH-33195]
-* dependencies: `azurerm_mongo_cluster_user` - update API version to `2026-06-01` [GH-33195]
-* Data Source: `azurerm_api_management_workspace` - export the `description` property [GH-33205]
-* `azurerm_postgresql_flexible_server` - add support for the `storage_type`, `storage_iops`, and `storage_throughput` properties which allows choice of the new "Premium V2 LRS" storage type [GH-32121]
-* `azurerm_netapp_volume` - support for the `breakthrough_mode_enabled` property [GH-33215]
-* dependencies: `netapp` - update API version to `2026-05-01` [GH-33215]
-* Data Source: `azurerm_attestation_provider` - export the `sev_snp_policy_base64`, `open_enclave_policy_base64`, `sgx_enclave_policy_base64`, and `tpm_policy_base64` properties [GH-33125]
-* Data Source: `azurerm_automation_account` - export the `dsc_primary_access_key`, `dsc_server_endpoint`, `dsc_secondary_access_key`, `public_network_access_enabled`, `sku_name`, and `tags` properties [GH-33135]
-* Data Source: `azurerm_automation_account` - export the `encryption` block [GH-33135]
-* `azurerm_linux_virtual_machine_scale_set` - add support for the `NvmeDisk` value to the `os_disk.diff_disk_settings.placement` property [GH-30328]
-* `azurerm_windows_virtual_machine_scale_set` - add support for the `NvmeDisk` value to the `os_disk.diff_disk_settings.placement` property [GH-30328]
-* `azurerm_key_vault_managed_hardware_security_module_key` - allow the `key_size` property to be set when `key_type` is `oct-HSM` [GH-32690]
-
+## 5.4.0 (September 03, 2026)
 
 FEATURES:
-* **New List Resource**: `azurerm_log_analytics_workspace` [GH-33259]
-* **New List Resource**: `azurerm_batch_application` [GH-33254]
-* **New List Resource**: `azurerm_application_insights_workbook_template` [GH-33245]
-* **New List Resource**: `azurerm_application_insights_standard_web_test` [GH-33243]
-* **New List Resource**: `azurerm_dedicated_host_group` [GH-33257]
-* **New List Resource**: `azurerm_arc_kubernetes_provisioned_cluster` [GH-33247]
-* **New List Resource**: `azurerm_availability_set` [GH-33241]
+
+* **New List Resource**: `azurerm_application_insights_standard_web_test` ([#33243](https://github.com/hashicorp/terraform-provider-azurerm/issues/33243))
+* **New List Resource**: `azurerm_application_insights_workbook_template` ([#33245](https://github.com/hashicorp/terraform-provider-azurerm/issues/33245))
+* **New List Resource**: `azurerm_arc_kubernetes_provisioned_cluster` ([#33247](https://github.com/hashicorp/terraform-provider-azurerm/issues/33247))
+* **New List Resource**: `azurerm_availability_set` ([#33241](https://github.com/hashicorp/terraform-provider-azurerm/issues/33241))
+* **New List Resource**: `azurerm_batch_application` ([#33254](https://github.com/hashicorp/terraform-provider-azurerm/issues/33254))
+* **New List Resource**: `azurerm_dedicated_host_group` ([#33257](https://github.com/hashicorp/terraform-provider-azurerm/issues/33257))
+* **New List Resource**: `azurerm_log_analytics_workspace` ([#33259](https://github.com/hashicorp/terraform-provider-azurerm/issues/33259))
+
+ENHANCEMENTS:
+
+* dependencies: `azurerm_mongo_cluster` - update API version to `2026-06-01` ([#33195](https://github.com/hashicorp/terraform-provider-azurerm/issues/33195))
+* dependencies: `azurerm_mongo_cluster_firewall_rule` - update API version to `2026-06-01` ([#33195](https://github.com/hashicorp/terraform-provider-azurerm/issues/33195))
+* dependencies: `azurerm_mongo_cluster_user` - update API version to `2026-06-01` ([#33195](https://github.com/hashicorp/terraform-provider-azurerm/issues/33195))
+* dependencies: `netapp` - update API version to `2026-05-01` ([#33215](https://github.com/hashicorp/terraform-provider-azurerm/issues/33215))
+* Data Source: `azurerm_api_management_workspace` - export the `description` property ([#33205](https://github.com/hashicorp/terraform-provider-azurerm/issues/33205))
+* Data Source: `azurerm_attestation_provider` - export the `sev_snp_policy_base64`, `open_enclave_policy_base64`, `sgx_enclave_policy_base64`, and `tpm_policy_base64` properties ([#33125](https://github.com/hashicorp/terraform-provider-azurerm/issues/33125))
+* Data Source: `azurerm_automation_account` - export the `dsc_primary_access_key`, `dsc_server_endpoint`, `dsc_secondary_access_key`, `public_network_access_enabled`, `sku_name`, and `tags` properties ([#33135](https://github.com/hashicorp/terraform-provider-azurerm/issues/33135))
+* Data Source: `azurerm_automation_account` - export the `encryption` block ([#33135](https://github.com/hashicorp/terraform-provider-azurerm/issues/33135))
+* Data Source: `azurerm_ip_group` - export the `firewall_ids` and `firewall_policy_ids` properties ([#33190](https://github.com/hashicorp/terraform-provider-azurerm/issues/33190))
+* Data Source: `azurerm_private_link_service` - export the `fqdns` and `destination_ip_address` properties ([#33191](https://github.com/hashicorp/terraform-provider-azurerm/issues/33191))
+* `azurerm_key_vault_managed_hardware_security_module_key` - allow the `key_size` property to be set when `key_type` is `oct-HSM` ([#32690](https://github.com/hashicorp/terraform-provider-azurerm/issues/32690))
+* `azurerm_lb_probe ` - add support for the `no_healthy_backends_behavior` property ([#32645](https://github.com/hashicorp/terraform-provider-azurerm/issues/32645))
+* `azurerm_linux_virtual_machine_scale_set` - add support for the `NvmeDisk` value to the `os_disk.diff_disk_settings.placement` property ([#30328](https://github.com/hashicorp/terraform-provider-azurerm/issues/30328))
+* `azurerm_linux_web_app` - add support for the `8.5` value in the  `site_config.application_stack.php_version` property ([#33308](https://github.com/hashicorp/terraform-provider-azurerm/issues/33308))
+* `azurerm_linux_web_app_slot` - add support for the `8.5` value in the  `site_config.application_stack.php_version` property ([#33308](https://github.com/hashicorp/terraform-provider-azurerm/issues/33308))
+* `azurerm_netapp_volume` - support for the `breakthrough_mode_enabled` property ([#33215](https://github.com/hashicorp/terraform-provider-azurerm/issues/33215))
+* `azurerm_postgresql_flexible_server` - add support for the `storage_type`, `storage_iops`, and `storage_throughput` properties which allows choice of the new "Premium V2 LRS" storage type ([#32121](https://github.com/hashicorp/terraform-provider-azurerm/issues/32121))
+* `azurerm_storage_account` - add support for an in-place migration of `account_replication_type` between matching non-zonal and zonal types instead of resource recreation ([#33236](https://github.com/hashicorp/terraform-provider-azurerm/issues/33236))
+* `azurerm_storage_table` - add support for AAD authentication ([#32997](https://github.com/hashicorp/terraform-provider-azurerm/issues/32997))
+* `azurerm_synapse_spark_pool` - migrate to `go-azure-sdk` ([#33258](https://github.com/hashicorp/terraform-provider-azurerm/issues/33258))
+* `azurerm_windows_virtual_machine_scale_set` - add support for the `NvmeDisk` value to the `os_disk.diff_disk_settings.placement` property ([#30328](https://github.com/hashicorp/terraform-provider-azurerm/issues/30328))
 
 BUG FIXES:
-* `azurerm_synapse_spark_pool` - fix `lifecycle.ignore_changes` support [GH-33258]
+
+* `azurerm_synapse_spark_pool` - fix `lifecycle.ignore_changes` support ([#33258](https://github.com/hashicorp/terraform-provider-azurerm/issues/33258))
 
 ## 5.3.0 (August 27, 2026)
 
