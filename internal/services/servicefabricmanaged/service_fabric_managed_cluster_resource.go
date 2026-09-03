@@ -981,9 +981,8 @@ func nodeTypeSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: func(i interface{}, s string) ([]string, []error) {
-						input := i.(string)
 						errors := make([]error, 0)
-						if _, _, err := parsePortRange(input); err != nil {
+						if _, _, err := parsePortRange(i.(string)); err != nil {
 							errors = append(errors, err)
 						}
 						return nil, errors

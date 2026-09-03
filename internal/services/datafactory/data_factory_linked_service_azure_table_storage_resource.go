@@ -202,13 +202,11 @@ func resourceDataFactoryLinkedServiceTableStorageRead(d *pluginsdk.ResourceData,
 	d.Set("additional_properties", tableStorage.AdditionalProperties)
 	d.Set("description", tableStorage.Description)
 
-	annotations := flattenDataFactoryAnnotations(tableStorage.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(tableStorage.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations` for Data Factory Azure Table Storage %s: %+v", *id, err)
 	}
 
-	parameters := flattenLinkedServiceParameters(tableStorage.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(tableStorage.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 

@@ -639,8 +639,7 @@ func resourceKeyVaultFlatten(ctx context.Context, managementClient *dataplane.Ba
 			return fmt.Errorf("setting `network_acls`: %+v", err)
 		}
 
-		flattenedPolicies := flattenAccessPolicies(model.Properties.AccessPolicies)
-		if err := d.Set("access_policy", flattenedPolicies); err != nil {
+		if err := d.Set("access_policy", flattenAccessPolicies(model.Properties.AccessPolicies)); err != nil {
 			return fmt.Errorf("setting `access_policy`: %+v", err)
 		}
 

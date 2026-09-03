@@ -1618,7 +1618,7 @@ func FlattenWebStringDictionary(input *webapps.StringDictionary) map[string]stri
 func FlattenSiteCredentials(input *webapps.User) []SiteCredential {
 	var result []SiteCredential
 	if input == nil || input.Properties == nil {
-		return result
+		return []SiteCredential{}
 	}
 
 	userProps := *input.Properties
@@ -1633,7 +1633,7 @@ func FlattenSiteCredentials(input *webapps.User) []SiteCredential {
 func FlattenSiteCredentialsLogicApp(input *webapps.User) []SiteCredentialLogicApp {
 	var result []SiteCredentialLogicApp
 	if input == nil || input.Properties == nil {
-		return result
+		return []SiteCredentialLogicApp{}
 	}
 
 	userProps := *input.Properties

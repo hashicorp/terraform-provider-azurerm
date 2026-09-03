@@ -360,7 +360,7 @@ func expandStorageAccountConfigurationModel(inputList []StorageAccountConfigurat
 func flattenContainerConfigurationModel(input *deploymentscripts.ContainerConfiguration) []ContainerConfigurationModel {
 	var outputList []ContainerConfigurationModel
 	if input == nil {
-		return outputList
+		return []ContainerConfigurationModel{}
 	}
 
 	if input.ContainerGroupName != nil {
@@ -410,7 +410,7 @@ func flattenEnvironmentVariableModelArray(inputList *[]deploymentscripts.Environ
 func flattenStorageAccountConfigurationModel(input *deploymentscripts.StorageAccountConfiguration, originalList []StorageAccountConfigurationModel) []StorageAccountConfigurationModel {
 	var outputList []StorageAccountConfigurationModel
 	if input == nil {
-		return outputList
+		return []StorageAccountConfigurationModel{}
 	}
 
 	output := StorageAccountConfigurationModel{}

@@ -516,8 +516,7 @@ func resourceMonitorAutoScaleSettingRead(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("setting `predictive_scale_mode` of %s: %+v", *id, err)
 		}
 
-		notifications := flattenAzureRmMonitorAutoScaleSettingNotification(props.Notifications)
-		if err = d.Set("notification", notifications); err != nil {
+		if err = d.Set("notification", flattenAzureRmMonitorAutoScaleSettingNotification(props.Notifications)); err != nil {
 			return fmt.Errorf("setting `notification` of %s: %+v", *id, err)
 		}
 

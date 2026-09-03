@@ -797,8 +797,7 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("login_server", props.LoginServer)
 			d.Set("public_network_access_enabled", *props.PublicNetworkAccess == registries.PublicNetworkAccessEnabled)
 
-			networkRuleSet := flattenNetworkRuleSet(props.NetworkRuleSet)
-			if err := d.Set("network_rule_set", networkRuleSet); err != nil {
+			if err := d.Set("network_rule_set", flattenNetworkRuleSet(props.NetworkRuleSet)); err != nil {
 				return fmt.Errorf("setting `network_rule_set`: %+v", err)
 			}
 
