@@ -848,8 +848,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		// start task should have a user identity defined
-		userIdentity := startTask.UserIdentity
-		if userIdentityError := validateUserIdentity(userIdentity); userIdentityError != nil {
+		if userIdentityError := validateUserIdentity(startTask.UserIdentity); userIdentityError != nil {
 			return fmt.Errorf("creating %s: %+v", id, userIdentityError)
 		}
 
@@ -986,8 +985,7 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		// start task should have a user identity defined
-		userIdentity := startTask.UserIdentity
-		if userIdentityError := validateUserIdentity(userIdentity); userIdentityError != nil {
+		if userIdentityError := validateUserIdentity(startTask.UserIdentity); userIdentityError != nil {
 			return fmt.Errorf("creating %s: %+v", *id, userIdentityError)
 		}
 

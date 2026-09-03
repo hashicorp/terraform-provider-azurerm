@@ -268,13 +268,11 @@ func resourceDataFactoryDatasetPostgreSQLRead(d *pluginsdk.ResourceData, meta in
 		d.Set("description", postgresqlTable.Description)
 	}
 
-	parameters := flattenDataSetParameters(postgresqlTable.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenDataSetParameters(postgresqlTable.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
-	annotations := flattenDataFactoryAnnotations(postgresqlTable.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(postgresqlTable.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
@@ -299,8 +297,7 @@ func resourceDataFactoryDatasetPostgreSQLRead(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	structureColumns := flattenDataFactoryStructureColumns(postgresqlTable.Structure)
-	if err := d.Set("schema_column", structureColumns); err != nil {
+	if err := d.Set("schema_column", flattenDataFactoryStructureColumns(postgresqlTable.Structure)); err != nil {
 		return fmt.Errorf("setting `schema_column`: %+v", err)
 	}
 

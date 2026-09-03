@@ -281,8 +281,7 @@ func resourceBackupProtectedFileShareRead(d *pluginsdk.ResourceData, meta interf
 		if properties := model.Properties; properties != nil {
 			if item, ok := properties.(protecteditems.AzureFileshareProtectedItem); ok {
 				if item.SourceResourceId != nil {
-					sourceResourceID := strings.Replace(*item.SourceResourceId, "Microsoft.storage", "Microsoft.Storage", 1) // The SDK is returning inconsistent capitalization
-					d.Set("source_storage_account_id", sourceResourceID)
+					d.Set("source_storage_account_id", strings.Replace(*item.SourceResourceId, "Microsoft.storage", "Microsoft.Storage", 1))
 				}
 				d.Set("source_file_share_name", item.FriendlyName)
 

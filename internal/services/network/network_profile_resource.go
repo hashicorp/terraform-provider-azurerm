@@ -247,13 +247,11 @@ func resourceNetworkProfileFlatten(d *pluginsdk.ResourceData, id *networkprofile
 
 	if profile != nil {
 		if props := profile.Properties; props != nil {
-			cniConfigs := flattenNetworkProfileContainerNetworkInterface(props.ContainerNetworkInterfaceConfigurations)
-			if err := d.Set("container_network_interface", cniConfigs); err != nil {
+			if err := d.Set("container_network_interface", flattenNetworkProfileContainerNetworkInterface(props.ContainerNetworkInterfaceConfigurations)); err != nil {
 				return fmt.Errorf("setting `container_network_interface`: %+v", err)
 			}
 
-			cniIDs := flattenNetworkProfileContainerNetworkInterfaceIDs(props.ContainerNetworkInterfaces)
-			if err := d.Set("container_network_interface_ids", cniIDs); err != nil {
+			if err := d.Set("container_network_interface_ids", flattenNetworkProfileContainerNetworkInterfaceIDs(props.ContainerNetworkInterfaces)); err != nil {
 				return fmt.Errorf("setting `container_network_interface_ids`: %+v", err)
 			}
 		}

@@ -78,7 +78,6 @@ func dataSourceDatabricksWorkspacePrivateEndpointConnectionRead(d *pluginsdk.Res
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	workspace := d.Get("workspace_id").(string)
-	endpointId := d.Get("private_endpoint_id").(string)
 
 	id, err := workspaces.ParseWorkspaceID(workspace)
 	if err != nil {
@@ -97,7 +96,7 @@ func dataSourceDatabricksWorkspacePrivateEndpointConnectionRead(d *pluginsdk.Res
 	d.SetId(id.ID())
 
 	d.Set("workspace_id", workspace)
-	d.Set("private_endpoint_id", endpointId)
+	d.Set("private_endpoint_id", d.Get("private_endpoint_id").(string))
 
 	if model := resp.Model; model != nil {
 		if err := d.Set("connections", flattenPrivateEndpointConnections(model.Properties.PrivateEndpointConnections)); err != nil {

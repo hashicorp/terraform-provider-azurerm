@@ -146,13 +146,11 @@ func dataSourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
-		sku := flattenExpressRouteCircuitSku(model.Sku)
-		if err := d.Set("sku", sku); err != nil {
+		if err := d.Set("sku", flattenExpressRouteCircuitSku(model.Sku)); err != nil {
 			return fmt.Errorf("setting `sku`: %+v", err)
 		}
 		if props := model.Properties; props != nil {
-			peerings := flattenExpressRouteCircuitPeerings(props.Peerings)
-			if err := d.Set("peerings", peerings); err != nil {
+			if err := d.Set("peerings", flattenExpressRouteCircuitPeerings(props.Peerings)); err != nil {
 				return err
 			}
 

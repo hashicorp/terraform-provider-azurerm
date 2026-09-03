@@ -372,8 +372,7 @@ func resourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("partition_ids", props.PartitionIds)
 			d.Set("status", string(*props.Status))
 
-			captureDescription := flattenEventHubCaptureDescription(props.CaptureDescription)
-			if err := d.Set("capture_description", captureDescription); err != nil {
+			if err := d.Set("capture_description", flattenEventHubCaptureDescription(props.CaptureDescription)); err != nil {
 				return err
 			}
 
@@ -381,8 +380,7 @@ func resourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			if props.RetentionDescription == nil || props.RetentionDescription.TombstoneRetentionTimeInHours == nil {
 				d.Set("message_retention", props.MessageRetentionInDays)
 			}
-			retentionDescription := flattenEventHubRetentionDescription(props.RetentionDescription)
-			if err := d.Set("retention_description", retentionDescription); err != nil {
+			if err := d.Set("retention_description", flattenEventHubRetentionDescription(props.RetentionDescription)); err != nil {
 				return err
 			}
 		}

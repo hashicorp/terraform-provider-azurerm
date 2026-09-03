@@ -195,8 +195,7 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("empty or nil ID returned for Synapse RoleAssignment %q", roleName)
 	}
 
-	resourceId := parse.NewRoleAssignmentId(synapseScope, *resp.ID).ID()
-	d.SetId(resourceId)
+	d.SetId(parse.NewRoleAssignmentId(synapseScope, *resp.ID).ID())
 	return resourceSynapseRoleAssignmentRead(d, meta)
 }
 

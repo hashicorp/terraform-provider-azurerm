@@ -1119,8 +1119,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("private_ip_addresses", connectionInfo.privateAddresses)
 			d.Set("public_ip_address", connectionInfo.primaryPublicAddress)
 			d.Set("public_ip_addresses", connectionInfo.publicAddresses)
-			isWindows := false
-			setConnectionInformation(d, connectionInfo, isWindows)
+			setConnectionInformation(d, connectionInfo, false)
 		}
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
