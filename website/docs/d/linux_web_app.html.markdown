@@ -101,6 +101,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `virtual_network_backup_restore_enabled` - Whether backup and restore operations over the linked virtual network are enabled.
 
+* `virtual_network_application_traffic_enabled` - Whether application traffic is routed over the virtual network.
+
 * `virtual_network_subnet_id` - The subnet id which the Linux Web App is vNet Integrated with.
 
 * `usage` - The current usage state. Possible values are `Normal` and `Exceeded`.
@@ -729,4 +731,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Web` - 2023-12-01
+* `Microsoft.Web` - 2025-05-01
