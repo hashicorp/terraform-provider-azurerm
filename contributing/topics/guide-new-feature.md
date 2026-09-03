@@ -16,17 +16,17 @@ Following are the steps needed to add a new Feature to the Feature Block:
 
 1. Update `internal/features/user_flags.go` with either a new block for the service package or updating an existing service package with the new feature to add. Added struct names should represent the service package they affect, and feature names should concisely describe their effect.
 
-```go
-type UserFeatures struct {
+    ```go
+    type UserFeatures struct {
     KeyVault KeyVaultFeatures
-}
+    }
 
-type KeyVaultFeatures struct {
+    type KeyVaultFeatures struct {
     PurgeSoftDeleteOnDestroy bool
-}
-```
+    }
+    ```
 
-1. Update `internal/features/defaults.go` with what the default value for the new feature will be. This must represent the current default behaviour of the resource(s) to avoid this becoming a breaking change when the feature flagged behaviour is added to the target resource(s).
+2. Update `internal/features/defaults.go` with what the default value for the new feature will be. This must represent the current default behaviour of the resource(s) to avoid this becoming a breaking change when the feature flagged behaviour is added to the target resource(s).
 
 ```go
 func Default() UserFeatures {
@@ -43,8 +43,8 @@ func Default() UserFeatures {
 
 1. Update `internal/provider/feature.go` with what the Terraform schema will look like and how to thread it into the features block
 
-```go
-func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
+    ```go
+    func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
     featuresMap := map[string]*pluginsdk.Schema{
         ...
         "key_vault": {
@@ -63,9 +63,9 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
         },
         ...
     }
-}
+    }
 
-func expandFeatures(input []interface{}) features.UserFeatures {
+    func expandFeatures(input []interface{}) features.UserFeatures {
     ...
     if raw, ok := val["key_vault"]; ok {
         items := raw.([]interface{})
@@ -77,10 +77,10 @@ func expandFeatures(input []interface{}) features.UserFeatures {
         }
     }
     ...
-}
-```
+    }
+    ```
 
-1. Update `internal/provider/feature_test.go` to include a test for every permutation of the feature you are adding to the TestExpandFeatures test and a test dedicated to the service package of the feature.
+2. Update `internal/provider/feature_test.go` to include a test for every permutation of the feature you are adding to the TestExpandFeatures test and a test dedicated to the service package of the feature.
 
 ```go
 func TestExpandFeatures(t *testing.T) {
@@ -217,36 +217,36 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 
 1. Update `internal/provider/framework/model.go`
 
-```go
-// For new services, add a List type for the new block with a `tfsdk` struct tag that matches the schema name for the block, for new features in an existing block/service, this can be skipped.
-type Features struct {
+    ```go
+    // For new services, add a List type for the new block with a `tfsdk` struct tag that matches the schema name for the block, for new features in an existing block/service, this can be skipped.
+    type Features struct {
     ...
     KeyVault types.List `tfsdk:"key_vault"`
     ...
-}
+    }
 
-// and an attribute map variable for the block, or add to the appropriate existing var
-var FeaturesAttributes = map[string]attr.Type{
+    // and an attribute map variable for the block, or add to the appropriate existing var
+    var FeaturesAttributes = map[string]attr.Type{
     ...
     "key_vault": types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(KeyVaultAttributes)),
     ...
-}
+    }
 
-// Add a Go struct that matches the new block or add to the appropriate existing struct
-type KeyVault struct {
+    // Add a Go struct that matches the new block or add to the appropriate existing struct
+    type KeyVault struct {
     PurgeSoftDeleteOnDestroy types.Bool `tfsdk:"purge_soft_delete_on_destroy"`
-}
+    }
 
-// finally, create the attribute map variable for the new block, or add the feature to the appropriate existing map
-var KeyVaultAttributes = map[string]attr.Type{
+    // finally, create the attribute map variable for the new block, or add the feature to the appropriate existing map
+    var KeyVaultAttributes = map[string]attr.Type{
     "purge_soft_delete_on_destroy": types.BoolType
-}
-```
+    }
+    ```
 
-1. Update `internal/provider/framework/provider.go`
+2. Update `internal/provider/framework/provider.go`
 
-```go
-func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRequest, response *provider.SchemaResponse) {
+    ```go
+    func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRequest, response *provider.SchemaResponse) {
     response.Schema = schema.Schema{
         ...
         Blocks: map[string]schema.Block{
@@ -275,14 +275,14 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
         },	
         ...
     }
-}
-```
+    }
+    ```
 
-1. Update `internal/provider/framework/config.go`
+3. Update `internal/provider/framework/config.go`
 
-```go
-// Add a new check that the feature has been specified in the config that then loads the feature into the provider or add the new feature to the existing block.
-func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersion string, diags *diag.Diagnostics) {
+    ```go
+    // Add a new check that the feature has been specified in the config that then loads the feature into the provider or add the new feature to the existing block.
+    func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersion string, diags *diag.Diagnostics) {
     ...
     if !features.KeyVault.IsNull() && !features.KeyVault.IsUnknown() {
         var feature []KeyVault
@@ -298,10 +298,10 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
         }
     }
     ...
-}
-```
+    }
+    ```
 
-1. Update  `internal/provider/framework/config_test.go` with the Features Model and Attributes
+4. Update  `internal/provider/framework/config_test.go` with the Features Model and Attributes
 
 ```go
 func defaultFeaturesList() types.List {
@@ -325,17 +325,17 @@ func defaultFeaturesList() types.List {
 
 1. Update `internal/service/serviceName/resourceName.go` in this case `internal/service/keyvault/key_vault_resource.go` to include the functionality of the added feature.
 
-```go
-func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+    ```go
+    func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
     ...
     if meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy {
         // Purge the Keyvault
     }
     ...
-}
-```
+    }
+    ```
 
-1. Update `internal/service/serviceName/resourceName_test.go` in this case `internal/service/keyvault/key_vault_resource_test.go` to test the new feature.
+2. Update `internal/service/serviceName/resourceName_test.go` in this case `internal/service/keyvault/key_vault_resource_test.go` to test the new feature.
 
 ```go
 func TestAccKeyVault_softDeleteRecoveryDisabled(t *testing.T) {

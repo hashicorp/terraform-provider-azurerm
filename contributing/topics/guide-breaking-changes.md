@@ -23,7 +23,7 @@ The steps outlined below uses an example resource that is deprecated, but the sa
 
 1. Add the appropriate deprecation message to the resource.
 
-   For Typed Resources
+    For Typed Resources
 
     ```go
     
@@ -71,7 +71,7 @@ The steps outlined below uses an example resource that is deprecated, but the sa
 
 2. Conditionally register the resource in the `registration.go` file of the service package.
 
-   For Typed Resources
+    For Typed Resources
 
     ```go
     func (r Registration) Resources() []sdk.Resource {
@@ -138,13 +138,13 @@ The steps outlined below uses an example resource that is deprecated, but the sa
 
 4. Update the upgrade guide under `website/docs/6.0-upgrade-guide.markdown`.
 
-   ```markdown
-   ## Removed Resources
+    ```markdown
+    ## Removed Resources
    
-   ### `azurerm_example`
+    ### `azurerm_example`
    
-   This deprecated resources has been removed from the Azure Provider.
-   ```
+    This deprecated resources has been removed from the Azure Provider.
+    ```
 
 5. Update the resource (or data source) documentation
 
@@ -172,21 +172,21 @@ The following example follows a fictional resource that will have the following 
 
 1. Update the Schema with the target or desired breaking schema change and patch over the breaking schema change with the current behaviour using the major release feature flag.
 
-   ```go
-   func (r ExampleResource) Arguments() map[string]*pluginsdk.Schema{
+    ```go
+    func (r ExampleResource) Arguments() map[string]*pluginsdk.Schema{
       args := map[string]*pluginsdk.Schema{
          "scaling_enabled": {
             Type:     pluginsdk.TypeBool,
             Optional: true,
             Default: false,
-         },      
+         },
          "version": {
             Type:     pluginsdk.TypeString,
             Optional: true,
             Default: 2,
          },
       }
-   
+
       // Regardless of the number of arguments changing, the whole schema definition should be updated like the following rather than inline changes for the current schema definition.
       // This is to make cleanup easy so we can delete this block when the next major version releases.
       if !features.SixPointOh() {
@@ -205,94 +205,94 @@ The following example follows a fictional resource that will have the following 
             Computed:      true,
             ConflictsWith: []string{"enable_scaling"},
          }
-         
+
          args["version"].Default = 1
       }
-   
-      return args
-   }
-   ```
 
-   > **Note:** In the past we've accepted in-lined anonymous functions in a property's schema definition to conditionally change the default value, validation function etc. these will no longer be accepted in the provider. This is a deliberate decision to reduce the variation in how deprecations are done in the provider and also simplifies the clean-up effort of feature flagged code after the major release.
+      return args
+    }
+    ```
+
+    > **Note:** In the past we've accepted in-lined anonymous functions in a property's schema definition to conditionally change the default value, validation function etc. these will no longer be accepted in the provider. This is a deliberate decision to reduce the variation in how deprecations are done in the provider and also simplifies the clean-up effort of feature flagged code after the major release.
 
 2. Update the Create/Read/Update methods.
 
-   For Create function, you can do:
+    For Create function, you can do:
 
-   ```go
+    ```go
    
-   payload := example.Payload{
+    payload := example.Payload{
      // ...
      EnableScaling: pointer.To(model.ScalingEnabled),
      // ...
-   }
-   
-   if !features.SixPointOh() {
+    }
+
+    if !features.SixPointOh() {
      if !pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "enable_scaling") {
-       payload.EnableScaling = pointer.To(model.EnableScaling);
+    payload.EnableScaling = pointer.To(model.EnableScaling);
      }
-   }
-   ```
+    }
+    ```
 
 3. Update the test configurations.
 
-   Here are some guidelines on what good testing coverage for renamed properties looks like:
-   * All test configurations that reference the old property should be updated to use the renamed property
-   * One test configuration should continue using the old property to ensure that it still works as expected, but switch to using the renamed property in the major release mode. An example of what that looks like is provided below.
+    Here are some guidelines on what good testing coverage for renamed properties looks like:
+    * All test configurations that reference the old property should be updated to use the renamed property
+    * One test configuration should continue using the old property to ensure that it still works as expected, but switch to using the renamed property in the major release mode. An example of what that looks like is provided below.
 
-   ```go
-   func (ExampleResource) complete(data acceptance.TestData) string {
-   if !features.SixPointOh() {
+    ```go
+    func (ExampleResource) complete(data acceptance.TestData) string {
+    if !features.SixPointOh() {
         return fmt.Sprintf(`
-   provider "azurerm" {
+    provider "azurerm" {
      features {}
-   }
-   
-   resource "azurerm_resource_group" "test" {
+    }
+
+    resource "azurerm_resource_group" "test" {
      name     = "acctestRG-example-%[1]d"
      location = "%[2]s"
-   }
-   
-   resource "azurerm_example" "test" {
+    }
+
+    resource "azurerm_example" "test" {
      name           = "acctestexample%[1]d"
      enable_scaling = true
-   }
-   `, data.RandomInteger, data.Locations.Primary)
+    }
+    `, data.RandomInteger, data.Locations.Primary)
         }
-   return fmt.Sprintf(`
-   provider "azurerm" {
+    return fmt.Sprintf(`
+    provider "azurerm" {
      features {}
-   }
-   
-   resource "azurerm_resource_group" "test" {
+    }
+
+    resource "azurerm_resource_group" "test" {
      name     = "acctestRG-example-%[1]d"
      location = "%[2]s"
-   }
-   
-   resource "azurerm_example" "test" {
+    }
+
+    resource "azurerm_example" "test" {
      name            = "acctestexample%[1]d"
      scaling_enabled = true
-   }
-   `, data.RandomInteger, data.Locations.Primary)
-   }
-   ```
+    }
+    `, data.RandomInteger, data.Locations.Primary)
+    }
+    ```
 
-   > **Note:** Wherever possible, only update the test configuration and avoid updating the test case since changes to the test cases are more involved and higher effort to clean up.
+    > **Note:** Wherever possible, only update the test configuration and avoid updating the test case since changes to the test cases are more involved and higher effort to clean up.
 
 4. Update the upgrade guide under `website/docs/6.0-upgrade-guide.markdown`
 
-   Under the appropriate section of the upgrade guide, add a line for the deprecation
+    Under the appropriate section of the upgrade guide, add a line for the deprecation
 
-   ```markdown
-   ## Breaking changes in Resources
+    ```markdown
+    ## Breaking changes in Resources
    
-   ### `azurerm_example_resource`
+    ### `azurerm_example_resource`
    
-   * The deprecated `enable_scaling` property has been removed in favour of the `scaling_enabled` property.
-   * The property `version` now defaults to `2`.
-   ```
+    * The deprecated `enable_scaling` property has been removed in favour of the `scaling_enabled` property.
+    * The property `version` now defaults to `2`.
+    ```
 
-   The resources/data sources should be added in alphabetical order.
+    The resources/data sources should be added in alphabetical order.
 
 5. Update the resource documentation
 
