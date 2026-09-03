@@ -5,6 +5,7 @@ package cdn
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -60,13 +61,13 @@ func (CdnFrontDoorOriginListResource) List(ctx context.Context, request list.Lis
 
 	parentID, err := afdorigins.ParseOriginGroupID(data.OriginGroupId.ValueString())
 	if err != nil {
-		sdk.SetResponseErrorDiagnostic(stream, "parsing `cdn_frontdoor_origin_group_id`", err)
+		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing `cdn_frontdoor_origin_group_id` for `%s`", azureCdnFrontDoorOriginResourceName), err)
 		return
 	}
 
 	resp, err := client.ListByOriginGroupComplete(ctx, *parentID)
 	if err != nil {
-		sdk.SetResponseErrorDiagnostic(stream, "listing azurerm_cdn_frontdoor_origin", err)
+		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", azureCdnFrontDoorOriginResourceName), err)
 		return
 	}
 
@@ -79,13 +80,13 @@ func (CdnFrontDoorOriginListResource) List(ctx context.Context, request list.Lis
 
 			id, err := afdorigins.ParseOriginGroupOriginIDInsensitively(pointer.From(item.Id))
 			if err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing azurerm_cdn_frontdoor_origin ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing `%s` ID", azureCdnFrontDoorOriginResourceName), err)
 				return
 			}
 			rd.SetId(id.ID())
 
 			if err := resourceCdnFrontDoorOriginFlatten(rd, id, &item); err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "encoding azurerm_cdn_frontdoor_origin resource data", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", azureCdnFrontDoorOriginResourceName), err)
 				return
 			}
 

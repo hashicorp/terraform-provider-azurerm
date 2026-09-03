@@ -31,7 +31,7 @@ func TestAccCdnFrontDoorOrigin_listByOriginGroupID(t *testing.T) {
 			},
 			{
 				Query:  true,
-				Config: r.basicQuery(data),
+				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLengthAtLeast("azurerm_cdn_frontdoor_origin.list", 1),
 					querycheck.ExpectIdentity(
@@ -50,7 +50,7 @@ func TestAccCdnFrontDoorOrigin_listByOriginGroupID(t *testing.T) {
 	})
 }
 
-func (r CdnFrontdoorOriginResource) basicQuery(data acceptance.TestData) string {
+func (r CdnFrontdoorOriginResource) basicQuery() string {
 	return `
 list "azurerm_cdn_frontdoor_origin" "list" {
   provider = azurerm
