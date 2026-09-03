@@ -296,6 +296,16 @@ resource "tls_self_signed_cert" "pipeline_tls" {
   }
 }
 
+resource "local_file" "pipeline_persistent_volume" {
+  content = templatefile("testdata/pipeline_persistent_volume.yaml.tftpl", {
+    pipeline_namespace = "monitoring"
+    resource_group      = azurerm_resource_group.test.name
+    storage_account     = azurerm_storage_account.test.name
+    storage_share       = azurerm_storage_share.test.name
+  })
+  filename = "${path.root}/pipeline-persistent-volume.yaml"
+}
+
 # Works around the cert-manager extension's default ClusterIssuers referencing "-current"
 # secrets that nothing else creates, which otherwise leaves the pipeline group stuck at
 # provisioningState "Creating" indefinitely. Also creates the mTLS secrets and the Azure
@@ -306,15 +316,14 @@ resource "terraform_data" "cluster_prereqs" {
     command = "export PATH=\"$HOME/go/bin:$PATH\"; bash testdata/configure_pipeline_cluster_prereqs.sh && kubectl label nodes --all gpu-enabled=true high-memory=true node-type=dedicated --overwrite && kubectl create configmap server-tls-cert-updated --namespace \"$PIPELINE_NAMESPACE\" --from-literal=tls-updated.crt=\"$PIPELINE_TLS_CERT\" --dry-run=client -o yaml | kubectl apply -f - && kubectl create secret generic server-tls-key-updated --namespace \"$PIPELINE_NAMESPACE\" --from-literal=tls-updated.key=\"$PIPELINE_TLS_KEY\" --dry-run=client -o yaml | kubectl apply -f -"
 
     environment = {
-      KUBECONFIG          = %[3]q
-      PIPELINE_NAMESPACE  = "monitoring"
-      CLIENT_CA_CERT      = tls_self_signed_cert.client_ca.cert_pem
-      PIPELINE_TLS_CERT   = tls_self_signed_cert.pipeline_tls.cert_pem
-      PIPELINE_TLS_KEY    = tls_private_key.pipeline_tls.private_key_pem
-      RESOURCE_GROUP      = azurerm_resource_group.test.name
-      STORAGE_ACCOUNT     = azurerm_storage_account.test.name
-      STORAGE_ACCOUNT_KEY = azurerm_storage_account.test.primary_access_key
-      STORAGE_SHARE       = azurerm_storage_share.test.name
+      KUBECONFIG                        = %[3]q
+      PIPELINE_NAMESPACE                = "monitoring"
+      CLIENT_CA_CERT                    = tls_self_signed_cert.client_ca.cert_pem
+      PIPELINE_TLS_CERT                 = tls_self_signed_cert.pipeline_tls.cert_pem
+      PIPELINE_TLS_KEY                  = tls_private_key.pipeline_tls.private_key_pem
+      PIPELINE_PERSISTENT_VOLUME_CONFIG = local_file.pipeline_persistent_volume.filename
+      STORAGE_ACCOUNT                   = azurerm_storage_account.test.name
+      STORAGE_ACCOUNT_KEY               = azurerm_storage_account.test.primary_access_key
     }
   }
 

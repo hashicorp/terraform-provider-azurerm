@@ -48,36 +48,5 @@ kubectl create secret generic azure-file-secret \
   --from-literal=azurestorageaccountkey="$STORAGE_ACCOUNT_KEY" \
   --dry-run=client -o yaml | kubectl apply -f -
 
-cat <<PVEOF | kubectl apply -f -
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: acctest-pipeline-pv
-spec:
-  capacity:
-    storage: 5Gi
-  accessModes:
-    - ReadWriteMany
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: azurefile-csi
-  mountOptions:
-    - dir_mode=0777
-    - file_mode=0777
-    - uid=0
-    - gid=0
-    - mfsymlinks
-    - cache=strict
-    - nosharesock
-  csi:
-    driver: file.csi.azure.com
-    readOnly: false
-    volumeHandle: "$RESOURCE_GROUP#$STORAGE_ACCOUNT#$STORAGE_SHARE"
-    volumeAttributes:
-      secretName: azure-file-secret
-      secretNamespace: "$PIPELINE_NAMESPACE"
-      shareName: "$STORAGE_SHARE"
-    nodeStageSecretRef:
-      name: azure-file-secret
-      namespace: "$PIPELINE_NAMESPACE"
-PVEOF
+kubectl apply -f "$PIPELINE_PERSISTENT_VOLUME_CONFIG"
 

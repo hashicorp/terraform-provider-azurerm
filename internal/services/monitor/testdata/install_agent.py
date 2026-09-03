@@ -105,7 +105,7 @@ def get_chart_path(registry_path, kube_config, kube_context, helm_client_locatio
     return chart_path
 
 
-def install_helm_client():
+def install_helm_client(retry_count=3, retry_delay=3):
     # Fetch system related info
     operating_system = platform.system().lower()
     platform.machine()
@@ -129,41 +129,40 @@ def install_helm_client():
     install_location = os.path.expanduser(
         os.path.join('~', install_location_string))
 
-    # Download compressed halm binary if not already present
-    if not os.path.isfile(download_location):
-        # Creating the helm folder if it doesnt exist
-        if not os.path.exists(download_dir):
-            try:
-                os.makedirs(download_dir)
-            except Exception as e:
-                raise Exception("Failed to create helm directory." + str(e))
+    if os.path.isfile(install_location):
+        return install_location
 
-        # Downloading compressed helm client executable
-        logger.warning(
-            "Downloading helm client for first time. This can take few minutes...")
+    try:
+        os.makedirs(download_dir, exist_ok=True)
+    except Exception as e:
+        raise Exception("Failed to create helm directory." + str(e))
+
+    for attempt in range(retry_count):
         try:
-            response = urllib.request.urlopen(requestUri)
-        except Exception as e:
-            raise Exception("Failed to download helm client." + str(e))
+            if not os.path.isfile(download_location):
+                logger.warning(
+                    "Downloading helm client. This can take few minutes...")
+                temporary_download_location = download_location + '.tmp'
+                try:
+                    with urllib.request.urlopen(requestUri) as response, open(temporary_download_location, 'wb') as f:
+                        shutil.copyfileobj(response, f)
+                    os.replace(temporary_download_location, download_location)
+                except Exception as e:
+                    if os.path.isfile(temporary_download_location):
+                        os.remove(temporary_download_location)
+                    raise Exception("Failed to download helm client." + str(e))
 
-        responseContent = response.read()
-        response.close()
-
-        # Creating the compressed helm binaries
-        try:
-            with open(download_location, 'wb') as f:
-                f.write(responseContent)
-        except Exception as e:
-            raise Exception("Failed to create helm executable." + str(e))
-
-    # Extract compressed helm binary
-    if not os.path.isfile(install_location):
-        try:
             shutil.unpack_archive(download_location, download_dir)
             os.chmod(install_location, os.stat(
                 install_location).st_mode | stat.S_IXUSR)
+            return install_location
         except Exception as e:
-            raise Exception("Failed to extract helm executable." + str(e))
+            if os.path.isfile(download_location):
+                os.remove(download_location)
+            if attempt == retry_count - 1:
+                raise Exception("Failed to install helm executable." + str(e))
+            logger.warning("Failed to install helm client; retrying download...")
+            time.sleep(retry_delay)
 
     return install_location
 
