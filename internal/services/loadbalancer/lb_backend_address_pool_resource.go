@@ -256,7 +256,7 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 			properties.BackendAddressPools = &backendAddressPools
 
 			if d.IsNewResource() {
-				if err := lbClient.CreateOrUpdateCallbackThenPoll(ctx, plbId, *lb.Model, sdk.SetIDCallback(meta, &id, d)); err != nil {
+				if err := lbClient.CreateOrUpdateCallbackThenPoll(ctx, plbId, *lb.Model, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 					return fmt.Errorf("creating %s: %+v", id, err)
 				}
 			} else {
@@ -272,7 +272,7 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 			}
 
 			if d.IsNewResource() {
-				if err := lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateCallbackThenPoll(ctx, id, param, sdk.SetIDCallback(meta, &id, d)); err != nil {
+				if err := lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateCallbackThenPoll(ctx, id, param, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 					return fmt.Errorf("creating %s: %+v", id, err)
 				}
 			} else {
@@ -287,7 +287,7 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 			param.Properties.TunnelInterfaces = expandGatewayLoadBalancerTunnelInterfaces(d.Get("tunnel_interface").([]interface{}))
 
 			if d.IsNewResource() {
-				if err := lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateCallbackThenPoll(ctx, id, param, sdk.SetIDCallback(meta, &id, d)); err != nil {
+				if err := lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateCallbackThenPoll(ctx, id, param, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 					return fmt.Errorf("creating %s: %+v", id, err)
 				}
 			} else {
