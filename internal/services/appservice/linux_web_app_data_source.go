@@ -254,7 +254,7 @@ func (r LinuxWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"vnet_image_pull_enabled": {
+		"virtual_network_image_pull_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
