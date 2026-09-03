@@ -23,10 +23,7 @@ func DataStorageSizeInTbs(i interface{}, k string) ([]string, []error) {
 }
 
 func LicenseModel(i interface{}, k string) ([]string, []error) {
-	return validation.StringInSlice([]string{
-		string(cloudvmclusters.LicenseModelBringYourOwnLicense),
-		string(cloudvmclusters.LicenseModelLicenseIncluded),
-	}, false)(i, k)
+	return validation.StringInSlice(cloudvmclusters.PossibleValuesForLicenseModel(), false)(i, k)
 }
 
 func SystemVersion(i interface{}, k string) ([]string, []error) {

@@ -44,15 +44,9 @@ func Month(i interface{}, k string) ([]string, []error) {
 }
 
 func Preference(i interface{}, k string) ([]string, []error) {
-	return validation.StringInSlice([]string{
-		string(cloudexadatainfrastructures.PreferenceCustomPreference),
-		string(cloudexadatainfrastructures.PreferenceNoPreference),
-	}, false)(i, k)
+	return validation.StringInSlice(cloudexadatainfrastructures.PossibleValuesForPreference(), false)(i, k)
 }
 
 func PatchingMode(i interface{}, k string) ([]string, []error) {
-	return validation.StringInSlice([]string{
-		string(cloudexadatainfrastructures.PatchingModeRolling),
-		string(cloudexadatainfrastructures.PatchingModeNonRolling),
-	}, false)(i, k)
+	return validation.StringInSlice(cloudexadatainfrastructures.PossibleValuesForPatchingMode(), false)(i, k)
 }
