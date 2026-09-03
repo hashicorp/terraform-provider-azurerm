@@ -21,7 +21,12 @@ func TestAccStorageShareDataSource_basic(t *testing.T) {
 		{
 			Config: dataSourceStorageShare{}.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("access_tier").HasValue("Cool"),
+				check.That(data.ResourceName).Key("enabled_protocol").HasValue("SMB"),
 				check.That(data.ResourceName).Key("quota").HasValue("5"),
+				check.That(data.ResourceName).Key("url").MatchesOtherKey(
+					check.That("azurerm_storage_share.test").Key("url"),
+				),
 				check.That(data.ResourceName).Key("metadata.%").HasValue("2"),
 				check.That(data.ResourceName).Key("metadata.hello").HasValue("world"),
 				check.That(data.ResourceName).Key("metadata.foo").HasValue("bar"),
