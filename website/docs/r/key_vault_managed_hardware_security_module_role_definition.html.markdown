@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_key_vault_managed_hardware_security_module_role_definition
 
-Manages a Key Vault Managed Hardware Security Module Role Definition. This resource works together with [Managed hardware security module resource](./key_vault_managed_hardware_security_module).
+Manages a Key Vault Managed Hardware Security Module Role Definition. This resource works together with [Managed hardware security module resource](./key_vault_managed_hardware_security_module.html).
 
 ## Example Usage
 

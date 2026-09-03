@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `number_of_nodes` - (Optional) Number of nodes for the Azure-SSIS Integration Runtime. Max is `10`. Defaults to `1`.
 
-* `credential_name` - (Optional) The name of a Data Factory Credential that the SSIS integration will use to access data sources. For example, [`azurerm_data_factory_credential_user_managed_identity`](data_factory_credential_user_assigned_managed_identity.html.html)
+* `credential_name` - (Optional) The name of a Data Factory Credential that the SSIS integration will use to access data sources. For example, [`azurerm_data_factory_credential_user_managed_identity`](data_factory_credential_user_managed_identity.html)
 
 ~> **Note:** If `credential_name` is omitted, the integration runtime will use the Data Factory assigned identity.
 

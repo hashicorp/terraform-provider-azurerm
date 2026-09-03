@@ -89,8 +89,8 @@ An example of our PR template is shown below.
 
  #### PR Checklist
 
-- [ ] Have you followed the guidelines in our [Contributing Documentation](../contributing/README.md)?
-- [ ] Have you checked to ensure there aren't other open [Pull Requests](../../../pulls) for the same update/change?
+- [ ] Have you followed the guidelines in our [Contributing Documentation](../README.md)?
+- [ ] Have you checked to ensure there aren't other open [Pull Requests](https://github.com/hashicorp/terraform-provider-azurerm/pulls) for the same update/change?
 - [ ] Have you used a meaningful PR description to help maintainers and other users understand this change and help prevent duplicate work?
 Example: 
 “`resource_name_here` - description of change e.g. adding property `new_property_name_here`”
@@ -100,7 +100,7 @@ Example:
 
 #### New Feature Submissions
 
-- [ ] Does your submission include Test coverage as described in the [Contribution Guide](../contributing/topics/guide-new-resource.md) and the tests pass? (if this is not possible for any reason, please include details of why below)
+- [ ] Does your submission include Test coverage as described in the [Contribution Guide](guide-new-resource.md) and the tests pass? (if this is not possible for any reason, please include details of why below)
 
 #### Changes to existing Resource / Data Source
 
@@ -125,7 +125,7 @@ Example:
  ```
 #### Change Log
 
-[Changelog Format](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/contributing/topics/maintainer-changelog.md)
+[Changelog Format](maintainer-merging.md#changelog-entry-format)
 
 <!-- Replace the changelog example below with your entry. One resource per line. -->
 
