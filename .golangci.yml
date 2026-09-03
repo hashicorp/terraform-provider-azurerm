@@ -90,8 +90,8 @@ linters:
         settings:
           disable:
             - AZR002 # splite create and udpate: ~350 todo over time
-            - AZT002 #tests should not obtain credentials via os.Getenv - investigate in a later pr
-            - AZR004 #Resource IDs should not be compared with == or != - to fix in a later commit
+            - AZT002 # tests should not obtain credentials via os.Getenv - investigate in a later pr
+            - AZR004 # Resource IDs should not be compared with == or != - to fix in a later commit
             - AZR003 # d.Get should not be used within a Delete function as it does not work as expected during deletion - 9 findings to fix later
             - AZR007 # StateChangeConf should be replaced with a custom poller implementing pollers.PollerType - 159 findings, being migrated over time (eventual consistency poller series was the start)
             - AZR008 # flattenX should not return nil

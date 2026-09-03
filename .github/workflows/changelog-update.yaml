@@ -93,10 +93,10 @@ jobs:
             echo "Branch does not exist on remote, creating locally..."
             git checkout -b $BRANCH
           fi
-          
+
       - name: Create pull request
-      #if changelog PR isn't already open, open one
-      #create a new PR, start with appending the release number and (unreleased)
+        # if changelog PR isn't already open, open one
+        # create a new PR, start with appending the release number and (unreleased)
         if: '!steps.check.outputs.existing'
         env:
           GH_TOKEN: ${{ secrets.SERVICE_ACCOUNT_TERRAFORM_TOKEN }}
@@ -104,7 +104,7 @@ jobs:
         run: |
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
-          
+
           #new pull request for new release needs the headers all added to the top
           FILE="CHANGELOG.md"
           version=$(grep -m1 '^## [0-9]' "$FILE")
@@ -139,24 +139,23 @@ jobs:
         run: |
           gh pr edit automated-changelog \
           --add-label "changelog"
-          
+
       - name: Set up Go
         uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
 
       - name: Add commit message to changelog pull request
-      # at this point a PR is opened for sure, now add entry
+        # at this point a PR is opened for sure, now add entry
         env:
-            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
         run: |
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
-          
+
           go run internal/tools/changelog-updater/update_changelog.go CHANGELOG.md '${{ needs.changelog-entry.outputs.entry }}'
-          
+
           git add CHANGELOG.md
           git commit -m "Update changelog"
           git push --set-upstream origin automated-changelog
-      
