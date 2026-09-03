@@ -1,8 +1,8 @@
 ## 5.4.0 (Unreleased)
 
 ENHANCEMENTS:
-* **NEW LIST RESOURCE**: `azurerm_batch_application` [GH-33254]
-* `azurerm_linux_web_app`, `linux_web_app_slot` - add support for the `8.5` value in the  `site_config.application_stack.php_version` property [GH-33308]
+* `azurerm_linux_web_app` - add support for the `8.5` value in the  `site_config.application_stack.php_version` property [GH-33308]
+* `azurerm_linux_web_app_slot` - add support for the `8.5` value in the  `site_config.application_stack.php_version` property [GH-33308]
 * `azurerm_synapse_spark_pool` - migrate to `go-azure-sdk` [GH-33258]
 * `azurerm_storage_account` - add support for an in-place migration of `account_replication_type` between matching non-zonal and zonal types instead of resource recreation [GH-33236]
 * `azurerm_storage_table` - add support for AAD authentication [GH-32997]
@@ -16,10 +16,18 @@ ENHANCEMENTS:
 * `azurerm_postgresql_flexible_server` - add support for the `storage_type`, `storage_iops`, and `storage_throughput` properties which allows choice of the new "Premium V2 LRS" storage type [GH-32121]
 * `azurerm_netapp_volume` - support for the `breakthrough_mode_enabled` property [GH-33215]
 * dependencies: `netapp` - update API version to `2026-05-01` [GH-33215]
+* Data Source: `azurerm_attestation_provider` - export the `sev_snp_policy_base64`, `open_enclave_policy_base64`, `sgx_enclave_policy_base64`, and `tpm_policy_base64` properties [GH-33125]
+* Data Source: `azurerm_automation_account` - export the `dsc_primary_access_key`, `dsc_server_endpoint`, `dsc_secondary_access_key`, `public_network_access_enabled`, `sku_name`, and `tags` properties [GH-33135]
+* Data Source: `azurerm_automation_account` - export the `encryption` block [GH-33135]
+* `azurerm_linux_virtual_machine_scale_set` - add support for the `NvmeDisk` value to the `os_disk.diff_disk_settings.placement` property [GH-30328]
+* `azurerm_windows_virtual_machine_scale_set` - add support for the `NvmeDisk` value to the `os_disk.diff_disk_settings.placement` property [GH-30328]
+* `azurerm_key_vault_managed_hardware_security_module_key` - allow the `key_size` property to be set when `key_type` is `oct-HSM` [GH-32690]
 
 
 FEATURES:
-* **New List Resource**: `application_insights_workbook_template` [GH-33245]
+* **New List Resource**: `azurerm_log_analytics_workspace` [GH-33259]
+* **New List Resource**: `azurerm_batch_application` [GH-33254]
+* **New List Resource**: `azurerm_application_insights_workbook_template` [GH-33245]
 * **New List Resource**: `azurerm_application_insights_standard_web_test` [GH-33243]
 * **New List Resource**: `azurerm_dedicated_host_group` [GH-33257]
 * **New List Resource**: `azurerm_arc_kubernetes_provisioned_cluster` [GH-33247]
