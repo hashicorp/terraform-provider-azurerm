@@ -14,7 +14,7 @@ on:
     types: ['opened', 'synchronize']
     paths:
       - '.github/workflows/pr-check-gradually-deprecated.yaml'
-      - './scripts/checks/gradually-deprecated.sh'
+      - 'scripts/checks/gradually-deprecated.sh'
       - '**.go'
 
 jobs:

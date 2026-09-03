@@ -94,7 +94,7 @@ func (r AlertRuleAnomalyDuplicateResource) Arguments() map[string]*schema.Schema
 		"multi_select_observation": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"name": {
@@ -131,7 +131,7 @@ func (r AlertRuleAnomalyDuplicateResource) Arguments() map[string]*schema.Schema
 		"single_select_observation": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"name": {
@@ -165,7 +165,7 @@ func (r AlertRuleAnomalyDuplicateResource) Arguments() map[string]*schema.Schema
 		"prioritized_exclude_observation": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"name": {
@@ -196,7 +196,7 @@ func (r AlertRuleAnomalyDuplicateResource) Arguments() map[string]*schema.Schema
 		"threshold_observation": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"name": {

@@ -812,7 +812,7 @@ func expandScheduledQueryRulesAlertV2FailingPeriodsModel(inputList []ScheduledQu
 func flattenScheduledQueryRulesAlertV2ActionsModel(input *scheduledqueryrules.Actions) []ScheduledQueryRulesAlertV2ActionsModel {
 	var outputList []ScheduledQueryRulesAlertV2ActionsModel
 	if input == nil {
-		return outputList
+		return []ScheduledQueryRulesAlertV2ActionsModel{}
 	}
 
 	output := ScheduledQueryRulesAlertV2ActionsModel{}
@@ -898,7 +898,7 @@ func flattenScheduledQueryRulesAlertV2DimensionModel(inputList *[]scheduledquery
 func flattenScheduledQueryRulesAlertV2FailingPeriodsModel(input *scheduledqueryrules.ConditionFailingPeriods) []ScheduledQueryRulesAlertV2FailingPeriodsModel {
 	var outputList []ScheduledQueryRulesAlertV2FailingPeriodsModel
 	if input == nil {
-		return outputList
+		return []ScheduledQueryRulesAlertV2FailingPeriodsModel{}
 	}
 
 	output := ScheduledQueryRulesAlertV2FailingPeriodsModel{}

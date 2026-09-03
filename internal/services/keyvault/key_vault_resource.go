@@ -100,7 +100,7 @@ func resourceKeyVault() *pluginsdk.Resource {
 				Type:       pluginsdk.TypeList,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				MaxItems:   1024,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -145,7 +145,7 @@ func resourceKeyVault() *pluginsdk.Resource {
 			"network_acls": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -639,8 +639,7 @@ func resourceKeyVaultFlatten(ctx context.Context, managementClient *dataplane.Ba
 			return fmt.Errorf("setting `network_acls`: %+v", err)
 		}
 
-		flattenedPolicies := flattenAccessPolicies(model.Properties.AccessPolicies)
-		if err := d.Set("access_policy", flattenedPolicies); err != nil {
+		if err := d.Set("access_policy", flattenAccessPolicies(model.Properties.AccessPolicies)); err != nil {
 			return fmt.Errorf("setting `access_policy`: %+v", err)
 		}
 

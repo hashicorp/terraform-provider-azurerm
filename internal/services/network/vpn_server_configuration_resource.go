@@ -252,7 +252,7 @@ func resourceVPNServerConfiguration() *pluginsdk.Resource {
 			"vpn_protocols": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForVpnGatewayTunnelingProtocol(), false),
@@ -407,28 +407,23 @@ func resourceVPNServerConfigurationRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
-			flattenedAADAuthentication := flattenVpnServerConfigurationAADAuthentication(props.AadAuthenticationParameters)
-			if err := d.Set("azure_active_directory_authentication", flattenedAADAuthentication); err != nil {
+			if err := d.Set("azure_active_directory_authentication", flattenVpnServerConfigurationAADAuthentication(props.AadAuthenticationParameters)); err != nil {
 				return fmt.Errorf("setting `azure_active_directory_authentication`: %+v", err)
 			}
 
-			flattenedClientRootCerts := flattenVpnServerConfigurationClientRootCertificates(props.VpnClientRootCertificates)
-			if err := d.Set("client_root_certificate", flattenedClientRootCerts); err != nil {
+			if err := d.Set("client_root_certificate", flattenVpnServerConfigurationClientRootCertificates(props.VpnClientRootCertificates)); err != nil {
 				return fmt.Errorf("setting `client_root_certificate`: %+v", err)
 			}
 
-			flattenedClientRevokedCerts := flattenVpnServerConfigurationClientRevokedCertificates(props.VpnClientRevokedCertificates)
-			if err := d.Set("client_revoked_certificate", flattenedClientRevokedCerts); err != nil {
+			if err := d.Set("client_revoked_certificate", flattenVpnServerConfigurationClientRevokedCertificates(props.VpnClientRevokedCertificates)); err != nil {
 				return fmt.Errorf("setting `client_revoked_certificate`: %+v", err)
 			}
 
-			flattenedIPSecPolicies := flattenVpnServerConfigurationIPSecPolicies(props.VpnClientIPsecPolicies)
-			if err := d.Set("ipsec_policy", flattenedIPSecPolicies); err != nil {
+			if err := d.Set("ipsec_policy", flattenVpnServerConfigurationIPSecPolicies(props.VpnClientIPsecPolicies)); err != nil {
 				return fmt.Errorf("setting `ipsec_policy`: %+v", err)
 			}
 
-			flattenedRadius := flattenVpnServerConfigurationRadius(props, d)
-			if err := d.Set("radius", flattenedRadius); err != nil {
+			if err := d.Set("radius", flattenVpnServerConfigurationRadius(props, d)); err != nil {
 				return fmt.Errorf("setting `radius`: %+v", err)
 			}
 

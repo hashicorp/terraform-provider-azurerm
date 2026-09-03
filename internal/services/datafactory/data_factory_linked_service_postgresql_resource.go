@@ -208,13 +208,11 @@ func resourceDataFactoryLinkedServicePostgreSQLRead(d *pluginsdk.ResourceData, m
 	d.Set("additional_properties", postgresql.AdditionalProperties)
 	d.Set("description", postgresql.Description)
 
-	annotations := flattenDataFactoryAnnotations(postgresql.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(postgresql.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenLinkedServiceParameters(postgresql.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(postgresql.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 

@@ -17,9 +17,9 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-azure-helpers v0.82.0
-	github.com/hashicorp/go-azure-sdk/data-plane v0.20260811.1225050
-	github.com/hashicorp/go-azure-sdk/resource-manager v0.20260827.1195017
-	github.com/hashicorp/go-azure-sdk/sdk v0.20260827.1195017
+	github.com/hashicorp/go-azure-sdk/data-plane v0.20260901.1173158
+	github.com/hashicorp/go-azure-sdk/resource-manager v0.20260901.1173158
+	github.com/hashicorp/go-azure-sdk/sdk v0.20260901.1173158
 	github.com/hashicorp/go-cty v1.5.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-multierror v1.1.1
@@ -45,7 +45,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/cobra v1.10.1
-	golang.org/x/crypto v0.55.0
+	golang.org/x/crypto v0.56.0
 	golang.org/x/text v0.41.0
 	golang.org/x/tools v0.49.0
 	gopkg.in/dnaeon/go-vcr.v4 v4.0.6
@@ -106,8 +106,8 @@ require (
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260414002931-afd174a4e478 // indirect
-	google.golang.org/grpc v1.82.1 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa // indirect
+	google.golang.org/grpc v1.83.1 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	software.sslmate.com/src/go-pkcs12 v0.7.3 // indirect
 )

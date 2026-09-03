@@ -1188,8 +1188,6 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 		d.Set("name", id.DatabaseName)
 
 		if props := model.Properties; props != nil {
-			minCapacity := pointer.From(props.MinCapacity)
-
 			requestedBackupStorageRedundancy := ""
 			if props.RequestedBackupStorageRedundancy != nil {
 				requestedBackupStorageRedundancy = string(*props.RequestedBackupStorageRedundancy)
@@ -1255,7 +1253,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 			}
 
 			d.Set("elastic_pool_id", elasticPoolId)
-			d.Set("min_capacity", minCapacity)
+			d.Set("min_capacity", pointer.From(props.MinCapacity))
 			d.Set("sku_name", skuName)
 			d.Set("maintenance_configuration_name", configurationName)
 			d.Set("ledger_enabled", ledgerEnabled)
@@ -1528,7 +1526,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"auto_pause_delay_in_minutes": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validate.DatabaseAutoPauseDelay,
 		},
 
@@ -1595,7 +1593,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"collation": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validate.DatabaseCollation(),
 		},
@@ -1615,7 +1613,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"license_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForDatabaseLicenseType(),
 				false),
 		},
@@ -1627,21 +1625,21 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"max_size_gb": {
 			Type:         pluginsdk.TypeFloat,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.FloatBetween(0.1, 4096),
 		},
 
 		"min_capacity": {
 			Type:         pluginsdk.TypeFloat,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.FloatInSlice([]float64{0, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 24, 32, 40}),
 		},
 
 		"restore_point_in_time": {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			Computed:         true,
+			Computed:         true, // azignore:AZS007 - pre-existing violation
 			DiffSuppressFunc: suppress.RFC3339Time,
 			ValidateFunc:     validation.IsRFC3339Time,
 		},
@@ -1673,20 +1671,20 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"read_replica_count": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.IntBetween(0, 4),
 		},
 
 		"read_scale": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"sample_name": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringInSlice([]string{
 				string(databases.SampleNameAdventureWorksLT),
 			}, false),
@@ -1695,7 +1693,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"sku_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validate.DatabaseSkuName(),
 		},
 
@@ -1703,7 +1701,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: commonids.ValidateSqlDatabaseID,
 		},
 
@@ -1718,13 +1716,13 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"zone_redundant": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"threat_detection_policy": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -1801,7 +1799,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"maintenance_configuration_name": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
-			Computed:      true,
+			Computed:      true, // azignore:AZS007 - pre-existing violation
 			ConflictsWith: []string{"elastic_pool_id"},
 			ValidateFunc:  validation.StringInSlice(resourceMsSqlDatabaseMaintenanceNames(), false),
 		},
@@ -1809,7 +1807,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"ledger_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 		},
 
@@ -1837,7 +1835,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"secondary_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			// This must be Computed as it has defaulted to Geo for replicas but not all databases are replicas.
+			// Note: O+C because it has defaulted to Geo for replicas but not all databases are replicas.
 			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForSecondaryType(), false),

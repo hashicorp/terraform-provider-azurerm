@@ -28,17 +28,17 @@ jobs:
   # PATH FILTERING LOGIC
   # ==========================================
   # We use dorny/paths-filter to only run heavy checks when relevant files change.
-  # 
+  #
   # How to add a new Phase 1 job:
   # 1. Add a new filter to the `paths-filter` job below.
   # 2. In your job, add `needs: paths-filter` and `if: needs.paths-filter.outputs.<your-filter> == 'true'`.
-  # 
+  #
   # How to add a new Phase 2/3 job:
   # 1. It must depend on paths-filter and ALL Phase 1 jobs it needs.
   # 2. Because GitHub Actions skips downstream jobs if any `needs` dependency is skipped,
   #    you MUST use the following boilerplate `if` condition to ensure it runs correctly:
   #    if: |
-  #      always() && 
+  #      always() &&
   #      needs.paths-filter.outputs.<your-filter> == 'true' &&
   #      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && ...
   # ==========================================
@@ -285,11 +285,11 @@ jobs:
   build:
     needs: [paths-filter, depscheck, quick-checks, shellcheck, website-lint, document-validate]
     if: |
-      always() && 
+      always() &&
       needs.paths-filter.outputs.go == 'true' &&
-      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && 
-      (needs.quick-checks.result == 'success' || needs.quick-checks.result == 'skipped') && 
-      (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') && 
+      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') &&
+      (needs.quick-checks.result == 'success' || needs.quick-checks.result == 'skipped') &&
+      (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') &&
       (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
@@ -330,11 +330,11 @@ jobs:
   golangci-lint:
     needs: [paths-filter, depscheck, quick-checks, shellcheck, website-lint, document-validate]
     if: |
-      always() && 
+      always() &&
       needs.paths-filter.outputs.go == 'true' &&
-      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && 
-      (needs.quick-checks.result == 'success' || needs.quick-checks.result == 'skipped') && 
-      (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') && 
+      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') &&
+      (needs.quick-checks.result == 'success' || needs.quick-checks.result == 'skipped') &&
+      (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') &&
       (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: custom-linux-large
     steps:
@@ -389,11 +389,11 @@ jobs:
   gencheck:
     needs: [paths-filter, depscheck, quick-checks, shellcheck, website-lint, document-validate]
     if: |
-      always() && 
+      always() &&
       needs.paths-filter.outputs.go == 'true' &&
-      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && 
-      (needs.quick-checks.result == 'success' || needs.quick-checks.result == 'skipped') && 
-      (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') && 
+      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') &&
+      (needs.quick-checks.result == 'success' || needs.quick-checks.result == 'skipped') &&
+      (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') &&
       (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: custom-linux-large
     steps:
@@ -434,11 +434,11 @@ jobs:
   unit-tests:
     needs: [paths-filter, depscheck, quick-checks, shellcheck, website-lint, document-validate]
     if: |
-      always() && 
+      always() &&
       needs.paths-filter.outputs.go == 'true' &&
-      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && 
-      (needs.quick-checks.result == 'success' || needs.quick-checks.result == 'skipped') && 
-      (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') && 
+      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') &&
+      (needs.quick-checks.result == 'success' || needs.quick-checks.result == 'skipped') &&
+      (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') &&
       (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: custom-linux-xl
     timeout-minutes: 30
@@ -449,7 +449,7 @@ jobs:
           cache-dependency-path: go.mod
           go-version-file: ./.go-version
       - name: '[Diagnostic] Report Go module cache and build cache disk usage'
-        run: 'du -h -d 0 $(go env GOMODCACHE) $(go env GOCACHE) || true'
+        run: 'du -h -d 0 "$(go env GOMODCACHE)" "$(go env GOCACHE)" || true'
       - name: Install gotestsum
         run: go install gotest.tools/gotestsum@v1.13.0
       - name: Run tests
@@ -495,11 +495,11 @@ jobs:
   validate-examples:
     needs: [paths-filter, depscheck, quick-checks, shellcheck, website-lint, document-validate]
     if: |
-      always() && 
+      always() &&
       needs.paths-filter.outputs.examples == 'true' &&
-      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') && 
-      (needs.quick-checks.result == 'success' || needs.quick-checks.result == 'skipped') && 
-      (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') && 
+      (needs.depscheck.result == 'success' || needs.depscheck.result == 'skipped') &&
+      (needs.quick-checks.result == 'success' || needs.quick-checks.result == 'skipped') &&
+      (needs.shellcheck.result == 'success' || needs.shellcheck.result == 'skipped') &&
       (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: custom-linux-small
     steps:

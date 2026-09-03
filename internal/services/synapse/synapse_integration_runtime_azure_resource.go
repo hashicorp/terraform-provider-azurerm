@@ -77,14 +77,10 @@ func resourceSynapseIntegrationRuntimeAzure() *pluginsdk.Resource {
 			},
 
 			"compute_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(synapse.DataFlowComputeTypeGeneral),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(synapse.DataFlowComputeTypeGeneral),
-					string(synapse.DataFlowComputeTypeComputeOptimized),
-					string(synapse.DataFlowComputeTypeMemoryOptimized),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(synapse.DataFlowComputeTypeGeneral),
+				ValidateFunc: validation.StringInEnumSlice(synapse.PossibleDataFlowComputeTypeValues(), false),
 			},
 
 			"core_count": {

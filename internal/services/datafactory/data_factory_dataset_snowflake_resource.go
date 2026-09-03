@@ -296,13 +296,11 @@ func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta int
 		d.Set("description", snowflakeTable.Description)
 	}
 
-	parameters := flattenDataSetParameters(snowflakeTable.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenDataSetParameters(snowflakeTable.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
-	annotations := flattenDataFactoryAnnotations(snowflakeTable.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(snowflakeTable.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
@@ -333,8 +331,7 @@ func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	schemaColumns := flattenDataFactorySnowflakeSchemaColumns(snowflakeTable.Schema)
-	if err := d.Set("schema_column", schemaColumns); err != nil {
+	if err := d.Set("schema_column", flattenDataFactorySnowflakeSchemaColumns(snowflakeTable.Schema)); err != nil {
 		return fmt.Errorf("setting `schema_column`: %+v", err)
 	}
 

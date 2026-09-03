@@ -79,12 +79,9 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 			},
 
 			"protocol": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(appplatform.GatewayRouteConfigProtocolHTTP),
-					string(appplatform.GatewayRouteConfigProtocolHTTPS),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInEnumSlice(appplatform.PossibleGatewayRouteConfigProtocolValues(), false),
 			},
 
 			"spring_cloud_app_id": {

@@ -366,8 +366,7 @@ func resourceDataFactoryDatasetBinaryRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
-	annotations := flattenDataFactoryAnnotations(binaryTable.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(binaryTable.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
@@ -394,8 +393,7 @@ func resourceDataFactoryDatasetBinaryRead(d *pluginsdk.ResourceData, meta interf
 			}
 		}
 
-		compression := flattenDataFactoryDatasetCompression(properties.Compression)
-		if err := d.Set("compression", compression); err != nil {
+		if err := d.Set("compression", flattenDataFactoryDatasetCompression(properties.Compression)); err != nil {
 			return fmt.Errorf("setting `compression`: %+v", err)
 		}
 	}
