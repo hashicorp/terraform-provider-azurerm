@@ -126,13 +126,9 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 
 						// case change in 2021-01-15, issue https://github.com/Azure/azure-rest-api-specs/issues/14051
 						"indexing_mode": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cosmosdb.IndexingModeConsistent),
-								string(cosmosdb.IndexingModeNone),
-								string(cosmosdb.IndexingModeLazy),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForIndexingMode(), false),
 						},
 
 						"included_paths": {

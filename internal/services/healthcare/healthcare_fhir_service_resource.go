@@ -74,14 +74,11 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"kind": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(fhirservices.FhirServiceKindFhirNegativeRFour),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(fhirservices.FhirServiceKindFhirNegativeRFour),
-					string(fhirservices.FhirServiceKindFhirNegativeStuThree),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(fhirservices.FhirServiceKindFhirNegativeRFour),
+				ValidateFunc: validation.StringInSlice(fhirservices.PossibleValuesForFhirServiceKind(), false),
 			},
 
 			"access_policy_object_ids": {

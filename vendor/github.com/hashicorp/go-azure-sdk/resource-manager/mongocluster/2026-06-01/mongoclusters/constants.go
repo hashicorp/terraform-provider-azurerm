@@ -317,6 +317,47 @@ func parseMongoClusterStatus(input string) (*MongoClusterStatus, error) {
 	return &out, nil
 }
 
+type NetworkBypassMode string
+
+const (
+	NetworkBypassModeAzureCosmosDB NetworkBypassMode = "AzureCosmosDB"
+	NetworkBypassModeNone          NetworkBypassMode = "None"
+)
+
+func PossibleValuesForNetworkBypassMode() []string {
+	return []string{
+		string(NetworkBypassModeAzureCosmosDB),
+		string(NetworkBypassModeNone),
+	}
+}
+
+func (s *NetworkBypassMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNetworkBypassMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseNetworkBypassMode(input string) (*NetworkBypassMode, error) {
+	vals := map[string]NetworkBypassMode{
+		"azurecosmosdb": NetworkBypassModeAzureCosmosDB,
+		"none":          NetworkBypassModeNone,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := NetworkBypassMode(input)
+	return &out, nil
+}
+
 type PreviewFeature string
 
 const (

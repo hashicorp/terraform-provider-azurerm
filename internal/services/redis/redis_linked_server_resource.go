@@ -66,13 +66,10 @@ func resourceRedisLinkedServer() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"server_role": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(linkedserver.ReplicationRolePrimary),
-					string(linkedserver.ReplicationRoleSecondary),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(linkedserver.PossibleValuesForReplicationRole(), false),
 			},
 
 			"name": {

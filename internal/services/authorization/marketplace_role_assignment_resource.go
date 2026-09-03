@@ -24,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const (
@@ -354,9 +353,7 @@ func retryMarketplaceRoleAssignmentsClient(ctx context.Context, metadata sdk.Res
 		roleAssignmentsClient := metadata.Client.Authorization.ScopedRoleAssignmentsClient
 		resp, err := roleAssignmentsClient.Create(ctx, id.ScopedId, *properties)
 		if err != nil {
-			if utils.ResponseErrorIsRetryable(err) {
-				return pluginsdk.RetryableError(err)
-			} else if response.WasStatusCode(resp.HttpResponse, 400) && strings.Contains(err.Error(), "PrincipalNotFound") {
+			if response.WasStatusCode(resp.HttpResponse, 400) && strings.Contains(err.Error(), "PrincipalNotFound") {
 				// When waiting for service principal to become available
 				return pluginsdk.RetryableError(err)
 			}

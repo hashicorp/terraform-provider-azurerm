@@ -11,6 +11,7 @@ type MongoClusterUpdateProperties struct {
 	DataApi             *DataApiProperties          `json:"dataApi,omitempty"`
 	Encryption          *EncryptionProperties       `json:"encryption,omitempty"`
 	HighAvailability    *HighAvailabilityProperties `json:"highAvailability,omitempty"`
+	NetworkBypassMode   *NetworkBypassMode          `json:"networkBypassMode,omitempty"`
 	PreviewFeatures     *[]PreviewFeature           `json:"previewFeatures,omitempty"`
 	PublicNetworkAccess *PublicNetworkAccess        `json:"publicNetworkAccess,omitempty"`
 	ServerVersion       *string                     `json:"serverVersion,omitempty"`

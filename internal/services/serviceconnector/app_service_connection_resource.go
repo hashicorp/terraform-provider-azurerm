@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -48,7 +47,7 @@ func (r AppServiceConnectorResource) Arguments() map[string]*schema.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.AppServiceID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseAppServiceIDInsensitively),
 		},
 
 		"target_resource_id": {
@@ -79,12 +78,9 @@ func (r AppServiceConnectorResource) Arguments() map[string]*schema.Schema {
 		"secret_store": secretStoreSchema(),
 
 		"vnet_solution": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(servicelinker.VNetSolutionTypeServiceEndpoint),
-				string(servicelinker.VNetSolutionTypePrivateLink),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(servicelinker.PossibleValuesForVNetSolutionType(), false),
 		},
 
 		"authentication": authInfoSchema(),

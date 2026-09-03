@@ -15,6 +15,7 @@ type MongoClusterProperties struct {
 	Encryption                 *EncryptionProperties          `json:"encryption,omitempty"`
 	HighAvailability           *HighAvailabilityProperties    `json:"highAvailability,omitempty"`
 	InfrastructureVersion      *string                        `json:"infrastructureVersion,omitempty"`
+	NetworkBypassMode          *NetworkBypassMode             `json:"networkBypassMode,omitempty"`
 	PreviewFeatures            *[]PreviewFeature              `json:"previewFeatures,omitempty"`
 	PrivateEndpointConnections *[]PrivateEndpointConnection   `json:"privateEndpointConnections,omitempty"`
 	ProvisioningState          *ProvisioningState             `json:"provisioningState,omitempty"`
