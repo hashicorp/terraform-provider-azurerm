@@ -205,6 +205,85 @@ func TestAccMongoCluster_authenticationMethodsValidation(t *testing.T) {
 	})
 }
 
+// TestAccMongoCluster_storageType covers the storage type being selected by the service
+// when it is not configured, and the guard that stops a replacement from silently changing
+// it. Sequential because each step provisions a cluster.
+func TestAccMongoCluster_storageType(t *testing.T) {
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"storageType": {
+			"omitted":                     testAccMongoCluster_storageTypeOmitted,
+			"explicit":                    testAccMongoCluster_storageTypeExplicit,
+			"replacementRequiresExplicit": testAccMongoCluster_storageTypeReplacementRequiresExplicit,
+		},
+	})
+}
+
+// Omitting `storage_type` must leave the choice to the service, and the value it returns
+// must settle into state without producing a follow-up diff.
+func testAccMongoCluster_storageTypeOmitted(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
+	r := MongoClusterResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageTypeOmitted(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_type").Exists(),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
+	})
+}
+
+// An explicitly configured storage type must be sent and honoured unchanged.
+func testAccMongoCluster_storageTypeExplicit(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
+	r := MongoClusterResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageTypeExplicit(data, "PremiumSSD"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_type").HasValue("PremiumSSD"),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
+	})
+}
+
+// A replacement recreates the cluster, and the storage type of the replacement is chosen by
+// the service when `storage_type` is absent, which can silently change the storage type of
+// the cluster. The plan must be rejected until the practitioner states which type they want.
+func testAccMongoCluster_storageTypeReplacementRequiresExplicit(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
+	r := MongoClusterResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageTypeOmitted(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			// Adding an identity forces a replacement, which must be refused while
+			// `storage_type` is unset.
+			Config:      r.storageTypeOmittedWithIdentity(data),
+			ExpectError: regexp.MustCompile("`storage_type` is not set in the configuration"),
+		},
+		{
+			// Stating the storage type explicitly allows the same replacement to proceed.
+			Config: r.storageTypeExplicitWithIdentity(data, "PremiumSSD"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_type").HasValue("PremiumSSD"),
+			),
+		},
+	})
+}
+
 func (r MongoClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := mongoclusters.ParseMongoClusterID(state.ID)
 	if err != nil {
@@ -530,4 +609,57 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 `, data.RandomInteger, location)
+}
+
+const mongoClusterIdentityBlock = `  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }`
+
+func (r MongoClusterResource) storageTypeTemplate(data acceptance.TestData, storageType string, identity string) string {
+	storageTypeLine := ""
+	if storageType != "" {
+		storageTypeLine = fmt.Sprintf("  storage_type           = %q", storageType)
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uai-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_mongo_cluster" "test" {
+  name                   = "acctest-mc%[2]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_username = "adminTerraform"
+  administrator_password = "QAZwsx123basic"
+  shard_count            = "1"
+  compute_tier           = "M30"
+  high_availability_mode = "Disabled"
+  storage_size_in_gb     = "64"
+  version                = "7.0"
+%[3]s
+%[4]s
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger, storageTypeLine, identity)
+}
+
+func (r MongoClusterResource) storageTypeOmitted(data acceptance.TestData) string {
+	return r.storageTypeTemplate(data, "", "")
+}
+
+func (r MongoClusterResource) storageTypeExplicit(data acceptance.TestData, storageType string) string {
+	return r.storageTypeTemplate(data, storageType, "")
+}
+
+func (r MongoClusterResource) storageTypeOmittedWithIdentity(data acceptance.TestData) string {
+	return r.storageTypeTemplate(data, "", mongoClusterIdentityBlock)
+}
+
+func (r MongoClusterResource) storageTypeExplicitWithIdentity(data acceptance.TestData, storageType string) string {
+	return r.storageTypeTemplate(data, storageType, mongoClusterIdentityBlock)
 }

@@ -87,6 +87,8 @@ The following arguments are supported:
 
 ~> **Note:** When `storage_type` is omitted, the storage type is selected by the service and exported back into state. Omitting this property does not modify the storage type of an existing MongoDB Cluster.
 
+~> **Note:** If a change would replace an existing MongoDB Cluster and `storage_type` is not set, the plan is rejected. A replacement is created with the storage type the service selects, which is not necessarily the type the cluster uses today, so `storage_type` must be set explicitly to confirm which storage type the replacement should have.
+
 * `version` - (Optional) The version for the MongoDB Cluster. Possibles values are `5.0`, `6.0`, `7.0` and `8.0`.
 
 ~> **Note:** `version` is required when `create_mode` is `Default`.
