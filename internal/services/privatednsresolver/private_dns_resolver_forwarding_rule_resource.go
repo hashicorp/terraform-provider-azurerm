@@ -9,12 +9,15 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/dnsforwardingrulesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/forwardingrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "subscription_id:dns_forwarding_ruleset_id,resource_group_name:dns_forwarding_ruleset_id,dns_forwarding_ruleset_name:dns_forwarding_ruleset_id"
 
 type PrivateDNSResolverForwardingRuleModel struct {
 	Name                   string                 `tfschema:"name"`
@@ -32,7 +35,14 @@ type TargetDnsServerModel struct {
 
 type PrivateDNSResolverForwardingRuleResource struct{}
 
-var _ sdk.ResourceWithUpdate = PrivateDNSResolverForwardingRuleResource{}
+var (
+	_ sdk.ResourceWithIdentity = PrivateDNSResolverForwardingRuleResource{}
+	_ sdk.ResourceWithUpdate   = PrivateDNSResolverForwardingRuleResource{}
+)
+
+func (r PrivateDNSResolverForwardingRuleResource) Identity() resourceids.ResourceId {
+	return &forwardingrules.ForwardingRuleId{}
+}
 
 func (r PrivateDNSResolverForwardingRuleResource) ResourceType() string {
 	return "azurerm_private_dns_resolver_forwarding_rule"
@@ -158,7 +168,7 @@ func (r PrivateDNSResolverForwardingRuleResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 	}
 }
@@ -247,28 +257,36 @@ func (r PrivateDNSResolverForwardingRuleResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state := PrivateDNSResolverForwardingRuleModel{
-				Name:                   id.ForwardingRuleName,
-				DnsForwardingRulesetId: dnsforwardingrulesets.NewDnsForwardingRulesetID(id.SubscriptionId, id.ResourceGroupName, id.DnsForwardingRulesetName).ID(),
-			}
-
-			properties := &model.Properties
-			state.DomainName = properties.DomainName
-
-			state.Enabled = false
-			if properties.ForwardingRuleState != nil && *properties.ForwardingRuleState == forwardingrules.ForwardingRuleStateEnabled {
-				state.Enabled = true
-			}
-
-			if properties.Metadata != nil {
-				state.Metadata = *properties.Metadata
-			}
-
-			state.TargetDnsServers = flattenTargetDnsServerModel(&properties.TargetDnsServers)
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r PrivateDNSResolverForwardingRuleResource) flatten(metadata sdk.ResourceMetaData, id *forwardingrules.ForwardingRuleId, model *forwardingrules.ForwardingRule) error {
+	state := PrivateDNSResolverForwardingRuleModel{
+		Name:                   id.ForwardingRuleName,
+		DnsForwardingRulesetId: dnsforwardingrulesets.NewDnsForwardingRulesetID(id.SubscriptionId, id.ResourceGroupName, id.DnsForwardingRulesetName).ID(),
+	}
+
+	properties := &model.Properties
+	state.DomainName = properties.DomainName
+
+	state.Enabled = false
+	if properties.ForwardingRuleState != nil && *properties.ForwardingRuleState == forwardingrules.ForwardingRuleStateEnabled {
+		state.Enabled = true
+	}
+
+	if properties.Metadata != nil {
+		state.Metadata = *properties.Metadata
+	}
+
+	state.TargetDnsServers = flattenTargetDnsServerModel(&properties.TargetDnsServers)
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r PrivateDNSResolverForwardingRuleResource) Delete() sdk.ResourceFunc {
