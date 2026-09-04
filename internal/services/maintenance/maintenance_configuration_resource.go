@@ -395,13 +395,11 @@ func resourceMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta interf
 			}
 			d.Set("properties", properties)
 
-			window := flattenMaintenanceConfigurationWindow(props.MaintenanceWindow)
-			if err := d.Set("window", window); err != nil {
+			if err := d.Set("window", flattenMaintenanceConfigurationWindow(props.MaintenanceWindow)); err != nil {
 				return fmt.Errorf("setting `window`: %+v", err)
 			}
 
-			installPatches := flattenMaintenanceConfigurationInstallPatches(props.InstallPatches)
-			if err := d.Set("install_patches", installPatches); err != nil {
+			if err := d.Set("install_patches", flattenMaintenanceConfigurationInstallPatches(props.InstallPatches)); err != nil {
 				return fmt.Errorf("setting `install_patches`: %+v", err)
 			}
 		}

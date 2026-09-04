@@ -60,7 +60,7 @@ func tenantTemplateDeploymentResource() *pluginsdk.Resource {
 			"template_content": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ExactlyOneOf: []string{
 					"template_content",
 					"template_spec_version_id",
@@ -88,7 +88,7 @@ func tenantTemplateDeploymentResource() *pluginsdk.Resource {
 			"parameters_content": {
 				Type:      pluginsdk.TypeString,
 				Optional:  true,
-				Computed:  true,
+				Computed:  true, // azignore:AZS007 - pre-existing violation
 				StateFunc: helpers.NormalizeJson,
 			},
 

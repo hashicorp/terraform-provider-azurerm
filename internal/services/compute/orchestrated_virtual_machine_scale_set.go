@@ -181,7 +181,7 @@ func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
@@ -416,7 +416,7 @@ func orchestratedVirtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema
 				"idle_timeout_in_minutes": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(4, 32),
 				},
 				"ip_tag": {
@@ -473,8 +473,7 @@ func computerPrefixWindowsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Optional: true,
-
-		// Computed since we reuse the VM name if one's not specified
+		// Note: O+C since we reuse the VM name if one's not specified
 		Computed:     true,
 		ForceNew:     true,
 		ValidateFunc: validate.WindowsComputerNamePrefix,
@@ -485,8 +484,7 @@ func computerPrefixLinuxSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Optional: true,
-
-		// Computed since we reuse the VM name if one's not specified
+		// Note: O+C since we reuse the VM name if one's not specified
 		Computed:     true,
 		ForceNew:     true,
 		ValidateFunc: validate.LinuxComputerNamePrefix,
@@ -526,8 +524,9 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 				},
 
 				"disk_size_gb": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					// Note: O+C because Azure computes disk size when not specified
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(1, 32767),
 				},
@@ -535,7 +534,7 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 				"lun": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true,                           // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(0, 2000), // TODO: confirm upper bounds
 				},
 
@@ -555,14 +554,16 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntAtLeast(1),
-					Computed:     true,
+					// Note: O+C because Azure assigns IOPS based on disk size when not specified
+					Computed: true,
 				},
 
 				"disk_mbps_read_write": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntAtLeast(1),
-					Computed:     true,
+					// Note: O+C because Azure assigns throughput based on disk size when not specified
+					Computed: true,
 				},
 			},
 		},
@@ -653,8 +654,9 @@ func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 				},
 
 				"disk_size_gb": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					// Note: O+C because Azure computes disk size when not specified
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(0, 4095),
 				},
@@ -673,7 +675,7 @@ func OrchestratedVirtualMachineScaleSetTerminationNotificationSchema() *pluginsd
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{

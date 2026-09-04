@@ -269,16 +269,13 @@ func resourceNotificationHubRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if credentialsModel := credentials.Model; credentialsModel != nil {
 		if props := credentialsModel.Properties; props != nil {
-			apns := flattenNotificationHubsAPNSCredentials(props.ApnsCredential)
-			if setErr := d.Set("apns_credential", apns); setErr != nil {
+			if setErr := d.Set("apns_credential", flattenNotificationHubsAPNSCredentials(props.ApnsCredential)); setErr != nil {
 				return fmt.Errorf("setting `apns_credential`: %+v", setErr)
 			}
-			browser := flattenNotificationHubsBrowserCredentials(props.BrowserCredential)
-			if setErr := d.Set("browser_credential", browser); setErr != nil {
+			if setErr := d.Set("browser_credential", flattenNotificationHubsBrowserCredentials(props.BrowserCredential)); setErr != nil {
 				return fmt.Errorf("setting `browser_credential`: %+v", setErr)
 			}
-			gcm := flattenNotificationHubsGCMCredentials(props.GcmCredential)
-			if setErr := d.Set("gcm_credential", gcm); setErr != nil {
+			if setErr := d.Set("gcm_credential", flattenNotificationHubsGCMCredentials(props.GcmCredential)); setErr != nil {
 				return fmt.Errorf("setting `gcm_credential`: %+v", setErr)
 			}
 		}

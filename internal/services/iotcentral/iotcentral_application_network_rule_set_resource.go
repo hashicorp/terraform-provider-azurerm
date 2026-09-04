@@ -295,7 +295,7 @@ func expandIotCentralApplicationNetworkRuleSetIPRule(input []IPRule) *[]apps.Net
 
 func flattenIotCentralApplicationNetworkRuleSetIPRule(input *[]apps.NetworkRuleSetIPRule) []IPRule {
 	if input == nil {
-		return nil
+		return []IPRule{}
 	}
 
 	results := make([]IPRule, 0)

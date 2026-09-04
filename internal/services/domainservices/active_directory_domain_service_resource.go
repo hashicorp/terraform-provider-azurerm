@@ -130,7 +130,7 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 			"notifications": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -161,7 +161,7 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 			"secure_ldap": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -210,7 +210,7 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 			"security": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -761,7 +761,7 @@ func flattenDomainServiceNotifications(input *domainservices.NotificationSetting
 
 func flattenDomainServiceReplicaSets(input *[]domainservices.ReplicaSet) (ret []interface{}) {
 	if input == nil {
-		return
+		return []interface{}{}
 	}
 
 	for _, in := range *input {

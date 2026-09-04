@@ -77,27 +77,21 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			// NOTE: 'js challenge expiration' is always
-			// enabled no matter what and cannot be disabled for Premium_AzureFrontDoor
-			// and is not supported in Standard_AzureFrontDoor...
 			"js_challenge_cookie_expiration_in_minutes": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because 'js challenge expiration' is always
+				// enabled no matter what and cannot be disabled for Premium_AzureFrontDoor
+				// and is not supported in Standard_AzureFrontDoor...
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(5, 1440),
 			},
 
-			// NOTE: 'captcha expiration' is always
-			// enabled no matter what and cannot be disabled for Premium_AzureFrontDoor
-			// and is not supported in Standard_AzureFrontDoor...
-
-			// NOTE: This field is Optional + Computed because:
-			//  * Optional: Users can override the Azure default value (e.g., 30 minutes)
-			//  * Computed: Azure automatically enables CAPTCHA policy with a default of 30 minutes on the Premium_AzureFrontDoor SKU,
-			//    so the value is defined by Azure even when not explicitly set by the user
 			"captcha_cookie_expiration_in_minutes": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because Azure automatically enables CAPTCHA policy with a default of 30 minutes on the Premium_AzureFrontDoor SKU
+				// but it cannot be defined for Standard_AzureFrontDoor
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(5, 1440),
 			},

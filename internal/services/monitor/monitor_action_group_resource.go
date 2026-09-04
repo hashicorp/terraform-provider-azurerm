@@ -227,14 +227,14 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 									"identifier_uri": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										Computed:     true,
+										Computed:     true, // azignore:AZS007 - pre-existing violation
 										ValidateFunc: validation.IsURLWithScheme([]string{"api", "https"}),
 									},
 
 									"tenant_id": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										Computed:     true,
+										Computed:     true, // azignore:AZS007 - pre-existing violation
 										ValidateFunc: validation.IsUUID,
 									},
 								},
@@ -419,7 +419,7 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 						"tenant_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.IsUUID,
 						},
 						"use_common_alert_schema": {
@@ -429,7 +429,7 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 						"subscription_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.IsUUID,
 						},
 					},

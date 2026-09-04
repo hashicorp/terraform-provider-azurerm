@@ -26,6 +26,8 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity
 
+const azureDedicatedHostGroupResourceName = "azurerm_dedicated_host_group"
+
 func resourceDedicatedHostGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceDedicatedHostGroupCreate,
@@ -151,10 +153,14 @@ func resourceDedicatedHostGroupRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceDedicatedHostGroupFlatten(d, id, resp.Model)
+}
+
+func resourceDedicatedHostGroupFlatten(d *pluginsdk.ResourceData, id *commonids.DedicatedHostGroupId, model *dedicatedhostgroups.DedicatedHostGroup) error {
 	d.Set("name", id.HostGroupName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
 		zone := ""

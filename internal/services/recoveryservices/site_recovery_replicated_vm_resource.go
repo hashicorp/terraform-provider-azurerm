@@ -33,7 +33,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
-	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -141,14 +140,14 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 
 			"target_network_id": {
 				Type:         pluginsdk.TypeString,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				Optional:     true,
 				ValidateFunc: commonids.ValidateVirtualNetworkID,
 			},
 
 			"test_network_id": {
 				Type:         pluginsdk.TypeString,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				Optional:     true,
 				ValidateFunc: commonids.ValidateVirtualNetworkID,
 			},
@@ -158,7 +157,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			"unmanaged_disk": {
 				Type:       pluginsdk.TypeSet,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				ForceNew:   true,
 				Elem: &pluginsdk.Resource{
@@ -196,7 +195,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			"managed_disk": {
 				Type:       pluginsdk.TypeSet,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Set:        resourceSiteRecoveryReplicatedVMDiskHash,
 				Elem: &pluginsdk.Resource{
@@ -275,7 +274,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			"target_virtual_machine_size": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				// O+C if not specified, this gets set to the vm_size of the virtual machine
+				// Note: O+C if not specified, this gets set to the vm_size of the virtual machine
 				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -283,7 +282,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			"network_interface": {
 				Type:       pluginsdk.TypeList,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem:       networkInterfaceResource(),
 			},
@@ -358,7 +357,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"source_network_interface_id": {
 				Type:         pluginsdk.TypeString,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
@@ -372,7 +371,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
@@ -915,7 +914,7 @@ func flattenSiteRecoveryReplicatedItem(d *pluginsdk.ResourceData, model *replica
 
 			recoveryGroupId := ""
 			if groupId := pointer.From(a2aDetails.RecoveryAzureResourceGroupId); groupId != "" {
-				parsedGroupId, err := resourceParse.ResourceGroupIDInsensitively(groupId)
+				parsedGroupId, err := commonids.ParseResourceGroupIDInsensitively(groupId)
 				if err != nil {
 					return err
 				}
@@ -1036,7 +1035,7 @@ func flattenSiteRecoveryReplicatedItem(d *pluginsdk.ResourceData, model *replica
 
 					recoveryResourceGroupID := ""
 					if respRGId := pointer.From(disk.RecoveryResourceGroupId); respRGId != "" {
-						parsedResourceGroupId, err := resourceParse.ResourceGroupIDInsensitively(respRGId)
+						parsedResourceGroupId, err := commonids.ParseResourceGroupIDInsensitively(respRGId)
 						if err != nil {
 							return err
 						}

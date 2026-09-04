@@ -160,16 +160,18 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			},
 
 			"max_size_bytes": {
-				Type:          pluginsdk.TypeInt,
-				Optional:      true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because this value is computed based on `max_size_gb` if not set
 				Computed:      true,
 				ConflictsWith: []string{"max_size_gb"},
 				ValidateFunc:  validation.IntAtLeast(0),
 			},
 
 			"max_size_gb": {
-				Type:          pluginsdk.TypeFloat,
-				Optional:      true,
+				Type:     pluginsdk.TypeFloat,
+				Optional: true,
+				// Note: O+C because this value is computed based on `max_size_bytes` if not set
 				Computed:      true,
 				ConflictsWith: []string{"max_size_bytes"},
 				ValidateFunc:  validation.FloatAtLeast(0),
@@ -193,14 +195,14 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			"license_type": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice(elasticpools.PossibleValuesForElasticPoolLicenseType(), false),
 			},
 
 			"high_availability_replica_count": {
-				Type: pluginsdk.TypeInt,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
 				// NOTE: O+C can only be set for Hyperscale skus, which have a default value of 1
-				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(0, 4),
 			},

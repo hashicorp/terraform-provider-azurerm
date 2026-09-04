@@ -913,7 +913,7 @@ func expandLogicAppWorkflowOpenAuthenticationPolicyClaim(input []interface{}) *[
 
 func flattenLogicAppWorkflowWorkflowParameters(input map[string]interface{}) (map[string]interface{}, error) {
 	if input == nil {
-		return nil, nil
+		return map[string]interface{}{}, nil
 	}
 	output := make(map[string]interface{})
 	for k, v := range input {

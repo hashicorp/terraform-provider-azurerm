@@ -212,9 +212,9 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 						},
 						// lintignore:S013
 						"member_name": {
-							Type: pluginsdk.TypeString,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
 							// NOTE: O+C This value should remain optional computed as there are certain cases where Azure will error if you pass in a member id when it isn't expecting one.
-							Optional:     true,
 							Computed:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -675,18 +675,15 @@ func resourcePrivateEndpointFlatten(ctx context.Context, metaClient *clients.Cli
 				}
 			}
 
-			networkInterface := flattenNetworkInterface(networkInterfaceId)
-			if err := d.Set("network_interface", networkInterface); err != nil {
+			if err := d.Set("network_interface", flattenNetworkInterface(networkInterfaceId)); err != nil {
 				return fmt.Errorf("setting `network_interface`: %+v", err)
 			}
 
-			flattenedConnection := flattenPrivateLinkEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)
-			if err := d.Set("private_service_connection", flattenedConnection); err != nil {
+			if err := d.Set("private_service_connection", flattenPrivateLinkEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)); err != nil {
 				return fmt.Errorf("setting `private_service_connection`: %+v", err)
 			}
 
-			flattenedipconfiguration := flattenPrivateEndpointIPConfigurations(props.IPConfigurations)
-			if err := d.Set("ip_configuration", flattenedipconfiguration); err != nil {
+			if err := d.Set("ip_configuration", flattenPrivateEndpointIPConfigurations(props.IPConfigurations)); err != nil {
 				return fmt.Errorf("setting `ip_configuration`: %+v", err)
 			}
 

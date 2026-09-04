@@ -145,7 +145,7 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		"dns_servers": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -201,7 +201,7 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		"subnet": {
 			Type:       pluginsdk.TypeSet,
 			Optional:   true,
-			Computed:   true,
+			Computed:   true, // azignore:AZS007 - pre-existing violation
 			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{

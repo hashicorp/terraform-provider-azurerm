@@ -304,7 +304,7 @@ func expandDiagnosticStorageAccount(inputList []DiagnosticStorageAccountModel) *
 func flattenDiagnosticStorageAccount(input *deviceupdates.DiagnosticStorageProperties, metadata sdk.ResourceMetaData) []DiagnosticStorageAccountModel {
 	var outputList []DiagnosticStorageAccountModel
 	if input == nil {
-		return outputList
+		return []DiagnosticStorageAccountModel{}
 	}
 
 	output := DiagnosticStorageAccountModel{
