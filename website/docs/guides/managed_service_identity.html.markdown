@@ -77,6 +77,8 @@ By default, Terraform will use the system assigned identity for authentication. 
 
 By default, Terraform will use a well-known MSI endpoint to get the authentication token, which covers most use cases. In other cases where the endpoint is different (e.g. when running as an Azure Function App), you must explicitly specify the endpoint using the `ARM_MSI_ENDPOINT` environment variable (equivalent to provider block argument [`msi_endpoint`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#msi_endpoint)).
 
+Some custom MSI endpoints require an authentication header. The provider defaults to sending the value of `IDENTITY_HEADER` in the `X-IDENTITY-HEADER` header. The header name and value can be overridden with the `ARM_MSI_CUSTOM_HEADER_NAME` and `ARM_MSI_CUSTOM_HEADER_VALUE` environment variables, or the equivalent `msi_custom_header_name` and `msi_custom_header_value` provider arguments.
+
 !> **Note:** we recommend against running Terraform inside of a Function App as the low memory ceiling can lead to Terraform being terminated and data (including the State File) being lost. Instead we’d recommend considering triggering an external process, such as Terraform Cloud or a CI System to run these longer-running more intensive processes - see [Terraform in Automation](https://learn.hashicorp.com/tutorials/terraform/automate-terraform) for more details.
 
 In addition to a properly-configured management identity, Terraform needs to know the subscription ID and tenant ID to identify the full context for the Azure provider.

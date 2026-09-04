@@ -30,6 +30,8 @@ type ProviderModel struct {
 	UseMSI                         types.Bool   `tfsdk:"use_msi"`
 	MSIEndpoint                    types.String `tfsdk:"msi_endpoint"`
 	MSIAPIVersion                  types.String `tfsdk:"msi_api_version"`
+	MSICustomHeaderName            types.String `tfsdk:"msi_custom_header_name"`
+	MSICustomHeaderValue           types.String `tfsdk:"msi_custom_header_value"`
 	UseCLI                         types.Bool   `tfsdk:"use_cli"`
 	UseAKSWorkloadIdentity         types.Bool   `tfsdk:"use_aks_workload_identity"`
 	PartnerId                      types.String `tfsdk:"partner_id"`

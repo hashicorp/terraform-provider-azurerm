@@ -169,6 +169,20 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 				Description: "The API version to use for Managed Service Identity (IMDS) - for cases where the default API version is not supported by the endpoint. e.g. for Azure Container Apps.",
 			},
 
+			"msi_custom_header_name": schema.StringAttribute{
+				Optional:    true,
+				Description: "The name of the custom header to send when authenticating using Managed Service Identity.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
+			},
+
+			"msi_custom_header_value": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				Description: "The value of the custom header to send when authenticating using Managed Service Identity.",
+			},
+
 			// Azure CLI specific fields
 			"use_cli": schema.BoolAttribute{
 				Optional:    true,
