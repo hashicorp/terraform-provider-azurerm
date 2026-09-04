@@ -20,6 +20,9 @@ import (
 
 type ServiceBusSubscriptionResource struct{}
 
+// ServicebusSubscriptionResource is an alias used by the generated resource identity test.
+type ServicebusSubscriptionResource = ServiceBusSubscriptionResource
+
 func TestAccServiceBusSubscription_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
 	r := ServiceBusSubscriptionResource{}
