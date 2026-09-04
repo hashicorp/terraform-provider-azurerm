@@ -27,6 +27,8 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name capacity_reservation -service-package-name compute -properties "name" -compare-values "subscription_id:capacity_reservation_group_id,resource_group_name:capacity_reservation_group_id,capacity_reservation_group_name:capacity_reservation_group_id"
 
+const azureCapacityReservationResourceName = "azurerm_capacity_reservation"
+
 func resourceCapacityReservation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceCapacityReservationCreate,
@@ -121,7 +123,7 @@ func resourceCapacityReservationCreate(d *pluginsdk.ResourceData, meta interface
 			}
 		}
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_capacity_reservation", id.ID())
+			return tf.ImportAsExistsError(azureCapacityReservationResourceName, id.ID())
 		}
 	}
 
@@ -168,11 +170,15 @@ func resourceCapacityReservationRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourceCapacityReservationFlatten(d, id, resp.Model)
+}
+
+func resourceCapacityReservationFlatten(d *pluginsdk.ResourceData, id *capacityreservations.CapacityReservationId, model *capacityreservations.CapacityReservation) error {
 	d.Set("name", id.CapacityReservationName)
 	groupId := capacityreservationgroups.NewCapacityReservationGroupID(id.SubscriptionId, id.ResourceGroupName, id.CapacityReservationGroupName)
 	d.Set("capacity_reservation_group_id", groupId.ID())
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if err := d.Set("sku", flattenCapacityReservationSku(model.Sku)); err != nil {
 			return fmt.Errorf("setting `sku`: %+v", err)
 		}
