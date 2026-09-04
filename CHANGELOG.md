@@ -1,6 +1,7 @@
 ## 5.5.0 (Unreleased)
 
 ENHANCEMENTS:
+* **New List Resource**: `azurerm_analysis_services_server` [GH-33250]
 * **New List Resource**: `eventhub_consumer_group` [GH-33335]
 * `azurerm_storage_account` - add support for the `public_network_access` property [GH-33292]
 * **New List Resource**:`virtual_hub_connection` [GH-33311]
