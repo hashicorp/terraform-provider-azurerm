@@ -58,7 +58,7 @@ gencheck: generate ## Check that generated code matches what is committed
 
 ##@ Formatting & Quick Checks
 # All top-level locations containing Go source, excluding vendor.
-GOPATHS=main.go helpers internal utils version
+GOPATHS=main.go helpers internal version
 
 # The fixers here (plus goimports below) should match the checks in scripts/checks/fmt-check.sh
 fmt: ## Fix Go formatting (gofmt, gofumpt, whitespace)
@@ -170,6 +170,16 @@ prepare: ## Remove all generated files ahead of a full regeneration
 	@find . -iname \*_gen_test.go -type f -delete
 
 ##@ Website & Documentation
+# markdown checked by markdownlint: website docs, README, contributing docs, and the
+# .github markdown (PR/issue templates etc). The resource/data-source docs are exempt
+# (leading \# ignore glob, \# escapes the hash from make) as they will soon be generated.
+MARKDOWN_INPUTS='website/docs/**/*.markdown' README.md 'contributing/**/*.md' '.github/**/*.md' '\#website/docs/r' '\#website/docs/d'
+
+markdownlint: ## Check repo markdown with markdownlint (config in .markdownlint.yml)
+	@command -v markdownlint-cli2 >/dev/null || (echo "markdownlint-cli2 not installed. Install via: brew install markdownlint-cli2 (macOS) or npm install -g markdownlint-cli2" && exit 1)
+	@echo "==> Checking markdown with markdownlint..."
+	@markdownlint-cli2 $(MARKDOWN_INPUTS)
+
 website-lint: ## Check website documentation for issues
 	@echo "==> Checking documentation for .html.markdown extension present"
 	@if ! find website/docs -type f -not -name "*.html.markdown" -print -exec false {} +; then \
@@ -216,4 +226,4 @@ resource-counts: ## Print the number of resources and data sources in the provid
 
 pr-check: generate build test lint website-lint ## Run the same set of checks CI runs against a PR
 
-.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint actionlint yamllint shellcheck depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check
+.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint actionlint yamllint markdownlint shellcheck depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check

@@ -85,7 +85,6 @@ The following conventions apply to argument descriptions:
     - Arguments with a single allowed value: `` The only possible value is `valueOne`. ``
     - Arguments allowing a range of values, e.g. `validation.IntBetween()`: `` Possible values range between `1` and `100`. ``
 
-
 Examples:
 
 - `name` - (Required) The name which should be used for this resource. Changing this forces a new resource to be created.

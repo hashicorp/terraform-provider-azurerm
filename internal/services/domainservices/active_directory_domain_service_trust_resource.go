@@ -204,9 +204,8 @@ func (r DomainServiceTrustResource) Read() sdk.ResourceFunc {
 			}
 			var trust *domainservices.ForestTrust
 			for _, setting := range existingTrusts {
-				existingTrust := setting
 				if setting.FriendlyName != nil && *setting.FriendlyName == id.TrustName {
-					trust = &existingTrust
+					trust = pointer.To(setting)
 				}
 			}
 			if trust == nil {

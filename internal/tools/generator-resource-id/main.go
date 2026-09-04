@@ -16,6 +16,7 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
@@ -129,8 +130,7 @@ func parseServicePackageName(relativePath string) (*string, error) {
 		return nil, fmt.Errorf("not enough segments")
 	}
 
-	servicePackageName := segments[serviceIndex+1]
-	return &servicePackageName, nil
+	return pointer.To(segments[serviceIndex+1]), nil
 }
 
 func convertToSnakeCase(input string) string {
@@ -1127,6 +1127,5 @@ func (f GolangCodeFormatter) readFileContents(filePath string) (*string, error) 
 		return nil, err
 	}
 
-	contents := string(data)
-	return &contents, nil
+	return pointer.To(string(data)), nil
 }

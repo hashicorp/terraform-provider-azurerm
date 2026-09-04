@@ -104,6 +104,8 @@ linters:
             - AZS003 # TypeList blocks where every property is optional with no default allow empty blocks - 290 findings to fix later
             - AZS005 # resources with no corresponding data source - 768 findings, to determine if to be fixed later
             - AZS006 # data sources missing properties that exist on the resource - 185 findings, todo later
+          AZG002:
+            use: pointer.To # rather than the go1.26 new(<expr>) builtin
           AZG006:
             # only inline temporaries into calls whose other arguments are all basic literals
             # (e.g. d.Set("key", x)) - among identifier/expression siblings the name adds context

@@ -2379,9 +2379,8 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("sku_tier") {
 		updateCluster = true
 		if existing.Model.Sku == nil {
-			basic := managedclusters.ManagedClusterSKUNameBase
 			existing.Model.Sku = &managedclusters.ManagedClusterSKU{
-				Name: &basic,
+				Name: pointer.To(managedclusters.ManagedClusterSKUNameBase),
 			}
 		}
 
@@ -3389,12 +3388,10 @@ func expandKubernetesClusterNodeProvisioningProfile(input []interface{}) *manage
 	config := input[0].(map[string]interface{})
 	profile := &managedclusters.ManagedClusterNodeProvisioningProfile{}
 	if v := config["mode"].(string); v != "" {
-		mv := managedclusters.NodeProvisioningMode(v)
-		profile.Mode = &mv
+		profile.Mode = pointer.ToEnum[managedclusters.NodeProvisioningMode](v)
 	}
 	if v := config["default_node_pools"].(string); v != "" {
-		dv := managedclusters.NodeProvisioningDefaultNodePools(v)
-		profile.DefaultNodePools = &dv
+		profile.DefaultNodePools = pointer.ToEnum[managedclusters.NodeProvisioningDefaultNodePools](v)
 	}
 	return profile
 }
@@ -3736,8 +3733,7 @@ func idsToResourceReferences(set interface{}) *[]managedclusters.ResourceReferen
 	results := make([]managedclusters.ResourceReference, 0)
 
 	for _, element := range s.List() {
-		id := element.(string)
-		results = append(results, managedclusters.ResourceReference{Id: &id})
+		results = append(results, managedclusters.ResourceReference{Id: pointer.To(element.(string))})
 	}
 
 	if len(results) > 0 {
@@ -3874,8 +3870,7 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 	sku := profile.LoadBalancerSku
 	for _, v := range managedclusters.PossibleValuesForLoadBalancerSku() {
 		if strings.EqualFold(v, string(*sku)) {
-			lsSku := managedclusters.LoadBalancerSku(v)
-			sku = &lsSku
+			sku = pointer.ToEnum[managedclusters.LoadBalancerSku](v)
 		}
 	}
 

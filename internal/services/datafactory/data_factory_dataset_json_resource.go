@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -264,10 +265,9 @@ func resourceDataFactoryDatasetJSONCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	linkedServiceName := d.Get("linked_service_name").(string)
-	linkedServiceType := "LinkedServiceReference"
 	linkedService := &datafactory.LinkedServiceReference{
 		ReferenceName: &linkedServiceName,
-		Type:          &linkedServiceType,
+		Type:          pointer.To("LinkedServiceReference"),
 	}
 
 	description := d.Get("description").(string)
@@ -278,9 +278,8 @@ func resourceDataFactoryDatasetJSONCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
-		name := v.(string)
 		jsonTableset.Folder = &datafactory.DatasetFolder{
-			Name: &name,
+			Name: pointer.To(v.(string)),
 		}
 	}
 
@@ -289,8 +288,7 @@ func resourceDataFactoryDatasetJSONCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		jsonTableset.Annotations = &annotations
+		jsonTableset.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
@@ -301,10 +299,9 @@ func resourceDataFactoryDatasetJSONCreateUpdate(d *pluginsdk.ResourceData, meta 
 		jsonTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeBasicDatasetTypeJSON)
 	dataset := datafactory.DatasetResource{
 		Properties: &jsonTableset,
-		Type:       &datasetType,
+		Type:       pointer.To(string(datafactory.TypeBasicDatasetTypeJSON)),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, dataset, ""); err != nil {

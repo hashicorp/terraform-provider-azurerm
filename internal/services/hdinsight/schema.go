@@ -441,12 +441,10 @@ func ExpandHDInsightComputeIsolationProperties(input []interface{}) *clusters.Co
 	}
 
 	v := input[0].(map[string]interface{})
-	enableComputeIsolation := v["compute_isolation_enabled"].(bool)
-	hostSku := v["host_sku"].(string)
 
 	return &clusters.ComputeIsolationProperties{
-		EnableComputeIsolation: &enableComputeIsolation,
-		HostSku:                &hostSku,
+		EnableComputeIsolation: pointer.To(v["compute_isolation_enabled"].(bool)),
+		HostSku:                pointer.To(v["host_sku"].(string)),
 	}
 }
 
@@ -689,12 +687,11 @@ func flattenHDInsightPrivateLinkConfigurations(input *[]clusters.PrivateLinkConf
 	}
 
 	v := pointer.From(input)[0]
-	ipConfig := v.Properties.IPConfigurations[0]
 	return []interface{}{
 		map[string]interface{}{
 			"name":             v.Name,
 			"group_id":         v.Properties.GroupId,
-			"ip_configuration": flattenHDInsightPrivateLinkConfigurationIpConfigurationProperties(&ipConfig),
+			"ip_configuration": flattenHDInsightPrivateLinkConfigurationIpConfigurationProperties(pointer.To(v.Properties.IPConfigurations[0])),
 		},
 	}
 }
@@ -1017,13 +1014,11 @@ func ExpandHDInsightsDiskEncryptionProperties(input []interface{}) (*clusters.Di
 	v := input[0].(map[string]interface{})
 
 	encryptionAlgorithm := v["encryption_algorithm"].(string)
-	encryptionAtHost := v["encryption_at_host_enabled"].(bool)
-	keyVaultManagedIdentityId := v["key_vault_managed_identity_id"].(string)
 
 	diskEncryptionProps := &clusters.DiskEncryptionProperties{
 		EncryptionAlgorithm: pointer.ToEnum[clusters.JsonWebKeyEncryptionAlgorithm](encryptionAlgorithm),
-		EncryptionAtHost:    &encryptionAtHost,
-		MsiResourceId:       &keyVaultManagedIdentityId,
+		EncryptionAtHost:    pointer.To(v["encryption_at_host_enabled"].(bool)),
+		MsiResourceId:       pointer.To(v["key_vault_managed_identity_id"].(string)),
 	}
 
 	if id, ok := v["key_vault_key_id"]; ok && id.(string) != "" {

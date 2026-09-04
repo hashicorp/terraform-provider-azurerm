@@ -31,8 +31,8 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		LogAnalyticsClusterResource{},
-		LogAnalyticsQueryPackResource{},
 		LogAnalyticsQueryPackQueryResource{},
+		LogAnalyticsQueryPackResource{},
 		LogAnalyticsSolutionResource{},
 		LogAnalyticsWorkspaceTableResource{},
 		WorkspaceTableCustomLogResource{},
@@ -63,9 +63,9 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_log_analytics_cluster_customer_managed_key":           resourceLogAnalyticsClusterCustomerManagedKey(),
+		"azurerm_log_analytics_data_export_rule":                       resourceLogAnalyticsDataExport(),
 		"azurerm_log_analytics_datasource_windows_event":               resourceLogAnalyticsDataSourceWindowsEvent(),
 		"azurerm_log_analytics_datasource_windows_performance_counter": resourceLogAnalyticsDataSourceWindowsPerformanceCounter(),
-		"azurerm_log_analytics_data_export_rule":                       resourceLogAnalyticsDataExport(),
 		"azurerm_log_analytics_linked_service":                         resourceLogAnalyticsLinkedService(),
 		"azurerm_log_analytics_linked_storage_account":                 resourceLogAnalyticsLinkedStorageAccount(),
 		"azurerm_log_analytics_saved_search":                           resourceLogAnalyticsSavedSearch(),

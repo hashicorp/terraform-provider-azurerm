@@ -261,8 +261,6 @@ func resourceSiteRecoveryServicesContainerMappingDelete(d *pluginsdk.ResourceDat
 		return err
 	}
 
-	instanceType := "A2A"
-
 	client := meta.(*clients.Client).RecoveryServices.ContainerMappingClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -270,7 +268,7 @@ func resourceSiteRecoveryServicesContainerMappingDelete(d *pluginsdk.ResourceDat
 	input := replicationprotectioncontainermappings.RemoveProtectionContainerMappingInput{
 		Properties: &replicationprotectioncontainermappings.RemoveProtectionContainerMappingInputProperties{
 			ProviderSpecificInput: &replicationprotectioncontainermappings.ReplicationProviderContainerUnmappingInput{
-				InstanceType: &instanceType,
+				InstanceType: pointer.To("A2A"),
 			},
 		},
 	}
