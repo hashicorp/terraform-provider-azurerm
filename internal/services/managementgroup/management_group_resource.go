@@ -302,12 +302,11 @@ func resourceManagementGroupDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	recurse := true
 	group, err := client.Get(ctx, *id, managementgroups.GetOperationOptions{
 		CacheControl: &managementGroupCacheControl,
 		Filter:       pointer.To("children.childType eq Subscription"),
 		Expand:       pointer.To(managementgroups.ExpandChildren),
-		Recurse:      &recurse,
+		Recurse:      pointer.To(true),
 	})
 	if err != nil {
 		if response.WasNotFound(group.HttpResponse) || response.WasForbidden(group.HttpResponse) {

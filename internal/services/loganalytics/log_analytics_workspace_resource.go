@@ -320,8 +320,7 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 	capacityReservationLevel, ok := d.GetOk(propName)
 	if ok {
 		if strings.EqualFold(skuName, string(workspaces.WorkspaceSkuNameEnumCapacityReservation)) {
-			capacityReservationLevelValue := int64(capacityReservationLevel.(int))
-			parameters.Properties.Sku.CapacityReservationLevel = &capacityReservationLevelValue
+			parameters.Properties.Sku.CapacityReservationLevel = pointer.To(int64(capacityReservationLevel.(int)))
 		} else {
 			return fmt.Errorf("`%s` can only be used with the `CapacityReservation` SKU", propName)
 		}

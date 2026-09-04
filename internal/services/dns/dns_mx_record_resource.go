@@ -240,11 +240,10 @@ func expandAzureRmDnsMxRecords(d *pluginsdk.ResourceData) *[]recordsets.MxRecord
 		mxrecord := v.(map[string]interface{})
 		preference := mxrecord["preference"].(string)
 		i64, _ := strconv.ParseInt(preference, 10, 32)
-		exchange := mxrecord["exchange"].(string)
 
 		records[i] = recordsets.MxRecord{
 			Preference: &i64,
-			Exchange:   &exchange,
+			Exchange:   pointer.To(mxrecord["exchange"].(string)),
 		}
 	}
 

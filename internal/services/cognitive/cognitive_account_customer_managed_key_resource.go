@@ -87,12 +87,10 @@ func resourceCognitiveAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.Resourc
 		}
 	}
 
-	keySource := cognitiveservicesaccounts.KeySourceMicrosoftPointKeyVault
-
 	props := cognitiveservicesaccounts.Account{
 		Properties: &cognitiveservicesaccounts.AccountProperties{
 			Encryption: &cognitiveservicesaccounts.Encryption{
-				KeySource: &keySource,
+				KeySource: pointer.To(cognitiveservicesaccounts.KeySourceMicrosoftPointKeyVault),
 			},
 		},
 	}
@@ -178,12 +176,11 @@ func resourceCognitiveAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData,
 		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
 
-	keySource := cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices
 	// set key source to Microsoft.CognitiveServices to disable customer managed key
 	props := cognitiveservicesaccounts.Account{
 		Properties: &cognitiveservicesaccounts.AccountProperties{
 			Encryption: &cognitiveservicesaccounts.Encryption{
-				KeySource: &keySource,
+				KeySource: pointer.To(cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices),
 			},
 		},
 	}

@@ -194,10 +194,9 @@ func resourceDataFactoryDatasetAzureBlobCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	linkedServiceName := d.Get("linked_service_name").(string)
-	linkedServiceType := "LinkedServiceReference"
 	linkedService := &datafactory.LinkedServiceReference{
 		ReferenceName: &linkedServiceName,
-		Type:          &linkedServiceType,
+		Type:          pointer.To("LinkedServiceReference"),
 	}
 
 	azureBlobTableset := datafactory.AzureBlobDataset{
@@ -210,9 +209,8 @@ func resourceDataFactoryDatasetAzureBlobCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
-		name := v.(string)
 		azureBlobTableset.Folder = &datafactory.DatasetFolder{
-			Name: &name,
+			Name: pointer.To(v.(string)),
 		}
 	}
 
@@ -221,8 +219,7 @@ func resourceDataFactoryDatasetAzureBlobCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		azureBlobTableset.Annotations = &annotations
+		azureBlobTableset.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
@@ -233,10 +230,9 @@ func resourceDataFactoryDatasetAzureBlobCreateUpdate(d *pluginsdk.ResourceData, 
 		azureBlobTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeBasicDatasetTypeAzureBlob)
 	dataset := datafactory.DatasetResource{
 		Properties: &azureBlobTableset,
-		Type:       &datasetType,
+		Type:       pointer.To(string(datafactory.TypeBasicDatasetTypeAzureBlob)),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, dataset, ""); err != nil {

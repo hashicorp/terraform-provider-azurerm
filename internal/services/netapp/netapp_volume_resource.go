@@ -977,20 +977,16 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("smb_non_browsable_enabled") {
-		smbNonBrowsable := volumes.SmbNonBrowsableDisabled
-		update.Properties.SmbNonBrowsable = &smbNonBrowsable
+		update.Properties.SmbNonBrowsable = pointer.To(volumes.SmbNonBrowsableDisabled)
 		if d.Get("smb_non_browsable_enabled").(bool) {
-			smbNonBrowsable := volumes.SmbNonBrowsableEnabled
-			update.Properties.SmbNonBrowsable = &smbNonBrowsable
+			update.Properties.SmbNonBrowsable = pointer.To(volumes.SmbNonBrowsableEnabled)
 		}
 	}
 
 	if d.HasChange("smb_access_based_enumeration_enabled") {
-		smbAccessBasedEnumeration := volumes.SmbAccessBasedEnumerationDisabled
-		update.Properties.SmbAccessBasedEnumeration = &smbAccessBasedEnumeration
+		update.Properties.SmbAccessBasedEnumeration = pointer.To(volumes.SmbAccessBasedEnumerationDisabled)
 		if d.Get("smb_access_based_enumeration_enabled").(bool) {
-			smbAccessBasedEnumeration := volumes.SmbAccessBasedEnumerationEnabled
-			update.Properties.SmbAccessBasedEnumeration = &smbAccessBasedEnumeration
+			update.Properties.SmbAccessBasedEnumeration = pointer.To(volumes.SmbAccessBasedEnumerationEnabled)
 		}
 	}
 
