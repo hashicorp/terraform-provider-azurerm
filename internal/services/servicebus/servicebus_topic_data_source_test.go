@@ -28,6 +28,7 @@ func TestAccDataSourceServiceBusTopic_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("batched_operations_enabled").Exists(),
 				check.That(data.ResourceName).Key("express_enabled").Exists(),
 				check.That(data.ResourceName).Key("partitioning_enabled").Exists(),
+				check.That(data.ResourceName).Key("max_message_size_in_kilobytes").Exists(),
 				check.That(data.ResourceName).Key("max_size_in_megabytes").Exists(),
 				check.That(data.ResourceName).Key("requires_duplicate_detection").Exists(),
 				check.That(data.ResourceName).Key("status").Exists(),
