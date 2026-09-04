@@ -1,0 +1,69 @@
+# CodeQL SAST for the provider (go) and our workflows (actions).
+#
+# Runs on pushes to main and a weekly schedule only - the codebase is large
+# enough that per-PR analysis would be too slow/expensive.
+
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/codeql-analysis.yml'
+      - '**.go'
+      - 'go.mod'
+      - 'go.sum'
+  schedule:
+    - cron: '33 3 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: go
+            # manual so only the provider is built - autobuild can wander into
+            # vendored module trees and test fixtures
+            build-mode: manual
+          - language: actions
+            build-mode: none
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+
+      - name: Setup Go
+        if: matrix.language == 'go'
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          queries: security-extended,security-and-quality
+          config: |
+            paths-ignore:
+              - vendor
+
+      - name: Build
+        if: matrix.build-mode == 'manual'
+        run: go build ./...
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+        with:
+          category: "/language:${{ matrix.language }}"
