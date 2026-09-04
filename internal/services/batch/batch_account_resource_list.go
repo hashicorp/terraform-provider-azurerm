@@ -79,12 +79,12 @@ func (BatchAccountListResource) List(ctx context.Context, request list.ListReque
 			rd := resourceBatchAccount().Data(&terraform.InstanceState{})
 			id, err := batchaccount.ParseBatchAccountIDInsensitively(pointer.From(item.Id))
 			if err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing azurerm_batch_account ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing `%s` ID", batchAccountResourceName), err)
 				return
 			}
 			rd.SetId(id.ID())
 
-			if err := resourceBatchAccountFlatten(ctx, client, rd, id, &item); err != nil {
+			if err := resourceBatchAccountFlatten(ctx, client, rd, id, &item, request.IncludeResource); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", batchAccountResourceName), err)
 				return
 			}

@@ -58,7 +58,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_batch_account" "test" {
   count                = 3
-  name                 = "testaccbatch${count.index}%[3]s"
+  name                 = "acctestbatch${count.index}%[3]s"
   resource_group_name  = azurerm_resource_group.test.name
   location             = azurerm_resource_group.test.location
   pool_allocation_mode = "BatchService"
