@@ -6,6 +6,7 @@ ENHANCEMENTS:
 * dependencies: `go-azure-sdk` - update to `v0.20260901.1173158` [GH-33274]
 
 FEATURES:
+* **New List Resource**: `azurerm_linux_virtual_machine` [GH-33333]
 * **New List Resource**: `azurerm_analysis_services_server` [GH-33250]
 * **New List Resource**: `azurerm_eventhub_consumer_group` [GH-33335]
 * **New List Resource**: `azurerm_virtual_hub_connection` [GH-33311]
