@@ -373,7 +373,7 @@ An `monitor_metrics` block supports the following:
 
 A `default_node_pool` block supports the following:
 
--> **Note:** Changing certain properties of the `default_node_pool` is done by cycling the system node pool of the cluster. When cycling the system node pool, it doesn't perform cordon and drain, and it will disrupt rescheduling pods currently running on the previous system node pool.`temporary_name_for_rotation` must be specified when changing any of the following properties: `host_encryption_enabled`, `node_public_ip_enabled`, `fips_enabled`, `kubelet_config`, `kubelet_disk_type`, `linux_os_config`, `max_pods`, `only_critical_addons_enabled`, `os_disk_size_gb`, `os_disk_type`, `os_sku`, `pod_subnet_id`, `snapshot_id`, `ultra_ssd_enabled`, `vnet_subnet_id`, `vm_size`, `zones`.
+-> **Note:** Changing certain properties of the `default_node_pool` is done by cycling the system node pool of the cluster. When cycling the system node pool, it doesn't perform cordon and drain, and it will disrupt rescheduling pods currently running on the previous system node pool.`temporary_name_for_rotation` must be specified when changing any of the following properties: `host_encryption_enabled`, `node_public_ip_enabled`, `fips_enabled`, `kubelet_config`, `kubelet_disk_type`, `linux_os_config`, `max_pods`, `only_critical_addons_enabled`, `os_disk_size_gb`, `os_disk_type`, `os_sku`, `pod_subnet_id`, `security_profile`, `snapshot_id`, `ultra_ssd_enabled`, `vnet_subnet_id`, `vm_size`, `zones`.
 
 * `name` - (Required) The name which should be used for the default Kubernetes Node Pool.
 
@@ -410,6 +410,8 @@ A `default_node_pool` block supports the following:
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. `temporary_name_for_rotation` must be specified when changing this property.
 
 * `node_network_profile` - (Optional) A `node_network_profile` block as documented below.
+
+* `security_profile` - (Optional) A `security_profile` block as documented below. `temporary_name_for_rotation` must be specified when changing this block.
 
 * `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `node_public_ip_enabled` should be `true`. Changing this forces a new resource to be created.
 
@@ -560,6 +562,14 @@ A `node_network_profile` block supports the following:
 * `application_security_group_ids` - (Optional) A list of Application Security Group IDs which should be associated with this Node Pool.
 
 * `node_public_ip_tags` - (Optional) Specifies a mapping of tags to the instance-level public IPs. Changing this forces a new resource to be created.
+
+---
+
+A `security_profile` block supports the following:
+
+* `secure_boot_enabled` - (Optional) Specifies whether Secure Boot should be enabled for this Default Node Pool. Defaults to `false`.
+
+* `vtpm_enabled` - (Optional) Specifies whether vTPM should be enabled for this Default Node Pool. Defaults to `false`.
 
 ---
 
