@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
@@ -28,8 +29,7 @@ func retrieveDiskEncryptionSetEncryptionType(ctx context.Context, client *disken
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil && props.EncryptionType != nil {
 			s := props.EncryptionType
-			v := disks.EncryptionType(*s)
-			encryptionType = &v
+			encryptionType = pointer.ToEnum[disks.EncryptionType](string(*s))
 		}
 	}
 

@@ -1090,8 +1090,6 @@ func expandVirtualNetworkGatewayIPConfigurations(d *pluginsdk.ResourceData) *[]v
 	for _, c := range configs {
 		conf := c.(map[string]interface{})
 
-		name := conf["name"].(string)
-
 		props := &virtualnetworkgateways.VirtualNetworkGatewayIPConfigurationPropertiesFormat{
 			PrivateIPAllocationMethod: pointer.ToEnum[virtualnetworkgateways.IPAllocationMethod](conf["private_ip_address_allocation"].(string)),
 		}
@@ -1109,7 +1107,7 @@ func expandVirtualNetworkGatewayIPConfigurations(d *pluginsdk.ResourceData) *[]v
 		}
 
 		ipConfig := virtualnetworkgateways.VirtualNetworkGatewayIPConfiguration{
-			Name:       &name,
+			Name:       pointer.To(conf["name"].(string)),
 			Properties: props,
 		}
 

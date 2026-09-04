@@ -451,8 +451,7 @@ func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.Capt
 	captureDescription := eventhubs.CaptureDescription{
 		Enabled: pointer.To(enabled),
 		Encoding: func() *eventhubs.EncodingCaptureDescription {
-			v := eventhubs.EncodingCaptureDescription(encoding)
-			return &v
+			return pointer.ToEnum[eventhubs.EncodingCaptureDescription](encoding)
 		}(),
 		IntervalInSeconds: pointer.To(int64(intervalInSeconds)),
 		SizeLimitInBytes:  pointer.To(int64(sizeLimitInBytes)),
@@ -488,8 +487,7 @@ func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.Capt
 			}
 
 			if destinationAuthTypeId := destination["storage_authentication_id"]; destinationAuthTypeId != nil && destinationAuthTypeId.(string) != "" {
-				authId := destinationAuthTypeId.(string)
-				captureDescription.Destination.Identity.UserAssignedIdentity = &authId
+				captureDescription.Destination.Identity.UserAssignedIdentity = pointer.To(destinationAuthTypeId.(string))
 			}
 		}
 	}

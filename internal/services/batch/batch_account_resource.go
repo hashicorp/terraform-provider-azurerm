@@ -495,11 +495,10 @@ func expandEncryption(e []interface{}) *batchaccount.EncryptionProperties {
 	}
 
 	v := e[0].(map[string]interface{})
-	keyId := v["key_vault_key_id"].(string)
 	encryptionProperty := batchaccount.EncryptionProperties{
 		KeySource: pointer.To(batchaccount.KeySourceMicrosoftPointKeyVault),
 		KeyVaultProperties: &batchaccount.KeyVaultProperties{
-			KeyIdentifier: &keyId,
+			KeyIdentifier: pointer.To(v["key_vault_key_id"].(string)),
 		},
 	}
 

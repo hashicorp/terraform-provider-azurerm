@@ -312,8 +312,7 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		blobStorageLinkedService.Annotations = &annotations
+		blobStorageLinkedService.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{

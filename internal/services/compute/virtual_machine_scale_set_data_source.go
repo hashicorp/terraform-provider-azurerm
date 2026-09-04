@@ -178,8 +178,7 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 	var orchestrationMode string
 	if props := resp.Model.Properties; props != nil {
 		if *props.OrchestrationMode == virtualmachinescalesets.OrchestrationModeUniform {
-			expandStr := "instanceView"
-			optionsVMSS.Expand = &expandStr
+			optionsVMSS.Expand = pointer.To("instanceView")
 			orchestrationMode = "Uniform"
 		}
 		if *props.OrchestrationMode == virtualmachinescalesets.OrchestrationModeFlexible {

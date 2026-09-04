@@ -84,7 +84,7 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `managed_disk_cmk_key_vault_id` property has been removed.
 * The deprecated `managed_services_cmk_key_vault_id` property has been removed.
-* The value of the `managed_resource_group_id` property is now normalized to the canonical resource ID format. 
+* The value of the `managed_resource_group_id` property is now normalized to the canonical resource ID format.
 
 ### `azurerm_databricks_workspace_root_dbfs_customer_managed_key`
 

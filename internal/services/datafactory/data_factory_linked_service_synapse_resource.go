@@ -177,8 +177,7 @@ func resourceDataFactoryLinkedServiceSynapseCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		sqlDWLinkedService.Annotations = &annotations
+		sqlDWLinkedService.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{

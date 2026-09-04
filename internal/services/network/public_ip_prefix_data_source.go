@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/customipprefixes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -36,6 +37,16 @@ func dataSourcePublicIpPrefix() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+			"custom_ip_prefix_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"ip_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 
 			"sku": {
 				Type:     pluginsdk.TypeString,
@@ -92,6 +103,17 @@ func dataSourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if props := model.Properties; props != nil {
 			d.Set("prefix_length", props.PrefixLength)
 			d.Set("ip_prefix", props.IPPrefix)
+			d.Set("ip_version", string(pointer.From(props.PublicIPAddressVersion)))
+
+			customIpPrefixId := ""
+			if props.CustomIPPrefix != nil {
+				id, err := customipprefixes.ParseCustomIPPrefixID(pointer.From(props.CustomIPPrefix.Id))
+				if err != nil {
+					return err
+				}
+				customIpPrefixId = id.ID()
+			}
+			d.Set("custom_ip_prefix_id", customIpPrefixId)
 		}
 		return tags.FlattenAndSet(d, model.Tags)
 	}
