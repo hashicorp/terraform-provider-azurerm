@@ -302,7 +302,6 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 			if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
 				return err
 			}
-
 		}
 	}
 
