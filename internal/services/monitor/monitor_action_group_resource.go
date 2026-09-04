@@ -28,6 +28,8 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity
 
+const monitorActionGroupResourceName = "azurerm_monitor_action_group"
+
 func resourceMonitorActionGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceMonitorActionGroupCreateUpdate,

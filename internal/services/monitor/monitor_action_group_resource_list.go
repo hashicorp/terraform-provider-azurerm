@@ -17,8 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-const monitorActionGroupResourceName = "azurerm_monitor_action_group"
-
 type MonitorActionGroupListResource struct{}
 
 var _ sdk.FrameworkListWrappedResource = new(MonitorActionGroupListResource)
@@ -72,7 +70,7 @@ func (MonitorActionGroupListResource) List(ctx context.Context, request list.Lis
 
 			id, err := actiongroupsapis.ParseActionGroupIDInsensitively(pointer.From(item.Id))
 			if err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Action Group ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing `%s` ID", monitorActionGroupResourceName), err)
 				return
 			}
 
@@ -80,7 +78,7 @@ func (MonitorActionGroupListResource) List(ctx context.Context, request list.Lis
 			rd.SetId(id.ID())
 
 			if err := resourceMonitorActionGroupFlatten(rd, id, &item); err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data for %s", monitorActionGroupResourceName, pointer.From(item.Name)), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", monitorActionGroupResourceName), err)
 				return
 			}
 
