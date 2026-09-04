@@ -401,7 +401,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 						webApp.HostingEnvId = pointer.From(hostingEnv.Id)
 					}
 
-					webApp.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetImagePullEnabled)
+					webApp.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
 
 					if subnetId := pointer.From(props.VirtualNetworkSubnetId); subnetId != "" {
 						webApp.VirtualNetworkSubnetID = subnetId
