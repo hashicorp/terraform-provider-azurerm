@@ -48,14 +48,14 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		DevCenterAttachedNetworkResource{},
-		DevCenterGalleryResource{},
 		DevCenterCatalogsResource{},
 		DevCenterDevBoxDefinitionResource{},
 		DevCenterEnvironmentTypeResource{},
+		DevCenterGalleryResource{},
 		DevCenterNetworkConnectionResource{},
+		DevCenterProjectEnvironmentTypeResource{},
 		DevCenterProjectPoolResource{},
 		DevCenterProjectResource{},
-		DevCenterProjectEnvironmentTypeResource{},
 		DevCenterResource{},
 	}
 }

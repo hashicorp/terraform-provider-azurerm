@@ -33,8 +33,8 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_app_service_certificate_order": dataSourceAppServiceCertificateOrder(),
 		"azurerm_app_service_certificate":       dataSourceAppServiceCertificate(),
+		"azurerm_app_service_certificate_order": dataSourceAppServiceCertificateOrder(),
 		"azurerm_function_app_host_keys":        dataSourceFunctionAppHostKeys(),
 	}
 }
@@ -43,9 +43,9 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_app_service_certificate":                           resourceAppServiceCertificate(),
+		"azurerm_app_service_certificate_binding":                   resourceAppServiceCertificateBinding(),
 		"azurerm_app_service_certificate_order":                     resourceAppServiceCertificateOrder(),
 		"azurerm_app_service_custom_hostname_binding":               resourceAppServiceCustomHostnameBinding(),
-		"azurerm_app_service_certificate_binding":                   resourceAppServiceCertificateBinding(),
 		"azurerm_app_service_managed_certificate":                   resourceAppServiceManagedCertificate(),
 		"azurerm_app_service_public_certificate":                    resourceAppServicePublicCertificate(),
 		"azurerm_app_service_slot_custom_hostname_binding":          resourceAppServiceSlotCustomHostnameBinding(),
