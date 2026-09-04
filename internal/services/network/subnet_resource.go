@@ -179,7 +179,7 @@ func resourceSubnet() *pluginsdk.Resource {
 			},
 
 			"service_endpoint": {
-				Type:     pluginsdk.TypeList,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -411,7 +411,7 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			IPamPoolPrefixAllocations:         expandSubnetIPAddressPool(d.Get("ip_address_pool").([]interface{})),
 			PrivateEndpointNetworkPolicies:    pointer.ToEnum[subnets.VirtualNetworkPrivateEndpointNetworkPolicies](d.Get("private_endpoint_network_policies").(string)),
 			PrivateLinkServiceNetworkPolicies: expandSubnetNetworkPolicy(d.Get("private_link_service_network_policies_enabled").(bool)),
-			ServiceEndpoints:                  expandSubnetServiceEndpoint(d.Get("service_endpoint").([]interface{})),
+			ServiceEndpoints:                  expandSubnetServiceEndpoint(d.Get("service_endpoint").(*pluginsdk.Set).List()),
 			ServiceEndpointPolicies:           expandSubnetServiceEndpointPolicies(d.Get("service_endpoint_policy_ids").(*pluginsdk.Set).List()),
 			SharingScope:                      pointer.ToEnum[subnets.SharingScope](d.Get("sharing_scope").(string)),
 
@@ -618,7 +618,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("service_endpoint") {
-		props.ServiceEndpoints = expandSubnetServiceEndpoint(d.Get("service_endpoint").([]interface{}))
+		props.ServiceEndpoints = expandSubnetServiceEndpoint(d.Get("service_endpoint").(*pluginsdk.Set).List())
 	}
 
 	if d.HasChange("service_endpoint_policy_ids") {
