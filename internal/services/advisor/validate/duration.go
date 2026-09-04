@@ -4,16 +4,11 @@
 package validate
 
 import (
-	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func Duration(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile(`^(?:[0-9]{1,2}:)?[0-9]{2}:[0-9]{2}:[0-9]{2}$`).Match([]byte(value)) {
-		errors = append(errors, fmt.Errorf("%q must be in format DD:HH:MM:SS. If DD is 00, it has to be omit", k))
-	}
-
-	return warnings, errors
+func Duration(v interface{}, k string) ([]string, []error) {
+	return validation.StringMatch(regexp.MustCompile(`^(?:[0-9]{1,2}:)?[0-9]{2}:[0-9]{2}:[0-9]{2}$`), "must be in format DD:HH:MM:SS. If DD is 00, it has to be omit")(v, k)
 }
