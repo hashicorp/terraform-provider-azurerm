@@ -29,6 +29,18 @@ Accordingly, these tests rely on additional environment variables to be set (and
 
 type ApiManagementIdentityProviderAADB2CResource struct{}
 
+func TestAccAzureRMApiManagementIdentityProviderAADB2C_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aadb2c", "test")
+	r := ApiManagementIdentityProviderAADB2CResource{}
+	b2cConfig := testAccAzureRMApiManagementIdentityProviderAADB2C_getB2CConfig(t)
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, b2cConfig),
+		},
+	}, "")
+}
+
 func TestAccAzureRMApiManagementIdentityProviderAADB2C_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aadb2c", "test")
 	r := ApiManagementIdentityProviderAADB2CResource{}

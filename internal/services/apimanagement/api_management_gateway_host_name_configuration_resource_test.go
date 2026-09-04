@@ -18,6 +18,16 @@ import (
 
 type ApiManagementGatewayHostNameConfigurationResource struct{}
 
+func TestAccApiManagementGatewayHostNameConfiguration_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_gateway_host_name_configuration", "test")
+	r := ApiManagementGatewayHostNameConfigurationResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementGatewayHostNameConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_gateway_host_name_configuration", "test")
 	r := ApiManagementGatewayHostNameConfigurationResource{}
