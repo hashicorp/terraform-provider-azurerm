@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -1107,14 +1108,14 @@ func (f GolangCodeFormatter) Format(input string) (*string, error) {
 }
 
 func (f GolangCodeFormatter) runGoFmt(filePath string) {
-	cmd := exec.Command("gofmt", "-w", filePath)
+	cmd := exec.CommandContext(context.Background(), "gofmt", "-w", filePath)
 	// intentionally not using these errors since the exit codes are kinda uninteresting
 	_ = cmd.Start()
 	_ = cmd.Wait()
 }
 
 func (f GolangCodeFormatter) runGoImports(filePath string) {
-	cmd := exec.Command("goimports", "-w", filePath)
+	cmd := exec.CommandContext(context.Background(), "goimports", "-w", filePath)
 	// intentionally not using these errors since the exit codes are kinda uninteresting
 	_ = cmd.Start()
 	_ = cmd.Wait()

@@ -853,7 +853,7 @@ func (StackHCIDeploymentSettingResource) Delete() sdk.ResourceFunc {
 				// match Storage Paths under the Custom Location, the generated Storage Path name should match below pattern
 				storageContainerNamePattern := regexp.MustCompile(`UserStorage[0-9]+-[a-z0-9]{32}`)
 				for _, v := range storageContainers.Items {
-					if v.Id != nil && v.ExtendedLocation != nil && v.ExtendedLocation.Name != nil && strings.EqualFold(*v.ExtendedLocation.Name, customLocationId.ID()) && v.Name != nil && storageContainerNamePattern.Match([]byte(*v.Name)) {
+					if v.Id != nil && v.ExtendedLocation != nil && v.ExtendedLocation.Name != nil && strings.EqualFold(*v.ExtendedLocation.Name, customLocationId.ID()) && v.Name != nil && storageContainerNamePattern.MatchString(*v.Name) {
 						storageContainerId, err := storagecontainers.ParseStorageContainerIDInsensitively(*v.Id)
 						if err != nil {
 							return fmt.Errorf("parsing the Stack HCI Storage Path ID generated during deployment: %+v", err)
