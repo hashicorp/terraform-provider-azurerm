@@ -19,6 +19,16 @@ import (
 
 type ContainerAppEnvironmentDaprComponentResource struct{}
 
+func TestAccContainerAppEnvironmentDaprComponent_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment_dapr_component", "test")
+	r := ContainerAppEnvironmentDaprComponentResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccContainerAppEnvironmentDaprComponent_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_environment_dapr_component", "test")
 	r := ContainerAppEnvironmentDaprComponentResource{}

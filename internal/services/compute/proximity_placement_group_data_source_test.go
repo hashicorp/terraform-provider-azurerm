@@ -13,6 +13,16 @@ import (
 
 type ProximityPlacementGroupDataSource struct{}
 
+func TestAccProximityPlacementGroupDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_proximity_placement_group", "test")
+	r := ProximityPlacementGroupDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccProximityPlacementGroupDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_proximity_placement_group", "test")
 	r := ProximityPlacementGroupDataSource{}

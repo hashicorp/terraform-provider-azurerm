@@ -20,6 +20,16 @@ import (
 
 type GalleryApplicationResource struct{}
 
+func TestAccGalleryApplication_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_gallery_application", "test")
+	r := GalleryApplicationResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccGalleryApplication_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_gallery_application", "test")
 	r := GalleryApplicationResource{}

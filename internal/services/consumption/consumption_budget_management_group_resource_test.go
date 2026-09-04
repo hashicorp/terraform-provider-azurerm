@@ -19,6 +19,16 @@ import (
 
 type ConsumptionBudgetManagementGroupResource struct{}
 
+func TestAccConsumptionBudgetManagementGroup_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_management_group", "test")
+	r := ConsumptionBudgetManagementGroupResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccConsumptionBudgetManagementGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_management_group", "test")
 	r := ConsumptionBudgetManagementGroupResource{}
