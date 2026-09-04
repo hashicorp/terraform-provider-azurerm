@@ -126,10 +126,6 @@ func resourceResourceGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	patch := resourcegroups.ResourceGroupPatchable{}
 
-	if d.HasChange("managed_by") {
-		patch.ManagedBy = pointer.To(d.Get("managed_by").(string))
-	}
-
 	if d.HasChange("tags") {
 		patch.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
