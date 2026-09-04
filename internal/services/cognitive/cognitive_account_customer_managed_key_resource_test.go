@@ -18,6 +18,16 @@ import (
 
 type CognitiveAccountCustomerManagedKeyResource struct{}
 
+func TestAccCognitiveAccountCustomerManagedKey_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_customer_managed_key", "test")
+	r := CognitiveAccountCustomerManagedKeyResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccCognitiveAccountCustomerManagedKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_customer_managed_key", "test")
 	r := CognitiveAccountCustomerManagedKeyResource{}

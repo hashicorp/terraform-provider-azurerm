@@ -18,6 +18,16 @@ import (
 
 type CdnFrontDoorEndpointResource struct{}
 
+func TestAccCdnFrontDoorEndpoint_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_endpoint", "test")
+	r := CdnFrontDoorEndpointResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccCdnFrontDoorEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_endpoint", "test")
 	r := CdnFrontDoorEndpointResource{}
