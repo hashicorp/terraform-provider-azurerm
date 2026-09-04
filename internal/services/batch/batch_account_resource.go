@@ -4,6 +4,7 @@
 package batch
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -30,6 +31,8 @@ import (
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity
+
+const batchAccountResourceName = "azurerm_batch_account"
 
 func resourceBatchAccount() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -311,10 +314,14 @@ func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
+	return resourceBatchAccountFlatten(ctx, client, d, id, resp.Model, true)
+}
+
+func resourceBatchAccountFlatten(ctx context.Context, client *batchaccount.BatchAccountClient, d *pluginsdk.ResourceData, id *batchaccount.BatchAccountId, model *batchaccount.BatchAccount, includeResource bool) error {
 	d.Set("name", id.BatchAccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
 		identity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
@@ -357,21 +364,22 @@ func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error
 			if err := d.Set("allowed_authentication_modes", flattenAllowedAuthenticationModes(props.AllowedAuthenticationModes)); err != nil {
 				return fmt.Errorf("setting `allowed_authentication_modes`: %+v", err)
 			}
+			if includeResource {
+				if d.Get("pool_allocation_mode").(string) == string(batchaccount.PoolAllocationModeBatchService) &&
+					isShardKeyAllowed(d.Get("allowed_authentication_modes").(*pluginsdk.Set).List()) {
+					keys, err := client.GetKeys(ctx, *id)
+					if err != nil {
+						return fmt.Errorf("cannot read keys for Batch account %s: %v", *id, err)
+					}
 
-			if d.Get("pool_allocation_mode").(string) == string(batchaccount.PoolAllocationModeBatchService) &&
-				isShardKeyAllowed(d.Get("allowed_authentication_modes").(*pluginsdk.Set).List()) {
-				keys, err := client.GetKeys(ctx, *id)
-				if err != nil {
-					return fmt.Errorf("cannot read keys for Batch account %s: %v", *id, err)
+					if keysModel := keys.Model; keysModel != nil {
+						d.Set("primary_access_key", keysModel.Primary)
+						d.Set("secondary_access_key", keysModel.Secondary)
+					}
 				}
-
-				if keysModel := keys.Model; keysModel != nil {
-					d.Set("primary_access_key", keysModel.Primary)
-					d.Set("secondary_access_key", keysModel.Secondary)
+				if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+					return err
 				}
-			}
-			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
-				return err
 			}
 		}
 	}
