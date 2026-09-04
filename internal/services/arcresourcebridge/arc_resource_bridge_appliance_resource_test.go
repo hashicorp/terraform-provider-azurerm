@@ -22,6 +22,16 @@ import (
 
 type ArcResourceBridgeApplianceResource struct{}
 
+func TestAccArcResourceBridgeAppliance_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_arc_resource_bridge_appliance", "test")
+	r := ArcResourceBridgeApplianceResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccArcResourceBridgeAppliance_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_arc_resource_bridge_appliance", "test")
 	r := ArcResourceBridgeApplianceResource{}
