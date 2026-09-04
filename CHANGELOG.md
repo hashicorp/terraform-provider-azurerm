@@ -1,6 +1,7 @@
 ## 5.5.0 (Unreleased)
 
 ENHANCEMENTS:
+- `azurerm_private_endpoint` - lock on private service connection resource ids [GH-33298]
 * `azurerm_storage_account` - add support for the `public_network_access` property [GH-33292]
 * dependencies: `go-azure-sdk` - update to `v0.20260901.1173158` [GH-33274]
 
