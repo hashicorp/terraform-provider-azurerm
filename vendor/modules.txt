@@ -170,7 +170,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/data-plane v0.20260811.1225050
+# github.com/hashicorp/go-azure-sdk/data-plane v0.20260901.1173158
 ## explicit; go 1.26.5
 github.com/hashicorp/go-azure-sdk/data-plane/batch/2022-01-01-15-0/jobs
 github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4
@@ -190,7 +190,7 @@ github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/secrets
 github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/settings
 github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/storage
 github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/managedprivateendpoints
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20260827.1195017
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20260901.1173158
 ## explicit; go 1.26.5
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -777,17 +777,17 @@ github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/serverstart
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/serverstop
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servervalidateestimatehighavailability
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/backuppolicies
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/backups
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/backupvaults
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/buckets
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/capacitypools
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/netappaccounts
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/snapshotpolicies
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/snapshots
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumegroups
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumequotarules
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumes
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/backuppolicies
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/backups
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/backupvaults
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/buckets
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/capacitypools
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/netappaccounts
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/snapshotpolicies
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/snapshots
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumegroups
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumequotarules
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/azurefirewalls
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/ddosprotectionplans
@@ -1236,6 +1236,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/tr
 github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs
 github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/streamingjobs
 github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions
+github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/bigdatapools
 github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces
 github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07
 github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/availabilitysets
@@ -1270,7 +1271,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapappli
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapcentralserverinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapdatabaseinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances
-# github.com/hashicorp/go-azure-sdk/sdk v0.20260827.1195017
+# github.com/hashicorp/go-azure-sdk/sdk v0.20260901.1173158
 ## explicit; go 1.26.5
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
@@ -1644,8 +1645,8 @@ github.com/zclconf/go-cty/cty/set
 ## explicit; go 1.18
 go.yaml.in/yaml/v4
 go.yaml.in/yaml/v4/internal/libyaml
-# golang.org/x/crypto v0.55.0
-## explicit; go 1.25.0
+# golang.org/x/crypto v0.56.0
+## explicit; go 1.26.0
 golang.org/x/crypto/argon2
 golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blake2b
@@ -1752,10 +1753,10 @@ google.golang.org/appengine/internal/datastore
 google.golang.org/appengine/internal/log
 google.golang.org/appengine/internal/modules
 google.golang.org/appengine/internal/remote_api
-# google.golang.org/genproto/googleapis/rpc v0.0.0-20260414002931-afd174a4e478
+# google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa
 ## explicit; go 1.25.0
 google.golang.org/genproto/googleapis/rpc/status
-# google.golang.org/grpc v1.82.1
+# google.golang.org/grpc v1.83.1
 ## explicit; go 1.25.0
 google.golang.org/grpc
 google.golang.org/grpc/attributes

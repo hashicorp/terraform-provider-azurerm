@@ -255,9 +255,7 @@ func resourceAutomationDscConfigurationRead(d *pluginsdk.ResourceData, meta inte
 			if _, err := buf.ReadFrom(contentResp.HttpResponse.Body); err != nil {
 				return fmt.Errorf("reading from AzureRM Automation Dsc Configuration buffer %q: %+v", id.ConfigurationName, err)
 			}
-			content := buf.String()
-
-			d.Set("content_embedded", content)
+			d.Set("content_embedded", buf.String())
 		}
 	}
 

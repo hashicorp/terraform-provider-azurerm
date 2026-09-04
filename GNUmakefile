@@ -7,6 +7,11 @@ TF_SCHEMA_PANIC_ON_ERROR=1
 # else, including the CI workflows, derives it from that file.
 GOLANGCI_LINT_VERSION := $(shell sed -n 's/^version: *//p' scripts/.custom-gcl.yml)
 
+# The single source of truth for the actionlint version is the go install pin
+# in .github/workflows/workflow-actionlint.yml.
+ACTIONLINT_VERSION := $(shell sed -n 's/.*actionlint\/cmd\/actionlint@//p' .github/workflows/workflow-actionlint.yml)
+
+
 .EXPORT_ALL_VARIABLES:
 
 default: build
@@ -35,6 +40,7 @@ tools: ## Install the tools required to develop the provider
 	go install github.com/katbyte/terrafmt@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install mvdan.cc/gofumpt@latest
+	go install github.com/rhysd/actionlint/cmd/actionlint@$(ACTIONLINT_VERSION)
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin $(GOLANGCI_LINT_VERSION)
 	@$(MAKE) golangci-with-modules
 
@@ -113,6 +119,16 @@ tfproviderlint: golangci-with-modules ## Check terraform schema definitions with
 azproviderlint: golangci-with-modules ## Check source code with only the azproviderlint checks
 	@echo "==> Checking source code with azproviderlint (via golangci-lint)..."
 	@./scripts/golangci-with-modules run -v --enable-only azproviderlint ./...
+
+yamllint: ## Check YAML files with yamllint (config in .yamllint.yml)
+	@command -v yamllint >/dev/null || (echo "yamllint not installed. Install via: brew install yamllint (macOS) or pip install yamllint" && exit 1)
+	@echo "==> Checking YAML files with yamllint..."
+	@yamllint -s .
+
+actionlint: ## Check GitHub workflows with actionlint (incl. shellcheck on run blocks)
+	@command -v actionlint >/dev/null || (echo "actionlint not installed. Install via 'make tools' or: go install github.com/rhysd/actionlint/cmd/actionlint@$(ACTIONLINT_VERSION)" && exit 1)
+	@echo "==> Checking workflows with actionlint..."
+	@actionlint
 
 shellcheck: ## Check shell scripts with shellcheck
 	@command -v shellcheck >/dev/null || (echo "shellcheck not installed. Install via: brew install shellcheck (macOS) or apt install shellcheck (Linux)" && exit 1)
@@ -200,4 +216,4 @@ resource-counts: ## Print the number of resources and data sources in the provid
 
 pr-check: generate build test lint website-lint ## Run the same set of checks CI runs against a PR
 
-.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint shellcheck depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check
+.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint actionlint yamllint shellcheck depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check

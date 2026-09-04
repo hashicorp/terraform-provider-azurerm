@@ -101,7 +101,7 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 						"private_ip_address": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							// Not using O+C here causes drift
+							// Note: O+C because Azure assigns a private IP from the subnet when not specified
 							Computed: true,
 							ValidateFunc: validation.Any(
 								validation.IsIPAddress,
@@ -113,7 +113,7 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							// Not using O+C here causes drift
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForIPVersion(), false),
 						},
 
@@ -126,14 +126,14 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 						"public_ip_prefix_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: publicipprefixes.ValidatePublicIPPrefixID,
 						},
 
 						"private_ip_address_allocation": {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
-							Computed:         true,
+							Computed:         true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc:     validation.StringInSlice(loadbalancers.PossibleValuesForIPAllocationMethod(), true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
@@ -141,7 +141,7 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 						"gateway_load_balancer_frontend_ip_configuration_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: loadbalancers.ValidateFrontendIPConfigurationID,
 						},
 
@@ -400,9 +400,7 @@ func resourceArmLoadBalancerDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroupName, LoadBalancerName: id.LoadBalancerName}
-
-	if err = client.DeleteThenPoll(ctx, plbId); err != nil {
+	if err = client.DeleteThenPoll(ctx, loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroupName, LoadBalancerName: id.LoadBalancerName}); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

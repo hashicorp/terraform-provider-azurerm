@@ -30,7 +30,7 @@ func dataSourceArmPolicySetDefinition() *pluginsdk.Resource {
 			"display_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringIsNotEmpty,
 				ExactlyOneOf: []string{"name", "display_name"},
 			},
@@ -38,7 +38,7 @@ func dataSourceArmPolicySetDefinition() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringIsNotEmpty,
 				ExactlyOneOf: []string{"name", "display_name"},
 			},

@@ -477,10 +477,8 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interfac
 				return fmt.Errorf("flattening `roles`: %+v", err)
 			}
 
-			httpEndpoint := findHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
-			d.Set("https_endpoint", httpEndpoint)
-			sshEndpoint := findHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
-			d.Set("ssh_endpoint", sshEndpoint)
+			d.Set("https_endpoint", findHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints))
+			d.Set("ssh_endpoint", findHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints))
 
 			if err := d.Set("security_profile", flattenHDInsightSecurityProfile(props.SecurityProfile, d)); err != nil {
 				return fmt.Errorf("setting `security_profile`: %+v", err)
