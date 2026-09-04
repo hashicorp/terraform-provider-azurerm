@@ -5,6 +5,7 @@ package mysql
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -62,16 +63,32 @@ func resourceMySqlFlexibleDatabase() *pluginsdk.Resource {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: mysqlFlexibleDatabaseCharsetDiffSuppress,
 			},
 
 			"collation": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:             pluginsdk.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: mysqlFlexibleDatabaseCollationDiffSuppress,
 			},
 		},
 	}
+}
+
+func mysqlFlexibleDatabaseCharsetDiffSuppress(key, oldValue, newValue string, resourceData *schema.ResourceData) bool {
+	return suppress.CaseDifference(key, oldValue, newValue, resourceData) ||
+		mysqlFlexibleDatabaseAliasDiff(oldValue, newValue, "utf8", "utf8mb3")
+}
+
+func mysqlFlexibleDatabaseCollationDiffSuppress(key, oldValue, newValue string, resourceData *schema.ResourceData) bool {
+	return suppress.CaseDifference(key, oldValue, newValue, resourceData) ||
+		mysqlFlexibleDatabaseAliasDiff(oldValue, newValue, "utf8_unicode_ci", "utf8mb3_unicode_ci")
+}
+
+func mysqlFlexibleDatabaseAliasDiff(oldValue, newValue, firstAlias, secondAlias string) bool {
+	return strings.EqualFold(oldValue, firstAlias) && strings.EqualFold(newValue, secondAlias) ||
+		strings.EqualFold(oldValue, secondAlias) && strings.EqualFold(newValue, firstAlias)
 }
 
 func resourceMySqlFlexibleDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) error {
