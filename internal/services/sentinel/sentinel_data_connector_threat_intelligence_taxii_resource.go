@@ -174,7 +174,7 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) Create() sdk.ResourceFunc 
 			params := dataconnectors.TiTaxiiDataConnector{
 				Name: &plan.Name,
 				Properties: &dataconnectors.TiTaxiiDataConnectorProperties{
-					WorkspaceId:         pointer.To(*wsp.Model.Properties.CustomerId),
+					WorkspaceId:         wsp.Model.Properties.CustomerId,
 					FriendlyName:        &plan.DisplayName,
 					TaxiiServer:         &plan.APIRootURL,
 					CollectionId:        &plan.CollectionID,
