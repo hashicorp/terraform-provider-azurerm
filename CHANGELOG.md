@@ -10,6 +10,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* `azurerm_resource_group` - the `managed_by` property now forces recreation when changed as the API does not support changing this value [GH-33339]
 * `go-azure-sdk` - `Delete` operations now poll on asynchronous operation URLs if returned by the API instead of only checking for a `404` on the resource URL, ensuring deletion errors are reported to the user [GH-33274]
 
 ## 5.4.0 (September 03, 2026)
