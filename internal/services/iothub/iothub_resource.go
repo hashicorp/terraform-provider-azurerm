@@ -113,17 +113,9 @@ func resourceIotHub() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(devices.IotHubSkuB1),
-								string(devices.IotHubSkuB2),
-								string(devices.IotHubSkuB3),
-								string(devices.IotHubSkuF1),
-								string(devices.IotHubSkuS1),
-								string(devices.IotHubSkuS2),
-								string(devices.IotHubSkuS3),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInEnumSlice(devices.PossibleIotHubSkuValues(), false),
 						},
 
 						"capacity": {
@@ -192,13 +184,10 @@ func resourceIotHub() *pluginsdk.Resource {
 							Required: true,
 						},
 						"authentication_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(devices.AuthenticationTypeKeyBased),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(devices.AuthenticationTypeKeyBased),
-								string(devices.AuthenticationTypeIdentityBased),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(devices.AuthenticationTypeKeyBased),
+							ValidateFunc: validation.StringInEnumSlice(devices.PossibleAuthenticationTypeValues(), false),
 						},
 						"identity_id": {
 							Type:         pluginsdk.TypeString,
@@ -241,7 +230,7 @@ func resourceIotHub() *pluginsdk.Resource {
 			"endpoint": {
 				Type:       pluginsdk.TypeList,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -257,13 +246,10 @@ func resourceIotHub() *pluginsdk.Resource {
 						},
 
 						"authentication_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(devices.AuthenticationTypeKeyBased),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(devices.AuthenticationTypeKeyBased),
-								string(devices.AuthenticationTypeIdentityBased),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(devices.AuthenticationTypeKeyBased),
+							ValidateFunc: validation.StringInEnumSlice(devices.PossibleAuthenticationTypeValues(), false),
 						},
 
 						"identity_id": {
@@ -330,11 +316,7 @@ func resourceIotHub() *pluginsdk.Resource {
 							ForceNew:         true,
 							Default:          string(devices.EncodingAvro),
 							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(devices.EncodingAvro),
-								string(devices.EncodingAvroDeflate),
-								string(devices.EncodingJSON),
-							}, false),
+							ValidateFunc:     validation.StringInEnumSlice(devices.PossibleEncodingValues(), false),
 						},
 
 						"file_name_format": {
@@ -361,7 +343,7 @@ func resourceIotHub() *pluginsdk.Resource {
 			"route": {
 				Type:       pluginsdk.TypeList,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -413,7 +395,7 @@ func resourceIotHub() *pluginsdk.Resource {
 				// Currently only 10 enrichments is allowed for standard or basic tier, 2 for Free tier.
 				MaxItems:   10,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -445,7 +427,7 @@ func resourceIotHub() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				MaxItems: 1,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"source": {
@@ -472,7 +454,7 @@ func resourceIotHub() *pluginsdk.Resource {
 						"endpoint_names": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringLenBetween(0, 64),
@@ -493,13 +475,10 @@ func resourceIotHub() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"default_action": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(devices.DefaultActionDeny),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(devices.DefaultActionAllow),
-								string(devices.DefaultActionDeny),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(devices.DefaultActionDeny),
+							ValidateFunc: validation.StringInEnumSlice(devices.PossibleDefaultActionValues(), false),
 						},
 						"apply_to_builtin_eventhub_endpoint": {
 							Type:     pluginsdk.TypeBool,
@@ -522,12 +501,10 @@ func resourceIotHub() *pluginsdk.Resource {
 										ValidateFunc: validate.CIDR,
 									},
 									"action": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										Default:  string(devices.NetworkRuleIPActionAllow),
-										ValidateFunc: validation.StringInSlice([]string{
-											string(devices.NetworkRuleIPActionAllow),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Default:      string(devices.NetworkRuleIPActionAllow),
+										ValidateFunc: validation.StringInEnumSlice(devices.PossibleNetworkRuleIPActionValues(), false),
 									},
 								},
 							},
@@ -540,7 +517,7 @@ func resourceIotHub() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"max_delivery_count": {
@@ -1008,9 +985,7 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.Name); err == nil {
 		keyList := keysResp.Response()
-		keys := flattenIoTHubSharedAccessPolicy(keyList.Value)
-
-		if err := d.Set("shared_access_policy", keys); err != nil {
+		if err := d.Set("shared_access_policy", flattenIoTHubSharedAccessPolicy(keyList.Value)); err != nil {
 			return fmt.Errorf("setting `shared_access_policy` in IoTHub %q: %+v", id.Name, err)
 		}
 	}
@@ -1043,33 +1018,27 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		d.Set("hostname", properties.HostName)
 
-		endpoints := flattenIoTHubEndpoint(properties.Routing)
-		if err := d.Set("endpoint", endpoints); err != nil {
+		if err := d.Set("endpoint", flattenIoTHubEndpoint(properties.Routing)); err != nil {
 			return fmt.Errorf("setting `endpoint` in IoTHub %q: %+v", id.Name, err)
 		}
 
-		routes := flattenIoTHubRoute(properties.Routing)
-		if err := d.Set("route", routes); err != nil {
+		if err := d.Set("route", flattenIoTHubRoute(properties.Routing)); err != nil {
 			return fmt.Errorf("setting `route` in IoTHub %q: %+v", id.Name, err)
 		}
 
-		enrichments := flattenIoTHubEnrichment(properties.Routing)
-		if err := d.Set("enrichment", enrichments); err != nil {
+		if err := d.Set("enrichment", flattenIoTHubEnrichment(properties.Routing)); err != nil {
 			return fmt.Errorf("setting `enrichment` in IoTHub %q: %+v", id.Name, err)
 		}
 
-		fallbackRoute := flattenIoTHubFallbackRoute(properties.Routing)
-		if err := d.Set("fallback_route", fallbackRoute); err != nil {
+		if err := d.Set("fallback_route", flattenIoTHubFallbackRoute(properties.Routing)); err != nil {
 			return fmt.Errorf("setting `fallbackRoute` in IoTHub %q: %+v", id.Name, err)
 		}
 
-		networkRuleSet := flattenNetworkRuleSetProperties(properties.NetworkRuleSets)
-		if err := d.Set("network_rule_set", networkRuleSet); err != nil {
+		if err := d.Set("network_rule_set", flattenNetworkRuleSetProperties(properties.NetworkRuleSets)); err != nil {
 			return fmt.Errorf("setting `network_rule_set` in IoTHub %q: %+v", id.Name, err)
 		}
 
-		fileUpload := flattenIoTHubFileUpload(properties.StorageEndpoints, properties.MessagingEndpoints, properties.EnableFileUploadNotifications)
-		if err := d.Set("file_upload", fileUpload); err != nil {
+		if err := d.Set("file_upload", flattenIoTHubFileUpload(properties.StorageEndpoints, properties.MessagingEndpoints, properties.EnableFileUploadNotifications)); err != nil {
 			return fmt.Errorf("setting `file_upload` in IoTHub %q: %+v", id.Name, err)
 		}
 
@@ -1077,8 +1046,7 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("public_network_access_enabled", enabled == devices.PublicNetworkAccessEnabled)
 		}
 
-		cloudToDevice := flattenIoTHubCloudToDevice(properties.CloudToDevice)
-		if err := d.Set("cloud_to_device", cloudToDevice); err != nil {
+		if err := d.Set("cloud_to_device", flattenIoTHubCloudToDevice(properties.CloudToDevice)); err != nil {
 			return fmt.Errorf("setting `cloudToDevice` in IoTHub %q: %+v", id.Name, err)
 		}
 
@@ -1104,8 +1072,7 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	if loc := hub.Location; loc != nil {
 		d.Set("location", location.Normalize(*loc))
 	}
-	sku := flattenIoTHubSku(hub.Sku)
-	if err := d.Set("sku", sku); err != nil {
+	if err := d.Set("sku", flattenIoTHubSku(hub.Sku)); err != nil {
 		return fmt.Errorf("setting `sku`: %+v", err)
 	}
 	d.Set("type", hub.Type)

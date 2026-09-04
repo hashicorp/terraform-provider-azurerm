@@ -354,13 +354,11 @@ func resourceDataFactoryDatasetJSONRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("description", jsonTable.Description)
 	}
 
-	parameters := flattenDataSetParameters(jsonTable.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenDataSetParameters(jsonTable.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
-	annotations := flattenDataFactoryAnnotations(jsonTable.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(jsonTable.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
@@ -396,8 +394,7 @@ func resourceDataFactoryDatasetJSONRead(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
-	structureColumns := flattenDataFactoryStructureColumns(jsonTable.Structure)
-	if err := d.Set("schema_column", structureColumns); err != nil {
+	if err := d.Set("schema_column", flattenDataFactoryStructureColumns(jsonTable.Structure)); err != nil {
 		return fmt.Errorf("setting `schema_column`: %+v", err)
 	}
 

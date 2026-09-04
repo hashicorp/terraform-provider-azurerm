@@ -1097,10 +1097,8 @@ func flattenWebApplicationFirewallPolicyExclusions(input *[]webapplicationfirewa
 	for _, item := range *input {
 		v := make(map[string]interface{})
 
-		selector := item.Selector
-
 		v["match_variable"] = string(item.MatchVariable)
-		v["selector"] = selector
+		v["selector"] = item.Selector
 
 		v["selector_match_operator"] = string(item.SelectorMatchOperator)
 		v["excluded_rule_set"] = flattenWebApplicationFirewallPolicyExclusionManagedRuleSets(item.ExclusionManagedRuleSets)

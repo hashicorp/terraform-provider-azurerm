@@ -185,14 +185,14 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			"managed_network": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"isolation_mode": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForIsolationMode(), false),
 						},
 						"provision_on_creation_enabled": {
@@ -591,8 +591,7 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 			}
 			d.Set("key_vault_id", kvId.ID())
 
-			featureStoreSettings := flattenMachineLearningWorkspaceFeatureStore(props.FeatureStoreSettings)
-			if err := d.Set("feature_store", featureStoreSettings); err != nil {
+			if err := d.Set("feature_store", flattenMachineLearningWorkspaceFeatureStore(props.FeatureStoreSettings)); err != nil {
 				return fmt.Errorf("setting `feature_store`: %+v", err)
 			}
 

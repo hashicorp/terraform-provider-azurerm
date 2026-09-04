@@ -97,7 +97,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 			"active_active": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"sku": {
@@ -118,7 +118,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 			"generation": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForVpnGatewayGeneration(), false),
 			},
@@ -429,7 +429,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 						"vpn_auth_types": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 3,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
@@ -440,7 +440,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 						"vpn_client_protocols": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForVpnClientProtocol(), false),
@@ -453,7 +453,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 			"bgp_settings": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -478,16 +478,16 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 						// lintignore:XS003
 						"peering_addresses": {
 							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							Optional: true,
 							MinItems: 1,
 							MaxItems: 2,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"ip_configuration_name": {
-										Type: pluginsdk.TypeString,
-										// In case there is only one `ip_configuration` in root level. This property can be deduced from the that.
-										Optional:     true,
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										// Note: O+C In case there is only one `ip_configuration` in root level. This property can be deduced from the that.
 										Computed:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
@@ -569,7 +569,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 			"maximum_scale_unit": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.IntBetween(1, 40),
 				RequiredWith: []string{"maximum_scale_unit", "minimum_scale_unit"},
 			},
@@ -577,7 +577,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 			"minimum_scale_unit": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.IntBetween(1, 40),
 				RequiredWith: []string{"maximum_scale_unit", "minimum_scale_unit"},
 			},

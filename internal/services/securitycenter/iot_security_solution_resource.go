@@ -90,11 +90,8 @@ func resourceIotSecuritySolution() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Required: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(security.Alerts),
-									string(security.RawEvents),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInEnumSlice(security.PossibleAdditionalWorkspaceDataTypeValues(), false),
 							},
 						},
 
@@ -111,10 +108,8 @@ func resourceIotSecuritySolution() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(security.TwinData),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInEnumSlice(security.PossibleDataSourceValues(), false),
 				},
 			},
 
@@ -151,7 +146,7 @@ func resourceIotSecuritySolution() *pluginsdk.Resource {
 			"recommendations": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -257,13 +252,13 @@ func resourceIotSecuritySolution() *pluginsdk.Resource {
 			"query_for_resources": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"query_subscription_ids": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.IsUUID,
@@ -535,7 +530,7 @@ func flattenIotSecuritySolutionAdditionalWorkspace(input *[]security.AdditionalW
 
 func flattenIotSecuritySolutionDisabledDataSources(input *[]security.DataSource) []interface{} {
 	if input == nil || len(*input) == 0 {
-		return nil
+		return []interface{}{}
 	}
 
 	results := make([]string, 0)

@@ -282,8 +282,6 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Delete() sdk
 				return fmt.Errorf("ApplicationSecurityGroup %q does not exist", ASGId)
 			}
 
-			resourceId := parse.NewPrivateEndpointApplicationSecurityGroupAssociationId(*privateEndpointId, *ASGId)
-
 			// flag: application security group exists in private endpoint configuration
 			ASGInPE := false
 
@@ -310,7 +308,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Delete() sdk
 				return fmt.Errorf("creating %s: %+v", privateEndpointId, err)
 			}
 
-			metadata.SetID(resourceId)
+			metadata.SetID(parse.NewPrivateEndpointApplicationSecurityGroupAssociationId(*privateEndpointId, *ASGId))
 			return nil
 		},
 		Timeout: 30 * time.Minute,

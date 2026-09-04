@@ -82,9 +82,9 @@ func (k KeyResource) Arguments() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 		"etag": {
-			Type: pluginsdk.TypeString,
-			// NOTE: O+C The value of this is updated anytime the resource changes so this should remain Computed
+			Type:     pluginsdk.TypeString,
 			Computed: true,
+			// NOTE: O+C The value of this is updated anytime the resource changes
 			Optional: true,
 		},
 		"label": {

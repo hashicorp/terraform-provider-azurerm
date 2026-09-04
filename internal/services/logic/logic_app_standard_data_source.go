@@ -348,8 +348,7 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if model := configResp.Model; model != nil {
-		siteConfig := flattenLogicAppStandardDataSourceSiteConfig(model.Properties)
-		if err = d.Set("site_config", siteConfig); err != nil {
+		if err = d.Set("site_config", flattenLogicAppStandardDataSourceSiteConfig(model.Properties)); err != nil {
 			return err
 		}
 	}

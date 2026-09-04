@@ -82,7 +82,7 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 			"cluster_code_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"management_endpoint": {
@@ -497,7 +497,7 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 						"application_ports": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -516,7 +516,7 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 						"ephemeral_ports": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -717,58 +717,47 @@ func resourceServiceFabricClusterRead(d *pluginsdk.ResourceData, meta interface{
 				return fmt.Errorf("setting `add_on_features`: %+v", err)
 			}
 
-			azureActiveDirectory := flattenServiceFabricClusterAzureActiveDirectory(props.AzureActiveDirectory)
-			if err := d.Set("azure_active_directory", azureActiveDirectory); err != nil {
+			if err := d.Set("azure_active_directory", flattenServiceFabricClusterAzureActiveDirectory(props.AzureActiveDirectory)); err != nil {
 				return fmt.Errorf("setting `azure_active_directory`: %+v", err)
 			}
 
-			certificate := flattenServiceFabricClusterCertificate(props.Certificate)
-			if err := d.Set("certificate", certificate); err != nil {
+			if err := d.Set("certificate", flattenServiceFabricClusterCertificate(props.Certificate)); err != nil {
 				return fmt.Errorf("setting `certificate`: %+v", err)
 			}
 
-			certificateCommonNames := flattenServiceFabricClusterCertificateCommonNames(props.CertificateCommonNames)
-			if err := d.Set("certificate_common_names", certificateCommonNames); err != nil {
+			if err := d.Set("certificate_common_names", flattenServiceFabricClusterCertificateCommonNames(props.CertificateCommonNames)); err != nil {
 				return fmt.Errorf("setting `certificate_common_names`: %+v", err)
 			}
 
-			reverseProxyCertificate := flattenServiceFabricClusterReverseProxyCertificate(props.ReverseProxyCertificate)
-			if err := d.Set("reverse_proxy_certificate", reverseProxyCertificate); err != nil {
+			if err := d.Set("reverse_proxy_certificate", flattenServiceFabricClusterReverseProxyCertificate(props.ReverseProxyCertificate)); err != nil {
 				return fmt.Errorf("setting `reverse_proxy_certificate`: %+v", err)
 			}
 
-			reverseProxyCertificateCommonNames := flattenServiceFabricClusterCertificateCommonNames(props.ReverseProxyCertificateCommonNames)
-			if err := d.Set("reverse_proxy_certificate_common_names", reverseProxyCertificateCommonNames); err != nil {
+			if err := d.Set("reverse_proxy_certificate_common_names", flattenServiceFabricClusterCertificateCommonNames(props.ReverseProxyCertificateCommonNames)); err != nil {
 				return fmt.Errorf("setting `reverse_proxy_certificate_common_names`: %+v", err)
 			}
 
-			clientCertificateThumbprints := flattenServiceFabricClusterClientCertificateThumbprints(props.ClientCertificateThumbprints)
-			if err := d.Set("client_certificate_thumbprint", clientCertificateThumbprints); err != nil {
+			if err := d.Set("client_certificate_thumbprint", flattenServiceFabricClusterClientCertificateThumbprints(props.ClientCertificateThumbprints)); err != nil {
 				return fmt.Errorf("setting `client_certificate_thumbprint`: %+v", err)
 			}
 
-			clientCertificateCommonNames := flattenServiceFabricClusterClientCertificateCommonNames(props.ClientCertificateCommonNames)
-			if err := d.Set("client_certificate_common_name", clientCertificateCommonNames); err != nil {
+			if err := d.Set("client_certificate_common_name", flattenServiceFabricClusterClientCertificateCommonNames(props.ClientCertificateCommonNames)); err != nil {
 				return fmt.Errorf("setting `client_certificate_common_name`: %+v", err)
 			}
 
-			diagnostics := flattenServiceFabricClusterDiagnosticsConfig(props.DiagnosticsStorageAccountConfig)
-			if err := d.Set("diagnostics_config", diagnostics); err != nil {
+			if err := d.Set("diagnostics_config", flattenServiceFabricClusterDiagnosticsConfig(props.DiagnosticsStorageAccountConfig)); err != nil {
 				return fmt.Errorf("setting `diagnostics_config`: %+v", err)
 			}
 
-			upgradePolicy := flattenServiceFabricClusterUpgradePolicy(props.UpgradeDescription)
-			if err := d.Set("upgrade_policy", upgradePolicy); err != nil {
+			if err := d.Set("upgrade_policy", flattenServiceFabricClusterUpgradePolicy(props.UpgradeDescription)); err != nil {
 				return fmt.Errorf("setting `upgrade_policy`: %+v", err)
 			}
 
-			fabricSettings := flattenServiceFabricClusterFabricSettings(props.FabricSettings)
-			if err := d.Set("fabric_settings", fabricSettings); err != nil {
+			if err := d.Set("fabric_settings", flattenServiceFabricClusterFabricSettings(props.FabricSettings)); err != nil {
 				return fmt.Errorf("setting `fabric_settings`: %+v", err)
 			}
 
-			nodeTypes := flattenServiceFabricClusterNodeTypes(props.NodeTypes)
-			if err := d.Set("node_type", nodeTypes); err != nil {
+			if err := d.Set("node_type", flattenServiceFabricClusterNodeTypes(props.NodeTypes)); err != nil {
 				return fmt.Errorf("setting `node_type`: %+v", err)
 			}
 		}

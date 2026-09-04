@@ -86,7 +86,7 @@ func resourceStorageBlob() *pluginsdk.Resource {
 			"access_tier": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice([]string{
 					string(blobs.Archive),
 					string(blobs.Cool),

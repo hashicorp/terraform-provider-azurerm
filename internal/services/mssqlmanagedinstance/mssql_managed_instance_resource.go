@@ -93,7 +93,7 @@ func (r MsSqlManagedInstanceResource) ModelObject() interface{} {
 }
 
 func (r MsSqlManagedInstanceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ManagedInstanceID
+	return commonids.ValidateSqlManagedInstanceID
 }
 
 func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
@@ -246,7 +246,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		"dns_zone_partner_id": {
 			Type:         schema.TypeString,
 			Optional:     true,
-			ValidateFunc: validate.ManagedInstanceID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlManagedInstanceIDInsensitively),
 		},
 
 		"hybrid_secondary_usage": {
@@ -860,7 +860,7 @@ func (r MsSqlManagedInstanceResource) expandIdentity(input []identity.SystemOrUs
 
 func (r MsSqlManagedInstanceResource) flattenIdentity(input *identity.LegacySystemAndUserAssignedMap) []identity.SystemOrUserAssignedList {
 	if input == nil {
-		return nil
+		return []identity.SystemOrUserAssignedList{}
 	}
 
 	identityIds := make([]string, 0)

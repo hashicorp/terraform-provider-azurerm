@@ -105,6 +105,7 @@ jobs:
       TCTEST_SKIP_QUEUE: 'true'
       TCTEST_TOKEN_TC: ${{ secrets.TCTEST_TOKEN_TC }}
       TCTEST_BUILD_TYPE_ID: TF_AzureRM_AZURERM_SERVICE_PUBLIC
+      TCTEST_BUILD_TYPE_ID_ADD_SERVICE_SUFFIX: true
       TCTEST_REPO: terraform-providers/terraform-provider-azurerm
     steps:
       - name: Setup Go
@@ -118,12 +119,12 @@ jobs:
         with:
           path: ~/go/bin/tctest
           # keep this key in sync with the pinned version installed below
-          key: tctest-${{ runner.os }}-v1.2.0
+          key: tctest-${{ runner.os }}-v1.3.1
 
       - name: Install tctest
         if: steps.cache-tctest.outputs.cache-hit != 'true'
         run: |
-          go install github.com/katbyte/tctest@v1.2.0
+          go install github.com/katbyte/tctest@v1.3.1
 
       - name: Get PR commit SHA
         id: get-pr-sha
@@ -155,8 +156,8 @@ jobs:
           PR_SHA="${{ steps.get-pr-sha.outputs.sha }}"
 
           # Parse flags from comment
-          # Extract everything after /test
-          FLAGS_STRING=$(echo "$COMMENT_BODY" | sed 's|^/test[[:space:]]*||')
+          # Extract everything after /test (read -ra below ignores the leading whitespace)
+          FLAGS_STRING="${COMMENT_BODY#/test}"
 
           # Initialize default values
           beta=false
@@ -171,7 +172,7 @@ jobs:
           # getopts only handles single-char flags, so map the long spellings to -f
           for i in "${!FLAGS[@]}"; do
             case "${FLAGS[$i]}" in
-              -force|--force) FLAGS[$i]="-f" ;;
+              -force|--force) FLAGS[i]="-f" ;;
             esac
           done
 

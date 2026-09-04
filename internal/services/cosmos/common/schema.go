@@ -87,7 +87,7 @@ func DatabaseAutoscaleSettingsSchema() *pluginsdk.Schema {
 				"max_throughput": {
 					Type:          pluginsdk.TypeInt,
 					Optional:      true,
-					Computed:      true,
+					Computed:      true, // azignore:AZS007 - pre-existing violation
 					ConflictsWith: []string{"throughput"},
 					ValidateFunc:  validate.CosmosMaxThroughput,
 				},
@@ -100,7 +100,7 @@ func CosmosDbIndexingPolicySchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -154,7 +154,7 @@ func ConflictResolutionPolicy() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		ForceNew: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{

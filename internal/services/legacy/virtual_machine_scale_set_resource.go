@@ -103,7 +103,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						"tier": {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
-							Computed:         true,
+							Computed:         true, // azignore:AZS007 - pre-existing violation
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
@@ -119,7 +119,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 			"license_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice([]string{
 					"Windows_Client",
 					"Windows_Server",
@@ -343,7 +343,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 			"os_profile_linux_config": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -471,7 +471,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 									"load_balancer_inbound_nat_rules_ids": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
-										Computed: true,
+										Computed: true, // azignore:AZS007 - pre-existing violation
 										Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 										Set:      pluginsdk.HashString,
 									},
@@ -560,7 +560,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						"managed_disk_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.StringInSlice([]string{
 								string(virtualmachinescalesets.StorageAccountTypesPremiumLRS),
 								string(virtualmachinescalesets.StorageAccountTypesStandardLRS),
@@ -571,7 +571,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						"caching": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 						},
 
 						"os_type": {
@@ -606,12 +606,13 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						"caching": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 						},
 
 						"disk_size_gb": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
+							Type:     pluginsdk.TypeInt,
+							Optional: true,
+							// Note: O+C because Azure computes disk size when not specified
 							Computed:     true,
 							ValidateFunc: validation.IntBetween(0, 32767),
 						},
@@ -619,7 +620,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 						"managed_disk_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.StringInSlice([]string{
 								string(virtualmachinescalesets.StorageAccountTypesPremiumLRS),
 								string(virtualmachinescalesets.StorageAccountTypesStandardLRS),
@@ -634,7 +635,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 			"storage_profile_image_reference": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -952,8 +953,7 @@ func resourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interfac
 		}
 
 		if plan := model.Plan; plan != nil {
-			flattenedPlan := flattenAzureRmVirtualMachineScaleSetPlan(plan)
-			if err := d.Set("plan", flattenedPlan); err != nil {
+			if err := d.Set("plan", flattenAzureRmVirtualMachineScaleSetPlan(plan)); err != nil {
 				return fmt.Errorf("[DEBUG] setting `plan`: %#v", err)
 			}
 		}
@@ -983,29 +983,25 @@ func resourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interfac
 				d.Set("priority", string(pointer.From(profile.Priority)))
 				d.Set("eviction_policy", string(pointer.From(profile.EvictionPolicy)))
 
-				osProfile := flattenAzureRMVirtualMachineScaleSetOsProfile(d, profile.OsProfile)
-				if err := d.Set("os_profile", osProfile); err != nil {
+				if err := d.Set("os_profile", flattenAzureRMVirtualMachineScaleSetOsProfile(d, profile.OsProfile)); err != nil {
 					return fmt.Errorf("[DEBUG] setting `os_profile`: %#v", err)
 				}
 
 				if osProfile := profile.OsProfile; osProfile != nil {
 					if linuxConfiguration := osProfile.LinuxConfiguration; linuxConfiguration != nil {
-						flattenedLinuxConfiguration := flattenAzureRmVirtualMachineScaleSetOsProfileLinuxConfig(linuxConfiguration)
-						if err := d.Set("os_profile_linux_config", flattenedLinuxConfiguration); err != nil {
+						if err := d.Set("os_profile_linux_config", flattenAzureRmVirtualMachineScaleSetOsProfileLinuxConfig(linuxConfiguration)); err != nil {
 							return fmt.Errorf("[DEBUG] setting `os_profile_linux_config`: %#v", err)
 						}
 					}
 
 					if secrets := osProfile.Secrets; secrets != nil {
-						flattenedSecrets := flattenAzureRmVirtualMachineScaleSetOsProfileSecrets(secrets)
-						if err := d.Set("os_profile_secrets", flattenedSecrets); err != nil {
+						if err := d.Set("os_profile_secrets", flattenAzureRmVirtualMachineScaleSetOsProfileSecrets(secrets)); err != nil {
 							return fmt.Errorf("[DEBUG] setting `os_profile_secrets`: %#v", err)
 						}
 					}
 
 					if windowsConfiguration := osProfile.WindowsConfiguration; windowsConfiguration != nil {
-						flattenedWindowsConfiguration := flattenAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(windowsConfiguration)
-						if err := d.Set("os_profile_windows_config", flattenedWindowsConfiguration); err != nil {
+						if err := d.Set("os_profile_windows_config", flattenAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(windowsConfiguration)); err != nil {
 							return fmt.Errorf("[DEBUG] setting `os_profile_windows_config`: %#v", err)
 						}
 					}
@@ -1013,8 +1009,7 @@ func resourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interfac
 
 				if diagnosticsProfile := profile.DiagnosticsProfile; diagnosticsProfile != nil {
 					if bootDiagnostics := diagnosticsProfile.BootDiagnostics; bootDiagnostics != nil {
-						flattenedDiagnostics := flattenAzureRmVirtualMachineScaleSetBootDiagnostics(bootDiagnostics)
-						if err := d.Set("boot_diagnostics", flattenedDiagnostics); err != nil {
+						if err := d.Set("boot_diagnostics", flattenAzureRmVirtualMachineScaleSetBootDiagnostics(bootDiagnostics)); err != nil {
 							return fmt.Errorf("[DEBUG] setting `boot_diagnostics`: %#v", err)
 						}
 					}
@@ -1027,30 +1022,26 @@ func resourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interfac
 						}
 					}
 
-					flattenedNetworkProfile := flattenAzureRmVirtualMachineScaleSetNetworkProfile(networkProfile)
-					if err := d.Set("network_profile", flattenedNetworkProfile); err != nil {
+					if err := d.Set("network_profile", flattenAzureRmVirtualMachineScaleSetNetworkProfile(networkProfile)); err != nil {
 						return fmt.Errorf("[DEBUG] setting `network_profile`: %#v", err)
 					}
 				}
 
 				if storageProfile := profile.StorageProfile; storageProfile != nil {
 					if dataDisks := props.VirtualMachineProfile.StorageProfile.DataDisks; dataDisks != nil {
-						flattenedDataDisks := flattenAzureRmVirtualMachineScaleSetStorageProfileDataDisk(dataDisks)
-						if err := d.Set("storage_profile_data_disk", flattenedDataDisks); err != nil {
+						if err := d.Set("storage_profile_data_disk", flattenAzureRmVirtualMachineScaleSetStorageProfileDataDisk(dataDisks)); err != nil {
 							return fmt.Errorf("[DEBUG] setting `storage_profile_data_disk`: %#v", err)
 						}
 					}
 
 					if imageRef := storageProfile.ImageReference; imageRef != nil {
-						flattenedImageRef := flattenAzureRmVirtualMachineScaleSetStorageProfileImageReference(imageRef)
-						if err := d.Set("storage_profile_image_reference", flattenedImageRef); err != nil {
+						if err := d.Set("storage_profile_image_reference", flattenAzureRmVirtualMachineScaleSetStorageProfileImageReference(imageRef)); err != nil {
 							return fmt.Errorf("[DEBUG] setting `storage_profile_image_reference`: %#v", err)
 						}
 					}
 
 					if osDisk := storageProfile.OsDisk; osDisk != nil {
-						flattenedOSDisk := flattenAzureRmVirtualMachineScaleSetStorageProfileOSDisk(osDisk)
-						if err := d.Set("storage_profile_os_disk", flattenedOSDisk); err != nil {
+						if err := d.Set("storage_profile_os_disk", flattenAzureRmVirtualMachineScaleSetStorageProfileOSDisk(osDisk)); err != nil {
 							return fmt.Errorf("[DEBUG] setting `storage_profile_os_disk`: %#v", err)
 						}
 					}
@@ -1457,7 +1448,7 @@ func flattenAzureRmVirtualMachineScaleSetSku(sku *virtualmachinescalesets.Sku) [
 
 func flattenAzureRmVirtualMachineScaleSetExtensionProfile(profile *virtualmachinescalesets.VirtualMachineScaleSetExtensionProfile) ([]map[string]interface{}, error) {
 	if profile.Extensions == nil {
-		return nil, nil
+		return []map[string]interface{}{}, nil
 	}
 
 	result := make([]map[string]interface{}, 0, len(*profile.Extensions))
