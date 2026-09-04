@@ -22,7 +22,7 @@ type AttestationProviderListResource struct{}
 var _ sdk.FrameworkListWrappedResource = new(AttestationProviderListResource)
 
 func (AttestationProviderListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = "azurerm_attestation_provider"
+	response.TypeName = attestationProviderResourceName
 }
 
 func (AttestationProviderListResource) ResourceFunc() *pluginsdk.Resource {
@@ -49,7 +49,7 @@ func (AttestationProviderListResource) List(ctx context.Context, request list.Li
 	case !data.ResourceGroupName.IsNull():
 		resp, err := client.ListByResourceGroup(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", "azurerm_attestation_provider"), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", attestationProviderResourceName), err)
 			return
 		}
 		if resp.Model != nil && resp.Model.Value != nil {
@@ -58,7 +58,7 @@ func (AttestationProviderListResource) List(ctx context.Context, request list.Li
 	default:
 		resp, err := client.List(ctx, commonids.NewSubscriptionID(subscriptionID))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", "azurerm_attestation_provider"), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", attestationProviderResourceName), err)
 			return
 		}
 		if resp.Model != nil && resp.Model.Value != nil {
@@ -83,13 +83,13 @@ func (AttestationProviderListResource) List(ctx context.Context, request list.Li
 			rd := resourceAttestationProvider().Data(&terraform.InstanceState{})
 			id, err := attestationproviders.ParseAttestationProvidersIDInsensitively(pointer.From(item.Id))
 			if err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing `%s` ID", "azurerm_attestation_provider"), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing `%s` ID", attestationProviderResourceName), err)
 				return
 			}
 			rd.SetId(id.ID())
 
-			if err := resourceAttestationProviderFlatten(ctx, metadata.Client.Attestation, rd, id, &item); err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", "azurerm_attestation_provider"), err)
+			if err := resourceAttestationProviderFlatten(ctx, metadata.Client.Attestation, rd, id, &item, request.IncludeResource); err != nil {
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", attestationProviderResourceName), err)
 				return
 			}
 

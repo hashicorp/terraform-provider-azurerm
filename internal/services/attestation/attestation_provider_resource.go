@@ -31,6 +31,8 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity -test-name basicForResourceIdentity
 
+const attestationProviderResourceName = "azurerm_attestation_provider"
+
 func resourceAttestationProvider() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceAttestationProviderCreate,
@@ -147,7 +149,7 @@ func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta interface
 			}
 		}
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_attestation_provider", id.ID())
+			return tf.ImportAsExistsError(attestationProviderResourceName, id.ID())
 		}
 	}
 
@@ -233,37 +235,10 @@ func resourceAttestationProviderRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return resourceAttestationProviderFlatten(ctx, attestationClients, d, id, resp.Model)
+	return resourceAttestationProviderFlatten(ctx, attestationClients, d, id, resp.Model, true)
 }
 
-func resourceAttestationProviderFlatten(ctx context.Context, attestationClients *client.Client, d *pluginsdk.ResourceData, id *attestationproviders.AttestationProvidersId, model *attestationproviders.AttestationProviders) error {
-	dataPlaneUri, err := attestationClients.DataPlaneEndpointForProvider(ctx, *id)
-	if err != nil {
-		return fmt.Errorf("determining Data Plane URI for %s: %+v", *id, err)
-	}
-	dataPlaneClient, err := attestationClients.DataPlaneClientWithEndpoint(*dataPlaneUri)
-	if err != nil {
-		return fmt.Errorf("building Data Plane Client for %s: %+v", *id, err)
-	}
-
-	// Status=400 Code="Bad request" Message="Tpm attestation is not supported in the 'UKSouth' region"
-	openEnclavePolicy, err := dataPlaneClient.Get(ctx, *dataPlaneUri, attestation.TypeOpenEnclave)
-	if err != nil && !response.WasBadRequest(openEnclavePolicy.Response.Response) {
-		return fmt.Errorf("retrieving OpenEnclave Policy for %s: %+v", *id, err)
-	}
-	sgxEnclavePolicy, err := dataPlaneClient.Get(ctx, *dataPlaneUri, attestation.TypeSgxEnclave)
-	if err != nil && !response.WasBadRequest(sgxEnclavePolicy.Response.Response) {
-		return fmt.Errorf("retrieving SgxEnclave Policy for %s: %+v", *id, err)
-	}
-	tpmPolicy, err := dataPlaneClient.Get(ctx, *dataPlaneUri, attestation.TypeTpm)
-	if err != nil && !response.WasBadRequest(tpmPolicy.Response.Response) {
-		return fmt.Errorf("retrieving Tpm Policy for %s: %+v", *id, err)
-	}
-	sevSnpPolicy, err := dataPlaneClient.Get(ctx, *dataPlaneUri, attestation.TypeSevSnpVM)
-	if err != nil && !response.WasBadRequest(sevSnpPolicy.Response.Response) {
-		return fmt.Errorf("retrieving SEV-SNP Policy for %s: %+v", *id, err)
-	}
-
+func resourceAttestationProviderFlatten(ctx context.Context, attestationClients *client.Client, d *pluginsdk.ResourceData, id *attestationproviders.AttestationProvidersId, model *attestationproviders.AttestationProviders, includeResource bool) error {
 	d.Set("name", id.AttestationProviderName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
@@ -280,29 +255,58 @@ func resourceAttestationProviderFlatten(ctx context.Context, attestationClients 
 		}
 	}
 
-	openEnclavePolicyData, err := base64DataFromAttestationJWT(openEnclavePolicy.Token)
-	if err != nil {
-		return fmt.Errorf("parsing OpenEnclave Policy for %s: %+v", *id, err)
-	}
-	d.Set("open_enclave_policy_base64", pointer.From(openEnclavePolicyData))
+	if includeResource {
+		dataPlaneUri, err := attestationClients.DataPlaneEndpointForProvider(ctx, *id)
+		if err != nil {
+			return fmt.Errorf("determining Data Plane URI for %s: %+v", *id, err)
+		}
+		dataPlaneClient, err := attestationClients.DataPlaneClientWithEndpoint(*dataPlaneUri)
+		if err != nil {
+			return fmt.Errorf("building Data Plane Client for %s: %+v", *id, err)
+		}
 
-	sgxEnclavePolicyData, err := base64DataFromAttestationJWT(sgxEnclavePolicy.Token)
-	if err != nil {
-		return fmt.Errorf("parsing SgxEnclave Policy for %s: %+v", *id, err)
-	}
-	d.Set("sgx_enclave_policy_base64", pointer.From(sgxEnclavePolicyData))
+		// Status=400 Code="Bad request" Message="Tpm attestation is not supported in the 'UKSouth' region"
+		openEnclavePolicy, err := dataPlaneClient.Get(ctx, *dataPlaneUri, attestation.TypeOpenEnclave)
+		if err != nil && !response.WasBadRequest(openEnclavePolicy.Response.Response) {
+			return fmt.Errorf("retrieving OpenEnclave Policy for %s: %+v", *id, err)
+		}
+		sgxEnclavePolicy, err := dataPlaneClient.Get(ctx, *dataPlaneUri, attestation.TypeSgxEnclave)
+		if err != nil && !response.WasBadRequest(sgxEnclavePolicy.Response.Response) {
+			return fmt.Errorf("retrieving SgxEnclave Policy for %s: %+v", *id, err)
+		}
+		tpmPolicy, err := dataPlaneClient.Get(ctx, *dataPlaneUri, attestation.TypeTpm)
+		if err != nil && !response.WasBadRequest(tpmPolicy.Response.Response) {
+			return fmt.Errorf("retrieving Tpm Policy for %s: %+v", *id, err)
+		}
+		sevSnpPolicy, err := dataPlaneClient.Get(ctx, *dataPlaneUri, attestation.TypeSevSnpVM)
+		if err != nil && !response.WasBadRequest(sevSnpPolicy.Response.Response) {
+			return fmt.Errorf("retrieving SEV-SNP Policy for %s: %+v", *id, err)
+		}
 
-	tpmPolicyData, err := base64DataFromAttestationJWT(tpmPolicy.Token)
-	if err != nil {
-		return fmt.Errorf("parsing Tpm Policy for %s: %+v", *id, err)
-	}
-	d.Set("tpm_policy_base64", pointer.From(tpmPolicyData))
+		openEnclavePolicyData, err := base64DataFromAttestationJWT(openEnclavePolicy.Token)
+		if err != nil {
+			return fmt.Errorf("parsing OpenEnclave Policy for %s: %+v", *id, err)
+		}
+		d.Set("open_enclave_policy_base64", pointer.From(openEnclavePolicyData))
 
-	sevSnpPolicyData, err := base64DataFromAttestationJWT(sevSnpPolicy.Token)
-	if err != nil {
-		return fmt.Errorf("parsing SEV-SNP policy for %s: %+v", *id, err)
+		sgxEnclavePolicyData, err := base64DataFromAttestationJWT(sgxEnclavePolicy.Token)
+		if err != nil {
+			return fmt.Errorf("parsing SgxEnclave Policy for %s: %+v", *id, err)
+		}
+		d.Set("sgx_enclave_policy_base64", pointer.From(sgxEnclavePolicyData))
+
+		tpmPolicyData, err := base64DataFromAttestationJWT(tpmPolicy.Token)
+		if err != nil {
+			return fmt.Errorf("parsing Tpm Policy for %s: %+v", *id, err)
+		}
+		d.Set("tpm_policy_base64", pointer.From(tpmPolicyData))
+
+		sevSnpPolicyData, err := base64DataFromAttestationJWT(sevSnpPolicy.Token)
+		if err != nil {
+			return fmt.Errorf("parsing SEV-SNP policy for %s: %+v", *id, err)
+		}
+		d.Set("sev_snp_policy_base64", pointer.From(sevSnpPolicyData))
 	}
-	d.Set("sev_snp_policy_base64", pointer.From(sevSnpPolicyData))
 
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
