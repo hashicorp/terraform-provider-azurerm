@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkinterfaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
@@ -1564,8 +1564,8 @@ func expandAzureRmVirtualMachineOsProfileWindowsConfig(d *pluginsdk.ResourceData
 				content := config["content"].(string)
 
 				addContent := virtualmachines.AdditionalUnattendContent{
-					PassName:      pointer.ToEnum[virtualmachines.PassNames](pass),
-					ComponentName: pointer.ToEnum[virtualmachines.ComponentNames](component),
+					PassName:      pointer.ToEnum[virtualmachines.PassName](pass),
+					ComponentName: pointer.ToEnum[virtualmachines.ComponentName](component),
 					SettingName:   pointer.ToEnum[virtualmachines.SettingNames](settingName),
 				}
 
