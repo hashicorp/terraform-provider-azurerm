@@ -4,6 +4,7 @@
 package servicebus
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topics"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -20,6 +22,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -compare-values "subscription_id:namespace_id,resource_group_name:namespace_id,namespace_name:namespace_id,topic_name:name"
+
+const serviceBusTopicResourceName = "azurerm_servicebus_topic"
+
 func resourceServiceBusTopic() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceServiceBusTopicCreateUpdate,
@@ -27,10 +33,11 @@ func resourceServiceBusTopic() *pluginsdk.Resource {
 		Update: resourceServiceBusTopicCreateUpdate,
 		Delete: resourceServiceBusTopicDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := topics.ParseTopicID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&topics.TopicId{}, pluginsdk.ResourceTypeForIdentityVirtual),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&topics.TopicId{}, pluginsdk.ResourceTypeForIdentityVirtual),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -160,7 +167,7 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_servicebus_topic", id.ID())
+				return tf.ImportAsExistsError(serviceBusTopicResourceName, id.ID())
 			}
 		}
 	}
@@ -236,6 +243,9 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	if d.IsNewResource() {
 		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id, pluginsdk.ResourceTypeForIdentityVirtual); err != nil {
+			return err
+		}
 	}
 
 	return resourceServiceBusTopicRead(d, meta)
@@ -260,10 +270,14 @@ func resourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourceServiceBusTopicFlatten(ctx, d, id, resp.Model, meta.(*clients.Client).ServiceBus.NamespacesClient, true)
+}
+
+func resourceServiceBusTopicFlatten(ctx context.Context, d *pluginsdk.ResourceData, id *topics.TopicId, model *topics.SBTopic, namespacesClient *namespaces.NamespacesClient, includeResource bool) error {
 	d.Set("name", id.TopicName)
 	d.Set("namespace_id", topics.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName).ID())
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			status := ""
 			if v := props.Status; v != nil {
@@ -291,17 +305,18 @@ func resourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) er
 				// if the topic is in a premium namespace and partitioning is enabled then the
 				// max size returned by the API will be 16 times greater than the value set
 				if partitioning := props.EnablePartitioning; partitioning != nil && *partitioning {
-					namespacesClient := meta.(*clients.Client).ServiceBus.NamespacesClient
-					namespaceId := namespaces.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
-					namespaceResp, err := namespacesClient.Get(ctx, namespaceId)
-					if err != nil {
-						return err
-					}
+					if includeResource {
+						namespaceId := namespaces.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+						namespaceResp, err := namespacesClient.Get(ctx, namespaceId)
+						if err != nil {
+							return err
+						}
 
-					if namespaceModel := namespaceResp.Model; namespaceModel != nil {
-						if namespaceModel.Sku.Name != namespaces.SkuNamePremium {
-							const partitionCount = 16
-							maxSize = int(*props.MaxSizeInMegabytes / partitionCount)
+						if namespaceModel := namespaceResp.Model; namespaceModel != nil {
+							if namespaceModel.Sku.Name != namespaces.SkuNamePremium {
+								const partitionCount = 16
+								maxSize = int(*props.MaxSizeInMegabytes / partitionCount)
+							}
 						}
 					}
 				}
@@ -311,7 +326,7 @@ func resourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id, pluginsdk.ResourceTypeForIdentityVirtual)
 }
 
 func resourceServiceBusTopicDelete(d *pluginsdk.ResourceData, meta interface{}) error {
