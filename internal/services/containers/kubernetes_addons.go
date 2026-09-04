@@ -286,9 +286,7 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 }
 
 func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interface{}, env environments.Environment) (*map[string]managedclusters.ManagedClusterAddonProfile, error) {
-	disabled := managedclusters.ManagedClusterAddonProfile{
-		Enabled: false,
-	}
+	disabled := managedclusters.ManagedClusterAddonProfile{}
 
 	addonProfiles := map[string]managedclusters.ManagedClusterAddonProfile{}
 
@@ -402,7 +400,6 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 	if ok := d.HasChange("open_service_mesh_enabled"); ok {
 		addonProfiles[openServiceMeshKey] = managedclusters.ManagedClusterAddonProfile{
 			Enabled: input["open_service_mesh_enabled"].(bool),
-			Config:  nil,
 		}
 	}
 

@@ -211,8 +211,7 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) IDValidationFunc() plu
 func expandSentinelDataConnectorMicrosoftThreatIntelligenceMicrosoftEmergingThreatFeed(input DataConnectorMicrosoftThreatIntelligenceModel) dataconnectors.MSTIDataConnectorDataTypesMicrosoftEmergingThreatFeed {
 	if input.MicrosoftEmergingThreatFeedLookBackDate == "" {
 		return dataconnectors.MSTIDataConnectorDataTypesMicrosoftEmergingThreatFeed{
-			LookbackPeriod: "",
-			State:          pointer.To(dataconnectors.DataTypeStateDisabled),
+			State: pointer.To(dataconnectors.DataTypeStateDisabled),
 		}
 	}
 

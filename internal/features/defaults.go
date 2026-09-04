@@ -4,7 +4,7 @@
 package features
 
 func Default() UserFeatures {
-	return UserFeatures{
+	return UserFeatures{ // azignore:AZG007 - ensure all nested objects are fully populated
 		// NOTE: ensure all nested objects are fully populated
 		ApiManagement: ApiManagementFeatures{
 			PurgeSoftDeleteOnDestroy: true,

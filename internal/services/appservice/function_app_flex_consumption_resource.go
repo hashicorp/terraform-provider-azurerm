@@ -534,9 +534,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 
 			if !functionAppFlexConsumption.PublishingDeployBasicAuthEnabled {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{},
 				}
 				if _, err := client.UpdateScmAllowed(ctx, id, sitePolicy); err != nil {
 					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
@@ -930,9 +928,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 						},
 					}
 				} else {
-					model.Properties.FunctionAppConfig.ScaleAndConcurrency.Triggers = &webapps.FunctionsScaleAndConcurrencyTriggers{
-						HTTP: nil,
-					}
+					model.Properties.FunctionAppConfig.ScaleAndConcurrency.Triggers = &webapps.FunctionsScaleAndConcurrencyTriggers{}
 				}
 			}
 

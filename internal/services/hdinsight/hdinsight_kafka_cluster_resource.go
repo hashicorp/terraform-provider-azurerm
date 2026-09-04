@@ -27,10 +27,8 @@ import (
 // NOTE: this isn't a recommended way of building resources in Terraform
 // this pattern is used to work around a generic but pedantic API endpoint
 var hdInsightKafkaClusterHeadNodeDefinition = HDInsightNodeDefinition{
-	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         2,
 	MaxInstanceCount:         pointer.To(2),
-	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: pointer.To(int64(2)),
 }
 
@@ -42,17 +40,13 @@ var hdInsightKafkaClusterWorkerNodeDefinition = HDInsightNodeDefinition{
 }
 
 var hdInsightKafkaClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
-	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
 	MaxInstanceCount:         pointer.To(3),
-	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: pointer.To(int64(3)),
 }
 
 var hdInsightKafkaClusterKafkaManagementNodeDefinition = HDInsightNodeDefinition{
-	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         2,
-	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: pointer.To(int64(2)),
 }
 

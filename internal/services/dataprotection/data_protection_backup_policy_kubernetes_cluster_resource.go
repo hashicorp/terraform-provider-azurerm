@@ -464,7 +464,6 @@ func expandBackupPolicyKubernetesClusterLifeCycle(input []LifeCycle) []basebacku
 func expandBackupPolicyKubernetesClusterTaggingCriteriaArray(input []RetentionRule) (*[]basebackuppolicyresources.TaggingCriteria, error) {
 	results := []basebackuppolicyresources.TaggingCriteria{
 		{
-			Criteria:        nil,
 			IsDefault:       true,
 			TaggingPriority: 99,
 			TagInfo: basebackuppolicyresources.RetentionTag{
@@ -475,7 +474,6 @@ func expandBackupPolicyKubernetesClusterTaggingCriteriaArray(input []RetentionRu
 	}
 	for _, item := range input {
 		result := basebackuppolicyresources.TaggingCriteria{
-			IsDefault:       false,
 			TaggingPriority: item.Priority,
 			TagInfo: basebackuppolicyresources.RetentionTag{
 				Id:      pointer.To(item.Name + "_"),
@@ -532,7 +530,6 @@ func expandBackupPolicyKubernetesClusterCriteriaArray(input []Criteria) (*[]base
 
 		results = append(results, basebackuppolicyresources.ScheduleBasedBackupCriteria{
 			AbsoluteCriteria: &absoluteCriteria,
-			DaysOfMonth:      nil,
 			DaysOfTheWeek:    &daysOfWeek,
 			MonthsOfYear:     &monthsOfYear,
 			ScheduleTimes:    pointer.To(item.ScheduledBackupTimes),

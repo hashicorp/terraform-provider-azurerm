@@ -202,10 +202,9 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 			}
 
 			payload := customipprefixes.CustomIPPrefix{
-				Name:             &model.Name,
-				Location:         pointer.To(location.Normalize(model.Location)),
-				Tags:             tags.Expand(model.Tags),
-				ExtendedLocation: nil,
+				Name:     &model.Name,
+				Location: pointer.To(location.Normalize(model.Location)),
+				Tags:     tags.Expand(model.Tags),
 				Properties: &customipprefixes.CustomIPPrefixPropertiesFormat{
 					Cidr:              &model.CIDR,
 					CommissionedState: pointer.To(customipprefixes.CommissionedStateProvisioning),
