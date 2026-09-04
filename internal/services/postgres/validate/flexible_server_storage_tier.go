@@ -4,6 +4,8 @@
 package validate
 
 import (
+	"math"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/servers"
 )
 
@@ -16,7 +18,7 @@ type StorageTiers struct {
 // Creates a map of valid StorageTiers based on the storage_mb for the PostgreSQL Flexible Server
 func InitializeFlexibleServerStorageTierDefaults() map[int]StorageTiers {
 	return map[int]StorageTiers{
-		32768: {servers.AzureManagedDiskPerformanceTierPFour, &[]string{
+		int(math.Exp2(15)): {servers.AzureManagedDiskPerformanceTierPFour, &[]string{
 			string(servers.AzureManagedDiskPerformanceTierPFour),
 			string(servers.AzureManagedDiskPerformanceTierPSix),
 			string(servers.AzureManagedDiskPerformanceTierPOneZero),
@@ -26,7 +28,7 @@ func InitializeFlexibleServerStorageTierDefaults() map[int]StorageTiers {
 			string(servers.AzureManagedDiskPerformanceTierPFourZero),
 			string(servers.AzureManagedDiskPerformanceTierPFiveZero),
 		}, &[]int{4, 6, 10, 15, 20, 30, 40, 50}},
-		65536: {servers.AzureManagedDiskPerformanceTierPSix, &[]string{
+		int(math.Exp2(16)): {servers.AzureManagedDiskPerformanceTierPSix, &[]string{
 			string(servers.AzureManagedDiskPerformanceTierPSix),
 			string(servers.AzureManagedDiskPerformanceTierPOneZero),
 			string(servers.AzureManagedDiskPerformanceTierPOneFive),
@@ -35,7 +37,7 @@ func InitializeFlexibleServerStorageTierDefaults() map[int]StorageTiers {
 			string(servers.AzureManagedDiskPerformanceTierPFourZero),
 			string(servers.AzureManagedDiskPerformanceTierPFiveZero),
 		}, &[]int{6, 10, 15, 20, 30, 40, 50}},
-		131072: {servers.AzureManagedDiskPerformanceTierPOneZero, &[]string{
+		int(math.Exp2(17)): {servers.AzureManagedDiskPerformanceTierPOneZero, &[]string{
 			string(servers.AzureManagedDiskPerformanceTierPOneZero),
 			string(servers.AzureManagedDiskPerformanceTierPOneFive),
 			string(servers.AzureManagedDiskPerformanceTierPTwoZero),
@@ -43,40 +45,40 @@ func InitializeFlexibleServerStorageTierDefaults() map[int]StorageTiers {
 			string(servers.AzureManagedDiskPerformanceTierPFourZero),
 			string(servers.AzureManagedDiskPerformanceTierPFiveZero),
 		}, &[]int{10, 15, 20, 30, 40, 50}},
-		262144: {servers.AzureManagedDiskPerformanceTierPOneFive, &[]string{
+		int(math.Exp2(18)): {servers.AzureManagedDiskPerformanceTierPOneFive, &[]string{
 			string(servers.AzureManagedDiskPerformanceTierPOneFive),
 			string(servers.AzureManagedDiskPerformanceTierPTwoZero),
 			string(servers.AzureManagedDiskPerformanceTierPThreeZero),
 			string(servers.AzureManagedDiskPerformanceTierPFourZero),
 			string(servers.AzureManagedDiskPerformanceTierPFiveZero),
 		}, &[]int{15, 20, 30, 40, 50}},
-		524288: {servers.AzureManagedDiskPerformanceTierPTwoZero, &[]string{
+		int(math.Exp2(19)): {servers.AzureManagedDiskPerformanceTierPTwoZero, &[]string{
 			string(servers.AzureManagedDiskPerformanceTierPTwoZero),
 			string(servers.AzureManagedDiskPerformanceTierPThreeZero),
 			string(servers.AzureManagedDiskPerformanceTierPFourZero),
 			string(servers.AzureManagedDiskPerformanceTierPFiveZero),
 		}, &[]int{20, 30, 40, 50}},
-		1048576: {servers.AzureManagedDiskPerformanceTierPThreeZero, &[]string{
+		int(math.Exp2(20)): {servers.AzureManagedDiskPerformanceTierPThreeZero, &[]string{
 			string(servers.AzureManagedDiskPerformanceTierPThreeZero),
 			string(servers.AzureManagedDiskPerformanceTierPFourZero),
 			string(servers.AzureManagedDiskPerformanceTierPFiveZero),
 		}, &[]int{30, 40, 50}},
-		2097152: {servers.AzureManagedDiskPerformanceTierPFourZero, &[]string{
+		int(math.Exp2(21)): {servers.AzureManagedDiskPerformanceTierPFourZero, &[]string{
 			string(servers.AzureManagedDiskPerformanceTierPFourZero),
 			string(servers.AzureManagedDiskPerformanceTierPFiveZero),
 		}, &[]int{40, 50}},
 		4193280: {servers.AzureManagedDiskPerformanceTierPFiveZero, &[]string{
 			string(servers.AzureManagedDiskPerformanceTierPFiveZero),
 		}, &[]int{50}},
-		4194304: {servers.AzureManagedDiskPerformanceTierPFiveZero, &[]string{
+		int(math.Exp2(22)): {servers.AzureManagedDiskPerformanceTierPFiveZero, &[]string{
 			string(servers.AzureManagedDiskPerformanceTierPFiveZero),
 		}, &[]int{50}},
-		8388608: {servers.AzureManagedDiskPerformanceTierPSixZero, &[]string{
+		int(math.Exp2(23)): {servers.AzureManagedDiskPerformanceTierPSixZero, &[]string{
 			string(servers.AzureManagedDiskPerformanceTierPSixZero),
 			string(servers.AzureManagedDiskPerformanceTierPSevenZero),
 			string(servers.AzureManagedDiskPerformanceTierPEightZero),
 		}, &[]int{60, 70, 80}},
-		16777216: {servers.AzureManagedDiskPerformanceTierPSevenZero, &[]string{
+		int(math.Exp2(24)): {servers.AzureManagedDiskPerformanceTierPSevenZero, &[]string{
 			string(servers.AzureManagedDiskPerformanceTierPSevenZero),
 			string(servers.AzureManagedDiskPerformanceTierPEightZero),
 		}, &[]int{70, 80}},
