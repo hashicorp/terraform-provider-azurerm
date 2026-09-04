@@ -32,15 +32,6 @@ func (r WindowsVirtualMachineListResource) Metadata(_ context.Context, _ resourc
 func (WindowsVirtualMachineListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.Compute.VirtualMachinesClient
 
-	// retrieve the deadline from the supplied context, since the List wrapper cancels it
-	// before the iterator below runs and `flatten` makes additional API calls.
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		// This *should* never happen given the List Wrapper instantiates a context with a timeout
-		sdk.SetResponseErrorDiagnostic(stream, "internal-error", "context had no deadline")
-		return
-	}
-
 	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)
 	if diags.HasError() {
@@ -48,12 +39,11 @@ func (WindowsVirtualMachineListResource) List(ctx context.Context, request list.
 		return
 	}
 
+	var results []virtualmachines.VirtualMachine
 	subscriptionID := metadata.SubscriptionId
 	if !data.SubscriptionId.IsNull() {
 		subscriptionID = data.SubscriptionId.ValueString()
 	}
-
-	results := make([]virtualmachines.VirtualMachine, 0)
 
 	switch {
 	case !data.ResourceGroupName.IsNull():
@@ -74,21 +64,21 @@ func (WindowsVirtualMachineListResource) List(ctx context.Context, request list.
 		results = resp.Items
 	}
 
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		sdk.SetResponseErrorDiagnostic(stream, "internal-error", "context had no deadline")
+		return
+	}
+
 	stream.Results = func(push func(list.ListResult) bool) {
 		deadlineCtx, cancel := context.WithDeadline(context.Background(), deadline)
 		defer cancel()
 
 		for _, item := range results {
-			// the API returns all Virtual Machines in scope, so filter out any that aren't Windows
-			if props := item.Properties; props == nil || props.StorageProfile == nil || props.StorageProfile.OsDisk == nil || pointer.From(props.StorageProfile.OsDisk.OsType) != virtualmachines.OperatingSystemTypesWindows {
-				continue
-			}
-
 			result := request.NewListResult(deadlineCtx)
 			result.DisplayName = pointer.From(item.Name)
 
 			rd := resourceWindowsVirtualMachine().Data(&terraform.InstanceState{})
-
 			id, err := virtualmachines.ParseVirtualMachineIDInsensitively(pointer.From(item.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing ID for `%s`", azureWindowsVirtualMachineResourceName), err)
