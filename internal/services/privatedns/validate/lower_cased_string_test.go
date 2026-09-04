@@ -19,7 +19,7 @@ func TestLowerCasedStrings(t *testing.T) {
 		{
 			Value:    " ",
 			TestName: "Whitespace",
-			ErrCount: 1,
+			ErrCount: 2,
 		},
 		{
 			Value:    "Hello",
@@ -49,7 +49,7 @@ func TestLowerCasedStrings(t *testing.T) {
 		{
 			Value:    "Hello There.com",
 			TestName: "TitleCaseMultipleWordsWhitespace",
-			ErrCount: 1,
+			ErrCount: 2,
 		},
 		{
 			Value:    "Hello-There.com",

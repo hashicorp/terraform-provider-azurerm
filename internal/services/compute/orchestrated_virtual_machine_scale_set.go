@@ -819,7 +819,7 @@ func validatePasswordComplexity(input interface{}, key string, min int, max int)
 	}
 
 	if len(password) < min || len(password) > max {
-		errors = append(errors, fmt.Errorf("%q must be at least 6 characters long and less than 72 characters long. Got %q(%d characters)", key, password, len(password)))
+		errors = append(errors, fmt.Errorf("%q must be at least %d characters long and no more than %d characters long. Got %q(%d characters)", key, min, max, password, len(password)))
 		return warnings, errors
 	}
 
