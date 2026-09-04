@@ -82,11 +82,6 @@ func TestAccStorageContainerImmutabilityPolicy_update(t *testing.T) {
 }
 
 func TestAccStorageContainerImmutabilityPolicy_completeLocked(t *testing.T) {
-	// This test has been written for manual testing of the `locked` property. Ordinarily we do not want to test this in automation,
-	// since locking an immutability policy renders the container and its storage account **immutable**. This test will always
-	// fail during cleanup for this reason. Uncomment the t.Skip() call to continue...
-	t.Skip("this test for manual execution only")
-
 	data := acceptance.BuildTestData(t, "azurerm_storage_container_immutability_policy", "test")
 	r := StorageContainerImmutabilityPolicyResource{}
 
@@ -99,7 +94,7 @@ func TestAccStorageContainerImmutabilityPolicy_completeLocked(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.completeLocked(data),
+			Config: r.completeLocked(data, 2),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -108,6 +103,23 @@ func TestAccStorageContainerImmutabilityPolicy_completeLocked(t *testing.T) {
 		{
 			Config:      r.basic(data),
 			ExpectError: regexp.MustCompile("unable to set `locked = false` - once an immutability policy locked it cannot be unlocked"),
+		},
+		{
+			Config:      r.completeLocked(data, 1),
+			ExpectError: regexp.MustCompile("`immutability_period_in_days` cannot be decreased once an immutability policy has been locked"),
+		},
+		{
+			Config: r.completeLocked(data, 3),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		// A locked policy cannot be deleted directly, but deleting its empty container
+		// also deletes the policy. Remove it from state so test cleanup can delete the
+		// container and its parent resources.
+		{
+			Config: r.immutabilityPolicyUnmanaged(data),
 		},
 	})
 }
@@ -154,18 +166,33 @@ resource "azurerm_storage_container_immutability_policy" "test" {
 `, template)
 }
 
-func (r StorageContainerImmutabilityPolicyResource) completeLocked(data acceptance.TestData) string {
+func (r StorageContainerImmutabilityPolicyResource) completeLocked(data acceptance.TestData, period uint) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_storage_container_immutability_policy" "test" {
   storage_container_resource_manager_id = azurerm_storage_container.test.id
-  immutability_period_in_days           = 2
+  immutability_period_in_days           = %d
   protected_append_writes_all_enabled   = true
   protected_append_writes_enabled       = false
 
   locked = true
+}
+`, template, period)
+}
+
+func (r StorageContainerImmutabilityPolicyResource) immutabilityPolicyUnmanaged(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+removed {
+  from = azurerm_storage_container_immutability_policy.test
+
+  lifecycle {
+    destroy = false
+  }
 }
 `, template)
 }
