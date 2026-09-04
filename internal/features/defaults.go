@@ -11,7 +11,7 @@ func Default() UserFeatures {
 			RecoverSoftDeleted:       true,
 		},
 		EnhancedValidation: EnhancedValidationFeatures{
-			Locations:         false, 
+			Locations:         false,
 			ResourceProviders: false,
 			PreflightEnabled:  false,
 			LocationFallback:  nil,
