@@ -47,6 +47,11 @@ func dataSourceStorageEncryptionScope() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"infrastructure_encryption_required": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -81,6 +86,7 @@ func dataSourceStorageEncryptionScopeRead(d *pluginsdk.ResourceData, meta interf
 			}
 			d.Set("key_vault_key_id", keyVaultKeyUri)
 
+			d.Set("infrastructure_encryption_required", props.RequireInfrastructureEncryption)
 			d.Set("source", string(pointer.From(props.Source)))
 		}
 	}
