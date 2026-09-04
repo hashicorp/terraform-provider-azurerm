@@ -65,7 +65,7 @@ func (c SignalRClient) UpdateThenPoll(ctx context.Context, id SignalRId, input S
 	return c.UpdateCallbackThenPoll(ctx, id, input, nil)
 }
 
-// UpdateCallbackThenPoll performs Update, runs the optional callback function, then polls until it's completed
+// UpdateCallbackThenPoll performs Update, runs the optional callback function, then polls until it's completed should jsut be one
 func (c SignalRClient) UpdateCallbackThenPoll(ctx context.Context, id SignalRId, input SignalRResource, callback func() error) error {
 	result, err := c.Update(ctx, id, input)
 	if err != nil {

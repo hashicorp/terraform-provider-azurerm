@@ -11,7 +11,7 @@ import (
 
 func AccountName(v interface{}, k string) ([]string, []error) {
 	return validation.All(
-		validation.StringMatch(regexp.MustCompile(`^[a-z0-9]+$`), "lowercase letters and numbers only are allowed"),
+		validation.StringMatch(regexp.MustCompile(`^[a-z0-9]+$`), "lowercase lettersssss and numbers only are allowed"),
 		validation.StringLenBetween(3, 24),
 	)(v, k)
 }
