@@ -8,8 +8,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespacesauthorizationrule"
@@ -39,6 +41,8 @@ func dataSourceServiceBusNamespace() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
+
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -51,6 +55,44 @@ func dataSourceServiceBusNamespace() *pluginsdk.Resource {
 
 			"premium_messaging_partitions": {
 				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
+			"customer_managed_key": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_vault_key_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"identity_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"infrastructure_encryption_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"local_auth_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"minimum_tls_version": {
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -83,6 +125,55 @@ func dataSourceServiceBusNamespace() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"network_rule_set": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"default_action": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"public_network_access_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"ip_rules": {
+							Type:     pluginsdk.TypeSet,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"trusted_services_allowed": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"network_rules": {
+							Type:     pluginsdk.TypeSet,
+							Computed: true,
+							Set:      networkRuleHash,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"subnet_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"ignore_missing_vnet_service_endpoint": {
+										Type:     pluginsdk.TypeBool,
+										Computed: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
@@ -109,6 +200,14 @@ func dataSourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
+		identityFlattened, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", identityFlattened); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
 		if sku := model.Sku; sku != nil {
 			d.Set("sku", string(sku.Name))
 			d.Set("capacity", sku.Capacity)
@@ -116,6 +215,27 @@ func dataSourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface
 
 		if props := model.Properties; props != nil {
 			d.Set("premium_messaging_partitions", props.PremiumMessagingPartitions)
+
+			if customerManagedKey, err := flattenServiceBusNamespaceEncryption(props.Encryption); err == nil {
+				d.Set("customer_managed_key", customerManagedKey)
+			}
+
+			localAuthEnabled := true
+			if props.DisableLocalAuth != nil {
+				localAuthEnabled = !*props.DisableLocalAuth
+			}
+			d.Set("local_auth_enabled", localAuthEnabled)
+
+			publicNetworkAccess := true
+			if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == namespaces.PublicNetworkAccessDisabled {
+				publicNetworkAccess = false
+			}
+			d.Set("public_network_access_enabled", publicNetworkAccess)
+
+			if props.MinimumTlsVersion != nil {
+				d.Set("minimum_tls_version", string(pointer.From(props.MinimumTlsVersion)))
+			}
+
 			d.Set("endpoint", props.ServiceBusEndpoint)
 		}
 	}
@@ -131,6 +251,17 @@ func dataSourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface
 			d.Set("default_secondary_connection_string", keysModel.SecondaryConnectionString)
 			d.Set("default_primary_key", keysModel.PrimaryKey)
 			d.Set("default_secondary_key", keysModel.SecondaryKey)
+		}
+	}
+
+	networkRuleSet, err := client.GetNetworkRuleSet(ctx, id)
+	if err != nil {
+		return fmt.Errorf("retrieving network rule set %s: %+v", id, err)
+	}
+
+	if nrsModel := networkRuleSet.Model; nrsModel != nil {
+		if props := nrsModel.Properties; props != nil {
+			d.Set("network_rule_set", flattenServiceBusNamespaceNetworkRuleSet(*props))
 		}
 	}
 
