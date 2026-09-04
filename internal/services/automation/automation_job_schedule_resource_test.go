@@ -21,6 +21,16 @@ import (
 
 type AutomationJobScheduleResource struct{}
 
+func TestAccAutomationJobSchedule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_job_schedule", "test")
+	r := AutomationJobScheduleResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccAutomationJobSchedule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_job_schedule", "test")
 	r := AutomationJobScheduleResource{}

@@ -18,6 +18,16 @@ import (
 
 type BotChannelsRegistrationResource struct{}
 
+func TestAccBotChannelsRegistration_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
+	r := BotChannelsRegistrationResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicConfig(data),
+		},
+	}, "")
+}
+
 func TestAccBotChannelsRegistration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
 	r := BotChannelsRegistrationResource{}
