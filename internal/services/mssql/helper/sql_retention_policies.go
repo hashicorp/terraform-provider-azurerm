@@ -59,6 +59,13 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 					ValidateFunc: validation.IntBetween(0, 52),
 					AtLeastOneOf: atLeastOneOf,
 				},
+
+				"immutability_mode": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.StringInSlice(longtermretentionpolicies.PossibleValuesForTimeBasedImmutabilityMode(), false),
+				},
 			},
 		},
 	}
@@ -117,6 +124,13 @@ func ExpandLongTermRetentionPolicy(input []interface{}) *longtermretentionpolici
 	if v, ok := policy["week_of_year"].(int); ok && v != 0 {
 		output.WeekOfYear = pointer.To(int64(v))
 	}
+
+	if mode, ok := policy["immutability_mode"].(string); ok && mode != "" {
+		output.TimeBasedImmutability = pointer.To(longtermretentionpolicies.TimeBasedImmutabilityEnabled)
+		output.TimeBasedImmutabilityMode = pointer.ToEnum[longtermretentionpolicies.TimeBasedImmutabilityMode](mode)
+	} else {
+		output.TimeBasedImmutability = pointer.To(longtermretentionpolicies.TimeBasedImmutabilityDisabled)
+	}
 	return pointer.To(output)
 }
 
@@ -142,8 +156,10 @@ func FlattenLongTermRetentionPolicy(input *longtermretentionpolicies.LongTermRet
 
 	yearlyRetention := "PT0S"
 	if input.Properties.YearlyRetention != nil {
-		yearlyRetention = *input.Properties.YearlyRetention
+		yearlyRetention = pointer.From(input.Properties.YearlyRetention)
 	}
+
+	immutabilityMode := string(pointer.From(input.Properties.TimeBasedImmutabilityMode))
 
 	return []interface{}{
 		map[string]interface{}{
@@ -151,6 +167,7 @@ func FlattenLongTermRetentionPolicy(input *longtermretentionpolicies.LongTermRet
 			"weekly_retention":  weeklyRetention,
 			"week_of_year":      weekOfYear,
 			"yearly_retention":  yearlyRetention,
+			"immutability_mode": immutabilityMode,
 		},
 	}
 }

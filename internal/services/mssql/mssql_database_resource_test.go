@@ -749,6 +749,7 @@ func TestAccMsSqlDatabase_withLongTermRetentionPolicy(t *testing.T) {
 			Config: r.withLongTermRetentionPolicy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("long_term_retention_policy.0.immutability_mode").HasValue("Unlocked"),
 			),
 		},
 		data.ImportStep(),
@@ -2269,6 +2270,7 @@ resource "azurerm_mssql_database" "test" {
     monthly_retention = "P1M"
     yearly_retention  = "P1Y"
     week_of_year      = 1
+    immutability_mode = "Unlocked"
   }
 }
 `, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)
