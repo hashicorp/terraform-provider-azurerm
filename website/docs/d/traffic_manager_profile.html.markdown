@@ -42,6 +42,8 @@ output "traffic_routing_method" {
 
 * `traffic_routing_method` - Specifies the algorithm used to route traffic.
 
+* `max_return` - The amount of endpoints to return for DNS queries to this Profile.
+
 * `traffic_view_enabled` - Indicates whether Traffic View is enabled for the Traffic Manager profile.
 
 * `dns_config` - This block specifies the DNS configuration of the Profile.
