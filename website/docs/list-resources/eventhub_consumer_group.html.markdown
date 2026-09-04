@@ -28,4 +28,3 @@ list "azurerm_eventhub_consumer_group" "example" {
 This list resource supports the following arguments:
 
 * `eventhub_id` - (Required) The ID of the EventHub to query.
-
