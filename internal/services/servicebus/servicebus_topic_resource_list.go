@@ -106,7 +106,7 @@ func (ServiceBusTopicListResource) List(ctx context.Context, request list.ListRe
 			rd := resourceServiceBusTopic().Data(&terraform.InstanceState{})
 			rd.SetId(id.ID())
 
-			if err := resourceServiceBusTopicFlatten(listCtx, rd, id, &item, namespacesClient); err != nil {
+			if err := resourceServiceBusTopicFlatten(listCtx, rd, id, &item, namespacesClient, request.IncludeResource); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", serviceBusTopicResourceName), err)
 				return
 			}

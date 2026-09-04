@@ -270,10 +270,10 @@ func resourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return resourceServiceBusTopicFlatten(ctx, d, id, resp.Model, meta.(*clients.Client).ServiceBus.NamespacesClient)
+	return resourceServiceBusTopicFlatten(ctx, d, id, resp.Model, meta.(*clients.Client).ServiceBus.NamespacesClient, true)
 }
 
-func resourceServiceBusTopicFlatten(ctx context.Context, d *pluginsdk.ResourceData, id *topics.TopicId, model *topics.SBTopic, namespacesClient *namespaces.NamespacesClient) error {
+func resourceServiceBusTopicFlatten(ctx context.Context, d *pluginsdk.ResourceData, id *topics.TopicId, model *topics.SBTopic, namespacesClient *namespaces.NamespacesClient, includeResource bool) error {
 	d.Set("name", id.TopicName)
 	d.Set("namespace_id", topics.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName).ID())
 
@@ -305,16 +305,18 @@ func resourceServiceBusTopicFlatten(ctx context.Context, d *pluginsdk.ResourceDa
 				// if the topic is in a premium namespace and partitioning is enabled then the
 				// max size returned by the API will be 16 times greater than the value set
 				if partitioning := props.EnablePartitioning; partitioning != nil && *partitioning {
-					namespaceId := namespaces.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
-					namespaceResp, err := namespacesClient.Get(ctx, namespaceId)
-					if err != nil {
-						return err
-					}
+					if includeResource {
+						namespaceId := namespaces.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+						namespaceResp, err := namespacesClient.Get(ctx, namespaceId)
+						if err != nil {
+							return err
+						}
 
-					if namespaceModel := namespaceResp.Model; namespaceModel != nil {
-						if namespaceModel.Sku.Name != namespaces.SkuNamePremium {
-							const partitionCount = 16
-							maxSize = int(*props.MaxSizeInMegabytes / partitionCount)
+						if namespaceModel := namespaceResp.Model; namespaceModel != nil {
+							if namespaceModel.Sku.Name != namespaces.SkuNamePremium {
+								const partitionCount = 16
+								maxSize = int(*props.MaxSizeInMegabytes / partitionCount)
+							}
 						}
 					}
 				}
