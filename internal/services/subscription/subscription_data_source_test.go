@@ -22,6 +22,9 @@ func TestAccDataSourceSubscription_current(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("subscription_id").HasValue(data.Client().SubscriptionID),
 				check.That(data.ResourceName).Key("display_name").Exists(),
+				check.That(data.ResourceName).Key("subscription_name").MatchesOtherKey(
+					check.That(data.ResourceName).Key("display_name"),
+				),
 				check.That(data.ResourceName).Key("tenant_id").Exists(),
 				check.That(data.ResourceName).Key("state").HasValue("Enabled"),
 			),
@@ -38,6 +41,9 @@ func TestAccDataSourceSubscription_specific(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("subscription_id").HasValue(data.Client().SubscriptionID),
 				check.That(data.ResourceName).Key("display_name").Exists(),
+				check.That(data.ResourceName).Key("subscription_name").MatchesOtherKey(
+					check.That(data.ResourceName).Key("display_name"),
+				),
 				check.That(data.ResourceName).Key("tenant_id").Exists(),
 				check.That(data.ResourceName).Key("location_placement_id").Exists(),
 				check.That(data.ResourceName).Key("quota_id").Exists(),

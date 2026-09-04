@@ -41,6 +41,11 @@ func dataSourceSubscription() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"subscription_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"state": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -92,6 +97,7 @@ func dataSourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if model := resp.Model; model != nil {
 		d.Set("subscription_id", model.SubscriptionId)
 		d.Set("display_name", model.DisplayName)
+		d.Set("subscription_name", model.DisplayName)
 		d.Set("tenant_id", model.TenantId)
 		d.Set("state", string(pointer.From(model.State)))
 		if props := model.SubscriptionPolicies; props != nil {
