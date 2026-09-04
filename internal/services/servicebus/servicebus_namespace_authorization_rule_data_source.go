@@ -35,6 +35,16 @@ func dataSourceServiceBusNamespaceAuthorizationRule() *pluginsdk.Resource {
 				ValidateFunc: namespaces.ValidateNamespaceID,
 			},
 
+			"listen": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"manage": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"primary_key": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
@@ -51,6 +61,11 @@ func dataSourceServiceBusNamespaceAuthorizationRule() *pluginsdk.Resource {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
+			},
+
+			"send": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
 			},
 
 			"secondary_connection_string": {
@@ -94,6 +109,16 @@ func dataSourceServiceBusNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceDat
 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			listen, send, manage := flattenAuthorizationRuleRights(&props.Rights)
+			d.Set("listen", listen)
+			d.Set("send", send)
+			d.Set("manage", manage)
+		}
+	}
+
 	keysResp, err := client.NamespacesListKeys(ctx, id)
 	if err != nil {
 		return fmt.Errorf("listing keys for %s: %+v", id, err)
