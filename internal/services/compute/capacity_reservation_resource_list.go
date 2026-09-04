@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package compute
 
 import (
@@ -17,8 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
-
-const azureCapacityReservationResourceName = "azurerm_capacity_reservation"
 
 type CapacityReservationListResource struct{}
 

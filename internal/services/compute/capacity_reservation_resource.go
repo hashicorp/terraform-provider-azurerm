@@ -27,6 +27,8 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name capacity_reservation -service-package-name compute -properties "name" -compare-values "subscription_id:capacity_reservation_group_id,resource_group_name:capacity_reservation_group_id,capacity_reservation_group_name:capacity_reservation_group_id"
 
+const azureCapacityReservationResourceName = "azurerm_capacity_reservation"
+
 func resourceCapacityReservation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceCapacityReservationCreate,
@@ -121,7 +123,7 @@ func resourceCapacityReservationCreate(d *pluginsdk.ResourceData, meta interface
 			}
 		}
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_capacity_reservation", id.ID())
+			return tf.ImportAsExistsError(azureCapacityReservationResourceName, id.ID())
 		}
 	}
 
