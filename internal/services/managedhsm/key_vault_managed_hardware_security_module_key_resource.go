@@ -255,14 +255,12 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 
 			if config.NotBeforeDate != "" {
 				notBeforeDate, _ := time.Parse(time.RFC3339, config.NotBeforeDate) // validated by schema
-				notBeforeUnixTime := date.UnixTime(notBeforeDate)
-				parameters.KeyAttributes.NotBefore = &notBeforeUnixTime
+				parameters.KeyAttributes.NotBefore = pointer.To(date.UnixTime(notBeforeDate))
 			}
 
 			if config.ExpirationDate != "" {
 				expirationDate, _ := time.Parse(time.RFC3339, config.ExpirationDate) // validated by schema
-				expirationUnixTime := date.UnixTime(expirationDate)
-				parameters.KeyAttributes.Expires = &expirationUnixTime
+				parameters.KeyAttributes.Expires = pointer.To(date.UnixTime(expirationDate))
 			}
 
 			if resp, err := client.CreateKey(ctx, endpoint.BaseURI(), config.Name, parameters); err != nil {
@@ -405,14 +403,12 @@ func (r KeyVaultMHSMKeyResource) Update() sdk.ResourceFunc {
 
 			if config.NotBeforeDate != "" {
 				notBeforeDate, _ := time.Parse(time.RFC3339, config.NotBeforeDate) // validated by schema
-				notBeforeUnixTime := date.UnixTime(notBeforeDate)
-				parameters.KeyAttributes.NotBefore = &notBeforeUnixTime
+				parameters.KeyAttributes.NotBefore = pointer.To(date.UnixTime(notBeforeDate))
 			}
 
 			if config.ExpirationDate != "" {
 				expirationDate, _ := time.Parse(time.RFC3339, config.ExpirationDate) // validated by schema
-				expirationUnixTime := date.UnixTime(expirationDate)
-				parameters.KeyAttributes.Expires = &expirationUnixTime
+				parameters.KeyAttributes.Expires = pointer.To(date.UnixTime(expirationDate))
 			}
 
 			resp, err := client.UpdateKey(ctx, id.BaseUri(), config.Name, "", parameters)

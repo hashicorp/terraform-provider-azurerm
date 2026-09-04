@@ -87,12 +87,12 @@ An example of our PR template is shown below.
 * Please vote on this PR by adding a :thumbsup: [reaction](https://blog.github.com/2016-03-10-add-reactions-to-pull-requests-issues-and-comments/) to the original PR to help the community and maintainers prioritize for review
 * Please do not leave "+1" or "me too" comments, they generate extra noise for PR followers and do not help prioritize for review
 
- #### PR Checklist
+#### PR Checklist
 
 - [ ] Have you followed the guidelines in our [Contributing Documentation](../contributing/README.md)?
 - [ ] Have you checked to ensure there aren't other open [Pull Requests](../../../pulls) for the same update/change?
 - [ ] Have you used a meaningful PR description to help maintainers and other users understand this change and help prevent duplicate work?
-Example: 
+Example:
 “`resource_name_here` - description of change e.g. adding property `new_property_name_here`”
 - [ ] Do your changes close any open issues? If so please include appropriate [closing keywords](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword) below.
 
@@ -117,12 +117,14 @@ Example:
 
 <!-- Please include a description below with the reason for the PR, what it is doing, what it is trying to accomplish, and anything relevant for a reviewer to know. It also helps to paste the output from running the acceptance tests. -->
 
-
 #### Related Issue(s)
+
  Use [linking keywords](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword) here like "fixes", "closes", "resolves", etc:
+
  ```
  Fixes #1234, fixes #5678, fixes #9101
  ```
+
 #### Change Log
 
 [Changelog Format](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/contributing/topics/maintainer-changelog.md)
@@ -136,8 +138,4 @@ Example:
 - [ ] Bug Fix
 - [ ] New Feature
 
-
 > **Note:** If this PR changes meaningfully during the course of review please update the title and description as required.
-
-
-

@@ -414,19 +414,16 @@ func flattenEventListener(listener *[]webpubsub.EventListener) []interface{} {
 
 func expandAuth(input []interface{}) *webpubsub.UpstreamAuthSettings {
 	if len(input) == 0 || input[0] == nil {
-		authType := webpubsub.UpstreamAuthTypeNone
 		return &webpubsub.UpstreamAuthSettings{
-			Type: &authType,
+			Type: pointer.To(webpubsub.UpstreamAuthTypeNone),
 		}
 	}
 
 	authRaw := input[0].(map[string]interface{})
-	authId := authRaw["managed_identity_id"].(string)
-	authType := webpubsub.UpstreamAuthTypeManagedIdentity
 	return &webpubsub.UpstreamAuthSettings{
-		Type: &authType,
+		Type: pointer.To(webpubsub.UpstreamAuthTypeManagedIdentity),
 		ManagedIdentity: &webpubsub.ManagedIdentitySettings{
-			Resource: &authId,
+			Resource: pointer.To(authRaw["managed_identity_id"].(string)),
 		},
 	}
 }

@@ -24,12 +24,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceArmPolicyDefinition() *pluginsdk.Resource {
+func resourcePolicyDefinition() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmPolicyDefinitionCreateUpdate,
-		Update: resourceArmPolicyDefinitionCreateUpdate,
-		Read:   resourceArmPolicyDefinitionRead,
-		Delete: resourceArmPolicyDefinitionDelete,
+		Create: resourcePolicyDefinitionCreateUpdate,
+		Update: resourcePolicyDefinitionCreateUpdate,
+		Read:   resourcePolicyDefinitionRead,
+		Delete: resourcePolicyDefinitionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.PolicyDefinitionID(id)
@@ -43,7 +43,7 @@ func resourceArmPolicyDefinition() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: resourceArmPolicyDefinitionSchema(),
+		Schema: resourcePolicyDefinitionSchema(),
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			// `parameters` cannot have values removed so we'll ForceNew if there are less parameters between Terraform runs
@@ -76,7 +76,7 @@ func resourceArmPolicyDefinition() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.DefinitionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,10 +188,10 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 	d.SetId(id.Id)
 
-	return resourceArmPolicyDefinitionRead(d, meta)
+	return resourcePolicyDefinitionRead(d, meta)
 }
 
-func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.DefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -252,7 +252,7 @@ func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmPolicyDefinitionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePolicyDefinitionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.DefinitionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -301,7 +301,7 @@ func flattenJSON(stringMap interface{}) string {
 	return ""
 }
 
-func resourceArmPolicyDefinitionSchema() map[string]*pluginsdk.Schema {
+func resourcePolicyDefinitionSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,

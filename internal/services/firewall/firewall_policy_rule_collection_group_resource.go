@@ -702,7 +702,6 @@ func expandFirewallPolicyRuleNat(input []interface{}) (*[]firewallpolicyrulecoll
 		for _, p := range condition["protocols"].([]interface{}) {
 			protocols = append(protocols, firewallpolicyrulecollectiongroups.FirewallPolicyRuleNetworkProtocol(p.(string)))
 		}
-		destinationAddresses := []string{condition["destination_address"].(string)}
 
 		// Exactly one of `translated_address` and `translated_fqdn` should be set.
 		if condition["translated_address"].(string) != "" && condition["translated_fqdn"].(string) != "" {
@@ -716,7 +715,7 @@ func expandFirewallPolicyRuleNat(input []interface{}) (*[]firewallpolicyrulecoll
 			IPProtocols:          &protocols,
 			SourceAddresses:      helpers.ExpandStringSlice(condition["source_addresses"].([]interface{})),
 			SourceIPGroups:       helpers.ExpandStringSlice(condition["source_ip_groups"].([]interface{})),
-			DestinationAddresses: &destinationAddresses,
+			DestinationAddresses: pointer.To([]string{condition["destination_address"].(string)}),
 			DestinationPorts:     helpers.ExpandStringSlice(condition["destination_ports"].([]interface{})),
 			TranslatedPort:       pointer.To(strconv.Itoa(condition["translated_port"].(int))),
 			Description:          pointer.To(condition["description"].(string)),

@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func dataSourceArmPolicyDefinition() *pluginsdk.Resource {
+func dataSourcePolicyDefinition() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Read: policyDefinitionReadFunc(false),
 
