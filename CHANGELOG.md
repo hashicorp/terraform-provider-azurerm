@@ -1,3 +1,21 @@
+## 5.5.0 (Unreleased)
+
+ENHANCEMENTS:
+- `azurerm_private_endpoint` - lock on private service connection resource ids [GH-33298]
+* `azurerm_storage_account` - add support for the `public_network_access` property [GH-33292]
+* dependencies: `go-azure-sdk` - update to `v0.20260901.1173158` [GH-33274]
+
+FEATURES:
+* **New List Resource**: `azurerm_attestation_provider` [GH-33251]
+* **New List Resource**: `azurerm_linux_virtual_machine` [GH-33333]
+* **New List Resource**: `azurerm_analysis_services_server` [GH-33250]
+* **New List Resource**: `azurerm_eventhub_consumer_group` [GH-33335]
+* **New List Resource**: `azurerm_virtual_hub_connection` [GH-33311]
+
+BUG FIXES:
+* `azurerm_resource_group` - the `managed_by` property now forces recreation when changed as the API does not support changing this value [GH-33339]
+* `go-azure-sdk` - `Delete` operations now poll on asynchronous operation URLs if returned by the API instead of only checking for a `404` on the resource URL, ensuring deletion errors are reported to the user [GH-33274]
+
 ## 5.4.0 (September 03, 2026)
 
 FEATURES:
