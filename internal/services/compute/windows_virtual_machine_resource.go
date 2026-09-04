@@ -5,6 +5,7 @@ package compute
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -25,6 +26,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -57,6 +59,10 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(45 * time.Minute),
 		},
 
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(resourceWindowsVirtualMachineCustomizeDiff),
+		),
+
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:         pluginsdk.TypeString,
@@ -75,22 +81,33 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ForceNew:         true,
 				Sensitive:        true,
 				DiffSuppressFunc: adminPasswordDiffSuppressFunc,
-				RequiredWith: []string{
-					"admin_username",
-				},
 				ConflictsWith: []string{
 					"os_managed_disk_id",
+					"admin_password_wo",
 				},
 				ValidateFunc: computeValidate.WindowsAdminPassword,
+			},
+
+			"admin_password_wo": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				WriteOnly:     true,
+				RequiredWith:  []string{"admin_password_wo_version"},
+				ConflictsWith: []string{"admin_password", "os_managed_disk_id"},
+				ValidateFunc:  computeValidate.WindowsAdminPassword,
+			},
+
+			"admin_password_wo_version": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ForceNew:     true,
+				RequiredWith: []string{"admin_password_wo"},
 			},
 
 			"admin_username": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				RequiredWith: []string{
-					"admin_password",
-				},
 				ExactlyOneOf: []string{
 					"admin_username",
 					"os_managed_disk_id",
@@ -486,6 +503,34 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 	}
 }
 
+func resourceWindowsVirtualMachineCustomizeDiff(ctx context.Context, diff *pluginsdk.ResourceDiff, meta interface{}) error {
+	rawConfig := diff.GetRawConfig().AsValueMap()
+	adminUsername, ok := rawConfig["admin_username"]
+	if !ok || adminUsername.IsNull() || !adminUsername.IsKnown() {
+		return nil
+	}
+
+	if osManagedDiskId, ok := rawConfig["os_managed_disk_id"]; ok && (!osManagedDiskId.IsNull() || !osManagedDiskId.IsKnown()) {
+		return nil
+	}
+
+	adminPasswordSet := false
+	if adminPassword, ok := rawConfig["admin_password"]; ok && !adminPassword.IsNull() {
+		adminPasswordSet = true
+	}
+
+	adminPasswordWOVersionSet := false
+	if adminPasswordWOVersion, ok := rawConfig["admin_password_wo_version"]; ok && !adminPasswordWOVersion.IsNull() {
+		adminPasswordWOVersionSet = true
+	}
+
+	if !adminPasswordSet && !adminPasswordWOVersionSet {
+		return errors.New("one of `admin_password` or `admin_password_wo_version` must be specified when `admin_username` is specified")
+	}
+
+	return nil
+}
+
 func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VirtualMachinesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -515,6 +560,16 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 
 	additionalUnattendContentRaw := d.Get("additional_unattend_content").([]interface{})
 	additionalUnattendContent := expandAdditionalUnattendContent(additionalUnattendContentRaw)
+
+	adminPassword := d.Get("admin_password").(string)
+
+	woPassword, err := pluginsdk.GetWriteOnly(d, "admin_password_wo", cty.String)
+	if err != nil {
+		return err
+	}
+	if !woPassword.IsNull() {
+		adminPassword = woPassword.AsString()
+	}
 
 	allowExtensionOperations := true
 	if !d.GetRawConfig().AsValueMap()["allow_extension_operations"].IsNull() {
@@ -615,7 +670,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		params.Properties.OsProfile = &virtualmachines.OSProfile{
-			AdminPassword:            pointer.To(d.Get("admin_password").(string)),
+			AdminPassword:            pointer.To(adminPassword),
 			AdminUsername:            pointer.To(d.Get("admin_username").(string)),
 			ComputerName:             pointer.To(computerName),
 			AllowExtensionOperations: pointer.To(allowExtensionOperations),
@@ -1011,6 +1066,8 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 				d.Set("admin_username", profile.AdminUsername)
 				d.Set("allow_extension_operations", profile.AllowExtensionOperations)
 				d.Set("computer_name", profile.ComputerName)
+
+				d.Set("admin_password_wo_version", d.Get("admin_password_wo_version"))
 
 				if config := profile.WindowsConfiguration; config != nil {
 					if err := d.Set("additional_unattend_content", flattenAdditionalUnattendContent(config.AdditionalUnattendContent, d)); err != nil {
