@@ -41,7 +41,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity
+//go:generate go run ../../tools/generator-tests resourceidentity -test-name authSSH
 
 const azureLinuxVirtualMachineResourceName = "azurerm_linux_virtual_machine"
 

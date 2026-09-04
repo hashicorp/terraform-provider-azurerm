@@ -25,7 +25,7 @@ func TestAccLinuxVirtualMachine_resourceIdentity(t *testing.T) {
 
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.authSSH(data),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_linux_virtual_machine.test", checkedFields),
 				statecheck.ExpectIdentityValue("azurerm_linux_virtual_machine.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),

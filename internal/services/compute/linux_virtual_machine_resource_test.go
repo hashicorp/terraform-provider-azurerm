@@ -130,7 +130,3 @@ resource "azurerm_network_interface" "test" {
 }
 `, r.templateBaseWithOutProvider(data), data.RandomInteger)
 }
-
-func (r LinuxVirtualMachineResource) basic(data acceptance.TestData) string {
-	return r.authSSH(data)
-}

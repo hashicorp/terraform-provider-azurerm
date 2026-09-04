@@ -62,15 +62,11 @@ func (LinuxVirtualMachineListResource) List(ctx context.Context, request list.Li
 		results = resp.Items
 	}
 
-	// The List wrapper cancels the supplied context before the iterator below runs,
-	// so capture its deadline to rebuild a live context for the per-item flatten.
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		sdk.SetResponseErrorDiagnostic(stream, "internal-error", "context had no deadline")
 		return
 	}
-
-	clientsClient := metadata.Client
 
 	stream.Results = func(push func(list.ListResult) bool) {
 		ctx, cancel := context.WithDeadline(context.Background(), deadline)
@@ -88,7 +84,7 @@ func (LinuxVirtualMachineListResource) List(ctx context.Context, request list.Li
 			}
 			rd.SetId(id.ID())
 
-			if err := resourceLinuxVirtualMachineFlatten(ctx, clientsClient, rd, id, &item, request.IncludeResource); err != nil {
+			if err := resourceLinuxVirtualMachineFlatten(ctx, metadata.Client, rd, id, &item, request.IncludeResource); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", azureLinuxVirtualMachineResourceName), err)
 				return
 			}
