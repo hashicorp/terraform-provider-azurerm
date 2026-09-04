@@ -424,5 +424,5 @@ func base64DataFromAttestationJWT(input *string) (*string, error) {
 		return nil, nil
 	}
 
-	return pointer.To(*firstResult.Policy), nil
+	return firstResult.Policy, nil
 }
