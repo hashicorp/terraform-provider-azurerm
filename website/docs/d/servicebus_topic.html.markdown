@@ -49,6 +49,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `partitioning_enabled` - Boolean flag which controls whether to enable the topic to be partitioned across multiple message brokers.
 
+* `max_message_size_in_kilobytes` - Integer value which controls the maximum size of a message allowed on the topic for Premium SKU.
+
 * `max_size_in_megabytes` - Integer value which controls the size of memory allocated for the topic. For supported values see the "Queue/topic size" section of [this document](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-quotas).
 
 * `requires_duplicate_detection` - Boolean flag which controls whether the Topic requires duplicate detection.
