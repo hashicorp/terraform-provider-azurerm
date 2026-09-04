@@ -51,9 +51,11 @@ output "servicebus_subscription" {
 
 * `forward_dead_lettered_messages_to` - The name of a Queue or Topic to automatically forward Dead Letter messages to.
 
+* `status` - The status of the ServiceBus Subscription.
+
 * `client_scoped_subscription_enabled` - Does the subscription scoped to a client id or not.
 
-* `client_scoped_subscription` - (Optional)  A `client_scoped_subscription` block as defined below.
+* `client_scoped_subscription` - A `client_scoped_subscription` block as defined below.
 
 ---
 
