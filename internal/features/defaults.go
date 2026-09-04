@@ -10,19 +10,12 @@ func Default() UserFeatures {
 			PurgeSoftDeleteOnDestroy: true,
 			RecoverSoftDeleted:       true,
 		},
-		EnhancedValidation: EnhancedValidationFeatures{
-			Locations:         false,
-			ResourceProviders: false,
-			PreflightEnabled:  false,
-			LocationFallback:  nil,
-		},
+		EnhancedValidation: EnhancedValidationFeatures{},
 		AppConfiguration: AppConfigurationFeatures{
 			PurgeSoftDeleteOnDestroy: true,
 			RecoverSoftDeleted:       true,
 		},
-		ApplicationInsights: ApplicationInsightFeatures{
-			DisableGeneratedRule: false,
-		},
+		ApplicationInsights: ApplicationInsightFeatures{},
 		CognitiveAccount: CognitiveAccountFeatures{
 			PurgeSoftDeleteOnDestroy: true,
 		},
@@ -42,9 +35,7 @@ func Default() UserFeatures {
 			PurgeSoftDeletedHSMKeysOnDestroy: true,
 			RecoverSoftDeletedHSMKeys:        true,
 		},
-		LogAnalyticsWorkspace: LogAnalyticsWorkspaceFeatures{
-			PermanentlyDeleteOnDestroy: false,
-		},
+		LogAnalyticsWorkspace: LogAnalyticsWorkspaceFeatures{},
 		ManagedDisk: ManagedDiskFeatures{
 			ExpandWithoutDowntime: true,
 		},
@@ -58,12 +49,9 @@ func Default() UserFeatures {
 			DeleteNestedItemsDuringDeletion: true,
 		},
 		VirtualMachine: VirtualMachineFeatures{
-			DetachImplicitDataDiskOnDeletion: false,
-			DeleteOSDiskOnDeletion:           true,
-			SkipShutdownAndForceDelete:       false,
+			DeleteOSDiskOnDeletion: true,
 		},
 		VirtualMachineScaleSet: VirtualMachineScaleSetFeatures{
-			ForceDelete:               false,
 			ReimageOnManualUpgrade:    true,
 			RollInstancesWhenRequired: true,
 			ScaleToZeroOnDelete:       true,
@@ -71,29 +59,16 @@ func Default() UserFeatures {
 		Storage: StorageFeatures{
 			DataPlaneAvailable: true,
 		},
-		Subscription: SubscriptionFeatures{
-			PreventCancellationOnDestroy: false,
-		},
+		Subscription: SubscriptionFeatures{},
 		PostgresqlFlexibleServer: PostgresqlFlexibleServerFeatures{
 			RestartServerOnConfigurationValueChange: true,
 		},
-		MachineLearning: MachineLearningFeatures{
-			PurgeSoftDeletedWorkspaceOnDestroy: false,
-		},
-		RecoveryService: RecoveryServiceFeatures{
-			VMBackupStopProtectionAndRetainDataOnDestroy:    false,
-			VMBackupSuspendProtectionAndRetainDataOnDestroy: false,
-			PurgeProtectedItemsFromVaultOnDestroy:           false,
-		},
+		MachineLearning: MachineLearningFeatures{},
+		RecoveryService: RecoveryServiceFeatures{},
 		NetApp: NetAppFeatures{
-			DeleteBackupsOnBackupVaultDestroy: false,
-			PreventVolumeDestruction:          true,
+			PreventVolumeDestruction: true,
 		},
-		DatabricksWorkspace: DatabricksWorkspaceFeatures{
-			ForceDelete: false,
-		},
-		ServiceBus: ServiceBusFeatures{
-			AutoDeleteSubscriptionDefaultRule: false,
-		},
+		DatabricksWorkspace: DatabricksWorkspaceFeatures{},
+		ServiceBus:          ServiceBusFeatures{},
 	}
 }

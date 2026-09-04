@@ -223,9 +223,7 @@ func (a AccountStaticWebsiteResource) Delete() sdk.ResourceFunc {
 			}
 
 			properties := accounts.StorageServiceProperties{
-				StaticWebsite: &accounts.StaticWebsite{
-					Enabled: false,
-				},
+				StaticWebsite: &accounts.StaticWebsite{},
 			}
 
 			client, err := storageClient.AccountsDataPlaneClient(ctx, *accountDetails, storageClient.DataPlaneOperationSupportingAnyAuthMethod())

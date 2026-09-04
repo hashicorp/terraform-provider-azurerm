@@ -342,12 +342,7 @@ func expandAccessRights(d *pluginsdk.ResourceData) string {
 }
 
 func flattenAccessRights(r devices.AccessRights) accessRights {
-	rights := accessRights{
-		registryRead:   false,
-		registryWrite:  false,
-		deviceConnect:  false,
-		serviceConnect: false,
-	}
+	rights := accessRights{}
 
 	actualAccessRights := strings.Split(string(r), ",")
 

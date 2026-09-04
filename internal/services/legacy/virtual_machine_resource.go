@@ -1031,9 +1031,7 @@ func resourceVirtualMachineDeleteVhd(ctx context.Context, storageClient *intStor
 		return fmt.Errorf("building Blobs Client: %s", err)
 	}
 
-	input := blobs.DeleteInput{
-		DeleteSnapshots: false,
-	}
+	input := blobs.DeleteInput{}
 	if _, err := blobsClient.Delete(ctx, id.ContainerName, id.BlobName, input); err != nil {
 		return fmt.Errorf("deleting Blob %q (Container %q in %s): %+v", id.BlobName, id.ContainerName, id.AccountId, err)
 	}

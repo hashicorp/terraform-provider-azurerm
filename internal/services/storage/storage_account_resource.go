@@ -1947,12 +1947,7 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 	listKeysOpts := storageaccounts.DefaultListKeysOperationOptions()
 	listKeysOpts.Expand = pointer.To(storageaccounts.ExpandKerb)
 
-	supportLevel := storageAccountServiceSupportLevel{
-		supportBlob:          false,
-		supportQueue:         false,
-		supportShare:         false,
-		supportStaticWebsite: false,
-	}
+	supportLevel := storageAccountServiceSupportLevel{}
 
 	var accountKind storageaccounts.Kind
 	var primaryEndpoints *storageaccounts.Endpoints
@@ -2229,9 +2224,7 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 func expandAccountCustomDomain(input []interface{}) *storageaccounts.CustomDomain {
 	if len(input) == 0 {
-		return &storageaccounts.CustomDomain{
-			Name: "",
-		}
+		return &storageaccounts.CustomDomain{}
 	}
 
 	domain := input[0].(map[string]interface{})
@@ -2550,9 +2543,7 @@ func expandAccountBlobServiceProperties(kind storageaccounts.Kind, input []inter
 	// - Versioning: See https://learn.microsoft.com/en-us/azure/storage/blobs/versioning-overview#how-blob-versioning-works
 	// - Restore Policy: See https://learn.microsoft.com/en-us/azure/storage/blobs/point-in-time-restore-overview#prerequisites-for-point-in-time-restore
 	if kind != storageaccounts.KindStorage {
-		props.LastAccessTimeTrackingPolicy = &blobservices.LastAccessTimeTrackingPolicy{
-			Enable: false,
-		}
+		props.LastAccessTimeTrackingPolicy = &blobservices.LastAccessTimeTrackingPolicy{}
 		props.ChangeFeed = &blobservices.ChangeFeed{
 			Enabled: pointer.To(false),
 		}
@@ -2772,9 +2763,7 @@ func flattenAccountBlobContainerDeleteRetentionPolicy(input *blobservices.Delete
 }
 
 func expandAccountBlobPropertiesRestorePolicy(input []interface{}) *blobservices.RestorePolicyProperties {
-	result := blobservices.RestorePolicyProperties{
-		Enabled: false,
-	}
+	result := blobservices.RestorePolicyProperties{}
 	if len(input) == 0 || input[0] == nil {
 		return &result
 	}
@@ -2983,7 +2972,6 @@ func expandAccountSharePropertiesSMB(input []interface{}) *fileservices.SmbSetti
 			ChannelEncryption:        pointer.To(""),
 			KerberosTicketEncryption: pointer.To(""),
 			Versions:                 pointer.To(""),
-			Multichannel:             nil,
 		}
 	}
 

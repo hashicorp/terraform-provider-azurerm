@@ -885,11 +885,9 @@ func FlattenFrontdoorRemoteAddressCondition(input rules.DeliveryRuleRemoteAddres
 	params := input.Parameters
 
 	normalized := normalizedCondition{
-		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
 		matchValues:     params.MatchValues,
-		transforms:      nil,
 	}
 
 	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
@@ -899,11 +897,9 @@ func FlattenFrontdoorRequestMethodCondition(input rules.DeliveryRuleRequestMetho
 	params := input.Parameters
 
 	normalized := normalizedCondition{
-		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
 		matchValues:     flattenRequestMethodMatchValues(params.MatchValues),
-		transforms:      nil,
 	}
 
 	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
@@ -913,7 +909,6 @@ func FlattenFrontdoorQueryStringCondition(input rules.DeliveryRuleQueryStringCon
 	params := input.Parameters
 
 	normalized := normalizedCondition{
-		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
 		matchValues:     params.MatchValues,
@@ -941,7 +936,6 @@ func FlattenFrontdoorRequestUriCondition(input rules.DeliveryRuleRequestUriCondi
 	params := input.Parameters
 
 	normalized := normalizedCondition{
-		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
 		matchValues:     params.MatchValues,
@@ -969,7 +963,6 @@ func FlattenFrontdoorRequestBodyCondition(input rules.DeliveryRuleRequestBodyCon
 	params := input.Parameters
 
 	normalized := normalizedCondition{
-		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
 		matchValues:     params.MatchValues,
@@ -983,11 +976,9 @@ func FlattenFrontdoorRequestSchemeCondition(input rules.DeliveryRuleRequestSchem
 	params := input.Parameters
 
 	normalized := normalizedCondition{
-		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
 		matchValues:     flattenRequestSchemeMatchValues(params.MatchValues),
-		transforms:      nil,
 	}
 
 	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
@@ -997,7 +988,6 @@ func FlattenFrontdoorUrlPathCondition(input rules.DeliveryRuleURLPathCondition) 
 	params := input.Parameters
 
 	normalized := normalizedCondition{
-		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
 		matchValues:     params.MatchValues,
@@ -1011,7 +1001,6 @@ func FlattenFrontdoorUrlFileExtensionCondition(input rules.DeliveryRuleURLFileEx
 	params := input.Parameters
 
 	normalized := normalizedCondition{
-		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
 		matchValues:     params.MatchValues,
@@ -1025,7 +1014,6 @@ func FlattenFrontdoorUrlFileNameCondition(input rules.DeliveryRuleURLFileNameCon
 	params := input.Parameters
 
 	normalized := normalizedCondition{
-		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
 		matchValues:     params.MatchValues,
@@ -1039,11 +1027,9 @@ func FlattenFrontdoorHttpVersionCondition(input rules.DeliveryRuleHTTPVersionCon
 	params := input.Parameters
 
 	normalized := normalizedCondition{
-		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
 		matchValues:     params.MatchValues,
-		transforms:      nil,
 	}
 
 	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
@@ -1068,11 +1054,9 @@ func FlattenFrontdoorIsDeviceCondition(input rules.DeliveryRuleIsDeviceCondition
 	params := input.Parameters
 
 	normalized := normalizedCondition{
-		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
 		matchValues:     flattenIsDeviceMatchValues(params.MatchValues),
-		transforms:      nil,
 	}
 
 	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
@@ -1082,11 +1066,9 @@ func FlattenFrontdoorSocketAddressCondition(input rules.DeliveryRuleSocketAddrCo
 	params := input.Parameters
 
 	normalized := normalizedCondition{
-		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
 		matchValues:     params.MatchValues,
-		transforms:      nil,
 	}
 
 	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
@@ -1096,11 +1078,9 @@ func FlattenFrontdoorClientPortCondition(input rules.DeliveryRuleClientPortCondi
 	params := input.Parameters
 
 	normalized := normalizedCondition{
-		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
 		matchValues:     params.MatchValues,
-		transforms:      nil,
 	}
 
 	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
@@ -1110,11 +1090,9 @@ func FlattenFrontdoorServerPortCondition(input rules.DeliveryRuleServerPortCondi
 	params := input.Parameters
 
 	normalized := normalizedCondition{
-		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
 		matchValues:     params.MatchValues,
-		transforms:      nil,
 	}
 
 	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
@@ -1124,7 +1102,6 @@ func FlattenFrontdoorHostNameCondition(input rules.DeliveryRuleHostNameCondition
 	params := input.Parameters
 
 	normalized := normalizedCondition{
-		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
 		matchValues:     params.MatchValues,
@@ -1143,11 +1120,9 @@ func FlattenFrontdoorSslProtocolCondition(input rules.DeliveryRuleSslProtocolCon
 	}
 
 	normalized := normalizedCondition{
-		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
 		matchValues:     &matchValues,
-		transforms:      nil,
 	}
 
 	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
