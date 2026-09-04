@@ -33,11 +33,11 @@ output "rule_id" {
 
 * `id` - The id of the ServiceBus Namespace Authorization Rule.
 
-* `listen` - Does this Authorization Rule have listen access to the ServiceBus Namespace?
+* `listen` - Grants listen access to this Authorization Rule.
 
-* `send` - Does this Authorization Rule have send access to the ServiceBus Namespace?
+* `send` - Grants send access to this Authorization Rule.
 
-* `manage` - Does this Authorization Rule have manage access to the ServiceBus Namespace?
+* `manage` - Grants manage access to this Authorization Rule.
 
 * `primary_connection_string` - The primary connection string for the authorization rule.
 
