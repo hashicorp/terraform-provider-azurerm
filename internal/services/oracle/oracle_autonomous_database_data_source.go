@@ -37,8 +37,8 @@ type AutonomousDatabaseRegularDataModel struct {
 	CharacterSet                            string                          `tfschema:"character_set"`
 	ComputeCount                            float64                         `tfschema:"compute_count"`
 	CpuCoreCount                            int64                           `tfschema:"cpu_core_count"`
-	DataStorageSizeInGbs                    int64                           `tfschema:"data_storage_size_in_gbs"`
-	DataStorageSizeInTbs                    int64                           `tfschema:"data_storage_size_in_tbs"`
+	DataStorageSizeInGb                     int64                           `tfschema:"data_storage_size_in_gb"`
+	DataStorageSizeInTb                     int64                           `tfschema:"data_storage_size_in_tb"`
 	DbVersion                               string                          `tfschema:"db_version"`
 	DisplayName                             string                          `tfschema:"display_name"`
 	FailedDataRecoveryInSeconds             int64                           `tfschema:"failed_data_recovery_in_seconds"`
@@ -160,12 +160,12 @@ func (d AutonomousDatabaseRegularDataSource) Attributes() map[string]*pluginsdk.
 			Computed: true,
 		},
 
-		"data_storage_size_in_gbs": {
+		"data_storage_size_in_gb": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
 
-		"data_storage_size_in_tbs": {
+		"data_storage_size_in_tb": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
@@ -471,8 +471,8 @@ func (d AutonomousDatabaseRegularDataSource) Read() sdk.ResourceFunc {
 					state.CharacterSet = pointer.From(adbsProps.CharacterSet)
 					state.ComputeCount = pointer.From(adbsProps.ComputeCount)
 					state.CpuCoreCount = pointer.From(adbsProps.CpuCoreCount)
-					state.DataStorageSizeInGbs = pointer.From(adbsProps.DataStorageSizeInGbs)
-					state.DataStorageSizeInTbs = pointer.From(adbsProps.DataStorageSizeInTbs)
+					state.DataStorageSizeInGb = pointer.From(adbsProps.DataStorageSizeInGbs)
+					state.DataStorageSizeInTb = pointer.From(adbsProps.DataStorageSizeInTbs)
 					state.DbVersion = pointer.From(adbsProps.DbVersion)
 					state.DisplayName = pointer.From(adbsProps.DisplayName)
 					state.FailedDataRecoveryInSeconds = pointer.From(adbsProps.FailedDataRecoveryInSeconds)

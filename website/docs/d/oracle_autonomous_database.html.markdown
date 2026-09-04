@@ -53,9 +53,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `cpu_core_count` - The number of CPU cores to be made available to the database. When the ECPU is selected, the value for cpuCoreCount is 0. For Autonomous Database on Dedicated Exadata infrastructure, the maximum number of cores is determined by the infrastructure shape. See [Characteristics of Infrastructure Shapes](https://www.oracle.com/pls/topic/lookup?ctx=en/cloud/paas/autonomous-database&id=ATPFG-GUID-B0F033C1-CC5A-42F0-B2E7-3CECFEDA1FD1) for shape details.
 
-* `data_storage_size_in_gbs` - The quantity of data in the database, in gigabytes.
+* `data_storage_size_in_gb` - The quantity of data in the database, in gigabytes.
 
-* `data_storage_size_in_tbs` - The maximum storage that can be allocated for the database, in terabytes.
+* `data_storage_size_in_tb` - The maximum storage that can be allocated for the database, in terabytes.
 
 * `db_node_storage_size_in_gbs` - The DB node storage size in, in gigabytes.
 
