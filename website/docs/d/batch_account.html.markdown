@@ -34,25 +34,37 @@ output "pool_allocation_mode" {
 
 The following attributes are exported:
 
-* `id` - The Batch account ID.
-
-* `name` - The Batch account name.
-
-* `location` - The Azure Region in which this Batch account exists.
-
-* `pool_allocation_mode` - The pool allocation mode configured for this Batch account.
-
-* `storage_account_id` - The ID of the Storage Account used for this Batch account.
-
-* `primary_access_key` - The Batch account primary access key.
-
-* `secondary_access_key` - The Batch account secondary access key.
+* `allowed_authentication_modes` -  Specifies the allowed authentication mode for the Batch account. Possible values include `AAD`, `SharedKey` or `TaskAuthenticationToken`.
 
 * `account_endpoint` - The account endpoint used to interact with the Batch service.
 
+* `encryption` - The `encryption` block that describes the Azure KeyVault key reference used to encrypt data for the Azure Batch account.
+
+* `id` - The Batch account ID.
+
+* `identity` - An `identity` block as defined below.
+
 * `key_vault_reference` - The `key_vault_reference` block that describes the Azure KeyVault reference to use when deploying the Azure Batch account using the `UserSubscription` pool allocation mode.
 
-* `encryption` - The `encryption` block that describes the Azure KeyVault key reference used to encrypt data for the Azure Batch account.
+* `location` - The Azure Region in which this Batch account exists.
+
+* `network_profile` - A `network_profile` block as defined below.
+
+* `name` - The Batch account name.
+
+* `pool_allocation_mode` - The pool allocation mode configured for this Batch account.
+
+* `primary_access_key` - The Batch account primary access key.
+
+* `public_network_access_enabled` - Whether public network access is allowed for this server. Defaults to `true`.
+
+* `storage_account_id` - The ID of the Storage Account used for this Batch account.
+
+* `storage_account_authentication_mode` - (Optional) Specifies the storage account authentication mode. Possible values include `StorageKeys`, `BatchAccountManagedIdentity`.
+
+* `storage_account_node_identity` - (Optional) Specifies the user assigned identity for the storage account.
+
+* `secondary_access_key` - The Batch account secondary access key.
 
 * `tags` - A map of tags assigned to the Batch account.
 

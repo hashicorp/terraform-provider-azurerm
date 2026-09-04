@@ -25,6 +25,7 @@ func TestAccBatchAccountDataSource_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("location").HasValue(location.Normalize(data.Locations.Primary)),
 				check.That(data.ResourceName).Key("pool_allocation_mode").HasValue("BatchService"),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
 			),
 		},
 	})
@@ -42,6 +43,7 @@ func TestAccBatchAccountDataSource_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("pool_allocation_mode").HasValue("BatchService"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.env").HasValue("test"),
+				check.That(data.ResourceName).Key("storage_account_authentication_mode").HasValue("StorageKeys"),
 			),
 		},
 	})
@@ -462,4 +464,80 @@ data "azurerm_batch_account" "test" {
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tenantID)
+}
+
+func TestAccBatchAccountDataSource_autoStorage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_batch_account", "test")
+	r := BatchAccountDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.autoStorage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("allowed_authentication_modes.#").HasValue("3"),
+				check.That(data.ResourceName).Key("storage_account_node_identity").IsSet(),
+			),
+		},
+	})
+}
+
+func TestAccBatchAccountDataSource_networkProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_batch_account", "test")
+	r := BatchAccountDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.networkProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("network_profile.#").HasValue("1"),
+			),
+		},
+	})
+}
+
+func TestAccBatchAccountDataSource_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_batch_account", "test")
+	r := BatchAccountDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.identity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+			),
+		},
+	})
+}
+
+func (BatchAccountDataSource) autoStorage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_batch_account" "test" {
+  name                = azurerm_batch_account.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, BatchAccountResource{}.autoStorage(data))
+}
+
+func (BatchAccountDataSource) networkProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_batch_account" "test" {
+  name                = azurerm_batch_account.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, BatchAccountResource{}.basicWithNetworkProfile(data))
+}
+
+func (BatchAccountDataSource) identity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_batch_account" "test" {
+  name                = azurerm_batch_account.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, BatchAccountResource{}.systemAssignedIdentity(data))
 }
