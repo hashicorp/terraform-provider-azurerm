@@ -5,6 +5,7 @@ package cdn_test
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strconv"
 	"testing"
@@ -28,13 +29,13 @@ func TestAccCdnFrontDoorOriginGroup_listByProfileID(t *testing.T) {
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		Steps: []resource.TestStep{
 			{
-				Config: r.basic(data),
+				Config: r.basicList(data),
 			},
 			{
 				Query:  true,
 				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_cdn_frontdoor_origin_group.list", 1),
+					querycheck.ExpectLength("azurerm_cdn_frontdoor_origin_group.list", 3),
 					querycheck.ExpectIdentity(
 						"azurerm_cdn_frontdoor_origin_group.list",
 						map[string]knownvalue.Check{
@@ -48,6 +49,27 @@ func TestAccCdnFrontDoorOriginGroup_listByProfileID(t *testing.T) {
 			},
 		},
 	})
+}
+
+func (r CdnFrontdoorOriginGroupResource) basicList(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_origin_group" "test" {
+  count = 3
+
+  name                     = "acctest-origingroup${count.index}-%d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  load_balancing {
+  }
+}
+`, template, data.RandomInteger)
 }
 
 func (r CdnFrontdoorOriginGroupResource) basicQuery() string {

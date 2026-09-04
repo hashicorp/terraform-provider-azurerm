@@ -187,7 +187,7 @@ func resourceCdnFrontDoorOriginGroupCreate(d *pluginsdk.ResourceData, meta inter
 		},
 	}
 
-	if err := client.CreateCallbackThenPoll(ctx, id, props, sdk.SetIDAndIdentityWithTypeCallback(meta, &id, d, pluginsdk.ResourceTypeForIdentityVirtual)); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, props, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
