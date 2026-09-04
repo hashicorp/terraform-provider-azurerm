@@ -76,7 +76,7 @@ func (AnalysisServicesServerListResource) List(ctx context.Context, request list
 
 			id, err := servers.ParseServerID(pointer.From(item.Id))
 			if err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing azurerm_analysis_services_server ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing `%s` ID", analysisServicesServerResourceName), err)
 				return
 			}
 			rd.SetId(id.ID())
