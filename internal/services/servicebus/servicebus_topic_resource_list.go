@@ -46,7 +46,7 @@ func (ServiceBusTopicListResource) List(ctx context.Context, request list.ListRe
 		subscriptionID = data.SubscriptionId.ValueString()
 	}
 
-	namespaceItems := make([]namespaces.SBNamespace, 0)
+	var namespaceItems []namespaces.SBNamespace
 
 	switch {
 	case !data.ResourceGroupName.IsNull():
