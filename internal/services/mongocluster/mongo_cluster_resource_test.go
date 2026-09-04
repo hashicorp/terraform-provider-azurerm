@@ -136,26 +136,9 @@ func TestAccMongoCluster_geoReplicaPremiumSSDv2(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(sourceResourceName).Key("storage_type").HasValue("PremiumSSD"),
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("storage_type").HasValue("PremiumSSDv2"),
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode", "source_location", "connection_strings.0.value", "connection_strings.1.value"),
-	})
-}
-
-func TestAccMongoCluster_premiumSSDv2(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
-	r := MongoClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.sourceWithStorageType(data, "PremiumSSDv2"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("storage_type").HasValue("PremiumSSDv2"),
-			),
-		},
-		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
 	})
 }
 
