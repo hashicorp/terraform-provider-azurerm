@@ -14,10 +14,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/customdomains"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -33,8 +34,13 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 		Delete: resourceArmCdnEndpointCustomDomainDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.CustomDomainID(id)
+			_, err := customdomains.ParseEndpointCustomDomainID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.CdnEndpointCustomDomainV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -148,10 +154,10 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	id := parse.NewCustomDomainID(cdnEndpointId.SubscriptionId, cdnEndpointId.ResourceGroupName, cdnEndpointId.ProfileName, cdnEndpointId.EndpointName, d.Get("name").(string))
+	id := customdomains.NewEndpointCustomDomainID(cdnEndpointId.SubscriptionId, cdnEndpointId.ResourceGroupName, cdnEndpointId.ProfileName, cdnEndpointId.EndpointName, d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
+		existing, err := client.Get(ctx, id.ResourceGroupName, id.ProfileName, id.EndpointName, id.CustomDomainName)
 		if err != nil {
 			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for existing %q: %+v", id, err)
@@ -169,7 +175,7 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 		},
 	}
 
-	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name, props)
+	future, err := client.Create(ctx, id.ResourceGroupName, id.ProfileName, id.EndpointName, id.CustomDomainName, props)
 	if err != nil {
 		return fmt.Errorf("creating %q: %+v", id, err)
 	}
@@ -185,10 +191,10 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 		// User managed certificate is only available for Azure CDN from Microsoft and Azure CDN from Verizon profiles.
 		// https://docs.microsoft.com/en-us/azure/cdn/cdn-custom-ssl?tabs=option-2-enable-https-with-your-own-certificate#tlsssl-certificates
 		pfClient := meta.(*clients.Client).Cdn.ProfilesClient
-		cdnEndpointResp, err := pfClient.Get(ctx, id.ResourceGroup, id.ProfileName)
+		cdnEndpointResp, err := pfClient.Get(ctx, id.ResourceGroupName, id.ProfileName)
 		if err != nil {
 			return fmt.Errorf("retrieving Cdn Profile %q (Resource Group %q): %+v",
-				id.ResourceGroup, id.ProfileName, err)
+				id.ResourceGroupName, id.ProfileName, err)
 		}
 		supportedSku := map[cdn.SkuName]bool{
 			cdn.SkuNamePremiumVerizon:    true,
@@ -220,12 +226,12 @@ func resourceArmCdnEndpointCustomDomainUpdate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CustomDomainID(d.Id())
+	id, err := customdomains.ParseEndpointCustomDomainID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.ProfileName, id.EndpointName, id.CustomDomainName)
 	if err != nil {
 		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
@@ -329,12 +335,12 @@ func resourceArmCdnEndpointCustomDomainRead(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CustomDomainID(d.Id())
+	id, err := customdomains.ParseEndpointCustomDomainID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.ProfileName, id.EndpointName, id.CustomDomainName)
 	if err != nil {
 		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[DEBUG] %q was not found - removing from state!", id)
@@ -345,7 +351,7 @@ func resourceArmCdnEndpointCustomDomainRead(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
-	cdnEndpointId := endpoints.NewEndpointID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.EndpointName)
+	cdnEndpointId := endpoints.NewEndpointID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.EndpointName)
 
 	d.Set("name", resp.Name)
 	d.Set("cdn_endpoint_id", cdnEndpointId.ID())
@@ -392,12 +398,12 @@ func resourceArmCdnEndpointCustomDomainDelete(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CustomDomainID(d.Id())
+	id, err := customdomains.ParseEndpointCustomDomainID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.ProfileName, id.EndpointName, id.CustomDomainName)
 	if err != nil {
 		return fmt.Errorf("deleting %q: %+v", id, err)
 	}
@@ -551,8 +557,8 @@ func flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Conte
 	}}, nil
 }
 
-func enableArmCdnEndpointCustomDomainHttps(ctx context.Context, client *cdn.CustomDomainsClient, id parse.CustomDomainId, params cdn.BasicCustomDomainHTTPSParameters) error {
-	future, err := client.EnableCustomHTTPS(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name, &params)
+func enableArmCdnEndpointCustomDomainHttps(ctx context.Context, client *cdn.CustomDomainsClient, id customdomains.EndpointCustomDomainId, params cdn.BasicCustomDomainHTTPSParameters) error {
+	future, err := client.EnableCustomHTTPS(ctx, id.ResourceGroupName, id.ProfileName, id.EndpointName, id.CustomDomainName, &params)
 	if err != nil {
 		return fmt.Errorf("sending enable request: %+v", err)
 	}
@@ -562,8 +568,8 @@ func enableArmCdnEndpointCustomDomainHttps(ctx context.Context, client *cdn.Cust
 	return nil
 }
 
-func disableArmCdnEndpointCustomDomainHttps(ctx context.Context, client *cdn.CustomDomainsClient, id parse.CustomDomainId) error {
-	future, err := client.DisableCustomHTTPS(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
+func disableArmCdnEndpointCustomDomainHttps(ctx context.Context, client *cdn.CustomDomainsClient, id customdomains.EndpointCustomDomainId) error {
+	future, err := client.DisableCustomHTTPS(ctx, id.ResourceGroupName, id.ProfileName, id.EndpointName, id.CustomDomainName)
 	if err != nil {
 		return fmt.Errorf("sending disable request: %+v", err)
 	}
