@@ -10,12 +10,19 @@ func Default() UserFeatures {
 			PurgeSoftDeleteOnDestroy: true,
 			RecoverSoftDeleted:       true,
 		},
-		EnhancedValidation: EnhancedValidationFeatures{},
+		EnhancedValidation: EnhancedValidationFeatures{
+			Locations:         false, // azignore:AZG007 - ensure all nested objects are fully populated
+			ResourceProviders: false, // azignore:AZG007 - ensure all nested objects are fully populated
+			PreflightEnabled:  false, // azignore:AZG007 - ensure all nested objects are fully populated
+			LocationFallback:  nil, // azignore:AZG007 - ensure all nested objects are fully populated
+		},
 		AppConfiguration: AppConfigurationFeatures{
 			PurgeSoftDeleteOnDestroy: true,
 			RecoverSoftDeleted:       true,
 		},
-		ApplicationInsights: ApplicationInsightFeatures{},
+		ApplicationInsights: ApplicationInsightFeatures{
+			DisableGeneratedRule: false, // azignore:AZG007 - ensure all nested objects are fully populated
+		},
 		CognitiveAccount: CognitiveAccountFeatures{
 			PurgeSoftDeleteOnDestroy: true,
 		},
@@ -35,7 +42,9 @@ func Default() UserFeatures {
 			PurgeSoftDeletedHSMKeysOnDestroy: true,
 			RecoverSoftDeletedHSMKeys:        true,
 		},
-		LogAnalyticsWorkspace: LogAnalyticsWorkspaceFeatures{},
+		LogAnalyticsWorkspace: LogAnalyticsWorkspaceFeatures{
+			PermanentlyDeleteOnDestroy: false, // azignore:AZG007 - ensure all nested objects are fully populated
+		},
 		ManagedDisk: ManagedDiskFeatures{
 			ExpandWithoutDowntime: true,
 		},
@@ -49,9 +58,12 @@ func Default() UserFeatures {
 			DeleteNestedItemsDuringDeletion: true,
 		},
 		VirtualMachine: VirtualMachineFeatures{
-			DeleteOSDiskOnDeletion: true,
+			DetachImplicitDataDiskOnDeletion: false, // azignore:AZG007 - ensure all nested objects are fully populated
+			DeleteOSDiskOnDeletion:           true,
+			SkipShutdownAndForceDelete:       false, // azignore:AZG007 - ensure all nested objects are fully populated
 		},
 		VirtualMachineScaleSet: VirtualMachineScaleSetFeatures{
+			ForceDelete:               false, // azignore:AZG007 - ensure all nested objects are fully populated
 			ReimageOnManualUpgrade:    true,
 			RollInstancesWhenRequired: true,
 			ScaleToZeroOnDelete:       true,
@@ -59,16 +71,29 @@ func Default() UserFeatures {
 		Storage: StorageFeatures{
 			DataPlaneAvailable: true,
 		},
-		Subscription: SubscriptionFeatures{},
+		Subscription: SubscriptionFeatures{
+			PreventCancellationOnDestroy: false, // azignore:AZG007 - ensure all nested objects are fully populated
+		},
 		PostgresqlFlexibleServer: PostgresqlFlexibleServerFeatures{
 			RestartServerOnConfigurationValueChange: true,
 		},
-		MachineLearning: MachineLearningFeatures{},
-		RecoveryService: RecoveryServiceFeatures{},
-		NetApp: NetAppFeatures{
-			PreventVolumeDestruction: true,
+		MachineLearning: MachineLearningFeatures{
+			PurgeSoftDeletedWorkspaceOnDestroy: false, // azignore:AZG007 - ensure all nested objects are fully populated
 		},
-		DatabricksWorkspace: DatabricksWorkspaceFeatures{},
-		ServiceBus:          ServiceBusFeatures{},
+		RecoveryService: RecoveryServiceFeatures{
+			VMBackupStopProtectionAndRetainDataOnDestroy:    false, // azignore:AZG007 - ensure all nested objects are fully populated
+			VMBackupSuspendProtectionAndRetainDataOnDestroy: false, // azignore:AZG007 - ensure all nested objects are fully populated
+			PurgeProtectedItemsFromVaultOnDestroy:           false, // azignore:AZG007 - ensure all nested objects are fully populated
+		},
+		NetApp: NetAppFeatures{
+			DeleteBackupsOnBackupVaultDestroy: false, // azignore:AZG007 - ensure all nested objects are fully populated
+			PreventVolumeDestruction:          true,
+		},
+		DatabricksWorkspace: DatabricksWorkspaceFeatures{
+			ForceDelete: false, // azignore:AZG007 - ensure all nested objects are fully populated
+		},
+		ServiceBus: ServiceBusFeatures{
+			AutoDeleteSubscriptionDefaultRule: false, // azignore:AZG007 - ensure all nested objects are fully populated
+		},
 	}
 }
