@@ -1903,6 +1903,30 @@ func TestAccStorageAccount_noDataPlane(t *testing.T) {
 	})
 }
 
+func TestAccStorageAccount_nfsEncryptionInTransitConfigError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.nfsEncryptionInTransitError(data),
+			ExpectError: regexp.MustCompile("`share_properties.0.nfs_encryption_in_transit_enabled` can only be set to `true` when `account_kind` is `FileStorage` and `account_tier` is `Premium`"),
+		},
+	})
+}
+
+func TestAccStorageAccount_smbEncryptionInTransitConfigError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.smbEncryptionInTransitConfigError(data),
+			ExpectError: regexp.MustCompile("`share_properties.0.smb.0.encryption_in_transit_enabled` cannot be set to `true` when `account_kind` is `BlockBlobStorage` and `account_tier` is `Premium`"),
+		},
+	})
+}
+
 func (r StorageAccountResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseStorageAccountID(state.ID)
 	if err != nil {
@@ -3583,6 +3607,7 @@ resource "azurerm_storage_account" "test" {
       authentication_types            = ["NTLMv2", "Kerberos"]
       kerberos_ticket_encryption_type = ["AES-256", "RC4-HMAC"]
       channel_encryption_type         = ["AES-128-CCM", "AES-256-GCM"]
+      encryption_in_transit_enabled   = true
     }
   }
 }
@@ -3940,6 +3965,15 @@ resource "azurerm_storage_account" "test" {
   account_tier                      = "Premium"
   account_replication_type          = "LRS"
   infrastructure_encryption_enabled = true
+
+  share_properties {
+    nfs_encryption_in_transit_enabled = true
+  }
+
+  # Ignore changes based on https://github.com/hashicorp/terraform-provider-azurerm/pull/21226
+  lifecycle {
+    ignore_changes = [share_properties.0.smb]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -5083,6 +5117,65 @@ resource "azurerm_storage_account" "test" {
 
   tags = {
     environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) nfsEncryptionInTransitError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_kind             = "FileStorage"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  share_properties {
+    nfs_encryption_in_transit_enabled = true
+  }
+
+  # Ignore changes based on https://github.com/hashicorp/terraform-provider-azurerm/pull/21226
+  lifecycle {
+    ignore_changes = [share_properties.0.smb]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) smbEncryptionInTransitConfigError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_kind             = "BlockBlobStorage"
+  account_tier             = "Premium"
+  account_replication_type = "LRS"
+
+  share_properties {
+    smb {
+      encryption_in_transit_enabled = true
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
