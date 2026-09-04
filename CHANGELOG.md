@@ -1,6 +1,7 @@
 ## 5.5.0 (Unreleased)
 
 ENHANCEMENTS:
+* **New List Resource**: `eventhub_consumer_group` [GH-33335]
 * `azurerm_storage_account` - add support for the `public_network_access` property [GH-33292]
 * **New List Resource**:`virtual_hub_connection` [GH-33311]
 * dependencies: `go-azure-sdk` - update to `v0.20260901.1173158` [GH-33274]
