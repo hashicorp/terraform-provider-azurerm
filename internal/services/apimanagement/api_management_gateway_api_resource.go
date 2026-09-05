@@ -49,6 +49,19 @@ func resourceApiManagementGatewayApi() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: api.ValidateApiID,
+				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+					oldApiTagId, err := api.ParseApiID(old)
+					if err != nil {
+						return false
+					}
+
+					newApiTagId, err := api.ParseApiID(new)
+					if err != nil {
+						return false
+					}
+
+					return oldApiTagId.ApiId == getApiName(newApiTagId.ApiId)
+				},
 			},
 			"gateway_id": {
 				Type:         pluginsdk.TypeString,
