@@ -626,7 +626,7 @@ func expandKustoClusterSku(input []interface{}) (*clusters.AzureSku, error) {
 		"Standard":    "Standard",
 	}
 
-	skuNamePrefix := strings.Split(sku["name"].(string), "_")[0]
+	skuNamePrefix, _, _ := strings.Cut(sku["name"].(string), "_")
 	tier, ok := skuNamePrefixToTier[skuNamePrefix]
 	if !ok {
 		return nil, fmt.Errorf("sku name begins with invalid tier, possible are Dev(No SLA) and Standard but is: %q", skuNamePrefix)

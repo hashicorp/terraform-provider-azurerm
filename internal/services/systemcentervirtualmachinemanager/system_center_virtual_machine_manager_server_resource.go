@@ -300,7 +300,7 @@ func systemCenterVirtualMachineManagerServerStateRefreshFunc(ctx context.Context
 		checkTimes := 10
 		lastInventoryItemCount := 0
 
-		for i := 0; i < checkTimes; i++ {
+		for i := range checkTimes {
 			resp, err := client.ListByVMmServer(ctx, scvmmServerId)
 			if err != nil {
 				return nil, "", fmt.Errorf("polling for %s: %+v", id, err)

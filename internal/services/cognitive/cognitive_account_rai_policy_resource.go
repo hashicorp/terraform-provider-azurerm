@@ -6,6 +6,7 @@ package cognitive
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -85,10 +86,8 @@ func (r CognitiveAccountRaiPolicyResource) CustomizeDiff() sdk.ResourceFunc {
 					continue
 				}
 
-				for _, notApplicable := range severityThresholdNotApplicableFilterNames {
-					if name == notApplicable {
-						return fmt.Errorf("`severity_threshold` is not applicable for `content_filter[%d]` with name %q", i, name)
-					}
+				if slices.Contains(severityThresholdNotApplicableFilterNames, name) {
+					return fmt.Errorf("`severity_threshold` is not applicable for `content_filter[%d]` with name %q", i, name)
 				}
 			}
 

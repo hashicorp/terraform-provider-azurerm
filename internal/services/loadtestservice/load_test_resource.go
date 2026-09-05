@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -280,13 +281,7 @@ func (r LoadTestResource) EnsureEncryptionIdentityIDExistsInIdentity(model LoadT
 			return errors.New(msg)
 		}
 
-		existsInIdentity := false
-		for _, id := range model.Identity[0].IdentityIds {
-			if id == model.Encryption[0].Identity[0].IdentityID {
-				existsInIdentity = true
-				break
-			}
-		}
+		existsInIdentity := slices.Contains(model.Identity[0].IdentityIds, model.Encryption[0].Identity[0].IdentityID)
 
 		if !existsInIdentity {
 			return errors.New(msg)

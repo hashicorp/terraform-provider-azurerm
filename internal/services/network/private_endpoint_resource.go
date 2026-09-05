@@ -392,8 +392,7 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		if err := result.Poller.PollUntilDone(ctx); err != nil {
-			var lroFailError pollers.PollingFailedError
-			if errors.As(err, &lroFailError) {
+			if lroFailError, ok := errors.AsType[pollers.PollingFailedError](err); ok {
 				type lroErrorType struct {
 					Error struct {
 						Code    string `json:"code"`

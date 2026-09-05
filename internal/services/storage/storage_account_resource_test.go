@@ -2040,7 +2040,7 @@ resource "azurerm_storage_account" "test" {
 
 func (r StorageAccountResource) tagCount(data acceptance.TestData) string {
 	tags := ""
-	for i := 0; i < 50; i++ {
+	for i := range 50 {
 		tags += fmt.Sprintf("t%d = \"v%d\"\n", i, i)
 	}
 

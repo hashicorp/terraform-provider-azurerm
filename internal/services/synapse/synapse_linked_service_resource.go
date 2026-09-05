@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"maps"
 	"net/http"
 	"time"
 
@@ -193,9 +194,7 @@ func resourceSynapseLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	additionalProperties := d.Get("additional_properties").(map[string]interface{})
-	for k, v := range additionalProperties {
-		props[k] = v
-	}
+	maps.Copy(props, additionalProperties)
 
 	jsonData, err := json.Marshal(map[string]interface{}{
 		"properties": props,

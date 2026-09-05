@@ -6,6 +6,7 @@ package monitor
 import (
 	"fmt"
 	"log"
+	"maps"
 	"strconv"
 	"time"
 
@@ -1038,9 +1039,7 @@ func flattenAzureRmMonitorAutoScaleSettingNotification(notifications *[]autoscal
 
 				props := make(map[string]string)
 				if webHookProps := v.Properties; webHookProps != nil {
-					for key, value := range *v.Properties {
-						props[key] = value
-					}
+					maps.Copy(props, *v.Properties)
 					hook["properties"] = props
 					webhooks = append(webhooks, hook)
 				}

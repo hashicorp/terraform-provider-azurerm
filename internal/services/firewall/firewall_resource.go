@@ -690,7 +690,7 @@ func flattenFirewallAdditionalProperty(input *map[string]string) (enabled interf
 	}
 
 	if serversPtr, ok := (*input)["Network.DNS.Servers"]; ok {
-		for _, val := range strings.Split(serversPtr, ",") {
+		for val := range strings.SplitSeq(serversPtr, ",") {
 			servers = append(servers, val)
 		}
 	}
@@ -753,7 +753,7 @@ func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, inp
 						// In case of scale down, keep the first new "Count" addresses.
 						if oldCount > newCount {
 							keptAddresses := make([]azurefirewalls.AzureFirewallPublicIPAddress, newCount)
-							for i := 0; i < newCount; i++ {
+							for i := range newCount {
 								keptAddresses[i] = (*addresses)[i]
 							}
 							addresses = &keptAddresses

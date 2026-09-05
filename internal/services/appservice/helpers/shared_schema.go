@@ -5,6 +5,7 @@ package helpers
 
 import (
 	"fmt"
+	"maps"
 	"math"
 	"strings"
 
@@ -1608,9 +1609,7 @@ func flattenIpRestrictionHeaders(headers map[string][]string) []IpRestrictionHea
 func FlattenWebStringDictionary(input *webapps.StringDictionary) map[string]string {
 	result := make(map[string]string)
 	if input != nil && input.Properties != nil {
-		for k, v := range *input.Properties {
-			result[k] = v
-		}
+		maps.Copy(result, *input.Properties)
 	}
 	return result
 }

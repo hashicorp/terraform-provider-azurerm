@@ -211,8 +211,8 @@ func DecodeFunctionAppDockerFxString(input string, partial ApplicationStackDocke
 
 	dockerUrl := partial.RegistryURL
 	for _, prefix := range urlSchemes {
-		if strings.HasPrefix(dockerUrl, prefix) {
-			dockerUrl = strings.TrimPrefix(dockerUrl, prefix)
+		if after, ok := strings.CutPrefix(dockerUrl, prefix); ok {
+			dockerUrl = after
 			continue
 		}
 	}

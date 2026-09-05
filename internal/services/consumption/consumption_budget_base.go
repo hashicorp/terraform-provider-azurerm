@@ -6,6 +6,7 @@ package consumption
 import (
 	"context"
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
@@ -263,9 +264,7 @@ func (br consumptionBudgetBaseResource) arguments(fields map[string]*pluginsdk.S
 
 	// Consumption Budgets for Management Groups have a different notification schema,
 	// here we override the notification schema in the base resource
-	for k, v := range fields {
-		output[k] = v
-	}
+	maps.Copy(output, fields)
 
 	return output
 }
