@@ -23,6 +23,7 @@ import (
 
 func possibleSystemTopicEventSubscriptionEndpointTypes() []string {
 	return []string{
+		string(AzureAlertMonitor),
 		string(AzureFunctionEndpoint),
 		string(EventHubID),
 		string(HybridConnectionID),
@@ -68,6 +69,14 @@ func resourceEventGridSystemTopicEventSubscription() *pluginsdk.Resource {
 
 			"expiration_time_utc": eventSubscriptionSchemaExpirationTimeUTC(),
 
+			"azure_alert_monitor": eventSubscriptionSchemaAzureAlertMonitorEndpoint(
+				utils.RemoveFromStringArray(
+					possibleEventSubscriptionEndpointTypes(),
+					string(AzureAlertMonitor),
+				),
+			),
+
+			// TODO: this can become `function_id` in 4.0?
 			"azure_function_endpoint": eventSubscriptionSchemaAzureFunctionEndpoint(
 				helpers.RemoveFromStringArray(
 					possibleSystemTopicEventSubscriptionEndpointTypes(),
@@ -292,6 +301,10 @@ func resourceEventGridSystemTopicEventSubscriptionRead(d *pluginsdk.ResourceData
 			existingMappingsFromState := expandEventSubscriptionDeliveryAttributeMappings(d.Get("delivery_property").([]interface{}))
 			if err := d.Set("delivery_property", flattenEventSubscriptionDeliveryAttributeMappings(destination, existingMappingsFromState)); err != nil {
 				return fmt.Errorf("setting `delivery_property` for %s: %+v", *id, err)
+			}
+
+			if err := d.Set("azure_alert_monitor", flattenEventSubscriptionDestinationAzureAlertMonitor(destination)); err != nil {
+				return fmt.Errorf("setting `azure_alert_monitor` for %s: %+v", *id, err)
 			}
 
 			if err := d.Set("azure_function_endpoint", flattenEventSubscriptionDestinationAzureFunction(destination)); err != nil {
