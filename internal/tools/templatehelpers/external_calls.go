@@ -5,26 +5,9 @@ package templatehelpers
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"os"
 	"os/exec"
 )
-
-// CallTerraform calls the locally installed terraform binary with the specified options
-// returns the raw []byte output for the caller to process.
-func CallTerraform(opts ...string) ([]byte, error) {
-	cmd := exec.CommandContext(context.Background(), "terraform", opts...)
-	out, err := cmd.Output()
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return nil, fmt.Errorf("missing terraform binary, please ensure Terraform is installed and discoverable in your PATH")
-		}
-		return nil, err
-	}
-
-	return out, nil
-}
 
 // GoImports calls `goimports -w` over the specified file (including path)
 func GoImports(file string) error {
@@ -32,31 +15,6 @@ func GoImports(file string) error {
 
 	if combined, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("%w: %s", err, combined)
-	}
-
-	return nil
-}
-
-// GoImports calls `goimports -w` over the specified path to process all *.go files.
-func GoImportsPath(path string) error {
-	cmd := exec.CommandContext(context.Background(), "goimports", "-w", path)
-
-	if _, err := cmd.CombinedOutput(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// Terrafmt calls (if installed) katbyte/terrafmt to format Terraform
-// configurations in the specified file
-func Terrafmt(path string) error {
-	cmd := exec.CommandContext(context.Background(), "terrafmt", "fmt", "-f", path)
-	if _, err := cmd.Output(); err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("missing terrafmt, please ensure katbyte/terrafmt is installed (`go install github.com/katbyte/terrafmt@latest`) and discoverable in your PATH")
-		}
-		return err
 	}
 
 	return nil

@@ -8,20 +8,6 @@ import (
 	"strings"
 )
 
-// DeprecatedInSixPointOh returns the deprecation message if the provider
-// is running in 6.0 mode - otherwise returns an empty string (such that
-// this deprecation should be ignored).
-// This can be used for the following scenarios:
-//   - Signify resources which will be Deprecated in 6.0, but not Removed (which will happen in a later release).
-//   - For properties undergoing a rename, where the renamed property will only be introduced in the next release
-func DeprecatedInSixPointOh(deprecationMessage string) string {
-	if !SixPointOh() {
-		return ""
-	}
-
-	return deprecationMessage
-}
-
 // SixPointOh returns whether this provider is running in 6.0 mode
 // that is to say - the final 6.0 release
 //

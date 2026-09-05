@@ -8,15 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// CustomDiffComputedSet bypasses a bug/quirk in Terraform Plugin SDKv2 where
-// elements of a Computed TypeSet have their inner diffs completely suppressed
-// if their identity hash matches.
-//
-// Removals from the set are treated natively (i.e. as an in-place update to the Set).
-func CustomDiffComputedSet(setKey string, hashFunc schema.SchemaSetFunc, forceNewProps []string, inPlaceProps []string) CustomizeDiffFunc {
-	return customDiffComputedSet(setKey, false, hashFunc, forceNewProps, inPlaceProps)
-}
-
 // CustomDiffComputedSetCannotRemove is identical to CustomDiffComputedSet, but
 // explicitly forces a replacement of the entire resource if an element is removed
 // from the Set.

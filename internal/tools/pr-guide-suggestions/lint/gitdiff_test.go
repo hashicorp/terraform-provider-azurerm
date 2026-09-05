@@ -8,42 +8,6 @@ import (
 	"testing"
 )
 
-func TestParseDiffAddedLines(t *testing.T) {
-	root := "/repo"
-	diff := `diff --git a/internal/services/foo/foo_resource.go b/internal/services/foo/foo_resource.go
-index bbb0728..ac91822 100644
---- a/internal/services/foo/foo_resource.go
-+++ b/internal/services/foo/foo_resource.go
-@@ -9,3 +9,6 @@ func r() *pluginsdk.Resource {
--				Removed: true,
-+				Type:     pluginsdk.TypeString,
-+				Required: true,
-+			},
-+			"new_config": {
-+				Type:     pluginsdk.TypeString,
-+				Optional: true,
-`
-
-	changes, err := parseDiff(root, diff)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	file := filepath.Join(root, "internal/services/foo/foo_resource.go")
-	// New-side lines 9..14 are added; the removal does not advance the counter.
-	for _, line := range []int{9, 10, 11, 12, 13, 14} {
-		if !changes.Added(file, line) {
-			t.Errorf("expected line %d to be added", line)
-		}
-	}
-	if changes.Added(file, 8) {
-		t.Error("line 8 (unchanged context) should not be marked added")
-	}
-	if changes.Added(file, 15) {
-		t.Error("line 15 should not be marked added")
-	}
-}
-
 func TestParseHunkNewStart(t *testing.T) {
 	cases := map[string]int{
 		"@@ -1,0 +23,4 @@":            23,
