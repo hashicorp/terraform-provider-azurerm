@@ -39,6 +39,13 @@ func TestAccOrchestratedVirtualMachineScaleSet_disksOSDiskCachingWithResourceDis
 			),
 		},
 		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+		{
+			Config: r.disksOSDiskEphemeral(data, "NvmeDisk"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
