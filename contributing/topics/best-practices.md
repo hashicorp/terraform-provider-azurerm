@@ -331,9 +331,9 @@ func (r FooResource) CustomizeDiff() sdk.ResourceFunc {
 
 However if the logic depends on the known-after-apply value itself, then CustomizeDiff has to abstain.
 
-## Go File Header Comments
+## File Header Comments
 
-When adding or updating the licensing header at the top of a Go source file, always use the exact format below and place it at the very beginning of the file with no preceding blank lines:
+Every source file (Go, Terraform, shell, YAML, etc.) starts with the licensing header below, placed at the very beginning of the file with no preceding blank lines. CI enforces this with [copyplop](https://github.com/YakDriver/copyplop) (config in `.copyplop.yaml`) - run `make copyright-fix` to add or update headers.
 
 ```go
 // Copyright IBM Corp. 2014, 2025
