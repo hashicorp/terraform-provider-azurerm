@@ -4,6 +4,8 @@
 package network
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -285,6 +287,17 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 																Optional:     true,
 																ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForActionType(), false),
 															},
+
+															// Although "None" is in the api list, it will be omitted.
+															"sensitivity_level": {
+																Type:     pluginsdk.TypeString,
+																Optional: true,
+																ValidateFunc: validation.StringInSlice([]string{
+																	string(webapplicationfirewallpolicies.SensitivityTypeLow),
+																	string(webapplicationfirewallpolicies.SensitivityTypeMedium),
+																	string(webapplicationfirewallpolicies.SensitivityTypeHigh),
+																}, false),
+															},
 														},
 													},
 												},
@@ -442,7 +455,53 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(resourceWebApplicationFirewallPolicyCustomizeDiff),
 	}
+}
+
+func resourceWebApplicationFirewallPolicyCustomizeDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+	managedRules := d.GetRawConfig().GetAttr("managed_rules")
+	if !managedRules.IsKnown() || managedRules.IsNull() {
+		return nil
+	}
+
+	for _, managedRule := range managedRules.AsValueSlice() {
+		managedRuleSets := managedRule.GetAttr("managed_rule_set")
+		if !managedRuleSets.IsKnown() || managedRuleSets.IsNull() {
+			continue
+		}
+
+		for _, managedRuleSet := range managedRuleSets.AsValueSlice() {
+			ruleSetType := managedRuleSet.GetAttr("type")
+			if !ruleSetType.IsKnown() {
+				continue
+			}
+			if !ruleSetType.IsNull() && ruleSetType.AsString() == "Microsoft_HTTPDDoSRuleSet" {
+				continue
+			}
+
+			ruleGroupOverrides := managedRuleSet.GetAttr("rule_group_override")
+			if !ruleGroupOverrides.IsKnown() || ruleGroupOverrides.IsNull() {
+				continue
+			}
+
+			for _, ruleGroupOverride := range ruleGroupOverrides.AsValueSlice() {
+				rules := ruleGroupOverride.GetAttr("rule")
+				if !rules.IsKnown() || rules.IsNull() {
+					continue
+				}
+
+				for _, rule := range rules.AsValueSlice() {
+					if !rule.GetAttr("sensitivity_level").IsNull() {
+						return errors.New("`sensitivity_level` can only be set when `type` of the `managed_rule_set` is `Microsoft_HTTPDDoSRuleSet`")
+					}
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 func resourceWebApplicationFirewallPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -893,6 +952,11 @@ func expandWebApplicationFirewallPolicyOverrideRules(input []interface{}) *[]web
 			result.Action = pointer.ToEnum[webapplicationfirewallpolicies.ActionType](action)
 		}
 
+		sensitivityLevel := v["sensitivity_level"].(string)
+		if sensitivityLevel != "" {
+			result.Sensitivity = pointer.ToEnum[webapplicationfirewallpolicies.SensitivityType](sensitivityLevel)
+		}
+
 		results = append(results, result)
 	}
 
@@ -1157,6 +1221,8 @@ func flattenWebApplicationFirewallPolicyOverrideRules(input *[]webapplicationfir
 		v["enabled"] = pointer.From(item.State) == webapplicationfirewallpolicies.ManagedRuleEnabledStateEnabled
 
 		v["action"] = string(pointer.From(item.Action))
+
+		v["sensitivity_level"] = string(pointer.From(item.Sensitivity))
 
 		results = append(results, v)
 	}
