@@ -70,6 +70,8 @@ The following arguments are supported:
 
 * `sku_tier` - (Required) SKU tier of the Firewall. Possible values are `Premium`, `Standard` and `Basic`.
 
+* `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Firewall should exist. Changing this forces a new Firewall to be created.
+
 * `firewall_policy_id` - (Optional) The ID of the Firewall Policy applied to this Firewall.
 
 * `ip_configuration` - (Optional) An `ip_configuration` block as documented below.
