@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package chaosstudio
 
 // NOTE: this file is generated - manual changes will be overwritten.

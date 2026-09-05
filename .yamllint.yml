@@ -1,3 +1,6 @@
+# Copyright IBM Corp. 2014, 2025
+# "SPDX-License-Identifier: MPL-2.0"
+
 # Configuration for yamllint (run by .github/workflows/workflow-yamllint.yml via `make yamllint`).
 extends: default
 

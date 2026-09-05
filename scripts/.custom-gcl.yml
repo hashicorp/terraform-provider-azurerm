@@ -1,3 +1,6 @@
+# Copyright IBM Corp. 2014, 2025
+# "SPDX-License-Identifier: MPL-2.0"
+
 # The single source of truth for the golangci-lint version - the GNUmakefile (and via
 # 'make golangci-with-modules', the CI workflows) derive it from this field.
 version: v2.12.2

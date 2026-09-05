@@ -1,7 +1,5 @@
-<!--
- Copyright IBM Corp. 2014, 2025
- SPDX-License-Identifier: MPL-2.0
--->
+<!-- Copyright IBM Corp. 2014, 2025 -->
+<!-- SPDX-License-Identifier: MPL-2.0 -->
 
 <!-- source: https://svn.apache.org/repos/asf/airavata/sandbox/xbaya-web/test/Calculator.wsdl -->
 <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ns="http://c.b.a"
