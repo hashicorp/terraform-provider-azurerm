@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	schedule "github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/startstopmanagedinstanceschedules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -37,7 +38,10 @@ type ScheduleItemModel struct {
 
 type MsSqlManagedInstanceStartStopScheduleResource struct{}
 
-var _ sdk.ResourceWithUpdate = MsSqlManagedInstanceStartStopScheduleResource{}
+var (
+	_ sdk.ResourceWithUpdate         = MsSqlManagedInstanceStartStopScheduleResource{}
+	_ sdk.ResourceWithStateMigration = MsSqlManagedInstanceStartStopScheduleResource{}
+)
 
 func (r MsSqlManagedInstanceStartStopScheduleResource) ResourceType() string {
 	return "azurerm_mssql_managed_instance_start_stop_schedule"
@@ -49,6 +53,15 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) ModelObject() interface{}
 
 func (r MsSqlManagedInstanceStartStopScheduleResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.ManagedInstanceStartStopScheduleID
+}
+
+func (r MsSqlManagedInstanceStartStopScheduleResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.MsSqlManagedInstanceStartStopScheduleV0ToV1{},
+		},
+	}
 }
 
 func (r MsSqlManagedInstanceStartStopScheduleResource) Arguments() map[string]*pluginsdk.Schema {
@@ -66,7 +79,7 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Arguments() map[string]*p
 		},
 
 		"schedule": {
-			Type:     pluginsdk.TypeList,
+			Type:     pluginsdk.TypeSet,
 			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
