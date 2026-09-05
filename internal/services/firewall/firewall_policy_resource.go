@@ -33,6 +33,8 @@ import (
 
 const AzureFirewallPolicyResourceName = "azurerm_firewall_policy"
 
+// resourceFirewallPolicy defines the azurerm_firewall_policy resource: its CRUD
+// functions, import behaviour, timeouts, and schema.
 func resourceFirewallPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceFirewallPolicyCreateUpdate,
@@ -57,6 +59,8 @@ func resourceFirewallPolicy() *pluginsdk.Resource {
 	}
 }
 
+// resourceFirewallPolicyCreateUpdate creates a new firewall policy, or updates an
+// existing one, from the values in the Terraform config, then re-reads it into state.
 func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.FirewallPolicies
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -417,15 +421,20 @@ func expandFirewallPolicyExplicitProxy(input []interface{}) *firewallpolicies.Ex
 	return output
 }
 
-func expandFirewallPolicyLogAnalyticsResources(defaultWorkspaceId string, workspaces []interface{}) *firewallpolicies.FirewallPolicyLogAnalyticsResources {
+// expandFirewallPolicyLogAnalyticsResources builds the default workspace plus any extra
+// per-region workspaces used by "insights.log_analytics_workspace". The parameter is named
+// workspaceList (not "workspaces") because the file already imports the
+// operationalinsights "workspaces" package for schema validation - reusing that name here
+// would shadow it for the rest of this function.
+func expandFirewallPolicyLogAnalyticsResources(defaultWorkspaceId string, workspaceListRaw []interface{}) *firewallpolicies.FirewallPolicyLogAnalyticsResources {
 	output := &firewallpolicies.FirewallPolicyLogAnalyticsResources{
 		DefaultWorkspaceId: &firewallpolicies.SubResource{
 			Id: &defaultWorkspaceId,
 		},
 	}
 
-	workspaceList := make([]firewallpolicies.FirewallPolicyLogAnalyticsWorkspace, 0, len(workspaces))
-	for _, workspace := range workspaces {
+	workspaceList := make([]firewallpolicies.FirewallPolicyLogAnalyticsWorkspace, 0, len(workspaceListRaw))
+	for _, workspace := range workspaceListRaw {
 		workspace := workspace.(map[string]interface{})
 		workspaceList = append(workspaceList, firewallpolicies.FirewallPolicyLogAnalyticsWorkspace{
 			Region: pointer.To(location.Normalize(workspace["firewall_location"].(string))),
@@ -569,16 +578,21 @@ func flattenFirewallPolicyInsights(input *firewallpolicies.FirewallPolicyInsight
 	}
 }
 
+// flattenFirewallPolicyExplicitProxy converts the API's explicit proxy settings back into
+// the plain Go values (bool/int/string) that the Terraform schema expects. The fields on
+// firewallpolicies.ExplicitProxy are pointers, so each one is dereferenced with
+// pointer.From (falling back to the zero value when nil) instead of being passed straight
+// through - passing the raw pointers would not match the schema's declared types.
 func flattenFirewallPolicyExplicitProxy(input *firewallpolicies.ExplicitProxy) (result []interface{}) {
 	if input == nil {
 		return []interface{}{}
 	}
 	output := map[string]interface{}{
 		"enabled":         input.EnableExplicitProxy,
-		"http_port":       input.HTTPPort,
-		"https_port":      input.HTTPSPort,
+		"http_port":       int(pointer.From(input.HTTPPort)),
+		"https_port":      int(pointer.From(input.HTTPSPort)),
 		"enable_pac_file": input.EnablePacFile,
-		"pac_file_port":   input.PacFilePort,
+		"pac_file_port":   int(pointer.From(input.PacFilePort)),
 		"pac_file":        input.PacFile,
 	}
 	return []interface{}{output}
@@ -867,15 +881,17 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
+					// Valid TCP/UDP port range is 0-65535. The previous bound of 35536
+					// silently rejected any legitimate port above that value.
 					"http_port": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						ValidateFunc: validation.IntBetween(0, 35536),
+						ValidateFunc: validation.IntBetween(0, 65535),
 					},
 					"https_port": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						ValidateFunc: validation.IntBetween(0, 35536),
+						ValidateFunc: validation.IntBetween(0, 65535),
 					},
 					"enable_pac_file": {
 						Type:     pluginsdk.TypeBool,
@@ -884,7 +900,7 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 					"pac_file_port": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						ValidateFunc: validation.IntBetween(0, 35536),
+						ValidateFunc: validation.IntBetween(0, 65535),
 					},
 					"pac_file": {
 						Type:         pluginsdk.TypeString,
