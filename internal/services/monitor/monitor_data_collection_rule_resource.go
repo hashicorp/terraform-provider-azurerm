@@ -39,6 +39,8 @@ type DataCollectionRule struct {
 	Destinations             []Destination          `tfschema:"destinations"`
 	ImmutableId              string                 `tfschema:"immutable_id"`
 	Kind                     string                 `tfschema:"kind"`
+	LogsIngestionEndpoint    string                 `tfschema:"logs_ingestion_endpoint"`
+	MetricsIngestionEndpoint string                 `tfschema:"metrics_ingestion_endpoint"`
 	Name                     string                 `tfschema:"name"`
 	Location                 string                 `tfschema:"location"`
 	ResourceGroupName        string                 `tfschema:"resource_group_name"`
@@ -867,6 +869,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 					"Windows",
 					"AgentDirectToStore",
 					"WorkspaceTransforms",
+					"Direct",
 				},
 				false,
 			),
@@ -912,6 +915,16 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 func (r DataCollectionRuleResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"immutable_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"logs_ingestion_endpoint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"metrics_ingestion_endpoint": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -1011,6 +1024,7 @@ func (r DataCollectionRuleResource) Read() sdk.ResourceFunc {
 			}
 
 			var dataCollectionEndpointId, description, immutableId, kind, loc string
+			var logsIngestionEndpoint, metricsIngestionEndpoint string
 			var tag map[string]interface{}
 			var dataFlows []DataFlow
 			var dataSources []DataSource
@@ -1039,6 +1053,11 @@ func (r DataCollectionRuleResource) Read() sdk.ResourceFunc {
 					destinations = flattenDataCollectionRuleDestinations(prop.Destinations)
 					immutableId = flattenStringPtr(prop.ImmutableId)
 					streamDeclaration = flattenDataCollectionRuleStreamDeclarations(prop.StreamDeclarations)
+
+					if prop.Endpoints != nil {
+						logsIngestionEndpoint = flattenStringPtr(prop.Endpoints.LogsIngestion)
+						metricsIngestionEndpoint = flattenStringPtr(prop.Endpoints.MetricsIngestion)
+					}
 				}
 			}
 
@@ -1053,6 +1072,8 @@ func (r DataCollectionRuleResource) Read() sdk.ResourceFunc {
 				ImmutableId:              immutableId,
 				Kind:                     kind,
 				Location:                 loc,
+				LogsIngestionEndpoint:    logsIngestionEndpoint,
+				MetricsIngestionEndpoint: metricsIngestionEndpoint,
 				StreamDeclaration:        streamDeclaration,
 				Tags:                     tag,
 			})
@@ -2186,6 +2207,25 @@ func (r DataCollectionRuleResource) CustomizeDiff() sdk.ResourceFunc {
 					return err
 				}
 			}
+
+			if kind := metadata.ResourceDiff.Get("kind").(string); kind == "Direct" {
+				if v := metadata.ResourceDiff.Get("data_sources").([]interface{}); len(v) > 0 {
+					return fmt.Errorf("`data_sources` cannot be used when `kind` is set to `Direct`")
+				}
+
+				if v := metadata.ResourceDiff.Get("destinations.0.event_hub_direct").([]interface{}); len(v) > 0 {
+					return fmt.Errorf("`event_hub_direct`, `storage_blob_direct`, and `storage_table_direct` destinations cannot be used when `kind` is set to `Direct`")
+				}
+
+				if v := metadata.ResourceDiff.Get("destinations.0.storage_blob_direct").([]interface{}); len(v) > 0 {
+					return fmt.Errorf("`event_hub_direct`, `storage_blob_direct`, and `storage_table_direct` destinations cannot be used when `kind` is set to `Direct`")
+				}
+
+				if v := metadata.ResourceDiff.Get("destinations.0.storage_table_direct").([]interface{}); len(v) > 0 {
+					return fmt.Errorf("`event_hub_direct`, `storage_blob_direct`, and `storage_table_direct` destinations cannot be used when `kind` is set to `Direct`")
+				}
+			}
+
 			return nil
 		},
 	}
