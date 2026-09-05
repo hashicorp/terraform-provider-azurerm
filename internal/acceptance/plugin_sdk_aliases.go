@@ -51,19 +51,6 @@ func TestCheckResourceAttrSet(name, key string) pluginsdk.TestCheckFunc {
 	return resource.TestCheckResourceAttrSet(name, key)
 }
 
-// TestCheckOutput is a wrapper to enable builds to continue
-func TestCheckOutput(name, value string) pluginsdk.TestCheckFunc {
-	// TODO: move this comment up a level in the future
-	// Deprecated: use `check.That(name).Key(key).HasValue(value)` instead
-	return resource.TestCheckOutput(name, value)
-}
-
-// TestMatchOutput is a wrapper to enable builds to continue
-func TestMatchOutput(name string, r *regexp.Regexp) pluginsdk.TestCheckFunc {
-	// TODO: move this comment up a level in the future
-	return resource.TestMatchOutput(name, r)
-}
-
 // TestMatchResourceAttr is a TestCheckFunc which checks that the value
 // in state for the given name/key combination matches the given regex.
 func TestMatchResourceAttr(name, key string, r *regexp.Regexp) pluginsdk.TestCheckFunc {

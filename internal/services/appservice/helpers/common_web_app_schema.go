@@ -1402,28 +1402,6 @@ func FilterManagedAppSettings(input map[string]string) map[string]string {
 	return input
 }
 
-// FilterManagedAppSettingsDeprecated removes app_settings values from the state that are controlled directly be
-// schema properties when the deprecated docker settings are used. This function should be removed in 4.0
-func FilterManagedAppSettingsDeprecated(input map[string]string) map[string]string {
-	unmanagedSettings := []string{
-		"DIAGNOSTICS_AZUREBLOBCONTAINERSASURL",
-		"DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS",
-		"WEBSITE_HTTPLOGGING_CONTAINER_URL",
-		"WEBSITE_HTTPLOGGING_RETENTION_DAYS",
-		"WEBSITE_VNET_ROUTE_ALL",
-		"spring.datasource.password",
-		"spring.datasource.url",
-		"spring.datasource.username",
-		"WEBSITE_HEALTHCHECK_MAXPINGFAILURES",
-	}
-
-	for _, v := range unmanagedSettings { //nolint:typecheck
-		delete(input, v)
-	}
-
-	return input
-}
-
 func flattenHandlerMapping(appHandlerMappings *[]webapps.HandlerMapping) []HandlerMappings {
 	if appHandlerMappings == nil {
 		return []HandlerMappings{}

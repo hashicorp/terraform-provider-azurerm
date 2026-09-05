@@ -17,12 +17,6 @@ type EnrollmentId struct {
 	EnrollmentAccountName string
 }
 
-func NewEnrollmentID(enrollmentAccountName string) EnrollmentId {
-	return EnrollmentId{
-		EnrollmentAccountName: enrollmentAccountName,
-	}
-}
-
 func (id EnrollmentId) String() string {
 	segments := []string{
 		fmt.Sprintf("Enrollment Account Name %q", id.EnrollmentAccountName),

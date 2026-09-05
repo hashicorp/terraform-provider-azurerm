@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"reflect"
 	"slices"
-	"strings"
 )
 
 type Section interface {
@@ -44,32 +43,4 @@ func InsertAfterSection(newSection Section, sections []Section, after Section) (
 	}
 
 	return nil, fmt.Errorf("did not find a section of type `%T`", after)
-}
-
-// InsertBeforeSection inserts a provided section before a specified section and returns an updated Section slice.
-// if a matching section wasn't found, it returns an error
-func InsertBeforeSection(newSection Section, sections []Section, before Section) ([]Section, error) {
-	if len(sections) == 0 {
-		return nil, fmt.Errorf("received an empty sections slice")
-	}
-
-	for idx, s := range sections {
-		if reflect.TypeOf(s) == reflect.TypeOf(before) {
-			sections = slices.Insert(sections, idx, newSection)
-			return sections, nil
-		}
-	}
-
-	return nil, fmt.Errorf("did not find a section of type `%T`", before)
-}
-
-func FindSectionByHeading(sections []Section, search string) Section {
-	for _, s := range sections {
-		h := s.GetHeading().Text
-		if strings.Contains(strings.ToLower(h), strings.ToLower(search)) { // case-insensitive for flexibility
-			return s
-		}
-	}
-
-	return nil
 }

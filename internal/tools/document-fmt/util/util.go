@@ -34,13 +34,3 @@ func MapValues2Slice[K comparable, V any](m map[K]V) []V {
 
 	return result
 }
-
-func Map2Slices[K comparable, V any](m map[K]V) ([]K, []V) {
-	keys, values := make([]K, 0, len(m)), make([]V, 0, len(m))
-	for k, v := range m {
-		keys = append(keys, k)
-		values = append(values, v)
-	}
-
-	return keys, values
-}

@@ -18,13 +18,6 @@ type EnrollmentBillingScopeId struct {
 	EnrollmentAccountName string
 }
 
-func NewEnrollmentBillingScopeID(billingAccountName, enrollmentAccountName string) EnrollmentBillingScopeId {
-	return EnrollmentBillingScopeId{
-		BillingAccountName:    billingAccountName,
-		EnrollmentAccountName: enrollmentAccountName,
-	}
-}
-
 func (id EnrollmentBillingScopeId) String() string {
 	segments := []string{
 		fmt.Sprintf("Enrollment Account Name %q", id.EnrollmentAccountName),
