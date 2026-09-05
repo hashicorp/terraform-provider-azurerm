@@ -136,7 +136,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `time_zone` - The time zone of the Cloud VM Cluster. For details, see [Exadata Infrastructure Time Zones](https://docs.oracle.com/en-us/iaas/base-database/doc/manage-time-zone.html).
 
-* `vip_ods` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the virtual IP (VIP) addresses associated with the Cloud VM Cluster. The Cluster Ready Services (CRS) creates and maintains one VIP address for each node in the Exadata Cloud Service instance to enable failover. If one node fails, the VIP is reassigned to another active node in the Cluster. 
+* `vip_ods` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the virtual IP (VIP) addresses associated with the Cloud VM Cluster. 
 
 * `virtual_network_id` - The ID to an Azure Resource Manager Virtual Network resource.
 
@@ -146,11 +146,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `data_collection_options` block exports the following:
 
-* `diagnostics_events_enabled` - Indicates whether diagnostic collection is enabled for the VM Cluster/Cloud VM Cluster/VMBM DBCS. Enabling diagnostic collection allows you to receive Events service notifications for guest VM issues. Diagnostic collection also allows Oracle to provide enhanced service and proactive support for your Exadata system. You can enable diagnostic collection during VM Cluster/Cloud VM Cluster provisioning. You can also disable or enable it at any time using the `UpdateVmCluster` or `updateCloudVmCluster` API.
+* `diagnostics_events_enabled` - Indicates whether diagnostic collection is enabled for the VM cluster, Cloud VM cluster or VMBM DBCS.
 
-* `health_monitoring_enabled` -  Indicates whether health monitoring is enabled for the VM Cluster / Cloud VM Cluster / VMBM DBCS. Enabling health monitoring allows Oracle to collect diagnostic data and share it with its operations and support personnel. You may also receive notifications for some events. Collecting health diagnostics enables Oracle to provide proactive support and enhanced service for your system. Optionally enable health monitoring while provisioning a system. You can also disable or enable health monitoring anytime using the `UpdateVmCluster`, `UpdateCloudVmCluster` or `updateDbsystem` API.
+* `health_monitoring_enabled` -  Indicates whether health monitoring is enabled for the VM cluster, Cloud VM cluster or VMBM DBCS.
 
-* `incident_logs_enabled` - Indicates whether incident logs and trace collection are enabled for the VM Cluster / Cloud VM Cluster / VMBM DBCS. Enabling incident logs collection allows Oracle to receive Events service notifications for guest VM issues, collect incident logs and traces, and use them to diagnose issues and resolve them. Optionally enable incident logs collection while provisioning a system. You can also disable or enable incident logs collection anytime using the `UpdateVmCluster`, `updateCloudVmCluster` or `updateDbsystem` API.
+* `incident_logs_enabled` - Indicates whether incident logs and trace collection are enabled for the VM cluster, Cloud VM cluster or VMBM DBCS.
 
 ---
 
@@ -168,7 +168,7 @@ A `iorm_config_cache` block exports the following:
 
 * `db_plans` - A `db_plans` block as defined above.
 
-* `lifecycle_details` - Additional information about the current `lifecycleState`.
+* `lifecycle_details` - Additional information about the current `lifecycle_state`.
 
 * `lifecycle_state` - The current state of IORM configuration for the Exadata DB system.
 
