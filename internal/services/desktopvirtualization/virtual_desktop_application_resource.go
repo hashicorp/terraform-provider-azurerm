@@ -4,6 +4,8 @@
 package desktopvirtualization
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -65,12 +67,23 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 				ValidateFunc: applicationgroup.ValidateApplicationGroupID,
 			},
 
-			"friendly_name": {
+			"command_line_argument_policy": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(application.PossibleValuesForCommandLineSetting(), false),
+			},
+
+			"application_type": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringLenBetween(1, 64),
-				// NOTE: O+C The API will use the value in `name` as the default
-				Computed: true,
+				ForceNew:     true,
+				Default:      string(application.RemoteApplicationTypeInBuilt),
+				ValidateFunc: validation.StringInSlice(application.PossibleValuesForRemoteApplicationType(), false),
+			},
+
+			"command_line_arguments": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
 			},
 
 			"description": {
@@ -79,24 +92,16 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 512),
 			},
 
-			"path": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-			},
-
-			"command_line_argument_policy": {
+			"friendly_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringInSlice(application.PossibleValuesForCommandLineSetting(), false),
+				Optional:     true,
+				ValidateFunc: validation.StringLenBetween(1, 64),
+				// NOTE: O+C The API will use the value in `name` as the default
+				Computed: true,
 			},
 
-			"command_line_arguments": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-			},
-
-			"show_in_portal": {
-				Type:     pluginsdk.TypeBool,
+			"icon_index": {
+				Type:     pluginsdk.TypeInt,
 				Optional: true,
 			},
 
@@ -107,11 +112,33 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"icon_index": {
-				Type:     pluginsdk.TypeInt,
+			"msix_package_application_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"msix_package_family_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"path": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"show_in_portal": {
+				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(virtualDesktopApplicationCustomizeDiff),
 	}
 }
 
@@ -147,7 +174,6 @@ func resourceVirtualDesktopApplicationCreateUpdate(d *pluginsdk.ResourceData, me
 		Properties: application.ApplicationProperties{
 			FriendlyName:         pointer.To(d.Get("friendly_name").(string)),
 			Description:          pointer.To(d.Get("description").(string)),
-			FilePath:             pointer.To(d.Get("path").(string)),
 			CommandLineSetting:   application.CommandLineSetting(d.Get("command_line_argument_policy").(string)),
 			CommandLineArguments: pointer.To(d.Get("command_line_arguments").(string)),
 			ShowInPortal:         pointer.To(d.Get("show_in_portal").(bool)),
@@ -155,6 +181,20 @@ func resourceVirtualDesktopApplicationCreateUpdate(d *pluginsdk.ResourceData, me
 			IconIndex:            pointer.To(int64(d.Get("icon_index").(int))),
 		},
 	}
+
+	if filePath := d.Get("path").(string); filePath != "" {
+		payload.Properties.FilePath = pointer.To(filePath)
+	}
+
+	if msixPackageApplicationId := d.Get("msix_package_application_id").(string); msixPackageApplicationId != "" {
+		payload.Properties.MsixPackageApplicationId = pointer.To(msixPackageApplicationId)
+	}
+
+	if msixPackageFamilyName := d.Get("msix_package_family_name").(string); msixPackageFamilyName != "" {
+		payload.Properties.MsixPackageFamilyName = pointer.To(msixPackageFamilyName)
+	}
+
+	payload.Properties.ApplicationType = pointer.ToEnum[application.RemoteApplicationType](d.Get("application_type").(string))
 
 	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
@@ -201,6 +241,12 @@ func resourceVirtualDesktopApplicationRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("show_in_portal", props.ShowInPortal)
 		d.Set("icon_path", props.IconPath)
 		d.Set("icon_index", props.IconIndex)
+		d.Set("msix_package_application_id", props.MsixPackageApplicationId)
+		d.Set("msix_package_family_name", props.MsixPackageFamilyName)
+
+		if props.ApplicationType != nil {
+			d.Set("application_type", pointer.FromEnum(props.ApplicationType))
+		}
 	}
 
 	return nil
@@ -221,6 +267,33 @@ func resourceVirtualDesktopApplicationDelete(d *pluginsdk.ResourceData, meta int
 	defer cancel()
 	if _, err = client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	return nil
+}
+
+func virtualDesktopApplicationCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+	_, pathOk := d.GetOk("path")
+	applicationType, applicationTypeOk := d.GetOk("application_type")
+	msixPackageApplicationId := d.GetRawConfig().AsValueMap()["msix_package_application_id"]
+	msixPackageFamilyName := d.GetRawConfig().AsValueMap()["msix_package_family_name"]
+
+	if applicationTypeOk && applicationType == string(application.RemoteApplicationTypeMsixApplication) {
+		if pathOk {
+			return errors.New("`path` cannot be set when `application_type` is `MsixApplication`")
+		}
+
+		if msixPackageApplicationId.IsNull() || msixPackageFamilyName.IsNull() {
+			return errors.New("`msix_package_application_id` and `msix_package_family_name` must be set when `application_type` is `MsixApplication`")
+		}
+	} else {
+		if !pathOk {
+			return errors.New("`path` must be set when `application_type` is not `MsixApplication`")
+		}
+
+		if !msixPackageApplicationId.IsNull() || !msixPackageFamilyName.IsNull() {
+			return errors.New("`application_type` must be set as `MsixApplication` when `msix_package_application_id` or `msix_package_family_name` is set")
+		}
 	}
 
 	return nil
