@@ -172,32 +172,19 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"os": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(tasks.OSWindows),
-							string(tasks.OSLinux),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForOS(), false),
 					},
 					"architecture": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(tasks.ArchitectureAmdSixFour),
-							string(tasks.ArchitectureArm),
-							string(tasks.ArchitectureArmSixFour),
-							string(tasks.ArchitectureThreeEightSix),
-							string(tasks.ArchitectureXEightSix),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForArchitecture(), false),
 					},
 					"variant": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(tasks.VariantVSix),
-							string(tasks.VariantVSeven),
-							string(tasks.VariantVEight),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForVariant(), false),
 					},
 				},
 			},
@@ -371,12 +358,9 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(tasks.BaseImageTriggerTypeAll),
-							string(tasks.BaseImageTriggerTypeRuntime),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForBaseImageTriggerType(), false),
 					},
 					"enabled": {
 						Type:     pluginsdk.TypeBool,
@@ -390,12 +374,9 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"update_trigger_payload_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(tasks.UpdateTriggerPayloadTypeDefault),
-							string(tasks.UpdateTriggerPayloadTypeToken),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForUpdateTriggerPayloadType(), false),
 					},
 				},
 			},
@@ -414,20 +395,14 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						Type:     pluginsdk.TypeList,
 						Required: true,
 						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(tasks.SourceTriggerEventCommit),
-								string(tasks.SourceTriggerEventPullrequest),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForSourceTriggerEvent(), false),
 						},
 					},
 					"source_type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(tasks.SourceControlTypeGithub),
-							string(tasks.SourceControlTypeVisualStudioTeamService),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForSourceControlType(), false),
 					},
 					"repository_url": {
 						Type:         pluginsdk.TypeString,
@@ -445,12 +420,9 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"token_type": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(tasks.TokenTypePAT),
-										string(tasks.TokenTypeOAuth),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForTokenType(), false),
 								},
 								"token": {
 									Type:         pluginsdk.TypeString,
@@ -522,12 +494,9 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"login_mode": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(tasks.SourceRegistryLoginModeNone),
-										string(tasks.SourceRegistryLoginModeDefault),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(tasks.PossibleValuesForSourceRegistryLoginMode(), false),
 								},
 							},
 						},
@@ -998,14 +967,14 @@ func expandRegistryTaskBaseImageTrigger(triggers []BaseImageTrigger) *tasks.Base
 		out.UpdateTriggerEndpoint = &trigger.UpdateTriggerEndpoint
 	}
 	if trigger.UpdateTriggerPayloadType != "" {
-		out.UpdateTriggerPayloadType = pointer.To(tasks.UpdateTriggerPayloadType(trigger.UpdateTriggerPayloadType))
+		out.UpdateTriggerPayloadType = pointer.ToEnum[tasks.UpdateTriggerPayloadType](trigger.UpdateTriggerPayloadType)
 	}
 	return out
 }
 
 func flattenRegistryTaskBaseImageTrigger(trigger *tasks.BaseImageTrigger, model ContainerRegistryTaskModel) []BaseImageTrigger {
 	if trigger == nil {
-		return nil
+		return []BaseImageTrigger{}
 	}
 
 	payloadType := ""
@@ -1066,7 +1035,7 @@ func expandRegistryTaskSourceTriggers(triggers []SourceTrigger) *[]tasks.SourceT
 
 func flattenRegistryTaskSourceTriggers(triggers *[]tasks.SourceTrigger, model ContainerRegistryTaskModel) []SourceTrigger {
 	if triggers == nil {
-		return nil
+		return []SourceTrigger{}
 	}
 	out := make([]SourceTrigger, 0, len(*triggers))
 	for i, trigger := range *triggers {
@@ -1138,7 +1107,7 @@ func expandRegistryTaskTimerTriggers(triggers []TimerTrigger) *[]tasks.TimerTrig
 
 func flattenRegistryTaskTimerTriggers(triggers *[]tasks.TimerTrigger) []TimerTrigger {
 	if triggers == nil {
-		return nil
+		return []TimerTrigger{}
 	}
 	out := make([]TimerTrigger, 0, len(*triggers))
 	for _, trigger := range *triggers {
@@ -1189,12 +1158,12 @@ func expandRegistryTaskDockerStep(step DockerStep) tasks.DockerBuildStep {
 
 func flattenRegistryTaskDockerStep(step tasks.TaskStepProperties, model ContainerRegistryTaskModel) []DockerStep {
 	if step == nil {
-		return nil
+		return []DockerStep{}
 	}
 
 	dockerStep, ok := step.(tasks.DockerBuildStep)
 	if !ok {
-		return nil
+		return []DockerStep{}
 	}
 
 	obj := DockerStep{
@@ -1249,12 +1218,12 @@ func expandRegistryTaskFileTaskStep(step FileTaskStep) tasks.FileTaskStep {
 
 func flattenRegistryTaskFileTaskStep(step tasks.TaskStepProperties, model ContainerRegistryTaskModel) []FileTaskStep {
 	if step == nil {
-		return nil
+		return []FileTaskStep{}
 	}
 
 	fileTaskStep, ok := step.(tasks.FileTaskStep)
 	if !ok {
-		return nil
+		return []FileTaskStep{}
 	}
 
 	obj := FileTaskStep{
@@ -1300,12 +1269,12 @@ func expandRegistryTaskEncodedTaskStep(step EncodedTaskStep) tasks.EncodedTaskSt
 
 func flattenRegistryTaskEncodedTaskStep(step tasks.TaskStepProperties, model ContainerRegistryTaskModel) []EncodedTaskStep {
 	if step == nil {
-		return nil
+		return []EncodedTaskStep{}
 	}
 
 	encodedTaskStep, ok := step.(tasks.EncodedTaskStep)
 	if !ok {
-		return nil
+		return []EncodedTaskStep{}
 	}
 
 	obj := EncodedTaskStep{
@@ -1359,7 +1328,7 @@ func expandRegistryTaskArguments(arguments map[string]string, secretArguments ma
 
 func flattenRegistryTaskArguments(arguments *[]tasks.Argument) map[string]string {
 	if arguments == nil {
-		return nil
+		return map[string]string{}
 	}
 
 	args := map[string]string{}
@@ -1411,7 +1380,7 @@ func expandRegistryTaskValues(values map[string]string, secretValues map[string]
 
 func flattenRegistryTaskValues(values *[]tasks.SetValue) map[string]string {
 	if values == nil {
-		return nil
+		return map[string]string{}
 	}
 
 	vals := map[string]string{}
@@ -1447,17 +1416,17 @@ func expandRegistryTaskPlatform(input []Platform) *tasks.PlatformProperties {
 		Os: tasks.OS(platform.OS),
 	}
 	if arch := platform.Architecture; arch != "" {
-		out.Architecture = pointer.To(tasks.Architecture(arch))
+		out.Architecture = pointer.ToEnum[tasks.Architecture](arch)
 	}
 	if variant := platform.Variant; variant != "" {
-		out.Variant = pointer.To(tasks.Variant(variant))
+		out.Variant = pointer.ToEnum[tasks.Variant](variant)
 	}
 	return out
 }
 
 func flattenRegistryTaskPlatform(platform *tasks.PlatformProperties) []Platform {
 	if platform == nil {
-		return nil
+		return []Platform{}
 	}
 
 	architecture := ""
@@ -1490,7 +1459,7 @@ func expandRegistryTaskCredentials(input []RegistryCredential) *tasks.Credential
 
 func flattenRegistryTaskCredentials(input *tasks.Credentials, model ContainerRegistryTaskModel) []RegistryCredential {
 	if input == nil {
-		return nil
+		return []RegistryCredential{}
 	}
 
 	// The customRegistryCredentials is sensitive and won't return from API, setting it from the config.
@@ -1512,12 +1481,12 @@ func expandSourceRegistryCredential(input []SourceRegistryCredential) *tasks.Sou
 		return nil
 	}
 
-	return &tasks.SourceRegistryCredentials{LoginMode: pointer.To(tasks.SourceRegistryLoginMode(input[0].LoginMode))}
+	return &tasks.SourceRegistryCredentials{LoginMode: pointer.ToEnum[tasks.SourceRegistryLoginMode](input[0].LoginMode)}
 }
 
 func flattenSourceRegistryCredential(input *tasks.SourceRegistryCredentials) []SourceRegistryCredential {
 	if input == nil || input.LoginMode == nil {
-		return nil
+		return []SourceRegistryCredential{}
 	}
 
 	return []SourceRegistryCredential{{LoginMode: string(*input.LoginMode)}}
@@ -1571,7 +1540,7 @@ func expandRegistryTaskAgentProperties(input []AgentConfig) *tasks.AgentProperti
 
 func flattenRegistryTaskAgentProperties(input *tasks.AgentProperties) []AgentConfig {
 	if input == nil {
-		return nil
+		return []AgentConfig{}
 	}
 
 	return []AgentConfig{{CPU: pointer.From(input.Cpu)}}

@@ -88,13 +88,7 @@ func resourceMonitorSmartDetectorAlertRule() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice(
-					[]string{
-						string(smartdetectoralertrules.SeveritySevZero),
-						string(smartdetectoralertrules.SeveritySevOne),
-						string(smartdetectoralertrules.SeveritySevTwo),
-						string(smartdetectoralertrules.SeveritySevThree),
-						string(smartdetectoralertrules.SeveritySevFour),
-					}, false,
+					smartdetectoralertrules.PossibleValuesForSeverity(), false,
 				),
 			},
 
@@ -115,7 +109,7 @@ func resourceMonitorSmartDetectorAlertRule() *pluginsdk.Resource {
 							Required: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: actiongroupsapis.ValidateActionGroupID,
+								ValidateFunc: validation.AsGeneratedID(actiongroupsapis.ParseActionGroupIDInsensitively),
 							},
 							Set: set.HashStringIgnoreCase,
 						},

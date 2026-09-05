@@ -65,12 +65,9 @@ func resourceFirewallNatRuleCollection() *pluginsdk.Resource {
 			},
 
 			"action": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(azurefirewalls.AzureFirewallNatRCActionTypeDnat),
-					string(azurefirewalls.AzureFirewallNatRCActionTypeSnat),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(azurefirewalls.PossibleValuesForAzureFirewallNatRCActionType(), false),
 			},
 
 			"rule": {
@@ -120,13 +117,8 @@ func resourceFirewallNatRuleCollection() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeList,
 							Required: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(azurefirewalls.AzureFirewallNetworkRuleProtocolAny),
-									string(azurefirewalls.AzureFirewallNetworkRuleProtocolICMP),
-									string(azurefirewalls.AzureFirewallNetworkRuleProtocolTCP),
-									string(azurefirewalls.AzureFirewallNetworkRuleProtocolUDP),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(azurefirewalls.PossibleValuesForAzureFirewallNetworkRuleProtocol(), false),
 							},
 						},
 					},
@@ -179,7 +171,7 @@ func resourceFirewallNatRuleCollectionCreateUpdate(d *pluginsdk.ResourceData, me
 		Name: pointer.To(name),
 		Properties: &azurefirewalls.AzureFirewallNatRuleCollectionProperties{
 			Action: &azurefirewalls.AzureFirewallNatRCAction{
-				Type: pointer.To(azurefirewalls.AzureFirewallNatRCActionType(d.Get("action").(string))),
+				Type: pointer.ToEnum[azurefirewalls.AzureFirewallNatRCActionType](d.Get("action").(string)),
 			},
 			Priority: pointer.To(int64(priority)),
 			Rules:    natRules,
@@ -328,8 +320,7 @@ func resourceFirewallNatRuleCollectionRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("priority", int(*priority))
 		}
 
-		flattenedRules := flattenFirewallNatRuleCollectionRules(props.Rules)
-		if err := d.Set("rule", flattenedRules); err != nil {
+		if err := d.Set("rule", flattenFirewallNatRuleCollectionRules(props.Rules)); err != nil {
 			return fmt.Errorf("setting `rule`: %+v", err)
 		}
 	}
@@ -426,9 +417,6 @@ func expandFirewallNatRules(input []interface{}) (*[]azurefirewalls.AzureFirewal
 			destinationPorts = append(destinationPorts, v.(string))
 		}
 
-		translatedAddress := rule["translated_address"].(string)
-		translatedPort := rule["translated_port"].(string)
-
 		ruleToAdd := azurefirewalls.AzureFirewallNatRule{
 			Name:                 pointer.To(name),
 			Description:          pointer.To(description),
@@ -436,8 +424,8 @@ func expandFirewallNatRules(input []interface{}) (*[]azurefirewalls.AzureFirewal
 			SourceIPGroups:       &sourceIpGroups,
 			DestinationAddresses: &destinationAddresses,
 			DestinationPorts:     &destinationPorts,
-			TranslatedAddress:    &translatedAddress,
-			TranslatedPort:       &translatedPort,
+			TranslatedAddress:    pointer.To(rule["translated_address"].(string)),
+			TranslatedPort:       pointer.To(rule["translated_port"].(string)),
 		}
 
 		nrProtocols := make([]azurefirewalls.AzureFirewallNetworkRuleProtocol, 0)

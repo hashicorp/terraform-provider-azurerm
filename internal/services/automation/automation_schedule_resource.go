@@ -118,16 +118,8 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(schedule.ScheduleDayMonday),
-						string(schedule.ScheduleDayTuesday),
-						string(schedule.ScheduleDayWednesday),
-						string(schedule.ScheduleDayThursday),
-						string(schedule.ScheduleDayFriday),
-						string(schedule.ScheduleDaySaturday),
-						string(schedule.ScheduleDaySunday),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(schedule.PossibleValuesForScheduleDay(), false),
 				},
 				Set:           set.HashStringIgnoreCase,
 				ConflictsWith: []string{"month_days", "monthly_occurrence"},
@@ -154,17 +146,9 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"day": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(schedule.ScheduleDayMonday),
-								string(schedule.ScheduleDayTuesday),
-								string(schedule.ScheduleDayWednesday),
-								string(schedule.ScheduleDayThursday),
-								string(schedule.ScheduleDayFriday),
-								string(schedule.ScheduleDaySaturday),
-								string(schedule.ScheduleDaySunday),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(schedule.PossibleValuesForScheduleDay(), false),
 						},
 						"occurrence": {
 							Type:     pluginsdk.TypeInt,
@@ -487,13 +471,10 @@ func expandArmAutomationScheduleAdvanced(d *pluginsdk.ResourceData, isUpdate boo
 	expandedMonthlyOccurrences := make([]schedule.AdvancedScheduleMonthlyOccurrence, len(monthlyOccurrences))
 	for i := range monthlyOccurrences {
 		m := monthlyOccurrences[i].(map[string]interface{})
-		occurrence := int64(m["occurrence"].(int))
-
-		day := schedule.ScheduleDay(m["day"].(string))
 
 		expandedMonthlyOccurrences[i] = schedule.AdvancedScheduleMonthlyOccurrence{
-			Occurrence: &occurrence,
-			Day:        &day,
+			Occurrence: pointer.To(int64(m["occurrence"].(int))),
+			Day:        pointer.ToEnum[schedule.ScheduleDay](m["day"].(string)),
 		}
 	}
 	expandedAdvancedSchedule.MonthlyOccurrences = &expandedMonthlyOccurrences

@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/capacitypools"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -26,7 +26,7 @@ import (
 )
 
 func resourceNetAppPool() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceNetAppPoolCreate,
 		Read:   resourceNetAppPoolRead,
 		Update: resourceNetAppPoolUpdate,
@@ -81,24 +81,18 @@ func resourceNetAppPool() *pluginsdk.Resource {
 			},
 
 			"qos_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(capacitypools.QosTypeAuto),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(capacitypools.QosTypeAuto),
-					string(capacitypools.QosTypeManual),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(capacitypools.QosTypeAuto),
+				ValidateFunc: validation.StringInSlice(capacitypools.PossibleValuesForQosType(), false),
 			},
 
 			"encryption_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  capacitypools.EncryptionTypeSingle,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(capacitypools.EncryptionTypeSingle),
-					string(capacitypools.EncryptionTypeDouble),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      capacitypools.EncryptionTypeSingle,
+				ValidateFunc: validation.StringInSlice(capacitypools.PossibleValuesForEncryptionType(), false),
 			},
 
 			"cool_access_enabled": {
@@ -143,8 +137,6 @@ func resourceNetAppPool() *pluginsdk.Resource {
 			},
 		),
 	}
-
-	return resource
 }
 
 func resourceNetAppPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -184,8 +176,7 @@ func resourceNetAppPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if qosType, ok := d.GetOk("qos_type"); ok {
-		qos := capacitypools.QosType(qosType.(string))
-		capacityPoolParameters.Properties.QosType = &qos
+		capacityPoolParameters.Properties.QosType = pointer.ToEnum[capacitypools.QosType](qosType.(string))
 	}
 
 	if customThroughputMibps, ok := d.GetOk("custom_throughput_mibps"); ok {

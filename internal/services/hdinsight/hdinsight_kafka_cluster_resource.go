@@ -57,7 +57,7 @@ var hdInsightKafkaClusterKafkaManagementNodeDefinition = HDInsightNodeDefinition
 }
 
 func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceHDInsightKafkaClusterCreate,
 		Read:   resourceHDInsightKafkaClusterRead,
 		Update: hdinsightClusterUpdate("Kafka", resourceHDInsightKafkaClusterRead),
@@ -190,8 +190,6 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 			"extension": SchemaHDInsightsExtension(),
 		},
 	}
-
-	return resource
 }
 
 func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -419,17 +417,13 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 				ZookeeperNodeDef:       hdInsightKafkaClusterZookeeperNodeDefinition,
 				KafkaManagementNodeDef: &hdInsightKafkaClusterKafkaManagementNodeDefinition,
 			}
-			flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, kafkaRoles)
-			if err := d.Set("roles", flattenedRoles); err != nil {
+			if err := d.Set("roles", flattenHDInsightRoles(d, props.ComputeProfile, kafkaRoles)); err != nil {
 				return fmt.Errorf("failure flattening `roles`: %+v", err)
 			}
 
-			httpEndpoint := findHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
-			d.Set("https_endpoint", httpEndpoint)
-			sshEndpoint := findHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
-			d.Set("ssh_endpoint", sshEndpoint)
-			kafkaRestProxyEndpoint := findHDInsightConnectivityEndpoint("KafkaRestProxyPublicEndpoint", props.ConnectivityEndpoints)
-			d.Set("kafka_rest_proxy_endpoint", kafkaRestProxyEndpoint)
+			d.Set("https_endpoint", findHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints))
+			d.Set("ssh_endpoint", findHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints))
+			d.Set("kafka_rest_proxy_endpoint", findHDInsightConnectivityEndpoint("KafkaRestProxyPublicEndpoint", props.ConnectivityEndpoints))
 
 			if props.EncryptionInTransitProperties != nil {
 				d.Set("encryption_in_transit_enabled", props.EncryptionInTransitProperties.IsEncryptionInTransitEnabled)
@@ -504,13 +498,11 @@ func expandKafkaRestProxyProperty(input []interface{}) *clusters.KafkaRestProper
 	}
 
 	raw := input[0].(map[string]interface{})
-	groupId := raw["security_group_id"].(string)
-	groupName := raw["security_group_name"].(string)
 
 	return &clusters.KafkaRestProperties{
 		ClientGroupInfo: &clusters.ClientGroupInfo{
-			GroupId:   &groupId,
-			GroupName: &groupName,
+			GroupId:   pointer.To(raw["security_group_id"].(string)),
+			GroupName: pointer.To(raw["security_group_name"].(string)),
 		},
 	}
 }
@@ -522,20 +514,10 @@ func flattenKafkaRestProxyProperty(input *clusters.KafkaRestProperties) []interf
 
 	groupInfo := input.ClientGroupInfo
 
-	groupId := ""
-	if groupInfo.GroupId != nil {
-		groupId = *groupInfo.GroupId
-	}
-
-	groupName := ""
-	if groupInfo.GroupName != nil {
-		groupName = *groupInfo.GroupName
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"security_group_id":   groupId,
-			"security_group_name": groupName,
+			"security_group_id":   pointer.From(groupInfo.GroupId),
+			"security_group_name": pointer.From(groupInfo.GroupName),
 		},
 	}
 }

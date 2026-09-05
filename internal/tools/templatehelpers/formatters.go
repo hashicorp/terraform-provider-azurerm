@@ -21,6 +21,7 @@ var TplFuncMap = template.FuncMap{
 	"ToLower":                        strings.ToLower,
 	"ToTitle":                        ToTitle,
 	"ToCamel":                        strcase.ToCamel,
+	"ToQuotedCommaSeparated":         ToQuotedCommaSeparated,
 	"ToSnake":                        pluginsdk.ToSnakeCase,
 	"TfName":                         TerraformResourceName,
 	"ToString":                       ToString,
@@ -60,7 +61,7 @@ func ToTitle(input string) string {
 func PrefixedDescriptionString(input string) string {
 	prefix := "a"
 	first := input[0:1]
-	vowel, _ := regexp.Match(first, []byte(`aeiouAEIOU`))
+	vowel, _ := regexp.MatchString(first, `aeiouAEIOU`)
 
 	if vowel {
 		prefix = "an"
@@ -76,7 +77,7 @@ func ToDelimTitle(input string) string {
 // PrefixedLabelString determines whether a given label should use "A" or "An" as its prefix based on its starting letter.
 func PrefixedLabelString(input string) string {
 	prefix := "A"
-	vowel, _ := regexp.Match(input[0:1], []byte(`aeiouAEIOU`))
+	vowel, _ := regexp.MatchString(input[0:1], `aeiouAEIOU`)
 
 	if vowel {
 		prefix = "An"
@@ -103,9 +104,7 @@ func NewIDResourceIdentityFormatter(idType []string, idSegments []string, prefix
 	out := make([]string, 0)
 	out = append(out, idSegments...)
 
-	output := fmt.Sprintf(f, idType[0], IdToID(idType[1]), strings.Join(out, ", "))
-
-	return output
+	return fmt.Sprintf(f, idType[0], IdToID(idType[1]), strings.Join(out, ", "))
 }
 
 func NewIDCreateFormatter(idType []string, idSegments []string, prefix string) string {
@@ -149,4 +148,13 @@ func QuoteIfNeeded(input string) string {
 	}
 
 	return input
+}
+
+func ToQuotedCommaSeparated(input []string) string {
+	quoted := make([]string, 0, len(input))
+	for _, v := range input {
+		quoted = append(quoted, fmt.Sprintf("\"%s\"", v))
+	}
+
+	return strings.Join(quoted, ",")
 }

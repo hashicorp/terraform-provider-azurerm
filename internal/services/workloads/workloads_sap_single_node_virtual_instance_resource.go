@@ -489,7 +489,7 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Create() sdk.ResourceFunc
 						},
 					},
 					Environment:                       sapvirtualinstances.SAPEnvironmentType(model.Environment),
-					ManagedResourcesNetworkAccessType: pointer.To(sapvirtualinstances.ManagedResourcesNetworkAccessType(model.ManagedResourcesNetworkAccessType)),
+					ManagedResourcesNetworkAccessType: pointer.ToEnum[sapvirtualinstances.ManagedResourcesNetworkAccessType](model.ManagedResourcesNetworkAccessType),
 					SapProduct:                        sapvirtualinstances.SAPProductType(model.SapProduct),
 				},
 				Tags: &model.Tags,
@@ -544,7 +544,7 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Update() sdk.ResourceFunc
 			}
 
 			if metadata.ResourceData.HasChange("managed_resources_network_access_type") {
-				parameters.Properties.ManagedResourcesNetworkAccessType = pointer.To(sapvirtualinstances.ManagedResourcesNetworkAccessType(model.ManagedResourcesNetworkAccessType))
+				parameters.Properties.ManagedResourcesNetworkAccessType = pointer.ToEnum[sapvirtualinstances.ManagedResourcesNetworkAccessType](model.ManagedResourcesNetworkAccessType)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -672,13 +672,11 @@ func expandSAPSingleNodeVirtualInstanceVirtualMachineConfiguration(input []Singl
 
 	virtualMachineConfiguration := input[0]
 
-	result := &sapvirtualinstances.VirtualMachineConfiguration{
+	return &sapvirtualinstances.VirtualMachineConfiguration{
 		ImageReference: pointer.From(expandSAPSingleNodeVirtualInstanceImageReference(virtualMachineConfiguration.ImageReference)),
 		OsProfile:      pointer.From(expandSAPSingleNodeVirtualInstanceOsProfile(virtualMachineConfiguration.OSProfile)),
 		VMSize:         virtualMachineConfiguration.VmSize,
 	}
-
-	return result
 }
 
 func expandSAPSingleNodeVirtualInstanceImageReference(input []SingleServerImageReference) *sapvirtualinstances.ImageReference {
@@ -688,14 +686,12 @@ func expandSAPSingleNodeVirtualInstanceImageReference(input []SingleServerImageR
 
 	imageReference := input[0]
 
-	result := &sapvirtualinstances.ImageReference{
+	return &sapvirtualinstances.ImageReference{
 		Offer:     pointer.To(imageReference.Offer),
 		Publisher: pointer.To(imageReference.Publisher),
 		Sku:       pointer.To(imageReference.Sku),
 		Version:   pointer.To(imageReference.Version),
 	}
-
-	return result
 }
 
 func expandSAPSingleNodeVirtualInstanceOsProfile(input []SingleServerOSProfile) *sapvirtualinstances.OSProfile {
@@ -705,7 +701,7 @@ func expandSAPSingleNodeVirtualInstanceOsProfile(input []SingleServerOSProfile) 
 
 	osProfile := input[0]
 
-	result := &sapvirtualinstances.OSProfile{
+	return &sapvirtualinstances.OSProfile{
 		AdminUsername: pointer.To(osProfile.AdminUsername),
 		OsConfiguration: &sapvirtualinstances.LinuxConfiguration{
 			DisablePasswordAuthentication: pointer.To(true),
@@ -715,8 +711,6 @@ func expandSAPSingleNodeVirtualInstanceOsProfile(input []SingleServerOSProfile) 
 			},
 		},
 	}
-
-	return result
 }
 
 func expandSAPSingleNodeVirtualInstanceVirtualMachineFullResourceNames(input []SingleServerVirtualMachineResourceNames) *sapvirtualinstances.SingleServerFullResourceNames {
@@ -786,13 +780,11 @@ func expandSAPSingleNodeVirtualInstanceDiskVolumeConfigurations(input []SingleSe
 	result := make(map[string]sapvirtualinstances.DiskVolumeConfiguration, 0)
 
 	for _, v := range input {
-		skuName := sapvirtualinstances.DiskSkuName(v.SkuName)
-
 		result[v.VolumeName] = sapvirtualinstances.DiskVolumeConfiguration{
 			Count:  pointer.To(v.NumberOfDisks),
 			SizeGB: pointer.To(v.SizeGb),
 			Sku: &sapvirtualinstances.DiskSku{
-				Name: &skuName,
+				Name: pointer.ToEnum[sapvirtualinstances.DiskSkuName](v.SkuName),
 			},
 		}
 	}
@@ -821,8 +813,7 @@ func expandSingleServerConfiguration(input []SingleServerConfiguration) *sapvirt
 	}
 
 	if v := singleServerConfiguration.DatabaseType; v != "" {
-		dbType := sapvirtualinstances.SAPDatabaseType(v)
-		result.DatabaseType = &dbType
+		result.DatabaseType = pointer.ToEnum[sapvirtualinstances.SAPDatabaseType](v)
 	}
 
 	return result

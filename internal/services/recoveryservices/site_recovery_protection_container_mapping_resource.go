@@ -198,16 +198,14 @@ func resourceSiteRecoveryContainerMappingUpdate(d *pluginsdk.ResourceData, meta 
 
 	if d.HasChange("automatic_update") {
 		autoUpdateEnabledValue, automationAccountArmId, authType := expandAutoUpdateSettings(d.Get("automatic_update").([]interface{}))
-		updateInput := replicationprotectioncontainermappings.A2AUpdateContainerMappingInput{
+		update.Properties.ProviderSpecificInput = replicationprotectioncontainermappings.A2AUpdateContainerMappingInput{
 			AgentAutoUpdateStatus:               &autoUpdateEnabledValue,
 			AutomationAccountArmId:              automationAccountArmId,
 			AutomationAccountAuthenticationType: authType,
 		}
-		update.Properties.ProviderSpecificInput = updateInput
 	}
 
-	err = client.UpdateThenPoll(ctx, *id, update)
-	if err != nil {
+	if err = client.UpdateThenPoll(ctx, *id, update); err != nil {
 		return fmt.Errorf("update %s: %+v", id, err)
 	}
 
@@ -263,8 +261,6 @@ func resourceSiteRecoveryServicesContainerMappingDelete(d *pluginsdk.ResourceDat
 		return err
 	}
 
-	instanceType := "A2A"
-
 	client := meta.(*clients.Client).RecoveryServices.ContainerMappingClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -272,13 +268,12 @@ func resourceSiteRecoveryServicesContainerMappingDelete(d *pluginsdk.ResourceDat
 	input := replicationprotectioncontainermappings.RemoveProtectionContainerMappingInput{
 		Properties: &replicationprotectioncontainermappings.RemoveProtectionContainerMappingInputProperties{
 			ProviderSpecificInput: &replicationprotectioncontainermappings.ReplicationProviderContainerUnmappingInput{
-				InstanceType: &instanceType,
+				InstanceType: pointer.To("A2A"),
 			},
 		},
 	}
 
-	err = client.DeleteThenPoll(ctx, *id, input)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id, input); err != nil {
 		return fmt.Errorf("deleting site recovery protection container mapping %s : %+v", id.String(), err)
 	}
 

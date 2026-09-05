@@ -47,7 +47,7 @@ func (a AlertRuleAnomalyDataSource) Arguments() map[string]*schema.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
 			ExactlyOneOf: []string{"name", "display_name"},
 		},
@@ -55,7 +55,7 @@ func (a AlertRuleAnomalyDataSource) Arguments() map[string]*schema.Schema {
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
 			ExactlyOneOf: []string{"name", "display_name"},
 		},
@@ -209,8 +209,7 @@ func (a AlertRuleAnomalyDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving anomaly rule (%s): not found", ruleName)
 			}
 
-			id := securitymlanalyticssettings.NewSecurityMLAnalyticsSettingID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, pointer.From(rule.Name))
-			metadata.SetID(id)
+			metadata.SetID(securitymlanalyticssettings.NewSecurityMLAnalyticsSettingID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, pointer.From(rule.Name)))
 
 			state := AlertRuleAnomalyDataSourceModel{
 				WorkspaceId: workspaceId.ID(),

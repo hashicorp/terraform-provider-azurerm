@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -74,16 +73,13 @@ func (s SpringCloudConfigurationServiceResource) Arguments() map[string]*schema.
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.SpringCloudServiceID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSpringCloudServiceIDInsensitively),
 		},
 
 		"generation": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(appplatform.ConfigurationServiceGenerationGenOne),
-				string(appplatform.ConfigurationServiceGenerationGenTwo),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(appplatform.PossibleValuesForConfigurationServiceGeneration(), false),
 		},
 
 		"refresh_interval_in_seconds": {
@@ -127,7 +123,7 @@ func (s SpringCloudConfigurationServiceResource) Arguments() map[string]*schema.
 					"ca_certificate_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validate.SpringCloudCertificateID,
+						ValidateFunc: validation.AsGeneratedID(appplatform.ParseCertificateIDInsensitively),
 					},
 
 					"host_key": {
@@ -232,7 +228,7 @@ func (s SpringCloudConfigurationServiceResource) Create() sdk.ResourceFunc {
 
 			configurationServiceResource := appplatform.ConfigurationServiceResource{
 				Properties: &appplatform.ConfigurationServiceProperties{
-					Generation: pointer.To(appplatform.ConfigurationServiceGeneration(model.Generation)),
+					Generation: pointer.ToEnum[appplatform.ConfigurationServiceGeneration](model.Generation),
 					Settings: &appplatform.ConfigurationServiceSettings{
 						GitProperty: &appplatform.ConfigurationServiceGitProperty{
 							Repositories: expandConfigurationServiceConfigurationServiceGitRepositoryArray(model.Repository),
@@ -279,7 +275,7 @@ func (s SpringCloudConfigurationServiceResource) Update() sdk.ResourceFunc {
 
 			properties := existing.Model.Properties
 			if metadata.ResourceData.HasChange("generation") {
-				properties.Generation = pointer.To(appplatform.ConfigurationServiceGeneration(model.Generation))
+				properties.Generation = pointer.ToEnum[appplatform.ConfigurationServiceGeneration](model.Generation)
 			}
 
 			if metadata.ResourceData.HasChange("repository") {
@@ -293,8 +289,7 @@ func (s SpringCloudConfigurationServiceResource) Update() sdk.ResourceFunc {
 			configurationServiceResource := appplatform.ConfigurationServiceResource{
 				Properties: properties,
 			}
-			err = client.ConfigurationServicesCreateOrUpdateThenPoll(ctx, id, configurationServiceResource)
-			if err != nil {
+			if err = client.ConfigurationServicesCreateOrUpdateThenPoll(ctx, id, configurationServiceResource); err != nil {
 				return fmt.Errorf("creating/updating %s: %+v", id, err)
 			}
 
@@ -360,8 +355,7 @@ func (s SpringCloudConfigurationServiceResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.ConfigurationServicesDeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.ConfigurationServicesDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
@@ -409,10 +403,7 @@ func flattenConfigurationServiceConfigurationServiceGitRepositoryArray(input *[]
 	}
 
 	for _, item := range *input {
-		var strictHostKeyChecking bool
-		if item.StrictHostKeyChecking != nil {
-			strictHostKeyChecking = *item.StrictHostKeyChecking
-		}
+		strictHostKeyChecking := pointer.From(item.StrictHostKeyChecking)
 
 		var hostKey string
 		var hostKeyAlgorithm string

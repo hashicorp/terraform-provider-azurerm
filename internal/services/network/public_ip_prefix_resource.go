@@ -92,14 +92,11 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 			},
 
 			"ip_version": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(publicipprefixes.IPVersionIPvFour),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(publicipprefixes.IPVersionIPvFour),
-					string(publicipprefixes.IPVersionIPvSix),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(publicipprefixes.IPVersionIPvFour),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(publicipprefixes.PossibleValuesForIPVersion(), false),
 			},
 
 			"zones": commonschema.ZonesMultipleOptionalForceNew(),
@@ -148,12 +145,12 @@ func resourcePublicIpPrefixCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	publicIpPrefix := publicipprefixes.PublicIPPrefix{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Sku: &publicipprefixes.PublicIPPrefixSku{
-			Name: pointer.To(publicipprefixes.PublicIPPrefixSkuName(d.Get("sku").(string))),
-			Tier: pointer.To(publicipprefixes.PublicIPPrefixSkuTier(d.Get("sku_tier").(string))),
+			Name: pointer.ToEnum[publicipprefixes.PublicIPPrefixSkuName](d.Get("sku").(string)),
+			Tier: pointer.ToEnum[publicipprefixes.PublicIPPrefixSkuTier](d.Get("sku_tier").(string)),
 		},
 		Properties: &publicipprefixes.PublicIPPrefixPropertiesFormat{
 			PrefixLength:           pointer.To(int64(d.Get("prefix_length").(int))),
-			PublicIPAddressVersion: pointer.To(publicipprefixes.IPVersion(d.Get("ip_version").(string))),
+			PublicIPAddressVersion: pointer.ToEnum[publicipprefixes.IPVersion](d.Get("ip_version").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}

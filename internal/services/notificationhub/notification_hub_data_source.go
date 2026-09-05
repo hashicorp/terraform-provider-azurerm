@@ -119,14 +119,12 @@ func dataSourceNotificationHubRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	if credentialsModel := credentials.Model; credentialsModel != nil {
 		if props := credentialsModel.Properties; props != nil {
-			apns := flattenNotificationHubsDataSourceAPNSCredentials(props.ApnsCredential)
-			if setErr := d.Set("apns_credential", apns); setErr != nil {
-				return fmt.Errorf("setting `apns_credential`: %+v", err)
+			if setErr := d.Set("apns_credential", flattenNotificationHubsDataSourceAPNSCredentials(props.ApnsCredential)); setErr != nil {
+				return fmt.Errorf("setting `apns_credential`: %+v", setErr)
 			}
 
-			gcm := flattenNotificationHubsDataSourceGCMCredentials(props.GcmCredential)
-			if setErr := d.Set("gcm_credential", gcm); setErr != nil {
-				return fmt.Errorf("setting `gcm_credential`: %+v", err)
+			if setErr := d.Set("gcm_credential", flattenNotificationHubsDataSourceGCMCredentials(props.GcmCredential)); setErr != nil {
+				return fmt.Errorf("setting `gcm_credential`: %+v", setErr)
 			}
 		}
 	}
@@ -155,8 +153,7 @@ func flattenNotificationHubsDataSourceAPNSCredentials(input *hubs.ApnsCredential
 		"https://api.push.apple.com:443/3/device":             "Production",
 		"https://api.development.push.apple.com:443/3/device": "Sandbox",
 	}
-	applicationMode := applicationEndpoints[input.Properties.Endpoint]
-	output["application_mode"] = applicationMode
+	output["application_mode"] = applicationEndpoints[input.Properties.Endpoint]
 
 	if keyId := input.Properties.KeyId; keyId != nil {
 		output["key_id"] = *keyId

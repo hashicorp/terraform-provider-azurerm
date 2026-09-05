@@ -8,16 +8,15 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
@@ -38,7 +37,9 @@ func resourceSpringCloudBuildPackBinding() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SpringCloudBuildPackBindingID(id)
+			// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+			_, err := appplatform_rm.ParseBuildPackBindingIDInsensitively(id)
 			return err
 		}),
 
@@ -58,7 +59,7 @@ func resourceSpringCloudBuildPackBinding() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SpringCloudBuildServiceBuilderID,
+				ValidateFunc: validation.AsGeneratedID(appplatform_rm.ParseBuilderIDInsensitively),
 			},
 
 			"binding_type": {
@@ -110,21 +111,23 @@ func resourceSpringCloudBuildPackBindingCreateUpdate(d *pluginsdk.ResourceData, 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	builderId, err := parse.SpringCloudBuildServiceBuilderID(d.Get("spring_cloud_builder_id").(string))
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	builderId, err := appplatform_rm.ParseBuilderIDInsensitively(d.Get("spring_cloud_builder_id").(string))
 	if err != nil {
 		return err
 	}
-	id := parse.NewSpringCloudBuildPackBindingID(subscriptionId, builderId.ResourceGroup, builderId.SpringName, builderId.BuildServiceName, builderId.BuilderName, d.Get("name").(string))
+	id := appplatform_rm.NewBuildPackBindingID(subscriptionId, builderId.ResourceGroupName, builderId.SpringName, builderId.BuildServiceName, builderId.BuilderName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.BuildServiceName, id.BuilderName, id.BuildPackBindingName)
+			existing, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.BuildServiceName, id.BuilderName, id.BuildPackBindingName)
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)
 				}
 			}
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return tf.ImportAsExistsError("azurerm_spring_cloud_build_pack_binding", id.ID())
 			}
 		}
@@ -136,7 +139,7 @@ func resourceSpringCloudBuildPackBindingCreateUpdate(d *pluginsdk.ResourceData, 
 			LaunchProperties: expandBuildPackBindingBuildPackBindingLaunchProperties(d.Get("launch").([]interface{})),
 		},
 	}
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.BuildServiceName, id.BuilderName, id.BuildPackBindingName, buildpackBinding)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.SpringName, id.BuildServiceName, id.BuilderName, id.BuildPackBindingName, buildpackBinding)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -155,14 +158,16 @@ func resourceSpringCloudBuildPackBindingRead(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudBuildPackBindingID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseBuildPackBindingIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.BuildServiceName, id.BuilderName, id.BuildPackBindingName)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.BuildServiceName, id.BuilderName, id.BuildPackBindingName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] appplatform %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -170,7 +175,7 @@ func resourceSpringCloudBuildPackBindingRead(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	d.Set("name", id.BuildPackBindingName)
-	d.Set("spring_cloud_builder_id", parse.NewSpringCloudBuildServiceBuilderID(id.SubscriptionId, id.ResourceGroup, id.SpringName, id.BuildServiceName, id.BuilderName).ID())
+	d.Set("spring_cloud_builder_id", appplatform_rm.NewBuilderID(id.SubscriptionId, id.ResourceGroupName, id.SpringName, id.BuildServiceName, id.BuilderName).ID())
 	if props := resp.Properties; props != nil {
 		d.Set("binding_type", props.BindingType)
 		if err := d.Set("launch", flattenBuildPackBindingBuildPackBindingLaunchProperties(props.LaunchProperties, d.Get("launch").([]interface{}))); err != nil {
@@ -185,12 +190,14 @@ func resourceSpringCloudBuildPackBindingDelete(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudBuildPackBindingID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseBuildPackBindingIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.BuildServiceName, id.BuilderName, id.BuildPackBindingName)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.SpringName, id.BuildServiceName, id.BuilderName, id.BuildPackBindingName)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}

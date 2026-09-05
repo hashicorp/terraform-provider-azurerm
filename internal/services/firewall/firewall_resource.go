@@ -68,24 +68,17 @@ func resourceFirewall() *pluginsdk.Resource {
 
 			// lintignore:S013
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(azurefirewalls.AzureFirewallSkuNameAZFWHub),
-					string(azurefirewalls.AzureFirewallSkuNameAZFWVNet),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(azurefirewalls.PossibleValuesForAzureFirewallSkuName(), false),
 			},
 
 			// lintignore:S013
 			"sku_tier": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(azurefirewalls.AzureFirewallSkuTierPremium),
-					string(azurefirewalls.AzureFirewallSkuTierStandard),
-					string(azurefirewalls.AzureFirewallSkuTierBasic),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(azurefirewalls.PossibleValuesForAzureFirewallSkuTier(), false),
 			},
 
 			"firewall_policy_id": {
@@ -155,14 +148,10 @@ func resourceFirewall() *pluginsdk.Resource {
 			},
 
 			"threat_intel_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(azurefirewalls.AzureFirewallThreatIntelModeOff),
-					string(azurefirewalls.AzureFirewallThreatIntelModeAlert),
-					string(azurefirewalls.AzureFirewallThreatIntelModeDeny),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
+				ValidateFunc: validation.StringInSlice(azurefirewalls.PossibleValuesForAzureFirewallThreatIntelMode(), false),
 			},
 
 			"dns_servers": {
@@ -178,7 +167,7 @@ func resourceFirewall() *pluginsdk.Resource {
 			"dns_proxy_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"private_ip_ranges": {
@@ -270,7 +259,7 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		Location: &location,
 		Properties: &azurefirewalls.AzureFirewallPropertiesFormat{
 			IPConfigurations:     ipConfigs,
-			ThreatIntelMode:      pointer.To(azurefirewalls.AzureFirewallThreatIntelMode(d.Get("threat_intel_mode").(string))),
+			ThreatIntelMode:      pointer.ToEnum[azurefirewalls.AzureFirewallThreatIntelMode](d.Get("threat_intel_mode").(string)),
 			AdditionalProperties: pointer.To(make(map[string]string)),
 		},
 		Tags: tags.Expand(t),
@@ -309,7 +298,7 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if threatIntelMode := d.Get("threat_intel_mode").(string); threatIntelMode != "" {
-		parameters.Properties.ThreatIntelMode = pointer.To(azurefirewalls.AzureFirewallThreatIntelMode(threatIntelMode))
+		parameters.Properties.ThreatIntelMode = pointer.ToEnum[azurefirewalls.AzureFirewallThreatIntelMode](threatIntelMode)
 	}
 
 	if policyId := d.Get("firewall_policy_id").(string); policyId != "" {
@@ -326,14 +315,14 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		if parameters.Properties.Sku == nil {
 			parameters.Properties.Sku = &azurefirewalls.AzureFirewallSku{}
 		}
-		parameters.Properties.Sku.Name = pointer.To(azurefirewalls.AzureFirewallSkuName(skuName))
+		parameters.Properties.Sku.Name = pointer.ToEnum[azurefirewalls.AzureFirewallSkuName](skuName)
 	}
 
 	if skuTier := d.Get("sku_tier").(string); skuTier != "" {
 		if parameters.Properties.Sku == nil {
 			parameters.Properties.Sku = &azurefirewalls.AzureFirewallSku{}
 		}
-		parameters.Properties.Sku.Tier = pointer.To(azurefirewalls.AzureFirewallSkuTier(skuTier))
+		parameters.Properties.Sku.Tier = pointer.ToEnum[azurefirewalls.AzureFirewallSkuTier](skuTier)
 	}
 
 	if dnsServerSetting := expandFirewallAdditionalProperty(d); dnsServerSetting != nil {
@@ -693,7 +682,7 @@ func expandFirewallAdditionalProperty(d *pluginsdk.ResourceData) map[string]stri
 
 func flattenFirewallAdditionalProperty(input *map[string]string) (enabled interface{}, servers []interface{}) {
 	if input == nil || len(*input) == 0 {
-		return nil, nil
+		return nil, []interface{}{}
 	}
 
 	if enabledPtr, ok := (*input)["Network.DNS.EnableProxy"]; ok {
@@ -725,8 +714,8 @@ func expandFirewallPrivateIpRange(input []interface{}) map[string]string {
 }
 
 func flattenFirewallPrivateIpRange(input *map[string]string) []interface{} {
-	if input == nil && len(*input) == 0 {
-		return nil
+	if input == nil || len(*input) == 0 {
+		return []interface{}{}
 	}
 
 	attrs := *input
@@ -788,12 +777,7 @@ func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, inp
 
 func flattenFirewallVirtualHubSetting(props *azurefirewalls.AzureFirewallPropertiesFormat) []interface{} {
 	if props.VirtualHub == nil {
-		return nil
-	}
-
-	var vhubId string
-	if props.VirtualHub.Id != nil {
-		vhubId = *props.VirtualHub.Id
+		return []interface{}{}
 	}
 
 	var (
@@ -821,7 +805,7 @@ func flattenFirewallVirtualHubSetting(props *azurefirewalls.AzureFirewallPropert
 
 	return []interface{}{
 		map[string]interface{}{
-			"virtual_hub_id":      vhubId,
+			"virtual_hub_id":      pointer.From(props.VirtualHub.Id),
 			"public_ip_count":     publicIpCount,
 			"public_ip_addresses": publicIps,
 			"private_ip_address":  privateIp,

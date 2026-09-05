@@ -138,7 +138,7 @@ func resourceKustoIotHubDataConnection() *pluginsdk.Resource {
 			"retrieval_start_date": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 		},
@@ -270,8 +270,7 @@ func resourceKustoIotHubDataConnectionUpdate(d *pluginsdk.ResourceData, meta int
 		Properties: props,
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, *id, dataConnection)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, dataConnection); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -288,8 +287,7 @@ func resourceKustoIotHubDataConnectionDelete(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
@@ -312,13 +310,11 @@ func expandKustoIotHubDataConnectionProperties(d *pluginsdk.ResourceData) *datac
 	}
 
 	if df, ok := d.GetOk("data_format"); ok {
-		dataFormat := dataconnections.IotHubDataFormat(df.(string))
-		iotHubDataConnectionProperties.DataFormat = &dataFormat
+		iotHubDataConnectionProperties.DataFormat = pointer.ToEnum[dataconnections.IotHubDataFormat](df.(string))
 	}
 
 	if databaseRouting, ok := d.GetOk("database_routing_type"); ok {
-		dbRoutingType := dataconnections.DatabaseRouting(databaseRouting.(string))
-		iotHubDataConnectionProperties.DatabaseRouting = &dbRoutingType
+		iotHubDataConnectionProperties.DatabaseRouting = pointer.ToEnum[dataconnections.DatabaseRouting](databaseRouting.(string))
 	}
 
 	if eventSystemProperties, ok := d.GetOk("event_system_properties"); ok {

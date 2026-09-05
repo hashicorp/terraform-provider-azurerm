@@ -6,6 +6,7 @@ package eventhub
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -24,7 +25,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/networkrulesets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
@@ -42,7 +42,7 @@ var (
 )
 
 func resourceEventHubNamespace() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceEventHubNamespaceCreate,
 		Read:   resourceEventHubNamespaceRead,
 		Update: resourceEventHubNamespaceUpdate,
@@ -73,13 +73,9 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(namespaces.SkuNameBasic),
-					string(namespaces.SkuNameStandard),
-					string(namespaces.SkuNamePremium),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForSkuName(), false),
 			},
 
 			"capacity": {
@@ -113,17 +109,14 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				Type:       pluginsdk.TypeList,
 				Optional:   true,
 				MaxItems:   1,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"default_action": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(networkrulesets.DefaultActionAllow),
-								string(networkrulesets.DefaultActionDeny),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(networkrulesets.PossibleValuesForDefaultAction(), false),
 						},
 
 						"public_network_access_enabled": {
@@ -175,12 +168,10 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 									},
 
 									"action": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										Default:  string(networkrulesets.NetworkRuleIPActionAllow),
-										ValidateFunc: validation.StringInSlice([]string{
-											string(networkrulesets.NetworkRuleIPActionAllow),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Default:      string(networkrulesets.NetworkRuleIPActionAllow),
+										ValidateFunc: validation.StringInSlice(networkrulesets.PossibleValuesForNetworkRuleIPAction(), false),
 									},
 								},
 							},
@@ -263,20 +254,6 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 			pluginsdk.CustomizeDiffShim(eventhubTLSVersionDiff),
 		),
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(namespaces.TlsVersionOnePointTwo),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(namespaces.TlsVersionOnePointZero),
-				string(namespaces.TlsVersionOnePointOne),
-				string(namespaces.TlsVersionOnePointTwo),
-			}, false),
-		}
-	}
-	return resource
 }
 
 func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -326,8 +303,7 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 		Sku: &namespaces.Sku{
 			Name: namespaces.SkuName(sku),
 			Tier: func() *namespaces.SkuTier {
-				v := namespaces.SkuTier(sku)
-				return &v
+				return pointer.ToEnum[namespaces.SkuTier](sku)
 			}(),
 			Capacity: pointer.To(int64(capacity)),
 		},
@@ -345,8 +321,7 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if tlsValue := d.Get("minimum_tls_version").(string); tlsValue != "" {
-		minimumTls := namespaces.TlsVersion(tlsValue)
-		parameters.Properties.MinimumTlsVersion = &minimumTls
+		parameters.Properties.MinimumTlsVersion = pointer.ToEnum[namespaces.TlsVersion](tlsValue)
 	}
 
 	if v, ok := d.GetOk("maximum_throughput_units"); ok {
@@ -366,8 +341,12 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("network_rulesets cannot be used when the SKU is basic")
 		}
 
+		ruleSetProperties, err := expandEventHubNamespaceNetworkRuleset(ruleSets.([]interface{}))
+		if err != nil {
+			return err
+		}
 		rulesets := networkrulesets.NetworkRuleSet{
-			Properties: expandEventHubNamespaceNetworkRuleset(ruleSets.([]interface{})),
+			Properties: ruleSetProperties,
 		}
 
 		if !strings.EqualFold(string(*rulesets.Properties.PublicNetworkAccess), string(*parameters.Properties.PublicNetworkAccess)) {
@@ -418,8 +397,7 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Sku: &namespaces.Sku{
 			Name: namespaces.SkuName(sku),
 			Tier: func() *namespaces.SkuTier {
-				v := namespaces.SkuTier(sku)
-				return &v
+				return pointer.ToEnum[namespaces.SkuTier](sku)
 			}(),
 			Capacity: pointer.To(int64(capacity)),
 		},
@@ -437,8 +415,7 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if tlsValue := d.Get("minimum_tls_version").(string); tlsValue != "" {
-		minimumTls := namespaces.TlsVersion(tlsValue)
-		parameters.Properties.MinimumTlsVersion = &minimumTls
+		parameters.Properties.MinimumTlsVersion = pointer.ToEnum[namespaces.TlsVersion](tlsValue)
 	}
 
 	if d.HasChange("maximum_throughput_units") {
@@ -478,8 +455,12 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		ruleSets := d.Get("network_rulesets")
+		ruleSetProperties, err := expandEventHubNamespaceNetworkRuleset(ruleSets.([]interface{}))
+		if err != nil {
+			return err
+		}
 		rulesets := networkrulesets.NetworkRuleSet{
-			Properties: expandEventHubNamespaceNetworkRuleset(ruleSets.([]interface{})),
+			Properties: ruleSetProperties,
 		}
 
 		if !strings.EqualFold(string(*rulesets.Properties.PublicNetworkAccess), string(*parameters.Properties.PublicNetworkAccess)) {
@@ -542,11 +523,7 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
 			d.Set("dedicated_cluster_id", props.ClusterArmId)
 
-			localAuthDisabled := false
-			if props.DisableLocalAuth != nil {
-				localAuthDisabled = *props.DisableLocalAuth
-			}
-			d.Set("local_authentication_enabled", !localAuthDisabled)
+			d.Set("local_authentication_enabled", !pointer.From(props.DisableLocalAuth))
 
 			publicNetworkAccess := true
 			if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == namespaces.PublicNetworkAccessDisabled {
@@ -613,9 +590,9 @@ func resourceEventHubNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets.NetworkRuleSetProperties {
+func expandEventHubNamespaceNetworkRuleset(input []interface{}) (*networkrulesets.NetworkRuleSetProperties, error) {
 	if len(input) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	block := input[0].(map[string]interface{})
@@ -625,11 +602,9 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets
 		publicNetworkAccess = networkrulesets.PublicNetworkAccessFlagDisabled
 	}
 
+	defaultAction := networkrulesets.DefaultAction(block["default_action"].(string))
 	ruleset := networkrulesets.NetworkRuleSetProperties{
-		DefaultAction: func() *networkrulesets.DefaultAction {
-			v := networkrulesets.DefaultAction(block["default_action"].(string))
-			return &v
-		}(),
+		DefaultAction:       &defaultAction,
 		PublicNetworkAccess: &publicNetworkAccess,
 	}
 
@@ -663,8 +638,7 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets
 				rules = append(rules, networkrulesets.NWRuleSetIPRules{
 					IPMask: pointer.To(rblock["ip_mask"].(string)),
 					Action: func() *networkrulesets.NetworkRuleIPAction {
-						v := networkrulesets.NetworkRuleIPAction(rblock["action"].(string))
-						return &v
+						return pointer.ToEnum[networkrulesets.NetworkRuleIPAction](rblock["action"].(string))
 					}(),
 				})
 			}
@@ -673,12 +647,18 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *networkrulesets
 		}
 	}
 
-	return &ruleset
+	// the API silently keeps the effective `default_action` as `Allow` if `Deny` is sent with no `ip_rule` or
+	// `virtual_network_rule` defined, and returns no error - producing permanent plan drift on the next read
+	if defaultAction == networkrulesets.DefaultActionDeny && ruleset.VirtualNetworkRules == nil && ruleset.IPRules == nil {
+		return nil, errors.New("the `default_action` of `network_rulesets` can only be set to `Deny` when at least one `ip_rule` or `virtual_network_rule` block is specified")
+	}
+
+	return &ruleset, nil
 }
 
 func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGetNetworkRuleSetOperationResponse) ([]interface{}, error) {
 	if ruleset.Model == nil || ruleset.Model.Properties == nil {
-		return nil, nil
+		return []interface{}{}, nil
 	}
 
 	vnetBlocks := make([]interface{}, 0)

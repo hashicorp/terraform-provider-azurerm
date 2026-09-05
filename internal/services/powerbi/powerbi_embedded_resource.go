@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/powerbi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -25,7 +24,7 @@ import (
 )
 
 func resourcePowerBIEmbedded() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourcePowerBIEmbeddedCreate,
 		Read:   resourcePowerBIEmbeddedRead,
 		Update: resourcePowerBIEmbeddedUpdate,
@@ -80,25 +79,16 @@ func resourcePowerBIEmbedded() *pluginsdk.Resource {
 			},
 
 			"mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(capacities.ModeGenTwo),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(capacities.ModeGenOne),
-					string(capacities.ModeGenTwo),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(capacities.ModeGenTwo),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(capacities.PossibleValuesForMode(), false),
 			},
 
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["mode"].Default = string(capacities.ModeGenOne)
-	}
-
-	return resource
 }
 
 func resourcePowerBIEmbeddedCreate(d *pluginsdk.ResourceData, meta interface{}) error {

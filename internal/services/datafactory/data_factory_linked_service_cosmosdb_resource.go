@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -15,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
@@ -139,12 +140,12 @@ func resourceDataFactoryLinkedServiceCosmosDbCreateUpdate(d *pluginsdk.ResourceD
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("checking for presence of existing Data Factory CosmosDb %s: %+v", id, err)
 				}
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return tf.ImportAsExistsError("azurerm_data_factory_linked_service_cosmosdb", id.ID())
 			}
 		}
@@ -159,20 +160,18 @@ func resourceDataFactoryLinkedServiceCosmosDbCreateUpdate(d *pluginsdk.ResourceD
 	isAccountDetailUsed := endpoint != "" && accountKey != "" && databaseName != ""
 
 	if isAccountDetailUsed {
-		accountKeySecureString := datafactory.SecureString{
+		cosmosdbProperties.AccountEndpoint = endpoint
+		cosmosdbProperties.AccountKey = datafactory.SecureString{
 			Value: &accountKey,
 			Type:  datafactory.TypeSecureString,
 		}
-		cosmosdbProperties.AccountEndpoint = endpoint
-		cosmosdbProperties.AccountKey = accountKeySecureString
 		cosmosdbProperties.Database = databaseName
 	} else {
 		connectionString := d.Get("connection_string").(string)
-		connectionStringSecureString := datafactory.SecureString{
+		cosmosdbProperties.ConnectionString = datafactory.SecureString{
 			Value: &connectionString,
 			Type:  datafactory.TypeSecureString,
 		}
-		cosmosdbProperties.ConnectionString = connectionStringSecureString
 		cosmosdbProperties.Database = databaseName
 	}
 
@@ -197,8 +196,7 @@ func resourceDataFactoryLinkedServiceCosmosDbCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		cosmosdbLinkedService.Annotations = &annotations
+		cosmosdbLinkedService.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -228,7 +226,7 @@ func resourceDataFactoryLinkedServiceCosmosDbRead(d *pluginsdk.ResourceData, met
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -247,13 +245,11 @@ func resourceDataFactoryLinkedServiceCosmosDbRead(d *pluginsdk.ResourceData, met
 	d.Set("additional_properties", cosmosdb.AdditionalProperties)
 	d.Set("description", cosmosdb.Description)
 
-	annotations := flattenDataFactoryAnnotations(cosmosdb.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(cosmosdb.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenLinkedServiceParameters(cosmosdb.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(cosmosdb.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
@@ -268,8 +264,7 @@ func resourceDataFactoryLinkedServiceCosmosDbRead(d *pluginsdk.ResourceData, met
 		d.Set("account_endpoint", accountEndpoint)
 	}
 
-	databaseName := cosmosdb.Database
-	d.Set("database", databaseName)
+	d.Set("database", cosmosdb.Database)
 
 	return nil
 }
@@ -284,9 +279,9 @@ func resourceDataFactoryLinkedServiceCosmosDbDelete(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(response) {
+		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting Data Factory CosmosDb %s: %+v", *id, err)
 		}
 	}

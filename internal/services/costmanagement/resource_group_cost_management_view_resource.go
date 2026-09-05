@@ -10,11 +10,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/views"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/validate"
-	resourceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -50,7 +50,7 @@ func (r ResourceGroupCostManagementViewResource) Arguments() map[string]*plugins
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: resourceValidate.ResourceGroupID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseResourceGroupIDInsensitively),
 		},
 	}
 	return r.base.arguments(schema)
@@ -107,7 +107,7 @@ func (r ResourceGroupCostManagementViewResource) Create() sdk.ResourceFunc {
 				Properties: &views.ViewProperties{
 					Accumulated: pointer.To(accumulated),
 					DisplayName: pointer.To(config.DisplayName),
-					Chart:       pointer.To(views.ChartType(config.ChartType)),
+					Chart:       pointer.ToEnum[views.ChartType](config.ChartType),
 					Query: &views.ReportConfigDefinition{
 						DataSet:   expandDatasetFromModel(config.Dataset),
 						Timeframe: views.ReportTimeframeType(config.Timeframe),
@@ -219,7 +219,7 @@ func (r ResourceGroupCostManagementViewResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("chart_type") {
-				model.Properties.Chart = pointer.To(views.ChartType(config.ChartType))
+				model.Properties.Chart = pointer.ToEnum[views.ChartType](config.ChartType)
 			}
 
 			if metadata.ResourceData.HasChange("dataset") {

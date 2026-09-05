@@ -19,8 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
-	sqlValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -195,35 +193,35 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Arguments() map[st
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: sqlValidate.SqlVirtualMachineID,
+						ValidateFunc: validation.AsGeneratedID(sqlvirtualmachines.ParseSqlVirtualMachineIDInsensitively),
 					},
 
 					"role": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.StringInSlice([]string{string(availabilitygrouplisteners.RolePrimary), string(availabilitygrouplisteners.RoleSecondary)}, false),
+						ValidateFunc: validation.StringInSlice(availabilitygrouplisteners.PossibleValuesForRole(), false),
 					},
 
 					"commit": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.StringInSlice([]string{string(availabilitygrouplisteners.CommitSynchronousCommit), string(availabilitygrouplisteners.CommitAsynchronousCommit)}, false),
+						ValidateFunc: validation.StringInSlice(availabilitygrouplisteners.PossibleValuesForCommit(), false),
 					},
 
 					"failover_mode": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.StringInSlice([]string{string(availabilitygrouplisteners.FailoverManual), string(availabilitygrouplisteners.FailoverAutomatic)}, false),
+						ValidateFunc: validation.StringInSlice(availabilitygrouplisteners.PossibleValuesForFailover(), false),
 					},
 
 					"readable_secondary": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.StringInSlice([]string{string(availabilitygrouplisteners.ReadableSecondaryNo), string(availabilitygrouplisteners.ReadableSecondaryReadOnly), string(availabilitygrouplisteners.ReadableSecondaryAll)}, false),
+						ValidateFunc: validation.StringInSlice(availabilitygrouplisteners.PossibleValuesForReadableSecondary(), false),
 					},
 				},
 			},
@@ -402,7 +400,7 @@ func expandMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfiguration
 
 		var parsedIds []interface{}
 		for _, sqlVmId := range lb.SqlVirtualMachineIds {
-			parsedId, err := parse.SqlVirtualMachineID(sqlVmId)
+			parsedId, err := sqlvirtualmachines.ParseSqlVirtualMachineID(sqlVmId)
 			if err != nil {
 				return nil, err
 			}
@@ -534,10 +532,10 @@ func expandMsSqlVirtualMachineAvailabilityGroupListenerReplicas(replicas []Repli
 
 	for _, rep := range replicas {
 		replica := availabilitygrouplisteners.AgReplica{
-			Role:              pointer.To(availabilitygrouplisteners.Role(rep.Role)),
-			Commit:            pointer.To(availabilitygrouplisteners.Commit(rep.Commit)),
-			Failover:          pointer.To(availabilitygrouplisteners.Failover(rep.FailoverMode)),
-			ReadableSecondary: pointer.To(availabilitygrouplisteners.ReadableSecondary(rep.ReadableSecondary)),
+			Role:              pointer.ToEnum[availabilitygrouplisteners.Role](rep.Role),
+			Commit:            pointer.ToEnum[availabilitygrouplisteners.Commit](rep.Commit),
+			Failover:          pointer.ToEnum[availabilitygrouplisteners.Failover](rep.FailoverMode),
+			ReadableSecondary: pointer.ToEnum[availabilitygrouplisteners.ReadableSecondary](rep.ReadableSecondary),
 		}
 
 		sqlVirtualMachineId := rep.SqlVirtualMachineId

@@ -27,6 +27,7 @@ output "storage_account_tier" {
 ## Arguments Reference
 
 * `name` - Specifies the name of the Storage Account
+
 * `resource_group_name` - Specifies the name of the resource group the Storage Account is located in.
 
 ## Attributes Reference
@@ -62,6 +63,8 @@ output "storage_account_tier" {
 * `tags` - A mapping of tags to assigned to the resource.
 
 * `primary_location` - The primary location of the Storage Account.
+
+* `public_network_access` - The public network access setting of the Storage Account.
 
 * `secondary_location` - The secondary location of the Storage Account.
 

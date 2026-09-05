@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/custompollers"
@@ -92,7 +91,7 @@ type ModuleModel struct {
 const defaultDatabaseName = "default"
 
 func (r ManagedRedisResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -264,12 +263,6 @@ func (r ManagedRedisResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.FivePointOh() {
-		args["customer_managed_key"].Elem.(*pluginsdk.Resource).Schema["key_vault_key_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
-	}
-
-	return args
 }
 
 func (r ManagedRedisResource) Attributes() map[string]*pluginsdk.Schema {
@@ -343,8 +336,7 @@ func (r ManagedRedisResource) Create() sdk.ResourceFunc {
 			if len(model.DefaultDatabase) == 1 {
 				dbModel := model.DefaultDatabase[0]
 
-				err := createDb(ctx, dbClient, dbId, dbModel)
-				if err != nil {
+				if err := createDb(ctx, dbClient, dbId, dbModel); err != nil {
 					return fmt.Errorf("creating %s: %+v", dbId, err)
 				}
 			}
@@ -749,9 +741,9 @@ func createDb(ctx context.Context, dbClient *databases.DatabasesClient, dbId dat
 	dbParams := databases.Database{
 		Properties: &databases.DatabaseCreateProperties{
 			AccessKeysAuthentication: expandAccessKeysAuth(dbModel.AccessKeysAuthenticationEnabled),
-			ClientProtocol:           pointer.To(databases.Protocol(dbModel.ClientProtocol)),
-			ClusteringPolicy:         pointer.To(databases.ClusteringPolicy(dbModel.ClusteringPolicy)),
-			EvictionPolicy:           pointer.To(databases.EvictionPolicy(dbModel.EvictionPolicy)),
+			ClientProtocol:           pointer.ToEnum[databases.Protocol](dbModel.ClientProtocol),
+			ClusteringPolicy:         pointer.ToEnum[databases.ClusteringPolicy](dbModel.ClusteringPolicy),
+			EvictionPolicy:           pointer.ToEnum[databases.EvictionPolicy](dbModel.EvictionPolicy),
 			GeoReplication:           expandGeoReplication(dbModel.GeoReplicationGroupName, dbId.ID()),
 			Modules:                  expandModules(dbModel.Module),
 			Persistence:              expandPersistence(dbModel.PersistenceAppendOnlyFileBackupFrequency, dbModel.PersistenceRedisDatabaseBackupFrequency),

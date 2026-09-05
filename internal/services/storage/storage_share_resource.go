@@ -40,10 +40,11 @@ func resourceStorageShare() *pluginsdk.Resource {
 			return err
 		}),
 
-		SchemaVersion: 2,
+		SchemaVersion: 3,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.ShareV0ToV1{},
 			1: migration.ShareV1ToV2{},
+			2: migration.StorageShareV2ToV3{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -131,7 +132,7 @@ func resourceStorageShare() *pluginsdk.Resource {
 
 			"access_tier": {
 				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Optional: true,
 				ValidateFunc: validation.StringInSlice(
 					[]string{
@@ -177,7 +178,7 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	payload := fileshares.FileShare{
 		Properties: &fileshares.FileShareProperties{
-			EnabledProtocols:  pointer.To(fileshares.EnabledProtocols(d.Get("enabled_protocol").(string))),
+			EnabledProtocols:  pointer.ToEnum[fileshares.EnabledProtocols](d.Get("enabled_protocol").(string)),
 			Metadata:          pointer.To(ExpandMetaData(d.Get("metadata").(map[string]interface{}))),
 			ShareQuota:        pointer.To(int64(d.Get("quota").(int))),
 			SignedIdentifiers: expandStorageShareACLs(d.Get("acl").(*pluginsdk.Set).List()),
@@ -185,7 +186,7 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if sharedAccessTier, ok := d.GetOk("access_tier"); ok && sharedAccessTier.(string) != "" {
-		payload.Properties.AccessTier = pointer.To(fileshares.ShareAccessTier(sharedAccessTier.(string)))
+		payload.Properties.AccessTier = pointer.ToEnum[fileshares.ShareAccessTier](sharedAccessTier.(string))
 	}
 
 	pollerType := custompollers.NewStorageShareCreatePoller(sharesClient, id, payload)
@@ -294,7 +295,7 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if d.HasChange("access_tier") {
 		tier := shares.AccessTier(d.Get("access_tier").(string))
-		update.Properties.AccessTier = pointer.To(fileshares.ShareAccessTier(tier))
+		update.Properties.AccessTier = pointer.ToEnum[fileshares.ShareAccessTier](string(tier))
 	}
 
 	if _, err = sharesClient.Update(ctx, *id, update); err != nil {

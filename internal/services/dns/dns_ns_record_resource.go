@@ -157,8 +157,7 @@ func resourceDnsNsRecordUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if d.HasChange("records") {
 		recordsRaw := d.Get("records").([]interface{})
-		records := expandAzureRmDnsNsRecords(recordsRaw)
-		existing.Model.Properties.NSRecords = records
+		existing.Model.Properties.NSRecords = expandAzureRmDnsNsRecords(recordsRaw)
 	}
 
 	if d.HasChange("tags") {
@@ -255,10 +254,8 @@ func flattenAzureRmDnsNsRecords(records *[]recordsets.NsRecord) []interface{} {
 func expandAzureRmDnsNsRecords(input []interface{}) *[]recordsets.NsRecord {
 	records := make([]recordsets.NsRecord, 0)
 	for _, v := range input {
-		record := v.(string)
-
 		records = append(records, recordsets.NsRecord{
-			Nsdname: &record,
+			Nsdname: pointer.To(v.(string)),
 		})
 	}
 	return &records

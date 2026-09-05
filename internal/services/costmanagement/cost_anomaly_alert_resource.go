@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/scheduledactions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/views"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -45,42 +44,30 @@ func (AnomalyAlertResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			// adding 2026/04 api limitations behind 5.0 flag incase existing resources are still allowed with previous limits
-			ValidateFunc: func() pluginsdk.SchemaValidateFunc {
-				if features.FivePointOh() {
-					return validation.StringLenBetween(1, 25)
-				}
-				return validation.StringIsNotEmpty
-			}(),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringLenBetween(1, 25),
 		},
 
 		"subscription_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: commonids.ValidateSubscriptionID,
 		},
 
 		"notification_email": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"email_subject": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			// adding 2026/04 api limitations behind 5.0 flag incase existing resources are still allowed with previous limits
-			ValidateFunc: func() pluginsdk.SchemaValidateFunc {
-				if features.FivePointOh() {
-					return validation.StringLenBetween(1, 50)
-				}
-				return validation.StringLenBetween(1, 70)
-			}(),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringLenBetween(1, 50),
 		},
 
 		"email_addresses": {

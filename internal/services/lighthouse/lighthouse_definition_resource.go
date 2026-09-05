@@ -178,7 +178,7 @@ func resourceLighthouseDefinition() *pluginsdk.Resource {
 			"lighthouse_definition_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
@@ -344,15 +344,10 @@ func resourceLighthouseDefinitionDelete(d *pluginsdk.ResourceData, meta interfac
 func flattenLighthouseDefinitionAuthorization(input []registrationdefinitions.Authorization) []interface{} {
 	results := make([]interface{}, 0)
 	for _, item := range input {
-		principalIDDisplayName := ""
-		if item.PrincipalIdDisplayName != nil {
-			principalIDDisplayName = *item.PrincipalIdDisplayName
-		}
-
 		results = append(results, map[string]interface{}{
 			"role_definition_id":            item.RoleDefinitionId,
 			"principal_id":                  item.PrincipalId,
-			"principal_display_name":        principalIDDisplayName,
+			"principal_display_name":        pointer.From(item.PrincipalIdDisplayName),
 			"delegated_role_definition_ids": helpers.FlattenStringSlice(item.DelegatedRoleDefinitionIds),
 		})
 	}
@@ -476,7 +471,7 @@ func expandLighthouseDefinitionApprover(input []interface{}) *[]registrationdefi
 
 func flattenLighthouseDefinitionEligibleAuthorization(input *[]registrationdefinitions.EligibleAuthorization) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	results := make([]interface{}, 0, len(*input))
@@ -502,7 +497,7 @@ func flattenLighthouseDefinitionEligibleAuthorization(input *[]registrationdefin
 
 func flattenLighthouseDefinitionJustInTimeAccessPolicy(input *registrationdefinitions.JustInTimeAccessPolicy) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	var results []interface{}
@@ -528,7 +523,7 @@ func flattenLighthouseDefinitionJustInTimeAccessPolicy(input *registrationdefini
 
 func flattenLighthouseDefinitionApprover(input *[]registrationdefinitions.EligibleApprover) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	results := make([]interface{}, 0, len(*input))

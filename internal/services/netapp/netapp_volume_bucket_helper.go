@@ -5,8 +5,8 @@ package netapp
 
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/buckets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/buckets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -259,7 +259,7 @@ func expandNetAppBucketCifsUser(input string) *buckets.CifsUser {
 
 func flattenNetAppBucketNfsUser(input *buckets.NfsUser) []netAppModels.NetAppVolumeBucketNfsUser {
 	if input == nil {
-		return nil
+		return []netAppModels.NetAppVolumeBucketNfsUser{}
 	}
 
 	return []netAppModels.NetAppVolumeBucketNfsUser{
@@ -335,7 +335,7 @@ func expandNetAppBucketServer(input []netAppModels.NetAppVolumeBucketServer) *bu
 		out.CertificateObject = pointer.To(srv.CertificatePem)
 	}
 	if srv.OnCertificateConflictAction != "" {
-		out.OnCertificateConflictAction = pointer.To(buckets.OnCertificateConflictAction(srv.OnCertificateConflictAction))
+		out.OnCertificateConflictAction = pointer.ToEnum[buckets.OnCertificateConflictAction](srv.OnCertificateConflictAction)
 	}
 
 	return out
@@ -356,7 +356,7 @@ func expandNetAppBucketServerPatch(input []netAppModels.NetAppVolumeBucketServer
 		out.CertificateObject = pointer.To(srv.CertificatePem)
 	}
 	if rd.HasChange("server.0.on_certificate_conflict_action") && srv.OnCertificateConflictAction != "" {
-		out.OnCertificateConflictAction = pointer.To(buckets.OnCertificateConflictAction(srv.OnCertificateConflictAction))
+		out.OnCertificateConflictAction = pointer.ToEnum[buckets.OnCertificateConflictAction](srv.OnCertificateConflictAction)
 	}
 
 	return out

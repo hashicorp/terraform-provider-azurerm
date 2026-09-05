@@ -285,15 +285,9 @@ func resourceArmSignalRServiceFlatten(d *pluginsdk.ResourceData, id *signalr.Sig
 
 			if props.ResourceLogConfiguration != nil && props.ResourceLogConfiguration.Categories != nil {
 				for _, item := range *props.ResourceLogConfiguration.Categories {
-					name := ""
-					if item.Name != nil {
-						name = *item.Name
-					}
+					name := pointer.From(item.Name)
 
-					var cateEnabled string
-					if item.Enabled != nil {
-						cateEnabled = *item.Enabled
-					}
+					cateEnabled := pointer.From(item.Enabled)
 
 					switch name {
 					case "MessagingLogs":
@@ -559,10 +553,8 @@ func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSett
 
 	for _, upstreamSetting := range input {
 		setting := upstreamSetting.(map[string]interface{})
-		authTypeNone := signalr.UpstreamAuthTypeNone
-		authTypeManagedIdentity := signalr.UpstreamAuthTypeManagedIdentity
 		auth := signalr.UpstreamAuthSettings{
-			Type: &authTypeNone,
+			Type: pointer.To(signalr.UpstreamAuthTypeNone),
 		}
 		upstreamTemplate := signalr.UpstreamTemplate{
 			HubPattern:      pointer.To(strings.Join(*helpers.ExpandStringSlice(setting["hub_pattern"].([]interface{})), ",")),
@@ -574,7 +566,7 @@ func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSett
 
 		if setting["user_assigned_identity_id"].(string) != "" {
 			upstreamTemplate.Auth = &signalr.UpstreamAuthSettings{
-				Type: &authTypeManagedIdentity,
+				Type: pointer.To(signalr.UpstreamAuthTypeManagedIdentity),
 				ManagedIdentity: &signalr.ManagedIdentitySettings{
 					Resource: pointer.To(setting["user_assigned_identity_id"].(string)),
 				},
@@ -762,15 +754,9 @@ func flattenSignalRLiveTraceConfig(input *signalr.LiveTraceConfiguration) []inte
 
 	if input.Categories != nil {
 		for _, item := range *input.Categories {
-			name := ""
-			if item.Name != nil {
-				name = *item.Name
-			}
+			name := pointer.From(item.Name)
 
-			var cateEnabled string
-			if item.Enabled != nil {
-				cateEnabled = *item.Enabled
-			}
+			cateEnabled := pointer.From(item.Enabled)
 
 			switch name {
 			case "MessagingLogs":
@@ -1018,7 +1004,7 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 		"cors": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"allowed_origins": {

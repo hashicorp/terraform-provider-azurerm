@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
@@ -49,12 +50,9 @@ func dataSourcePublicIPSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"allocation_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(publicipaddresses.IPAllocationMethodDynamic),
-				string(publicipaddresses.IPAllocationMethodStatic),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(publicipaddresses.PossibleValuesForIPAllocationMethod(), false),
 		},
 
 		"public_ips": {
@@ -140,8 +138,7 @@ func dataSourcePublicIPsRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	id := fmt.Sprintf("networkPublicIPs/resourceGroup/%s/namePrefix=%s;attachmentStatus=%s;allocationType=%s", resourceGroupId.ResourceGroupName, prefix, attachmentStatus, allocationType)
 	d.SetId(base64.StdEncoding.EncodeToString([]byte(id)))
 
-	results := flattenDataSourcePublicIPs(filteredIPAddresses)
-	if err := d.Set("public_ips", results); err != nil {
+	if err := d.Set("public_ips", flattenDataSourcePublicIPs(filteredIPAddresses)); err != nil {
 		return fmt.Errorf("setting `public_ips`: %+v", err)
 	}
 
@@ -160,16 +157,6 @@ func flattenDataSourcePublicIPs(input []publicipaddresses.PublicIPAddress) []int
 }
 
 func flattenDataSourcePublicIP(input publicipaddresses.PublicIPAddress) map[string]string {
-	id := ""
-	if input.Id != nil {
-		id = *input.Id
-	}
-
-	name := ""
-	if input.Name != nil {
-		name = *input.Name
-	}
-
 	domainNameLabel := ""
 	fqdn := ""
 	ipAddress := ""
@@ -190,8 +177,8 @@ func flattenDataSourcePublicIP(input publicipaddresses.PublicIPAddress) map[stri
 	}
 
 	return map[string]string{
-		"id":                id,
-		"name":              name,
+		"id":                pointer.From(input.Id),
+		"name":              pointer.From(input.Name),
 		"domain_name_label": domainNameLabel,
 		"fqdn":              fqdn,
 		"ip_address":        ipAddress,

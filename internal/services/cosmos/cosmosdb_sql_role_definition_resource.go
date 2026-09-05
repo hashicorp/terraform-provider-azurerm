@@ -46,7 +46,7 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 			"role_definition_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
@@ -61,14 +61,11 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 			},
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(rbacs.RoleDefinitionTypeCustomRole),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(rbacs.RoleDefinitionTypeBuiltInRole),
-					string(rbacs.RoleDefinitionTypeCustomRole),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(rbacs.RoleDefinitionTypeCustomRole),
+				ValidateFunc: validation.StringInSlice(rbacs.PossibleValuesForRoleDefinitionType(), false),
 			},
 
 			"assignable_scopes": {

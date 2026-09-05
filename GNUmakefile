@@ -2,6 +2,16 @@ TEST?=$$(go list ./... |grep -v 'vendor'|grep -v 'examples')
 TESTTIMEOUT=180m
 TF_SCHEMA_PANIC_ON_ERROR=1
 
+# The single source of truth for the golangci-lint version is the 'version:' field in
+# scripts/.custom-gcl.yml (it is required to live there for the plugin build); everything
+# else, including the CI workflows, derives it from that file.
+GOLANGCI_LINT_VERSION := $(shell sed -n 's/^version: *//p' scripts/.custom-gcl.yml)
+
+# The single source of truth for the actionlint version is the go install pin
+# in .github/workflows/workflow-actionlint.yml.
+ACTIONLINT_VERSION := $(shell sed -n 's/.*actionlint\/cmd\/actionlint@//p' .github/workflows/workflow-actionlint.yml)
+
+
 .EXPORT_ALL_VARIABLES:
 
 default: build
@@ -26,12 +36,13 @@ golangci-fix: ## renamed to lint-fix
 tools: ## Install the tools required to develop the provider
 	@echo "==> installing required tooling..."
 	go install github.com/client9/misspell/cmd/misspell@latest
-	go install github.com/bflad/tfproviderlint/cmd/tfproviderlintx@latest
 	go install github.com/YakDriver/tfproviderdocs@latest
 	go install github.com/katbyte/terrafmt@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install mvdan.cc/gofumpt@latest
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v2.12.2
+	go install github.com/rhysd/actionlint/cmd/actionlint@$(ACTIONLINT_VERSION)
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin $(GOLANGCI_LINT_VERSION)
+	@$(MAKE) golangci-with-modules
 
 build: quick-checks generate ## Run the quick checks, generate code, and compile the provider
 	go install
@@ -47,7 +58,7 @@ gencheck: generate ## Check that generated code matches what is committed
 
 ##@ Formatting & Quick Checks
 # All top-level locations containing Go source, excluding vendor.
-GOPATHS=main.go helpers internal utils version
+GOPATHS=main.go helpers internal version
 
 # The fixers here (plus goimports below) should match the checks in scripts/checks/fmt-check.sh
 fmt: ## Fix Go formatting (gofmt, gofumpt, whitespace)
@@ -63,11 +74,10 @@ goimports: ## Fix Go import ordering/grouping (slower than fmt, so kept separate
 	@echo "==> Fixing imports with goimports and gci..."
 	@golangci-lint fmt -E goimports,gci
 
-quick-checks: ## Run the quick CI checks (formatting + provider policies)
-	@echo "==> Running the set of quick CI checks (formatting + provider policies)..."
+quick-checks: ## Run the quick CI checks (formatting)
+	@echo "==> Running the set of quick CI checks (formatting)..."
 	@sh "$(CURDIR)/scripts/checks/fmt-check.sh"
-	@sh "$(CURDIR)/scripts/checks/timeouts-check.sh"
-	@sh "$(CURDIR)/scripts/checks/test-package-check.sh"
+	@sh "$(CURDIR)/scripts/checks/terrafmt-acctests.sh"
 
 terrafmt: ## Fix terraform blocks in acceptance tests and website docs
 	@echo "==> Fixing acceptance test terraform blocks code with terrafmt..."
@@ -76,17 +86,49 @@ terrafmt: ## Fix terraform blocks in acceptance tests and website docs
 	@terrafmt fmt -p "*.html.markdown" .
 
 ##@ Linting & Dependencies
-lint: ## Check source code with the golangci linters
+# golangci-lint module plugins (azproviderlint) only exist in a custom-built binary, so lint
+# targets use scripts/golangci-with-modules, rebuilt automatically whenever the config (which
+# pins the golangci-lint version) changes. The pinned version is installed before building so
+# the host binary running 'golangci-lint custom' always matches the pin. The config filename
+# and its living in the build cwd are both fixed by golangci-lint, hence the cd into scripts/.
+scripts/golangci-with-modules: scripts/.custom-gcl.yml
+	@echo "==> Building golangci-lint with plugins (scripts/golangci-with-modules)..."
+	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $$(go env GOPATH)/bin $(GOLANGCI_LINT_VERSION)
+	@cd scripts && $$(go env GOPATH)/bin/golangci-lint custom
+
+golangci-with-modules: ## Build golangci-lint with plugins (automatic when the config or pinned version changes)
+	@if [ -x scripts/golangci-with-modules ] && ! ./scripts/golangci-with-modules version 2>/dev/null | grep -qF -- "$(GOLANGCI_LINT_VERSION:v%=%)"; then \
+		echo "==> scripts/golangci-with-modules is not $(GOLANGCI_LINT_VERSION), rebuilding..."; \
+		rm -f scripts/golangci-with-modules; \
+	fi
+	@$(MAKE) scripts/golangci-with-modules
+
+lint: golangci-with-modules ## Check source code with the golangci linters
 	@echo "==> Checking source code with golangci-lint..."
-	@golangci-lint run -v ./...
+	@./scripts/golangci-with-modules run -v ./...
 
-lint-fix: ## Fix source code with all golangci linters
+lint-fix: golangci-with-modules ## Fix source code with all golangci linters
 	@echo "==> Fixing source code with all golangci linters..."
-	@golangci-lint run ./... --fix
+	@./scripts/golangci-with-modules run ./... --fix
 
-tfproviderlint: ## Check terraform schema definitions with tfproviderlint
-	@echo "==> Checking terraform schemas with tfproviderlint..."
-	@./scripts/checks/tfproviderlint.sh
+# tfproviderlint and azproviderlint run as part of lint; these targets run just their checks
+tfproviderlint: golangci-with-modules ## Check terraform schema definitions with only the tfproviderlint checks
+	@echo "==> Checking terraform schemas with tfproviderlint (via golangci-lint)..."
+	@./scripts/golangci-with-modules run -v --enable-only tfproviderlint ./...
+
+azproviderlint: golangci-with-modules ## Check source code with only the azproviderlint checks
+	@echo "==> Checking source code with azproviderlint (via golangci-lint)..."
+	@./scripts/golangci-with-modules run -v --enable-only azproviderlint ./...
+
+yamllint: ## Check YAML files with yamllint (config in .yamllint.yml)
+	@command -v yamllint >/dev/null || (echo "yamllint not installed. Install via: brew install yamllint (macOS) or pip install yamllint" && exit 1)
+	@echo "==> Checking YAML files with yamllint..."
+	@yamllint -s .
+
+actionlint: ## Check GitHub workflows with actionlint (incl. shellcheck on run blocks)
+	@command -v actionlint >/dev/null || (echo "actionlint not installed. Install via 'make tools' or: go install github.com/rhysd/actionlint/cmd/actionlint@$(ACTIONLINT_VERSION)" && exit 1)
+	@echo "==> Checking workflows with actionlint..."
+	@actionlint
 
 shellcheck: ## Check shell scripts with shellcheck
 	@command -v shellcheck >/dev/null || (echo "shellcheck not installed. Install via: brew install shellcheck (macOS) or apt install shellcheck (Linux)" && exit 1)
@@ -128,6 +170,16 @@ prepare: ## Remove all generated files ahead of a full regeneration
 	@find . -iname \*_gen_test.go -type f -delete
 
 ##@ Website & Documentation
+# markdown checked by markdownlint: website docs, README, contributing docs, and the
+# .github markdown (PR/issue templates etc). The resource/data-source docs are exempt
+# (leading \# ignore glob, \# escapes the hash from make) as they will soon be generated.
+MARKDOWN_INPUTS='website/docs/**/*.markdown' README.md 'contributing/**/*.md' '.github/**/*.md' '\#website/docs/r' '\#website/docs/d'
+
+markdownlint: ## Check repo markdown with markdownlint (config in .markdownlint.yml)
+	@command -v markdownlint-cli2 >/dev/null || (echo "markdownlint-cli2 not installed. Install via: brew install markdownlint-cli2 (macOS) or npm install -g markdownlint-cli2" && exit 1)
+	@echo "==> Checking markdown with markdownlint..."
+	@markdownlint-cli2 $(MARKDOWN_INPUTS)
+
 website-lint: ## Check website documentation for issues
 	@echo "==> Checking documentation for .html.markdown extension present"
 	@if ! find website/docs -type f -not -name "*.html.markdown" -print -exec false {} +; then \
@@ -172,10 +224,6 @@ schemagen: ## Generate a schema snapshot (RESOURCE_TYPE=<resource>)
 resource-counts: ## Print the number of resources and data sources in the provider
 	@go test -v ./internal/provider -run=TestProvider_counts
 
-static-analysis: ## Run the static analysis checks
-	@echo "==> Running static analysis..."
-	@./scripts/checks/static-analysis.sh
+pr-check: generate build test lint website-lint ## Run the same set of checks CI runs against a PR
 
-pr-check: generate build test lint tfproviderlint website-lint ## Run the same set of checks CI runs against a PR
-
-.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint shellcheck depscheck gencheck tfproviderlint tflint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts static-analysis pr-check
+.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint actionlint yamllint markdownlint shellcheck depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check

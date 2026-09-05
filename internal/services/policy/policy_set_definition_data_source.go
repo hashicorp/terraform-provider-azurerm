@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
@@ -17,9 +18,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func dataSourceArmPolicySetDefinition() *pluginsdk.Resource {
+func dataSourcePolicySetDefinition() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceArmPolicySetDefinitionRead,
+		Read: dataSourcePolicySetDefinitionRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,7 +30,7 @@ func dataSourceArmPolicySetDefinition() *pluginsdk.Resource {
 			"display_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringIsNotEmpty,
 				ExactlyOneOf: []string{"name", "display_name"},
 			},
@@ -37,7 +38,7 @@ func dataSourceArmPolicySetDefinition() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringIsNotEmpty,
 				ExactlyOneOf: []string{"name", "display_name"},
 			},
@@ -147,7 +148,7 @@ func dataSourceArmPolicySetDefinition() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceArmPolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourcePolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.SetDefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -223,10 +224,7 @@ func flattenAzureRMPolicySetDefinitionPolicyDefinitionsTrack1(input *[]policy.De
 	}
 
 	for _, definition := range *input {
-		policyDefinitionID := ""
-		if definition.PolicyDefinitionID != nil {
-			policyDefinitionID = *definition.PolicyDefinitionID
-		}
+		policyDefinitionID := pointer.From(definition.PolicyDefinitionID)
 
 		parametersMap := make(map[string]interface{})
 		for k, v := range definition.Parameters {
@@ -241,10 +239,7 @@ func flattenAzureRMPolicySetDefinitionPolicyDefinitionsTrack1(input *[]policy.De
 			return nil, fmt.Errorf("serializing JSON from `parameter_values`: %+v", err)
 		}
 
-		policyDefinitionReference := ""
-		if definition.PolicyDefinitionReferenceID != nil {
-			policyDefinitionReference = *definition.PolicyDefinitionReferenceID
-		}
+		policyDefinitionReference := pointer.From(definition.PolicyDefinitionReferenceID)
 
 		result = append(result, map[string]interface{}{
 			"policy_definition_id": policyDefinitionID,
@@ -263,26 +258,11 @@ func flattenAzureRMPolicySetDefinitionPolicyGroupsTrack1(input *[]policy.Definit
 	}
 
 	for _, group := range *input {
-		name := ""
-		if group.Name != nil {
-			name = *group.Name
-		}
-		displayName := ""
-		if group.DisplayName != nil {
-			displayName = *group.DisplayName
-		}
-		category := ""
-		if group.Category != nil {
-			category = *group.Category
-		}
-		description := ""
-		if group.Description != nil {
-			description = *group.Description
-		}
-		metadataID := ""
-		if group.AdditionalMetadataID != nil {
-			metadataID = *group.AdditionalMetadataID
-		}
+		name := pointer.From(group.Name)
+		displayName := pointer.From(group.DisplayName)
+		category := pointer.From(group.Category)
+		description := pointer.From(group.Description)
+		metadataID := pointer.From(group.AdditionalMetadataID)
 
 		result = append(result, map[string]interface{}{
 			"name":                            name,

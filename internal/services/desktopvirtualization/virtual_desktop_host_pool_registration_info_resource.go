@@ -99,12 +99,11 @@ func resourceVirtualDesktopHostPoolRegistrationInfoCreateUpdate(d *pluginsdk.Res
 		return fmt.Errorf("reading %s: %s", hostPoolId, err)
 	}
 
-	tokenOperation := hostpool.RegistrationTokenOperationUpdate
 	payload := hostpool.HostPoolPatch{
 		Properties: &hostpool.HostPoolPatchProperties{
 			RegistrationInfo: &hostpool.RegistrationInfoPatch{
 				ExpirationTime:             pointer.To(d.Get("expiration_date").(string)),
-				RegistrationTokenOperation: &tokenOperation,
+				RegistrationTokenOperation: pointer.To(hostpool.RegistrationTokenOperationUpdate),
 			},
 		},
 	}
@@ -195,11 +194,10 @@ func resourceVirtualDesktopHostPoolRegistrationInfoDelete(d *pluginsdk.ResourceD
 		return nil
 	}
 
-	tokenOperation := hostpool.RegistrationTokenOperationDelete
 	payload := hostpool.HostPoolPatch{
 		Properties: &hostpool.HostPoolPatchProperties{
 			RegistrationInfo: &hostpool.RegistrationInfoPatch{
-				RegistrationTokenOperation: &tokenOperation,
+				RegistrationTokenOperation: pointer.To(hostpool.RegistrationTokenOperationDelete),
 			},
 		},
 	}

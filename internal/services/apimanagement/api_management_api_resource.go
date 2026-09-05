@@ -28,7 +28,7 @@ import (
 )
 
 func resourceApiManagementApi() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceApiManagementApiCreate,
 		Read:   resourceApiManagementApiRead,
 		Update: resourceApiManagementApiUpdate,
@@ -60,29 +60,24 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 			"display_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"path": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validate.ApiManagementApiPath,
 			},
 
 			"protocols": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(api.ProtocolHTTP),
-						string(api.ProtocolHTTPS),
-						string(api.ProtocolWs),
-						string(api.ProtocolWss),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(api.PossibleValuesForProtocol(), false),
 				},
 			},
 
@@ -103,13 +98,9 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 			"api_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(api.ApiTypeGraphql),
-					string(api.ApiTypeHTTP),
-					string(api.ApiTypeSoap),
-					string(api.ApiTypeWebsocket),
-				}, false),
+				// Note: O+C because the API sets a default api_type (http) when not specified
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(api.PossibleValuesForApiType(), false),
 			},
 
 			"contact": {
@@ -220,12 +211,14 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 			"service_url": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				// Note: O+C because Azure returns a computed service_url when not specified
 				Computed: true,
 			},
 
 			"subscription_key_parameter_names": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				// Note: O+C because the API returns default subscription key parameter names when not specified
 				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
@@ -259,7 +252,7 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 			"source_api_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: api.ValidateApiID,
+				ValidateFunc: validation.AsGeneratedID(api.ParseApiIDInsensitively),
 			},
 
 			"oauth2_authorization": {
@@ -299,11 +292,8 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(api.BearerTokenSendingMethodsAuthorizationHeader),
-									string(api.BearerTokenSendingMethodsQuery),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(api.PossibleValuesForBearerTokenSendingMethods(), false),
 							},
 						},
 					},
@@ -324,6 +314,7 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 			"version": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+				// Note: O+C because the API assigns a version identifier when not explicitly set
 				Optional: true,
 			},
 
@@ -336,6 +327,7 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 			"version_set_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+				// Note: O+C because the API assigns a version set ID when not explicitly set
 				Optional: true,
 			},
 		},
@@ -359,8 +351,6 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 			}),
 		),
 	}
-
-	return resource
 }
 
 func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -426,12 +416,10 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{})
 	authenticationSettings := &api.AuthenticationSettingsContract{}
 
 	oAuth2AuthorizationSettingsRaw := d.Get("oauth2_authorization").([]interface{})
-	oAuth2AuthorizationSettings := expandApiManagementOAuth2AuthenticationSettingsContract(oAuth2AuthorizationSettingsRaw)
-	authenticationSettings.OAuth2 = oAuth2AuthorizationSettings
+	authenticationSettings.OAuth2 = expandApiManagementOAuth2AuthenticationSettingsContract(oAuth2AuthorizationSettingsRaw)
 
 	openIDAuthorizationSettingsRaw := d.Get("openid_authentication").([]interface{})
-	openIDAuthorizationSettings := expandApiManagementOpenIDAuthenticationSettingsContract(openIDAuthorizationSettingsRaw)
-	authenticationSettings.Openid = openIDAuthorizationSettings
+	authenticationSettings.Openid = expandApiManagementOpenIDAuthenticationSettingsContract(openIDAuthorizationSettingsRaw)
 
 	contactInfoRaw := d.Get("contact").([]interface{})
 	contactInfo := expandApiManagementApiContact(contactInfoRaw)
@@ -639,16 +627,14 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 	if d.HasChange("oauth2_authorization") {
 		authenticationSettings := &api.AuthenticationSettingsContract{}
 		oAuth2AuthorizationSettingsRaw := d.Get("oauth2_authorization").([]interface{})
-		oAuth2AuthorizationSettings := expandApiManagementOAuth2AuthenticationSettingsContract(oAuth2AuthorizationSettingsRaw)
-		authenticationSettings.OAuth2 = oAuth2AuthorizationSettings
+		authenticationSettings.OAuth2 = expandApiManagementOAuth2AuthenticationSettingsContract(oAuth2AuthorizationSettingsRaw)
 		prop.AuthenticationSettings = authenticationSettings
 	}
 
 	if d.HasChange("openid_authentication") {
 		authenticationSettings := &api.AuthenticationSettingsContract{}
 		openIDAuthorizationSettingsRaw := d.Get("openid_authentication").([]interface{})
-		openIDAuthorizationSettings := expandApiManagementOpenIDAuthenticationSettingsContract(openIDAuthorizationSettingsRaw)
-		authenticationSettings.Openid = openIDAuthorizationSettings
+		authenticationSettings.Openid = expandApiManagementOpenIDAuthenticationSettingsContract(openIDAuthorizationSettingsRaw)
 		prop.AuthenticationSettings = authenticationSettings
 	}
 
@@ -818,7 +804,7 @@ func expandApiManagementApiImport(importVs []interface{}, apiType api.ApiType, s
 		Properties: &api.ApiCreateOrUpdateProperties{
 			Type:    pointer.To(apiType),
 			ApiType: pointer.To(soapApiType),
-			Format:  pointer.To(api.ContentFormat(contentFormat)),
+			Format:  pointer.ToEnum[api.ContentFormat](contentFormat),
 			Value:   pointer.To(contentValue),
 			Path:    path,
 		},

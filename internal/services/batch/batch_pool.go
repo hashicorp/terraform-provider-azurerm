@@ -105,11 +105,7 @@ func flattenBatchPoolStartTask(oldConfig *pluginsdk.ResourceData, startTask *poo
 	}
 
 	result := make(map[string]interface{})
-	commandLine := ""
-	if startTask.CommandLine != nil {
-		commandLine = *startTask.CommandLine
-	}
-	result["command_line"] = commandLine
+	result["command_line"] = pointer.From(startTask.CommandLine)
 
 	if startTask.ContainerSettings != nil {
 		containerSettings := make(map[string]interface{})
@@ -132,18 +128,9 @@ func flattenBatchPoolStartTask(oldConfig *pluginsdk.ResourceData, startTask *poo
 		}
 	}
 
-	waitForSuccess := false
-	if startTask.WaitForSuccess != nil {
-		waitForSuccess = *startTask.WaitForSuccess
-	}
-	result["wait_for_success"] = waitForSuccess
+	result["wait_for_success"] = pointer.From(startTask.WaitForSuccess)
 
-	maxTaskRetryCount := int64(0)
-	if startTask.MaxTaskRetryCount != nil {
-		maxTaskRetryCount = *startTask.MaxTaskRetryCount
-	}
-
-	result["task_retry_maximum"] = maxTaskRetryCount
+	result["task_retry_maximum"] = pointer.From(startTask.MaxTaskRetryCount)
 
 	if startTask.UserIdentity != nil {
 		userIdentity := make(map[string]interface{})
@@ -369,7 +356,7 @@ func flattenBatchPoolMountConfig(d *pluginsdk.ResourceData, config *pool.MountCo
 		nfsMountConfigList = append(nfsMountConfigList, nfsMountConfig)
 		mountConfig["nfs_mount"] = nfsMountConfigList
 	default:
-		return nil
+		return map[string]interface{}{}
 	}
 
 	return mountConfig
@@ -458,28 +445,23 @@ func ExpandBatchPoolImageReference(list []interface{}) (*pool.ImageReference, er
 	imageRef := &pool.ImageReference{}
 
 	if storageImageRef["id"] != nil && storageImageRef["id"] != "" {
-		storageImageRefID := storageImageRef["id"].(string)
-		imageRef.Id = &storageImageRefID
+		imageRef.Id = pointer.To(storageImageRef["id"].(string))
 	}
 
 	if storageImageRef["offer"] != nil && storageImageRef["offer"] != "" {
-		storageImageRefOffer := storageImageRef["offer"].(string)
-		imageRef.Offer = &storageImageRefOffer
+		imageRef.Offer = pointer.To(storageImageRef["offer"].(string))
 	}
 
 	if storageImageRef["publisher"] != nil && storageImageRef["publisher"] != "" {
-		storageImageRefPublisher := storageImageRef["publisher"].(string)
-		imageRef.Publisher = &storageImageRefPublisher
+		imageRef.Publisher = pointer.To(storageImageRef["publisher"].(string))
 	}
 
 	if storageImageRef["sku"] != nil && storageImageRef["sku"] != "" {
-		storageImageRefSku := storageImageRef["sku"].(string)
-		imageRef.Sku = &storageImageRefSku
+		imageRef.Sku = pointer.To(storageImageRef["sku"].(string))
 	}
 
 	if storageImageRef["version"] != nil && storageImageRef["version"] != "" {
-		storageImageRefVersion := storageImageRef["version"].(string)
-		imageRef.Version = &storageImageRefVersion
+		imageRef.Version = pointer.To(storageImageRef["version"].(string))
 	}
 
 	return imageRef, nil
@@ -554,15 +536,11 @@ func ExpandBatchPoolStartTask(list []interface{}) (*pool.StartTask, error) {
 
 	startTaskValue := list[0].(map[string]interface{})
 
-	startTaskCmdLine := startTaskValue["command_line"].(string)
-
 	maxTaskRetryCount := int64(1)
 
 	if v := startTaskValue["task_retry_maximum"].(int); v >= -1 {
 		maxTaskRetryCount = int64(v)
 	}
-
-	waitForSuccess := startTaskValue["wait_for_success"].(bool)
 
 	userIdentityList := startTaskValue["user_identity"].([]interface{})
 	if len(userIdentityList) == 0 {
@@ -577,8 +555,8 @@ func ExpandBatchPoolStartTask(list []interface{}) (*pool.StartTask, error) {
 		if len(autoUser) != 0 {
 			autoUserMap := autoUser[0].(map[string]interface{})
 			userIdentity.AutoUser = &pool.AutoUserSpecification{
-				ElevationLevel: pointer.To(pool.ElevationLevel(autoUserMap["elevation_level"].(string))),
-				Scope:          pointer.To(pool.AutoUserScope(autoUserMap["scope"].(string))),
+				ElevationLevel: pointer.ToEnum[pool.ElevationLevel](autoUserMap["elevation_level"].(string)),
+				Scope:          pointer.ToEnum[pool.AutoUserScope](autoUserMap["scope"].(string)),
 			}
 		}
 	}
@@ -646,9 +624,9 @@ func ExpandBatchPoolStartTask(list []interface{}) (*pool.StartTask, error) {
 	}
 
 	startTask := &pool.StartTask{
-		CommandLine:       &startTaskCmdLine,
+		CommandLine:       pointer.To(startTaskValue["command_line"].(string)),
 		MaxTaskRetryCount: &maxTaskRetryCount,
-		WaitForSuccess:    &waitForSuccess,
+		WaitForSuccess:    pointer.To(startTaskValue["wait_for_success"].(bool)),
 		UserIdentity:      &userIdentity,
 		ResourceFiles:     &resourceFiles,
 	}
@@ -668,13 +646,12 @@ func ExpandBatchPoolStartTask(list []interface{}) (*pool.StartTask, error) {
 				containerSettings.ContainerRunOptions = pointer.To(containerRunOptions.(string))
 			}
 			if registries, ok := settingMap["registry"].([]interface{}); ok && len(registries) > 0 && registries[0] != nil {
-				containerRegMap := registries[0].(map[string]interface{})
-				if containerRegistryRef, err := expandBatchPoolContainerRegistry(containerRegMap); err == nil {
+				if containerRegistryRef, err := expandBatchPoolContainerRegistry(registries[0].(map[string]interface{})); err == nil {
 					containerSettings.Registry = containerRegistryRef
 				}
 			}
 			if workingDir, ok := settingMap["working_directory"]; ok {
-				containerSettings.WorkingDirectory = pointer.To(pool.ContainerWorkingDirectory(workingDir.(string)))
+				containerSettings.WorkingDirectory = pointer.ToEnum[pool.ContainerWorkingDirectory](workingDir.(string))
 			}
 		}
 		startTask.ContainerSettings = &containerSettings
@@ -688,8 +665,7 @@ func expandBatchPoolVirtualMachineConfig(d *pluginsdk.ResourceData) (*pool.Virtu
 
 	result.NodeAgentSkuId = d.Get("node_agent_sku_id").(string)
 
-	storageImageReferenceSet := d.Get("storage_image_reference").([]interface{})
-	if imageReference, err := ExpandBatchPoolImageReference(storageImageReferenceSet); err == nil {
+	if imageReference, err := ExpandBatchPoolImageReference(d.Get("storage_image_reference").([]interface{})); err == nil {
 		if imageReference != nil {
 			// if an image reference ID is specified, the user wants use a custom image. This property is mutually exclusive with other properties.
 			if imageReference.Id != nil && (imageReference.Offer != nil || imageReference.Publisher != nil || imageReference.Sku != nil || imageReference.Version != nil) {
@@ -765,7 +741,7 @@ func expandBatchPoolSecurityProfile(profile []interface{}) *pool.SecurityProfile
 	}
 
 	if v, ok := item["security_type"]; ok {
-		securityProfile.SecurityType = pointer.To(pool.SecurityTypes(v.(string)))
+		securityProfile.SecurityType = pointer.ToEnum[pool.SecurityTypes](v.(string))
 	}
 
 	if v, ok := item["secure_boot_enabled"]; ok {
@@ -786,7 +762,7 @@ func expandBatchPoolOSDisk(ref interface{}) *pool.OSDisk {
 
 	return &pool.OSDisk{
 		EphemeralOSDiskSettings: &pool.DiffDiskSettings{
-			Placement: pointer.To(pool.DiffDiskPlacement(ref.(string))),
+			Placement: pointer.ToEnum[pool.DiffDiskPlacement](ref.(string)),
 		},
 	}
 }
@@ -797,7 +773,7 @@ func expandBatchPoolNodeReplacementConfig(list []interface{}) *pool.NodePlacemen
 	}
 	item := list[0].(map[string]interface{})["policy"].(string)
 	return &pool.NodePlacementConfiguration{
-		Policy: pointer.To(pool.NodePlacementPolicyType(item)),
+		Policy: pointer.ToEnum[pool.NodePlacementPolicyType](item),
 	}
 }
 
@@ -820,8 +796,7 @@ func expandBatchPoolExtensions(list []interface{}) (*[]pool.VmExtension, error) 
 	var result []pool.VmExtension
 
 	for _, tempItem := range list {
-		item := tempItem.(map[string]interface{})
-		if batchPoolExtension, err := expandBatchPoolExtension(item); err == nil {
+		if batchPoolExtension, err := expandBatchPoolExtension(tempItem.(map[string]interface{})); err == nil {
 			result = append(result, *batchPoolExtension)
 		} else {
 			return nil, err
@@ -855,15 +830,13 @@ func expandBatchPoolExtension(ref map[string]interface{}) (*pool.VmExtension, er
 	}
 
 	if settings, ok := ref["settings_json"]; ok {
-		err := json.Unmarshal([]byte(settings.(string)), &result.Settings)
-		if err != nil {
+		if err := json.Unmarshal([]byte(settings.(string)), &result.Settings); err != nil {
 			return nil, fmt.Errorf("unmarshaling `settings_json`: %+v", err)
 		}
 	}
 
 	if protectedSettings, ok := ref["protected_settings"]; ok {
-		err := json.Unmarshal([]byte(protectedSettings.(string)), &result.ProtectedSettings)
-		if err != nil {
+		if err := json.Unmarshal([]byte(protectedSettings.(string)), &result.ProtectedSettings); err != nil {
 			return nil, fmt.Errorf("unmarshaling `protected_settings`: %+v", err)
 		}
 	}
@@ -913,9 +886,9 @@ func expandBatchPoolDataDisks(list []interface{}) *[]pool.DataDisk {
 func expandBatchPoolDataDisk(ref map[string]interface{}) pool.DataDisk {
 	return pool.DataDisk{
 		Lun:                int64(ref["lun"].(int)),
-		Caching:            pointer.To(pool.CachingType(ref["caching"].(string))),
+		Caching:            pointer.ToEnum[pool.CachingType](ref["caching"].(string)),
 		DiskSizeGB:         int64(ref["disk_size_gb"].(int)),
-		StorageAccountType: pointer.To(pool.StorageAccountType(ref["storage_account_type"].(string))),
+		StorageAccountType: pointer.ToEnum[pool.StorageAccountType](ref["storage_account_type"].(string)),
 	}
 }
 
@@ -923,11 +896,10 @@ func expandCommonEnvironmentProperties(env map[string]interface{}) *[]pool.Envir
 	envSettings := make([]pool.EnvironmentSetting, 0)
 
 	for k, v := range env {
-		theValue := v.(string)
 		theKey := k
 		envSetting := pool.EnvironmentSetting{
 			Name:  theKey,
-			Value: &theValue,
+			Value: pointer.To(v.(string)),
 		}
 
 		envSettings = append(envSettings, envSetting)
@@ -1104,7 +1076,7 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*pool.NetworkConfi
 	networkConfiguration := &pool.NetworkConfiguration{}
 
 	if v, ok := networkConfigValue["dynamic_vnet_assignment_scope"]; ok {
-		networkConfiguration.DynamicVnetAssignmentScope = pointer.To(pool.DynamicVNetAssignmentScope(v.(string)))
+		networkConfiguration.DynamicVnetAssignmentScope = pointer.ToEnum[pool.DynamicVNetAssignmentScope](v.(string))
 	}
 
 	if v, ok := networkConfigValue["accelerated_networking_enabled"]; ok {
@@ -1140,7 +1112,7 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*pool.NetworkConfi
 		}
 
 		if value := v.(string); value != "" {
-			networkConfiguration.PublicIPAddressConfiguration.Provision = pointer.To(pool.IPAddressProvisioningType(value))
+			networkConfiguration.PublicIPAddressConfiguration.Provision = pointer.ToEnum[pool.IPAddressProvisioningType](value)
 		}
 	}
 
@@ -1245,11 +1217,6 @@ func flattenBatchPoolNetworkConfiguration(input *pool.NetworkConfiguration) []in
 		return []interface{}{}
 	}
 
-	subnetId := ""
-	if input.SubnetId != nil {
-		subnetId = *input.SubnetId
-	}
-
 	publicIPAddressIds := make([]interface{}, 0)
 	publicAddressProvisioningType := ""
 	if config := input.PublicIPAddressConfiguration; config != nil {
@@ -1312,7 +1279,7 @@ func flattenBatchPoolNetworkConfiguration(input *pool.NetworkConfiguration) []in
 			"endpoint_configuration":           endpointConfigs,
 			"public_address_provisioning_type": publicAddressProvisioningType,
 			"public_ips":                       pluginsdk.NewSet(pluginsdk.HashString, publicIPAddressIds),
-			"subnet_id":                        subnetId,
+			"subnet_id":                        pointer.From(input.SubnetId),
 		},
 	}
 }
@@ -1338,7 +1305,7 @@ func expandBatchPoolUserAccount(ref map[string]interface{}) pool.UserAccount {
 	result := pool.UserAccount{
 		Name:           ref["name"].(string),
 		Password:       ref["password"].(string),
-		ElevationLevel: pointer.To(pool.ElevationLevel(ref["elevation_level"].(string))),
+		ElevationLevel: pointer.ToEnum[pool.ElevationLevel](ref["elevation_level"].(string)),
 	}
 
 	if linuxUserConfig, ok := ref["linux_user_configuration"]; ok {
@@ -1362,7 +1329,7 @@ func expandBatchPoolUserAccount(ref map[string]interface{}) pool.UserAccount {
 		if winUserConfig != nil && len(winUserConfig.([]interface{})) > 0 {
 			winUserConfigMap := winUserConfig.([]interface{})[0].(map[string]interface{})
 			result.WindowsUserConfiguration = &pool.WindowsUserConfiguration{
-				LoginMode: pointer.To(pool.LoginMode(winUserConfigMap["login_mode"].(string))),
+				LoginMode: pointer.ToEnum[pool.LoginMode](winUserConfigMap["login_mode"].(string)),
 			}
 		}
 	}

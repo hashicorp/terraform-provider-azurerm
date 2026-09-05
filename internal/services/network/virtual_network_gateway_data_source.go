@@ -15,14 +15,13 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func dataSourceVirtualNetworkGateway() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceVirtualNetworkGatewayRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -245,16 +244,6 @@ func dataSourceVirtualNetworkGateway() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["enable_bgp"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Computed:   true,
-			Deprecated: " the `enable_bgp` property has been deprecated in favour of the `bgp_enabled` property and will be removed in 5.0 of the AzureRM provider",
-		}
-	}
-
-	return resource
 }
 
 func dataSourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -289,10 +278,6 @@ func dataSourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("active_active", props.ActiveActive)
 		d.Set("generation", string(pointer.From(props.VpnGatewayGeneration)))
 
-		if !features.FivePointOh() {
-			d.Set("enable_bgp", props.EnableBgp)
-		}
-
 		if props.VpnType != nil {
 			d.Set("vpn_type", string(pointer.From(props.VpnType)))
 		}
@@ -309,13 +294,11 @@ func dataSourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("setting `ip_configuration`: %+v", err)
 		}
 
-		vpnConfigFlat := flattenVirtualNetworkGatewayDataSourceVpnClientConfig(props.VpnClientConfiguration)
-		if err := d.Set("vpn_client_configuration", vpnConfigFlat); err != nil {
+		if err := d.Set("vpn_client_configuration", flattenVirtualNetworkGatewayDataSourceVpnClientConfig(props.VpnClientConfiguration)); err != nil {
 			return fmt.Errorf("setting `vpn_client_configuration`: %+v", err)
 		}
 
-		bgpSettingsFlat := flattenVirtualNetworkGatewayDataSourceBgpSettings(props.BgpSettings)
-		if err := d.Set("bgp_settings", bgpSettingsFlat); err != nil {
+		if err := d.Set("bgp_settings", flattenVirtualNetworkGatewayDataSourceBgpSettings(props.BgpSettings)); err != nil {
 			return fmt.Errorf("setting `bgp_settings`: %+v", err)
 		}
 

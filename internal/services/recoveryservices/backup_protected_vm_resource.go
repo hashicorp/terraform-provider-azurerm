@@ -110,8 +110,7 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 
 		if isSoftDeleted {
 			if meta.(*clients.Client).Features.RecoveryServicesVault.RecoverSoftDeletedBackupProtectedVM {
-				err = resourceRecoveryServicesVaultBackupProtectedVMRecoverSoftDeleted(ctx, client, id)
-				if err != nil {
+				if err = resourceRecoveryServicesVaultBackupProtectedVMRecoverSoftDeleted(ctx, client, id); err != nil {
 					return fmt.Errorf("recovering soft deleted %s: %+v", id, err)
 				}
 			} else {
@@ -158,7 +157,7 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 
 		updateInput := protecteditems.ProtectedItemResource{
 			Properties: &protecteditems.AzureIaaSComputeVMProtectedItem{
-				ProtectionState:  pointer.To(protecteditems.ProtectionState(protectionState)),
+				ProtectionState:  pointer.ToEnum[protecteditems.ProtectionState](protectionState),
 				SourceResourceId: pointer.To(vmId),
 			},
 		}
@@ -279,7 +278,7 @@ func resourceRecoveryServicesBackupProtectedVMUpdate(d *pluginsdk.ResourceData, 
 				return err
 			}
 		}
-		properties.ProtectionState = pointer.To(protecteditems.ProtectionState(protectionState))
+		properties.ProtectionState = pointer.ToEnum[protecteditems.ProtectionState](protectionState)
 	}
 	model.Properties = properties
 
@@ -425,7 +424,7 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 		"source_vm_id": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 			ValidateFunc: validation.Any(
 				validation.StringIsEmpty,

@@ -8,6 +8,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -144,13 +145,11 @@ func dataSourceImagesRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	if len(virtualMachineImages) == 0 {
 		return fmt.Errorf("no images were found that match the specified tags")
 	}
-	flattenedImages := flattenImages(virtualMachineImages)
-	if err := d.Set("images", flattenedImages); err != nil {
+	if err := d.Set("images", flattenImages(virtualMachineImages)); err != nil {
 		return fmt.Errorf("setting `images`: %+v", err)
 	}
 
-	resourceId := resourceIdForImagesDataSource(resourceGroupId, *filterTags)
-	d.SetId(resourceId)
+	d.SetId(resourceIdForImagesDataSource(resourceGroupId, *filterTags))
 
 	d.Set("resource_group_name", resourceGroupId.ResourceGroupName)
 
@@ -211,10 +210,7 @@ func filterToImagesMatchingTags(input []images.Image, filterTags map[string]stri
 }
 
 func flattenImage(input images.Image) map[string]interface{} {
-	name := ""
-	if input.Name != nil {
-		name = *input.Name
-	}
+	name := pointer.From(input.Name)
 
 	zoneResilient := false
 	osDisk := make([]interface{}, 0)
@@ -243,10 +239,7 @@ func flattenImagesOSDisk(input *images.ImageStorageProfile) []interface{} {
 
 	if input != nil {
 		if v := input.OsDisk; v != nil {
-			blobUri := ""
-			if uri := v.BlobUri; uri != nil {
-				blobUri = *uri
-			}
+			blobUri := pointer.From(v.BlobUri)
 			caching := ""
 			if v.Caching != nil {
 				caching = string(*v.Caching)
@@ -284,10 +277,7 @@ func flattenImagesDataDisks(input *images.ImageStorageProfile) []interface{} {
 	if input != nil {
 		if v := input.DataDisks; v != nil {
 			for _, disk := range *input.DataDisks {
-				blobUri := ""
-				if disk.BlobUri != nil {
-					blobUri = *disk.BlobUri
-				}
+				blobUri := pointer.From(disk.BlobUri)
 				caching := ""
 				if disk.Caching != nil {
 					caching = string(*disk.Caching)

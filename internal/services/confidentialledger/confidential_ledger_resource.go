@@ -73,13 +73,9 @@ func resourceConfidentialLedger() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"ledger_role_name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(confidentialledger.LedgerRoleNameAdministrator),
-								string(confidentialledger.LedgerRoleNameContributor),
-								string(confidentialledger.LedgerRoleNameReader),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(confidentialledger.PossibleValuesForLedgerRoleName(), false),
 						},
 						"principal_id": {
 							Type:         pluginsdk.TypeString,
@@ -102,13 +98,9 @@ func resourceConfidentialLedger() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"ledger_role_name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(confidentialledger.LedgerRoleNameAdministrator),
-								string(confidentialledger.LedgerRoleNameContributor),
-								string(confidentialledger.LedgerRoleNameReader),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(confidentialledger.PossibleValuesForLedgerRoleName(), false),
 						},
 						"pem_public_key": {
 							Type:         pluginsdk.TypeString,
@@ -258,13 +250,11 @@ func resourceConfidentialLedgerUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("azuread_based_service_principal") {
-		aadBasedUsers := expandAADBasedSecurityPrincipal(d.Get("azuread_based_service_principal").([]interface{}))
-		ledger.Properties.AadBasedSecurityPrincipals = aadBasedUsers
+		ledger.Properties.AadBasedSecurityPrincipals = expandAADBasedSecurityPrincipal(d.Get("azuread_based_service_principal").([]interface{}))
 	}
 
 	if d.HasChange("certificate_based_security_principal") {
-		certBasedUsers := expandCertBasedSecurityPrincipal(d.Get("certificate_based_security_principal").([]interface{}))
-		ledger.Properties.CertBasedSecurityPrincipals = certBasedUsers
+		ledger.Properties.CertBasedSecurityPrincipals = expandCertBasedSecurityPrincipal(d.Get("certificate_based_security_principal").([]interface{}))
 	}
 
 	if d.HasChange("tags") {
@@ -300,12 +290,11 @@ func expandAADBasedSecurityPrincipal(input []interface{}) *[]confidentialledger.
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		ledgerRoleName := confidentialledger.LedgerRoleName(v["ledger_role_name"].(string))
 		principalId := v["principal_id"].(string)
 		tenantId := v["tenant_id"].(string)
 
 		result := confidentialledger.AADBasedSecurityPrincipal{
-			LedgerRoleName: &ledgerRoleName,
+			LedgerRoleName: pointer.ToEnum[confidentialledger.LedgerRoleName](v["ledger_role_name"].(string)),
 			PrincipalId:    pointer.To(principalId),
 			TenantId:       pointer.To(tenantId),
 		}
@@ -322,10 +311,9 @@ func expandCertBasedSecurityPrincipal(input []interface{}) *[]confidentialledger
 	for _, item := range input {
 		v := item.(map[string]interface{})
 
-		ledgerRoleName := confidentialledger.LedgerRoleName(v["ledger_role_name"].(string))
 		output = append(output, confidentialledger.CertBasedSecurityPrincipal{
 			Cert:           pointer.To(v["pem_public_key"].(string)),
-			LedgerRoleName: &ledgerRoleName,
+			LedgerRoleName: pointer.ToEnum[confidentialledger.LedgerRoleName](v["ledger_role_name"].(string)),
 		})
 	}
 
@@ -344,20 +332,10 @@ func flattenAADBasedSecurityPrincipal(input *[]confidentialledger.AADBasedSecuri
 			ledgerRoleName = string(*item.LedgerRoleName)
 		}
 
-		principalId := ""
-		if item.PrincipalId != nil {
-			principalId = *item.PrincipalId
-		}
-
-		tenantId := ""
-		if item.TenantId != nil {
-			tenantId = *item.TenantId
-		}
-
 		output = append(output, map[string]interface{}{
 			"ledger_role_name": ledgerRoleName,
-			"principal_id":     principalId,
-			"tenant_id":        tenantId,
+			"principal_id":     pointer.From(item.PrincipalId),
+			"tenant_id":        pointer.From(item.TenantId),
 		})
 	}
 
@@ -371,11 +349,6 @@ func flattenCertBasedSecurityPrincipal(input *[]confidentialledger.CertBasedSecu
 	}
 
 	for _, item := range *input {
-		pemPublicKey := ""
-		if item.Cert != nil {
-			pemPublicKey = *item.Cert
-		}
-
 		ledgerRoleName := ""
 		if item.LedgerRoleName != nil {
 			ledgerRoleName = string(*item.LedgerRoleName)
@@ -383,7 +356,7 @@ func flattenCertBasedSecurityPrincipal(input *[]confidentialledger.CertBasedSecu
 
 		output = append(output, map[string]interface{}{
 			"ledger_role_name": ledgerRoleName,
-			"pem_public_key":   pemPublicKey,
+			"pem_public_key":   pointer.From(item.Cert),
 		})
 	}
 

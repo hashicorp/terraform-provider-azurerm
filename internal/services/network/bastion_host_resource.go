@@ -543,14 +543,12 @@ func expandBastionHostIPConfiguration(input []interface{}) (ipConfigs *[]bastion
 	}
 
 	property := input[0].(map[string]interface{})
-	ipConfName := property["name"].(string)
-	subID := property["subnet_id"].(string)
 
 	ipConfig := bastionhosts.BastionHostIPConfiguration{
-		Name: &ipConfName,
+		Name: pointer.To(property["name"].(string)),
 		Properties: &bastionhosts.BastionHostIPConfigurationPropertiesFormat{
 			Subnet: bastionhosts.SubResource{
-				Id: &subID,
+				Id: pointer.To(property["subnet_id"].(string)),
 			},
 		},
 	}
@@ -578,11 +576,7 @@ func flattenBastionHostIPConfiguration(ipConfigs *[]bastionhosts.BastionHostIPCo
 		}
 
 		if props := config.Properties; props != nil {
-			subnetId := ""
-			if subnet := props.Subnet; subnet.Id != nil {
-				subnetId = *subnet.Id
-			}
-			ipConfig["subnet_id"] = subnetId
+			ipConfig["subnet_id"] = pointer.From(props.Subnet.Id)
 
 			publicIpId := ""
 			if pip := props.PublicIPAddress; pip != nil && pip.Id != nil {

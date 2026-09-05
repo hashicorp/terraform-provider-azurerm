@@ -191,8 +191,7 @@ func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) Create() sd
 				apmReference := appplatform.ApmReference{
 					ResourceId: id.ID(),
 				}
-				err = client.ServicesEnableApmGloballyThenPoll(ctx, *springId, apmReference)
-				if err != nil {
+				if err = client.ServicesEnableApmGloballyThenPoll(ctx, *springId, apmReference); err != nil {
 					return fmt.Errorf("enabling %s globally: %+v", id, err)
 				}
 			}
@@ -274,8 +273,7 @@ func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) Update() sd
 				Properties: properties,
 			}
 
-			err = client.ApmsCreateOrUpdateThenPoll(ctx, *id, resource)
-			if err != nil {
+			if err = client.ApmsCreateOrUpdateThenPoll(ctx, *id, resource); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -285,13 +283,11 @@ func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) Update() sd
 				}
 				springId := commonids.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroupName, id.SpringName)
 				if model.GloballyEnabled {
-					err := client.ServicesEnableApmGloballyThenPoll(ctx, springId, apmReference)
-					if err != nil {
+					if err := client.ServicesEnableApmGloballyThenPoll(ctx, springId, apmReference); err != nil {
 						return fmt.Errorf("enabling %s globally: %+v", id, err)
 					}
 				} else {
-					err := client.ServicesDisableApmGloballyThenPoll(ctx, springId, apmReference)
-					if err != nil {
+					if err := client.ServicesDisableApmGloballyThenPoll(ctx, springId, apmReference); err != nil {
 						return fmt.Errorf("disabling %s globally: %+v", id, err)
 					}
 				}
@@ -400,8 +396,7 @@ func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) Delete() sd
 				return err
 			}
 
-			err = client.ApmsDeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.ApmsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -422,10 +417,10 @@ func expandNewRelicLabels(input map[string]string) string {
 }
 
 func flattenNewRelicLabels(input string) map[string]string {
-	if input == "" {
-		return nil
-	}
 	labels := make(map[string]string)
+	if input == "" {
+		return labels
+	}
 	for _, label := range strings.Split(input, ";") {
 		parts := strings.Split(label, ":")
 		if len(parts) == 2 {

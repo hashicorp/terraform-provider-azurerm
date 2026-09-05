@@ -22,12 +22,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/blobservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/fileservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccountmigrations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	providerhelpers "github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyVaultsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
@@ -58,10 +60,18 @@ var (
 		storageaccounts.KindFileStorage: {},
 		storageaccounts.KindStorageVTwo: {},
 	}
+	storageReplicationZonalMigrationPairs = map[string]string{
+		"LRS":    "ZRS",
+		"GRS":    "GZRS",
+		"RAGRS":  "RAGZRS",
+		"ZRS":    "LRS",
+		"GZRS":   "GRS",
+		"RAGZRS": "RAGRS",
+	}
 )
 
 func resourceStorageAccount() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceStorageAccountCreate,
 		Read:   resourceStorageAccountRead,
 		Update: resourceStorageAccountUpdate,
@@ -134,6 +144,13 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"account_replication_type": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
+				DiffSuppressFunc: func(_, _, n string, d *schema.ResourceData) bool {
+					// Migration of a storage account to/from zonal can take days
+					// so the provider doesn't poll and wait for it to complete.
+					// While in queue for migration/actively migrating, the Storage Account will return the old `account_replication_type`
+					// which we'll suppress here if the configured type matches the target migration type.
+					return d.Get("account_replication_type_migration_in_progress").(bool) && n == d.Get("account_replication_type_migrating_to").(string)
+				},
 				ValidateFunc: validation.StringInSlice([]string{
 					"LRS",
 					"ZRS",
@@ -144,10 +161,10 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				}, false),
 			},
 
-			// Only valid for FileStorage, BlobStorage & StorageV2 accounts, defaults to "Hot" in create function
 			"access_tier": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C Only valid for FileStorage, BlobStorage & StorageV2 accounts, defaults to "Hot" in create function
 				Computed:     true,
 				ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForAccessTier(), false), // TODO: docs for `Premium`
 			},
@@ -171,7 +188,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 						"active_directory": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -338,21 +355,19 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
+			"public_network_access": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(storageaccounts.PublicNetworkAccessEnabled),
+				ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForPublicNetworkAccess(), false),
 			},
 
 			"dns_endpoint_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(storageaccounts.DnsEndpointTypeStandard),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(storageaccounts.DnsEndpointTypeStandard),
-					string(storageaccounts.DnsEndpointTypeAzureDnsZone),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(storageaccounts.DnsEndpointTypeStandard),
+				ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForDnsEndpointType(), false),
 			},
 
 			"default_to_oauth_authentication": {
@@ -364,14 +379,14 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"network_rules": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"bypass": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForBypass(), false),
@@ -382,7 +397,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 						"ip_rules": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validate.StorageAccountIpRule,
@@ -393,7 +408,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 						"virtual_network_subnet_ids": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 							},
@@ -420,7 +435,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 									"endpoint_tenant_id": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										Computed:     true,
+										Computed:     true, // azignore:AZS007 - pre-existing violation
 										ValidateFunc: validation.IsUUID,
 									},
 								},
@@ -435,7 +450,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"blob_properties": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -472,7 +487,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 						"default_service_version": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validate.BlobPropertiesDefaultServiceVersion,
 						},
 
@@ -530,7 +545,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"routing": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -559,7 +574,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"share_properties": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -709,13 +724,23 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"large_file_share_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"local_user_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+
+			"account_replication_type_migration_in_progress": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"account_replication_type_migrating_to": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"primary_location": {
@@ -1156,23 +1181,74 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				}
 				return nil
 			}),
-			pluginsdk.ForceNewIfChange("account_replication_type", func(ctx context.Context, old, new, meta interface{}) bool {
-				newAccRep := strings.ToUpper(new.(string))
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+				if d.Get("account_replication_type_migration_in_progress").(bool) {
+					o, n := d.GetChange("account_replication_type")
+					migratingTo := d.Get("account_replication_type_migrating_to").(string)
 
-				switch strings.ToUpper(old.(string)) {
+					oldType, newType := o.(string), n.(string)
+					if newType != migratingTo {
+						return fmt.Errorf("a migration from `%s` to `%s` is in progress, please wait until this operation has completed before changing `account_replication_type` (configured type: `%s`)", oldType, migratingTo, newType)
+					}
+				}
+
+				return nil
+			}),
+			pluginsdk.ForceNewIfChange("account_replication_type", func(ctx context.Context, old, new, meta interface{}) bool {
+				n := strings.ToUpper(new.(string))
+
+				switch o := strings.ToUpper(old.(string)); o {
 				case "LRS", "GRS", "RAGRS":
-					if newAccRep == "GZRS" || newAccRep == "RAGZRS" || newAccRep == "ZRS" {
-						return true
+					if n == "GZRS" || n == "RAGZRS" || n == "ZRS" {
+						return storageReplicationZonalMigrationPairs[o] != n
 					}
 				case "ZRS", "GZRS", "RAGZRS":
-					if newAccRep == "LRS" || newAccRep == "GRS" || newAccRep == "RAGRS" {
-						return true
+					if n == "LRS" || n == "GRS" || n == "RAGRS" {
+						return storageReplicationZonalMigrationPairs[o] != n
 					}
 				}
 				return false
 			}),
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+				if !features.SixPointOh() {
+					// If both are `null`/unset, set diff to return default of `true` / `Enabled`
+					// to ensure removal functions while O+C in 5.x
+					if rawConfig := d.GetRawConfig().AsValueMap(); rawConfig["public_network_access"].IsNull() && rawConfig["public_network_access_enabled"].IsNull() {
+						if err := d.SetNew("public_network_access", string(storageaccounts.PublicNetworkAccessEnabled)); err != nil {
+							return err
+						}
+						if err := d.SetNew("public_network_access_enabled", true); err != nil {
+							return err
+						}
+					}
+				}
+
+				return nil
+			}),
 		),
 	}
+
+	if !features.SixPointOh() {
+		r.Schema["public_network_access_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			// Note: O+C because in 5.x this value may be affected by `public_network_access`
+			Computed:      true,
+			ConflictsWith: []string{"public_network_access"},
+			Deprecated:    "`public_network_access_enabled` has been deprecated in favour of `public_network_access` and will be removed in v6.0 of the AzureRM provider",
+		}
+
+		r.Schema["public_network_access"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C because in 5.x this value may be affected by `public_network_access_enabled`
+			Computed:      true,
+			ConflictsWith: []string{"public_network_access_enabled"},
+			ValidateFunc:  validation.StringInSlice(storageaccounts.PossibleValuesForPublicNetworkAccess(), false),
+		}
+	}
+
+	return r
 }
 
 func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -1206,10 +1282,18 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	provisionedBillingModelVersion := d.Get("provisioned_billing_model_version").(string)
 	replicationType := d.Get("account_replication_type").(string)
 
-	publicNetworkAccess := storageaccounts.PublicNetworkAccessDisabled
-	if d.Get("public_network_access_enabled").(bool) {
-		publicNetworkAccess = storageaccounts.PublicNetworkAccessEnabled
+	publicNetworkAccess := storageaccounts.PublicNetworkAccessEnabled
+	if !pluginsdk.IsExplicitlyNullInConfig(d, "public_network_access") {
+		// (features.SixPointOh) In 6.0, the only line needed is the below, it can be inlined in the payload instantiation
+		publicNetworkAccess = storageaccounts.PublicNetworkAccess(d.Get("public_network_access").(string))
 	}
+
+	if !features.SixPointOh() {
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "public_network_access_enabled") && !d.Get("public_network_access_enabled").(bool) {
+			publicNetworkAccess = storageaccounts.PublicNetworkAccessDisabled
+		}
+	}
+
 	expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
@@ -1233,14 +1317,14 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			AllowBlobPublicAccess:        pointer.To(d.Get("allow_nested_items_to_be_public").(bool)),
 			AllowCrossTenantReplication:  pointer.To(d.Get("cross_tenant_replication_enabled").(bool)),
 			AllowSharedKeyAccess:         pointer.To(d.Get("shared_access_key_enabled").(bool)),
-			DnsEndpointType:              pointer.To(storageaccounts.DnsEndpointType(dnsEndpointType)),
+			DnsEndpointType:              pointer.ToEnum[storageaccounts.DnsEndpointType](dnsEndpointType),
 			DefaultToOAuthAuthentication: pointer.To(d.Get("default_to_oauth_authentication").(bool)),
 			SupportsHTTPSTrafficOnly:     pointer.To(httpsTrafficOnlyEnabled),
 			IsNfsV3Enabled:               pointer.To(nfsV3Enabled),
 			IsHnsEnabled:                 pointer.To(isHnsEnabled),
 			IsLocalUserEnabled:           pointer.To(d.Get("local_user_enabled").(bool)),
 			IsSftpEnabled:                pointer.To(d.Get("sftp_enabled").(bool)),
-			MinimumTlsVersion:            pointer.To(storageaccounts.MinimumTlsVersion(d.Get("min_tls_version").(string))),
+			MinimumTlsVersion:            pointer.ToEnum[storageaccounts.MinimumTlsVersion](d.Get("min_tls_version").(string)),
 			NetworkAcls:                  expandAccountNetworkRules(d.Get("network_rules").([]interface{}), tenantId),
 			PublicNetworkAccess:          pointer.To(publicNetworkAccess),
 			SasPolicy:                    expandAccountSASPolicy(d.Get("sas_policy").([]interface{})),
@@ -1253,7 +1337,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if v := d.Get("allowed_copy_scope").(string); v != "" {
-		payload.Properties.AllowedCopyScope = pointer.To(storageaccounts.AllowedCopyScope(v))
+		payload.Properties.AllowedCopyScope = pointer.ToEnum[storageaccounts.AllowedCopyScope](v)
 	}
 	if v, ok := d.GetOk("azure_files_authentication"); ok {
 		expandAADFilesAuthentication, err := expandAccountAzureFilesAuthentication(v.([]interface{}))
@@ -1285,7 +1369,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			// default to "Hot"
 			accessTier = string(storageaccounts.AccessTierHot)
 		}
-		payload.Properties.AccessTier = pointer.To(storageaccounts.AccessTier(accessTier.(string)))
+		payload.Properties.AccessTier = pointer.ToEnum[storageaccounts.AccessTier](accessTier.(string))
 	}
 
 	// NFSv3 is supported for standard general-purpose v2 storage accounts and for premium block blob storage accounts.
@@ -1371,6 +1455,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	supportLevel := availableFunctionalityForAccount(accountKind, accountTier, replicationType)
+
 	if val, ok := d.GetOk("blob_properties"); ok {
 		if !supportLevel.supportBlob {
 			return fmt.Errorf("`blob_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
@@ -1535,10 +1620,10 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("access_tier") {
-		props.AccessTier = pointer.To(storageaccounts.AccessTier(d.Get("access_tier").(string)))
+		props.AccessTier = pointer.ToEnum[storageaccounts.AccessTier](d.Get("access_tier").(string))
 	}
 	if d.HasChange("allowed_copy_scope") {
-		props.AllowedCopyScope = pointer.To(storageaccounts.AllowedCopyScope(d.Get("allowed_copy_scope").(string)))
+		props.AllowedCopyScope = pointer.ToEnum[storageaccounts.AllowedCopyScope](d.Get("allowed_copy_scope").(string))
 	}
 	if d.HasChange("allow_nested_items_to_be_public") {
 		props.AllowBlobPublicAccess = pointer.To(d.Get("allow_nested_items_to_be_public").(bool))
@@ -1606,18 +1691,26 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		props.IsLocalUserEnabled = pointer.To(d.Get("local_user_enabled").(bool))
 	}
 	if d.HasChange("min_tls_version") {
-		props.MinimumTlsVersion = pointer.To(storageaccounts.MinimumTlsVersion(d.Get("min_tls_version").(string)))
+		props.MinimumTlsVersion = pointer.ToEnum[storageaccounts.MinimumTlsVersion](d.Get("min_tls_version").(string))
 	}
 	if d.HasChange("network_rules") {
 		props.NetworkAcls = expandAccountNetworkRules(d.Get("network_rules").([]interface{}), tenantId)
 	}
-	if d.HasChange("public_network_access_enabled") {
-		publicNetworkAccess := storageaccounts.PublicNetworkAccessDisabled
-		if d.Get("public_network_access_enabled").(bool) {
-			publicNetworkAccess = storageaccounts.PublicNetworkAccessEnabled
-		}
-		props.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+
+	if d.HasChange("public_network_access") {
+		props.PublicNetworkAccess = pointer.ToEnum[storageaccounts.PublicNetworkAccess](d.Get("public_network_access").(string))
 	}
+
+	if !features.SixPointOh() {
+		if d.HasChange("public_network_access_enabled") {
+			publicNetworkAccess := storageaccounts.PublicNetworkAccessDisabled
+			if d.Get("public_network_access_enabled").(bool) {
+				publicNetworkAccess = storageaccounts.PublicNetworkAccessEnabled
+			}
+			props.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+		}
+	}
+
 	if d.HasChange("routing") {
 		props.RoutingPreference = expandAccountRoutingPreference(d.Get("routing").([]interface{}))
 	}
@@ -1646,10 +1739,27 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if d.HasChange("account_kind") {
 		payload.Kind = accountKind
 	}
+
+	// avoid triggering an unnecessary update (`PUT`) API request if there are no other changes besides the below items
+	// `account_replication_type` may only require a migration request without the main `PUT` request
+	// `azure_files_authentication`, `blob_properties`, and `share_properties` ecah use their own API requests
+	updateRequired := d.HasChangesExcept("account_replication_type", "azure_files_authentication", "blob_properties", "share_properties")
+
+	migrationRequired := false
 	if d.HasChange("account_replication_type") {
-		// storageType is derived from "account_replication_type", "account_tier" (force-new) and "provisioned_billing_model_version" (force-new)
-		payload.Sku = storageaccounts.Sku{
-			Name: storageaccounts.SkuName(storageType),
+		// certain changes to `account_replication_type` require a storage migration, in this scenario we'll omit the updated SKU and trigger a migration instead
+		o, n := d.GetChange("account_replication_type")
+		oRT, nRT := o.(string), n.(string)
+		if storageReplicationZonalMigrationPairs[oRT] == nRT {
+			migrationRequired = true
+		}
+
+		if !migrationRequired {
+			payload.Sku = storageaccounts.Sku{
+				// storageType is derived from "account_replication_type", "account_tier" (force-new) and "provisioned_billing_model_version" (force-new)
+				Name: storageaccounts.SkuName(storageType),
+			}
+			updateRequired = true
 		}
 	}
 	if d.HasChange("identity") {
@@ -1659,8 +1769,10 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if err := client.CreateCallbackThenPoll(ctx, *id, payload, sdk.SetIDCallback(meta, id, d)); err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
+	if updateRequired {
+		if err := client.CreateThenPoll(ctx, *id, payload); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
 	// azure_files_authentication must be the last to be updated, cause it'll occupy the storage account for several minutes after receiving the response 200 OK. Issue: https://github.com/Azure/azure-rest-api-specs/issues/11272
@@ -1762,6 +1874,20 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		if _, err = storageClient.FileServices.SetServiceProperties(ctx, *id, sharePayload); err != nil {
 			return fmt.Errorf("updating File Share Properties for %s: %+v", *id, err)
 		}
+	}
+
+	if migrationRequired {
+		migrationPayload := storageaccounts.StorageAccountMigration{
+			Properties: storageaccounts.StorageAccountMigrationProperties{
+				TargetSkuName: storageaccounts.SkuName(storageType),
+			},
+		}
+
+		if _, err := client.CustomerInitiatedMigration(ctx, *id, migrationPayload); err != nil {
+			return fmt.Errorf("triggering account migration for %s: %+v", id, err)
+		}
+		d.Set("account_replication_type_migration_in_progress", true)
+		d.Set("account_replication_type_migrating_to", replicationType)
 	}
 
 	return resourceStorageAccountRead(d, meta)
@@ -1876,20 +2002,8 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 		}
 		d.Set("secondary_location", pointer.From(props.SecondaryLocation))
 		d.Set("sftp_enabled", pointer.From(props.IsSftpEnabled))
-
-		// NOTE: The Storage API returns `null` rather than the default value in the API response for existing
-		// resources when a new field gets added - meaning we need to default the values below.
-		allowBlobPublicAccess := false
-		if props.AllowBlobPublicAccess != nil {
-			allowBlobPublicAccess = *props.AllowBlobPublicAccess
-		}
-		d.Set("allow_nested_items_to_be_public", allowBlobPublicAccess)
-
-		defaultToOAuthAuthentication := false
-		if props.DefaultToOAuthAuthentication != nil {
-			defaultToOAuthAuthentication = *props.DefaultToOAuthAuthentication
-		}
-		d.Set("default_to_oauth_authentication", defaultToOAuthAuthentication)
+		d.Set("allow_nested_items_to_be_public", pointer.From(props.AllowBlobPublicAccess))
+		d.Set("default_to_oauth_authentication", pointer.From(props.DefaultToOAuthAuthentication))
 
 		dnsEndpointType := storageaccounts.DnsEndpointTypeStandard
 		if props.DnsEndpointType != nil {
@@ -1915,11 +2029,14 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 		}
 		d.Set("min_tls_version", minTlsVersion)
 
-		publicNetworkAccessEnabled := true
-		if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == storageaccounts.PublicNetworkAccessDisabled {
-			publicNetworkAccessEnabled = false
+		if !features.SixPointOh() {
+			publicNetworkAccessEnabled := true
+			if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess != storageaccounts.PublicNetworkAccessEnabled {
+				publicNetworkAccessEnabled = false
+			}
+			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 		}
-		d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
+		d.Set("public_network_access", pointer.FromEnum(props.PublicNetworkAccess))
 
 		allowSharedKeyAccess := true
 		if props.AllowSharedKeyAccess != nil {
@@ -2029,6 +2146,24 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 	if err := d.Set("share_properties", shareProperties); err != nil {
 		return fmt.Errorf("setting `share_properties` for %s: %+v", id, err)
 	}
+
+	resp, err := storageClient.StorageAccountMigrations.StorageAccountsGetCustomerInitiatedMigration(ctx, id)
+	if err != nil {
+		return fmt.Errorf("retrieving migration status for %s: %+v", id, err)
+	}
+
+	migrationInProgress, migratingTo := false, ""
+	if resp.Model != nil {
+		props := resp.Model.Properties
+		migrationInProgress = pointer.From(props.MigrationStatus) == storageaccountmigrations.MigrationStatusInProgress || pointer.From(props.MigrationStatus) == storageaccountmigrations.MigrationStatusSubmittedForConversion
+		if migrationInProgress {
+			if splitSKU := strings.Split(string(props.TargetSkuName), "_"); len(splitSKU) == 2 {
+				migratingTo = splitSKU[1]
+			}
+		}
+	}
+	d.Set("account_replication_type_migration_in_progress", migrationInProgress)
+	d.Set("account_replication_type_migrating_to", migratingTo)
 
 	return nil
 }
@@ -2190,7 +2325,7 @@ func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVau
 		}
 	}
 
-	encryption := &storageaccounts.Encryption{
+	return &storageaccounts.Encryption{
 		Services: &storageaccounts.EncryptionServices{
 			Blob: &storageaccounts.EncryptionService{
 				Enabled: pointer.To(true),
@@ -2216,9 +2351,7 @@ func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVau
 			Keyversion:  pointer.To(keyID.Version),
 			Keyvaulturi: pointer.To(keyID.KeyVaultBaseURL),
 		},
-	}
-
-	return encryption, nil
+	}, nil
 }
 
 func flattenAccountCustomerManagedKey(input *storageaccounts.Encryption) ([]any, error) {
@@ -2256,7 +2389,7 @@ func expandAccountImmutabilityPolicy(input []interface{}) *storageaccounts.Immut
 		ImmutabilityPolicy: &storageaccounts.AccountImmutabilityPolicyProperties{
 			AllowProtectedAppendWrites:            pointer.To(v["allow_protected_append_writes"].(bool)),
 			ImmutabilityPeriodSinceCreationInDays: pointer.To(int64(v["period_since_creation_in_days"].(int))),
-			State:                                 pointer.To(storageaccounts.AccountImmutabilityPolicyState(v["state"].(string))),
+			State:                                 pointer.ToEnum[storageaccounts.AccountImmutabilityPolicyState](v["state"].(string)),
 		},
 	}
 }
@@ -2350,7 +2483,7 @@ func expandAccountAzureFilesAuthentication(input []interface{}) (*storageaccount
 		}
 
 		output.ActiveDirectoryProperties = ad
-		output.DefaultSharePermission = pointer.To(storageaccounts.DefaultSharePermission(v["default_share_level_permission"].(string)))
+		output.DefaultSharePermission = pointer.ToEnum[storageaccounts.DefaultSharePermission](v["default_share_level_permission"].(string))
 	}
 
 	return &output, nil
@@ -2378,7 +2511,7 @@ func expandAccountRoutingPreference(input []interface{}) *storageaccounts.Routin
 	return &storageaccounts.RoutingPreference{
 		PublishMicrosoftEndpoints: pointer.To(v["publish_microsoft_endpoints"].(bool)),
 		PublishInternetEndpoints:  pointer.To(v["publish_internet_endpoints"].(bool)),
-		RoutingChoice:             pointer.To(storageaccounts.RoutingChoice(v["choice"].(string))),
+		RoutingChoice:             pointer.ToEnum[storageaccounts.RoutingChoice](v["choice"].(string)),
 	}
 }
 
@@ -2540,10 +2673,7 @@ func flattenAccountBlobServiceProperties(input *blobservices.BlobServiceProperti
 		}
 	}
 
-	var defaultServiceVersion string
-	if input.Properties.DefaultServiceVersion != nil {
-		defaultServiceVersion = *input.Properties.DefaultServiceVersion
-	}
+	defaultServiceVersion := pointer.From(input.Properties.DefaultServiceVersion)
 
 	var LastAccessTimeTrackingPolicy bool
 	if v := input.Properties.LastAccessTimeTrackingPolicy; v != nil {
@@ -2595,14 +2725,9 @@ func flattenAccountBlobDeleteRetentionPolicy(input *blobservices.DeleteRetention
 			days = int(*input.Days)
 		}
 
-		var permanentDeleteEnabled bool
-		if input.AllowPermanentDelete != nil {
-			permanentDeleteEnabled = *input.AllowPermanentDelete
-		}
-
 		deleteRetentionPolicy = append(deleteRetentionPolicy, map[string]interface{}{
 			"days":                     days,
-			"permanent_delete_enabled": permanentDeleteEnabled,
+			"permanent_delete_enabled": pointer.From(input.AllowPermanentDelete),
 		})
 	}
 

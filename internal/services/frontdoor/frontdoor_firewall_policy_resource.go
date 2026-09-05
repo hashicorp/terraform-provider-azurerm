@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -40,7 +39,7 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.WebApplicationFirewallPolicyIDInsensitively(id)
+			_, err := webapplicationfirewallpolicies.ParseFrontDoorWebApplicationFirewallPolicyIDInsensitively(id)
 			return err
 		}),
 
@@ -70,13 +69,10 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 			},
 
 			"mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(webapplicationfirewallpolicies.PolicyModeDetection),
-					string(webapplicationfirewallpolicies.PolicyModePrevention),
-				}, false),
-				Default: string(webapplicationfirewallpolicies.PolicyModePrevention),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForPolicyMode(), false),
+				Default:      string(webapplicationfirewallpolicies.PolicyModePrevention),
 			},
 
 			"redirect_url": {
@@ -128,12 +124,9 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 						},
 
 						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(webapplicationfirewallpolicies.RuleTypeMatchRule),
-								string(webapplicationfirewallpolicies.RuleTypeRateLimitRule),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForRuleType(), false),
 						},
 
 						"rate_limit_duration_in_minutes": {
@@ -149,14 +142,9 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 						},
 
 						"action": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(webapplicationfirewallpolicies.ActionTypeAllow),
-								string(webapplicationfirewallpolicies.ActionTypeBlock),
-								string(webapplicationfirewallpolicies.ActionTypeLog),
-								string(webapplicationfirewallpolicies.ActionTypeRedirect),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForActionType(), false),
 						},
 
 						"match_condition": {
@@ -166,19 +154,9 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"match_variable": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(webapplicationfirewallpolicies.MatchVariableCookies),
-											string(webapplicationfirewallpolicies.MatchVariablePostArgs),
-											string(webapplicationfirewallpolicies.MatchVariableQueryString),
-											string(webapplicationfirewallpolicies.MatchVariableRemoteAddr),
-											string(webapplicationfirewallpolicies.MatchVariableRequestBody),
-											string(webapplicationfirewallpolicies.MatchVariableRequestHeader),
-											string(webapplicationfirewallpolicies.MatchVariableRequestMethod),
-											string(webapplicationfirewallpolicies.MatchVariableRequestUri),
-											string(webapplicationfirewallpolicies.MatchVariableSocketAddr),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForMatchVariable(), false),
 									},
 
 									"match_values": {
@@ -192,22 +170,9 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 									},
 
 									"operator": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(webapplicationfirewallpolicies.OperatorAny),
-											string(webapplicationfirewallpolicies.OperatorBeginsWith),
-											string(webapplicationfirewallpolicies.OperatorContains),
-											string(webapplicationfirewallpolicies.OperatorEndsWith),
-											string(webapplicationfirewallpolicies.OperatorEqual),
-											string(webapplicationfirewallpolicies.OperatorGeoMatch),
-											string(webapplicationfirewallpolicies.OperatorGreaterThan),
-											string(webapplicationfirewallpolicies.OperatorGreaterThanOrEqual),
-											string(webapplicationfirewallpolicies.OperatorIPMatch),
-											string(webapplicationfirewallpolicies.OperatorLessThan),
-											string(webapplicationfirewallpolicies.OperatorLessThanOrEqual),
-											string(webapplicationfirewallpolicies.OperatorRegEx),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForOperator(), false),
 									},
 
 									"selector": {
@@ -227,15 +192,8 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 										Optional: true,
 										MaxItems: 5,
 										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												string(webapplicationfirewallpolicies.TransformTypeLowercase),
-												string(webapplicationfirewallpolicies.TransformTypeRemoveNulls),
-												string(webapplicationfirewallpolicies.TransformTypeTrim),
-												string(webapplicationfirewallpolicies.TransformTypeUppercase),
-												string(webapplicationfirewallpolicies.TransformTypeURLDecode),
-												string(webapplicationfirewallpolicies.TransformTypeURLEncode),
-											}, false),
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForTransformType(), false),
 										},
 									},
 								},
@@ -270,25 +228,14 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"match_variable": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(webapplicationfirewallpolicies.ManagedRuleExclusionMatchVariableQueryStringArgNames),
-											string(webapplicationfirewallpolicies.ManagedRuleExclusionMatchVariableRequestBodyPostArgNames),
-											string(webapplicationfirewallpolicies.ManagedRuleExclusionMatchVariableRequestCookieNames),
-											string(webapplicationfirewallpolicies.ManagedRuleExclusionMatchVariableRequestHeaderNames),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForManagedRuleExclusionMatchVariable(), false),
 									},
 									"operator": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorContains),
-											string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorEndsWith),
-											string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorEquals),
-											string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorEqualsAny),
-											string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorStartsWith),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForManagedRuleExclusionSelectorMatchOperator(), false),
 									},
 									"selector": {
 										Type:         pluginsdk.TypeString,
@@ -318,25 +265,14 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"match_variable": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(webapplicationfirewallpolicies.ManagedRuleExclusionMatchVariableQueryStringArgNames),
-														string(webapplicationfirewallpolicies.ManagedRuleExclusionMatchVariableRequestBodyPostArgNames),
-														string(webapplicationfirewallpolicies.ManagedRuleExclusionMatchVariableRequestCookieNames),
-														string(webapplicationfirewallpolicies.ManagedRuleExclusionMatchVariableRequestHeaderNames),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForManagedRuleExclusionMatchVariable(), false),
 												},
 												"operator": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorContains),
-														string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorEndsWith),
-														string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorEquals),
-														string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorEqualsAny),
-														string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorStartsWith),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForManagedRuleExclusionSelectorMatchOperator(), false),
 												},
 												"selector": {
 													Type:         pluginsdk.TypeString,
@@ -372,25 +308,14 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 													Elem: &pluginsdk.Resource{
 														Schema: map[string]*pluginsdk.Schema{
 															"match_variable": {
-																Type:     pluginsdk.TypeString,
-																Required: true,
-																ValidateFunc: validation.StringInSlice([]string{
-																	string(webapplicationfirewallpolicies.ManagedRuleExclusionMatchVariableQueryStringArgNames),
-																	string(webapplicationfirewallpolicies.ManagedRuleExclusionMatchVariableRequestBodyPostArgNames),
-																	string(webapplicationfirewallpolicies.ManagedRuleExclusionMatchVariableRequestCookieNames),
-																	string(webapplicationfirewallpolicies.ManagedRuleExclusionMatchVariableRequestHeaderNames),
-																}, false),
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForManagedRuleExclusionMatchVariable(), false),
 															},
 															"operator": {
-																Type:     pluginsdk.TypeString,
-																Required: true,
-																ValidateFunc: validation.StringInSlice([]string{
-																	string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorContains),
-																	string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorEndsWith),
-																	string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorEquals),
-																	string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorEqualsAny),
-																	string(webapplicationfirewallpolicies.ManagedRuleExclusionSelectorMatchOperatorStartsWith),
-																}, false),
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForManagedRuleExclusionSelectorMatchOperator(), false),
 															},
 															"selector": {
 																Type:         pluginsdk.TypeString,
@@ -402,14 +327,9 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 												},
 
 												"action": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(webapplicationfirewallpolicies.ActionTypeAllow),
-														string(webapplicationfirewallpolicies.ActionTypeBlock),
-														string(webapplicationfirewallpolicies.ActionTypeLog),
-														string(webapplicationfirewallpolicies.ActionTypeRedirect),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForActionType(), false),
 												},
 											},
 										},
@@ -655,13 +575,12 @@ func expandFrontDoorFirewallMatchConditions(input []interface{}) []webapplicatio
 		matchVariable := match["match_variable"].(string)
 		selector := match["selector"].(string)
 		operator := match["operator"].(string)
-		negateCondition := match["negation_condition"].(bool)
 		matchValues := match["match_values"].([]interface{})
 		transforms := match["transforms"].([]interface{})
 
 		matchCondition := webapplicationfirewallpolicies.MatchCondition{
 			Operator:        webapplicationfirewallpolicies.Operator(operator),
-			NegateCondition: &negateCondition,
+			NegateCondition: pointer.To(match["negation_condition"].(bool)),
 			MatchValue:      *helpers.ExpandStringSlice(matchValues),
 			Transforms:      expandFrontDoorFirewallTransforms(transforms),
 		}
@@ -704,19 +623,17 @@ func expandFrontDoorFirewallManagedRules(input []interface{}) *webapplicationfir
 
 		ruleType := managedRule["type"].(string)
 		version := managedRule["version"].(string)
-		overrides := managedRule["override"].([]interface{})
-		exclusions := managedRule["exclusion"].([]interface{})
 
 		managedRuleSet := webapplicationfirewallpolicies.ManagedRuleSet{
 			RuleSetType:    ruleType,
 			RuleSetVersion: version,
 		}
 
-		if exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(exclusions); exclusions != nil {
+		if exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(managedRule["exclusion"].([]interface{})); exclusions != nil {
 			managedRuleSet.Exclusions = exclusions
 		}
 
-		if ruleGroupOverrides := expandFrontDoorFirewallManagedRuleGroupOverride(overrides); ruleGroupOverrides != nil {
+		if ruleGroupOverrides := expandFrontDoorFirewallManagedRuleGroupOverride(managedRule["override"].([]interface{})); ruleGroupOverrides != nil {
 			managedRuleSet.RuleGroupOverrides = ruleGroupOverrides
 		}
 
@@ -763,18 +680,16 @@ func expandFrontDoorFirewallManagedRuleGroupOverride(input []interface{}) *[]web
 		override := v.(map[string]interface{})
 
 		ruleGroupName := override["rule_group_name"].(string)
-		rules := override["rule"].([]interface{})
-		exclusions := override["exclusion"].([]interface{})
 
 		managedRuleGroupOverride := webapplicationfirewallpolicies.ManagedRuleGroupOverride{
 			RuleGroupName: ruleGroupName,
 		}
 
-		if exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(exclusions); exclusions != nil {
+		if exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(override["exclusion"].([]interface{})); exclusions != nil {
 			managedRuleGroupOverride.Exclusions = exclusions
 		}
 
-		if managedRuleOverride := expandFrontDoorFirewallRuleOverride(rules); managedRuleOverride != nil {
+		if managedRuleOverride := expandFrontDoorFirewallRuleOverride(override["rule"].([]interface{})); managedRuleOverride != nil {
 			managedRuleGroupOverride.Rules = managedRuleOverride
 		}
 
@@ -798,16 +713,14 @@ func expandFrontDoorFirewallRuleOverride(input []interface{}) *[]webapplicationf
 			enabled = webapplicationfirewallpolicies.ManagedRuleEnabledStateEnabled
 		}
 		ruleId := rule["rule_id"].(string)
-		action := webapplicationfirewallpolicies.ActionType(rule["action"].(string))
-		exclusions := rule["exclusion"].([]interface{})
 
 		managedRuleOverride := webapplicationfirewallpolicies.ManagedRuleOverride{
 			RuleId:       ruleId,
 			EnabledState: &enabled,
-			Action:       &action,
+			Action:       pointer.ToEnum[webapplicationfirewallpolicies.ActionType](rule["action"].(string)),
 		}
 
-		if exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(exclusions); exclusions != nil {
+		if exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(rule["exclusion"].([]interface{})); exclusions != nil {
 			managedRuleOverride.Exclusions = exclusions
 		}
 

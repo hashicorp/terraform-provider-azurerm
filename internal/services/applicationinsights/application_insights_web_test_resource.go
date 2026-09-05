@@ -178,7 +178,7 @@ func resourceApplicationInsightsWebTestsCreate(d *pluginsdk.ResourceData, meta i
 	webTest := webtests.WebTest{
 		Name:     pointer.To(id.WebTestName),
 		Location: location.Normalize(d.Get("location").(string)),
-		Kind:     pointer.To(webtests.WebTestKind(d.Get("kind").(string))),
+		Kind:     pointer.ToEnum[webtests.WebTestKind](d.Get("kind").(string)),
 		Properties: &webtests.WebTestProperties{
 			SyntheticMonitorId: id.WebTestName,
 			Name:               id.WebTestName,
@@ -384,9 +384,8 @@ func expandApplicationInsightsWebTestGeoLocations(input []interface{}) []webtest
 	locations := make([]webtests.WebTestGeolocation, 0)
 
 	for _, v := range input {
-		lc := v.(string)
 		loc := webtests.WebTestGeolocation{
-			Id: &lc,
+			Id: pointer.To(v.(string)),
 		}
 		locations = append(locations, loc)
 	}

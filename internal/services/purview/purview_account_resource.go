@@ -72,7 +72,7 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 			"managed_resource_group_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: resourcegroups.ValidateName,
 			},
@@ -337,8 +337,7 @@ func resourcePurviewAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

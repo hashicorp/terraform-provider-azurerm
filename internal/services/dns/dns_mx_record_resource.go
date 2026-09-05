@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -218,14 +219,9 @@ func flattenAzureRmDnsMxRecords(records *[]recordsets.MxRecord) []map[string]int
 				preference = strconv.Itoa(int(*record.Preference))
 			}
 
-			exchange := ""
-			if record.Exchange != nil {
-				exchange = *record.Exchange
-			}
-
 			results = append(results, map[string]interface{}{
 				"preference": preference,
-				"exchange":   exchange,
+				"exchange":   pointer.From(record.Exchange),
 			})
 		}
 	}
@@ -244,11 +240,10 @@ func expandAzureRmDnsMxRecords(d *pluginsdk.ResourceData) *[]recordsets.MxRecord
 		mxrecord := v.(map[string]interface{})
 		preference := mxrecord["preference"].(string)
 		i64, _ := strconv.ParseInt(preference, 10, 32)
-		exchange := mxrecord["exchange"].(string)
 
 		records[i] = recordsets.MxRecord{
 			Preference: &i64,
-			Exchange:   &exchange,
+			Exchange:   pointer.To(mxrecord["exchange"].(string)),
 		}
 	}
 

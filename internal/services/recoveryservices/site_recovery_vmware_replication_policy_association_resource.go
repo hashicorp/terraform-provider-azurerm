@@ -84,8 +84,7 @@ func (s VMWareReplicationPolicyAssociationResource) Create() sdk.ResourceFunc {
 			containerClient := metadata.Client.RecoveryServices.ProtectionContainerClient
 			settingsClient := metadata.Client.RecoveryServices.VaultsSettingsClient
 
-			err = validateReplicationPolicyAssociationVaultConfig(ctx, settingsClient, model.RecoveryVaultId)
-			if err != nil {
+			if err = validateReplicationPolicyAssociationVaultConfig(ctx, settingsClient, model.RecoveryVaultId); err != nil {
 				return fmt.Errorf("validating %s: %+v", model.RecoveryVaultId, err)
 			}
 
@@ -196,8 +195,7 @@ func (s VMWareReplicationPolicyAssociationResource) Delete() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.DeleteThenPoll(ctx, *id, input)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id, input); err != nil {
 				return fmt.Errorf("deleting %s : %+v", id.String(), err)
 			}
 

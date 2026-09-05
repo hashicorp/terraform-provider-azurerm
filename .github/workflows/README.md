@@ -5,7 +5,7 @@
 Workflow files are grouped by prefix:
 
 | Prefix | Purpose |
-|---|---|
+| --- | --- |
 | `pr-*` | Pull request automation (triage, labels, housekeeping) |
 | `pr-check-*` | Standalone PR checks that cannot live inside `pr-checks-combined.yaml` (special runners, OIDC auth, or their own path filters) |
 | `pr-waiting-response-*` | The `waiting-response` label machinery (see below) |

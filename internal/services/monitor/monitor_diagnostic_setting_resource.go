@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
@@ -20,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -102,7 +104,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: false,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice([]string{
 					"Dedicated",
 					"AzureDiagnostics", // Not documented in azure API, but some resource has skew. See: https://github.com/Azure/azure-rest-api-specs/issues/9281
@@ -170,7 +172,7 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	var logs []diagnosticsettings.LogSettings
+	var logs []diagnosticsettings.DiagnosticsLogSettings
 	hasEnabledLogs := false
 	if enabledLogs, ok := d.GetOk("enabled_log"); ok {
 		enabledLogsList := enabledLogs.(*pluginsdk.Set).List()
@@ -185,7 +187,7 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	// if no logs/metrics are enabled the API "creates" but 404's on Read
-	var metrics []diagnosticsettings.MetricSettings
+	var metrics []diagnosticsettings.DiagnosticsMetricSettings
 	hasEnabledMetrics := false
 
 	if enabledMetrics, ok := d.GetOk("enabled_metric"); ok {
@@ -237,23 +239,16 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("creating Monitor Diagnostics Setting %q for Resource %q: %+v", id.DiagnosticSettingName, id.ResourceUri, err)
 	}
 
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal error: could not retrieve context deadline for %s", id.ID())
-	}
-
 	// https://github.com/Azure/azure-rest-api-specs/issues/30249
 	log.Printf("[DEBUG] Waiting for Monitor Diagnostic Setting %q for Resource %q to become ready", id.DiagnosticSettingName, id.ResourceUri)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"NotFound"},
-		Target:                    []string{"Exists"},
-		Refresh:                   monitorDiagnosticSettingRefreshFunc(ctx, client, id),
-		MinTimeout:                5 * time.Second,
-		ContinuousTargetOccurence: 3,
-		Timeout:                   time.Until(deadline),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(3, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, id)
+		return resp.HttpResponse, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:              5 * time.Second,
+		RetryErrorStatusCodes: []int{http.StatusNotFound},
+	})
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for Monitor Diagnostic Setting %q for Resource %q to become ready: %s", id.DiagnosticSettingName, id.ResourceUri, err)
 	}
 
@@ -280,7 +275,7 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("unexpected null model of Monitor Diagnostics Setting %q for Resource %q", id.DiagnosticSettingName, id.ResourceUri)
 	}
 
-	var logs []diagnosticsettings.LogSettings
+	var logs []diagnosticsettings.DiagnosticsLogSettings
 	hasEnabledLogs := false
 
 	if d.HasChange("enabled_log") {
@@ -310,14 +305,13 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	var metrics []diagnosticsettings.MetricSettings
+	var metrics []diagnosticsettings.DiagnosticsMetricSettings
 	hasEnabledMetrics := false
 
 	if d.HasChange("enabled_metric") {
 		enabledMetrics := d.Get("enabled_metric").(*pluginsdk.Set).List()
 		if len(enabledMetrics) > 0 {
-			expandEnabledMetrics := expandMonitorDiagnosticsSettingsEnabledMetrics(enabledMetrics)
-			metrics = expandEnabledMetrics
+			metrics = expandMonitorDiagnosticsSettingsEnabledMetrics(enabledMetrics)
 			hasEnabledMetrics = true
 		} else if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.Metrics != nil {
 			// if the enabled_metric is updated to empty, we disable the metric explicitly
@@ -452,8 +446,7 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 			}
 			d.Set("log_analytics_destination_type", logAnalyticsDestinationType)
 
-			enabledLogs := flattenMonitorDiagnosticEnabledLogs(resp.Model.Properties.Logs)
-			if err = d.Set("enabled_log", enabledLogs); err != nil {
+			if err = d.Set("enabled_log", flattenMonitorDiagnosticEnabledLogs(resp.Model.Properties.Logs)); err != nil {
 				return fmt.Errorf("setting `enabled_log`: %+v", err)
 			}
 
@@ -483,45 +476,24 @@ func resourceMonitorDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal error: could not retrieve context deadline for %s", id.ID())
-	}
-
 	// API appears to be eventually consistent (identified during tainting this resource)
 	log.Printf("[DEBUG] Waiting for Monitor Diagnostic Setting %q for Resource %q to disappear", id.DiagnosticSettingName, id.ResourceUri)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"Exists"},
-		Target:                    []string{"NotFound"},
-		Refresh:                   monitorDiagnosticSettingRefreshFunc(ctx, client, *id),
-		MinTimeout:                15 * time.Second,
-		ContinuousTargetOccurence: 5,
-		Timeout:                   time.Until(deadline),
-	}
-
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(5, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, *id)
+		return resp.HttpResponse, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:         15 * time.Second,
+		TargetStatusCode: pointer.To(http.StatusNotFound),
+	})
+	if err = poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for Monitor Diagnostic Setting %q for Resource %q to disappear: %s", id.DiagnosticSettingName, id.ResourceUri, err)
 	}
 
 	return nil
 }
 
-func monitorDiagnosticSettingRefreshFunc(ctx context.Context, client *diagnosticsettings.DiagnosticSettingsClient, targetResourceId diagnosticsettings.ScopedDiagnosticSettingId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, targetResourceId)
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return "NotFound", "NotFound", nil
-			}
-			return nil, "", fmt.Errorf("issuing read request in monitorDiagnosticSettingRefreshFunc: %s", err)
-		}
-
-		return res, "Exists", nil
-	}
-}
-
-func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) (*[]diagnosticsettings.LogSettings, error) {
-	results := make([]diagnosticsettings.LogSettings, 0)
+func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) (*[]diagnosticsettings.DiagnosticsLogSettings, error) {
+	results := make([]diagnosticsettings.DiagnosticsLogSettings, 0)
 
 	for _, raw := range input {
 		v := raw.(map[string]interface{})
@@ -529,7 +501,7 @@ func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) (*[]diagno
 		category := v["category"].(string)
 		categoryGroup := v["category_group"].(string)
 
-		output := diagnosticsettings.LogSettings{
+		output := diagnosticsettings.DiagnosticsLogSettings{
 			Enabled: true,
 		}
 
@@ -548,7 +520,7 @@ func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) (*[]diagno
 	return &results, nil
 }
 
-func flattenMonitorDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSettings) []interface{} {
+func flattenMonitorDiagnosticEnabledLogs(input *[]diagnosticsettings.DiagnosticsLogSettings) []interface{} {
 	enabledLogs := make([]interface{}, 0)
 	if input == nil {
 		return enabledLogs
@@ -561,24 +533,16 @@ func flattenMonitorDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSettings
 			continue
 		}
 
-		category := ""
-		if v.Category != nil {
-			category = *v.Category
-		}
-		output["category"] = category
+		output["category"] = pointer.From(v.Category)
 
-		categoryGroup := ""
-		if v.CategoryGroup != nil {
-			categoryGroup = *v.CategoryGroup
-		}
-		output["category_group"] = categoryGroup
+		output["category_group"] = pointer.From(v.CategoryGroup)
 
 		enabledLogs = append(enabledLogs, output)
 	}
 	return enabledLogs
 }
 
-func flattenMonitorDiagnosticEnabledMetrics(input *[]diagnosticsettings.MetricSettings) []interface{} {
+func flattenMonitorDiagnosticEnabledMetrics(input *[]diagnosticsettings.DiagnosticsMetricSettings) []interface{} {
 	enabledLogs := make([]interface{}, 0)
 	if input == nil {
 		return enabledLogs
@@ -597,13 +561,13 @@ func flattenMonitorDiagnosticEnabledMetrics(input *[]diagnosticsettings.MetricSe
 	return enabledLogs
 }
 
-func expandMonitorDiagnosticsSettingsEnabledMetrics(input []interface{}) []diagnosticsettings.MetricSettings {
-	results := make([]diagnosticsettings.MetricSettings, 0)
+func expandMonitorDiagnosticsSettingsEnabledMetrics(input []interface{}) []diagnosticsettings.DiagnosticsMetricSettings {
+	results := make([]diagnosticsettings.DiagnosticsMetricSettings, 0)
 
 	for _, raw := range input {
 		v := raw.(map[string]interface{})
 
-		output := diagnosticsettings.MetricSettings{
+		output := diagnosticsettings.DiagnosticsMetricSettings{
 			Category: pointer.To(v["category"].(string)),
 			Enabled:  true,
 		}

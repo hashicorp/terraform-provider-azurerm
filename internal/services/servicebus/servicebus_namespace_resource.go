@@ -81,13 +81,9 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(namespaces.SkuNameBasic),
-					string(namespaces.SkuNameStandard),
-					string(namespaces.SkuNamePremium),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForSkuName(), false),
 			},
 
 			"capacity": {
@@ -180,18 +176,15 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 			"network_rule_set": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"default_action": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(namespaces.DefaultActionAllow),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(namespaces.DefaultActionAllow),
-								string(namespaces.DefaultActionDeny),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(namespaces.DefaultActionAllow),
+							ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForDefaultAction(), false),
 						},
 
 						"public_network_access_enabled": {
@@ -303,13 +296,12 @@ func resourceServiceBusNamespaceCreate(d *pluginsdk.ResourceData, meta interface
 		publicNetworkEnabled = namespaces.PublicNetworkAccessDisabled
 	}
 
-	s := namespaces.SkuTier(sku)
 	parameters := namespaces.SBNamespace{
 		Location: location,
 		Identity: identity,
 		Sku: &namespaces.SBSku{
 			Name: namespaces.SkuName(sku),
-			Tier: &s,
+			Tier: pointer.ToEnum[namespaces.SkuTier](sku),
 		},
 		Properties: &namespaces.SBNamespaceProperties{
 			Encryption:          expandServiceBusNamespaceEncryption(d.Get("customer_managed_key").([]interface{})),
@@ -320,8 +312,7 @@ func resourceServiceBusNamespaceCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if tlsValue := d.Get("minimum_tls_version").(string); tlsValue != "" {
-		minimumTls := namespaces.TlsVersion(tlsValue)
-		parameters.Properties.MinimumTlsVersion = &minimumTls
+		parameters.Properties.MinimumTlsVersion = pointer.ToEnum[namespaces.TlsVersion](tlsValue)
 	}
 
 	if capacity := d.Get("capacity"); capacity != nil {
@@ -401,10 +392,9 @@ func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if d.HasChange("sku") {
 		sku := d.Get("sku").(string)
-		s := namespaces.SkuTier(sku)
 		payload.Sku = &namespaces.SBSku{
 			Name: namespaces.SkuName(sku),
-			Tier: &s,
+			Tier: pointer.ToEnum[namespaces.SkuTier](sku),
 		}
 	}
 
@@ -421,7 +411,7 @@ func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("minimum_tls_version") {
-		payload.Properties.MinimumTlsVersion = pointer.To(namespaces.TlsVersion(d.Get("minimum_tls_version").(string)))
+		payload.Properties.MinimumTlsVersion = pointer.ToEnum[namespaces.TlsVersion](d.Get("minimum_tls_version").(string))
 	}
 
 	if d.HasChange("capacity") {
@@ -598,10 +588,9 @@ func expandServiceBusNamespaceEncryption(input []interface{}) *namespaces.Encryp
 	}
 	v := input[0].(map[string]interface{})
 	keyId, _ := keyvault.ParseNestedItemID(v["key_vault_key_id"].(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
-	keySource := namespaces.KeySourceMicrosoftPointKeyVault
 
 	encryption := namespaces.Encryption{
-		KeySource:                       &keySource,
+		KeySource:                       pointer.To(namespaces.KeySourceMicrosoftPointKeyVault),
 		RequireInfrastructureEncryption: pointer.To(v["infrastructure_encryption_enabled"].(bool)),
 	}
 
@@ -720,14 +709,12 @@ func createNetworkRuleSetForNamespace(ctx context.Context, client *namespaces.Na
 		return fmt.Errorf(" The `default_action` of `network_rule_set` can only be set to `Allow` if no `ip_rules` or `network_rules` is set")
 	}
 
-	publicNetworkAccess := namespaces.PublicNetworkAccessFlag(publicNetworkAcc)
-
 	parameters := namespaces.NetworkRuleSet{
 		Properties: &namespaces.NetworkRuleSetProperties{
 			DefaultAction:               &defaultAction,
 			VirtualNetworkRules:         vnetRule,
 			IPRules:                     ipRule,
-			PublicNetworkAccess:         &publicNetworkAccess,
+			PublicNetworkAccess:         pointer.ToEnum[namespaces.PublicNetworkAccessFlag](publicNetworkAcc),
 			TrustedServiceAccessEnabled: pointer.To(item["trusted_services_allowed"].(bool)),
 		},
 	}
@@ -740,10 +727,9 @@ func createNetworkRuleSetForNamespace(ctx context.Context, client *namespaces.Na
 }
 
 func resetNetworkRuleSetForNamespace(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) error {
-	defaultAction := namespaces.DefaultActionAllow
 	parameters := namespaces.NetworkRuleSet{
 		Properties: &namespaces.NetworkRuleSetProperties{
-			DefaultAction: &defaultAction,
+			DefaultAction: pointer.To(namespaces.DefaultActionAllow),
 		},
 	}
 
@@ -764,17 +750,12 @@ func flattenServiceBusNamespaceNetworkRuleSet(networkRuleSet namespaces.NetworkR
 		publicNetworkAccess = *v
 	}
 
-	trustedServiceEnabled := false
-	if networkRuleSet.TrustedServiceAccessEnabled != nil {
-		trustedServiceEnabled = *networkRuleSet.TrustedServiceAccessEnabled
-	}
-
 	networkRules := flattenServiceBusNamespaceVirtualNetworkRules(networkRuleSet.VirtualNetworkRules)
 	ipRules := flattenServiceBusNamespaceIPRules(networkRuleSet.IPRules)
 
 	return []interface{}{map[string]interface{}{
 		"default_action":                defaultAction,
-		"trusted_services_allowed":      trustedServiceEnabled,
+		"trusted_services_allowed":      pointer.From(networkRuleSet.TrustedServiceAccessEnabled),
 		"public_network_access_enabled": publicNetworkAccess == namespaces.PublicNetworkAccessFlagEnabled,
 		"network_rules":                 pluginsdk.NewSet(networkRuleHash, networkRules),
 		"ip_rules":                      ipRules,
@@ -820,14 +801,9 @@ func flattenServiceBusNamespaceVirtualNetworkRules(input *[]namespaces.NWRuleSet
 			subnetId = v.Subnet.Id
 		}
 
-		ignore := false
-		if v.IgnoreMissingVnetServiceEndpoint != nil {
-			ignore = *v.IgnoreMissingVnetServiceEndpoint
-		}
-
 		result = append(result, map[string]interface{}{
 			"subnet_id":                            subnetId,
-			"ignore_missing_vnet_service_endpoint": ignore,
+			"ignore_missing_vnet_service_endpoint": pointer.From(v.IgnoreMissingVnetServiceEndpoint),
 		})
 	}
 
@@ -839,12 +815,11 @@ func expandServiceBusNamespaceIPRules(input []interface{}) *[]namespaces.NWRuleS
 		return nil
 	}
 
-	action := namespaces.NetworkRuleIPActionAllow
 	result := make([]namespaces.NWRuleSetIPRules, 0, len(input))
 	for _, v := range input {
 		result = append(result, namespaces.NWRuleSetIPRules{
 			IPMask: pointer.To(v.(string)),
-			Action: &action,
+			Action: pointer.To(namespaces.NetworkRuleIPActionAllow),
 		})
 	}
 

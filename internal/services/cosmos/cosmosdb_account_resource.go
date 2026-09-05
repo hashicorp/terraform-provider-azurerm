@@ -28,8 +28,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
@@ -134,7 +132,7 @@ func suppressConsistencyPolicyStalenessConfiguration(_, _, _ string, d *pluginsd
 }
 
 func resourceCosmosDbAccount() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceCosmosDbAccountCreate,
 		Read:   resourceCosmosDbAccountRead,
 		Update: resourceCosmosDbAccountUpdate,
@@ -217,27 +215,22 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 
 			// resource fields
 			"offer_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cosmosdb.DatabaseAccountOfferTypeStandard),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForDatabaseAccountOfferType(), false),
 			},
 
 			"analytical_storage": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"schema_type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cosmosdb.AnalyticalStorageSchemaTypeWellDefined),
-								string(cosmosdb.AnalyticalStorageSchemaTypeFullFidelity),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForAnalyticalStorageSchemaType(), false),
 						},
 					},
 				},
@@ -246,7 +239,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"capacity": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -270,14 +263,11 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"create_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cosmosdb.CreateModeDefault),
-					string(cosmosdb.CreateModeRestore),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForCreateMode(), false),
 			},
 
 			// Per Documentation: "The default identity needs to be explicitly set by the users." This should not be optional without a default anymore.
@@ -296,15 +286,11 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"kind": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(cosmosdb.DatabaseAccountKindGlobalDocumentDB),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cosmosdb.DatabaseAccountKindGlobalDocumentDB),
-					string(cosmosdb.DatabaseAccountKindMongoDB),
-					string(cosmosdb.DatabaseAccountKindParse),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(cosmosdb.DatabaseAccountKindGlobalDocumentDB),
+				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForDatabaseAccountKind(), false),
 			},
 
 			"ip_range_filter": {
@@ -355,15 +341,9 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"consistency_level": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cosmosdb.DefaultConsistencyLevelBoundedStaleness),
-								string(cosmosdb.DefaultConsistencyLevelConsistentPrefix),
-								string(cosmosdb.DefaultConsistencyLevelEventual),
-								string(cosmosdb.DefaultConsistencyLevelSession),
-								string(cosmosdb.DefaultConsistencyLevelStrong),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForDefaultConsistencyLevel(), false),
 						},
 
 						// This value can only change if the 'consistency_level' is set to 'BoundedStaleness'
@@ -418,7 +398,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"capabilities": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -493,7 +473,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"mongo_server_version": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForServerVersion(), false),
 			},
 
@@ -532,50 +512,43 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"backup": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cosmosdb.BackupPolicyTypeContinuous),
-								string(cosmosdb.BackupPolicyTypePeriodic),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForBackupPolicyType(), false),
 						},
 
 						// Though `tier` has the default value `Continuous30Days` but `tier` is only for the backup type `Continuous`. So the default value isn't added in the property schema.
 						"tier": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForContinuousTier(), false),
 						},
 
 						"interval_in_minutes": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.IntBetween(60, 1440),
 						},
 
 						"retention_in_hours": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.IntBetween(8, 720),
 						},
 
 						"storage_redundancy": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cosmosdb.BackupStorageRedundancyGeo),
-								string(cosmosdb.BackupStorageRedundancyLocal),
-								string(cosmosdb.BackupStorageRedundancyZone),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
+							ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForBackupStorageRedundancy(), false),
 						},
 					},
 				},
@@ -767,75 +740,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["local_authentication_disabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			Deprecated:    "`local_authentication_disabled` has been deprecated in favour of `local_authentication_enabled` and will be removed in v5.0 of the AzureRM Provider",
-			ConflictsWith: []string{"local_authentication_enabled"},
-		}
-
-		resource.Schema["local_authentication_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"local_authentication_disabled"},
-		}
-
-		resource.Schema["minimal_tls_version"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      string(cosmosdb.MinimalTlsVersionTlsOneTwo),
-			ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForMinimalTlsVersion(), false),
-		}
-
-		resource.Schema["managed_hsm_key_id"] = &pluginsdk.Schema{
-			Type:                  pluginsdk.TypeString,
-			Optional:              true,
-			DiffSuppressOnRefresh: true,
-			DiffSuppressFunc: func(_, oldValue, newValue string, d *schema.ResourceData) bool {
-				if newValue == "" {
-					// If using `key_vault_key_id`, `managed_hsm_key_id` will also be set
-					// ignore diff if the 2 are equal.
-					raw := d.GetRawConfig().AsValueMap()["key_vault_key_id"]
-					if raw.IsKnown() && !raw.IsNull() {
-						return raw.AsString() == oldValue
-					}
-				}
-
-				return false
-			},
-			ForceNew:      true,
-			ValidateFunc:  keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeKey),
-			ConflictsWith: []string{"key_vault_key_id"},
-			Deprecated:    "`managed_hsm_key_id` has been deprecated in favour of `key_vault_key_id` and will be removed in v5.0 of the AzureRM provider",
-		}
-
-		resource.Schema["key_vault_key_id"] = &pluginsdk.Schema{
-			Type:                  pluginsdk.TypeString,
-			Optional:              true,
-			ForceNew:              true,
-			ValidateFunc:          keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeKey),
-			DiffSuppressOnRefresh: true,
-			DiffSuppressFunc: func(_, oldValue, newValue string, d *schema.ResourceData) bool {
-				if newValue == "" {
-					// If using `managed_hsm_key_id`, `key_vault_key_id` will also be set
-					// ignore diff if the 2 are equal.
-					raw := d.GetRawConfig().AsValueMap()["managed_hsm_key_id"]
-					if raw.IsKnown() && !raw.IsNull() {
-						return raw.AsString() == oldValue
-					}
-				}
-
-				return false
-			},
-			ConflictsWith: []string{"managed_hsm_key_id"},
-		}
-	}
-
-	return resource
 }
 
 func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -893,7 +797,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			ConsistencyPolicy:                  expandAzureRmCosmosDBAccountConsistencyPolicy(d),
 			Locations:                          geoLocations,
 			Capabilities:                       expandAzureRmCosmosDBAccountCapabilities(d),
-			MinimalTlsVersion:                  pointer.To(cosmosdb.MinimalTlsVersion(d.Get("minimal_tls_version").(string))),
+			MinimalTlsVersion:                  pointer.ToEnum[cosmosdb.MinimalTlsVersion](d.Get("minimal_tls_version").(string)),
 			VirtualNetworkRules:                expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
 			EnableMultipleWriteLocations:       pointer.To(d.Get("multiple_write_locations_enabled").(bool)),
 			EnablePartitionMerge:               pointer.To(d.Get("partition_merge_enabled").(bool)),
@@ -907,16 +811,6 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			DisableLocalAuth:                   pointer.To(!d.Get("local_authentication_enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	if !features.FivePointOh() {
-		account.Properties.DisableLocalAuth = pointer.To(false)
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "local_authentication_enabled") {
-			account.Properties.DisableLocalAuth = pointer.To(!d.Get("local_authentication_enabled").(bool))
-		}
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "local_authentication_disabled") {
-			account.Properties.DisableLocalAuth = pointer.To(d.Get("local_authentication_disabled").(bool))
-		}
 	}
 
 	if v, ok := d.GetOk("default_identity_type"); ok {
@@ -934,7 +828,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	var createMode string
 	if v, ok := d.GetOk("create_mode"); ok {
 		createMode = v.(string)
-		account.Properties.CreateMode = pointer.To(cosmosdb.CreateMode(createMode))
+		account.Properties.CreateMode = pointer.ToEnum[cosmosdb.CreateMode](createMode)
 	}
 
 	if v, ok := d.GetOk("restore"); ok {
@@ -943,7 +837,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	if v, ok := d.GetOk("mongo_server_version"); ok {
 		account.Properties.ApiProperties = &cosmosdb.ApiProperties{
-			ServerVersion: pointer.To(cosmosdb.ServerVersion(v.(string))),
+			ServerVersion: pointer.ToEnum[cosmosdb.ServerVersion](v.(string)),
 		}
 	}
 
@@ -958,13 +852,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	var key *keyvault.NestedItemID
-	if !features.FivePointOh() && setInConfig(d, "managed_hsm_key_id") {
-		keyId, err := keyvault.ParseNestedItemID(d.Get("managed_hsm_key_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
-		if err != nil {
-			return err
-		}
-		key = keyId
-	} else if v, ok := d.GetOk("key_vault_key_id"); ok && setInConfig(d, "key_vault_key_id") {
+	if v, ok := d.GetOk("key_vault_key_id"); ok {
 		keyId, err := keyvault.ParseNestedItemID(v.(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return err
@@ -987,8 +875,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, id, account)
-	if err != nil {
+	if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, id, account); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -997,8 +884,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	// NOTE: this is to work around the issue here: https://github.com/Azure/azure-rest-api-specs/issues/27596
 	// Once the above issue is resolved we shouldn't need this check and update anymore
 	if d.Get("create_mode").(string) == string(cosmosdb.CreateModeRestore) {
-		err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, id, account)
-		if err != nil {
+		if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, id, account); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 	}
@@ -1090,7 +976,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		"capacity", "restore", "mongo_server_version",
 		"public_network_access_enabled", "ip_range_filter", "offer_type", "is_virtual_network_filter_enabled",
 		"tags", "automatic_failover_enabled", "analytical_storage_enabled",
-		"local_authentication_enabled", "local_authentication_disabled", "partition_merge_enabled", "minimal_tls_version", "burst_capacity_enabled")
+		"local_authentication_enabled", "partition_merge_enabled", "minimal_tls_version", "burst_capacity_enabled")
 
 	// Incident : #383341730
 	// Azure Bug: #2209567 'Updating identities and default identity at the same time fails silently'
@@ -1115,14 +1001,14 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	account := cosmosdb.DatabaseAccountCreateUpdateParameters{
 		Location: pointer.To(location.NormalizeNilable(existing.Model.Location)),
-		Kind:     pointer.To(cosmosdb.DatabaseAccountKind(d.Get("kind").(string))),
+		Kind:     pointer.ToEnum[cosmosdb.DatabaseAccountKind](d.Get("kind").(string)),
 		Properties: cosmosdb.DatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:           cosmosdb.DatabaseAccountOfferType(d.Get("offer_type").(string)),
 			IPRules:                            common.CosmosDBIpRangeFilterToIpRules(*helpers.ExpandStringSlice(d.Get("ip_range_filter").(*pluginsdk.Set).List())),
 			IsVirtualNetworkFilterEnabled:      pointer.To(d.Get("is_virtual_network_filter_enabled").(bool)),
 			EnableFreeTier:                     existing.Model.Properties.EnableFreeTier,
 			EnableAutomaticFailover:            pointer.To(d.Get("automatic_failover_enabled").(bool)),
-			MinimalTlsVersion:                  pointer.To(cosmosdb.MinimalTlsVersion(d.Get("minimal_tls_version").(string))),
+			MinimalTlsVersion:                  pointer.ToEnum[cosmosdb.MinimalTlsVersion](d.Get("minimal_tls_version").(string)),
 			Capabilities:                       existing.Model.Properties.Capabilities,
 			ConsistencyPolicy:                  expandAzureRmCosmosDBAccountConsistencyPolicy(d),
 			KeyVaultKeyUri:                     existing.Model.Properties.KeyVaultKeyUri,
@@ -1141,15 +1027,6 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			EnableBurstCapacity:                pointer.To(d.Get("burst_capacity_enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	if !features.FivePointOh() {
-		if pluginsdk.IsExplicitlyNullInConfig(d, "local_authentication_enabled") {
-			account.Properties.DisableLocalAuth = pointer.To(false)
-		}
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "local_authentication_disabled") {
-			account.Properties.DisableLocalAuth = pointer.To(d.Get("local_authentication_disabled").(bool))
-		}
 	}
 
 	// 'default_identity_type' will always have a value since it now has a default value of "FirstPartyIdentity" per the API documentation.
@@ -1175,7 +1052,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	var createMode string
 	if v, ok := d.GetOk("create_mode"); ok {
 		createMode = v.(string)
-		account.Properties.CreateMode = pointer.To(cosmosdb.CreateMode(createMode))
+		account.Properties.CreateMode = pointer.ToEnum[cosmosdb.CreateMode](createMode)
 	}
 
 	if v, ok := d.GetOk("restore"); ok {
@@ -1184,7 +1061,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	if !pluginsdk.IsExplicitlyNullInConfig(d, "mongo_server_version") {
 		account.Properties.ApiProperties = &cosmosdb.ApiProperties{
-			ServerVersion: pointer.To(cosmosdb.ServerVersion(d.Get("mongo_server_version").(string))),
+			ServerVersion: pointer.ToEnum[cosmosdb.ServerVersion](d.Get("mongo_server_version").(string)),
 		}
 	}
 
@@ -1244,8 +1121,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		account.Properties.Locations = configLocations
 
 		// Update the database locations...
-		err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account)
-		if err != nil {
+		if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account); err != nil {
 			return fmt.Errorf("updating %q `locations`: %+v", id, err)
 		}
 	}
@@ -1267,8 +1143,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		// Update the database 'Identity' to 'None'...
-		err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, identityVal)
-		if err != nil {
+		if err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, identityVal); err != nil {
 			return fmt.Errorf("updating 'identity' %q: %+v", id, err)
 		}
 
@@ -1285,8 +1160,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 
 			// Update the database...
-			err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, identityVal)
-			if err != nil {
+			if err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, identityVal); err != nil {
 				return fmt.Errorf("updating `identity` for %s: %+v", id, err)
 			}
 		}
@@ -1309,8 +1183,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		// Update the database...
-		err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, defaultIdentity)
-		if err != nil {
+		if err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, defaultIdentity); err != nil {
 			return fmt.Errorf("updating `default_identity_type` for %s: %+v", id, err)
 		}
 	}
@@ -1398,9 +1271,6 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 				}
 
 				d.Set("key_vault_key_id", key.VersionlessID())
-				if !features.FivePointOh() && key.IsManagedHSM() {
-					d.Set("managed_hsm_key_id", key.VersionlessID())
-				}
 			}
 
 			if err := d.Set("analytical_storage", flattenCosmosDBAccountAnalyticalStorageConfiguration(props.AnalyticalStorageConfiguration)); err != nil {
@@ -1444,9 +1314,6 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.Set("network_acl_bypass_for_azure_services", pointer.From(props.NetworkAclBypass) == cosmosdb.NetworkAclBypassAzureServices)
 			d.Set("network_acl_bypass_ids", helpers.FlattenStringSlice(props.NetworkAclBypassResourceIds))
 			d.Set("local_authentication_enabled", !pointer.From(props.DisableLocalAuth))
-			if !features.FivePointOh() {
-				d.Set("local_authentication_disabled", pointer.From(props.DisableLocalAuth))
-			}
 
 			policy, err := flattenCosmosdbAccountBackup(props.BackupPolicy)
 			if err != nil {
@@ -1917,7 +1784,7 @@ func expandCosmosdbAccountBackup(input []interface{}, backupHasChange bool, crea
 
 		if v := attr["tier"].(string); v != "" {
 			result.ContinuousModeProperties = &cosmosdb.ContinuousModeProperties{
-				Tier: pointer.To(cosmosdb.ContinuousTier(v)),
+				Tier: pointer.ToEnum[cosmosdb.ContinuousTier](v),
 			}
 		}
 
@@ -1945,7 +1812,7 @@ func expandCosmosdbAccountBackup(input []interface{}, backupHasChange bool, crea
 		}
 
 		if v := attr["storage_redundancy"].(string); v != "" {
-			periodicModeBackupPolicy.PeriodicModeProperties.BackupStorageRedundancy = pointer.To(cosmosdb.BackupStorageRedundancy(attr["storage_redundancy"].(string)))
+			periodicModeBackupPolicy.PeriodicModeProperties.BackupStorageRedundancy = pointer.ToEnum[cosmosdb.BackupStorageRedundancy](attr["storage_redundancy"].(string))
 		}
 
 		return periodicModeBackupPolicy, nil
@@ -2010,7 +1877,7 @@ func expandCosmosDBAccountAnalyticalStorageConfiguration(input []interface{}) *c
 	v := input[0].(map[string]interface{})
 
 	return &cosmosdb.AnalyticalStorageConfiguration{
-		SchemaType: pointer.To(cosmosdb.AnalyticalStorageSchemaType(v["schema_type"].(string))),
+		SchemaType: pointer.ToEnum[cosmosdb.AnalyticalStorageSchemaType](v["schema_type"].(string)),
 	}
 }
 
@@ -2048,14 +1915,9 @@ func flattenCosmosDBAccountCapacity(input *cosmosdb.Capacity) []interface{} {
 		return make([]interface{}, 0)
 	}
 
-	var totalThroughputLimit int64
-	if input.TotalThroughputLimit != nil {
-		totalThroughputLimit = *input.TotalThroughputLimit
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"total_throughput_limit": totalThroughputLimit,
+			"total_throughput_limit": pointer.From(input.TotalThroughputLimit),
 		},
 	}
 }
@@ -2116,10 +1978,7 @@ func flattenCosmosdbAccountRestoreParameters(input *cosmosdb.RestoreParameters) 
 	if input == nil {
 		return make([]interface{}, 0)
 	}
-	var restoreSource string
-	if input.RestoreSource != nil {
-		restoreSource = *input.RestoreSource
-	}
+	restoreSource := pointer.From(input.RestoreSource)
 
 	var restoreTimestampInUtc string
 	if input.RestoreTimestampInUtc != nil {
@@ -2144,10 +2003,7 @@ func flattenCosmosdbAccountDatabasesToRestore(input *[]cosmosdb.DatabaseRestoreR
 	}
 
 	for _, item := range *input {
-		var databaseName string
-		if item.DatabaseName != nil {
-			databaseName = *item.DatabaseName
-		}
+		databaseName := pointer.From(item.DatabaseName)
 
 		results = append(results, map[string]interface{}{
 			"collection_names": helpers.FlattenStringSlice(item.CollectionNames),
@@ -2292,16 +2148,4 @@ func prepareCapabilities(capabilities interface{}) *[]cosmosdb.Capability {
 		}
 	}
 	return &output
-}
-
-func setInConfig(d *pluginsdk.ResourceData, address string) bool {
-	// remove function in 5.0
-	if features.FivePointOh() {
-		// No need to check RawConfig in 5.0 as `key_vault_key_id` is no longer computed
-		// so the existing `GetOk` check will suffice
-		return true
-	}
-
-	raw, diags := d.GetRawConfigAt(sdk.ConstructCtyPath(address))
-	return !diags.HasError() && !raw.IsNull()
 }

@@ -72,15 +72,11 @@ func resourceDiskEncryptionSet() *pluginsdk.Resource {
 			},
 
 			"encryption_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(diskencryptionsets.DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(diskencryptionsets.DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey),
-					string(diskencryptionsets.DiskEncryptionSetTypeEncryptionAtRestWithPlatformAndCustomerKeys),
-					string(diskencryptionsets.DiskEncryptionSetTypeConfidentialVMEncryptedWithCustomerKey),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(diskencryptionsets.DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey),
+				ValidateFunc: validation.StringInSlice(diskencryptionsets.PossibleValuesForDiskEncryptionSetType(), false),
 			},
 
 			"federated_client_id": {

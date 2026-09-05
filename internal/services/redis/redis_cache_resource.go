@@ -96,13 +96,9 @@ func resourceRedisCache() *pluginsdk.Resource {
 			},
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(redisresources.SkuNameBasic),
-					string(redisresources.SkuNameStandard),
-					string(redisresources.SkuNamePremium),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(redisresources.PossibleValuesForSkuName(), false),
 			},
 
 			"minimum_tls_version": {
@@ -135,7 +131,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 			"private_static_ip_address": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				// NOTE O+C: in some cases this gets a default value if omitted. This can remain o+c as it is ForceNew and cannot be updated
+				// NOTE: O+C in some cases this gets a default value if omitted. This can remain o+c as it is ForceNew and cannot be updated
 				Computed: true,
 				ForceNew: true,
 			},
@@ -143,7 +139,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 			"redis_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -471,7 +467,7 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 				Family:   redisresources.SkuFamily(d.Get("family").(string)),
 				Name:     redisresources.SkuName(d.Get("sku_name").(string)),
 			},
-			MinimumTlsVersion:   pointer.To(redisresources.TlsVersion(d.Get("minimum_tls_version").(string))),
+			MinimumTlsVersion:   pointer.ToEnum[redisresources.TlsVersion](d.Get("minimum_tls_version").(string)),
 			RedisConfiguration:  redisConfiguration,
 			PublicNetworkAccess: pointer.To(publicNetworkAccess),
 		},
@@ -579,7 +575,7 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	parameters := redisresources.RedisUpdateParameters{
 		Properties: &redisresources.RedisUpdateProperties{
 			DisableAccessKeyAuthentication: pointer.To(!d.Get("access_keys_authentication_enabled").(bool)),
-			MinimumTlsVersion:              pointer.To(redisresources.TlsVersion(d.Get("minimum_tls_version").(string))),
+			MinimumTlsVersion:              pointer.ToEnum[redisresources.TlsVersion](d.Get("minimum_tls_version").(string)),
 			EnableNonSslPort:               pointer.To(enableNonSslPort.(bool)),
 			Sku: &redisresources.Sku{
 				Capacity: int64(d.Get("capacity").(int)),
@@ -1159,10 +1155,7 @@ func flattenRedisPatchSchedules(schedule redispatchschedules.RedisPatchSchedule)
 	outputs := make([]interface{}, 0)
 
 	for _, entry := range schedule.Properties.ScheduleEntries {
-		maintenanceWindow := ""
-		if entry.MaintenanceWindow != nil {
-			maintenanceWindow = *entry.MaintenanceWindow
-		}
+		maintenanceWindow := pointer.From(entry.MaintenanceWindow)
 
 		outputs = append(outputs, map[string]interface{}{
 			"day_of_week":        string(entry.DayOfWeek),

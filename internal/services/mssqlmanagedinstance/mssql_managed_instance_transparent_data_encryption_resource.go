@@ -18,15 +18,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstancekeys"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceMsSqlManagedInstanceTransparentDataEncryption() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceMsSqlManagedInstanceTransparentDataEncryptionCreateUpdate,
 		Read:   resourceMsSqlManagedInstanceTransparentDataEncryptionRead,
 		Update: resourceMsSqlManagedInstanceTransparentDataEncryptionCreateUpdate,
@@ -50,7 +49,7 @@ func resourceMsSqlManagedInstanceTransparentDataEncryption() *pluginsdk.Resource
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ManagedInstanceID,
+				ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlManagedInstanceIDInsensitively),
 			},
 
 			"key_vault_key_id": {
@@ -67,56 +66,6 @@ func resourceMsSqlManagedInstanceTransparentDataEncryption() *pluginsdk.Resource
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["key_vault_key_id"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			DiffSuppressFunc: func(_, oldValue, newValue string, d *schema.ResourceData) bool {
-				if diffSuppressKeyVaultVersionedKey("", oldValue, newValue, d) {
-					return true
-				}
-
-				if newValue == "" {
-					// If using `managed_hsm_key_id`, `key_vault_key_id` will also be set
-					// ignore diff if the 2 are equal.
-					raw := d.GetRawConfig().AsValueMap()["managed_hsm_key_id"]
-					if raw.IsKnown() && !raw.IsNull() {
-						return raw.AsString() == oldValue
-					}
-				}
-
-				return false
-			},
-			ValidateFunc:  keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
-			ConflictsWith: []string{"managed_hsm_key_id"},
-		}
-
-		r.Schema["managed_hsm_key_id"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			DiffSuppressFunc: func(_, oldValue, newValue string, d *schema.ResourceData) bool {
-				if diffSuppressKeyVaultVersionedKey("", oldValue, newValue, d) {
-					return true
-				}
-
-				if newValue == "" {
-					// If using `key_vault_key_id` with MHSM key, `managed_hsm_key_id` will also be set
-					// ignore diff if the 2 are equal.
-					raw := d.GetRawConfig().AsValueMap()["key_vault_key_id"]
-					if raw.IsKnown() && !raw.IsNull() {
-						return raw.AsString() == oldValue
-					}
-				}
-
-				return false
-			},
-			ValidateFunc:  keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
-			ConflictsWith: []string{"key_vault_key_id"},
-		}
-	}
-
-	return r
 }
 
 func resourceMsSqlManagedInstanceTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -158,20 +107,6 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionCreateUpdate(d *plugin
 		key, err = resourceMsSqlManagedInstanceTransparentDataEncryptionVersionedKey(ctx, key, "key_vault_key_id", d.Get("auto_rotation_enabled").(bool), meta)
 		if err != nil {
 			return err
-		}
-	}
-
-	if !features.FivePointOh() {
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "managed_hsm_key_id") {
-			key, err = keyvault.ParseNestedItemID(d.Get("managed_hsm_key_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
-			if err != nil {
-				return err
-			}
-
-			key, err = resourceMsSqlManagedInstanceTransparentDataEncryptionVersionedKey(ctx, key, "managed_hsm_key_id", d.Get("auto_rotation_enabled").(bool), meta)
-			if err != nil {
-				return err
-			}
 		}
 	}
 
@@ -246,18 +181,9 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionRead(d *pluginsdk.Reso
 				}
 			}
 
-			var hsmKeyId, keyVaultKeyId string
+			var keyVaultKeyId string
 			if key != nil {
 				keyVaultKeyId = key.ID()
-				if !features.FivePointOh() && key.IsManagedHSM() {
-					hsmKeyId = keyVaultKeyId
-				}
-			}
-
-			if !features.FivePointOh() {
-				if err := d.Set("managed_hsm_key_id", hsmKeyId); err != nil {
-					return fmt.Errorf("setting `managed_hsm_key_id`: %+v", err)
-				}
 			}
 
 			if err := d.Set("key_vault_key_id", keyVaultKeyId); err != nil {
@@ -295,8 +221,7 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionDelete(d *pluginsdk.Re
 		},
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, managedInstanceId, encryptionProtector)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, managedInstanceId, encryptionProtector); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

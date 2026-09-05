@@ -61,16 +61,9 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"traffic_routing_method": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(profiles.TrafficRoutingMethodGeographic),
-					string(profiles.TrafficRoutingMethodWeighted),
-					string(profiles.TrafficRoutingMethodPerformance),
-					string(profiles.TrafficRoutingMethodPriority),
-					string(profiles.TrafficRoutingMethodSubnet),
-					string(profiles.TrafficRoutingMethodMultiValue),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(profiles.PossibleValuesForTrafficRoutingMethod(), false),
 			},
 
 			"dns_config": {
@@ -127,13 +120,9 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 						},
 
 						"protocol": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(profiles.MonitorProtocolHTTP),
-								string(profiles.MonitorProtocolHTTPS),
-								string(profiles.MonitorProtocolTCP),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(profiles.PossibleValuesForMonitorProtocol(), false),
 						},
 
 						"port": {
@@ -172,13 +161,10 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 			},
 
 			"profile_status": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(profiles.ProfileStatusEnabled),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(profiles.ProfileStatusEnabled),
-					string(profiles.ProfileStatusDisabled),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(profiles.ProfileStatusEnabled),
+				ValidateFunc: validation.StringInSlice(profiles.PossibleValuesForProfileStatus(), false),
 			},
 
 			"max_return": {
@@ -242,8 +228,7 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if status, ok := d.GetOk("profile_status"); ok {
-		profileStatus := profiles.ProfileStatus(status.(string))
-		profile.Properties.ProfileStatus = &profileStatus
+		profile.Properties.ProfileStatus = pointer.ToEnum[profiles.ProfileStatus](status.(string))
 	}
 
 	trafficRoutingMethodPtr := profile.Properties.TrafficRoutingMethod
@@ -408,9 +393,8 @@ func expandArmTrafficManagerMonitorConfig(d *pluginsdk.ResourceData) *profiles.M
 
 	customHeaders := expandArmTrafficManagerCustomHeadersConfig(monitor["custom_header"].([]interface{}))
 
-	protocol := profiles.MonitorProtocol(monitor["protocol"].(string))
 	cfg := profiles.MonitorConfig{
-		Protocol:                  &protocol,
+		Protocol:                  pointer.ToEnum[profiles.MonitorProtocol](monitor["protocol"].(string)),
 		CustomHeaders:             customHeaders,
 		Port:                      pointer.To(int64(monitor["port"].(int))),
 		Path:                      pointer.To(monitor["path"].(string)),
@@ -479,12 +463,9 @@ func expandArmTrafficManagerDNSConfig(d *pluginsdk.ResourceData) *profiles.DnsCo
 	dnsSets := d.Get("dns_config").([]interface{})
 	dns := dnsSets[0].(map[string]interface{})
 
-	name := dns["relative_name"].(string)
-	ttl := int64(dns["ttl"].(int))
-
 	return &profiles.DnsConfig{
-		RelativeName: &name,
-		Ttl:          &ttl,
+		RelativeName: pointer.To(dns["relative_name"].(string)),
+		Ttl:          pointer.To(int64(dns["ttl"].(int))),
 	}
 }
 

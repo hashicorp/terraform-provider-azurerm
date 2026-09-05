@@ -199,14 +199,14 @@ func resourceDataFactory() *pluginsdk.Resource {
 
 			"customer_managed_key_id": {
 				Type:         pluginsdk.TypeString,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				Optional:     true,
 				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 			},
 
 			"customer_managed_key_identity_id": {
 				Type:         pluginsdk.TypeString,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				Optional:     true,
 				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 			},
@@ -404,13 +404,11 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				return fmt.Errorf("setting `global_parameter`: %+v", err)
 			}
 
-			githubConfiguration := flattenGitHubRepoConfiguration(props.RepoConfiguration)
-			if err := d.Set("github_configuration", githubConfiguration); err != nil {
+			if err := d.Set("github_configuration", flattenGitHubRepoConfiguration(props.RepoConfiguration)); err != nil {
 				return fmt.Errorf("setting `github_configuration`: %+v", err)
 			}
 
-			vstsConfiguration := flattenVSTSRepoConfiguration(props.RepoConfiguration)
-			if err := d.Set("vsts_configuration", vstsConfiguration); err != nil {
+			if err := d.Set("vsts_configuration", flattenVSTSRepoConfiguration(props.RepoConfiguration)); err != nil {
 				return fmt.Errorf("setting `vsts_configuration`: %+v", err)
 			}
 
@@ -551,10 +549,6 @@ func flattenGitHubRepoConfiguration(input factories.FactoryRepoConfiguration) []
 	output := make([]interface{}, 0)
 
 	if v, ok := input.(factories.FactoryGitHubConfiguration); ok {
-		gitUrl := ""
-		if v.HostName != nil {
-			gitUrl = *v.HostName
-		}
 		publishingEnabled := true
 		if v.DisablePublish != nil {
 			publishingEnabled = !*v.DisablePublish
@@ -562,7 +556,7 @@ func flattenGitHubRepoConfiguration(input factories.FactoryRepoConfiguration) []
 		output = append(output, map[string]interface{}{
 			"account_name":       v.AccountName,
 			"branch_name":        v.CollaborationBranch,
-			"git_url":            gitUrl,
+			"git_url":            pointer.From(v.HostName),
 			"publishing_enabled": publishingEnabled,
 			"repository_name":    v.RepositoryName,
 			"root_folder":        v.RootFolder,
@@ -593,10 +587,6 @@ func flattenVSTSRepoConfiguration(input factories.FactoryRepoConfiguration) []in
 	output := make([]interface{}, 0)
 
 	if v, ok := input.(factories.FactoryVSTSConfiguration); ok {
-		tenantId := ""
-		if v.TenantId != nil {
-			tenantId = *v.TenantId
-		}
 		publishingEnabled := true
 		if v.DisablePublish != nil {
 			publishingEnabled = !*v.DisablePublish
@@ -608,7 +598,7 @@ func flattenVSTSRepoConfiguration(input factories.FactoryRepoConfiguration) []in
 			"publishing_enabled": publishingEnabled,
 			"repository_name":    v.RepositoryName,
 			"root_folder":        v.RootFolder,
-			"tenant_id":          tenantId,
+			"tenant_id":          pointer.From(v.TenantId),
 		})
 	}
 

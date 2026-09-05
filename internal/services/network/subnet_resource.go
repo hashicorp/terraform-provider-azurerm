@@ -606,7 +606,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if d.HasChange("private_endpoint_network_policies") {
 		v := d.Get("private_endpoint_network_policies").(string)
-		props.PrivateEndpointNetworkPolicies = pointer.To(subnets.VirtualNetworkPrivateEndpointNetworkPolicies(v))
+		props.PrivateEndpointNetworkPolicies = pointer.ToEnum[subnets.VirtualNetworkPrivateEndpointNetworkPolicies](v)
 	}
 
 	if d.HasChange("private_link_service_network_policies_enabled") {
@@ -730,8 +730,7 @@ func resourceSubnetFlatten(d *pluginsdk.ResourceData, id commonids.SubnetId, sub
 			}
 			d.Set("default_outbound_access_enabled", defaultOutboundAccessEnabled)
 
-			delegation := flattenSubnetDelegation(props.Delegations)
-			if err := d.Set("delegation", delegation); err != nil {
+			if err := d.Set("delegation", flattenSubnetDelegation(props.Delegations)); err != nil {
 				return fmt.Errorf("flattening `delegation`: %+v", err)
 			}
 
@@ -747,8 +746,7 @@ func resourceSubnetFlatten(d *pluginsdk.ResourceData, id commonids.SubnetId, sub
 				return fmt.Errorf("setting `service_endpoint`: %+v", err)
 			}
 
-			serviceEndpointPolicies := flattenSubnetServiceEndpointPolicies(props.ServiceEndpointPolicies)
-			if err := d.Set("service_endpoint_policy_ids", serviceEndpointPolicies); err != nil {
+			if err := d.Set("service_endpoint_policy_ids", flattenSubnetServiceEndpointPolicies(props.ServiceEndpointPolicies)); err != nil {
 				return fmt.Errorf("setting `service_endpoint_policy_ids`: %+v", err)
 			}
 
@@ -873,10 +871,8 @@ func expandSubnetDelegation(input []interface{}) *[]subnets.Delegation {
 
 	for _, deleValue := range input {
 		deleData := deleValue.(map[string]interface{})
-		deleName := deleData["name"].(string)
 		srvDelegations := deleData["service_delegation"].([]interface{})
 		srvDelegation := srvDelegations[0].(map[string]interface{})
-		srvName := srvDelegation["name"].(string)
 		srvActions := srvDelegation["actions"].(*pluginsdk.Set).List()
 
 		retSrvActions := make([]string, 0)
@@ -886,9 +882,9 @@ func expandSubnetDelegation(input []interface{}) *[]subnets.Delegation {
 		}
 
 		retDelegation := subnets.Delegation{
-			Name: &deleName,
+			Name: pointer.To(deleData["name"].(string)),
 			Properties: &subnets.ServiceDelegationPropertiesFormat{
-				ServiceName: &srvName,
+				ServiceName: pointer.To(srvDelegation["name"].(string)),
 				Actions:     &retSrvActions,
 			},
 		}
@@ -957,23 +953,19 @@ func flattenSubnetNetworkPolicy(input string) bool {
 func expandSubnetServiceEndpointPolicies(input []interface{}) *[]subnets.ServiceEndpointPolicy {
 	output := make([]subnets.ServiceEndpointPolicy, 0)
 	for _, policy := range input {
-		policy := policy.(string)
-		output = append(output, subnets.ServiceEndpointPolicy{Id: &policy})
+		output = append(output, subnets.ServiceEndpointPolicy{Id: pointer.To(policy.(string))})
 	}
 	return &output
 }
 
 func flattenSubnetServiceEndpointPolicies(input *[]subnets.ServiceEndpointPolicy) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	output := make([]interface{}, 0, len(*input))
 	for _, policy := range *input {
-		id := ""
-		if policy.Id != nil {
-			id = *policy.Id
-		}
+		id := pointer.From(policy.Id)
 		output = append(output, id)
 	}
 	return output

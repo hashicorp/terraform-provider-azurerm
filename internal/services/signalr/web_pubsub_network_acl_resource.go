@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/privateendpoints"
@@ -53,13 +54,10 @@ func resourceWebpubsubNetworkACL() *pluginsdk.Resource {
 			"web_pubsub_id": commonschema.ResourceIDReferenceRequiredForceNew(&webpubsub.WebPubSubId{}),
 
 			"default_action": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  webpubsub.ACLActionDeny,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(webpubsub.ACLActionAllow),
-					string(webpubsub.ACLActionDeny),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      webpubsub.ACLActionDeny,
+				ValidateFunc: validation.StringInSlice(webpubsub.PossibleValuesForACLAction(), false),
 			},
 
 			"public_network": {
@@ -221,7 +219,7 @@ func resourceWebPubsubNetworkACLRead(d *pluginsdk.ResourceData, meta interface{}
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			if props != nil && props.NetworkACLs != nil {
+			if props.NetworkACLs != nil {
 				defaultAction := ""
 				if props.NetworkACLs.DefaultAction != nil && *props.NetworkACLs.DefaultAction != "" {
 					defaultAction = string(*props.NetworkACLs.DefaultAction)
@@ -257,10 +255,9 @@ func resourceWebpubsubNetworkACLDelete(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
-	defaultAction := webpubsub.ACLActionDeny
 	var denyRequestTypes []webpubsub.WebPubSubRequestType
 	networkACL := &webpubsub.WebPubSubNetworkACLs{
-		DefaultAction: &defaultAction,
+		DefaultAction: pointer.To(webpubsub.ACLActionDeny),
 		PublicNetwork: &webpubsub.NetworkACL{
 			Allow: &defaultRequestTypes,
 			Deny:  &denyRequestTypes,

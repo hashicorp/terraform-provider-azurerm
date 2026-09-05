@@ -508,9 +508,7 @@ func (a ArcMachineDataSource) Read() sdk.ResourceFunc {
 				Location:          location.Normalize(model.Location),
 			}
 
-			identityValue := identity.FlattenSystemAssigned(model.Identity)
-
-			if err := metadata.ResourceData.Set("identity", identityValue); err != nil {
+			if err := metadata.ResourceData.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
 				return fmt.Errorf("setting `identity`: %+v", err)
 			}
 
@@ -534,9 +532,7 @@ func (a ArcMachineDataSource) Read() sdk.ResourceFunc {
 					state.ClientPublicKey = *properties.ClientPublicKey
 				}
 
-				cloudMetadataValue := flattenCloudMetadataModel(properties.CloudMetadata)
-
-				state.CloudMetadata = cloudMetadataValue
+				state.CloudMetadata = flattenCloudMetadataModel(properties.CloudMetadata)
 
 				if properties.DetectedProperties != nil {
 					state.DetectedProperties = *properties.DetectedProperties
@@ -564,9 +560,7 @@ func (a ArcMachineDataSource) Read() sdk.ResourceFunc {
 					state.LastStatusChange = *properties.LastStatusChange
 				}
 
-				locationDataValue := flattenLocationDataModel(properties.LocationData)
-
-				state.LocationData = locationDataValue
+				state.LocationData = flattenLocationDataModel(properties.LocationData)
 
 				if properties.MachineFqdn != nil {
 					state.MachineFqdn = *properties.MachineFqdn
@@ -583,9 +577,7 @@ func (a ArcMachineDataSource) Read() sdk.ResourceFunc {
 					state.OsName = *properties.OsName
 				}
 
-				osProfileValue := flattenOSProfileModel(properties.OsProfile)
-
-				state.OsProfile = osProfileValue
+				state.OsProfile = flattenOSProfileModel(properties.OsProfile)
 
 				if properties.OsSku != nil {
 					state.OsSku = *properties.OsSku
@@ -607,9 +599,7 @@ func (a ArcMachineDataSource) Read() sdk.ResourceFunc {
 					state.PrivateLinkScopeResourceId = *properties.PrivateLinkScopeResourceId
 				}
 
-				serviceStatusesValue := flattenServiceStatusesModel(properties.ServiceStatuses)
-
-				state.ServiceStatuses = serviceStatusesValue
+				state.ServiceStatuses = flattenServiceStatusesModel(properties.ServiceStatuses)
 
 				if properties.Status != nil {
 					state.Status = *properties.Status
@@ -636,18 +626,14 @@ func (a ArcMachineDataSource) Read() sdk.ResourceFunc {
 func flattenAgentConfigurationModel(input *machines.AgentConfiguration) ([]AgentConfigurationModel, error) {
 	var outputList []AgentConfigurationModel
 	if input == nil {
-		return outputList, nil
+		return []AgentConfigurationModel{}, nil
 	}
 
 	output := AgentConfigurationModel{}
 
-	extensionsAllowListValue := flattenConfigurationExtensionModel(input.ExtensionsAllowList)
+	output.ExtensionsAllowList = flattenConfigurationExtensionModel(input.ExtensionsAllowList)
 
-	output.ExtensionsAllowList = extensionsAllowListValue
-
-	extensionsBlockListValue := flattenConfigurationExtensionModel(input.ExtensionsBlockList)
-
-	output.ExtensionsBlockList = extensionsBlockListValue
+	output.ExtensionsBlockList = flattenConfigurationExtensionModel(input.ExtensionsBlockList)
 
 	if input.ExtensionsEnabled != nil {
 		parsedBool, err := strconv.ParseBool(*input.ExtensionsEnabled)
@@ -706,7 +692,7 @@ func flattenConfigurationExtensionModel(inputList *[]machines.ConfigurationExten
 func flattenCloudMetadataModel(input *machines.CloudMetadata) []CloudMetadataModel {
 	var outputList []CloudMetadataModel
 	if input == nil {
-		return outputList
+		return []CloudMetadataModel{}
 	}
 
 	output := CloudMetadataModel{}
@@ -721,7 +707,7 @@ func flattenCloudMetadataModel(input *machines.CloudMetadata) []CloudMetadataMod
 func flattenLocationDataModel(input *machines.LocationData) []LocationDataModel {
 	var outputList []LocationDataModel
 	if input == nil {
-		return outputList
+		return []LocationDataModel{}
 	}
 
 	output := LocationDataModel{
@@ -746,7 +732,7 @@ func flattenLocationDataModel(input *machines.LocationData) []LocationDataModel 
 func flattenOSProfileModel(input *machines.OSProfile) []OSProfileModel {
 	var outputList []OSProfileModel
 	if input == nil {
-		return outputList
+		return []OSProfileModel{}
 	}
 
 	output := OSProfileModel{}
@@ -755,12 +741,9 @@ func flattenOSProfileModel(input *machines.OSProfile) []OSProfileModel {
 		output.ComputerName = *input.ComputerName
 	}
 
-	linuxConfigurationValue := flattenOSProfileLinuxConfigurationModel(input.LinuxConfiguration)
+	output.LinuxConfiguration = flattenOSProfileLinuxConfigurationModel(input.LinuxConfiguration)
 
-	output.LinuxConfiguration = linuxConfigurationValue
-
-	windowsConfigurationValue := flattenOSProfileWindowsConfigurationModel(input.WindowsConfiguration)
-	output.WindowsConfiguration = windowsConfigurationValue
+	output.WindowsConfiguration = flattenOSProfileWindowsConfigurationModel(input.WindowsConfiguration)
 
 	return append(outputList, output)
 }
@@ -768,14 +751,12 @@ func flattenOSProfileModel(input *machines.OSProfile) []OSProfileModel {
 func flattenOSProfileLinuxConfigurationModel(input *machines.OSProfileLinuxConfiguration) []OSProfileLinuxConfigurationModel {
 	var outputList []OSProfileLinuxConfigurationModel
 	if input == nil {
-		return outputList
+		return []OSProfileLinuxConfigurationModel{}
 	}
 
 	output := OSProfileLinuxConfigurationModel{}
 
-	patchSettingsValue := flattenPatchSettingsModel(input.PatchSettings)
-
-	output.PatchSettings = patchSettingsValue
+	output.PatchSettings = flattenPatchSettingsModel(input.PatchSettings)
 
 	return append(outputList, output)
 }
@@ -783,7 +764,7 @@ func flattenOSProfileLinuxConfigurationModel(input *machines.OSProfileLinuxConfi
 func flattenPatchSettingsModel(input *machines.PatchSettings) []PatchSettingsModel {
 	var outputList []PatchSettingsModel
 	if input == nil {
-		return outputList
+		return []PatchSettingsModel{}
 	}
 
 	output := PatchSettingsModel{}
@@ -802,12 +783,11 @@ func flattenPatchSettingsModel(input *machines.PatchSettings) []PatchSettingsMod
 func flattenOSProfileWindowsConfigurationModel(input *machines.OSProfileWindowsConfiguration) []OSProfileWindowsConfigurationModel {
 	var outputList []OSProfileWindowsConfigurationModel
 	if input == nil {
-		return outputList
+		return []OSProfileWindowsConfigurationModel{}
 	}
 
 	output := OSProfileWindowsConfigurationModel{}
-	patchSettingsValue := flattenPatchSettingsModel(input.PatchSettings)
-	output.PatchSettings = patchSettingsValue
+	output.PatchSettings = flattenPatchSettingsModel(input.PatchSettings)
 
 	return append(outputList, output)
 }
@@ -815,16 +795,14 @@ func flattenOSProfileWindowsConfigurationModel(input *machines.OSProfileWindowsC
 func flattenServiceStatusesModel(input *machines.ServiceStatuses) []ServiceStatusesModel {
 	var outputList []ServiceStatusesModel
 	if input == nil {
-		return outputList
+		return []ServiceStatusesModel{}
 	}
 
 	output := ServiceStatusesModel{}
 
-	extensionServiceValue := flattenServiceStatusModel(input.ExtensionService)
-	output.ExtensionService = extensionServiceValue
+	output.ExtensionService = flattenServiceStatusModel(input.ExtensionService)
 
-	guestConfigurationServiceValue := flattenServiceStatusModel(input.GuestConfigurationService)
-	output.GuestConfigurationService = guestConfigurationServiceValue
+	output.GuestConfigurationService = flattenServiceStatusModel(input.GuestConfigurationService)
 
 	return append(outputList, output)
 }
@@ -832,7 +810,7 @@ func flattenServiceStatusesModel(input *machines.ServiceStatuses) []ServiceStatu
 func flattenServiceStatusModel(input *machines.ServiceStatus) []ServiceStatusModel {
 	var outputList []ServiceStatusModel
 	if input == nil {
-		return outputList
+		return []ServiceStatusModel{}
 	}
 
 	output := ServiceStatusModel{}
