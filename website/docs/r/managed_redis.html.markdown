@@ -153,7 +153,7 @@ The following arguments are supported:
 
 A `default_database` block supports the following:
 
-~> **Note:** Updating the following properties will force a new database to be created, data will be lost and Managed Redis will be unavailable during the operation: `clustering_policy`, `geo_replication_group_name`, and `module`
+~> **Note:** Updating `geo_replication_group_name` or `module` will force a new database to be created. Updating `clustering_policy` will also force a new database unless its current value is `NoCluster`. Data will be lost and Managed Redis will be unavailable when the database is recreated.
 
 * `access_keys_authentication_enabled` - (Optional) Whether access key authentication is enabled for the database. Defaults to `false`.
 
@@ -161,7 +161,7 @@ A `default_database` block supports the following:
 
 * `clustering_policy` - (Optional) Clustering policy specified at create time. Possible values are `EnterpriseCluster`, `OSSCluster` and `NoCluster`. Defaults to `OSSCluster`.
 
-!> **Note:** Changing `clustering_policy` forces database recreation. Data will be lost and Managed Redis will be unavailable during the operation.
+!> **Note:** `clustering_policy` can be updated in place when its current value is `NoCluster`. Changing it from `OSSCluster` or `EnterpriseCluster` forces database recreation. Data will be lost and Managed Redis will be unavailable during database recreation.
 
 * `eviction_policy` - (Optional) Specifies the Redis eviction policy. Possible values are `AllKeysLFU`, `AllKeysLRU`, `AllKeysRandom`, `VolatileLRU`, `VolatileLFU`, `VolatileTTL`, `VolatileRandom` and `NoEviction`. Defaults to `VolatileLRU`.
 
