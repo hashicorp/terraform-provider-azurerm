@@ -38,6 +38,10 @@ var (
 	_ provider.ProviderWithActions            = &azureRmFrameworkProvider{}
 )
 
+func NewFrameworkV5Provider() provider.Provider { //nolint:deadcode // used by the provider function unit tests
+	return &azureRmFrameworkProvider{}
+}
+
 func NewFrameworkProvider(primary interface{ Meta() interface{} }) provider.Provider {
 	return &azureRmFrameworkProvider{
 		V2Provider: primary,

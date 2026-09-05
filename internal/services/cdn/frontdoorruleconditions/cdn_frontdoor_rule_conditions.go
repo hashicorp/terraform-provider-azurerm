@@ -34,16 +34,3 @@ type CdnFrontDoorCondtionsMappings struct {
 	UrlFilename      CdnFrontDoorConditionParameters
 	UrlPath          CdnFrontDoorConditionParameters
 }
-
-type normalizedSelector struct {
-	name  *string
-	value *string
-}
-
-type normalizedCondition struct {
-	selector        *normalizedSelector
-	operator        string
-	negateCondition *bool
-	matchValues     *[]string
-	transforms      *[]rules.Transform
-}

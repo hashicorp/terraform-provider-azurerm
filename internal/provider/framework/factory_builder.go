@@ -98,3 +98,7 @@ func ProtoV5ProviderServerFactoryWithTestName(ctx context.Context, testName stri
 
 	return muxServer.ProviderServer, v2Provider, nil
 }
+
+func V5ProviderWithoutPluginSDK() func() tfprotov5.ProviderServer { //nolint:deadcode // used by the provider function unit tests
+	return providerserver.NewProtocol5(NewFrameworkV5Provider())
+}

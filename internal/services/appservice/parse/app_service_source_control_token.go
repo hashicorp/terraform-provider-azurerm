@@ -6,8 +6,3 @@ package parse
 type AppServiceSourceControlTokenId struct {
 	Type string
 }
-
-const (
-	gitHubTokenId       = "/providers/Microsoft.Web/sourceControls/%s"
-	gitHubTokenIdPrefix = "/providers/Microsoft.Web/sourceControls/"
-)
