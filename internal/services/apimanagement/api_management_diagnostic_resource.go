@@ -89,6 +89,12 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
+			"metrics": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
 			"http_correlation_protocol": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -184,6 +190,10 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 		parameters.Properties.HTTPCorrelationProtocol = pointer.ToEnum[diagnostic.HTTPCorrelationProtocol](httpCorrelationProtocol.(string))
 	}
 
+	if metrics, ok := d.GetOk("metrics"); ok {
+		parameters.Properties.Metrics = pointer.To(metrics.(bool))
+	}
+
 	frontendRequest, frontendRequestSet := d.GetOk("frontend_request")
 	frontendResponse, frontendResponseSet := d.GetOk("frontend_response")
 	if frontendRequestSet || frontendResponseSet {
@@ -250,6 +260,7 @@ func resourceApiManagementDiagnosticRead(d *pluginsdk.ResourceData, meta interfa
 			d.Set("always_log_errors", pointer.From(props.AlwaysLog) == diagnostic.AlwaysLogAllErrors)
 			d.Set("verbosity", pointer.From(props.Verbosity))
 			d.Set("log_client_ip", pointer.From(props.LogClientIP))
+			d.Set("metrics", pointer.From(props.Metrics))
 			d.Set("http_correlation_protocol", pointer.From(props.HTTPCorrelationProtocol))
 			if frontend := props.Frontend; frontend != nil {
 				d.Set("frontend_request", flattenApiManagementDiagnosticHTTPMessageDiagnostic(frontend.Request))
