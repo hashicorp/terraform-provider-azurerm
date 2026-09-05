@@ -1073,6 +1073,26 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeString,
 													Computed: true,
 												},
+												"header_value_matcher": {
+													Type:     pluginsdk.TypeList,
+													Computed: true,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*pluginsdk.Schema{
+															"pattern": {
+																Type:     pluginsdk.TypeString,
+																Computed: true,
+															},
+															"ignore_case": {
+																Type:     pluginsdk.TypeBool,
+																Computed: true,
+															},
+															"negate": {
+																Type:     pluginsdk.TypeBool,
+																Computed: true,
+															},
+														},
+													},
+												},
 											},
 										},
 									},
