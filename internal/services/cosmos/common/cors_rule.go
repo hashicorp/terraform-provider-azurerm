@@ -143,8 +143,8 @@ func flattenCorsProperty(input *string) []interface{} {
 
 	results := make([]interface{}, 0, len(*input))
 
-	origins := strings.Split(*input, ",")
-	for _, origin := range origins {
+	origins := strings.SplitSeq(*input, ",")
+	for origin := range origins {
 		results = append(results, origin)
 	}
 

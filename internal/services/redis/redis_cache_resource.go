@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"maps"
 	"slices"
 	"strconv"
 	"strings"
@@ -1011,9 +1012,7 @@ func flattenTenantSettings(input *map[string]string) map[string]string {
 	output := make(map[string]string)
 
 	if input != nil {
-		for k, v := range *input {
-			output[k] = v
-		}
+		maps.Copy(output, *input)
 	}
 
 	return output

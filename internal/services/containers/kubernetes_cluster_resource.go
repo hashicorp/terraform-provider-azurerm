@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
+	"maps"
 	"strconv"
 	"strings"
 	"time"
@@ -1699,9 +1700,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		},
 	}
 
-	for k, v := range schemaKubernetesAddOns() {
-		resource.Schema[k] = v
-	}
+	maps.Copy(resource.Schema, schemaKubernetesAddOns())
 
 	return resource
 }
@@ -4392,9 +4391,7 @@ func flattenKubernetesClusterMaintenanceConfiguration(input *maintenanceconfigur
 		"utc_offset":  utcOfset,
 	}
 	// Add flattened schedule properties
-	for k, v := range flattenKubernetesClusterMaintenanceConfigurationSchedule(input.Schedule) {
-		windowProperties[k] = v
-	}
+	maps.Copy(windowProperties, flattenKubernetesClusterMaintenanceConfigurationSchedule(input.Schedule))
 
 	return append(results, windowProperties)
 }
@@ -4902,7 +4899,7 @@ func flattenKubernetesClusterMetricsProfile(input *managedclusters.ManagedCluste
 func retryNodePoolCreation(ctx context.Context, client *agentpools.AgentPoolsClient, id agentpools.AgentPoolId, profile agentpools.AgentPool) error {
 	// retries the creation of a node pool 3 times
 	var err error
-	for attempt := 0; attempt < 3; attempt++ {
+	for range 3 {
 		if err = client.CreateOrUpdateThenPoll(ctx, id, profile, agentpools.DefaultCreateOrUpdateOperationOptions()); err == nil {
 			return nil
 		}

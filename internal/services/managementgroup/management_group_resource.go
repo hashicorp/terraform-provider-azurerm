@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -413,13 +414,7 @@ func determineManagementGroupSubscriptionsIdsToRemove(existing *[]managementgrou
 			continue
 		}
 
-		found := false
-		for _, subId := range updated {
-			if id.SubscriptionId == subId {
-				found = true
-				break
-			}
-		}
+		found := slices.Contains(updated, id.SubscriptionId)
 
 		if !found {
 			subscriptionIdsToRemove = append(subscriptionIdsToRemove, id.SubscriptionId)

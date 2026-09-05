@@ -6,6 +6,7 @@ package servicefabricmanaged
 import (
 	"context"
 	"fmt"
+	"maps"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -698,9 +699,7 @@ func flattenNodetypeProperties(nt nodetype.NodeType) NodeType {
 
 	if capacities := props.Capacities; capacities != nil {
 		caps := make(map[string]string)
-		for k, v := range *capacities {
-			caps[k] = v
-		}
+		maps.Copy(caps, *capacities)
 		out.Capacities = caps
 	}
 
@@ -710,9 +709,7 @@ func flattenNodetypeProperties(nt nodetype.NodeType) NodeType {
 
 	if placementProps := props.PlacementProperties; placementProps != nil {
 		placements := make(map[string]string)
-		for k, v := range *placementProps {
-			placements[k] = v
-		}
+		maps.Copy(placements, *placementProps)
 		out.PlacementProperties = placements
 	}
 

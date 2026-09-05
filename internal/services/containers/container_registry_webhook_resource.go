@@ -6,6 +6,7 @@ package containers
 import (
 	"fmt"
 	"log"
+	"maps"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -226,9 +227,7 @@ func resourceContainerRegistryWebhookRead(d *pluginsdk.ResourceData, meta interf
 
 		customHeaders := make(map[string]string)
 		if callbackModel.CustomHeaders != nil {
-			for k, v := range *callbackModel.CustomHeaders {
-				customHeaders[k] = v
-			}
+			maps.Copy(customHeaders, *callbackModel.CustomHeaders)
 		}
 		d.Set("custom_headers", customHeaders)
 	}
