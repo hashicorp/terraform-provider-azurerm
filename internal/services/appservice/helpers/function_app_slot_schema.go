@@ -1103,7 +1103,18 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 				Name:  pointer.To("DOCKER_REGISTRY_SERVER_PASSWORD"),
 				Value: pointer.To(dockerConfig.RegistryPassword),
 			})
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s/%s:%s", dockerConfig.RegistryURL, dockerConfig.ImageName, dockerConfig.ImageTag))
+			// The registry URL is documented (and stored) with its scheme, e.g. `https://myregistry.azurecr.io`,
+			// but the image reference in `linuxFxVersion` must not contain it. Strip it the same way
+			// `ExpandSiteConfigLinuxFunctionApp` does, otherwise an update of an unrelated attribute (e.g. `app_settings`)
+			// rewrites `linuxFxVersion` as `DOCKER|https://myregistry.azurecr.io/image:tag` and the container can no longer start.
+			dockerUrl := dockerConfig.RegistryURL
+			for _, prefix := range urlSchemes {
+				if strings.HasPrefix(dockerConfig.RegistryURL, prefix) {
+					dockerUrl = strings.TrimPrefix(dockerConfig.RegistryURL, prefix)
+					continue
+				}
+			}
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s/%s:%s", dockerUrl, dockerConfig.ImageName, dockerConfig.ImageTag))
 		}
 	} else {
 		appSettings = append(appSettings, webapps.NameValuePair{
