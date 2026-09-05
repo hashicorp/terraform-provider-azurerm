@@ -429,6 +429,11 @@ service/oracle:
   - any-glob-to-any-file:
     - internal/services/oracle/**/*
 
+service/orbitalplanetarycomputer:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/orbitalplanetarycomputer/**/*
+
 service/paloalto:
 - changed-files:
   - any-glob-to-any-file:
