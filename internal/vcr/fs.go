@@ -17,7 +17,7 @@ import (
 // reviewing is inconvenient.
 type GzipFS struct{}
 
-func (fs *GzipFS) ReadFile(name string) ([]byte, error) { //nolint:deadcode // inactive cassette.FS, kept per note above
+func (fs *GzipFS) ReadFile(name string) ([]byte, error) {
 	f, err := os.Open(name)
 	if err != nil {
 		return nil, err
@@ -33,7 +33,7 @@ func (fs *GzipFS) ReadFile(name string) ([]byte, error) { //nolint:deadcode // i
 	return io.ReadAll(r)
 }
 
-func (fs *GzipFS) WriteFile(name string, data []byte) error { //nolint:deadcode // inactive cassette.FS, kept per note above
+func (fs *GzipFS) WriteFile(name string, data []byte) error {
 	dir := filepath.Dir(name)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		if err = os.MkdirAll(dir, 0o755); err != nil {
@@ -60,7 +60,7 @@ func (fs *GzipFS) WriteFile(name string, data []byte) error { //nolint:deadcode 
 	return err
 }
 
-func (fs *GzipFS) IsFileExists(name string) bool { //nolint:deadcode // inactive cassette.FS, kept per note above
+func (fs *GzipFS) IsFileExists(name string) bool {
 	_, err := os.Stat(name)
 	return !os.IsNotExist(err)
 }

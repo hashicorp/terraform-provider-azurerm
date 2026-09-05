@@ -38,7 +38,7 @@ var (
 	_ provider.ProviderWithActions            = &azureRmFrameworkProvider{}
 )
 
-func NewFrameworkV5Provider() provider.Provider { //nolint:deadcode // used by the provider function unit tests
+func NewFrameworkV5Provider() provider.Provider {
 	return &azureRmFrameworkProvider{}
 }
 

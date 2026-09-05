@@ -52,7 +52,7 @@ func TestCheckResourceAttrSet(name, key string) pluginsdk.TestCheckFunc {
 }
 
 // TestCheckOutput is a wrapper to enable builds to continue
-func TestCheckOutput(name, value string) pluginsdk.TestCheckFunc { //nolint:deadcode // used by the provider function unit tests
+func TestCheckOutput(name, value string) pluginsdk.TestCheckFunc {
 	// TODO: move this comment up a level in the future
 	// Deprecated: use `check.That(name).Key(key).HasValue(value)` instead
 	return resource.TestCheckOutput(name, value)
