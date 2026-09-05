@@ -553,6 +553,35 @@ func TestAccDataSourceKubernetesCluster_microsoftDefender(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceKubernetesCluster_workloadIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.workloadIdentity(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("workload_identity_enabled").HasValue("true"),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceKubernetesCluster_workloadAutoscalerProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.workloadAutoscalerProfileKeda(data, currentKubernetesVersion, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("workload_autoscaler_profile.0.keda_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("workload_autoscaler_profile.0.vertical_pod_autoscaler_enabled").HasValue("false"),
+			),
+		},
+	})
+}
+
 func TestAccDataSourceKubernetesCluster_serviceMesh(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
@@ -981,6 +1010,26 @@ data "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, KubernetesClusterResource{}.microsoftDefender(data))
+}
+
+func (KubernetesClusterDataSource) workloadIdentity(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+%s
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.workloadIdentity(data, enabled))
+}
+
+func (KubernetesClusterDataSource) workloadAutoscalerProfileKeda(data acceptance.TestData, controlPlaneVersion string, kedaEnabled bool) string {
+	return fmt.Sprintf(`
+%s
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.workloadAutoscalerProfileKeda(data, controlPlaneVersion, kedaEnabled))
 }
 
 func (KubernetesClusterDataSource) serviceMesh(data acceptance.TestData) string {
