@@ -76,14 +76,10 @@ func (a AccountId) String() string {
 	return fmt.Sprintf("Account %q (%s)", a.AccountName, strings.Join(components, " / "))
 }
 
-func ParseAccountID(input, domainSuffix string) (*AccountId, error) {
+func ParseAccountID(input, regularDomainSuffix string) (*AccountId, error) {
 	uri, err := url.Parse(input)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q as a URL: %s", input, err)
-	}
-
-	if !strings.HasSuffix(uri.Host, domainSuffix) {
-		return nil, fmt.Errorf("expected the account %q to use a domain suffix of %q", uri.Host, domainSuffix)
 	}
 
 	// There's 3 different types of Storage Account ID:
@@ -95,7 +91,32 @@ func ParseAccountID(input, domainSuffix string) (*AccountId, error) {
 	//   `{accountname}.{component}.{edgezone}.edgestorage.azure.net`
 	// since both `dnszone` and `edgezone` are the only two identifiers, we need to check if `domainSuffix` includes `edge`
 	// to know how to treat these
+	type domainType int
+	const (
+		unknownDomain domainType = iota
+		regularDomain
+		dnsZoneDomain
+		edgeZoneDomain
+	)
 
+	validDomainSuffixes := map[domainType]string{
+		regularDomain:  regularDomainSuffix,
+		dnsZoneDomain:  "storage.azure.net",
+		edgeZoneDomain: "edgestorage.azure.net",
+	}
+
+	dt := unknownDomain
+	for k, suffix := range validDomainSuffixes {
+		if strings.HasSuffix(uri.Host, suffix) {
+			dt = k
+			break
+		}
+	}
+	if dt == unknownDomain {
+		return nil, fmt.Errorf("invalid domain suffix of account %q", uri.Host)
+	}
+
+	domainSuffix := validDomainSuffixes[dt]
 	hostName := strings.TrimSuffix(uri.Host, fmt.Sprintf(".%s", domainSuffix))
 	components := strings.Split(hostName, ".")
 	accountId := AccountId{
@@ -103,8 +124,11 @@ func ParseAccountID(input, domainSuffix string) (*AccountId, error) {
 		IsEdgeZone:   strings.Contains(strings.ToLower(domainSuffix), "edge"),
 	}
 
-	if len(components) == 2 {
-		// this will be a regular Storage Account (e.g. `example1.blob.core.windows.net`)
+	switch dt {
+	case regularDomain:
+		if l := len(components); l != 2 {
+			return nil, fmt.Errorf("expect 2 uri components before the domain suffix %q, got=%d", domainSuffix, l)
+		}
 		accountId.AccountName = components[0]
 		subDomainType, err := parseSubDomainType(components[1])
 		if err != nil {
@@ -112,32 +136,29 @@ func ParseAccountID(input, domainSuffix string) (*AccountId, error) {
 		}
 		accountId.SubDomainType = *subDomainType
 		return &accountId, nil
-	}
-
-	if len(components) == 3 {
-		// This can either be a Zone'd Storage Account or a Storage Account within an Edge Zone
-		accountName := ""
-		subDomainTypeRaw := ""
-		zone := ""
-		if accountId.IsEdgeZone {
-			// `{accountname}.{component}.{edgezone}.edgestorage.azure.net`
-			accountName = components[0]
-			subDomainTypeRaw = components[1]
-			zone = components[2]
-		} else {
-			// `{accountname}.{dnszone}.{component}.storage.azure.net`
-			accountName = components[0]
-			zone = components[1]
-			subDomainTypeRaw = components[2]
+	case dnsZoneDomain:
+		if l := len(components); l != 3 {
+			return nil, fmt.Errorf("expect 3 uri components before the domain suffix %q, got=%d", domainSuffix, l)
 		}
-
-		accountId.AccountName = accountName
-		subDomainType, err := parseSubDomainType(subDomainTypeRaw)
+		accountId.AccountName = components[0]
+		subDomainType, err := parseSubDomainType(components[2])
 		if err != nil {
 			return nil, err
 		}
 		accountId.SubDomainType = *subDomainType
-		accountId.ZoneName = pointer.To(zone)
+		accountId.ZoneName = pointer.To(components[1])
+		return &accountId, nil
+	case edgeZoneDomain:
+		if l := len(components); l != 3 {
+			return nil, fmt.Errorf("expect 3 uri components before the domain suffix %q, got=%d", domainSuffix, l)
+		}
+		accountId.AccountName = components[0]
+		subDomainType, err := parseSubDomainType(components[1])
+		if err != nil {
+			return nil, err
+		}
+		accountId.SubDomainType = *subDomainType
+		accountId.ZoneName = pointer.To(components[2])
 		return &accountId, nil
 	}
 
