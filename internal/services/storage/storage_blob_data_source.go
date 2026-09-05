@@ -6,6 +6,7 @@ package storage
 import (
 	"fmt"
 	"log"
+	"slices"
 	"strings"
 	"time"
 
@@ -18,6 +19,12 @@ import (
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs"
 )
+
+// Referencing the list from: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/s3_object
+var HumanReadableContentTypes = map[string][]string{
+	"text":        {},
+	"application": {"json", "ld+json", "x-httpd-php", "xhtml+xml", "x-csh", "x-sh", "xml", "atom+xml", "x-sql", "yaml"},
+}
 
 func dataSourceStorageBlob() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -36,6 +43,11 @@ func dataSourceStorageBlob() *pluginsdk.Resource {
 			"storage_container_id": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
+			},
+
+			"is_content_sensitive": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
 			},
 
 			"type": {
@@ -66,6 +78,17 @@ func dataSourceStorageBlob() *pluginsdk.Resource {
 			"url": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+			},
+
+			"content": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"sensitive_content": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"metadata": MetaDataComputedSchema(),
@@ -135,6 +158,29 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	d.Set("access_tier", string(props.AccessTier))
 	d.Set("content_type", props.ContentType)
+
+	if typ, subtyp, ok := strings.Cut(props.ContentType, "/"); ok {
+		if subtypes, ok := HumanReadableContentTypes[strings.ToLower(typ)]; ok {
+			if slices.Contains(subtypes, strings.ToLower(subtyp)) || len(subtypes) == 0 {
+				// Populate the human readable content.
+				resp, err := blobsClient.Get(ctx, containerName, name, blobs.GetInput{})
+				if err != nil {
+					return fmt.Errorf("retrieving content for %s: %v", id, err)
+				}
+				var content string
+				if rawContent := resp.Contents; rawContent != nil {
+					content = string(*rawContent)
+				}
+				if d.Get("is_content_sensitive").(bool) {
+					d.Set("content", "")
+					d.Set("sensitive_content", content)
+				} else {
+					d.Set("content", content)
+					d.Set("sensitive_content", "")
+				}
+			}
+		}
+	}
 
 	// Set the ContentMD5 value to md5 hash in hex
 	contentMD5 := ""
