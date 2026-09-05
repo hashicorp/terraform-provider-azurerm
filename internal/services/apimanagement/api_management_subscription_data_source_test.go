@@ -25,6 +25,8 @@ func TestAccDataSourceApiManagementSubscription_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("display_name").HasValue("Test Subscription"),
 				check.That(data.ResourceName).Key("allow_tracing").HasValue("true"),
 				check.That(data.ResourceName).Key("state").HasValue("active"),
+				check.That(data.ResourceName).Key("api_management_name").MatchesOtherKey(check.That("azurerm_api_management.test").Key("name")),
+				check.That(data.ResourceName).Key("resource_group_name").MatchesOtherKey(check.That("azurerm_resource_group.test").Key("name")),
 			),
 		},
 	})
