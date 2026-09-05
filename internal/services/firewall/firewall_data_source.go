@@ -151,6 +151,23 @@ func firewallDataSource() *pluginsdk.Resource {
 				},
 			},
 
+			"autoscale_configuration": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"min_capacity": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+						"max_capacity": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"zones": commonschema.ZonesMultipleComputed(),
 
 			"tags": commonschema.TagsDataSource(),
@@ -217,6 +234,10 @@ func firewallDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 			if err := d.Set("virtual_hub", flattenFirewallVirtualHubSetting(props)); err != nil {
 				return fmt.Errorf("setting `virtual_hub`: %+v", err)
+			}
+
+			if err := d.Set("autoscale_configuration", flattenFirewallAutoscaleConfiguration(props.AutoscaleConfiguration)); err != nil {
+				return fmt.Errorf("setting `autoscale_configuration`: %+v", err)
 			}
 		}
 
