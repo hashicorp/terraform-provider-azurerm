@@ -14,14 +14,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionendpoints"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var (
-	_ sdk.Resource           = DataCollectionEndpointResource{}
-	_ sdk.ResourceWithUpdate = DataCollectionEndpointResource{}
+	_ sdk.Resource                  = DataCollectionEndpointResource{}
+	_ sdk.ResourceWithUpdate        = DataCollectionEndpointResource{}
+	_ sdk.ResourceWithCustomizeDiff = DataCollectionEndpointResource{}
 )
 
 type DataCollectionEndpointResource struct{}
@@ -112,6 +114,58 @@ func (r DataCollectionEndpointResource) ModelObject() interface{} {
 	return &DataCollectionEndpoint{}
 }
 
+func expandCreateForDataCollectionEndpoint(state DataCollectionEndpoint) datacollectionendpoints.DataCollectionEndpointResource {
+	return datacollectionendpoints.DataCollectionEndpointResource{
+		Kind:     expandDataCollectionEndpointKind(state.Kind),
+		Location: location.Normalize(state.Location),
+		Name:     pointer.To(state.Name),
+		Properties: &datacollectionendpoints.DataCollectionEndpoint{
+			Description: pointer.To(state.Description),
+			NetworkAcls: &datacollectionendpoints.NetworkRuleSet{
+				PublicNetworkAccess: expandDataCollectionEndpointPublicNetworkAccess(state.PublicNetworkAccessEnabled),
+			},
+		},
+		Tags: tags.Expand(state.Tags),
+	}
+}
+
+func (r DataCollectionEndpointResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff == nil {
+				return nil
+			}
+
+			if metadata.Client.Features.EnhancedValidation.PreflightEnabled {
+				// Only perform preflight validation if there are changes. This avoids validation failures and
+				// additional API calls for resources that are unchanged between plan invocations.
+				if len(metadata.ResourceDiff.GetChangedKeysPrefix("")) > 0 || metadata.ResourceDiff.Id() == "" {
+					var model DataCollectionEndpoint
+					if err := metadata.DecodeDiff(&model); err != nil {
+						return err
+					}
+
+					req := expandCreateForDataCollectionEndpoint(model)
+
+					id := datacollectionendpoints.NewDataCollectionEndpointID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+
+					preflightValidate, err := preflight.NewValidationRequest(pointer.To(model.Location), pointer.To(id), "2023-03-11", req)
+					if err != nil {
+						return fmt.Errorf("constructing preflight validation request: %w", err)
+					}
+
+					if err = preflightValidate.ValidateResource(ctx, metadata); err != nil {
+						return err
+					}
+				}
+			}
+
+			return nil
+		},
+	}
+}
+
 func (r DataCollectionEndpointResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -135,18 +189,7 @@ func (r DataCollectionEndpointResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			input := datacollectionendpoints.DataCollectionEndpointResource{
-				Kind:     expandDataCollectionEndpointKind(state.Kind),
-				Location: location.Normalize(state.Location),
-				Name:     pointer.To(state.Name),
-				Properties: &datacollectionendpoints.DataCollectionEndpoint{
-					Description: pointer.To(state.Description),
-					NetworkAcls: &datacollectionendpoints.NetworkRuleSet{
-						PublicNetworkAccess: expandDataCollectionEndpointPublicNetworkAccess(state.PublicNetworkAccessEnabled),
-					},
-				},
-				Tags: tags.Expand(state.Tags),
-			}
+			input := expandCreateForDataCollectionEndpoint(state)
 
 			if _, err := client.Create(ctx, id, input); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
