@@ -104,7 +104,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				"default_documents": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Computed: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -170,7 +170,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				"remote_debugging_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2022",
 					}, false),
@@ -217,7 +217,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				"worker_count": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true, // azignore:AZS007 - pre-existing violation
+					Computed:     true,
 					ValidateFunc: validation.IntBetween(1, 100),
 				},
 
@@ -366,7 +366,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				"default_documents": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Computed: true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -431,7 +431,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				"remote_debugging_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2022",
 					}, false),
@@ -445,8 +445,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				"use_32_bit_worker": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					// Note: O+C because Variable default value depending on several factors, such as plan type.
-					Computed: true,
+					Computed: true, // Variable default value depending on several factors, such as plan type.
 				},
 
 				"websockets_enabled": {
@@ -479,7 +478,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				"worker_count": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true, // azignore:AZS007 - pre-existing violation
+					Computed:     true,
 					ValidateFunc: validation.IntBetween(1, 100),
 				},
 
@@ -570,6 +569,10 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]strin
 
 	if len(s.ApplicationStack) == 1 {
 		linuxAppStack := s.ApplicationStack[0]
+		if linuxAppStack.SiteContainersEnabled {
+			expanded.LinuxFxVersion = pointer.To(LinuxFxVersionSiteContainers)
+		}
+
 		if linuxAppStack.NetFrameworkVersion != "" {
 			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNETCORE|%s", linuxAppStack.NetFrameworkVersion))
 		}
@@ -698,6 +701,10 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaDat
 
 	if len(s.ApplicationStack) == 1 {
 		linuxAppStack := s.ApplicationStack[0]
+		if linuxAppStack.SiteContainersEnabled {
+			expanded.LinuxFxVersion = pointer.To(LinuxFxVersionSiteContainers)
+		}
+
 		if linuxAppStack.NetFrameworkVersion != "" {
 			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNETCORE|%s", linuxAppStack.NetFrameworkVersion))
 		}

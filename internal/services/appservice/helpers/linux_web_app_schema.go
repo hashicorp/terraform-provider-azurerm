@@ -104,7 +104,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"default_documents": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Computed: true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -161,10 +161,13 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				},
 
 				"managed_pipeline_mode": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Default:      string(webapps.ManagedPipelineModeIntegrated),
-					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForManagedPipelineMode(), false),
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  string(webapps.ManagedPipelineModeIntegrated),
+					ValidateFunc: validation.StringInSlice([]string{
+						string(webapps.ManagedPipelineModeClassic),
+						string(webapps.ManagedPipelineModeIntegrated),
+					}, false),
 				},
 
 				"remote_debugging_enabled": {
@@ -176,7 +179,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"remote_debugging_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2022",
 					}, false),
@@ -200,10 +203,14 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				},
 
 				"ftps_state": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Default:      string(webapps.FtpsStateDisabled),
-					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFtpsState(), false),
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  string(webapps.FtpsStateDisabled),
+					ValidateFunc: validation.StringInSlice([]string{
+						string(webapps.FtpsStateAllAllowed),
+						string(webapps.FtpsStateDisabled),
+						string(webapps.FtpsStateFtpsOnly),
+					}, false),
 				},
 
 				"health_check_path": {
@@ -223,7 +230,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				"worker_count": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true, // azignore:AZS007 - pre-existing violation
+					Computed:     true,
 					ValidateFunc: validation.IntBetween(1, 100),
 				},
 
@@ -503,7 +510,7 @@ func autoHealActionSchemaLinux() *pluginsdk.Schema {
 				"minimum_process_execution_time": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Computed: true,
 					// ValidateFunc: // TODO - Time in hh:mm:ss, because why not...
 				},
 			},
@@ -824,6 +831,10 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webap
 
 	if len(s.ApplicationStack) == 1 {
 		linuxAppStack := s.ApplicationStack[0]
+		if linuxAppStack.SiteContainersEnabled {
+			expanded.LinuxFxVersion = pointer.To(LinuxFxVersionSiteContainers)
+		}
+
 		if linuxAppStack.NetFrameworkVersion != "" {
 			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("%s|%s", FxStringPrefixDotNetCore, linuxAppStack.NetFrameworkVersion))
 		}
@@ -946,6 +957,10 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 
 	if len(s.ApplicationStack) == 1 {
 		linuxAppStack := s.ApplicationStack[0]
+		if linuxAppStack.SiteContainersEnabled {
+			expanded.LinuxFxVersion = pointer.To(LinuxFxVersionSiteContainers)
+		}
+
 		if linuxAppStack.NetFrameworkVersion != "" {
 			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNETCORE|%s", linuxAppStack.NetFrameworkVersion))
 		}
@@ -1360,5 +1375,5 @@ func flattenAutoHealSettingsLinux(autoHealRules *webapps.AutoHealRules) []AutoHe
 		return []AutoHealSettingLinux{result}
 	}
 
-	return []AutoHealSettingLinux{}
+	return nil
 }
