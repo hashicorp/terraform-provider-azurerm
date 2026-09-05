@@ -29,7 +29,7 @@ func resourceStreamAnalyticsOutputSynapse() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := outputs.ParseOutputID(id)
 			return err
-		}, importStreamAnalyticsOutput(outputs.AzureSynapseOutputDataSource{})),
+		}, importStreamAnalyticsOutput([]outputs.OutputDataSource{outputs.AzureSynapseOutputDataSource{}})),
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
