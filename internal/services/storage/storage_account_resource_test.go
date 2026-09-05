@@ -1903,6 +1903,47 @@ func TestAccStorageAccount_noDataPlane(t *testing.T) {
 	})
 }
 
+func TestAccStorageAccount_skipStoringAccessKeys(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.skipStoringAccessKeys(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("primary_access_key").IsEmpty(),
+				check.That(data.ResourceName).Key("primary_connection_string").IsEmpty(),
+				check.That(data.ResourceName).Key("secondary_access_key").IsEmpty(),
+				check.That(data.ResourceName).Key("secondary_connection_string").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.skipStoringAccessKeys(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("primary_access_key").IsNotEmpty(),
+				check.That(data.ResourceName).Key("primary_connection_string").IsNotEmpty(),
+				check.That(data.ResourceName).Key("secondary_connection_string").IsNotEmpty(),
+				check.That(data.ResourceName).Key("secondary_access_key").IsNotEmpty(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.skipStoringAccessKeys(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("primary_access_key").IsEmpty(),
+				check.That(data.ResourceName).Key("primary_connection_string").IsEmpty(),
+				check.That(data.ResourceName).Key("secondary_access_key").IsEmpty(),
+				check.That(data.ResourceName).Key("secondary_connection_string").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r StorageAccountResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseStorageAccountID(state.ID)
 	if err != nil {
@@ -5086,4 +5127,30 @@ resource "azurerm_storage_account" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) skipStoringAccessKeys(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    storage {
+      skip_storing_access_keys = %t
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+`, enabled, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

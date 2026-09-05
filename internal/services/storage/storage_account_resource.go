@@ -1944,9 +1944,6 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 		return fmt.Errorf("could not determine Storage domain suffix for environment %q", meta.(*clients.Client).Account.Environment.Name)
 	}
 
-	listKeysOpts := storageaccounts.DefaultListKeysOperationOptions()
-	listKeysOpts.Expand = pointer.To(storageaccounts.ExpandKerb)
-
 	supportLevel := storageAccountServiceSupportLevel{
 		supportBlob:          false,
 		supportQueue:         false,
@@ -2105,18 +2102,23 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 	endpoints := flattenAccountEndpoints(primaryEndpoints, secondaryEndpoints, routingPreference)
 	endpoints.set(d)
 
-	keys, err := client.ListKeys(ctx, id, listKeysOpts)
-	if err != nil {
-		hasWriteLock := response.WasConflict(keys.HttpResponse)
-		doesntHavePermissions := response.WasForbidden(keys.HttpResponse) || response.WasStatusCode(keys.HttpResponse, http.StatusUnauthorized)
-		if !hasWriteLock && !doesntHavePermissions {
-			return fmt.Errorf("listing Keys for %s: %+v", id, err)
-		}
-	}
-
 	storageAccountKeys := make([]storageaccounts.StorageAccountKey, 0)
-	if keys.Model != nil && keys.Model.Keys != nil {
-		storageAccountKeys = *keys.Model.Keys
+	if !meta.(*clients.Client).Features.Storage.SkipStoringAccessKeys {
+		listKeysOpts := storageaccounts.DefaultListKeysOperationOptions()
+		listKeysOpts.Expand = pointer.To(storageaccounts.ExpandKerb)
+
+		keys, err := client.ListKeys(ctx, id, listKeysOpts)
+		if err != nil {
+			hasWriteLock := response.WasConflict(keys.HttpResponse)
+			doesntHavePermissions := response.WasForbidden(keys.HttpResponse) || response.WasStatusCode(keys.HttpResponse, http.StatusUnauthorized)
+			if !hasWriteLock && !doesntHavePermissions {
+				return fmt.Errorf("listing Keys for %s: %+v", id, err)
+			}
+		}
+
+		if keys.Model != nil && keys.Model.Keys != nil {
+			storageAccountKeys = *keys.Model.Keys
+		}
 	}
 	keysAndConnectionStrings := flattenAccountAccessKeysAndConnectionStrings(id.StorageAccountName, *storageDomainSuffix, storageAccountKeys, endpoints)
 	keysAndConnectionStrings.set(d)
