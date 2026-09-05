@@ -181,6 +181,18 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"secure_boot_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
+			"vtpm_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"eviction_policy": {
 				// only applicable when `priority` is set to `Spot`
 				Type:         pluginsdk.TypeString,
@@ -779,9 +791,33 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	if v, ok := d.GetOk("encryption_at_host_enabled"); ok {
-		virtualMachineProfile.SecurityProfile = &virtualmachinescalesets.SecurityProfile{
-			EncryptionAtHost: pointer.To(v.(bool)),
+		if virtualMachineProfile.SecurityProfile == nil {
+			virtualMachineProfile.SecurityProfile = &virtualmachinescalesets.SecurityProfile{}
 		}
+		virtualMachineProfile.SecurityProfile.EncryptionAtHost = pointer.To(v.(bool))
+	}
+
+	secureBootEnabled := d.Get("secure_boot_enabled").(bool)
+	vtpmEnabled := d.Get("vtpm_enabled").(bool)
+	if secureBootEnabled {
+		if virtualMachineProfile.SecurityProfile == nil {
+			virtualMachineProfile.SecurityProfile = &virtualmachinescalesets.SecurityProfile{}
+		}
+		if virtualMachineProfile.SecurityProfile.UefiSettings == nil {
+			virtualMachineProfile.SecurityProfile.UefiSettings = &virtualmachinescalesets.UefiSettings{}
+		}
+		virtualMachineProfile.SecurityProfile.SecurityType = pointer.To(virtualmachinescalesets.SecurityTypesTrustedLaunch)
+		virtualMachineProfile.SecurityProfile.UefiSettings.SecureBootEnabled = pointer.To(secureBootEnabled)
+	}
+	if vtpmEnabled {
+		if virtualMachineProfile.SecurityProfile == nil {
+			virtualMachineProfile.SecurityProfile = &virtualmachinescalesets.SecurityProfile{}
+		}
+		if virtualMachineProfile.SecurityProfile.UefiSettings == nil {
+			virtualMachineProfile.SecurityProfile.UefiSettings = &virtualmachinescalesets.UefiSettings{}
+		}
+		virtualMachineProfile.SecurityProfile.SecurityType = pointer.To(virtualmachinescalesets.SecurityTypesTrustedLaunch)
+		virtualMachineProfile.SecurityProfile.UefiSettings.VTpmEnabled = pointer.To(vtpmEnabled)
 	}
 
 	if v, ok := d.GetOk("eviction_policy"); ok {
@@ -1525,10 +1561,24 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				d.Set("extensions_time_budget", extensionsTimeBudget)
 
 				encryptionAtHostEnabled := false
-				if profile.SecurityProfile != nil && profile.SecurityProfile.EncryptionAtHost != nil {
-					encryptionAtHostEnabled = *profile.SecurityProfile.EncryptionAtHost
+				secureBootEnabled := false
+				vtpmEnabled := false
+				if secProfile := profile.SecurityProfile; secProfile != nil {
+					if secProfile.EncryptionAtHost != nil {
+						encryptionAtHostEnabled = *secProfile.EncryptionAtHost
+					}
+					if uefi := secProfile.UefiSettings; uefi != nil {
+						if uefi.SecureBootEnabled != nil {
+							secureBootEnabled = *uefi.SecureBootEnabled
+						}
+						if uefi.VTpmEnabled != nil {
+							vtpmEnabled = *uefi.VTpmEnabled
+						}
+					}
 				}
 				d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
+				d.Set("secure_boot_enabled", secureBootEnabled)
+				d.Set("vtpm_enabled", vtpmEnabled)
 				d.Set("user_data_base64", profile.UserData)
 
 				if policy := props.UpgradePolicy; policy != nil {
