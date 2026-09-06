@@ -33,12 +33,6 @@ type AccountRaiPolicyContentFilter struct {
 	Source            string `tfschema:"source"`
 }
 
-type AccountRaiPolicyCustomBlock struct {
-	Id           string `tfschema:"rai_blocklist_id"`
-	BlockEnabled bool   `tfschema:"block_enabled"`
-	Source       string `tfschema:"source"`
-}
-
 type AccountRaiPolicyResourceModel struct {
 	Name           string                          `tfschema:"name"`
 	AccountId      string                          `tfschema:"cognitive_account_id"`

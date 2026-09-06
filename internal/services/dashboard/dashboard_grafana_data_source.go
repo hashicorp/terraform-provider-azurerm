@@ -216,11 +216,6 @@ func dataSourceDashboardGrafanaRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-// AzureMonitorWorkspaceIntegration represents a struct for Azure Monitor Workspace Integration
-type AzureMonitorWorkspaceIntegration struct {
-	AzureMonitorWorkspaceResourceId *string `json:"azureMonitorWorkspaceResourceId,omitempty"`
-}
-
 func flattenAzureMonitorWorkspaceIntegrations(integrations []managedgrafanas.AzureMonitorWorkspaceIntegration) []interface{} {
 	result := make([]interface{}, len(integrations))
 	for i, integration := range integrations {

@@ -44,13 +44,6 @@ type BootRecoveryGroupModel struct {
 	ReplicatedProtectedItems []string      `tfschema:"replicated_protected_items"`
 }
 
-type RecoveryGroupModel struct {
-	GroupType                string        `tfschema:"type"`
-	PostAction               []ActionModel `tfschema:"post_action"`
-	PreAction                []ActionModel `tfschema:"pre_action"`
-	ReplicatedProtectedItems []string      `tfschema:"replicated_protected_items"`
-}
-
 type ActionModel struct {
 	ActionDetailType        string   `tfschema:"type"`
 	FabricLocation          string   `tfschema:"fabric_location"`
