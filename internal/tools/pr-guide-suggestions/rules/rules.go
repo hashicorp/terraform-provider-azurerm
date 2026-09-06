@@ -57,6 +57,16 @@ var Registry = []*Rule{
 	sl008, sl009, sl010, sl011, sl012, sl013,
 }
 
+// ByID returns the rule with the given ID, or nil.
+func ByID(id string) *Rule {
+	for _, r := range Registry {
+		if r.ID == id {
+			return r
+		}
+	}
+	return nil
+}
+
 // schema.Schema field names.
 const (
 	fieldType         = "Type"

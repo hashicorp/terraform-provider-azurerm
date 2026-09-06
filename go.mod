@@ -10,6 +10,7 @@ require (
 	github.com/agiledragon/gomonkey/v2 v2.13.0
 	github.com/btubbs/datetime v0.1.1
 	github.com/dave/jennifer v1.7.1
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/fatih/color v1.18.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/golang-jwt/jwt/v4 v4.5.2

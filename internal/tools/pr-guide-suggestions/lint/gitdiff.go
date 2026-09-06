@@ -21,6 +21,19 @@ type Changes struct {
 	files map[string]map[int]bool
 }
 
+// Added reports whether the given (absolute) file and line was added/changed.
+func (c *Changes) Added(file string, line int) bool {
+	if c == nil {
+		return false
+	}
+	abs, err := filepath.Abs(file)
+	if err != nil {
+		abs = file
+	}
+	lines, ok := c.files[abs]
+	return ok && lines[line]
+}
+
 // AddedInRange reports whether any line in [start, end] of the given (absolute)
 // file was added/changed.
 func (c *Changes) AddedInRange(file string, start, end int) bool {

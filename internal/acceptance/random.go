@@ -33,3 +33,7 @@ func RandTimeInt() int {
 func RandString(strlen int) string {
 	return acctest.RandString(strlen)
 }
+
+func RandStringFromCharSet(strlen int, charSet string) string {
+	return acctest.RandStringFromCharSet(strlen, charSet)
+}

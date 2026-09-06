@@ -37,6 +37,14 @@ func CacheSupportedProviders(ctx context.Context, client *providers.ProvidersCli
 	return nil
 }
 
+func ClearCache() {
+	cacheLock.Lock()
+	cachedResourceProviders = nil
+	registeredResourceProviders = nil
+	unregisteredResourceProviders = nil
+	cacheLock.Unlock()
+}
+
 func populateCache(ctx context.Context, client *providers.ProvidersClient, subscriptionId commonids.SubscriptionId) error {
 	cacheLock.Lock()
 	defer cacheLock.Unlock()

@@ -65,6 +65,18 @@ func ExprIntValue(e ast.Expr) *int {
 	return nil
 }
 
+// ExprStringValue returns the unquoted value of a string literal, or nil.
+func ExprStringValue(e ast.Expr) *string {
+	lit, ok := e.(*ast.BasicLit)
+	if !ok || lit.Kind != token.STRING {
+		return nil
+	}
+	if s, err := strconv.Unquote(lit.Value); err == nil {
+		return &s
+	}
+	return nil
+}
+
 // IsStringType reports whether an expression is the identifier `string`.
 func IsStringType(e ast.Expr) bool {
 	id, ok := e.(*ast.Ident)

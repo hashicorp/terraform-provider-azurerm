@@ -77,6 +77,12 @@ func IntAtLeast(min int) func(interface{}, string) ([]string, []error) {
 	return validation.IntAtLeast(min)
 }
 
+// IntAtMost returns a SchemaValidateFunc which tests if the provided value
+// is of type int and is at most max (inclusive)
+func IntAtMost(max int) func(interface{}, string) ([]string, []error) {
+	return validation.IntAtMost(max)
+}
+
 // IntBetween returns a SchemaValidateFunc which tests if the provided value
 // is of type int and is between min and max (inclusive)
 func IntBetween(min, max int) func(interface{}, string) ([]string, []error) {

@@ -448,6 +448,16 @@ func (s *SchemaLit) Int(field string) int {
 	return 0
 }
 
+// String returns the string value of a field, or "" when unset/unreadable.
+func (s *SchemaLit) String(field string) string {
+	if kv := s.fields[field]; kv != nil {
+		if v := astutil.ExprStringValue(kv.Value); v != nil {
+			return *v
+		}
+	}
+	return ""
+}
+
 // ValueType returns the schema Type as its identifier name (e.g. "TypeString"),
 // or "" when the Type field is absent or not a simple selector/identifier.
 func (s *SchemaLit) ValueType() string {

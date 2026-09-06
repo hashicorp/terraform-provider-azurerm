@@ -84,6 +84,35 @@ func getOidcToken(d *ProviderModel) (*string, error) {
 	return &idToken, nil
 }
 
+func getClientId(d *ProviderModel) (*string, error) {
+	clientId := getEnvStringOrDefault(d.ClientId, "ARM_CLIENT_ID", "")
+
+	if path := getEnvStringIfValueAbsent(d.ClientIdFilePath, ""); path != "" {
+		fileClientIdRaw, err := os.ReadFile(path)
+		if err != nil {
+			return nil, fmt.Errorf("reading Client ID from file %q: %v", path, err)
+		}
+
+		fileClientId := strings.TrimSpace(string(fileClientIdRaw))
+
+		if clientId != "" && clientId != fileClientId {
+			return nil, fmt.Errorf("mismatch between supplied Client ID and supplied Client ID file contents - please either remove one or ensure they match")
+		}
+
+		clientId = fileClientId
+	}
+
+	if d.UseAKSWorkloadIdentity.ValueBool() && clientId != "" {
+		aksClientId := os.Getenv("ARM_CLIENT_ID")
+		if clientId != "" && clientId != aksClientId {
+			return nil, fmt.Errorf("mismatch between supplied Client ID and that provided by AKS Workload Identity - please remove, ensure they match, or disable use_aks_workload_identity")
+		}
+		clientId = aksClientId
+	}
+
+	return &clientId, nil
+}
+
 // getEnvStringIfValueAbsent takes a Framework StringValue and a corresponding Environment Variable name and returns
 // either the string value set in the StringValue if not Null / Unknown _or_ the os.GetEnv() value of the Environment
 // Variable provided. If both of these are empty, an empty string "" is returned.

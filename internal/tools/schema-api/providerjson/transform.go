@@ -190,3 +190,14 @@ func ProviderFromRaw(input *ProviderJSON) (*ProviderSchemaJSON, error) {
 	result.DataSourcesMap = dataSourceSchemas
 	return result, nil
 }
+
+func WrappedProvider(input *ProviderJSON, wrapper *ProviderWrapper) (*ProviderWrapper, error) {
+	schema, err := ProviderFromRaw(input)
+	if err != nil {
+		return nil, err
+	}
+
+	wrapper.ProviderSchema = schema
+
+	return wrapper, nil
+}

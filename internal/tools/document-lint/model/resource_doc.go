@@ -99,6 +99,13 @@ type Field struct {
 	GuessEnums   []string // guess all code block as possible values
 }
 
+func NewField(line string) *Field {
+	return &Field{
+		Content: line,
+		// Required: false,
+	}
+}
+
 func (f *Field) SetGuessEnums(values []string) {
 	// remove repeat values and ` mark
 	hys := make(map[string]struct{}, len(values))
@@ -215,6 +222,13 @@ func (p Properties) FindAllSubBlock(name string) (res []*Field) {
 type PossibleValue struct {
 	Valeus []string
 	Field  *Field
+}
+
+func NewPossibleValue(values []string, f *Field) PossibleValue {
+	return PossibleValue{
+		Valeus: values,
+		Field:  f,
+	}
 }
 
 type ResourceDoc struct {
