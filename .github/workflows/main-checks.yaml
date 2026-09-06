@@ -126,6 +126,19 @@ jobs:
           go-version-file: ./.go-version
       - run: go run internal/tools/preview-api-version-linter/main.go
 
+  copyright:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+      - name: Install license-eye
+        run: |
+          # license-eye version is sourced from the GNUmakefile - the single source of truth
+          go install github.com/apache/skywalking-eyes/cmd/license-eye@"$(sed -n 's/^LICENSE_EYE_VERSION *:= *//p' GNUmakefile)"
+      - run: make copyright
+
   shellcheck:
     runs-on: ubuntu-latest
     steps:

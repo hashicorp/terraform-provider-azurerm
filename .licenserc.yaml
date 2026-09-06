@@ -1,0 +1,38 @@
+# Copyright IBM Corp. 2014, 2026
+# SPDX-License-Identifier: MPL-2.0
+
+# Copyright header config for license-eye (https://github.com/apache/skywalking-eyes), enforced
+# by 'make copyright' in CI - run 'make copyright-fix' to add missing headers. 'pattern' accepts
+# every year a header may legitimately carry (the year is only bumped when a file is touched),
+# 'content' is what new files get. Keep paths-ignore in sync with header_ignore in .copywrite.hcl
+# (read by the IBM compliance scanner).
+header:
+  license:
+    spdx-id: MPL-2.0
+    copyright-owner: IBM Corp.
+    content: |
+      Copyright IBM Corp. 2014, 2026
+      SPDX-License-Identifier: MPL-2.0
+    pattern: |
+      Copyright IBM Corp\. 2014, 20(25|26)
+      SPDX-License-Identifier: MPL-2\.0
+  paths: # markdown/json/templates are deliberately excluded, matching the compliance scanner
+    - '**/*.go'
+    - '**/*.hcl'
+    - '**/*.ps1'
+    - '**/*.py'
+    - '**/*.sh'
+    - '**/*.tf'
+    - '**/*.xml'
+    - '**/*.yaml'
+    - '**/*.yml'
+  paths-ignore:
+    - '.ci/**'
+    - '.github/**'
+    - '.idea/**'
+    - '.release/**'
+    - '.teamcity/**'
+    - 'vendor/**'
+    - '**/*_gen.go' # pandora generated files
+    - '.goreleaser.yml'
+  comment: never

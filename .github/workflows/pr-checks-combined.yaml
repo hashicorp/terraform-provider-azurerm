@@ -117,6 +117,47 @@ jobs:
 
   # ------------------------------------------
 
+  copyright:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+      - name: Install license-eye
+        run: |
+          # license-eye version is sourced from the GNUmakefile - the single source of truth
+          go install github.com/apache/skywalking-eyes/cmd/license-eye@"$(sed -n 's/^LICENSE_EYE_VERSION *:= *//p' GNUmakefile)"
+      - run: make copyright
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::Copyright header check failed."
+          echo ""
+          echo "Run 'make copyright-fix' locally to add the missing copyright headers"
+          echo "(config in .licenserc.yaml) and commit the result."
+
+  copyright-save-artifacts:
+    needs: copyright
+    if: always() && needs.copyright.result == 'failure'
+    uses: ./.github/workflows/pr-save-artifacts.yaml
+
+  copyright-on-fail:
+    needs: copyright
+    if: always() && needs.copyright.result == 'failure'
+    uses: ./.github/workflows/pr-comment-failure.yaml
+    with:
+      check_name: "Copyright Headers"
+
+  copyright-on-success:
+    needs: copyright
+    if: always() && needs.copyright.result == 'success'
+    uses: ./.github/workflows/pr-comment-failure-outdated.yaml
+    with:
+      check_name: "Copyright Headers"
+
+  # ------------------------------------------
+
   quick-checks:
     needs: paths-filter
     if: needs.paths-filter.outputs.go == 'true'

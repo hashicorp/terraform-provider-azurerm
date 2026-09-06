@@ -11,6 +11,9 @@ GOLANGCI_LINT_VERSION := $(shell sed -n 's/^version: *//p' scripts/.custom-gcl.y
 # in .github/workflows/workflow-actionlint.yml.
 ACTIONLINT_VERSION := $(shell sed -n 's/.*actionlint\/cmd\/actionlint@//p' .github/workflows/workflow-actionlint.yml)
 
+# The single source of truth for the license-eye version - the copyright CI jobs read this line.
+LICENSE_EYE_VERSION := v0.9.0
+
 
 .EXPORT_ALL_VARIABLES:
 
@@ -41,6 +44,7 @@ tools: ## Install the tools required to develop the provider
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install mvdan.cc/gofumpt@latest
 	go install github.com/rhysd/actionlint/cmd/actionlint@$(ACTIONLINT_VERSION)
+	go install github.com/apache/skywalking-eyes/cmd/license-eye@$(LICENSE_EYE_VERSION)
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin $(GOLANGCI_LINT_VERSION)
 	@$(MAKE) golangci-with-modules
 
@@ -129,6 +133,16 @@ actionlint: ## Check GitHub workflows with actionlint (incl. shellcheck on run b
 	@command -v actionlint >/dev/null || (echo "actionlint not installed. Install via 'make tools' or: go install github.com/rhysd/actionlint/cmd/actionlint@$(ACTIONLINT_VERSION)" && exit 1)
 	@echo "==> Checking workflows with actionlint..."
 	@actionlint
+
+copyright: ## Check copyright headers with license-eye (config in .licenserc.yaml)
+	@command -v license-eye >/dev/null || (echo "license-eye not installed. Install via 'make tools' or: go install github.com/apache/skywalking-eyes/cmd/license-eye@$(LICENSE_EYE_VERSION)" && exit 1)
+	@echo "==> Checking copyright headers with license-eye..."
+	@license-eye header check
+
+copyright-fix: ## Add missing copyright headers with license-eye
+	@command -v license-eye >/dev/null || (echo "license-eye not installed. Install via 'make tools' or: go install github.com/apache/skywalking-eyes/cmd/license-eye@$(LICENSE_EYE_VERSION)" && exit 1)
+	@echo "==> Adding missing copyright headers with license-eye..."
+	@license-eye header fix
 
 shellcheck: ## Check shell scripts with shellcheck
 	@command -v shellcheck >/dev/null || (echo "shellcheck not installed. Install via: brew install shellcheck (macOS) or apt install shellcheck (Linux)" && exit 1)
@@ -226,4 +240,4 @@ resource-counts: ## Print the number of resources and data sources in the provid
 
 pr-check: generate build test lint website-lint ## Run the same set of checks CI runs against a PR
 
-.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint actionlint yamllint markdownlint shellcheck depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check
+.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint actionlint yamllint markdownlint shellcheck copyright copyright-fix depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check
