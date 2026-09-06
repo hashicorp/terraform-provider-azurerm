@@ -172,7 +172,7 @@ resource "azurerm_data_factory_custom_dataset" "import" {
   type_properties_json = azurerm_data_factory_custom_dataset.test.type_properties_json
 
   linked_service {
-    name = azurerm_data_factory_custom_dataset.test.linked_service.0.name
+    name = azurerm_data_factory_custom_dataset.test.linked_service[0].name
   }
 }
 `, r.basic(data))

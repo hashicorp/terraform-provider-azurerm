@@ -102,7 +102,7 @@ resource "azurerm_security_center_automation" "test-import" {
 
   lifecycle {
     # ignore trigger_url, it's not returned on imports
-    ignore_changes = [action.0.trigger_url]
+    ignore_changes = [action[0].trigger_url]
   }
 }
 

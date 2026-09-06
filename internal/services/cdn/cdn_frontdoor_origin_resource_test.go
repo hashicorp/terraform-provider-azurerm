@@ -356,7 +356,7 @@ resource "azurerm_private_link_service" "test" {
   location            = azurerm_resource_group.test.location
 
   visibility_subscription_ids                 = [data.azurerm_client_config.current.subscription_id]
-  load_balancer_frontend_ip_configuration_ids = [azurerm_lb.test.frontend_ip_configuration.0.id]
+  load_balancer_frontend_ip_configuration_ids = [azurerm_lb.test.frontend_ip_configuration[0].id]
 
   nat_ip_configuration {
     name                       = "primary"
@@ -648,8 +648,8 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
   enabled                       = true
 
   certificate_name_check_enabled = true
-  host_name                      = azurerm_private_link_service.test.nat_ip_configuration.0.private_ip_address
-  origin_host_header             = azurerm_private_link_service.test.nat_ip_configuration.0.private_ip_address
+  host_name                      = azurerm_private_link_service.test.nat_ip_configuration[0].private_ip_address
+  origin_host_header             = azurerm_private_link_service.test.nat_ip_configuration[0].private_ip_address
   priority                       = 1
   weight                         = 500
 

@@ -34,7 +34,7 @@ resource "azurerm_key_vault_managed_hardware_security_module" "example" {
   security_domain_quorum = 2
 }
 
-// this gives your service principal the HSM Crypto User role which lets you create and destroy hsm keys
+# this gives your service principal the HSM Crypto User role which lets you create and destroy hsm keys
 resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "hsm-crypto-user" {
   managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
   name               = "1e243909-064c-6ac3-84e9-1c8bf8d6ad22"
@@ -43,7 +43,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "h
   principal_id       = data.azurerm_client_config.current.object_id
 }
 
-// this gives your service principal the HSM Crypto Officer role which lets you purge hsm keys
+# this gives your service principal the HSM Crypto Officer role which lets you purge hsm keys
 resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "hsm-crypto-officer" {
   managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
   name               = "1e243909-064c-6ac3-84e9-1c8bf8d6ad23"

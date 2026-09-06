@@ -187,19 +187,19 @@ resource "azurerm_consumption_budget_management_group" "test" {
   name                = "acctestconsumptionbudgetManagementGroup-%d"
   management_group_id = data.azurerm_management_group.tenant_root.id
 
-  // Changed the amount from 1000 to 3000
+  # Changed the amount from 1000 to 3000
   amount     = 3000
   time_grain = "Monthly"
 
-  // Add end_date
+  # Add end_date
   time_period {
     start_date = "%s"
     end_date   = "%s"
   }
 
-  // Remove filter
+  # Remove filter
 
-  // Changed threshold and operator
+  # Changed threshold and operator
   notification {
     enabled        = true
     threshold      = 95.0
@@ -357,11 +357,11 @@ resource "azurerm_consumption_budget_management_group" "test" {
   name                = "acctestconsumptionbudgetManagementGroup-%d"
   management_group_id = data.azurerm_management_group.tenant_root.id
 
-  // Changed the amount from 1000 to 2000
+  # Changed the amount from 1000 to 2000
   amount     = 2000
   time_grain = "Monthly"
 
-  // Removed end_date
+  # Removed end_date
   time_period {
     start_date = "%s"
   }
@@ -382,7 +382,7 @@ resource "azurerm_consumption_budget_management_group" "test" {
       ]
     }
 
-    // Added tag: zip
+    # Added tag: zip
     tag {
       name = "zip"
       values = [
@@ -391,7 +391,7 @@ resource "azurerm_consumption_budget_management_group" "test" {
       ]
     }
 
-    // Removed not block 
+    # Removed not block 
   }
 
   notification {
@@ -401,7 +401,7 @@ resource "azurerm_consumption_budget_management_group" "test" {
     threshold_type = "Actual"
 
     contact_emails = [
-      // Added baz@example.com
+      # Added baz@example.com
       "baz@example.com",
       "foo@example.com",
       "bar@example.com",
@@ -409,11 +409,11 @@ resource "azurerm_consumption_budget_management_group" "test" {
   }
 
   notification {
-    // Set enabled to true
+    # Set enabled to true
     enabled        = true
     threshold      = 100.0
     threshold_type = "Forecasted"
-    // Changed from EqualTo to GreaterThanOrEqualTo 
+    # Changed from EqualTo to GreaterThanOrEqualTo 
     operator = "GreaterThanOrEqualTo"
 
     contact_emails = [

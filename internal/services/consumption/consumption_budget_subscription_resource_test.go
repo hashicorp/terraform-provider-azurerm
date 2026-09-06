@@ -184,19 +184,19 @@ resource "azurerm_consumption_budget_subscription" "test" {
   name            = "acctestconsumptionbudgetsubscription-%d"
   subscription_id = data.azurerm_subscription.current.id
 
-  // Changed the amount from 1000 to 2000
+  # Changed the amount from 1000 to 2000
   amount     = 3000
   time_grain = "Monthly"
 
-  // Add end_date
+  # Add end_date
   time_period {
     start_date = "%s"
     end_date   = "%s"
   }
 
-  // Remove filter
+  # Remove filter
 
-  // Changed threshold and operator
+  # Changed threshold and operator
   notification {
     enabled        = true
     threshold      = 95.0
@@ -355,11 +355,11 @@ resource "azurerm_consumption_budget_subscription" "test" {
   name            = "acctestconsumptionbudgetsubscription-%d"
   subscription_id = data.azurerm_subscription.current.id
 
-  // Changed the amount from 1000 to 2000
+  # Changed the amount from 1000 to 2000
   amount     = 2000
   time_grain = "Monthly"
 
-  // Removed end_date
+  # Removed end_date
   time_period {
     start_date = "%s"
   }
@@ -380,7 +380,7 @@ resource "azurerm_consumption_budget_subscription" "test" {
       ]
     }
 
-    // Added tag: zip
+    # Added tag: zip
     tag {
       name = "zip"
       values = [
@@ -389,7 +389,7 @@ resource "azurerm_consumption_budget_subscription" "test" {
       ]
     }
 
-    // Removed not block 
+    # Removed not block 
   }
 
   notification {
@@ -399,7 +399,7 @@ resource "azurerm_consumption_budget_subscription" "test" {
     threshold_type = "Actual"
 
     contact_emails = [
-      // Added baz@example.com
+      # Added baz@example.com
       "baz@example.com",
       "foo@example.com",
       "bar@example.com",
@@ -408,15 +408,15 @@ resource "azurerm_consumption_budget_subscription" "test" {
     contact_groups = [
       azurerm_monitor_action_group.test.id,
     ]
-    // Removed contact_roles
+    # Removed contact_roles
   }
 
   notification {
-    // Set enabled to true
+    # Set enabled to true
     enabled        = true
     threshold      = 100.0
     threshold_type = "Forecasted"
-    // Changed from EqualTo to GreaterThanOrEqualTo 
+    # Changed from EqualTo to GreaterThanOrEqualTo 
     operator = "GreaterThanOrEqualTo"
 
     contact_emails = [
@@ -424,7 +424,7 @@ resource "azurerm_consumption_budget_subscription" "test" {
       "bar@example.com",
     ]
 
-    // Added contact_groups
+    # Added contact_groups
     contact_groups = [
       azurerm_monitor_action_group.test.id,
     ]

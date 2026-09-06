@@ -364,8 +364,8 @@ resource "azurerm_key_vault" "test" {
   }
 
   access_policy {
-    tenant_id = azurerm_api_management.test.identity.0.tenant_id
-    object_id = azurerm_api_management.test.identity.0.principal_id
+    tenant_id = azurerm_api_management.test.identity[0].tenant_id
+    object_id = azurerm_api_management.test.identity[0].principal_id
 
     secret_permissions = [
       "Get",
@@ -440,8 +440,8 @@ resource "azurerm_key_vault" "test2" {
   }
 
   access_policy {
-    tenant_id = azurerm_api_management.test.identity.0.tenant_id
-    object_id = azurerm_api_management.test.identity.0.principal_id
+    tenant_id = azurerm_api_management.test.identity[0].tenant_id
+    object_id = azurerm_api_management.test.identity[0].principal_id
 
     secret_permissions = [
       "Get",

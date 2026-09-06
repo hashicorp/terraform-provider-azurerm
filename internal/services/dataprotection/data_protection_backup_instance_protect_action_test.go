@@ -21,7 +21,7 @@ func TestAccDataProtectionBackupInstanceProtectAction_stopProtection(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_protect", "test")
 	a := DataProtectionBackupInstanceProtectAction{}
 
-	resource.ParallelTest(t, resource.TestCase{
+	acceptance.RunParallelTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
@@ -43,7 +43,7 @@ func TestAccDataProtectionBackupInstanceProtectAction_resumeProtection(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_protect", "test")
 	a := DataProtectionBackupInstanceProtectAction{}
 
-	resource.ParallelTest(t, resource.TestCase{
+	acceptance.RunParallelTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
@@ -65,7 +65,7 @@ func TestAccDataProtectionBackupInstanceProtectAction_suspendBackups(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_protect", "test")
 	a := DataProtectionBackupInstanceProtectAction{}
 
-	resource.ParallelTest(t, resource.TestCase{
+	acceptance.RunParallelTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
@@ -87,7 +87,7 @@ func TestAccDataProtectionBackupInstanceProtectAction_resumeBackups(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_protect", "test")
 	a := DataProtectionBackupInstanceProtectAction{}
 
-	resource.ParallelTest(t, resource.TestCase{
+	acceptance.RunParallelTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
@@ -145,13 +145,13 @@ resource "azurerm_data_protection_backup_vault" "test" {
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_resource_group.test.id
   role_definition_name = "Reader"
-  principal_id         = azurerm_data_protection_backup_vault.test.identity.0.principal_id
+  principal_id         = azurerm_data_protection_backup_vault.test.identity[0].principal_id
 }
 
 resource "azurerm_role_assignment" "test2" {
   scope                = azurerm_postgresql_flexible_server.test.id
   role_definition_name = "PostgreSQL Flexible Server Long Term Retention Backup Role"
-  principal_id         = azurerm_data_protection_backup_vault.test.identity.0.principal_id
+  principal_id         = azurerm_data_protection_backup_vault.test.identity[0].principal_id
 }
 
 resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "test" {

@@ -2543,7 +2543,7 @@ resource "azurerm_linux_function_app_slot" "test" {
     app_command_line   = "whoami"
     api_definition_url = "https://example.com/azure_function_app_def.json"
     app_scale_limit    = 3
-    // api_management_api_id = ""  // TODO
+    # api_management_api_id = ""  // TODO
     application_insights_key               = azurerm_application_insights.test.instrumentation_key
     application_insights_connection_string = azurerm_application_insights.test.connection_string
 
@@ -2728,7 +2728,7 @@ resource "azurerm_linux_function_app_slot" "test" {
     always_on          = true
     app_command_line   = "whoami"
     api_definition_url = "https://example.com/azure_function_app_def.json"
-    // api_management_api_id = ""  // TODO
+    # api_management_api_id = ""  // TODO
     application_insights_key               = azurerm_application_insights.test.instrumentation_key
     application_insights_connection_string = azurerm_application_insights.test.connection_string
 
@@ -2914,7 +2914,7 @@ resource "azurerm_linux_function_app_slot" "test" {
   site_config {
     app_command_line   = "whoami"
     api_definition_url = "https://example.com/azure_function_app_def.json"
-    // api_management_api_id = ""  // TODO
+    # api_management_api_id = ""  // TODO
     application_insights_key               = azurerm_application_insights.test.instrumentation_key
     application_insights_connection_string = azurerm_application_insights.test.connection_string
 

@@ -394,7 +394,7 @@ resource "azurerm_key_vault_access_policy" "storage" {
 
   key_vault_id = azurerm_key_vault.remotetest.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = azurerm_storage_account.test.identity.0.principal_id
+  object_id    = azurerm_storage_account.test.identity[0].principal_id
 
   key_permissions    = ["Get", "Create", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
   secret_permissions = ["Get"]
@@ -577,7 +577,7 @@ resource "azurerm_key_vault" "test" {
 resource "azurerm_key_vault_access_policy" "storage" {
   key_vault_id = azurerm_key_vault.test.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = azurerm_storage_account.test.identity.0.principal_id
+  object_id    = azurerm_storage_account.test.identity[0].principal_id
 
   key_permissions    = ["Get", "Create", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
   secret_permissions = ["Get"]
@@ -913,7 +913,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "u
   name               = "%[6]s"
   scope              = "/keys"
   role_definition_id = "/Microsoft.KeyVault/providers/Microsoft.Authorization/roleDefinitions/21dbd100-6940-42c2-9190-5d6cb909625b"
-  principal_id       = azurerm_storage_account.test.identity.0.principal_id
+  principal_id       = azurerm_storage_account.test.identity[0].principal_id
 }
 
 resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {

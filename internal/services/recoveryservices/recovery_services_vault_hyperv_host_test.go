@@ -434,7 +434,7 @@ resource "azurerm_windows_virtual_machine" "host" {
   }
 
   provisioner "file" {
-    content     = "${var.hyperv_host_registration_key}"
+    content     = var.hyperv_host_registration_key
     destination = "c:/temp/hyperv-credential"
   }
 
@@ -486,7 +486,7 @@ resource "azurerm_storage_container" "hybrid" {
 resource "azurerm_role_assignment" "hybrid" {
   scope                = azurerm_storage_account.hybrid.id
   role_definition_name = "Storage Blob Data Reader"
-  principal_id         = azurerm_windows_virtual_machine.host.identity.0.principal_id
+  principal_id         = azurerm_windows_virtual_machine.host.identity[0].principal_id
 }
 
 resource "azurerm_storage_blob" "setup_script" {

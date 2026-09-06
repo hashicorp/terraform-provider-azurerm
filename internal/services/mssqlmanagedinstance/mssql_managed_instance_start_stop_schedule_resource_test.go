@@ -165,10 +165,10 @@ func (r sqlManagedInstanceStartStopScheduleResource) requiresImport(data accepta
 resource "azurerm_mssql_managed_instance_start_stop_schedule" "import" {
   managed_instance_id = azurerm_mssql_managed_instance_start_stop_schedule.test.managed_instance_id
   schedule {
-    start_day  = azurerm_mssql_managed_instance_start_stop_schedule.test.schedule.0.start_day
-    start_time = azurerm_mssql_managed_instance_start_stop_schedule.test.schedule.0.start_time
-    stop_day   = azurerm_mssql_managed_instance_start_stop_schedule.test.schedule.0.stop_day
-    stop_time  = azurerm_mssql_managed_instance_start_stop_schedule.test.schedule.0.stop_time
+    start_day  = azurerm_mssql_managed_instance_start_stop_schedule.test.schedule[0].start_day
+    start_time = azurerm_mssql_managed_instance_start_stop_schedule.test.schedule[0].start_time
+    stop_day   = azurerm_mssql_managed_instance_start_stop_schedule.test.schedule[0].stop_day
+    stop_time  = azurerm_mssql_managed_instance_start_stop_schedule.test.schedule[0].stop_time
   }
 }
 `, r.basic(data))

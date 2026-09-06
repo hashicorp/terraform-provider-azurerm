@@ -160,7 +160,7 @@ resource "azurerm_maintenance_assignment_dynamic_scope" "import" {
   name                         = azurerm_maintenance_assignment_dynamic_scope.test.name
   maintenance_configuration_id = azurerm_maintenance_assignment_dynamic_scope.test.maintenance_configuration_id
   filter {
-    locations = azurerm_maintenance_assignment_dynamic_scope.test.filter.0.locations
+    locations = azurerm_maintenance_assignment_dynamic_scope.test.filter[0].locations
   }
 }
 `, r.basic(data))

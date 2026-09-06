@@ -177,7 +177,7 @@ resource "azurerm_key_vault_access_policy" "system_identity" {
   key_vault_id = azurerm_key_vault.test.id
 
   tenant_id = azurerm_key_vault.test.tenant_id
-  object_id = azurerm_cosmosdb_cassandra_cluster.test.identity.0.principal_id
+  object_id = azurerm_cosmosdb_cassandra_cluster.test.identity[0].principal_id
 
   key_permissions = [
     "Create",
@@ -274,7 +274,7 @@ resource "azurerm_key_vault_access_policy" "system_identity" {
   key_vault_id = azurerm_key_vault.test.id
 
   tenant_id = azurerm_key_vault.test.tenant_id
-  object_id = azurerm_cosmosdb_cassandra_cluster.test.identity.0.principal_id
+  object_id = azurerm_cosmosdb_cassandra_cluster.test.identity[0].principal_id
 
   key_permissions = [
     "Create",

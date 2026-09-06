@@ -924,7 +924,7 @@ resource "azurerm_storage_blob" "test" {
   storage_container_id = azurerm_storage_container.test.id
   type                 = "Block"
   source               = "%s"
-  content_md5          = "${filemd5("%s")}"
+  content_md5          = filemd5("%s")
 }
 `, r.template(data, "blob"), fileName, fileName)
 }

@@ -148,7 +148,7 @@ data "azuread_domains" "test" {
 }
 
 resource "azuread_user" "test" {
-  user_principal_name = "acctestAADDSAdminUser-%[3]s@${data.azuread_domains.test.domains.0.domain_name}"
+  user_principal_name = "acctestAADDSAdminUser-%[3]s@${data.azuread_domains.test.domains[0].domain_name}"
   display_name        = "acctestAADDSAdminUser-%[3]s"
   password            = "TerrAform321!"
 }
@@ -219,7 +219,7 @@ resource "azurerm_active_directory_domain_service" "test" {
 
 resource "azurerm_virtual_network_dns_servers" "test" {
   virtual_network_id = azurerm_virtual_network.test.id
-  dns_servers        = azurerm_active_directory_domain_service.test.initial_replica_set.0.domain_controller_ip_addresses
+  dns_servers        = azurerm_active_directory_domain_service.test.initial_replica_set[0].domain_controller_ip_addresses
 }
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

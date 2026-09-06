@@ -147,7 +147,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_cloud_ma
     public_ip_address_ids        = [azurerm_public_ip.test.id]
   }
 
-  // tags is required in the test subscription account, otherwise it fails
+  # tags is required in the test subscription account, otherwise it fails
   tags = {
     userid = "terraform-test"
   }

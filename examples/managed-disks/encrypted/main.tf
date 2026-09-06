@@ -65,8 +65,8 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
     "WrapKey",
   ]
 
-  tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
-  object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
+  tenant_id = azurerm_disk_encryption_set.test.identity[0].tenant_id
+  object_id = azurerm_disk_encryption_set.test.identity[0].principal_id
 }
 
 
@@ -74,7 +74,7 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
 resource "azurerm_role_assignment" "disk-encryption-read-keyvault" {
   scope                = azurerm_key_vault.test.id
   role_definition_name = "Reader"
-  principal_id         = azurerm_disk_encryption_set.test.identity.0.principal_id
+  principal_id         = azurerm_disk_encryption_set.test.identity[0].principal_id
 }
 
 resource "azurerm_managed_disk" "test" {

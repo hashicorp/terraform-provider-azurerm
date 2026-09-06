@@ -529,14 +529,14 @@ data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
-  location = "%[4]s" // force region due to service allow list
+  location = "%[4]s" # force region due to service allow list
 }
 
 resource "azurerm_resource_group" "alt" {
   provider = azurerm-alt
 
   name     = "acctestRG-alt-%[1]d"
-  location = "eastus2" // force region due to service allow list
+  location = "eastus2" # force region due to service allow list
 }
 
 resource "azurerm_postgresql_flexible_server" "test" {

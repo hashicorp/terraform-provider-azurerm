@@ -47,8 +47,8 @@ resource "azurerm_lb" "example" {
 }
 
 resource "azurerm_lb_backend_address_pool" "example" {
-  name                = "backend"
-  loadbalancer_id     = azurerm_lb.example.id
+  name            = "backend"
+  loadbalancer_id = azurerm_lb.example.id
 }
 
 resource "azurerm_lb_probe" "example" {
@@ -110,7 +110,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
     ip_configuration {
       name                                   = "internal"
       subnet_id                              = azurerm_subnet.example.id
-      load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.example.id}"]
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.example.id]
       primary                                = true
     }
   }

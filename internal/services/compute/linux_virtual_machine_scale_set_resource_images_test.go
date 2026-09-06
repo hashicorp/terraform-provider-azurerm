@@ -397,7 +397,7 @@ resource "azurerm_linux_virtual_machine" "source" {
 }
 
 data "azurerm_managed_disk" "source" {
-  name                = azurerm_linux_virtual_machine.source.os_disk.0.name
+  name                = azurerm_linux_virtual_machine.source.os_disk[0].name
   resource_group_name = azurerm_resource_group.test.name
 }
 `, r.imagesFromVirtualMachinePrerequisites(data))

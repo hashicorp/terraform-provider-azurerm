@@ -1500,7 +1500,7 @@ resource "azurerm_container_app_job" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   container_app_environment_id = azurerm_container_app_environment.test.id
-  workload_profile_name        = local.workload_profiles.0.name
+  workload_profile_name        = local.workload_profiles[0].name
 
   replica_timeout_in_seconds = 10
   replica_retry_limit        = 10

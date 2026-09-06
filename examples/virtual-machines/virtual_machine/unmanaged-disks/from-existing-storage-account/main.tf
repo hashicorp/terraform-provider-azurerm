@@ -14,14 +14,14 @@ resource "azurerm_virtual_network" "vnet" {
   name                = "${var.hostname}vnet"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  address_space       = ["${var.address_space}"]
+  address_space       = [var.address_space]
 }
 
 resource "azurerm_subnet" "subnet" {
   name                 = "${var.hostname}subnet"
   virtual_network_name = azurerm_virtual_network.vnet.name
   resource_group_name  = azurerm_resource_group.rg.name
-  address_prefixes     = ["${var.subnet_prefix}"]
+  address_prefixes     = [var.subnet_prefix]
 }
 
 resource "azurerm_public_ip" "transferpip" {
@@ -90,7 +90,7 @@ resource "azurerm_virtual_machine" "transfer" {
   location              = azurerm_resource_group.rg.location
   resource_group_name   = azurerm_resource_group.rg.name
   vm_size               = var.vm_size
-  network_interface_ids = ["${azurerm_network_interface.transfernic.id}"]
+  network_interface_ids = [azurerm_network_interface.transfernic.id]
 
   storage_os_disk {
     name          = "${var.hostname}-osdisk"
@@ -147,7 +147,7 @@ resource "azurerm_virtual_machine" "myvm" {
   location              = azurerm_resource_group.rg.location
   resource_group_name   = azurerm_resource_group.rg.name
   vm_size               = var.vm_size
-  network_interface_ids = ["${azurerm_network_interface.mynic.id}"]
+  network_interface_ids = [azurerm_network_interface.mynic.id]
   depends_on            = ["azurerm_virtual_machine_extension.execute"]
 
   storage_os_disk {

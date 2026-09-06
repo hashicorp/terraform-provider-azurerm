@@ -92,8 +92,8 @@ resource "azurerm_lb" "example" {
 }
 
 resource "azurerm_lb_backend_address_pool" "example" {
-  loadbalancer_id     = azurerm_lb.example.id
-  name                = "BackEndAddressPool"
+  loadbalancer_id = azurerm_lb.example.id
+  name            = "BackEndAddressPool"
 }
 
 resource "azurerm_lb_nat_rule" "example" {
@@ -110,7 +110,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "example" 
   count                   = local.instance_count
   backend_address_pool_id = azurerm_lb_backend_address_pool.example.id
   ip_configuration_name   = "primary"
-  network_interface_id    = element(azurerm_network_interface.main.*.id, count.index)
+  network_interface_id    = element(azurerm_network_interface.main[*].id, count.index)
 }
 
 resource "azurerm_linux_virtual_machine" "main" {

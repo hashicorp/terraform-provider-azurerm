@@ -3429,10 +3429,10 @@ resource "azurerm_storage_account" "test" {
 
   lifecycle {
     ignore_changes = [
-      azure_files_authentication.0.active_directory.0.storage_sid,
-      azure_files_authentication.0.active_directory.0.domain_sid,
-      azure_files_authentication.0.active_directory.0.forest_name,
-      azure_files_authentication.0.active_directory.0.netbios_domain_name,
+      azure_files_authentication[0].active_directory[0].storage_sid,
+      azure_files_authentication[0].active_directory[0].domain_sid,
+      azure_files_authentication[0].active_directory[0].forest_name,
+      azure_files_authentication[0].active_directory[0].netbios_domain_name,
     ]
   }
 }
@@ -4644,7 +4644,7 @@ resource "azurerm_storage_account" "test" {
   }
 
   lifecycle {
-    ignore_changes = [share_properties.0.smb]
+    ignore_changes = [share_properties[0].smb]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

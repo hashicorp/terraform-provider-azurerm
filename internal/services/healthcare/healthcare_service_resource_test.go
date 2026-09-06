@@ -152,7 +152,7 @@ resource "azurerm_healthcare_service" "import" {
   resource_group_name = azurerm_healthcare_service.test.resource_group_name
 
   access_policy_object_ids = [
-    "${data.azurerm_client_config.current.object_id}",
+    data.azurerm_client_config.current.object_id,
   ]
 }
 `, r.basic(data))

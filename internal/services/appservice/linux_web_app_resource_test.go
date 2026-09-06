@@ -2078,7 +2078,7 @@ resource "azurerm_linux_web_app" "test" {
 
   site_config {
     always_on = true
-    // api_management_config_id = // TODO
+    # api_management_config_id = // TODO
     app_command_line = "/sbin/myserver -b 0.0.0.0"
     default_documents = [
       "first.html",
@@ -2113,7 +2113,7 @@ resource "azurerm_linux_web_app" "test" {
     container_registry_use_managed_identity       = true
     container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id
 
-    // auto_swap_slot_name = // TODO
+    # auto_swap_slot_name = // TODO
 
     auto_heal_setting {
       trigger {
@@ -2252,7 +2252,7 @@ resource "azurerm_linux_web_app" "test" {
 
   site_config {
     always_on = true
-    // api_management_config_id = // TODO
+    # api_management_config_id = // TODO
     app_command_line = "/sbin/myserver -b 0.0.0.0"
     default_documents = [
       "first.html",

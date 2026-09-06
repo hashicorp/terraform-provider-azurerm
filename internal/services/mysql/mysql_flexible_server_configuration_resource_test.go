@@ -255,8 +255,8 @@ func (r MysqlFlexibleServerConfigurationResource) template(data acceptance.TestD
 	config := fmt.Sprintf(`
 resource "azurerm_mysql_flexible_server_configuration" "test" {
   name                = "%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mysql_flexible_server.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_flexible_server.test.name
   value               = "%s"
 }
 `, name, value)

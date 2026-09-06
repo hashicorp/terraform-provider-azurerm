@@ -97,9 +97,9 @@ func (BotChannelDirectlineResource) basicConfig(data acceptance.TestData) string
 %s
 
 resource "azurerm_bot_channel_directline" "test" {
-  bot_name            = "${azurerm_bot_channels_registration.test.name}"
-  location            = "${azurerm_bot_channels_registration.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  bot_name            = azurerm_bot_channels_registration.test.name
+  location            = azurerm_bot_channels_registration.test.location
+  resource_group_name = azurerm_resource_group.test.name
   site {
     name    = "test"
     enabled = true
@@ -113,9 +113,9 @@ func (r BotChannelDirectlineResource) completeConfig(data acceptance.TestData) s
 %s
 
 resource "azurerm_bot_channel_directline" "test" {
-  bot_name            = "${azurerm_bot_channels_registration.test.name}"
-  location            = "${azurerm_bot_channels_registration.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  bot_name            = azurerm_bot_channels_registration.test.name
+  location            = azurerm_bot_channels_registration.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   site {
     name                            = "test1"
@@ -146,9 +146,9 @@ func (r BotChannelDirectlineResource) basicUpdate(data acceptance.TestData) stri
 %s
 
 resource "azurerm_bot_channel_directline" "test" {
-  bot_name            = "${azurerm_bot_channels_registration.test.name}"
-  location            = "${azurerm_bot_channels_registration.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  bot_name            = azurerm_bot_channels_registration.test.name
+  location            = azurerm_bot_channels_registration.test.location
+  resource_group_name = azurerm_resource_group.test.name
   site {
     name    = "test"
     enabled = false

@@ -105,7 +105,7 @@ resource "azurerm_virtual_machine" "main" {
   location                      = azurerm_resource_group.example.location
   resource_group_name           = azurerm_resource_group.example.name
   primary_network_interface_id  = azurerm_network_interface.external.id
-  network_interface_ids         = ["${azurerm_network_interface.external.id}", "${azurerm_network_interface.internal.id}"]
+  network_interface_ids         = [azurerm_network_interface.external.id, azurerm_network_interface.internal.id]
   vm_size                       = "Standard_DS1_v2"
   delete_os_disk_on_termination = true
 

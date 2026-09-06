@@ -159,7 +159,7 @@ resource "azurerm_vmware_private_cloud" "import" {
   sku_name            = azurerm_vmware_private_cloud.test.sku_name
 
   management_cluster {
-    size = azurerm_vmware_private_cloud.test.management_cluster.0.size
+    size = azurerm_vmware_private_cloud.test.management_cluster[0].size
   }
   network_subnet_cidr = azurerm_vmware_private_cloud.test.network_subnet_cidr
 }

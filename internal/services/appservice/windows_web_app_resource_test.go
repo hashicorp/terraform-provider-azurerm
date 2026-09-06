@@ -2708,7 +2708,7 @@ resource "azurerm_windows_web_app" "test" {
 
   client_affinity_enabled    = true
   client_certificate_enabled = true
-  //client_certificate_mode    = "Optional"
+  #client_certificate_mode    = "Optional"
   client_certificate_exclusion_paths = "/foo;/bar;/hello;/world"
 
   connection_string {
@@ -2733,7 +2733,7 @@ resource "azurerm_windows_web_app" "test" {
 
   site_config {
     always_on = true
-    // api_management_config_id = // TODO
+    # api_management_config_id = // TODO
     app_command_line = "/sbin/myserver -b 0.0.0.0"
     default_documents = [
       "first.html",
@@ -2767,7 +2767,7 @@ resource "azurerm_windows_web_app" "test" {
     container_registry_use_managed_identity       = true
     container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id
 
-    // auto_swap_slot_name = // TODO
+    # auto_swap_slot_name = // TODO
     virtual_application {
       virtual_path  = "/"
       physical_path = "site\\wwwroot"
@@ -2913,7 +2913,7 @@ resource "azurerm_windows_web_app" "test" {
 
   site_config {
     always_on = true
-    // api_management_config_id = // TODO
+    # api_management_config_id = // TODO
     app_command_line = "/sbin/myserver -b 0.0.0.0"
     default_documents = [
       "first.html",
@@ -2954,7 +2954,7 @@ resource "azurerm_windows_web_app" "test" {
         minimum_process_execution_time = "00:05:00"
       }
     }
-    // auto_swap_slot_name = // TODO - Not supported yet
+    # auto_swap_slot_name = // TODO - Not supported yet
   }
 
   ftp_publish_basic_authentication_enabled       = false

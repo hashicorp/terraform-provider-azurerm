@@ -329,8 +329,8 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
   name                = "acctestni-%[2]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "primary"

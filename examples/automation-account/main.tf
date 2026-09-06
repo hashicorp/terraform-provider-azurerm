@@ -41,7 +41,7 @@ resource "azurerm_automation_schedule" "one-time" {
   automation_account_name = azurerm_automation_account.example.name
   frequency               = "OneTime"
 
-  // The start_time defaults to now + 7 min
+  # The start_time defaults to now + 7 min
 }
 
 resource "azurerm_automation_schedule" "hour" {
@@ -51,10 +51,10 @@ resource "azurerm_automation_schedule" "hour" {
   frequency               = "Hour"
   interval                = 2
 
-  // Timezone defaults to UTC
+  # Timezone defaults to UTC
 }
 
-// Schedules the example runbook to run on the hour schedule
+# Schedules the example runbook to run on the hour schedule
 resource "azurerm_automation_job_schedule" "example" {
   resource_group_name     = azurerm_resource_group.example.name
   automation_account_name = azurerm_automation_account.example.name

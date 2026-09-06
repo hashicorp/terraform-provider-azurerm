@@ -13,7 +13,7 @@ resource "azurerm_resource_group" "rg" {
 resource "azurerm_virtual_network" "vnet" {
   name                = "${var.hostname}vnet"
   location            = var.location
-  address_space       = ["${var.address_space}"]
+  address_space       = [var.address_space]
   resource_group_name = azurerm_resource_group.rg.name
 }
 
@@ -21,7 +21,7 @@ resource "azurerm_subnet" "subnet" {
   name                 = "${var.hostname}subnet"
   virtual_network_name = azurerm_virtual_network.vnet.name
   resource_group_name  = azurerm_resource_group.rg.name
-  address_prefixes     = ["${var.subnet_prefix}"]
+  address_prefixes     = [var.subnet_prefix]
 }
 
 resource "azurerm_network_interface" "nic" {
@@ -49,7 +49,7 @@ resource "azurerm_virtual_machine" "vm" {
   location              = var.location
   resource_group_name   = azurerm_resource_group.rg.name
   vm_size               = var.vm_size
-  network_interface_ids = ["${azurerm_network_interface.nic.id}"]
+  network_interface_ids = [azurerm_network_interface.nic.id]
 
   storage_image_reference {
     publisher = var.image_publisher

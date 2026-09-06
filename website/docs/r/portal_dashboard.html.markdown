@@ -197,7 +197,7 @@ This is then referenced in the `.tf` file by using a [`template_file`](https://w
 
 ```hcl
 data "template_file" "dash-template" {
-  template = "${file("${path.module}/dash.tpl")}"
+  template = file("${path.module}/dash.tpl")
   vars = {
     md_content = "Variable content here!"
     video_link = "https://www.youtube.com/watch?v=......"

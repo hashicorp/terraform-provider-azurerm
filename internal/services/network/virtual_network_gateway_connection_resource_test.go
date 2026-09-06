@@ -1495,7 +1495,7 @@ resource "azurerm_virtual_network_gateway_nat_rule" "test" {
   virtual_network_gateway_id = data.azurerm_virtual_network_gateway.test.id
   mode                       = "EgressSnat"
   type                       = "Dynamic"
-  ip_configuration_id        = data.azurerm_virtual_network_gateway.test.ip_configuration.0.id
+  ip_configuration_id        = data.azurerm_virtual_network_gateway.test.ip_configuration[0].id
 
   external_mapping {
     address_space = "10.1.0.0/26"
@@ -1512,7 +1512,7 @@ resource "azurerm_virtual_network_gateway_nat_rule" "test2" {
   virtual_network_gateway_id = data.azurerm_virtual_network_gateway.test.id
   mode                       = "IngressSnat"
   type                       = "Dynamic"
-  ip_configuration_id        = data.azurerm_virtual_network_gateway.test.ip_configuration.0.id
+  ip_configuration_id        = data.azurerm_virtual_network_gateway.test.ip_configuration[0].id
 
   external_mapping {
     address_space = "10.7.0.0/26"
@@ -1731,7 +1731,7 @@ resource "azurerm_virtual_network_gateway_nat_rule" "test" {
   virtual_network_gateway_id = data.azurerm_virtual_network_gateway.test.id
   mode                       = "EgressSnat"
   type                       = "Dynamic"
-  ip_configuration_id        = data.azurerm_virtual_network_gateway.test.ip_configuration.0.id
+  ip_configuration_id        = data.azurerm_virtual_network_gateway.test.ip_configuration[0].id
 
   external_mapping {
     address_space = "10.1.0.0/26"
@@ -1748,7 +1748,7 @@ resource "azurerm_virtual_network_gateway_nat_rule" "test4" {
   virtual_network_gateway_id = data.azurerm_virtual_network_gateway.test.id
   mode                       = "EgressSnat"
   type                       = "Dynamic"
-  ip_configuration_id        = data.azurerm_virtual_network_gateway.test.ip_configuration.0.id
+  ip_configuration_id        = data.azurerm_virtual_network_gateway.test.ip_configuration[0].id
 
   external_mapping {
     address_space = "10.3.0.0/26"
@@ -1881,7 +1881,7 @@ resource "azurerm_virtual_network_gateway_nat_rule" "test" {
   virtual_network_gateway_id = data.azurerm_virtual_network_gateway.test.id
   mode                       = "EgressSnat"
   type                       = "Dynamic"
-  ip_configuration_id        = data.azurerm_virtual_network_gateway.test.ip_configuration.0.id
+  ip_configuration_id        = data.azurerm_virtual_network_gateway.test.ip_configuration[0].id
 
   external_mapping {
     address_space = "10.1.0.0/26"
@@ -1898,7 +1898,7 @@ resource "azurerm_virtual_network_gateway_nat_rule" "test4" {
   virtual_network_gateway_id = data.azurerm_virtual_network_gateway.test.id
   mode                       = "EgressSnat"
   type                       = "Dynamic"
-  ip_configuration_id        = data.azurerm_virtual_network_gateway.test.ip_configuration.0.id
+  ip_configuration_id        = data.azurerm_virtual_network_gateway.test.ip_configuration[0].id
 
   external_mapping {
     address_space = "10.3.0.0/26"
@@ -1915,7 +1915,7 @@ resource "azurerm_virtual_network_gateway_nat_rule" "test2" {
   virtual_network_gateway_id = data.azurerm_virtual_network_gateway.test.id
   mode                       = "IngressSnat"
   type                       = "Dynamic"
-  ip_configuration_id        = data.azurerm_virtual_network_gateway.test.ip_configuration.0.id
+  ip_configuration_id        = data.azurerm_virtual_network_gateway.test.ip_configuration[0].id
 
   external_mapping {
     address_space = "10.7.0.0/26"
@@ -1932,7 +1932,7 @@ resource "azurerm_virtual_network_gateway_nat_rule" "test3" {
   virtual_network_gateway_id = data.azurerm_virtual_network_gateway.test.id
   mode                       = "IngressSnat"
   type                       = "Dynamic"
-  ip_configuration_id        = data.azurerm_virtual_network_gateway.test.ip_configuration.0.id
+  ip_configuration_id        = data.azurerm_virtual_network_gateway.test.ip_configuration[0].id
 
   external_mapping {
     address_space = "10.9.0.0/26"

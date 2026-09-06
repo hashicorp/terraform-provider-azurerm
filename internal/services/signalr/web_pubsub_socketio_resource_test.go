@@ -191,8 +191,8 @@ resource "azurerm_web_pubsub_socketio" "import" {
   resource_group_name = azurerm_web_pubsub_socketio.test.resource_group_name
 
   sku {
-    name     = azurerm_web_pubsub_socketio.test.sku.0.name
-    capacity = azurerm_web_pubsub_socketio.test.sku.0.capacity
+    name     = azurerm_web_pubsub_socketio.test.sku[0].name
+    capacity = azurerm_web_pubsub_socketio.test.sku[0].capacity
   }
 }`, r.basic(data))
 }

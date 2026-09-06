@@ -80,7 +80,7 @@ resource "azurerm_maintenance_configuration" "example" {
   name                = "example-mc"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  scope               = "All"
+  scope               = "Host"
 }
 
 resource "azurerm_maintenance_assignment_virtual_machine" "example" {

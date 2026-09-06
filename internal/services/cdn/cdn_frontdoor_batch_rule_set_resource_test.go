@@ -1508,21 +1508,21 @@ resource "azurerm_cdn_frontdoor_batch_rule_set" "import" {
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_batch_rule_set.test.cdn_frontdoor_profile_id
 
   rule {
-    name  = azurerm_cdn_frontdoor_batch_rule_set.test.rule.0.name
-    order = azurerm_cdn_frontdoor_batch_rule_set.test.rule.0.order
+    name  = azurerm_cdn_frontdoor_batch_rule_set.test.rule[0].name
+    order = azurerm_cdn_frontdoor_batch_rule_set.test.rule[0].order
 
     actions {
       route_configuration_override {
         origin_group {
-          cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_batch_rule_set.test.rule.0.actions.0.route_configuration_override.0.origin_group.0.cdn_frontdoor_origin_group_id
-          forwarding_protocol           = azurerm_cdn_frontdoor_batch_rule_set.test.rule.0.actions.0.route_configuration_override.0.origin_group.0.forwarding_protocol
+          cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_batch_rule_set.test.rule[0].actions[0].route_configuration_override[0].origin_group[0].cdn_frontdoor_origin_group_id
+          forwarding_protocol           = azurerm_cdn_frontdoor_batch_rule_set.test.rule[0].actions[0].route_configuration_override[0].origin_group[0].forwarding_protocol
         }
         caching {
-          query_string_behaviour  = azurerm_cdn_frontdoor_batch_rule_set.test.rule.0.actions.0.route_configuration_override.0.caching.0.query_string_behaviour
-          query_string_parameters = azurerm_cdn_frontdoor_batch_rule_set.test.rule.0.actions.0.route_configuration_override.0.caching.0.query_string_parameters
-          compression_enabled     = azurerm_cdn_frontdoor_batch_rule_set.test.rule.0.actions.0.route_configuration_override.0.caching.0.compression_enabled
-          behaviour               = azurerm_cdn_frontdoor_batch_rule_set.test.rule.0.actions.0.route_configuration_override.0.caching.0.behaviour
-          duration                = azurerm_cdn_frontdoor_batch_rule_set.test.rule.0.actions.0.route_configuration_override.0.caching.0.duration
+          query_string_behaviour  = azurerm_cdn_frontdoor_batch_rule_set.test.rule[0].actions[0].route_configuration_override[0].caching[0].query_string_behaviour
+          query_string_parameters = azurerm_cdn_frontdoor_batch_rule_set.test.rule[0].actions[0].route_configuration_override[0].caching[0].query_string_parameters
+          compression_enabled     = azurerm_cdn_frontdoor_batch_rule_set.test.rule[0].actions[0].route_configuration_override[0].caching[0].compression_enabled
+          behaviour               = azurerm_cdn_frontdoor_batch_rule_set.test.rule[0].actions[0].route_configuration_override[0].caching[0].behaviour
+          duration                = azurerm_cdn_frontdoor_batch_rule_set.test.rule[0].actions[0].route_configuration_override[0].caching[0].duration
         }
       }
     }

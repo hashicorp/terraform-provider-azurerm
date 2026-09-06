@@ -994,7 +994,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                                               = "gateway"
     public_ip_address_id                               = azurerm_public_ip.test.id
-    gateway_load_balancer_frontend_ip_configuration_id = azurerm_lb.gateway.frontend_ip_configuration.0.id
+    gateway_load_balancer_frontend_ip_configuration_id = azurerm_lb.gateway.frontend_ip_configuration[0].id
     private_ip_address_allocation                      = "Dynamic"
     subnet_id                                          = azurerm_subnet.test.id
   }

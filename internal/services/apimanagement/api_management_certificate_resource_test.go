@@ -191,8 +191,8 @@ resource "azurerm_api_management" "test" {
 
 resource "azurerm_key_vault_access_policy" "test" {
   key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_api_management.test.identity.0.tenant_id
-  object_id    = azurerm_api_management.test.identity.0.principal_id
+  tenant_id    = azurerm_api_management.test.identity[0].tenant_id
+  object_id    = azurerm_api_management.test.identity[0].principal_id
 
   secret_permissions = [
     "Get",

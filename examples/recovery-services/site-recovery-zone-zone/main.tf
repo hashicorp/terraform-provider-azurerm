@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "secondary" {
   location = var.location
 }
 
-// Source Vritual Machine
+# Source Vritual Machine
 resource "azurerm_virtual_network" "example" {
   name                = "${var.prefix}-vnet"
   resource_group_name = azurerm_resource_group.primary.name
@@ -77,7 +77,7 @@ data "azurerm_managed_disk" "os_disk" {
   resource_group_name = azurerm_windows_virtual_machine.example.resource_group_name
 }
 
-// Recovery Service
+# Recovery Service
 resource "azurerm_recovery_services_vault" "example" {
   name                = "${var.prefix}-recovery-vault"
   location            = azurerm_resource_group.secondary.location

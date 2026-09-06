@@ -247,10 +247,10 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "import" {
   scopes               = azurerm_monitor_scheduled_query_rules_alert_v2.test.scopes
   severity             = azurerm_monitor_scheduled_query_rules_alert_v2.test.severity
   criteria {
-    query                   = azurerm_monitor_scheduled_query_rules_alert_v2.test.criteria.0.query
-    time_aggregation_method = azurerm_monitor_scheduled_query_rules_alert_v2.test.criteria.0.time_aggregation_method
-    threshold               = azurerm_monitor_scheduled_query_rules_alert_v2.test.criteria.0.threshold
-    operator                = azurerm_monitor_scheduled_query_rules_alert_v2.test.criteria.0.operator
+    query                   = azurerm_monitor_scheduled_query_rules_alert_v2.test.criteria[0].query
+    time_aggregation_method = azurerm_monitor_scheduled_query_rules_alert_v2.test.criteria[0].time_aggregation_method
+    threshold               = azurerm_monitor_scheduled_query_rules_alert_v2.test.criteria[0].threshold
+    operator                = azurerm_monitor_scheduled_query_rules_alert_v2.test.criteria[0].operator
   }
 }
 `, config, data.Locations.Primary)

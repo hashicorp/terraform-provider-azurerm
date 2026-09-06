@@ -140,7 +140,7 @@ resource "azurerm_linux_function_app" "test" {
   }
 }
 
-// The key is not always present when azurerm_linux_function_app.test creation completes.
+# The key is not always present when azurerm_linux_function_app.test creation completes.
 resource "time_sleep" "wait_for_event_grid_key" {
   depends_on = [azurerm_linux_function_app.test]
 

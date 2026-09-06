@@ -148,11 +148,11 @@ resource "azurerm_stream_analytics_function_javascript_udf" "import" {
   script                    = azurerm_stream_analytics_function_javascript_udf.test.script
 
   input {
-    type = azurerm_stream_analytics_function_javascript_udf.test.input.0.type
+    type = azurerm_stream_analytics_function_javascript_udf.test.input[0].type
   }
 
   output {
-    type = azurerm_stream_analytics_function_javascript_udf.test.output.0.type
+    type = azurerm_stream_analytics_function_javascript_udf.test.output[0].type
   }
 }
 `, r.basic(data))

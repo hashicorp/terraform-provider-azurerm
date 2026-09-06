@@ -64,7 +64,7 @@ resource "azurerm_app_configuration" "appconf" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "kv" {
-  name                       = "kv"
+  name                       = "example-kv"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   rbac_authorization_enabled = false

@@ -111,7 +111,7 @@ resource "azurerm_kusto_cluster" "test" {
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_kusto_cluster.test.id
   role_definition_name = "Contributor"
-  principal_id         = azurerm_data_share_account.test.identity.0.principal_id
+  principal_id         = azurerm_data_share_account.test.identity[0].principal_id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

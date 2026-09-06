@@ -97,7 +97,7 @@ resource "azurerm_lb_rule" "test" {
   backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
   probe_id                 = azurerm_lb_probe.test.id
 
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration[0].name
 }
 
 data "azurerm_lb_rule" "test" {

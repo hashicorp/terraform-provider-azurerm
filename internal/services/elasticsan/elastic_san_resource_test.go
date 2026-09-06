@@ -241,7 +241,7 @@ resource "azurerm_elastic_san" "import" {
   base_size_in_tib    = azurerm_elastic_san.test.base_size_in_tib
   zones               = azurerm_elastic_san.test.zones
   sku {
-    name = azurerm_elastic_san.test.sku.0.name
+    name = azurerm_elastic_san.test.sku[0].name
   }
 }
 `, r.basic(data))

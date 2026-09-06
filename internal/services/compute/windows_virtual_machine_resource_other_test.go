@@ -1755,6 +1755,7 @@ func (r WindowsVirtualMachineResource) otherComputerNameDefaultInvalid(data acce
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
+  # tflint-ignore: azurerm_windows_virtual_machine_invalid_name
   name                = "${local.vm_name}-this-too-long-to-be-a-computer-name"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -3073,9 +3074,9 @@ data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
   name                       = "acctestkv%s"
-  resource_group_name        = "${azurerm_resource_group.test.name}"
+  resource_group_name        = azurerm_resource_group.test.name
   rbac_authorization_enabled = false
-  location                   = "${azurerm_resource_group.test.location}"
+  location                   = azurerm_resource_group.test.location
   sku_name                   = "standard"
   tenant_id                  = data.azurerm_client_config.current.tenant_id
 

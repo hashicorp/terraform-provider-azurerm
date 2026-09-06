@@ -69,7 +69,7 @@ resource "azurerm_managed_disk" "test2" {
 data "azurerm_managed_disks" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
-  // Force Terraform to create the resources before evaluating this Data Source
+  # Force Terraform to create the resources before evaluating this Data Source
   depends_on = [azurerm_managed_disk.test, azurerm_managed_disk.test2]
 }
 `, data.Locations.Primary, data.RandomInteger)

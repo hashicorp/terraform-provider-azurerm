@@ -194,12 +194,12 @@ func (r StorageBlobInventoryPolicyResource) requiresImport(data acceptance.TestD
 resource "azurerm_storage_blob_inventory_policy" "import" {
   storage_account_id = azurerm_storage_blob_inventory_policy.test.storage_account_id
   rules {
-    name                   = tolist(azurerm_storage_blob_inventory_policy.test.rules).0.name
-    storage_container_name = tolist(azurerm_storage_blob_inventory_policy.test.rules).0.storage_container_name
-    format                 = tolist(azurerm_storage_blob_inventory_policy.test.rules).0.format
-    schedule               = tolist(azurerm_storage_blob_inventory_policy.test.rules).0.schedule
-    scope                  = tolist(azurerm_storage_blob_inventory_policy.test.rules).0.scope
-    schema_fields          = tolist(azurerm_storage_blob_inventory_policy.test.rules).0.schema_fields
+    name                   = tolist(azurerm_storage_blob_inventory_policy.test.rules)[0].name
+    storage_container_name = tolist(azurerm_storage_blob_inventory_policy.test.rules)[0].storage_container_name
+    format                 = tolist(azurerm_storage_blob_inventory_policy.test.rules)[0].format
+    schedule               = tolist(azurerm_storage_blob_inventory_policy.test.rules)[0].schedule
+    scope                  = tolist(azurerm_storage_blob_inventory_policy.test.rules)[0].scope
+    schema_fields          = tolist(azurerm_storage_blob_inventory_policy.test.rules)[0].schema_fields
   }
 }
 `, r.basic(data))

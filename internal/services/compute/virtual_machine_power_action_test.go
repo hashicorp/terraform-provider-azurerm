@@ -20,7 +20,7 @@ func TestAccVirtualMachinePowerAction_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_power", "test")
 	a := VirtualMachinePowerAction{}
 
-	resource.ParallelTest(t, resource.TestCase{
+	acceptance.RunParallelTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
@@ -38,7 +38,7 @@ func TestAccVirtualMachinePowerAction_tryTurningItOffAndOnAgain(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_power", "test")
 	a := VirtualMachinePowerAction{}
 
-	resource.ParallelTest(t, resource.TestCase{
+	acceptance.RunParallelTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
@@ -89,14 +89,14 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   lifecycle {
     action_trigger {
-      events  = [after_create, after_update] // Restart the vm after create and update
+      events  = [after_create, after_update] # Restart the vm after create and update
       actions = [action.azurerm_virtual_machine_power.test]
     }
   }
 }
 
 data "azurerm_virtual_machine" "test" {
-  name                = "acctestVM-%[2]d" // sidestep cyclic reference issue
+  name                = "acctestVM-%[2]d" # sidestep cyclic reference issue
   resource_group_name = azurerm_resource_group.test.name
 }
 

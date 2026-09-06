@@ -162,22 +162,22 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                = "acctpip-%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   domain_name_label   = local.vm_name
 }
 
 resource "azurerm_network_interface" "public" {
   name                = "acctnicsource-%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfigurationsource"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = "${azurerm_public_ip.test.id}"
+    public_ip_address_id          = azurerm_public_ip.test.id
   }
 }
 
@@ -340,8 +340,8 @@ resource "azurerm_image" "test" {
 
 resource "azurerm_shared_image_gallery" "test" {
   name                = "acctestsig%[2]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   sharing {
     permission = "Community"
@@ -391,7 +391,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   admin_username                  = "adminuser"
   disable_password_authentication = false
   admin_password                  = "P@$$w0rd1234!"
-  source_image_id                 = "/communityGalleries/${azurerm_shared_image_gallery.test.sharing.0.community_gallery.0.name}/images/${azurerm_shared_image_version.test.image_name}/versions/${azurerm_shared_image_version.test.name}"
+  source_image_id                 = "/communityGalleries/${azurerm_shared_image_gallery.test.sharing[0].community_gallery[0].name}/images/${azurerm_shared_image_version.test.image_name}/versions/${azurerm_shared_image_version.test.name}"
 
   network_interface_ids = [
     azurerm_network_interface.test.id,
@@ -423,8 +423,8 @@ resource "azurerm_image" "test" {
 
 resource "azurerm_shared_image_gallery" "test" {
   name                = "acctestsig%[2]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_shared_image" "test" {

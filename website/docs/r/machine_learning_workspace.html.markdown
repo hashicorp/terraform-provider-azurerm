@@ -214,7 +214,7 @@ resource "azurerm_key_vault_access_policy" "example-identity" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_user_assigned_identity.example.principal_id
 
-  // default set by service
+  # default set by service
   key_permissions = [
     "WrapKey",
     "UnwrapKey",

@@ -24,7 +24,7 @@ resource "azurerm_key_vault" "example" {
   resource_group_name        = azurerm_resource_group.example.name
   rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.example.tenant_id
-  sku_name                   = "example-value"
+  sku_name                   = "standard"
   soft_delete_retention_days = "example-value"
 }
 resource "azurerm_key_vault_access_policy" "example" {
@@ -41,7 +41,7 @@ resource "azurerm_kubernetes_cluster" "example" {
   default_node_pool {
     name       = "example-value"
     node_count = "example-value"
-    vm_size    = "example-value"
+    vm_size    = "Standard_DS2_v2"
     upgrade_settings {
       max_surge = "example-value"
     }

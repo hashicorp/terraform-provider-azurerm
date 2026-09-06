@@ -99,14 +99,14 @@ resource "azurerm_virtual_network" "spark" {
   name                = "vnet-spark"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
-  address_space       = ["${var.vnet_spark_prefix}"]
+  address_space       = [var.vnet_spark_prefix]
 }
 
 resource "azurerm_subnet" "subnet1" {
   name                      = var.vnet_spark_subnet1_name
   virtual_network_name      = azurerm_virtual_network.spark.name
   resource_group_name       = azurerm_resource_group.rg.name
-  address_prefixes          = ["${var.vnet_spark_subnet1_prefix}"]
+  address_prefixes          = [var.vnet_spark_subnet1_prefix]
   network_security_group_id = azurerm_network_security_group.primary.id
   depends_on                = ["azurerm_virtual_network.spark"]
 }
@@ -115,14 +115,14 @@ resource "azurerm_subnet" "subnet2" {
   name                 = var.vnet_spark_subnet2_name
   virtual_network_name = azurerm_virtual_network.spark.name
   resource_group_name  = azurerm_resource_group.rg.name
-  address_prefixes     = ["${var.vnet_spark_subnet2_prefix}"]
+  address_prefixes     = [var.vnet_spark_subnet2_prefix]
 }
 
 resource "azurerm_subnet" "subnet3" {
   name                 = var.vnet_spark_subnet3_name
   virtual_network_name = azurerm_virtual_network.spark.name
   resource_group_name  = azurerm_resource_group.rg.name
-  address_prefixes     = ["${var.vnet_spark_subnet3_prefix}"]
+  address_prefixes     = [var.vnet_spark_subnet3_prefix]
 }
 
 # **********************  PUBLIC IP ADDRESSES ********************** #
@@ -178,7 +178,7 @@ resource "azurerm_network_interface" "secondary" {
     subnet_id                     = azurerm_subnet.subnet2.id
     private_ip_address_allocation = "Static"
     private_ip_address            = "${var.nic_secondary_node_ip_prefix}${5 + count.index}"
-    public_ip_address_id          = element(azurerm_public_ip.secondary.*.id, count.index)
+    public_ip_address_id          = element(azurerm_public_ip.secondary[*].id, count.index)
   }
 }
 
@@ -235,7 +235,7 @@ resource "azurerm_storage_account" "secondary" {
 
 resource "azurerm_storage_container" "secondary" {
   name                  = "${var.vm_secondary_storage_account_container_name}${count.index}"
-  storage_account_name  = element(azurerm_storage_account.secondary.*.name, count.index)
+  storage_account_name  = element(azurerm_storage_account.secondary[*].name, count.index)
   container_access_type = "private"
   depends_on            = ["azurerm_storage_account.secondary"]
 }
@@ -261,7 +261,7 @@ resource "azurerm_virtual_machine" "primary" {
   resource_group_name   = azurerm_resource_group.rg.name
   location              = azurerm_resource_group.rg.location
   vm_size               = var.vm_primary_vm_size
-  network_interface_ids = ["${azurerm_network_interface.primary.id}"]
+  network_interface_ids = [azurerm_network_interface.primary.id]
   depends_on            = ["azurerm_storage_account.primary", "azurerm_network_interface.primary", "azurerm_storage_container.primary"]
 
   storage_image_reference {
@@ -309,7 +309,7 @@ resource "azurerm_virtual_machine" "secondary" {
   resource_group_name   = azurerm_resource_group.rg.name
   location              = azurerm_resource_group.rg.location
   vm_size               = var.vm_secondary_vm_size
-  network_interface_ids = ["${element(azurerm_network_interface.secondary.*.id, count.index)}"]
+  network_interface_ids = [element(azurerm_network_interface.secondary[*].id, count.index)]
   count                 = var.vm_number_of_secondarys
   availability_set_id   = azurerm_availability_set.secondary.id
   depends_on            = ["azurerm_storage_account.secondary", "azurerm_network_interface.secondary", "azurerm_storage_container.secondary"]
@@ -323,7 +323,7 @@ resource "azurerm_virtual_machine" "secondary" {
 
   storage_os_disk {
     name          = "${var.vm_secondary_os_disk_name_prefix}${count.index}"
-    vhd_uri       = "http://${element(azurerm_storage_account.secondary.*.name, count.index)}.blob.core.windows.net/${element(azurerm_storage_container.secondary.*.name, count.index)}/${var.vm_secondary_os_disk_name_prefix}.vhd"
+    vhd_uri       = "http://${element(azurerm_storage_account.secondary[*].name, count.index)}.blob.core.windows.net/${element(azurerm_storage_container.secondary[*].name, count.index)}/${var.vm_secondary_os_disk_name_prefix}.vhd"
     create_option = "FromImage"
     caching       = "ReadWrite"
   }
@@ -340,7 +340,7 @@ resource "azurerm_virtual_machine" "secondary" {
 
   connection {
     type     = "ssh"
-    host     = element(azurerm_public_ip.secondary.*.ip_address, count.index)
+    host     = element(azurerm_public_ip.secondary[*].ip_address, count.index)
     user     = var.vm_admin_username
     password = var.vm_admin_password
   }
@@ -359,7 +359,7 @@ resource "azurerm_virtual_machine" "cassandra" {
   resource_group_name   = azurerm_resource_group.rg.name
   location              = azurerm_resource_group.rg.location
   vm_size               = var.vm_cassandra_vm_size
-  network_interface_ids = ["${azurerm_network_interface.cassandra.id}"]
+  network_interface_ids = [azurerm_network_interface.cassandra.id]
   depends_on            = ["azurerm_storage_account.cassandra", "azurerm_network_interface.cassandra", "azurerm_storage_container.cassandra"]
 
   storage_image_reference {

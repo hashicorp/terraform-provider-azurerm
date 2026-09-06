@@ -1298,15 +1298,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_key_vault" "test" {
   name                       = "acctestkv-%s"
-  location                   = "${azurerm_resource_group.test.location}"
-  resource_group_name        = "${azurerm_resource_group.test.name}"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
   rbac_authorization_enabled = false
-  tenant_id                  = "${data.azurerm_client_config.current.tenant_id}"
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
 
   access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.object_id}"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
       "Create",
@@ -1356,21 +1356,21 @@ func (r ManagedDiskResource) encryption(data acceptance.TestData) string {
 
 resource "azurerm_managed_disk" "test" {
   name                 = "acctestd-%d"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "1"
 
   encryption_settings {
     disk_encryption_key {
-      secret_url      = "${azurerm_key_vault_secret.test.id}"
-      source_vault_id = "${azurerm_key_vault.test.id}"
+      secret_url      = azurerm_key_vault_secret.test.id
+      source_vault_id = azurerm_key_vault.test.id
     }
 
     key_encryption_key {
-      key_url         = "${azurerm_key_vault_key.test.id}"
-      source_vault_id = "${azurerm_key_vault.test.id}"
+      key_url         = azurerm_key_vault_key.test.id
+      source_vault_id = azurerm_key_vault.test.id
     }
   }
 
@@ -1388,15 +1388,15 @@ func (r ManagedDiskResource) encryptionUpdated(data acceptance.TestData) string 
 
 resource "azurerm_key_vault" "test2" {
   name                       = "acctestkv2-%[2]s"
-  location                   = "${azurerm_resource_group.test.location}"
-  resource_group_name        = "${azurerm_resource_group.test.name}"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
   rbac_authorization_enabled = false
-  tenant_id                  = "${data.azurerm_client_config.current.tenant_id}"
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
 
   access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.object_id}"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
       "Create",
@@ -1436,21 +1436,21 @@ resource "azurerm_key_vault_key" "test2" {
 
 resource "azurerm_managed_disk" "test" {
   name                 = "acctestd-%[3]d"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "1"
 
   encryption_settings {
     disk_encryption_key {
-      secret_url      = "${azurerm_key_vault_secret.test2.id}"
-      source_vault_id = "${azurerm_key_vault.test2.id}"
+      secret_url      = azurerm_key_vault_secret.test2.id
+      source_vault_id = azurerm_key_vault.test2.id
     }
 
     key_encryption_key {
-      key_url         = "${azurerm_key_vault_key.test2.id}"
-      source_vault_id = "${azurerm_key_vault.test2.id}"
+      key_url         = azurerm_key_vault_key.test2.id
+      source_vault_id = azurerm_key_vault.test2.id
     }
   }
 
@@ -1634,14 +1634,14 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
     "GetRotationPolicy",
   ]
 
-  tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
-  object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
+  tenant_id = azurerm_disk_encryption_set.test.identity[0].tenant_id
+  object_id = azurerm_disk_encryption_set.test.identity[0].principal_id
 }
 
 resource "azurerm_role_assignment" "disk-encryption-read-keyvault" {
   scope                = azurerm_key_vault.test.id
   role_definition_name = "Reader"
-  principal_id         = azurerm_disk_encryption_set.test.identity.0.principal_id
+  principal_id         = azurerm_disk_encryption_set.test.identity[0].principal_id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -2606,8 +2606,8 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
     "UnwrapKey",
     "GetRotationPolicy",
   ]
-  tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
-  object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
+  tenant_id = azurerm_disk_encryption_set.test.identity[0].tenant_id
+  object_id = azurerm_disk_encryption_set.test.identity[0].principal_id
 }
 
 resource "azurerm_managed_disk" "test" {

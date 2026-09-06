@@ -562,13 +562,13 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_role_assignment" "test_queue" {
   scope                = azurerm_storage_account.test.id
   role_definition_name = "Storage Queue Data Contributor"
-  principal_id         = azurerm_kubernetes_cluster.test.kubelet_identity.0.object_id
+  principal_id         = azurerm_kubernetes_cluster.test.kubelet_identity[0].object_id
 }
 
 resource "azurerm_role_assignment" "test_blob" {
   scope                = azurerm_storage_account.test.id
   role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = azurerm_kubernetes_cluster.test.kubelet_identity.0.object_id
+  principal_id         = azurerm_kubernetes_cluster.test.kubelet_identity[0].object_id
 }
 
 resource "azurerm_kubernetes_flux_configuration" "test" {
@@ -579,7 +579,7 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
   blob_storage {
     container_id = azurerm_storage_container.test.id
     managed_identity {
-      client_id = azurerm_kubernetes_cluster.test.kubelet_identity.0.client_id
+      client_id = azurerm_kubernetes_cluster.test.kubelet_identity[0].client_id
     }
   }
 

@@ -576,11 +576,10 @@ func (r MsSqlManagedInstanceResource) basic(data acceptance.TestData) string {
 provider "azurerm" {
   features {
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-      deleted until this can be properly investigated
-      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
-      */
+      # Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      # prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      # deleted until this can be properly investigated
+      # tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       prevent_deletion_if_contains_resources = false
     }
   }
@@ -621,11 +620,10 @@ func (r MsSqlManagedInstanceResource) complete(data acceptance.TestData) string 
 provider "azurerm" {
   features {
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-      deleted until this can be properly investigated
-      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
-      */
+      # Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      # prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      # deleted until this can be properly investigated
+      # tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       prevent_deletion_if_contains_resources = false
     }
   }
@@ -706,10 +704,10 @@ func (r MsSqlManagedInstanceResource) databaseFormat(data acceptance.TestData, d
 provider "azurerm" {
   features {
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-       deleted until this can be properly investigated
-      */
+      # Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      # prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      # deleted until this can be properly investigated
+      # *
       prevent_deletion_if_contains_resources = false
     }
   }
@@ -752,10 +750,10 @@ func (r MsSqlManagedInstanceResource) generalPurposeV2Enabled(data acceptance.Te
 provider "azurerm" {
   features {
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-       deleted until this can be properly investigated
-      */
+      # Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      # prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      # deleted until this can be properly investigated
+      # *
       prevent_deletion_if_contains_resources = false
     }
   }
@@ -798,11 +796,10 @@ func (r MsSqlManagedInstanceResource) zoneRedundantGPv2(data acceptance.TestData
 provider "azurerm" {
   features {
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-      deleted until this can be properly investigated
-      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
-      */
+      # Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      # prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      # deleted until this can be properly investigated
+      # tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       prevent_deletion_if_contains_resources = false
     }
   }
@@ -846,10 +843,10 @@ func (r MsSqlManagedInstanceResource) storageIOps(data acceptance.TestData, sku 
 provider "azurerm" {
   features {
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-       deleted until this can be properly investigated
-      */
+      # Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      # prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      # deleted until this can be properly investigated
+      # *
       prevent_deletion_if_contains_resources = false
     }
   }
@@ -893,10 +890,10 @@ func (r MsSqlManagedInstanceResource) hybridSecondaryUsage(data acceptance.TestD
 provider "azurerm" {
   features {
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-       deleted until this can be properly investigated
-      */
+      # Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      # prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      # deleted until this can be properly investigated
+      # *
       prevent_deletion_if_contains_resources = false
     }
   }
@@ -939,11 +936,10 @@ func (r MsSqlManagedInstanceResource) basicZRS(data acceptance.TestData) string 
 provider "azurerm" {
   features {
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-      deleted until this can be properly investigated
-      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
-      */
+      # Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      # prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      # deleted until this can be properly investigated
+      # tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       prevent_deletion_if_contains_resources = false
     }
   }
@@ -985,11 +981,10 @@ func (r MsSqlManagedInstanceResource) premium(data acceptance.TestData) string {
 provider "azurerm" {
   features {
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-      deleted until this can be properly investigated
-      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
-      */
+      # Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      # prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      # deleted until this can be properly investigated
+      # tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       prevent_deletion_if_contains_resources = false
     }
   }
@@ -1030,11 +1025,10 @@ func (r MsSqlManagedInstanceResource) storageType(data acceptance.TestData, stor
 provider "azurerm" {
   features {
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-      deleted until this can be properly investigated
-      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
-      */
+      # Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      # prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      # deleted until this can be properly investigated
+      # tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       prevent_deletion_if_contains_resources = false
     }
   }
@@ -1074,11 +1068,10 @@ func (r MsSqlManagedInstanceResource) withoutAadAdmin(data acceptance.TestData) 
 provider "azurerm" {
   features {
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-      deleted until this can be properly investigated
-      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
-      */
+      # Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      # prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      # deleted until this can be properly investigated
+      # tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       prevent_deletion_if_contains_resources = false
     }
   }
@@ -1125,11 +1118,10 @@ func (r MsSqlManagedInstanceResource) identity(data acceptance.TestData) string 
 provider "azurerm" {
   features {
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-      deleted until this can be properly investigated
-      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
-      */
+      # Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      # prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      # deleted until this can be properly investigated
+      # tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       prevent_deletion_if_contains_resources = false
     }
   }
@@ -1174,11 +1166,10 @@ func (r MsSqlManagedInstanceResource) systemAndUserIdentity(data acceptance.Test
 provider "azurerm" {
   features {
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-      deleted until this can be properly investigated
-      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
-      */
+      # Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      # prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      # deleted until this can be properly investigated
+      # tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       prevent_deletion_if_contains_resources = false
     }
   }
@@ -1232,11 +1223,10 @@ func (r MsSqlManagedInstanceResource) update(data acceptance.TestData) string {
 provider "azurerm" {
   features {
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-      deleted until this can be properly investigated
-      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
-      */
+      # Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      # prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      # deleted until this can be properly investigated
+      # tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       prevent_deletion_if_contains_resources = false
     }
   }
@@ -1281,11 +1271,10 @@ func (r MsSqlManagedInstanceResource) multiple(data acceptance.TestData) string 
 provider "azurerm" {
   features {
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-      deleted until this can be properly investigated
-      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
-      */
+      # Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      # prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      # deleted until this can be properly investigated
+      # tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       prevent_deletion_if_contains_resources = false
     }
   }
@@ -1670,11 +1659,10 @@ func (r MsSqlManagedInstanceResource) aadAdmin(data acceptance.TestData) string 
 provider "azurerm" {
   features {
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-      deleted until this can be properly investigated
-      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
-      */
+      # Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      # prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      # deleted until this can be properly investigated
+      # tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       prevent_deletion_if_contains_resources = false
     }
   }
@@ -1691,7 +1679,7 @@ data "azuread_domains" "test" {
 }
 
 resource "azuread_user" "test" {
-  user_principal_name = "acctestAadAdminUser-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  user_principal_name = "acctestAadAdminUser-%[2]d@${data.azuread_domains.test.domains[0].domain_name}"
   display_name        = "acctestAadAdminUser-%[2]d"
   password            = "TerrAform321!"
 }
@@ -1755,14 +1743,14 @@ data "azuread_domains" "test" {
 }
 
 resource "azuread_user" "test" {
-  user_principal_name = "acctestAadAdminUser-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  user_principal_name = "acctestAadAdminUser-%[2]d@${data.azuread_domains.test.domains[0].domain_name}"
   display_name        = "acctestAadAdminUser-%[2]d"
   password            = "TerrAform321!"
 }
 
 resource "azuread_directory_role_member" "test" {
   role_object_id   = azuread_directory_role.test.object_id
-  member_object_id = azurerm_mssql_managed_instance.test.identity.0.principal_id
+  member_object_id = azurerm_mssql_managed_instance.test.identity[0].principal_id
 }
 `, r.withoutAadAdmin(data), data.RandomInteger)
 }
@@ -1772,11 +1760,10 @@ func (r MsSqlManagedInstanceResource) aadAdminWithAadAuthOnlyEnabled(data accept
 provider "azurerm" {
   features {
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-      deleted until this can be properly investigated
-      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
-      */
+      # Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      # prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      # deleted until this can be properly investigated
+      # tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       prevent_deletion_if_contains_resources = false
     }
   }
@@ -1793,7 +1780,7 @@ data "azuread_domains" "test" {
 }
 
 resource "azuread_user" "test" {
-  user_principal_name = "acctestAadAdminUser-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  user_principal_name = "acctestAadAdminUser-%[2]d@${data.azuread_domains.test.domains[0].domain_name}"
   display_name        = "acctestAadAdminUser-%[2]d"
   password            = "TerrAform321!"
 }
@@ -1840,11 +1827,10 @@ func (r MsSqlManagedInstanceResource) setAadAdmin(data acceptance.TestData) stri
 provider "azurerm" {
   features {
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-      deleted until this can be properly investigated
-      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
-      */
+      # Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      # prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      # deleted until this can be properly investigated
+      # tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       prevent_deletion_if_contains_resources = false
     }
   }
@@ -1865,14 +1851,14 @@ data "azuread_domains" "test" {
 }
 
 resource "azuread_user" "test" {
-  user_principal_name = "acctestAadAdminUser-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  user_principal_name = "acctestAadAdminUser-%[2]d@${data.azuread_domains.test.domains[0].domain_name}"
   display_name        = "acctestAadAdminUser-%[2]d"
   password            = "TerrAform321!"
 }
 
 resource "azuread_directory_role_member" "test" {
   role_object_id   = azuread_directory_role.test.object_id
-  member_object_id = azurerm_mssql_managed_instance.test.identity.0.principal_id
+  member_object_id = azurerm_mssql_managed_instance.test.identity[0].principal_id
 }
 
 resource "azurerm_mssql_managed_instance" "test" {
@@ -1918,11 +1904,10 @@ func (r MsSqlManagedInstanceResource) aadAdminWithAadAuthOnlyEnabledUpdate(data 
 provider "azurerm" {
   features {
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-      deleted until this can be properly investigated
-      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
-      */
+      # Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      # prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      # deleted until this can be properly investigated
+      # tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       prevent_deletion_if_contains_resources = false
     }
   }
@@ -1943,14 +1928,14 @@ data "azuread_domains" "test" {
 }
 
 resource "azuread_user" "test" {
-  user_principal_name = "acctestAadAdminUser-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  user_principal_name = "acctestAadAdminUser-%[2]d@${data.azuread_domains.test.domains[0].domain_name}"
   display_name        = "acctestAadAdminUser-%[2]d"
   password            = "TerrAform321!"
 }
 
 resource "azuread_directory_role_member" "test" {
   role_object_id   = azuread_directory_role.test.object_id
-  member_object_id = azurerm_mssql_managed_instance.test.identity.0.principal_id
+  member_object_id = azurerm_mssql_managed_instance.test.identity[0].principal_id
 }
 
 resource "azurerm_mssql_managed_instance" "test" {
@@ -2777,11 +2762,11 @@ func (r MsSqlManagedInstanceResource) withMaintenanceConfig(data acceptance.Test
 provider "azurerm" {
   features {
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service, 
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be 
-      deleted until this can be properly investigated
-      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
-      */
+      # Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      # prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      # deleted until this can be properly investigated
+      # tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
+      # *
       prevent_deletion_if_contains_resources = false
     }
   }
@@ -2825,11 +2810,10 @@ func (r MsSqlManagedInstanceResource) withServicePrincipal(data acceptance.TestD
 provider "azurerm" {
   features {
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-      deleted until this can be properly investigated
-      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
-      */
+      # Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      # prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      # deleted until this can be properly investigated
+      # tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       prevent_deletion_if_contains_resources = false
     }
   }
@@ -2871,11 +2855,10 @@ func (r MsSqlManagedInstanceResource) withServicePrincipalUpdated(data acceptanc
 provider "azurerm" {
   features {
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-      deleted until this can be properly investigated
-      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
-      */
+      # Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      # prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      # deleted until this can be properly investigated
+      # tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       prevent_deletion_if_contains_resources = false
     }
   }
@@ -2916,11 +2899,10 @@ func (r MsSqlManagedInstanceResource) subnetUpdate(data acceptance.TestData) str
 provider "azurerm" {
   features {
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-      deleted until this can be properly investigated
-      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
-      */
+      # Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      # prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      # deleted until this can be properly investigated
+      # tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       prevent_deletion_if_contains_resources = false
     }
   }

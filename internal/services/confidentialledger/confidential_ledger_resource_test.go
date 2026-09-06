@@ -350,9 +350,9 @@ resource "azurerm_confidential_ledger" "import" {
   ledger_type         = azurerm_confidential_ledger.test.ledger_type
 
   azuread_based_service_principal {
-    ledger_role_name = azurerm_confidential_ledger.test.azuread_based_service_principal.0.ledger_role_name
-    principal_id     = azurerm_confidential_ledger.test.azuread_based_service_principal.0.principal_id
-    tenant_id        = azurerm_confidential_ledger.test.azuread_based_service_principal.0.tenant_id
+    ledger_role_name = azurerm_confidential_ledger.test.azuread_based_service_principal[0].ledger_role_name
+    principal_id     = azurerm_confidential_ledger.test.azuread_based_service_principal[0].principal_id
+    tenant_id        = azurerm_confidential_ledger.test.azuread_based_service_principal[0].tenant_id
   }
 }
 `, template)

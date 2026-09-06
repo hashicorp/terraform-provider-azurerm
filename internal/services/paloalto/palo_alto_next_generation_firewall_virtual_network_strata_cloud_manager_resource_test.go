@@ -151,7 +151,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_strata_clou
     }
   }
 
-  // tags is required in the test subscription account, otherwise it fails
+  # tags is required in the test subscription account, otherwise it fails
   tags = {
     userid = "terraform-test"
   }

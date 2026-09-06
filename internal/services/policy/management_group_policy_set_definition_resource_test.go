@@ -286,8 +286,8 @@ resource "azurerm_management_group_policy_set_definition" "import" {
   parameters = azurerm_management_group_policy_set_definition.test.parameters
 
   policy_definition_reference {
-    policy_definition_id = azurerm_management_group_policy_set_definition.test.policy_definition_reference.0.policy_definition_id
-    parameter_values     = azurerm_management_group_policy_set_definition.test.policy_definition_reference.0.parameter_values
+    policy_definition_id = azurerm_management_group_policy_set_definition.test.policy_definition_reference[0].policy_definition_id
+    parameter_values     = azurerm_management_group_policy_set_definition.test.policy_definition_reference[0].parameter_values
   }
 }`, r.basic(data))
 }

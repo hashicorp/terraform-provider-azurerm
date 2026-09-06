@@ -182,7 +182,7 @@ resource "azurerm_stack_hci_network_interface" "import" {
   custom_location_id  = azurerm_stack_hci_network_interface.test.custom_location_id
 
   ip_configuration {
-    subnet_id = azurerm_stack_hci_network_interface.test.ip_configuration.0.subnet_id
+    subnet_id = azurerm_stack_hci_network_interface.test.ip_configuration[0].subnet_id
   }
 }
 `, config)

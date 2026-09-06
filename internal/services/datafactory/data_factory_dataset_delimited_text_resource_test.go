@@ -599,7 +599,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_storage_account.test.id
   role_definition_name = "Storage Blob Data Owner"
-  principal_id         = azurerm_data_factory.test.identity.0.principal_id
+  principal_id         = azurerm_data_factory.test.identity[0].principal_id
 }
 
 resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {
@@ -671,7 +671,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_storage_account.test.id
   role_definition_name = "Storage Blob Data Owner"
-  principal_id         = azurerm_data_factory.test.identity.0.principal_id
+  principal_id         = azurerm_data_factory.test.identity[0].principal_id
 }
 
 resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {

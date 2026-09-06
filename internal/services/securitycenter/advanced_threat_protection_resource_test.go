@@ -114,7 +114,7 @@ func (AdvancedThreatProtectionResource) cosmosAccount(data acceptance.TestData, 
 	if hasResource {
 		atp = fmt.Sprintf(`
 resource "azurerm_advanced_threat_protection" "test" {
-  target_resource_id = "${azurerm_cosmosdb_account.test.id}"
+  target_resource_id = azurerm_cosmosdb_account.test.id
   enabled            = %t
 }
 `, enabled)

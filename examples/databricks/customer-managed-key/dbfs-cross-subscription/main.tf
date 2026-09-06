@@ -49,7 +49,7 @@ resource "azurerm_databricks_workspace_root_dbfs_customer_managed_key" "example"
 
 resource "azurerm_key_vault" "example" {
   provider = azurerm.keyVaultSubscription
-  
+
   name                       = "${var.prefix}-keyvault"
   location                   = azurerm_resource_group.keyVault.location
   resource_group_name        = azurerm_resource_group.keyVault.name
@@ -114,8 +114,8 @@ resource "azurerm_key_vault_access_policy" "databricks" {
   provider = azurerm.keyVaultSubscription
 
   key_vault_id = azurerm_key_vault.example.id
-  tenant_id    = azurerm_databricks_workspace.example.storage_account_identity.0.tenant_id
-  object_id    = azurerm_databricks_workspace.example.storage_account_identity.0.principal_id
+  tenant_id    = azurerm_databricks_workspace.example.storage_account_identity[0].tenant_id
+  object_id    = azurerm_databricks_workspace.example.storage_account_identity[0].principal_id
 
   key_permissions = [
     "Get",

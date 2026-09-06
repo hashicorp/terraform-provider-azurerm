@@ -70,7 +70,7 @@ resource "azurerm_stream_analytics_stream_input_blob" "example" {
   storage_account_name      = azurerm_storage_account.example.name
   storage_account_key       = azurerm_storage_account.example.primary_access_key
   storage_container_name    = azurerm_storage_container.example.name
-  path_pattern              = "" // this checks for blobs in the root of the container
+  path_pattern              = "" # this checks for blobs in the root of the container
   date_format               = "yyyy/MM/dd"
   time_format               = "HH"
 

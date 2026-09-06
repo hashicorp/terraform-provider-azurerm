@@ -167,7 +167,7 @@ resource "azurerm_cognitive_deployment" "test" {
     name = "Standard"
   }
   lifecycle {
-    ignore_changes = [model.0.version]
+    ignore_changes = [model[0].version]
   }
 }
 `, template, data.RandomInteger)

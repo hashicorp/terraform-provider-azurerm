@@ -204,7 +204,7 @@ resource "azurerm_resource_group" "consumer" {
   name     = "acctestRG-acr-consumer-%d"
   location = "%s"
   tags = {
-    %s = azurerm_container_registry_token_password.test.password1.0.value
+    %s = azurerm_container_registry_token_password.test.password1[0].value
   }
 }
 `, template, expiry, data.RandomInteger, data.Locations.Primary, tagName)

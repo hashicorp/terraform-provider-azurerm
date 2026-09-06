@@ -160,12 +160,12 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rules
   rulestack_id        = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.rulestack_id
 
   network_profile {
-    public_ip_address_ids = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.network_profile.0.public_ip_address_ids
+    public_ip_address_ids = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.network_profile[0].public_ip_address_ids
 
     vnet_configuration {
-      virtual_network_id  = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.network_profile.0.vnet_configuration.0.virtual_network_id
-      trusted_subnet_id   = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.network_profile.0.vnet_configuration.0.trusted_subnet_id
-      untrusted_subnet_id = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.network_profile.0.vnet_configuration.0.untrusted_subnet_id
+      virtual_network_id  = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.network_profile[0].vnet_configuration[0].virtual_network_id
+      trusted_subnet_id   = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.network_profile[0].vnet_configuration[0].trusted_subnet_id
+      untrusted_subnet_id = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.network_profile[0].vnet_configuration[0].untrusted_subnet_id
     }
   }
 }

@@ -111,7 +111,7 @@ func (r StackHCIDeploymentSettingResource) basic(data acceptance.TestData) strin
 provider "azurerm" {
   features {
     resource_group {
-      // need to delete arc vm
+      # need to delete arc vm
       prevent_deletion_if_contains_resources = false
     }
   }
@@ -241,94 +241,94 @@ resource "azurerm_stack_hci_deployment_setting" "import" {
   version              = azurerm_stack_hci_deployment_setting.test.version
 
   scale_unit {
-    active_directory_organizational_unit_path = azurerm_stack_hci_deployment_setting.test.scale_unit.0.active_directory_organizational_unit_path
-    domain_fqdn                               = azurerm_stack_hci_deployment_setting.test.scale_unit.0.domain_fqdn
-    secrets_location                          = azurerm_stack_hci_deployment_setting.test.scale_unit.0.secrets_location
-    name_prefix                               = azurerm_stack_hci_deployment_setting.test.scale_unit.0.name_prefix
-    streaming_data_client_enabled             = azurerm_stack_hci_deployment_setting.test.scale_unit.0.streaming_data_client_enabled
-    eu_location_enabled                       = azurerm_stack_hci_deployment_setting.test.scale_unit.0.eu_location_enabled
-    episodic_data_upload_enabled              = azurerm_stack_hci_deployment_setting.test.scale_unit.0.episodic_data_upload_enabled
+    active_directory_organizational_unit_path = azurerm_stack_hci_deployment_setting.test.scale_unit[0].active_directory_organizational_unit_path
+    domain_fqdn                               = azurerm_stack_hci_deployment_setting.test.scale_unit[0].domain_fqdn
+    secrets_location                          = azurerm_stack_hci_deployment_setting.test.scale_unit[0].secrets_location
+    name_prefix                               = azurerm_stack_hci_deployment_setting.test.scale_unit[0].name_prefix
+    streaming_data_client_enabled             = azurerm_stack_hci_deployment_setting.test.scale_unit[0].streaming_data_client_enabled
+    eu_location_enabled                       = azurerm_stack_hci_deployment_setting.test.scale_unit[0].eu_location_enabled
+    episodic_data_upload_enabled              = azurerm_stack_hci_deployment_setting.test.scale_unit[0].episodic_data_upload_enabled
 
-    bitlocker_boot_volume_enabled   = azurerm_stack_hci_deployment_setting.test.scale_unit.0.bitlocker_boot_volume_enabled
-    bitlocker_data_volume_enabled   = azurerm_stack_hci_deployment_setting.test.scale_unit.0.bitlocker_data_volume_enabled
-    credential_guard_enabled        = azurerm_stack_hci_deployment_setting.test.scale_unit.0.credential_guard_enabled
-    drift_control_enabled           = azurerm_stack_hci_deployment_setting.test.scale_unit.0.drift_control_enabled
-    drtm_protection_enabled         = azurerm_stack_hci_deployment_setting.test.scale_unit.0.drtm_protection_enabled
-    hvci_protection_enabled         = azurerm_stack_hci_deployment_setting.test.scale_unit.0.hvci_protection_enabled
-    side_channel_mitigation_enabled = azurerm_stack_hci_deployment_setting.test.scale_unit.0.side_channel_mitigation_enabled
-    smb_cluster_encryption_enabled  = azurerm_stack_hci_deployment_setting.test.scale_unit.0.smb_cluster_encryption_enabled
-    smb_signing_enabled             = azurerm_stack_hci_deployment_setting.test.scale_unit.0.smb_signing_enabled
-    wdac_enabled                    = azurerm_stack_hci_deployment_setting.test.scale_unit.0.wdac_enabled
+    bitlocker_boot_volume_enabled   = azurerm_stack_hci_deployment_setting.test.scale_unit[0].bitlocker_boot_volume_enabled
+    bitlocker_data_volume_enabled   = azurerm_stack_hci_deployment_setting.test.scale_unit[0].bitlocker_data_volume_enabled
+    credential_guard_enabled        = azurerm_stack_hci_deployment_setting.test.scale_unit[0].credential_guard_enabled
+    drift_control_enabled           = azurerm_stack_hci_deployment_setting.test.scale_unit[0].drift_control_enabled
+    drtm_protection_enabled         = azurerm_stack_hci_deployment_setting.test.scale_unit[0].drtm_protection_enabled
+    hvci_protection_enabled         = azurerm_stack_hci_deployment_setting.test.scale_unit[0].hvci_protection_enabled
+    side_channel_mitigation_enabled = azurerm_stack_hci_deployment_setting.test.scale_unit[0].side_channel_mitigation_enabled
+    smb_cluster_encryption_enabled  = azurerm_stack_hci_deployment_setting.test.scale_unit[0].smb_cluster_encryption_enabled
+    smb_signing_enabled             = azurerm_stack_hci_deployment_setting.test.scale_unit[0].smb_signing_enabled
+    wdac_enabled                    = azurerm_stack_hci_deployment_setting.test.scale_unit[0].wdac_enabled
 
 
     cluster {
-      azure_service_endpoint = azurerm_stack_hci_deployment_setting.test.scale_unit.0.cluster.0.azure_service_endpoint
-      cloud_account_name     = azurerm_stack_hci_deployment_setting.test.scale_unit.0.cluster.0.cloud_account_name
-      name                   = azurerm_stack_hci_deployment_setting.test.scale_unit.0.cluster.0.name
-      witness_type           = azurerm_stack_hci_deployment_setting.test.scale_unit.0.cluster.0.witness_type
-      witness_path           = azurerm_stack_hci_deployment_setting.test.scale_unit.0.cluster.0.witness_path
+      azure_service_endpoint = azurerm_stack_hci_deployment_setting.test.scale_unit[0].cluster[0].azure_service_endpoint
+      cloud_account_name     = azurerm_stack_hci_deployment_setting.test.scale_unit[0].cluster[0].cloud_account_name
+      name                   = azurerm_stack_hci_deployment_setting.test.scale_unit[0].cluster[0].name
+      witness_type           = azurerm_stack_hci_deployment_setting.test.scale_unit[0].cluster[0].witness_type
+      witness_path           = azurerm_stack_hci_deployment_setting.test.scale_unit[0].cluster[0].witness_path
     }
 
     host_network {
       intent {
-        name                              = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.0.name
-        adapter                           = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.0.adapter
-        adapter_property_override_enabled = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.0.adapter_property_override_enabled
-        traffic_type                      = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.0.traffic_type
+        name                              = azurerm_stack_hci_deployment_setting.test.scale_unit[0].host_network[0].intent[0].name
+        adapter                           = azurerm_stack_hci_deployment_setting.test.scale_unit[0].host_network[0].intent[0].adapter
+        adapter_property_override_enabled = azurerm_stack_hci_deployment_setting.test.scale_unit[0].host_network[0].intent[0].adapter_property_override_enabled
+        traffic_type                      = azurerm_stack_hci_deployment_setting.test.scale_unit[0].host_network[0].intent[0].traffic_type
         adapter_property_override {
-          network_direct = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.0.adapter_property_override.0.network_direct
+          network_direct = azurerm_stack_hci_deployment_setting.test.scale_unit[0].host_network[0].intent[0].adapter_property_override[0].network_direct
         }
       }
 
       intent {
-        name                              = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.1.name
-        adapter                           = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.1.adapter
-        adapter_property_override_enabled = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.0.adapter_property_override_enabled
-        traffic_type                      = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.1.traffic_type
+        name                              = azurerm_stack_hci_deployment_setting.test.scale_unit[0].host_network[0].intent[1].name
+        adapter                           = azurerm_stack_hci_deployment_setting.test.scale_unit[0].host_network[0].intent[1].adapter
+        adapter_property_override_enabled = azurerm_stack_hci_deployment_setting.test.scale_unit[0].host_network[0].intent[0].adapter_property_override_enabled
+        traffic_type                      = azurerm_stack_hci_deployment_setting.test.scale_unit[0].host_network[0].intent[1].traffic_type
         adapter_property_override {
-          network_direct = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.intent.0.adapter_property_override.0.network_direct
+          network_direct = azurerm_stack_hci_deployment_setting.test.scale_unit[0].host_network[0].intent[0].adapter_property_override[0].network_direct
         }
       }
 
       storage_network {
-        name                 = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.storage_network.0.name
-        network_adapter_name = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.storage_network.0.network_adapter_name
-        vlan_id              = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.storage_network.0.vlan_id
+        name                 = azurerm_stack_hci_deployment_setting.test.scale_unit[0].host_network[0].storage_network[0].name
+        network_adapter_name = azurerm_stack_hci_deployment_setting.test.scale_unit[0].host_network[0].storage_network[0].network_adapter_name
+        vlan_id              = azurerm_stack_hci_deployment_setting.test.scale_unit[0].host_network[0].storage_network[0].vlan_id
       }
 
       storage_network {
-        name                 = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.storage_network.1.name
-        network_adapter_name = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.storage_network.1.network_adapter_name
-        vlan_id              = azurerm_stack_hci_deployment_setting.test.scale_unit.0.host_network.0.storage_network.1.vlan_id
+        name                 = azurerm_stack_hci_deployment_setting.test.scale_unit[0].host_network[0].storage_network[1].name
+        network_adapter_name = azurerm_stack_hci_deployment_setting.test.scale_unit[0].host_network[0].storage_network[1].network_adapter_name
+        vlan_id              = azurerm_stack_hci_deployment_setting.test.scale_unit[0].host_network[0].storage_network[1].vlan_id
       }
     }
 
     infrastructure_network {
-      gateway     = azurerm_stack_hci_deployment_setting.test.scale_unit.0.infrastructure_network.0.gateway
-      subnet_mask = azurerm_stack_hci_deployment_setting.test.scale_unit.0.infrastructure_network.0.subnet_mask
-      dns_server  = azurerm_stack_hci_deployment_setting.test.scale_unit.0.infrastructure_network.0.dns_server
+      gateway     = azurerm_stack_hci_deployment_setting.test.scale_unit[0].infrastructure_network[0].gateway
+      subnet_mask = azurerm_stack_hci_deployment_setting.test.scale_unit[0].infrastructure_network[0].subnet_mask
+      dns_server  = azurerm_stack_hci_deployment_setting.test.scale_unit[0].infrastructure_network[0].dns_server
       ip_pool {
-        ending_address   = azurerm_stack_hci_deployment_setting.test.scale_unit.0.infrastructure_network.0.ip_pool.0.ending_address
-        starting_address = azurerm_stack_hci_deployment_setting.test.scale_unit.0.infrastructure_network.0.ip_pool.0.starting_address
+        ending_address   = azurerm_stack_hci_deployment_setting.test.scale_unit[0].infrastructure_network[0].ip_pool[0].ending_address
+        starting_address = azurerm_stack_hci_deployment_setting.test.scale_unit[0].infrastructure_network[0].ip_pool[0].starting_address
       }
     }
 
     optional_service {
-      custom_location = azurerm_stack_hci_deployment_setting.test.scale_unit.0.optional_service.0.custom_location
+      custom_location = azurerm_stack_hci_deployment_setting.test.scale_unit[0].optional_service[0].custom_location
     }
 
     physical_node {
-      ipv4_address = azurerm_stack_hci_deployment_setting.test.scale_unit.0.physical_node.0.ipv4_address
-      name         = azurerm_stack_hci_deployment_setting.test.scale_unit.0.physical_node.0.name
+      ipv4_address = azurerm_stack_hci_deployment_setting.test.scale_unit[0].physical_node[0].ipv4_address
+      name         = azurerm_stack_hci_deployment_setting.test.scale_unit[0].physical_node[0].name
     }
 
     physical_node {
-      ipv4_address = azurerm_stack_hci_deployment_setting.test.scale_unit.0.physical_node.1.ipv4_address
-      name         = azurerm_stack_hci_deployment_setting.test.scale_unit.0.physical_node.1.name
+      ipv4_address = azurerm_stack_hci_deployment_setting.test.scale_unit[0].physical_node[1].ipv4_address
+      name         = azurerm_stack_hci_deployment_setting.test.scale_unit[0].physical_node[1].name
     }
 
     storage {
-      configuration_mode = azurerm_stack_hci_deployment_setting.test.scale_unit.0.storage.0.configuration_mode
+      configuration_mode = azurerm_stack_hci_deployment_setting.test.scale_unit[0].storage[0].configuration_mode
     }
   }
 }
@@ -343,7 +343,7 @@ func (r StackHCIDeploymentSettingResource) complete(data acceptance.TestData) st
 provider "azurerm" {
   features {
     resource_group {
-      // need to delete arc vm
+      # need to delete arc vm
       prevent_deletion_if_contains_resources = false
     }
   }
@@ -692,7 +692,7 @@ resource "azurerm_role_assignment" "connect2" {
   principal_id         = azuread_service_principal.test.object_id
 }
 
-// this is following https://learn.microsoft.com/en-us/azure-stack/hci/deploy/deployment-tool-active-directory
+# this is following https://learn.microsoft.com/en-us/azure-stack/hci/deploy/deployment-tool-active-directory
 resource "terraform_data" "ad_creation_provisioner" {
   depends_on = [azurerm_virtual_machine.test]
 
@@ -802,7 +802,7 @@ resource "azurerm_storage_account" "witness" {
   account_replication_type = "LRS"
 }
 
-// service principal of 'Microsoft.AzureStackHCI Resource Provider'
+# service principal of 'Microsoft.AzureStackHCI Resource Provider'
 data "azuread_service_principal" "hciRp" {
   client_id = "1412d89f-b8a8-4111-b4fd-e82905cbd85d"
 }
@@ -844,7 +844,7 @@ resource "azurerm_stack_hci_cluster" "test" {
     type = "SystemAssigned"
   }
 
-  // the client_id will be populated after deployment
+  # the client_id will be populated after deployment
   lifecycle {
     ignore_changes = [
       client_id

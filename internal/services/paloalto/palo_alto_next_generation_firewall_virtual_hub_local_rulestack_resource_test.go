@@ -160,9 +160,9 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack
   rulestack_id        = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.rulestack_id
 
   network_profile {
-    virtual_hub_id               = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.network_profile.0.virtual_hub_id
-    network_virtual_appliance_id = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.network_profile.0.network_virtual_appliance_id
-    public_ip_address_ids        = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.network_profile.0.public_ip_address_ids
+    virtual_hub_id               = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.network_profile[0].virtual_hub_id
+    network_virtual_appliance_id = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.network_profile[0].network_virtual_appliance_id
+    public_ip_address_ids        = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.network_profile[0].public_ip_address_ids
   }
 }
 `, r.basic(data))

@@ -459,14 +459,14 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
     "GetRotationPolicy",
   ]
 
-  tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
-  object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
+  tenant_id = azurerm_disk_encryption_set.test.identity[0].tenant_id
+  object_id = azurerm_disk_encryption_set.test.identity[0].principal_id
 }
 
 resource "azurerm_role_assignment" "disk-encryption-read-keyvault" {
   scope                = azurerm_key_vault.test.id
   role_definition_name = "Reader"
-  principal_id         = azurerm_disk_encryption_set.test.identity.0.principal_id
+  principal_id         = azurerm_disk_encryption_set.test.identity[0].principal_id
 }
 `, r.disksOSDisk_diskEncryptionSetDependencies(data), data.RandomInteger)
 }
@@ -903,8 +903,8 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
     "UnwrapKey",
     "GetRotationPolicy",
   ]
-  tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
-  object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
+  tenant_id = azurerm_disk_encryption_set.test.identity[0].tenant_id
+  object_id = azurerm_disk_encryption_set.test.identity[0].principal_id
 }
 `, r.templateWithOutProvider(data), data.RandomInteger, data.RandomString)
 }

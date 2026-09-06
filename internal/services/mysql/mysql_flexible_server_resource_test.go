@@ -536,7 +536,7 @@ func TestAccMySqlFlexibleServer_writeOnlyPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
 	r := MysqlFlexibleServerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
+	acceptance.RunParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
 		},
@@ -560,7 +560,7 @@ func TestAccMySqlFlexibleServer_updateToWriteOnlyPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
 	r := MysqlFlexibleServerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
+	acceptance.RunParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
 		},
@@ -965,7 +965,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 
   lifecycle {
     ignore_changes = [
-      high_availability.0.standby_availability_zone
+      high_availability[0].standby_availability_zone
     ]
   }
 }

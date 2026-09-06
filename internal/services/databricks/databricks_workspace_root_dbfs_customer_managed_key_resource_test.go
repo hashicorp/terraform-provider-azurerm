@@ -355,8 +355,8 @@ resource "azurerm_key_vault_access_policy" "databricks" {
   depends_on = [azurerm_databricks_workspace.test]
 
   key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_databricks_workspace.test.storage_account_identity.0.tenant_id
-  object_id    = azurerm_databricks_workspace.test.storage_account_identity.0.principal_id
+  tenant_id    = azurerm_databricks_workspace.test.storage_account_identity[0].tenant_id
+  object_id    = azurerm_databricks_workspace.test.storage_account_identity[0].principal_id
 
   key_permissions = [
     "Get",
@@ -450,8 +450,8 @@ resource "azurerm_key_vault_access_policy" "databricks" {
   provider   = azurerm-alt
 
   key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_databricks_workspace.test.storage_account_identity.0.tenant_id
-  object_id    = azurerm_databricks_workspace.test.storage_account_identity.0.principal_id
+  tenant_id    = azurerm_databricks_workspace.test.storage_account_identity[0].tenant_id
+  object_id    = azurerm_databricks_workspace.test.storage_account_identity[0].principal_id
 
   key_permissions = [
     "Get",
@@ -603,7 +603,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "u
   name               = "%[5]s"
   scope              = "/keys"
   role_definition_id = data.azurerm_key_vault_managed_hardware_security_module_role_definition.encrypt-user.resource_manager_id
-  principal_id       = azurerm_databricks_workspace.test.storage_account_identity.0.principal_id
+  principal_id       = azurerm_databricks_workspace.test.storage_account_identity[0].principal_id
 
   depends_on = [azurerm_key_vault_managed_hardware_security_module_role_assignment.test1]
 }

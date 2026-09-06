@@ -71,7 +71,7 @@ resource "azurerm_private_link_service" "example" {
     primary   = true
   }
 
-  load_balancer_frontend_ip_configuration_ids = [azurerm_lb.example.frontend_ip_configuration.0.id]
+  load_balancer_frontend_ip_configuration_ids = [azurerm_lb.example.frontend_ip_configuration[0].id]
 }
 
 resource "azurerm_private_endpoint" "example" {

@@ -174,7 +174,7 @@ resource "azurerm_private_link_service" "test" {
   }
 
   load_balancer_frontend_ip_configuration_ids = [
-    azurerm_lb.test.frontend_ip_configuration.0.id
+    azurerm_lb.test.frontend_ip_configuration[0].id
   ]
 }
 

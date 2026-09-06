@@ -1053,13 +1053,13 @@ resource "azurerm_eventgrid_topic" "test" {
 resource "azurerm_role_assignment" "contributor" {
   scope                = azurerm_storage_account.test.id
   role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = azurerm_eventgrid_topic.test.identity.0.principal_id
+  principal_id         = azurerm_eventgrid_topic.test.identity[0].principal_id
 }
 
 resource "azurerm_role_assignment" "sender" {
   scope                = azurerm_storage_account.test.id
   role_definition_name = "Storage Queue Data Message Sender"
-  principal_id         = azurerm_eventgrid_topic.test.identity.0.principal_id
+  principal_id         = azurerm_eventgrid_topic.test.identity[0].principal_id
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
@@ -1140,13 +1140,13 @@ resource "azurerm_eventgrid_topic" "test" {
 resource "azurerm_role_assignment" "contributor" {
   scope                = azurerm_storage_account.test.id
   role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = azurerm_eventgrid_topic.test.identity.0.principal_id
+  principal_id         = azurerm_eventgrid_topic.test.identity[0].principal_id
 }
 
 resource "azurerm_role_assignment" "sender" {
   scope                = azurerm_storage_account.test.id
   role_definition_name = "Storage Queue Data Message Sender"
-  principal_id         = azurerm_eventgrid_topic.test.identity.0.principal_id
+  principal_id         = azurerm_eventgrid_topic.test.identity[0].principal_id
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {

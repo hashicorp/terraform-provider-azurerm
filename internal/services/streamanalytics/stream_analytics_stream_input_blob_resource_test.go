@@ -206,8 +206,8 @@ func (r StreamAnalyticsStreamInputBlobResource) updated(data acceptance.TestData
 
 resource "azurerm_storage_account" "updated" {
   name                     = "acctestsa2%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
@@ -220,11 +220,11 @@ resource "azurerm_storage_container" "updated" {
 
 resource "azurerm_stream_analytics_stream_input_blob" "test" {
   name                      = "acctestinput-%d"
-  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
-  storage_account_name      = "${azurerm_storage_account.updated.name}"
-  storage_account_key       = "${azurerm_storage_account.updated.primary_access_key}"
-  storage_container_name    = "${azurerm_storage_container.updated.name}"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  storage_account_name      = azurerm_storage_account.updated.name
+  storage_account_key       = azurerm_storage_account.updated.primary_access_key
+  storage_container_name    = azurerm_storage_container.updated.name
   path_pattern              = "some-other-pattern"
   date_format               = "yyyy-MM-dd"
   time_format               = "HH"
@@ -298,8 +298,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
@@ -312,8 +312,8 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_stream_analytics_job" "test" {
   name                                     = "acctestjob-%d"
-  resource_group_name                      = "${azurerm_resource_group.test.name}"
-  location                                 = "${azurerm_resource_group.test.location}"
+  resource_group_name                      = azurerm_resource_group.test.name
+  location                                 = azurerm_resource_group.test.location
   compatibility_level                      = "1.0"
   data_locale                              = "en-GB"
   events_late_arrival_max_delay_in_seconds = 60

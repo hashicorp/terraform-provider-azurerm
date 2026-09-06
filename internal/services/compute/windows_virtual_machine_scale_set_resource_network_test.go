@@ -724,22 +724,22 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctest-vnet-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
+  location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "subnet-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.0.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
   name                = "acctest-pubip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
 }
 
@@ -755,8 +755,8 @@ locals {
 
 resource "azurerm_application_gateway" "test" {
   name                = "acctestag-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   sku {
     name     = "Standard_v2"
@@ -766,25 +766,25 @@ resource "azurerm_application_gateway" "test" {
 
   gateway_ip_configuration {
     name      = "my-gateway-ip-configuration"
-    subnet_id = "${azurerm_subnet.test.id}"
+    subnet_id = azurerm_subnet.test.id
   }
 
   frontend_port {
-    name = "${local.frontend_port_name}"
+    name = local.frontend_port_name
     port = 80
   }
 
   frontend_ip_configuration {
-    name                 = "${local.frontend_ip_configuration_name}"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.test.id
   }
 
   backend_address_pool {
-    name = "${local.backend_address_pool_name}"
+    name = local.backend_address_pool_name
   }
 
   backend_http_settings {
-    name                  = "${local.http_setting_name}"
+    name                  = local.http_setting_name
     cookie_based_affinity = "Disabled"
     port                  = 80
     protocol              = "Http"
@@ -792,19 +792,19 @@ resource "azurerm_application_gateway" "test" {
   }
 
   http_listener {
-    name                           = "${local.listener_name}"
-    frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
-    frontend_port_name             = "${local.frontend_port_name}"
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name
     protocol                       = "Http"
   }
 
   request_routing_rule {
-    name                       = "${local.request_routing_rule_name}"
+    name                       = local.request_routing_rule_name
     priority                   = 9
     rule_type                  = "Basic"
-    http_listener_name         = "${local.listener_name}"
-    backend_address_pool_name  = "${local.backend_address_pool_name}"
-    backend_http_settings_name = "${local.http_setting_name}"
+    http_listener_name         = local.listener_name
+    backend_address_pool_name  = local.backend_address_pool_name
+    backend_http_settings_name = local.http_setting_name
   }
 }
 
@@ -814,8 +814,8 @@ locals {
 
 resource "azurerm_subnet" "other" {
   name                 = "other"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
 }
 
@@ -1518,8 +1518,8 @@ func (r WindowsVirtualMachineScaleSetResource) networkNetworkSecurityGroup(data 
 
 resource "azurerm_network_security_group" "test" {
   name                = "acctestnsg-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   lifecycle {
     create_before_destroy = true
@@ -1568,8 +1568,8 @@ func (r WindowsVirtualMachineScaleSetResource) networkNetworkSecurityGroupUpdate
 
 resource "azurerm_network_security_group" "test" {
   name                = "acctestnsg-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   lifecycle {
     create_before_destroy = true
@@ -1578,8 +1578,8 @@ resource "azurerm_network_security_group" "test" {
 
 resource "azurerm_network_security_group" "other" {
   name                = "acctestnsg2-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   lifecycle {
     create_before_destroy = true

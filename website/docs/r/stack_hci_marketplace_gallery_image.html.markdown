@@ -20,7 +20,7 @@ resource "azurerm_resource_group" "example" {
 
 data "azurerm_client_config" "example" {}
 
-// service principal of 'Microsoft.AzureStackHCI Resource Provider'
+# service principal of 'Microsoft.AzureStackHCI Resource Provider'
 data "azuread_service_principal" "hciRp" {
   client_id = "1412d89f-b8a8-4111-b4fd-e82905cbd85d"
 }

@@ -311,7 +311,7 @@ data "azuread_domains" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  client_id    = "2565bd9d-da50-47d4-8b85-4c97f669dc36" // published app for domain services
+  client_id    = "2565bd9d-da50-47d4-8b85-4c97f669dc36" # published app for domain services
   use_existing = true
 }
 
@@ -322,7 +322,7 @@ resource "azuread_group" "test" {
 }
 
 resource "azuread_user" "test" {
-  user_principal_name = "acctestAADDSAdminUser-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  user_principal_name = "acctestAADDSAdminUser-%[2]d@${data.azuread_domains.test.domains[0].domain_name}"
   display_name        = "acctestAADDSAdminUser-%[2]d"
   password            = "%[4]s"
 }
@@ -384,7 +384,7 @@ resource "azurerm_active_directory_domain_service" "test" {
 
 resource "azurerm_virtual_network_dns_servers" "test" {
   virtual_network_id = azurerm_virtual_network.test.id
-  dns_servers        = azurerm_active_directory_domain_service.test.initial_replica_set.0.domain_controller_ip_addresses
+  dns_servers        = azurerm_active_directory_domain_service.test.initial_replica_set[0].domain_controller_ip_addresses
 }
 `, data.Locations.Primary, data.RandomInteger, data.RandomString, r.adminPassword, secureLdapCertificate)
 }
@@ -555,7 +555,7 @@ resource "azurerm_active_directory_domain_service" "import" {
   sku         = azurerm_active_directory_domain_service.test.sku
 
   initial_replica_set {
-    subnet_id = azurerm_active_directory_domain_service.test.initial_replica_set.0.subnet_id
+    subnet_id = azurerm_active_directory_domain_service.test.initial_replica_set[0].subnet_id
   }
 }
 `, r.complete(data))

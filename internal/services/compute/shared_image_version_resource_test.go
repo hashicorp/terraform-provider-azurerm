@@ -595,8 +595,8 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
     "GetRotationPolicy",
   ]
 
-  tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
-  object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
+  tenant_id = azurerm_disk_encryption_set.test.identity[0].tenant_id
+  object_id = azurerm_disk_encryption_set.test.identity[0].principal_id
 }
 
 resource "azurerm_shared_image_version" "test" {

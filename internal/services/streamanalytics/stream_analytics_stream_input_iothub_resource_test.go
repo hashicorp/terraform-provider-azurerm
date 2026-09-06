@@ -218,8 +218,8 @@ resource "azurerm_stream_analytics_stream_input_iothub" "import" {
   shared_access_policy_name    = azurerm_stream_analytics_stream_input_iothub.test.resource_group_name
 
   serialization {
-    type     = azurerm_stream_analytics_stream_input_iothub.test.serialization.0.type
-    encoding = azurerm_stream_analytics_stream_input_iothub.test.serialization.0.encoding
+    type     = azurerm_stream_analytics_stream_input_iothub.test.serialization[0].type
+    encoding = azurerm_stream_analytics_stream_input_iothub.test.serialization[0].encoding
   }
 }
 `, r.json(data))

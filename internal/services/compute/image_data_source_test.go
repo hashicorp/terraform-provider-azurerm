@@ -137,7 +137,7 @@ resource "azurerm_linux_virtual_machine" "testsource" {
 }
 
 data "azurerm_managed_disk" "testsource" {
-  name                = azurerm_linux_virtual_machine.testsource.os_disk.0.name
+  name                = azurerm_linux_virtual_machine.testsource.os_disk[0].name
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary)

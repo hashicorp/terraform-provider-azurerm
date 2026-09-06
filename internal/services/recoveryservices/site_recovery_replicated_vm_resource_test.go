@@ -1082,14 +1082,14 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
     "GetRotationPolicy",
   ]
 
-  tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
-  object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
+  tenant_id = azurerm_disk_encryption_set.test.identity[0].tenant_id
+  object_id = azurerm_disk_encryption_set.test.identity[0].principal_id
 }
 
 resource "azurerm_role_assignment" "disk-encryption-read-keyvault" {
   scope                = azurerm_key_vault.test.id
   role_definition_name = "Reader"
-  principal_id         = azurerm_disk_encryption_set.test.identity.0.principal_id
+  principal_id         = azurerm_disk_encryption_set.test.identity[0].principal_id
 }
 
 resource "azurerm_managed_disk" "test" {
@@ -1341,8 +1341,8 @@ resource "azurerm_key_vault_access_policy" "disk-encryption2" {
     "GetRotationPolicy",
   ]
 
-  tenant_id = azurerm_disk_encryption_set.test2.identity.0.tenant_id
-  object_id = azurerm_disk_encryption_set.test2.identity.0.principal_id
+  tenant_id = azurerm_disk_encryption_set.test2.identity[0].tenant_id
+  object_id = azurerm_disk_encryption_set.test2.identity[0].principal_id
 }
 
 resource "azurerm_storage_account" "test" {
@@ -2026,7 +2026,7 @@ data "azurerm_managed_disk" "test" {
   ]
 }
 
-// Use snapshot as a workaround of encryption_settings not yet supported on managed_disk
+# Use snapshot as a workaround of encryption_settings not yet supported on managed_disk
 resource "azurerm_snapshot" "test" {
   name                = "snapshot-%[1]d"
   resource_group_name = azurerm_resource_group.test.name

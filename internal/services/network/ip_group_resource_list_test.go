@@ -18,7 +18,7 @@ func TestAccNetworkIpGroup_listBySubscriptionAndRG(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ip_group", "testlist1")
 	r := IpGroupResource{}
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -76,7 +76,7 @@ func (r IpGroupResource) basicQueryByResourceGroupName() string {
 list "azurerm_ip_group" "list" {
   provider = azurerm
   config {
-    resource_group_name = "${azurerm_resource_group.test.name}"
+    resource_group_name = azurerm_resource_group.test.name
   }
 }
 `

@@ -566,7 +566,7 @@ resource "azurerm_resource_policy_assignment" "test" {
   overrides {
     value = "Disabled"
     selectors {
-      in = [data.azurerm_policy_set_definition.test.policy_definition_reference.0.reference_id]
+      in = [data.azurerm_policy_set_definition.test.policy_definition_reference[0].reference_id]
     }
   }
 
@@ -604,7 +604,7 @@ resource "azurerm_resource_policy_assignment" "test" {
   overrides {
     value = "AuditIfNotExists"
     selectors {
-      in = [data.azurerm_policy_set_definition.test.policy_definition_reference.0.reference_id]
+      in = [data.azurerm_policy_set_definition.test.policy_definition_reference[0].reference_id]
     }
   }
 

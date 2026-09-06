@@ -241,12 +241,12 @@ resource "azurerm_network_manager_connectivity_configuration" "import" {
   network_manager_id    = azurerm_network_manager_connectivity_configuration.test.network_manager_id
   connectivity_topology = azurerm_network_manager_connectivity_configuration.test.connectivity_topology
   applies_to_group {
-    group_connectivity = azurerm_network_manager_connectivity_configuration.test.applies_to_group.0.group_connectivity
-    network_group_id   = azurerm_network_manager_connectivity_configuration.test.applies_to_group.0.network_group_id
+    group_connectivity = azurerm_network_manager_connectivity_configuration.test.applies_to_group[0].group_connectivity
+    network_group_id   = azurerm_network_manager_connectivity_configuration.test.applies_to_group[0].network_group_id
   }
   hub {
-    resource_id   = azurerm_network_manager_connectivity_configuration.test.hub.0.resource_id
-    resource_type = azurerm_network_manager_connectivity_configuration.test.hub.0.resource_type
+    resource_id   = azurerm_network_manager_connectivity_configuration.test.hub[0].resource_id
+    resource_type = azurerm_network_manager_connectivity_configuration.test.hub[0].resource_type
   }
 }
 `, config)

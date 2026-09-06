@@ -207,7 +207,7 @@ data "azuread_domains" "test" {
 }
 
 resource "azuread_user" "approver" {
-  user_principal_name = "pam-approver-%[1]s@${data.azuread_domains.test.domains.0.domain_name}"
+  user_principal_name = "pam-approver-%[1]s@${data.azuread_domains.test.domains[0].domain_name}"
   display_name        = "PAM Approver Test %[1]s"
   password            = "p@$$Wd%[1]s"
 }

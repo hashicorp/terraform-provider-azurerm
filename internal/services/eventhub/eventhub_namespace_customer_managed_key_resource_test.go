@@ -242,8 +242,8 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_access_policy" "test" {
   key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_eventhub_namespace.test.identity.0.tenant_id
-  object_id    = azurerm_eventhub_namespace.test.identity.0.principal_id
+  tenant_id    = azurerm_eventhub_namespace.test.identity[0].tenant_id
+  object_id    = azurerm_eventhub_namespace.test.identity[0].principal_id
 
   key_permissions = ["Get", "UnwrapKey", "WrapKey", "GetRotationPolicy"]
 }

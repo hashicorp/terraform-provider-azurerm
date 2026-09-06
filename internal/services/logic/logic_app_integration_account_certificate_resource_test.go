@@ -235,9 +235,9 @@ resource "azurerm_logic_app_integration_account_certificate" "import" {
   integration_account_name = azurerm_logic_app_integration_account_certificate.test.integration_account_name
 
   key_vault_key {
-    key_name     = azurerm_logic_app_integration_account_certificate.test.key_vault_key.0.key_name
-    key_vault_id = azurerm_logic_app_integration_account_certificate.test.key_vault_key.0.key_vault_id
-    key_version  = azurerm_logic_app_integration_account_certificate.test.key_vault_key.0.key_version
+    key_name     = azurerm_logic_app_integration_account_certificate.test.key_vault_key[0].key_name
+    key_vault_id = azurerm_logic_app_integration_account_certificate.test.key_vault_key[0].key_vault_id
+    key_version  = azurerm_logic_app_integration_account_certificate.test.key_vault_key[0].key_version
   }
 }
 `, config)

@@ -68,10 +68,10 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) template(data 
 provider "azurerm" {
   features {
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-       deleted until this can be properly investigated
-      */
+      # Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      # prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+      # deleted until this can be properly investigated
+      # *
       prevent_deletion_if_contains_resources = false
     }
   }
@@ -125,7 +125,7 @@ resource "azuread_directory_role" "reader" {
 
 resource "azuread_directory_role_member" "test" {
   role_object_id   = azuread_directory_role.reader.object_id
-  member_object_id = azurerm_mssql_managed_instance.test.identity.0.principal_id
+  member_object_id = azurerm_mssql_managed_instance.test.identity[0].principal_id
 }
 `, MsSqlManagedInstanceResource{}.template(data, data.Locations.Primary), data.RandomInteger)
 }

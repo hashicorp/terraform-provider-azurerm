@@ -321,7 +321,7 @@ resource "azurerm_storage_account_network_rules" "test" {
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_storage_account.test.id
   role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = azurerm_synapse_workspace.test.identity.0.principal_id
+  principal_id         = azurerm_synapse_workspace.test.identity[0].principal_id
 }
 
 resource "azurerm_synapse_workspace_extended_auditing_policy" "test" {
@@ -390,7 +390,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category = "AllMetrics"
   }
 
-  // metric will return all disabled categories
+  # metric will return all disabled categories
   lifecycle {
     ignore_changes = [enabled_metric]
   }
@@ -420,7 +420,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category = "AllMetrics"
   }
 
-  // metric will return all disabled categories
+  # metric will return all disabled categories
   lifecycle {
     ignore_changes = [enabled_metric]
   }
@@ -453,7 +453,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category = "AllMetrics"
   }
 
-  // metric will return all disabled categories
+  # metric will return all disabled categories
   lifecycle {
     ignore_changes = [enabled_metric]
   }
@@ -485,7 +485,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category = "AllMetrics"
   }
 
-  // metric will return all disabled categories
+  # metric will return all disabled categories
   lifecycle {
     ignore_changes = [enabled_metric]
   }

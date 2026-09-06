@@ -189,19 +189,19 @@ resource "azurerm_consumption_budget_resource_group" "test" {
   name              = "acctestconsumptionbudgetresourcegroup-%d"
   resource_group_id = azurerm_resource_group.test.id
 
-  // Changed the amount from 1000 to 2000
+  # Changed the amount from 1000 to 2000
   amount     = 3000
   time_grain = "Monthly"
 
-  // Add end_date
+  # Add end_date
   time_period {
     start_date = "%s"
     end_date   = "%s"
   }
 
-  // Remove filter
+  # Remove filter
 
-  // Changed threshold and operator
+  # Changed threshold and operator
   notification {
     enabled        = true
     threshold      = 95.0

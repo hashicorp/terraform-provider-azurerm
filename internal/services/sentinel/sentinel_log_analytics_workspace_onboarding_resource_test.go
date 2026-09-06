@@ -209,8 +209,8 @@ resource "azurerm_key_vault" "test" {
   }
 
   access_policy {
-    tenant_id = azurerm_log_analytics_cluster.test.identity.0.tenant_id
-    object_id = azurerm_log_analytics_cluster.test.identity.0.principal_id
+    tenant_id = azurerm_log_analytics_cluster.test.identity[0].tenant_id
+    object_id = azurerm_log_analytics_cluster.test.identity[0].principal_id
     key_permissions = [
       "Get",
       "UnwrapKey",
@@ -219,7 +219,7 @@ resource "azurerm_key_vault" "test" {
   }
 
   access_policy {
-    tenant_id = azurerm_log_analytics_cluster.test.identity.0.tenant_id
+    tenant_id = azurerm_log_analytics_cluster.test.identity[0].tenant_id
     object_id = data.azuread_service_principal.cosmos.object_id
     key_permissions = [
       "Get",

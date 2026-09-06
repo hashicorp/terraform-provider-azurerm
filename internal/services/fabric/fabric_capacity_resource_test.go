@@ -203,7 +203,7 @@ resource "azurerm_fabric_capacity" "test" {
 
   tags = {
     environment = "test1"
-    environment = "test2"
+    owner       = "test2"
   }
 }
 `, template, data.RandomInteger, data.Locations.Primary)

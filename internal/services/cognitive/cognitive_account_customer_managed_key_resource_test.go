@@ -198,8 +198,8 @@ resource "azurerm_key_vault" "test" {
   soft_delete_retention_days = 7
 
   access_policy {
-    tenant_id = azurerm_cognitive_account.test.identity.0.tenant_id
-    object_id = azurerm_cognitive_account.test.identity.0.principal_id
+    tenant_id = azurerm_cognitive_account.test.identity[0].tenant_id
+    object_id = azurerm_cognitive_account.test.identity[0].principal_id
     key_permissions = [
       "Get", "Create", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"
     ]

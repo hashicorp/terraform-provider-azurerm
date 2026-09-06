@@ -833,7 +833,7 @@ resource "azurerm_lb" "consumer" {
   frontend_ip_configuration {
     name                                               = "gateway"
     public_ip_address_id                               = azurerm_public_ip.test.id
-    gateway_load_balancer_frontend_ip_configuration_id = azurerm_lb.test.frontend_ip_configuration.0.id
+    gateway_load_balancer_frontend_ip_configuration_id = azurerm_lb.test.frontend_ip_configuration[0].id
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

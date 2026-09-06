@@ -247,7 +247,7 @@ resource "azurerm_virtual_hub_route_table_route" "test_2" {
   next_hop          = azurerm_virtual_hub_connection.test.id
 }
 
-// test a route on the default route table
+# test a route on the default route table
 resource "azurerm_virtual_hub_route_table_route" "test_3" {
   route_table_id = azurerm_virtual_hub.test.default_route_table_id
 

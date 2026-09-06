@@ -23,7 +23,7 @@ resource "azurerm_kubernetes_cluster" "example" {
   default_node_pool {
     name       = "example-value"
     node_count = "example-value"
-    vm_size    = "example-value"
+    vm_size    = "Standard_DS2_v2"
     upgrade_settings {
       max_surge = "example-value"
     }

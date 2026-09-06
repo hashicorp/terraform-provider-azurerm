@@ -369,9 +369,9 @@ resource "azurerm_stream_analytics_output_eventhub" "import" {
   shared_access_policy_name = azurerm_stream_analytics_output_eventhub.test.shared_access_policy_name
 
   serialization {
-    type     = azurerm_stream_analytics_output_eventhub.test.serialization.0.type
-    encoding = azurerm_stream_analytics_output_eventhub.test.serialization.0.encoding
-    format   = azurerm_stream_analytics_output_eventhub.test.serialization.0.format
+    type     = azurerm_stream_analytics_output_eventhub.test.serialization[0].type
+    encoding = azurerm_stream_analytics_output_eventhub.test.serialization[0].encoding
+    format   = azurerm_stream_analytics_output_eventhub.test.serialization[0].format
   }
 }
 `, r.json(data))

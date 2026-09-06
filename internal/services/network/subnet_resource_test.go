@@ -1023,7 +1023,7 @@ data "azurerm_subnet" "test" {
   virtual_network_name = azurerm_subnet.test.virtual_network_name
   resource_group_name  = azurerm_subnet.test.resource_group_name
 
-  // ensure we're looking at the data source after the associations are applied
+  # ensure we're looking at the data source after the associations are applied
   depends_on = [
     azurerm_subnet_route_table_association.test,
     azurerm_subnet_network_security_group_association.test,
@@ -1150,13 +1150,13 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16", "ace:cab:deca::/48"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.0.0/24"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -1174,13 +1174,13 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16", "ace:cab:deca::/48"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.0.0/24", "ace:cab:deca:deed::/64"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

@@ -313,7 +313,7 @@ func (r LoadBalancerRule) basic(data acceptance.TestData) string {
 resource "azurerm_lb_rule" "test" {
   name                           = "acctest-lb-rule-%d"
   loadbalancer_id                = azurerm_lb.test.id
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration[0].name
   protocol                       = "Tcp"
   frontend_port                  = 3389
   backend_port                   = 3389
@@ -339,7 +339,7 @@ resource "azurerm_lb_rule" "test" {
   idle_timeout_in_minutes = 100
   load_distribution       = "SourceIP"
 
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration[0].name
 }
 `, r.template(data), data.RandomInteger%100000000)
 }
@@ -362,7 +362,7 @@ resource "azurerm_lb_rule" "test" {
   idle_timeout_in_minutes = 50
   load_distribution       = "SourceIP"
 
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration[0].name
 }
 `, r.template(data), data.RandomInteger%100000000)
 }
@@ -407,7 +407,7 @@ resource "azurerm_lb_rule" "test" {
   protocol                       = "Tcp"
   frontend_port                  = 3389
   backend_port                   = 3389
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration[0].name
 }
 `, template, data.RandomInteger, data.RandomInteger, data.RandomInteger%100000000)
 }
@@ -423,7 +423,7 @@ resource "azurerm_lb_rule" "test" {
   protocol                       = "Udp"
   frontend_port                  = 3389
   backend_port                   = 3389
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration[0].name
 }
 
 resource "azurerm_lb_rule" "test2" {
@@ -432,7 +432,7 @@ resource "azurerm_lb_rule" "test2" {
   protocol                       = "Udp"
   frontend_port                  = 3390
   backend_port                   = 3390
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration[0].name
 }
 `, template, data.RandomInteger%100000000, data2.RandomInteger%100000000)
 }
@@ -448,7 +448,7 @@ resource "azurerm_lb_rule" "test" {
   protocol                       = "Udp"
   frontend_port                  = 3389
   backend_port                   = 3389
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration[0].name
 }
 
 resource "azurerm_lb_rule" "test2" {
@@ -457,7 +457,7 @@ resource "azurerm_lb_rule" "test2" {
   protocol                       = "Udp"
   frontend_port                  = 3391
   backend_port                   = 3391
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration[0].name
 }
 `, template, data.RandomInteger%100000000, data2.RandomInteger%100000000)
 }
@@ -538,7 +538,7 @@ resource "azurerm_lb_rule" "test" {
   frontend_port                  = 3389
   backend_port                   = 3389
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration[0].name
 }
 `, template, lbRuleName)
 }
@@ -554,7 +554,7 @@ resource "azurerm_lb_rule" "test" {
   frontend_port                  = 3389
   backend_port                   = 3389
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration[0].name
   disable_outbound_snat          = false
 }
 `, template, lbRuleName)
@@ -613,7 +613,7 @@ resource "azurerm_lb" "c1" {
   frontend_ip_configuration {
     name                                               = "gateway"
     public_ip_address_id                               = azurerm_public_ip.c1.id
-    gateway_load_balancer_frontend_ip_configuration_id = azurerm_lb.test.frontend_ip_configuration.0.id
+    gateway_load_balancer_frontend_ip_configuration_id = azurerm_lb.test.frontend_ip_configuration[0].id
   }
 }
 
@@ -633,7 +633,7 @@ resource "azurerm_lb" "c2" {
   frontend_ip_configuration {
     name                                               = "gateway"
     public_ip_address_id                               = azurerm_public_ip.c2.id
-    gateway_load_balancer_frontend_ip_configuration_id = azurerm_lb.test.frontend_ip_configuration.0.id
+    gateway_load_balancer_frontend_ip_configuration_id = azurerm_lb.test.frontend_ip_configuration[0].id
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -670,7 +670,7 @@ resource "azurerm_lb_rule" "test" {
   backend_address_pool_ids = [
     azurerm_lb_backend_address_pool.test.id,
   ]
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration[0].name
 }
 `, template, data.RandomInteger)
 }
@@ -712,7 +712,7 @@ resource "azurerm_lb_rule" "test" {
     azurerm_lb_backend_address_pool.test1.id,
     azurerm_lb_backend_address_pool.test2.id,
   ]
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration[0].name
 }
 `, template, data.RandomInteger)
 }

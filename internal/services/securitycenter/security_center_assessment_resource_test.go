@@ -136,7 +136,7 @@ resource "azurerm_security_center_assessment" "import" {
   target_resource_id   = azurerm_security_center_assessment.test.target_resource_id
 
   status {
-    code = azurerm_security_center_assessment.test.status.0.code
+    code = azurerm_security_center_assessment.test.status[0].code
   }
 }
 `, r.basic(data))

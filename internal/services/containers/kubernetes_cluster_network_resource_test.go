@@ -4545,7 +4545,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   lifecycle {
     ignore_changes = [
-      http_proxy_config.0.no_proxy
+      http_proxy_config[0].no_proxy
     ]
   }
 }
@@ -4663,7 +4663,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   lifecycle {
     ignore_changes = [
-      http_proxy_config.0.no_proxy
+      http_proxy_config[0].no_proxy
     ]
   }
 }
@@ -5113,7 +5113,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 2
-    vm_size        = "Standard_a2_v2"
+    vm_size        = "Standard_A2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       max_surge = "10%%"

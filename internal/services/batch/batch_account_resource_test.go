@@ -494,8 +494,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_key_vault" "test" {
   name                            = "batchkv%s"
-  location                        = "${azurerm_resource_group.test.location}"
-  resource_group_name             = "${azurerm_resource_group.test.name}"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
   rbac_authorization_enabled      = false
   enabled_for_disk_encryption     = true
   enabled_for_deployment          = true
@@ -506,7 +506,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = "%s"
-    object_id = "${data.azuread_service_principal.test.object_id}"
+    object_id = data.azuread_service_principal.test.object_id
 
     secret_permissions = [
       "Get",
@@ -521,14 +521,14 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_batch_account" "test" {
   name                = "testaccbatch%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   pool_allocation_mode = "UserSubscription"
 
   key_vault_reference {
-    id  = "${azurerm_key_vault.test.id}"
-    url = "${azurerm_key_vault.test.vault_uri}"
+    id  = azurerm_key_vault.test.id
+    url = azurerm_key_vault.test.vault_uri
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tenantID, tenantID, data.RandomString)

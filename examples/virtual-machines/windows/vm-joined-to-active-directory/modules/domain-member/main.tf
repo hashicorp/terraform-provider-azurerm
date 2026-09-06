@@ -47,8 +47,8 @@ resource "azurerm_windows_virtual_machine" "domain-member" {
   }
 }
 
-// Waits for up to 1 hour for the Domain to become available. Will return an error 1 if unsuccessful preventing the member attempting to join.
-// todo - find out why this is so variable? (approx 40min during testing)
+# Waits for up to 1 hour for the Domain to become available. Will return an error 1 if unsuccessful preventing the member attempting to join.
+# todo - find out why this is so variable? (approx 40min during testing)
 
 resource "azurerm_virtual_machine_extension" "wait-for-domain-to-provision" {
   name                 = "TestConnectionDomain"

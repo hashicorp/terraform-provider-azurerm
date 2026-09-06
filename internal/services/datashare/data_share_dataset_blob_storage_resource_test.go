@@ -235,9 +235,9 @@ resource "azurerm_data_share_dataset_blob_storage" "import" {
   data_share_id  = azurerm_data_share.test.id
   container_name = azurerm_data_share_dataset_blob_storage.test.container_name
   storage_account {
-    name                = azurerm_data_share_dataset_blob_storage.test.storage_account.0.name
-    resource_group_name = azurerm_data_share_dataset_blob_storage.test.storage_account.0.resource_group_name
-    subscription_id     = azurerm_data_share_dataset_blob_storage.test.storage_account.0.subscription_id
+    name                = azurerm_data_share_dataset_blob_storage.test.storage_account[0].name
+    resource_group_name = azurerm_data_share_dataset_blob_storage.test.storage_account[0].resource_group_name
+    subscription_id     = azurerm_data_share_dataset_blob_storage.test.storage_account[0].subscription_id
   }
 }
 `, r.basicFile(data))

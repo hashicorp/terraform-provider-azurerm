@@ -117,13 +117,13 @@ resource "azurerm_data_protection_backup_vault" "test" {
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_resource_group.test.id
   role_definition_name = "Reader"
-  principal_id         = azurerm_data_protection_backup_vault.test.identity.0.principal_id
+  principal_id         = azurerm_data_protection_backup_vault.test.identity[0].principal_id
 }
 
 resource "azurerm_role_assignment" "test2" {
   scope                = azurerm_postgresql_flexible_server.test.id
   role_definition_name = "PostgreSQL Flexible Server Long Term Retention Backup Role"
-  principal_id         = azurerm_data_protection_backup_vault.test.identity.0.principal_id
+  principal_id         = azurerm_data_protection_backup_vault.test.identity[0].principal_id
 }
 
 resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "test" {

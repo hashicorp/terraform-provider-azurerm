@@ -323,13 +323,13 @@ func (r LoadBalancerNatRule) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_lb_nat_rule" "test" {
-  resource_group_name            = "${azurerm_resource_group.test.name}"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
   name                           = "acctestnatrule-%d"
   protocol                       = "Tcp"
   frontend_port                  = 3389
   backend_port                   = 3389
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration[0].name
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -340,8 +340,8 @@ func (r LoadBalancerNatRule) complete(data acceptance.TestData) string {
 
 resource "azurerm_lb_nat_rule" "test" {
   name                = "acctestnatrule-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id     = "${azurerm_lb.test.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  loadbalancer_id     = azurerm_lb.test.id
 
   protocol      = "Tcp"
   frontend_port = 3389
@@ -351,7 +351,7 @@ resource "azurerm_lb_nat_rule" "test" {
   tcp_reset_enabled       = true
   idle_timeout_in_minutes = 10
 
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration[0].name
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -362,8 +362,8 @@ func (r LoadBalancerNatRule) completeUpdate(data acceptance.TestData) string {
 
 resource "azurerm_lb_nat_rule" "test" {
   name                = "acctestnatrule-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id     = "${azurerm_lb.test.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  loadbalancer_id     = azurerm_lb.test.id
 
   protocol      = "Tcp"
   frontend_port = 3390
@@ -373,7 +373,7 @@ resource "azurerm_lb_nat_rule" "test" {
   tcp_reset_enabled       = false
   idle_timeout_in_minutes = 15
 
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration[0].name
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -401,23 +401,23 @@ func (r LoadBalancerNatRule) multipleRules(data, data2 acceptance.TestData) stri
 %s
 
 resource "azurerm_lb_nat_rule" "test" {
-  resource_group_name            = "${azurerm_resource_group.test.name}"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
   name                           = "acctestnatrule-%d"
   protocol                       = "Tcp"
   frontend_port                  = 3389
   backend_port                   = 3389
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration[0].name
 }
 
 resource "azurerm_lb_nat_rule" "test2" {
-  resource_group_name            = "${azurerm_resource_group.test.name}"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
   name                           = "acctestnatrule2-%d"
   protocol                       = "Tcp"
   frontend_port                  = 3390
   backend_port                   = 3390
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration[0].name
 }
 `, template, data.RandomInteger, data2.RandomInteger)
 }
@@ -427,23 +427,23 @@ func (r LoadBalancerNatRule) multipleRulesUpdate(data, data2 acceptance.TestData
 	return fmt.Sprintf(`
 %s
 resource "azurerm_lb_nat_rule" "test" {
-  resource_group_name            = "${azurerm_resource_group.test.name}"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
   name                           = "acctestnatrule-%d"
   protocol                       = "Tcp"
   frontend_port                  = 3389
   backend_port                   = 3389
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration[0].name
 }
 
 resource "azurerm_lb_nat_rule" "test2" {
-  resource_group_name            = "${azurerm_resource_group.test.name}"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
   name                           = "acctestnatrule2-%d"
   protocol                       = "Tcp"
   frontend_port                  = 3391
   backend_port                   = 3391
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration[0].name
 }
 `, template, data.RandomInteger, data2.RandomInteger)
 }
@@ -473,8 +473,8 @@ resource "azurerm_lb_backend_address_pool_address" "test" {
 
 resource "azurerm_lb_nat_rule" "test" {
   name                = "acctestnatrule-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id     = "${azurerm_lb.test.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  loadbalancer_id     = azurerm_lb.test.id
 
   protocol                = "Tcp"
   frontend_port_start     = 3000
@@ -482,7 +482,7 @@ resource "azurerm_lb_nat_rule" "test" {
   backend_port            = 3389
   backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
 
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration[0].name
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
@@ -493,8 +493,8 @@ func (r LoadBalancerNatRule) multipleRuleMapToBackendAddressPool(data acceptance
 %s
 resource "azurerm_lb_nat_rule" "test1" {
   name                = "acctestnatrule2-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id     = "${azurerm_lb.test.id}"
+  resource_group_name = azurerm_resource_group.test.name
+  loadbalancer_id     = azurerm_lb.test.id
 
   protocol                = "Udp"
   frontend_port_start     = 3000
@@ -502,7 +502,7 @@ resource "azurerm_lb_nat_rule" "test1" {
   backend_port            = 3389
   backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
 
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration[0].name
 }
 `, template, data.RandomInteger)
 }
@@ -557,7 +557,7 @@ resource "azurerm_lb_nat_rule" "test" {
   idle_timeout_in_minutes        = 4
   floating_ip_enabled            = false
   tcp_reset_enabled              = false
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration[0].name
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

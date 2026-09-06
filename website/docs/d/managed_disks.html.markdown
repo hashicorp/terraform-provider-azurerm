@@ -18,7 +18,7 @@ data "azurerm_managed_disks" "existing" {
 }
 
 output "first_disk_id" {
-  value = data.azurerm_managed_disk.existing.disk.0.id
+  value = data.azurerm_managed_disk.existing.disk[0].id
 }
 ```
 

@@ -115,7 +115,7 @@ data "azuread_domains" "example" {
 }
 
 resource "azuread_user" "example" {
-  user_principal_name = "${var.prefix}AADDSAdminUser@${data.azuread_domains.example.domains.0.domain_name}"
+  user_principal_name = "${var.prefix}AADDSAdminUser@${data.azuread_domains.example.domains[0].domain_name}"
   display_name        = "${var.prefix}AADDSAdminUser"
   password            = "TerrAform321!"
 }
@@ -186,7 +186,7 @@ resource "azurerm_active_directory_domain_service" "example" {
 
 resource "azurerm_virtual_network_dns_servers" "example" {
   virtual_network_id = azurerm_virtual_network.example.id
-  dns_servers        = azurerm_active_directory_domain_service.example.initial_replica_set.0.domain_controller_ip_addresses
+  dns_servers        = azurerm_active_directory_domain_service.example.initial_replica_set[0].domain_controller_ip_addresses
 }
 
 resource "azurerm_hdinsight_hadoop_cluster" "example" {

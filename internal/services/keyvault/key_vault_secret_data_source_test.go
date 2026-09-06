@@ -104,12 +104,12 @@ func (KeyVaultSecretDataSource) specifyOldVersion(data acceptance.TestData) stri
 
 
 data "azurerm_key_vault_secret" "test" {
-  name         = "${local.secret_name}"
+  name         = local.secret_name
   key_vault_id = azurerm_key_vault.test.id
 }
 
 locals {
-  old_version = "${data.azurerm_key_vault_secret.test.version}"
+  old_version = data.azurerm_key_vault_secret.test.version
   secret_name = "secret-%s"
 }
 
@@ -118,7 +118,7 @@ locals {
 data "azurerm_key_vault_secret" "test2" {
   name         = azurerm_key_vault_secret.test.name
   key_vault_id = azurerm_key_vault.test.id
-  version      = "${local.old_version}"
+  version      = local.old_version
   depends_on   = [data.azurerm_key_vault_secret.test]
 }
 

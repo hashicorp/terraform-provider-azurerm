@@ -178,7 +178,7 @@ resource "azurerm_storage_account" "witness" {
   account_replication_type = "LRS"
 }
 
-// service principal of 'Microsoft.AzureStackHCI Resource Provider' application
+# service principal of 'Microsoft.AzureStackHCI Resource Provider' application
 data "azuread_service_principal" "hciRp" {
   client_id = "1412d89f-b8a8-4111-b4fd-e82905cbd85d"
 }
@@ -222,7 +222,7 @@ resource "azurerm_stack_hci_cluster" "example" {
     type = "SystemAssigned"
   }
 
-  // the client_id will be populated after deployment
+  # the client_id will be populated after deployment
   lifecycle {
     ignore_changes = [
       client_id

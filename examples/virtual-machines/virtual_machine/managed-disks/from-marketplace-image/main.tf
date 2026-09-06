@@ -13,7 +13,7 @@ resource "azurerm_virtual_machine" "example" {
   name                  = local.virtual_machine_name
   resource_group_name   = azurerm_resource_group.example.name
   location              = azurerm_resource_group.example.location
-  network_interface_ids = ["${azurerm_network_interface.example.id}"]
+  network_interface_ids = [azurerm_network_interface.example.id]
   vm_size               = "Standard_F2"
 
   storage_image_reference {

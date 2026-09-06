@@ -213,8 +213,8 @@ resource "azurerm_key_vault_access_policy" "databricks" {
   depends_on = [azurerm_databricks_workspace.example]
 
   key_vault_id = azurerm_key_vault.example.id
-  tenant_id    = azurerm_databricks_workspace.example.storage_account_identity.0.tenant_id
-  object_id    = azurerm_databricks_workspace.example.storage_account_identity.0.principal_id
+  tenant_id    = azurerm_databricks_workspace.example.storage_account_identity[0].tenant_id
+  object_id    = azurerm_databricks_workspace.example.storage_account_identity[0].principal_id
 
   key_permissions = [
     "Get",
@@ -244,21 +244,21 @@ output "databricks_workspace_private_endpoint_connection_private_endpoint_id" {
 }
 
 output "databricks_workspace_private_endpoint_connection_name" {
-  value = data.azurerm_databricks_workspace_private_endpoint_connection.example.connections.0.name
+  value = data.azurerm_databricks_workspace_private_endpoint_connection.example.connections[0].name
 }
 
 output "databricks_workspace_private_endpoint_connection_workspace_private_endpoint_id" {
-  value = data.azurerm_databricks_workspace_private_endpoint_connection.example.connections.0.workspace_private_endpoint_id
+  value = data.azurerm_databricks_workspace_private_endpoint_connection.example.connections[0].workspace_private_endpoint_id
 }
 
 output "databricks_workspace_private_endpoint_connection_status" {
-  value = data.azurerm_databricks_workspace_private_endpoint_connection.example.connections.0.status
+  value = data.azurerm_databricks_workspace_private_endpoint_connection.example.connections[0].status
 }
 
 output "databricks_workspace_private_endpoint_connection_description" {
-  value = data.azurerm_databricks_workspace_private_endpoint_connection.example.connections.0.description
+  value = data.azurerm_databricks_workspace_private_endpoint_connection.example.connections[0].description
 }
 
 output "databricks_workspace_private_endpoint_connection_action_required" {
-  value = data.azurerm_databricks_workspace_private_endpoint_connection.example.connections.0.action_required
+  value = data.azurerm_databricks_workspace_private_endpoint_connection.example.connections[0].action_required
 }

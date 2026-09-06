@@ -171,13 +171,13 @@ resource "azurerm_kusto_database" "test" {
 
 resource "azurerm_role_assignment" "database_contributor" {
   scope                = azurerm_kusto_database.test.id
-  principal_id         = azurerm_digital_twins_instance.test.identity.0.principal_id
+  principal_id         = azurerm_digital_twins_instance.test.identity[0].principal_id
   role_definition_name = "Contributor"
 }
 
 resource "azurerm_role_assignment" "eventhub_data_owner" {
   scope                = azurerm_eventhub.test.id
-  principal_id         = azurerm_digital_twins_instance.test.identity.0.principal_id
+  principal_id         = azurerm_digital_twins_instance.test.identity[0].principal_id
   role_definition_name = "Azure Event Hubs Data Owner"
 }
 
@@ -187,8 +187,8 @@ resource "azurerm_kusto_database_principal_assignment" "test" {
   cluster_name        = azurerm_kusto_cluster.test.name
   database_name       = azurerm_kusto_database.test.name
 
-  tenant_id      = azurerm_digital_twins_instance.test.identity.0.tenant_id
-  principal_id   = azurerm_digital_twins_instance.test.identity.0.principal_id
+  tenant_id      = azurerm_digital_twins_instance.test.identity[0].tenant_id
+  principal_id   = azurerm_digital_twins_instance.test.identity[0].principal_id
   principal_type = "App"
   role           = "Admin"
 }

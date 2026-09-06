@@ -221,7 +221,7 @@ resource "azurerm_virtual_machine_run_command" "import" {
   name               = azurerm_virtual_machine_run_command.test.name
   virtual_machine_id = azurerm_virtual_machine_run_command.test.virtual_machine_id
   source {
-    script = azurerm_virtual_machine_run_command.test.source.0.script
+    script = azurerm_virtual_machine_run_command.test.source[0].script
   }
 }
 `, r.basic(data))

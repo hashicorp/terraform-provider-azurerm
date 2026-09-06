@@ -185,9 +185,9 @@ resource "azurerm_stack_hci_marketplace_gallery_image" "import" {
   os_type             = azurerm_stack_hci_marketplace_gallery_image.test.os_type
   version             = azurerm_stack_hci_marketplace_gallery_image.test.version
   identifier {
-    publisher = azurerm_stack_hci_marketplace_gallery_image.test.identifier.0.publisher
-    offer     = azurerm_stack_hci_marketplace_gallery_image.test.identifier.0.offer
-    sku       = azurerm_stack_hci_marketplace_gallery_image.test.identifier.0.sku
+    publisher = azurerm_stack_hci_marketplace_gallery_image.test.identifier[0].publisher
+    offer     = azurerm_stack_hci_marketplace_gallery_image.test.identifier[0].offer
+    sku       = azurerm_stack_hci_marketplace_gallery_image.test.identifier[0].sku
   }
 }
 `, config)
@@ -314,7 +314,7 @@ resource "azurerm_resource_group" "test" {
 
 data "azurerm_client_config" "test" {}
 
-// service principal of 'Microsoft.AzureStackHCI Resource Provider'
+# service principal of 'Microsoft.AzureStackHCI Resource Provider'
 data "azuread_service_principal" "hciRp" {
   client_id = "1412d89f-b8a8-4111-b4fd-e82905cbd85d"
 }

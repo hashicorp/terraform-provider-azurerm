@@ -149,7 +149,7 @@ resource "azurerm_logic_app_integration_account_batch_configuration" "import" {
   batch_group_name         = azurerm_logic_app_integration_account_batch_configuration.test.batch_group_name
 
   release_criteria {
-    message_count = azurerm_logic_app_integration_account_batch_configuration.test.release_criteria.0.message_count
+    message_count = azurerm_logic_app_integration_account_batch_configuration.test.release_criteria[0].message_count
   }
 }
 `, r.basic(data))

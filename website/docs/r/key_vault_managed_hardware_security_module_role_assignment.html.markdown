@@ -21,9 +21,9 @@ data "azurerm_key_vault_managed_hardware_security_module_role_definition" "user"
 resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "example" {
   name               = "a9dbe818-56e7-5878-c0ce-a1477692c1d6"
   managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.example.id
-  scope              = "${data.azurerm_key_vault_managed_hardware_security_module_role_definition.user.scope}"
-  role_definition_id = "${data.azurerm_key_vault_managed_hardware_security_module_role_definition.user.resource_manager_id}"
-  principal_id       = "${data.azurerm_client_config.current.object_id}"
+  scope              = data.azurerm_key_vault_managed_hardware_security_module_role_definition.user.scope
+  role_definition_id = data.azurerm_key_vault_managed_hardware_security_module_role_definition.user.resource_manager_id
+  principal_id       = data.azurerm_client_config.current.object_id
 }
 ```
 

@@ -1412,7 +1412,7 @@ resource "azurerm_lb_outbound_rule" "test" {
   backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
 
   frontend_ip_configuration {
-    name = azurerm_lb.test.frontend_ip_configuration.0.name
+    name = azurerm_lb.test.frontend_ip_configuration[0].name
   }
 }
 
@@ -1536,8 +1536,8 @@ resource "azurerm_key_vault_access_policy" "databricks" {
   depends_on = [azurerm_databricks_workspace.test]
 
   key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_databricks_workspace.test.storage_account_identity.0.tenant_id
-  object_id    = azurerm_databricks_workspace.test.storage_account_identity.0.principal_id
+  tenant_id    = azurerm_databricks_workspace.test.storage_account_identity[0].tenant_id
+  object_id    = azurerm_databricks_workspace.test.storage_account_identity[0].principal_id
 
   key_permissions = [
     "Get",
@@ -1597,8 +1597,8 @@ resource "azurerm_key_vault_access_policy" "databricks" {
   depends_on = [azurerm_databricks_workspace.test]
 
   key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_databricks_workspace.test.managed_disk_identity.0.tenant_id
-  object_id    = azurerm_databricks_workspace.test.managed_disk_identity.0.principal_id
+  tenant_id    = azurerm_databricks_workspace.test.managed_disk_identity[0].tenant_id
+  object_id    = azurerm_databricks_workspace.test.managed_disk_identity[0].principal_id
 
   key_permissions = [
     "Get",
@@ -1682,8 +1682,8 @@ data "azurerm_databricks_workspace" "test" {
 
 resource "azurerm_key_vault_access_policy" "diskencryption" {
   key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = data.azurerm_databricks_workspace.test.managed_disk_identity.0.tenant_id
-  object_id    = data.azurerm_databricks_workspace.test.managed_disk_identity.0.principal_id
+  tenant_id    = data.azurerm_databricks_workspace.test.managed_disk_identity[0].tenant_id
+  object_id    = data.azurerm_databricks_workspace.test.managed_disk_identity[0].principal_id
 
   key_permissions = [
     "Get",
@@ -1768,8 +1768,8 @@ resource "azurerm_key_vault_access_policy" "databricks" {
   depends_on = [azurerm_databricks_workspace.test]
 
   key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_databricks_workspace.test.storage_account_identity.0.tenant_id
-  object_id    = azurerm_databricks_workspace.test.storage_account_identity.0.principal_id
+  tenant_id    = azurerm_databricks_workspace.test.storage_account_identity[0].tenant_id
+  object_id    = azurerm_databricks_workspace.test.storage_account_identity[0].principal_id
 
   key_permissions = [
     "Get",

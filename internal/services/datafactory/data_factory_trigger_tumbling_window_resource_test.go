@@ -174,7 +174,7 @@ resource "azurerm_data_factory_trigger_tumbling_window" "test" {
     }
   }
 
-  // Self dependency
+  # Self dependency
   trigger_dependency {
     size   = "24:00:00"
     offset = "-24:00:00"

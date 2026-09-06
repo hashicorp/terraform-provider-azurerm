@@ -1991,14 +1991,14 @@ resource "azurerm_public_ip" "test" {
 
 resource "azurerm_batch_account" "test" {
   name                = "testaccbatch%[3]s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%[3]s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  account_name        = "${azurerm_batch_account.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
   vm_size             = "STANDARD_A1_V2"
 
@@ -2337,8 +2337,8 @@ resource "azurerm_batch_pool" "test" {
   extensions {
     name                       = "OmsAgentForLinux"
     publisher                  = "Microsoft.EnterpriseCloud.Monitoring"
-    settings_json              = jsonencode({ "workspaceId" = "${azurerm_log_analytics_workspace.test.id}", "skipDockerProviderInstall" = true })
-    protected_settings         = jsonencode({ "workspaceKey" = "${azurerm_log_analytics_workspace.test.primary_shared_key}" })
+    settings_json              = jsonencode({ "workspaceId" = azurerm_log_analytics_workspace.test.id, "skipDockerProviderInstall" = true })
+    protected_settings         = jsonencode({ "workspaceKey" = azurerm_log_analytics_workspace.test.primary_shared_key })
     type                       = "OmsAgentForLinux"
     type_handler_version       = "1.17"
     auto_upgrade_minor_version = true
@@ -2384,7 +2384,7 @@ resource "azurerm_batch_pool" "test" {
     name                       = "OmsAgentForLinux"
     publisher                  = "Microsoft.EnterpriseCloud.Monitoring"
     settings_json              = jsonencode({})
-    protected_settings         = jsonencode({ "workspaceKey" = "${azurerm_log_analytics_workspace.test.primary_shared_key}" })
+    protected_settings         = jsonencode({ "workspaceKey" = azurerm_log_analytics_workspace.test.primary_shared_key })
     type                       = "OmsAgentForLinux"
     type_handler_version       = "1.17"
     auto_upgrade_minor_version = true

@@ -41,7 +41,7 @@ func (PrivateLinkServiceEndpointConnectionDataSource) complete(data acceptance.T
 %s
 
 data "azurerm_private_link_service_endpoint_connections" "test" {
-  service_id          = azurerm_private_endpoint.test.private_service_connection.0.private_connection_resource_id
+  service_id          = azurerm_private_endpoint.test.private_service_connection[0].private_connection_resource_id
   resource_group_name = azurerm_resource_group.test.name
 }
 `, PrivateEndpointResource{}.basic(data))

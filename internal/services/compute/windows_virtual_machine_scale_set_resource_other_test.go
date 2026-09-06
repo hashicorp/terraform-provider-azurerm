@@ -1189,7 +1189,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   lifecycle {
-    ignore_changes = [source_image_reference.0.sku]
+    ignore_changes = [source_image_reference[0].sku]
   }
 }
 `, r.template(data), r.vmName(data))
@@ -2979,7 +2979,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard_DS3_V2"
+  sku                 = "Standard_DS3_v2"
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
@@ -3020,7 +3020,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard_DS3_V2"
+  sku                 = "Standard_DS3_v2"
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
@@ -3069,7 +3069,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard_DS3_V2"
+  sku                 = "Standard_DS3_v2"
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
@@ -3110,7 +3110,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard_DS3_V2"
+  sku                 = "Standard_DS3_v2"
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"

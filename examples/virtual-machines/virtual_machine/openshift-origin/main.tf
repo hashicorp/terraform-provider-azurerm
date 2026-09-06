@@ -296,9 +296,9 @@ resource "azurerm_lb" "primary_lb" {
 }
 
 resource "azurerm_lb_backend_address_pool" "primary_lb" {
-  name                = "loadBalancerBackEnd"
-  loadbalancer_id     = azurerm_lb.primary_lb.id
-  depends_on          = ["azurerm_lb.primary_lb"]
+  name            = "loadBalancerBackEnd"
+  loadbalancer_id = azurerm_lb.primary_lb.id
+  depends_on      = ["azurerm_lb.primary_lb"]
 }
 
 resource "azurerm_lb_probe" "primary_lb" {
@@ -355,9 +355,9 @@ resource "azurerm_lb" "infra_lb" {
 }
 
 resource "azurerm_lb_backend_address_pool" "infra_lb" {
-  name                = "loadBalancerBackEnd"
-  loadbalancer_id     = azurerm_lb.infra_lb.id
-  depends_on          = ["azurerm_lb.infra_lb"]
+  name            = "loadBalancerBackEnd"
+  loadbalancer_id = azurerm_lb.infra_lb.id
+  depends_on      = ["azurerm_lb.infra_lb"]
 }
 
 resource "azurerm_lb_probe" "infra_lb_http_probe" {
@@ -434,8 +434,8 @@ resource "azurerm_network_interface" "primary_nic" {
     name                                    = "primaryip${count.index}"
     subnet_id                               = azurerm_subnet.primary_subnet.id
     private_ip_address_allocation           = "Dynamic"
-    load_balancer_backend_address_pools_ids = ["${azurerm_lb_backend_address_pool.primary_lb.id}"]
-    load_balancer_inbound_nat_rules_ids     = ["${element(azurerm_lb_nat_rule.primary_lb.*.id, count.index)}"]
+    load_balancer_backend_address_pools_ids = [azurerm_lb_backend_address_pool.primary_lb.id]
+    load_balancer_inbound_nat_rules_ids     = [element(azurerm_lb_nat_rule.primary_lb[*].id, count.index)]
   }
 }
 
@@ -450,7 +450,7 @@ resource "azurerm_network_interface" "infra_nic" {
     name                                    = "infraip${count.index}"
     subnet_id                               = azurerm_subnet.primary_subnet.id
     private_ip_address_allocation           = "Dynamic"
-    load_balancer_backend_address_pools_ids = ["${azurerm_lb_backend_address_pool.infra_lb.id}"]
+    load_balancer_backend_address_pools_ids = [azurerm_lb_backend_address_pool.infra_lb.id]
   }
 }
 
@@ -474,7 +474,7 @@ resource "azurerm_virtual_machine" "bastion" {
   name                             = "${var.openshift_cluster_prefix}-bastion-1"
   location                         = azurerm_resource_group.rg.location
   resource_group_name              = azurerm_resource_group.rg.name
-  network_interface_ids            = ["${azurerm_network_interface.bastion_nic.id}"]
+  network_interface_ids            = [azurerm_network_interface.bastion_nic.id]
   vm_size                          = var.bastion_vm_size
   delete_os_disk_on_termination    = true
   delete_data_disks_on_termination = true
@@ -499,10 +499,10 @@ resource "azurerm_virtual_machine" "bastion" {
   }
 
   storage_image_reference {
-    publisher = lookup(var.os_image_map, join("_publisher", list(var.os_image, "")))
-    offer     = lookup(var.os_image_map, join("_offer", list(var.os_image, "")))
-    sku       = lookup(var.os_image_map, join("_sku", list(var.os_image, "")))
-    version   = lookup(var.os_image_map, join("_version", list(var.os_image, "")))
+    publisher = var.os_image_map[join("_publisher", list(var.os_image, ""))]
+    offer     = var.os_image_map[join("_offer", list(var.os_image, ""))]
+    sku       = var.os_image_map[join("_sku", list(var.os_image, ""))]
+    version   = var.os_image_map[join("_version", list(var.os_image, ""))]
   }
 
   storage_os_disk {
@@ -521,7 +521,7 @@ resource "azurerm_virtual_machine" "primary" {
   location                         = azurerm_resource_group.rg.location
   resource_group_name              = azurerm_resource_group.rg.name
   availability_set_id              = azurerm_availability_set.primary.id
-  network_interface_ids            = ["${element(azurerm_network_interface.primary_nic.*.id, count.index)}"]
+  network_interface_ids            = [element(azurerm_network_interface.primary_nic[*].id, count.index)]
   vm_size                          = var.primary_vm_size
   delete_os_disk_on_termination    = true
   delete_data_disks_on_termination = true
@@ -574,10 +574,10 @@ resource "azurerm_virtual_machine" "primary" {
   }
 
   storage_image_reference {
-    publisher = lookup(var.os_image_map, join("_publisher", list(var.os_image, "")))
-    offer     = lookup(var.os_image_map, join("_offer", list(var.os_image, "")))
-    sku       = lookup(var.os_image_map, join("_sku", list(var.os_image, "")))
-    version   = lookup(var.os_image_map, join("_version", list(var.os_image, "")))
+    publisher = var.os_image_map[join("_publisher", list(var.os_image, ""))]
+    offer     = var.os_image_map[join("_offer", list(var.os_image, ""))]
+    sku       = var.os_image_map[join("_sku", list(var.os_image, ""))]
+    version   = var.os_image_map[join("_version", list(var.os_image, ""))]
   }
 
   storage_os_disk {
@@ -604,7 +604,7 @@ resource "azurerm_virtual_machine" "infra" {
   location                         = azurerm_resource_group.rg.location
   resource_group_name              = azurerm_resource_group.rg.name
   availability_set_id              = azurerm_availability_set.infra.id
-  network_interface_ids            = ["${element(azurerm_network_interface.infra_nic.*.id, count.index)}"]
+  network_interface_ids            = [element(azurerm_network_interface.infra_nic[*].id, count.index)]
   vm_size                          = var.infra_vm_size
   delete_os_disk_on_termination    = true
   delete_data_disks_on_termination = true
@@ -619,7 +619,7 @@ resource "azurerm_virtual_machine" "infra" {
     bastion_host        = azurerm_public_ip.bastion_pip.fqdn
     bastion_user        = var.admin_username
     bastion_private_key = file(var.connection_private_ssh_key_path)
-    host                = element(azurerm_network_interface.infra_nic.*.private_ip_address, count.index)
+    host                = element(azurerm_network_interface.infra_nic[*].private_ip_address, count.index)
     user                = var.admin_username
     private_key         = file(var.connection_private_ssh_key_path)
   }
@@ -652,10 +652,10 @@ resource "azurerm_virtual_machine" "infra" {
   }
 
   storage_image_reference {
-    publisher = lookup(var.os_image_map, join("_publisher", list(var.os_image, "")))
-    offer     = lookup(var.os_image_map, join("_offer", list(var.os_image, "")))
-    sku       = lookup(var.os_image_map, join("_sku", list(var.os_image, "")))
-    version   = lookup(var.os_image_map, join("_version", list(var.os_image, "")))
+    publisher = var.os_image_map[join("_publisher", list(var.os_image, ""))]
+    offer     = var.os_image_map[join("_offer", list(var.os_image, ""))]
+    sku       = var.os_image_map[join("_sku", list(var.os_image, ""))]
+    version   = var.os_image_map[join("_version", list(var.os_image, ""))]
   }
 
   storage_os_disk {
@@ -681,7 +681,7 @@ resource "azurerm_virtual_machine" "node" {
   location                         = azurerm_resource_group.rg.location
   resource_group_name              = azurerm_resource_group.rg.name
   availability_set_id              = azurerm_availability_set.node.id
-  network_interface_ids            = ["${element(azurerm_network_interface.node_nic.*.id, count.index)}"]
+  network_interface_ids            = [element(azurerm_network_interface.node_nic[*].id, count.index)]
   vm_size                          = var.node_vm_size
   delete_os_disk_on_termination    = true
   delete_data_disks_on_termination = true
@@ -696,7 +696,7 @@ resource "azurerm_virtual_machine" "node" {
     bastion_host        = azurerm_public_ip.bastion_pip.fqdn
     bastion_user        = var.admin_username
     bastion_private_key = file(var.connection_private_ssh_key_path)
-    host                = element(azurerm_network_interface.node_nic.*.private_ip_address, count.index)
+    host                = element(azurerm_network_interface.node_nic[*].private_ip_address, count.index)
     user                = var.admin_username
     private_key         = file(var.connection_private_ssh_key_path)
   }
@@ -729,10 +729,10 @@ resource "azurerm_virtual_machine" "node" {
   }
 
   storage_image_reference {
-    publisher = lookup(var.os_image_map, join("_publisher", list(var.os_image, "")))
-    offer     = lookup(var.os_image_map, join("_offer", list(var.os_image, "")))
-    sku       = lookup(var.os_image_map, join("_sku", list(var.os_image, "")))
-    version   = lookup(var.os_image_map, join("_version", list(var.os_image, "")))
+    publisher = var.os_image_map[join("_publisher", list(var.os_image, ""))]
+    offer     = var.os_image_map[join("_offer", list(var.os_image, ""))]
+    sku       = var.os_image_map[join("_sku", list(var.os_image, ""))]
+    version   = var.os_image_map[join("_version", list(var.os_image, ""))]
   }
 
   storage_os_disk {

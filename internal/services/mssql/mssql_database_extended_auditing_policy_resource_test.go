@@ -494,7 +494,7 @@ data "azurerm_subscription" "primary" {
 resource "azurerm_role_assignment" "test" {
   scope                = data.azurerm_subscription.primary.id
   role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = azurerm_mssql_server.test.identity.0.principal_id
+  principal_id         = azurerm_mssql_server.test.identity[0].principal_id
 }
 
 resource "azurerm_mssql_server_extended_auditing_policy" "test" {
@@ -572,7 +572,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category = "AllMetrics"
   }
 
-  // enabled_log, metric will return all disabled categories
+  # enabled_log, metric will return all disabled categories
   lifecycle {
     ignore_changes = [enabled_log, enabled_metric]
   }
@@ -602,7 +602,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category = "AllMetrics"
   }
 
-  // enabled_log, metric will return all disabled categories
+  # enabled_log, metric will return all disabled categories
   lifecycle {
     ignore_changes = [enabled_log, enabled_metric]
   }
@@ -635,7 +635,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category = "AllMetrics"
   }
 
-  // enabled_log, metric will return all disabled categories
+  # enabled_log, metric will return all disabled categories
   lifecycle {
     ignore_changes = [enabled_log, enabled_metric]
   }
@@ -667,7 +667,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     category = "AllMetrics"
   }
 
-  // enabled_log, metric will return all disabled categories
+  # enabled_log, metric will return all disabled categories
   lifecycle {
     ignore_changes = [enabled_log, enabled_metric]
   }

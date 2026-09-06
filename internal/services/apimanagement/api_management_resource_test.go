@@ -1772,7 +1772,7 @@ resource "azurerm_resource_group" "test2" {
   location = "%[3]s"
 }
 
-// subnet2 from the second location
+# subnet2 from the second location
 resource "azurerm_virtual_network" "test2" {
   name                = "acctestVNET2-%[2]d"
   location            = azurerm_resource_group.test2.location

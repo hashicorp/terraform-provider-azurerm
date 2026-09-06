@@ -651,42 +651,42 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "${var.prefix}-network"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "internal"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "${var.prefix}-nic"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_key_vault" "test" {
   name                       = "${var.prefix}-keyvault"
-  resource_group_name        = "${azurerm_resource_group.test.name}"
+  resource_group_name        = azurerm_resource_group.test.name
   rbac_authorization_enabled = false
-  location                   = "${azurerm_resource_group.test.location}"
+  location                   = azurerm_resource_group.test.location
 
   sku_name = "standard"
 
-  tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+  tenant_id = data.azurerm_client_config.current.tenant_id
 
   access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.object_id}"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
       "Backup",
@@ -787,9 +787,9 @@ resource "azurerm_key_vault_certificate" "test" {
 
 resource "azurerm_virtual_machine" "test" {
   name                          = "${var.prefix}-vm"
-  location                      = "${azurerm_resource_group.test.location}"
-  resource_group_name           = "${azurerm_resource_group.test.name}"
-  network_interface_ids         = ["${azurerm_network_interface.test.id}"]
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  network_interface_ids         = [azurerm_network_interface.test.id]
   vm_size                       = "Standard_F2"
   delete_os_disk_on_termination = true
 
@@ -818,15 +818,15 @@ resource "azurerm_virtual_machine" "test" {
 
     winrm {
       protocol        = "HTTPS"
-      certificate_url = "${azurerm_key_vault_certificate.test.secret_id}"
+      certificate_url = azurerm_key_vault_certificate.test.secret_id
     }
   }
 
   os_profile_secrets {
-    source_vault_id = "${azurerm_key_vault.test.id}"
+    source_vault_id = azurerm_key_vault.test.id
 
     vault_certificates {
-      certificate_url   = "${azurerm_key_vault_certificate.test.secret_id}"
+      certificate_url   = azurerm_key_vault_certificate.test.secret_id
       certificate_store = "My"
     }
   }
@@ -2516,7 +2516,7 @@ resource "azurerm_virtual_machine" "test" {
   primary_network_interface_id = azurerm_network_interface.test.id
   network_interface_ids        = [azurerm_network_interface.test.id]
 
-  // Only large VMs allow AN
+  # Only large VMs allow AN
   vm_size                       = "Standard_D8_v3"
   delete_os_disk_on_termination = true
 
@@ -2672,7 +2672,7 @@ resource "azurerm_virtual_machine" "test" {
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.test.id]
-  vm_size               = "Standard_D2S_V3"
+  vm_size               = "Standard_D2s_v3"
   zones                 = ["1"]
 
   delete_os_disk_on_termination    = true

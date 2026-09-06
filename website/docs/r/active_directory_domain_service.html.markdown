@@ -116,7 +116,7 @@ resource "azuread_group_member" "admin" {
 }
 
 resource "azuread_service_principal" "example" {
-  application_id = "2565bd9d-da50-47d4-8b85-4c97f669dc36" // published app for domain services
+  application_id = "2565bd9d-da50-47d4-8b85-4c97f669dc36" # published app for domain services
 }
 
 resource "azurerm_resource_group" "aadds" {

@@ -50,7 +50,7 @@ func (MonitorScheduledQueryRulesDataSource) AlertingActionConfig(data acceptance
 
 data "azurerm_monitor_scheduled_query_rules_alert" "test" {
   name                = basename(azurerm_monitor_scheduled_query_rules_alert.test.id)
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, MonitorScheduledQueryRulesAlertResource{}.AlertingActionConfigBasic(data, ts))
 }
@@ -61,7 +61,7 @@ func (MonitorScheduledQueryRulesDataSource) AlertingActionCrossResourceConfig(da
 
 data "azurerm_monitor_scheduled_query_rules_alert" "test" {
   name                = basename(azurerm_monitor_scheduled_query_rules_alert.test.id)
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, MonitorScheduledQueryRulesAlertResource{}.AlertingActionCrossResourceConfig(data))
 }

@@ -1,7 +1,7 @@
 # Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
-// the `exit_code_hack` is to keep the VM Extension resource happy
+# the `exit_code_hack` is to keep the VM Extension resource happy
 locals {
   import_command       = "Import-Module ADDSDeployment"
   password_command     = "$password = ConvertTo-SecureString ${var.admin_password} -AsPlainText -Force"
@@ -12,8 +12,8 @@ locals {
   powershell_command   = "${local.import_command}; ${local.password_command}; ${local.install_ad_command}; ${local.configure_ad_command}; ${local.shutdown_command}; ${local.exit_code_hack}"
 }
 
-// NOTE: we **highly recommend** not using this configuration for your Production Environment
-// this provisions a single node configuration with no redundancy.
+# NOTE: we **highly recommend** not using this configuration for your Production Environment
+# this provisions a single node configuration with no redundancy.
 resource "azurerm_virtual_machine_extension" "create-active-directory-forest" {
   name                 = "create-active-directory-forest"
   location             = azurerm_virtual_machine.domain-controller.location

@@ -310,7 +310,7 @@ resource "azurerm_storage_account" "test" {
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_storage_account.test.id
   role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = azurerm_mssql_server.test.identity.0.principal_id
+  principal_id         = azurerm_mssql_server.test.identity[0].principal_id
 }
 
 resource "azurerm_mssql_server_microsoft_support_auditing_policy" "test" {

@@ -23,7 +23,7 @@ output "front_door_id" {
 }
 
 output "log_scrubbing_match_variable" {
-  value = data.azurerm_cdn_frontdoor_profile.example.log_scrubbing_rule.0.match_variable
+  value = data.azurerm_cdn_frontdoor_profile.example.log_scrubbing_rule[0].match_variable
 }
 ```
 

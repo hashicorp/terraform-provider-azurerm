@@ -67,7 +67,7 @@ resource "azurerm_virtual_machine" "example" {
   name                  = "batch-custom-img-vm"
   location              = azurerm_resource_group.example.location
   resource_group_name   = azurerm_resource_group.example.name
-  network_interface_ids = ["${azurerm_network_interface.example.id}"]
+  network_interface_ids = [azurerm_network_interface.example.id]
   vm_size               = "Standard_D1_v2"
 
   storage_image_reference {
@@ -109,7 +109,7 @@ resource "azurerm_image" "example" {
   os_disk {
     os_type      = "Linux"
     os_state     = "Generalized"
-    blob_uri     = azurerm_virtual_machine.example.storage_os_disk.0.vhd_uri
+    blob_uri     = azurerm_virtual_machine.example.storage_os_disk[0].vhd_uri
     size_gb      = 30
     caching      = "None"
     storage_type = "Standard_LRS"

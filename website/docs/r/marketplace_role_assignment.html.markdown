@@ -40,7 +40,7 @@ data "azurerm_role_definition" "example" {
 }
 
 resource "azurerm_marketplace_role_assignment" "example" {
-  role_definition_id = "${data.azurerm_role_definition.example.id}"
+  role_definition_id = data.azurerm_role_definition.example.id
   principal_id       = data.azurerm_client_config.example.object_id
 
   lifecycle {

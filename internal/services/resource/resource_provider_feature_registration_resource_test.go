@@ -128,7 +128,7 @@ provider "azurerm" {
   resource_provider_registrations = "none"
   resource_providers_to_register  = [%[2]q]
 
-  // Run this test in the alternate subscription to prevent unregistering features required by other tests
+  # Run this test in the alternate subscription to prevent unregistering features required by other tests
   subscription_id = %[3]q
 }
 

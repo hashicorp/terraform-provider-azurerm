@@ -65,8 +65,8 @@ resource "azurerm_resource_group_template_deployment" "example" {
 }
 TEMPLATE
 
-  // NOTE: whilst we show an inline template here, we recommend
-  // sourcing this from a file for readability/editor support
+  # NOTE: whilst we show an inline template here, we recommend
+  # sourcing this from a file for readability/editor support
 }
 
 output arm_example_output {

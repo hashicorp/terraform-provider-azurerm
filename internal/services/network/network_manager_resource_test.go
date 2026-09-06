@@ -255,7 +255,7 @@ resource "azurerm_network_manager" "import" {
   location            = azurerm_network_manager.test.location
   resource_group_name = azurerm_network_manager.test.resource_group_name
   scope {
-    subscription_ids = azurerm_network_manager.test.scope.0.subscription_ids
+    subscription_ids = azurerm_network_manager.test.scope[0].subscription_ids
   }
 }
 `, r.basic(data))

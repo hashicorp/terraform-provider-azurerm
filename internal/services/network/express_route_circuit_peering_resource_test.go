@@ -522,7 +522,7 @@ resource "azurerm_express_route_circuit_peering" "test" {
 
   microsoft_peering_config {
     advertised_public_prefixes = ["123.2.0.0/24"]
-    // https://tools.ietf.org/html/rfc5398
+    # https://tools.ietf.org/html/rfc5398
     customer_asn          = 64511
     routing_registry_name = "ARIN"
   }

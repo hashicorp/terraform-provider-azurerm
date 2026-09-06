@@ -504,7 +504,7 @@ func (r MonitorMetricAlertResource) multiScope(data acceptance.TestData, count i
 resource "azurerm_monitor_metric_alert" "test" {
   name                = "acctestMetricAlert-%d"
   resource_group_name = azurerm_resource_group.test.name
-  scopes              = azurerm_linux_virtual_machine.test.*.id
+  scopes              = azurerm_linux_virtual_machine.test[*].id
   dynamic_criteria {
     metric_namespace = "Microsoft.Compute/virtualMachines"
     metric_name      = "CPU Credits Consumed"

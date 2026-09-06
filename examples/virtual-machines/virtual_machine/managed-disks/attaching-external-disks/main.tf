@@ -9,7 +9,7 @@ resource "azurerm_virtual_machine" "example" {
   name                  = "${var.prefix}-vm"
   location              = azurerm_resource_group.example.location
   resource_group_name   = azurerm_resource_group.example.name
-  network_interface_ids = ["${azurerm_network_interface.example.id}"]
+  network_interface_ids = [azurerm_network_interface.example.id]
   vm_size               = "Standard_F2"
 
   # This means the OS Disk will be deleted when Terraform destroys the Virtual Machine
@@ -53,7 +53,7 @@ resource "azurerm_managed_disk" "external" {
 
 resource "azurerm_virtual_machine_data_disk_attachment" "external" {
   count              = local.number_of_disks
-  managed_disk_id    = azurerm_managed_disk.external.*.id[count.index]
+  managed_disk_id    = azurerm_managed_disk.external[*].id[count.index]
   virtual_machine_id = azurerm_virtual_machine.example.id
   lun                = 10 + count.index
   caching            = "ReadWrite"

@@ -167,7 +167,7 @@ resource "azurerm_stack_hci_logical_network" "import" {
   virtual_switch_name = azurerm_stack_hci_logical_network.test.virtual_switch_name
 
   subnet {
-    ip_allocation_method = azurerm_stack_hci_logical_network.test.subnet.0.ip_allocation_method
+    ip_allocation_method = azurerm_stack_hci_logical_network.test.subnet[0].ip_allocation_method
   }
 }
 `, config)

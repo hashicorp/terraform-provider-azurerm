@@ -1416,6 +1416,7 @@ func (r LinuxVirtualMachineResource) otherComputerNameDefaultInvalid(data accept
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
+  # tflint-ignore: azurerm_linux_virtual_machine_invalid_name
   name                = "acctestVM-this-name-too-long-to-be-a-linux-vm-computer-name-1234567890"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location

@@ -180,7 +180,7 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   }
 
   lifecycle {
-    // Service API always provisions a virtual disk with bus type IDE, hardware, network interface, operating system per Virtual Machine Template by default
+    # Service API always provisions a virtual disk with bus type IDE, hardware, network interface, operating system per Virtual Machine Template by default
     ignore_changes = [storage_disk, hardware, network_interface, operating_system]
   }
 }
@@ -320,7 +320,7 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   system_center_virtual_machine_manager_availability_set_ids = [azurerm_system_center_virtual_machine_manager_availability_set.test.id]
 
   lifecycle {
-    // Service API always provisions a virtual disk with bus type IDE per Virtual Machine Template by default, so it has to be ignored
+    # Service API always provisions a virtual disk with bus type IDE per Virtual Machine Template by default, so it has to be ignored
     ignore_changes = [storage_disk]
   }
 }
@@ -434,7 +434,7 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   system_center_virtual_machine_manager_availability_set_ids = [azurerm_system_center_virtual_machine_manager_availability_set.test.id, azurerm_system_center_virtual_machine_manager_availability_set.test2.id]
 
   lifecycle {
-    // Service API always provisions a virtual disk with bus type IDE per Virtual Machine Template by default, so it has to be ignored
+    # Service API always provisions a virtual disk with bus type IDE per Virtual Machine Template by default, so it has to be ignored
     ignore_changes = [storage_disk]
   }
 }
@@ -465,7 +465,7 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   }
 
   lifecycle {
-    // Service API provisions VM Instance based on the existing VM Instance that includes hardware, network_interface, operating_system and storage_disk
+    # Service API provisions VM Instance based on the existing VM Instance that includes hardware, network_interface, operating_system and storage_disk
     ignore_changes = [hardware, network_interface, operating_system, storage_disk]
   }
 }

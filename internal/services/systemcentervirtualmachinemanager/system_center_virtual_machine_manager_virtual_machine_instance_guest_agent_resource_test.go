@@ -214,8 +214,8 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   }
 
   lifecycle {
-    // Service API always provisions a virtual disk with bus type IDE, hardware, network interface per Virtual Machine Template by default
-    ignore_changes = [storage_disk, hardware, network_interface, operating_system.0.computer_name]
+    # Service API always provisions a virtual disk with bus type IDE, hardware, network interface per Virtual Machine Template by default
+    ignore_changes = [storage_disk, hardware, network_interface, operating_system[0].computer_name]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID"), os.Getenv("ARM_TEST_FQDN"), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"), data.RandomInteger, data.RandomInteger)

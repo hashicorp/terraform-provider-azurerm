@@ -282,15 +282,15 @@ resource "azurerm_virtual_network" "test2" {
 
 resource "azurerm_subnet" "test2_1" {
   name                 = "acctest-snet-%[1]d_1"
-  resource_group_name  = "${azurerm_resource_group.test2.name}"
-  virtual_network_name = "${azurerm_virtual_network.test2.name}"
+  resource_group_name  = azurerm_resource_group.test2.name
+  virtual_network_name = azurerm_virtual_network.test2.name
   address_prefixes     = ["192.168.2.0/27"]
 }
 
 resource "azurerm_subnet" "test2_2" {
   name                 = "snet-%[1]d_2"
-  resource_group_name  = "${azurerm_resource_group.test2.name}"
-  virtual_network_name = "${azurerm_virtual_network.test2.name}"
+  resource_group_name  = azurerm_resource_group.test2.name
+  virtual_network_name = azurerm_virtual_network.test2.name
   address_prefixes     = ["192.168.2.32/27"]
 }
 

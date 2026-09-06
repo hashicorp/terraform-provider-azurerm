@@ -185,11 +185,11 @@ resource "azurerm_stream_analytics_function_javascript_uda" "import" {
   script                  = azurerm_stream_analytics_function_javascript_uda.test.script
 
   input {
-    type = azurerm_stream_analytics_function_javascript_uda.test.input.0.type
+    type = azurerm_stream_analytics_function_javascript_uda.test.input[0].type
   }
 
   output {
-    type = azurerm_stream_analytics_function_javascript_uda.test.output.0.type
+    type = azurerm_stream_analytics_function_javascript_uda.test.output[0].type
   }
 }
 `, r.basic(data))

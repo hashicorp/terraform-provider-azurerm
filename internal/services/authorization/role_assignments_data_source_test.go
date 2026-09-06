@@ -38,7 +38,7 @@ data "azurerm_role_assignments" "test" {
 
   limit_at_scope = true
 
-  // Account for eventual consistency in Role Assignments List operation after creating a new Role Assignment
+  # Account for eventual consistency in Role Assignments List operation after creating a new Role Assignment
   depends_on = [time_sleep.wait]
 }
 `, d.template(data))

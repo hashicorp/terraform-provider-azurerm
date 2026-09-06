@@ -38,7 +38,7 @@ resource "azurerm_public_ip" "lbpip" {
 resource "azurerm_virtual_network" "vnet" {
   name                = var.virtual_network_name
   location            = var.location
-  address_space       = ["${var.address_space}"]
+  address_space       = [var.address_space]
   resource_group_name = azurerm_resource_group.rg.name
 }
 
@@ -46,7 +46,7 @@ resource "azurerm_subnet" "subnet" {
   name                 = "${var.rg_prefix}subnet"
   virtual_network_name = azurerm_virtual_network.vnet.name
   resource_group_name  = azurerm_resource_group.rg.name
-  address_prefixes     = ["${var.subnet_prefix}"]
+  address_prefixes     = [var.subnet_prefix]
 }
 
 resource "azurerm_lb" "lb" {
@@ -61,15 +61,15 @@ resource "azurerm_lb" "lb" {
 }
 
 resource "azurerm_lb_backend_address_pool" "backend_pool" {
-  loadbalancer_id     = azurerm_lb.lb.id
-  name                = "BackendPool1"
+  loadbalancer_id = azurerm_lb.lb.id
+  name            = "BackendPool1"
 }
 
 resource "azurerm_lb_nat_rule" "tcp" {
   resource_group_name            = azurerm_resource_group.rg.name
   loadbalancer_id                = azurerm_lb.lb.id
   name                           = "RDP-VM-${count.index}"
-  protocol                       = "tcp"
+  protocol                       = "Tcp"
   frontend_port                  = "5000${count.index + 1}"
   backend_port                   = 3389
   frontend_ip_configuration_name = "LoadBalancerFrontEnd"
@@ -80,7 +80,7 @@ resource "azurerm_lb_rule" "lb_rule" {
   resource_group_name            = azurerm_resource_group.rg.name
   loadbalancer_id                = azurerm_lb.lb.id
   name                           = "LBRule"
-  protocol                       = "tcp"
+  protocol                       = "Tcp"
   frontend_port                  = 80
   backend_port                   = 80
   frontend_ip_configuration_name = "LoadBalancerFrontEnd"
@@ -95,7 +95,7 @@ resource "azurerm_lb_probe" "lb_probe" {
   resource_group_name = azurerm_resource_group.rg.name
   loadbalancer_id     = azurerm_lb.lb.id
   name                = "tcpProbe"
-  protocol            = "tcp"
+  protocol            = "Tcp"
   port                = 80
   interval_in_seconds = 5
   number_of_probes    = 2
@@ -129,7 +129,7 @@ resource "azurerm_virtual_machine" "vm" {
   resource_group_name   = azurerm_resource_group.rg.name
   availability_set_id   = azurerm_availability_set.avset.id
   vm_size               = var.vm_size
-  network_interface_ids = ["${element(azurerm_network_interface.nic.*.id, count.index)}"]
+  network_interface_ids = [element(azurerm_network_interface.nic[*].id, count.index)]
   count                 = 2
 
   storage_image_reference {

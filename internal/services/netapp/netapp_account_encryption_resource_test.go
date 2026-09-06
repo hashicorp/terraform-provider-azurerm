@@ -133,7 +133,7 @@ resource "azurerm_key_vault" "test" {
   sku_name                        = "standard"
 
   access_policy {
-    tenant_id = azurerm_netapp_account.test.identity.0.tenant_id
+    tenant_id = azurerm_netapp_account.test.identity[0].tenant_id
     object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = []
@@ -151,8 +151,8 @@ resource "azurerm_key_vault" "test" {
   }
 
   access_policy {
-    tenant_id = azurerm_netapp_account.test.identity.0.tenant_id
-    object_id = azurerm_netapp_account.test.identity.0.principal_id
+    tenant_id = azurerm_netapp_account.test.identity[0].tenant_id
+    object_id = azurerm_netapp_account.test.identity[0].principal_id
 
     certificate_permissions = []
     secret_permissions      = []
@@ -187,7 +187,7 @@ resource "azurerm_key_vault_key" "test" {
 
 resource "azurerm_netapp_account_encryption" "test" {
   netapp_account_id                     = azurerm_netapp_account.test.id
-  system_assigned_identity_principal_id = azurerm_netapp_account.test.identity.0.principal_id
+  system_assigned_identity_principal_id = azurerm_netapp_account.test.identity[0].principal_id
   encryption_key                        = azurerm_key_vault_key.test.versionless_id
 }
 `, r.template(data), data.RandomInteger, tenantID)
@@ -338,7 +338,7 @@ resource "azurerm_key_vault" "test" {
   sku_name                        = "standard"
 
   access_policy {
-    tenant_id = azurerm_netapp_account.test.identity.0.tenant_id
+    tenant_id = azurerm_netapp_account.test.identity[0].tenant_id
     object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = []
@@ -356,8 +356,8 @@ resource "azurerm_key_vault" "test" {
   }
 
   access_policy {
-    tenant_id = azurerm_netapp_account.test.identity.0.tenant_id
-    object_id = azurerm_netapp_account.test.identity.0.principal_id
+    tenant_id = azurerm_netapp_account.test.identity[0].tenant_id
+    object_id = azurerm_netapp_account.test.identity[0].principal_id
 
     certificate_permissions = []
     secret_permissions      = []
@@ -408,7 +408,7 @@ resource "azurerm_key_vault_key" "test-new-key" {
 
 resource "azurerm_netapp_account_encryption" "test" {
   netapp_account_id                     = azurerm_netapp_account.test.id
-  system_assigned_identity_principal_id = azurerm_netapp_account.test.identity.0.principal_id
+  system_assigned_identity_principal_id = azurerm_netapp_account.test.identity[0].principal_id
   encryption_key                        = azurerm_key_vault_key.test.versionless_id
 }
 `, r.template(data), data.RandomIntOfLength(17), tenantID)
@@ -450,7 +450,7 @@ resource "azurerm_key_vault" "test" {
   sku_name                        = "standard"
 
   access_policy {
-    tenant_id = azurerm_netapp_account.test.identity.0.tenant_id
+    tenant_id = azurerm_netapp_account.test.identity[0].tenant_id
     object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = []
@@ -468,8 +468,8 @@ resource "azurerm_key_vault" "test" {
   }
 
   access_policy {
-    tenant_id = azurerm_netapp_account.test.identity.0.tenant_id
-    object_id = azurerm_netapp_account.test.identity.0.principal_id
+    tenant_id = azurerm_netapp_account.test.identity[0].tenant_id
+    object_id = azurerm_netapp_account.test.identity[0].principal_id
 
     certificate_permissions = []
     secret_permissions      = []
@@ -524,7 +524,7 @@ resource "azurerm_key_vault_key" "test-new-key" {
 
 resource "azurerm_netapp_account_encryption" "test" {
   netapp_account_id                     = azurerm_netapp_account.test.id
-  system_assigned_identity_principal_id = azurerm_netapp_account.test.identity.0.principal_id
+  system_assigned_identity_principal_id = azurerm_netapp_account.test.identity[0].principal_id
   encryption_key                        = azurerm_key_vault_key.test-new-key.versionless_id
 }
 `, r.template(data), data.RandomIntOfLength(17), tenantID)

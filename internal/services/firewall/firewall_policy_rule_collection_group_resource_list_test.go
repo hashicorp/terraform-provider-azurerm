@@ -18,7 +18,7 @@ func TestAccFirewallPolicyRuleCollectionGroup_listByFirewallID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy_rule_collection_group", "testlist1")
 	r := FirewallPolicyRuleCollectionGroupResource{}
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -52,7 +52,7 @@ func (r FirewallPolicyRuleCollectionGroupResource) basicQuery(data acceptance.Te
 list "azurerm_firewall_policy_rule_collection_group" "list" {
   provider = azurerm
   config {
-    firewall_policy_id = "${azurerm_firewall_policy.test.id}"
+    firewall_policy_id = azurerm_firewall_policy.test.id
   }
 }
 `

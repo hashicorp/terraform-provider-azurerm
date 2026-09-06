@@ -1326,10 +1326,10 @@ resource "azurerm_container_app" "import" {
 
   template {
     container {
-      name   = azurerm_container_app.test.template.0.container.0.name
-      image  = azurerm_container_app.test.template.0.container.0.image
-      cpu    = azurerm_container_app.test.template.0.container.0.cpu
-      memory = azurerm_container_app.test.template.0.container.0.memory
+      name   = azurerm_container_app.test.template[0].container[0].name
+      image  = azurerm_container_app.test.template[0].container[0].image
+      cpu    = azurerm_container_app.test.template[0].container[0].cpu
+      memory = azurerm_container_app.test.template[0].container[0].memory
     }
   }
 }
@@ -1476,7 +1476,7 @@ resource "azurerm_container_app" "test" {
   container_app_environment_id = azurerm_container_app_environment.test.id
   revision_mode                = "Single"
 
-  workload_profile_name = local.workload_profiles.0.name
+  workload_profile_name = local.workload_profiles[0].name
 
   template {
     container {
@@ -1520,7 +1520,7 @@ resource "azurerm_container_app" "test" {
   container_app_environment_id = azurerm_container_app_environment.test.id
   revision_mode                = "Single"
 
-  workload_profile_name = local.workload_profiles.%[3]d.name
+  workload_profile_name = local.workload_profiles[%[3]d].name
 
   template {
     container {
@@ -1564,7 +1564,7 @@ resource "azurerm_container_app" "test" {
   container_app_environment_id = azurerm_container_app_environment.test.id
   revision_mode                = "Single"
 
-  workload_profile_name = local.workload_profiles.0.name
+  workload_profile_name = local.workload_profiles[0].name
 
   template {
     container {

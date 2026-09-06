@@ -280,11 +280,11 @@ resource "azurerm_palo_alto_local_rulestack_rule" "import" {
   protocol     = azurerm_palo_alto_local_rulestack_rule.test.protocol
 
   destination {
-    cidrs = azurerm_palo_alto_local_rulestack_rule.test.destination.0.cidrs
+    cidrs = azurerm_palo_alto_local_rulestack_rule.test.destination[0].cidrs
   }
 
   source {
-    cidrs = azurerm_palo_alto_local_rulestack_rule.test.source.0.cidrs
+    cidrs = azurerm_palo_alto_local_rulestack_rule.test.source[0].cidrs
   }
 }
 `, r.basic(data), data.RandomInteger)
@@ -336,7 +336,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
   audit_comment = "test audit comment"
 
   category {
-    custom_urls = ["hacking"] // TODO - This is another resource type in PAN?
+    custom_urls = ["hacking"] # TODO - This is another resource type in PAN?
   }
 
   decryption_rule_type = "SSLOutboundInspection"

@@ -288,7 +288,7 @@ func (r KustoEventHubDataConnectionResource) userAssignedIdentity(data acceptanc
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_eventhub.test.id
   role_definition_name = "Azure Event Hubs Data Receiver"
-  principal_id         = azurerm_kusto_cluster.test.identity.0.principal_id
+  principal_id         = azurerm_kusto_cluster.test.identity[0].principal_id
 }
 
 resource "azurerm_kusto_eventhub_data_connection" "test" {

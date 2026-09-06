@@ -902,8 +902,8 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   depends_on = [azurerm_role_assignment.test]
 
   name                = "acctesthdi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   cluster_version     = "5.1"
   tier                = "Standard"
   tls_min_version     = "1.2"
@@ -954,8 +954,8 @@ func (r HDInsightSparkClusterResource) roleScriptActions(data acceptance.TestDat
 
 resource "azurerm_hdinsight_spark_cluster" "test" {
   name                = "acctesthdi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   cluster_version     = "5.1"
   tier                = "Standard"
   tls_min_version     = "1.2"
@@ -1061,8 +1061,8 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   depends_on = [azurerm_role_assignment.test, azurerm_nat_gateway.test, azurerm_subnet_network_security_group_association.test]
 
   name                = "acctesthdi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   cluster_version     = "5.1"
   tier                = "Standard"
   tls_min_version     = "1.2"
@@ -1437,8 +1437,8 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "gen2test" {
 }
 
 resource "azurerm_user_assigned_identity" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   name = "test-identity"
 }
@@ -1446,9 +1446,9 @@ resource "azurerm_user_assigned_identity" "test" {
 data "azurerm_subscription" "primary" {}
 
 resource "azurerm_role_assignment" "test" {
-  scope                = "${data.azurerm_subscription.primary.id}"
+  scope                = data.azurerm_subscription.primary.id
   role_definition_name = "Storage Blob Data Owner"
-  principal_id         = "${azurerm_user_assigned_identity.test.principal_id}"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

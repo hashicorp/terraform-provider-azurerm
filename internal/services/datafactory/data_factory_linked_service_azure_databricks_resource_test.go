@@ -185,7 +185,7 @@ provider "azurerm" {
 }
 
 data "azurerm_client_config" "current" {}
-// Create the RG
+# Create the RG
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-df-%d"
   location = "%s"
@@ -198,7 +198,7 @@ resource "azurerm_data_factory" "test" {
 }
 
 
-// Create a key vault so we can setup a KV linked service
+# Create a key vault so we can setup a KV linked service
 resource "azurerm_key_vault" "test" {
   name                       = "acctest%s"
   location                   = azurerm_resource_group.test.location
@@ -208,14 +208,14 @@ resource "azurerm_key_vault" "test" {
   sku_name                   = "standard"
 }
 
-// Create the KV linked service so we can test out integration the Databricks linked service
+# Create the KV linked service so we can test out integration the Databricks linked service
 resource "azurerm_data_factory_linked_service_key_vault" "test" {
   name            = "linkkv"
   data_factory_id = azurerm_data_factory.test.id
   key_vault_id    = azurerm_key_vault.test.id
 }
 
-// Create a databricks linked service that leveraged the KV linked service for password management
+# Create a databricks linked service that leveraged the KV linked service for password management
 resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
   name            = "acctestDatabricksLinkedService%d"
   data_factory_id = azurerm_data_factory.test.id

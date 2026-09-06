@@ -110,8 +110,8 @@ resource "azurerm_mongo_cluster_user" "import" {
   principal_type         = azurerm_mongo_cluster_user.test.principal_type
 
   role {
-    database = azurerm_mongo_cluster_user.test.role.0.database
-    name     = azurerm_mongo_cluster_user.test.role.0.name
+    database = azurerm_mongo_cluster_user.test.role[0].database
+    name     = azurerm_mongo_cluster_user.test.role[0].name
   }
 }
 `, r.basic(data))
@@ -130,7 +130,7 @@ data "azuread_domains" "test" {
 }
 
 resource "azuread_user" "test" {
-  user_principal_name = "acctestAadUser-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  user_principal_name = "acctestAadUser-%[2]d@${data.azuread_domains.test.domains[0].domain_name}"
   display_name        = "acctestAadUser-%[2]d"
   password            = "TerrAform321!"
 }

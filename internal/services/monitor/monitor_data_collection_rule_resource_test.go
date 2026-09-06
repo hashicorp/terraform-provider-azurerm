@@ -762,12 +762,12 @@ resource "azurerm_monitor_data_collection_rule" "import" {
   location            = azurerm_monitor_data_collection_rule.test.location
   destinations {
     azure_monitor_metrics {
-      name = azurerm_monitor_data_collection_rule.test.destinations.0.azure_monitor_metrics.0.name
+      name = azurerm_monitor_data_collection_rule.test.destinations[0].azure_monitor_metrics[0].name
     }
   }
   data_flow {
-    streams      = azurerm_monitor_data_collection_rule.test.data_flow.0.streams
-    destinations = azurerm_monitor_data_collection_rule.test.data_flow.0.destinations
+    streams      = azurerm_monitor_data_collection_rule.test.data_flow[0].streams
+    destinations = azurerm_monitor_data_collection_rule.test.data_flow[0].destinations
   }
 }
 `, r.basic(data))

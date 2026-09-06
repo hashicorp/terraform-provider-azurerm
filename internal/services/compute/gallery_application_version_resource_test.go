@@ -359,12 +359,12 @@ resource "azurerm_gallery_application_version" "import" {
   location               = azurerm_gallery_application_version.test.location
 
   manage_action {
-    install = azurerm_gallery_application_version.test.manage_action.0.install
-    remove  = azurerm_gallery_application_version.test.manage_action.0.remove
+    install = azurerm_gallery_application_version.test.manage_action[0].install
+    remove  = azurerm_gallery_application_version.test.manage_action[0].remove
   }
 
   source {
-    media_link = azurerm_gallery_application_version.test.source.0.media_link
+    media_link = azurerm_gallery_application_version.test.source[0].media_link
   }
 
   target_region {

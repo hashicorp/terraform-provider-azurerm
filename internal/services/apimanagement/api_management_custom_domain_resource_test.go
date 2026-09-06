@@ -346,7 +346,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = azurerm_api_management.test.identity.0.principal_id
+    object_id = azurerm_api_management.test.identity[0].principal_id
 
     certificate_permissions = [
       "Get",

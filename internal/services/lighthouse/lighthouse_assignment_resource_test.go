@@ -214,7 +214,7 @@ provider "azurerm" {
 }
 
 data "azurerm_role_definition" "contributor" {
-  role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c" // Contributor role
+  role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c" # Contributor role
 }
 
 data "azurerm_role_definition" "reader" {

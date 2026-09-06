@@ -255,7 +255,7 @@ resource "azurerm_dynatrace_monitor" "test2" {
 
   environment_properties {
     environment_info {
-      environment_id = data.azurerm_dynatrace_monitor.data1.environment_properties.0.environment_info.0.environment_id
+      environment_id = data.azurerm_dynatrace_monitor.data1.environment_properties[0].environment_info[0].environment_id
     }
   }
 
@@ -320,20 +320,20 @@ resource "azurerm_dynatrace_monitor" "import" {
   marketplace_subscription = azurerm_dynatrace_monitor.test.marketplace_subscription
 
   identity {
-    type = azurerm_dynatrace_monitor.test.identity.0.type
+    type = azurerm_dynatrace_monitor.test.identity[0].type
   }
   user {
-    first_name   = azurerm_dynatrace_monitor.test.user.0.first_name
-    last_name    = azurerm_dynatrace_monitor.test.user.0.last_name
-    email        = azurerm_dynatrace_monitor.test.user.0.email
-    phone_number = azurerm_dynatrace_monitor.test.user.0.phone_number
-    country      = azurerm_dynatrace_monitor.test.user.0.country
+    first_name   = azurerm_dynatrace_monitor.test.user[0].first_name
+    last_name    = azurerm_dynatrace_monitor.test.user[0].last_name
+    email        = azurerm_dynatrace_monitor.test.user[0].email
+    phone_number = azurerm_dynatrace_monitor.test.user[0].phone_number
+    country      = azurerm_dynatrace_monitor.test.user[0].country
   }
 
   plan {
-    usage_type    = azurerm_dynatrace_monitor.test.plan.0.usage_type
-    billing_cycle = azurerm_dynatrace_monitor.test.plan.0.billing_cycle
-    plan          = azurerm_dynatrace_monitor.test.plan.0.plan
+    usage_type    = azurerm_dynatrace_monitor.test.plan[0].usage_type
+    billing_cycle = azurerm_dynatrace_monitor.test.plan[0].billing_cycle
+    plan          = azurerm_dynatrace_monitor.test.plan[0].plan
   }
 }
 `, template)

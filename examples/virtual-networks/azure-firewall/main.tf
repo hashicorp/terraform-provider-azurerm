@@ -201,7 +201,7 @@ resource "azurerm_virtual_machine" "vmjb" {
   name                  = "JumpBox"
   resource_group_name   = azurerm_resource_group.azurg.name
   location              = azurerm_resource_group.azurg.location
-  network_interface_ids = ["${azurerm_network_interface.azunicjb.id}"]
+  network_interface_ids = [azurerm_network_interface.azunicjb.id]
   vm_size               = "Standard_DS1_v2"
 
   storage_image_reference {
@@ -242,7 +242,7 @@ resource "azurerm_virtual_machine" "vmserver" {
   name                  = "Server"
   resource_group_name   = azurerm_resource_group.azurg.name
   location              = azurerm_resource_group.azurg.location
-  network_interface_ids = ["${azurerm_network_interface.azunicvm.id}"]
+  network_interface_ids = [azurerm_network_interface.azunicvm.id]
   vm_size               = "Standard_DS1_v2"
 
   storage_image_reference {

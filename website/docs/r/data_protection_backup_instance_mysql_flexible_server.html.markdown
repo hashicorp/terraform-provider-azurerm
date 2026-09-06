@@ -45,13 +45,13 @@ resource "azurerm_data_protection_backup_vault" "example" {
 resource "azurerm_role_assignment" "example" {
   scope                = azurerm_resource_group.example.id
   role_definition_name = "Reader"
-  principal_id         = azurerm_data_protection_backup_vault.example.identity.0.principal_id
+  principal_id         = azurerm_data_protection_backup_vault.example.identity[0].principal_id
 }
 
 resource "azurerm_role_assignment" "example2" {
   scope                = azurerm_mysql_flexible_server.example.id
   role_definition_name = "MySQL Backup And Export Operator"
-  principal_id         = azurerm_data_protection_backup_vault.example.identity.0.principal_id
+  principal_id         = azurerm_data_protection_backup_vault.example.identity[0].principal_id
 }
 
 resource "azurerm_data_protection_backup_policy_mysql_flexible_server" "example" {

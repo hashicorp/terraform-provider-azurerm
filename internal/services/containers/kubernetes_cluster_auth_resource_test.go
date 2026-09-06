@@ -863,8 +863,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
   linux_profile {
@@ -920,8 +920,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
   linux_profile {
@@ -975,8 +975,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%[3]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[3]d"
   kubernetes_version  = "%[4]s"
 
@@ -1031,8 +1031,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                   = "acctestaks%d"
-  location               = "${azurerm_resource_group.test.location}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
   dns_prefix             = "acctestaks%d"
   local_account_disabled = true
 
@@ -1087,8 +1087,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
   linux_profile {
@@ -1137,8 +1137,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
   linux_profile {
@@ -1194,8 +1194,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
   linux_profile {
@@ -1233,25 +1233,25 @@ resource "azurerm_kubernetes_cluster" "test" {
 resource "azurerm_role_assignment" "test_role1" {
   scope                = azurerm_kubernetes_cluster.test.id
   role_definition_name = "Azure Kubernetes Service RBAC Reader"
-  principal_id         = azurerm_kubernetes_cluster.test.identity.0.principal_id
+  principal_id         = azurerm_kubernetes_cluster.test.identity[0].principal_id
 }
 
 resource "azurerm_role_assignment" "test_role2" {
   scope                = "${azurerm_kubernetes_cluster.test.id}/namespaces/default"
   role_definition_name = "Azure Kubernetes Service RBAC Admin"
-  principal_id         = azurerm_kubernetes_cluster.test.identity.0.principal_id
+  principal_id         = azurerm_kubernetes_cluster.test.identity[0].principal_id
 }
 
 resource "azurerm_role_assignment" "test_role3" {
-  scope                = "${azurerm_kubernetes_cluster.test.id}"
+  scope                = azurerm_kubernetes_cluster.test.id
   role_definition_name = "Azure Kubernetes Service RBAC Writer"
-  principal_id         = azurerm_kubernetes_cluster.test.identity.0.principal_id
+  principal_id         = azurerm_kubernetes_cluster.test.identity[0].principal_id
 }
 
 resource "azurerm_role_assignment" "test_role4" {
-  scope                = "${azurerm_kubernetes_cluster.test.id}"
+  scope                = azurerm_kubernetes_cluster.test.id
   role_definition_name = "Azure Kubernetes Service RBAC Cluster Admin"
-  principal_id         = azurerm_kubernetes_cluster.test.identity.0.principal_id
+  principal_id         = azurerm_kubernetes_cluster.test.identity[0].principal_id
 }
 `, tenantId, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

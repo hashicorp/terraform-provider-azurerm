@@ -331,38 +331,38 @@ resource "azurerm_redhat_openshift_cluster" "import" {
   location            = azurerm_redhat_openshift_cluster.test.location
 
   cluster_profile {
-    domain  = azurerm_redhat_openshift_cluster.test.cluster_profile.0.domain
-    version = azurerm_redhat_openshift_cluster.test.cluster_profile.0.version
+    domain  = azurerm_redhat_openshift_cluster.test.cluster_profile[0].domain
+    version = azurerm_redhat_openshift_cluster.test.cluster_profile[0].version
   }
 
   network_profile {
-    pod_cidr     = azurerm_redhat_openshift_cluster.test.network_profile.0.pod_cidr
-    service_cidr = azurerm_redhat_openshift_cluster.test.network_profile.0.service_cidr
+    pod_cidr     = azurerm_redhat_openshift_cluster.test.network_profile[0].pod_cidr
+    service_cidr = azurerm_redhat_openshift_cluster.test.network_profile[0].service_cidr
   }
 
   main_profile {
-    vm_size   = azurerm_redhat_openshift_cluster.test.main_profile.0.vm_size
-    subnet_id = azurerm_redhat_openshift_cluster.test.main_profile.0.subnet_id
+    vm_size   = azurerm_redhat_openshift_cluster.test.main_profile[0].vm_size
+    subnet_id = azurerm_redhat_openshift_cluster.test.main_profile[0].subnet_id
   }
 
   api_server_profile {
-    visibility = azurerm_redhat_openshift_cluster.test.api_server_profile.0.visibility
+    visibility = azurerm_redhat_openshift_cluster.test.api_server_profile[0].visibility
   }
 
   ingress_profile {
-    visibility = azurerm_redhat_openshift_cluster.test.ingress_profile.0.visibility
+    visibility = azurerm_redhat_openshift_cluster.test.ingress_profile[0].visibility
   }
 
   worker_profile {
-    vm_size      = azurerm_redhat_openshift_cluster.test.worker_profile.0.vm_size
-    disk_size_gb = azurerm_redhat_openshift_cluster.test.worker_profile.0.disk_size_gb
-    node_count   = azurerm_redhat_openshift_cluster.test.worker_profile.0.node_count
-    subnet_id    = azurerm_redhat_openshift_cluster.test.worker_profile.0.subnet_id
+    vm_size      = azurerm_redhat_openshift_cluster.test.worker_profile[0].vm_size
+    disk_size_gb = azurerm_redhat_openshift_cluster.test.worker_profile[0].disk_size_gb
+    node_count   = azurerm_redhat_openshift_cluster.test.worker_profile[0].node_count
+    subnet_id    = azurerm_redhat_openshift_cluster.test.worker_profile[0].subnet_id
   }
 
   service_principal {
-    client_id     = azurerm_redhat_openshift_cluster.test.service_principal.0.client_id
-    client_secret = azurerm_redhat_openshift_cluster.test.service_principal.0.client_secret
+    client_id     = azurerm_redhat_openshift_cluster.test.service_principal[0].client_id
+    client_secret = azurerm_redhat_openshift_cluster.test.service_principal[0].client_secret
   }
 
   depends_on = [
@@ -836,8 +836,8 @@ resource "azurerm_disk_encryption_set" "test" {
 
 resource "azurerm_key_vault_access_policy" "disk_encryption" {
   key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_disk_encryption_set.test.identity.0.tenant_id
-  object_id    = azurerm_disk_encryption_set.test.identity.0.principal_id
+  tenant_id    = azurerm_disk_encryption_set.test.identity[0].tenant_id
+  object_id    = azurerm_disk_encryption_set.test.identity[0].principal_id
 
   key_permissions = [
     "Get",
@@ -1031,7 +1031,7 @@ provider "azurerm" {
 provider "azuread" {}
 
 data "azuread_service_principal" "redhatopenshift" {
-  // This is the Azure Red Hat OpenShift RP service principal id, use datasource to prevent deleting by accident
+  # This is the Azure Red Hat OpenShift RP service principal id, use datasource to prevent deleting by accident
   client_id = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
 }
 
@@ -1332,7 +1332,7 @@ provider "azurerm" {
 provider "azuread" {}
 
 data "azuread_service_principal" "redhatopenshift" {
-  // This is the Azure Red Hat OpenShift RP service principal id, use datasource to prevent deleting by accident
+  # This is the Azure Red Hat OpenShift RP service principal id, use datasource to prevent deleting by accident
   client_id = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
 }
 
@@ -1674,7 +1674,7 @@ resource "azuread_service_principal_password" "test" {
 }
 
 data "azuread_service_principal" "redhatopenshift" {
-  // This is the Azure Red Hat OpenShift RP service principal id, use datasource to prevent deleting by accident
+  # This is the Azure Red Hat OpenShift RP service principal id, use datasource to prevent deleting by accident
   client_id = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
 }
 

@@ -685,12 +685,12 @@ resource "azurerm_vpn_gateway_connection" "test" {
 
     custom_bgp_address {
       ip_address          = "169.254.21.5"
-      ip_configuration_id = azurerm_vpn_gateway.test.bgp_settings.0.instance_0_bgp_peering_address.0.ip_configuration_id
+      ip_configuration_id = azurerm_vpn_gateway.test.bgp_settings[0].instance_0_bgp_peering_address[0].ip_configuration_id
     }
 
     custom_bgp_address {
       ip_address          = "169.254.21.10"
-      ip_configuration_id = azurerm_vpn_gateway.test.bgp_settings.0.instance_1_bgp_peering_address.0.ip_configuration_id
+      ip_configuration_id = azurerm_vpn_gateway.test.bgp_settings[0].instance_1_bgp_peering_address[0].ip_configuration_id
     }
   }
 }

@@ -22,7 +22,7 @@ func TestAccCognitiveDeployment_list(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_deployment", "test")
 	r := CognitiveDeploymentResource{}
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -77,7 +77,7 @@ resource "azurerm_cognitive_deployment" "test2" {
     name = "Standard"
   }
   lifecycle {
-    ignore_changes = [model.0.version]
+    ignore_changes = [model[0].version]
   }
 }
 `, r.basic(data), data.RandomInteger)

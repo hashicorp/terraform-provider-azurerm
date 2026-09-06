@@ -157,16 +157,16 @@ resource "azurerm_data_factory_data_flow" "import" {
   data_factory_id = azurerm_data_factory_data_flow.test.data_factory_id
   script          = azurerm_data_factory_data_flow.test.script
   source {
-    name = azurerm_data_factory_data_flow.test.source.0.name
+    name = azurerm_data_factory_data_flow.test.source[0].name
     linked_service {
-      name = azurerm_data_factory_data_flow.test.source.0.linked_service.0.name
+      name = azurerm_data_factory_data_flow.test.source[0].linked_service[0].name
     }
   }
 
   sink {
-    name = azurerm_data_factory_data_flow.test.sink.0.name
+    name = azurerm_data_factory_data_flow.test.sink[0].name
     linked_service {
-      name = azurerm_data_factory_data_flow.test.sink.0.linked_service.0.name
+      name = azurerm_data_factory_data_flow.test.sink[0].linked_service[0].name
     }
   }
 }

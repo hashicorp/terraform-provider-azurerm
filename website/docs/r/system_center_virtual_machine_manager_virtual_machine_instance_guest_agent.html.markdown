@@ -83,8 +83,8 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   }
 
   lifecycle {
-    // Service API always provisions a virtual disk with bus type IDE, hardware, network interface per Virtual Machine Template by default
-    ignore_changes = [storage_disk, hardware, network_interface, operating_system.0.computer_name]
+    # Service API always provisions a virtual disk with bus type IDE, hardware, network interface per Virtual Machine Template by default
+    ignore_changes = [storage_disk, hardware, network_interface, operating_system[0].computer_name]
   }
 }
 

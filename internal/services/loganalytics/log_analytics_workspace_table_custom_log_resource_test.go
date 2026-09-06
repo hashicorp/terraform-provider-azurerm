@@ -177,8 +177,8 @@ resource "azurerm_log_analytics_workspace_table_custom_log" "import" {
   workspace_id = azurerm_log_analytics_workspace_table_custom_log.test.workspace_id
 
   column {
-    name = azurerm_log_analytics_workspace_table_custom_log.test.column.0.name
-    type = azurerm_log_analytics_workspace_table_custom_log.test.column.0.type
+    name = azurerm_log_analytics_workspace_table_custom_log.test.column[0].name
+    type = azurerm_log_analytics_workspace_table_custom_log.test.column[0].type
   }
 }
 `, r.basic(data))

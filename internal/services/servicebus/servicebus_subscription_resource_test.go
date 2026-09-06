@@ -258,8 +258,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 }
 
@@ -293,8 +293,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 }
 
@@ -360,7 +360,7 @@ resource "azurerm_servicebus_topic" "forward_to" {
 
 `
 	return fmt.Sprintf(forwardToTf, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
-		"forward_to = \"${azurerm_servicebus_topic.forward_to.name}\"\n", data.RandomInteger)
+		"forward_to = azurerm_servicebus_topic.forward_to.name\n", data.RandomInteger)
 }
 
 func (ServiceBusSubscriptionResource) updateForwardDeadLetteredMessagesTo(data acceptance.TestData) string {
@@ -379,7 +379,7 @@ resource "azurerm_servicebus_topic" "forward_dl_messages_to" {
 
 `
 	return fmt.Sprintf(forwardToTf, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
-		"forward_dead_lettered_messages_to = \"${azurerm_servicebus_topic.forward_dl_messages_to.name}\"\n", data.RandomInteger)
+		"forward_dead_lettered_messages_to = azurerm_servicebus_topic.forward_dl_messages_to.name\n", data.RandomInteger)
 }
 
 func (ServiceBusSubscriptionResource) status(data acceptance.TestData, status string) string {
@@ -493,8 +493,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 }
 
@@ -524,8 +524,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 }
 
@@ -555,8 +555,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                         = "acctestsbn-%[1]d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
   sku                          = "Premium"
   premium_messaging_partitions = 1
   capacity                     = 1

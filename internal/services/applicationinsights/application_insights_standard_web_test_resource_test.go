@@ -282,19 +282,19 @@ resource "azurerm_application_insights_standard_web_test" "import" {
   application_insights_id = azurerm_application_insights_standard_web_test.test.application_insights_id
   geo_locations           = azurerm_application_insights_standard_web_test.test.geo_locations
   request {
-    follow_redirects_enabled         = azurerm_application_insights_standard_web_test.test.request.0.follow_redirects_enabled
-    http_verb                        = azurerm_application_insights_standard_web_test.test.request.0.http_verb
-    parse_dependent_requests_enabled = azurerm_application_insights_standard_web_test.test.request.0.parse_dependent_requests_enabled
-    url                              = azurerm_application_insights_standard_web_test.test.request.0.url
+    follow_redirects_enabled         = azurerm_application_insights_standard_web_test.test.request[0].follow_redirects_enabled
+    http_verb                        = azurerm_application_insights_standard_web_test.test.request[0].http_verb
+    parse_dependent_requests_enabled = azurerm_application_insights_standard_web_test.test.request[0].parse_dependent_requests_enabled
+    url                              = azurerm_application_insights_standard_web_test.test.request[0].url
 
     header {
-      name  = azurerm_application_insights_standard_web_test.test.request.0.header.0.name
-      value = azurerm_application_insights_standard_web_test.test.request.0.header.0.value
+      name  = azurerm_application_insights_standard_web_test.test.request[0].header[0].name
+      value = azurerm_application_insights_standard_web_test.test.request[0].header[0].value
     }
 
     header {
-      name  = azurerm_application_insights_standard_web_test.test.request.0.header.1.name
-      value = azurerm_application_insights_standard_web_test.test.request.0.header.1.value
+      name  = azurerm_application_insights_standard_web_test.test.request[0].header[1].name
+      value = azurerm_application_insights_standard_web_test.test.request[0].header[1].value
     }
   }
 }

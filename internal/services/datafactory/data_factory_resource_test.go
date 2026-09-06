@@ -1036,7 +1036,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_data_factory.existing.identity.0.principal_id
+    object_id = data.azurerm_data_factory.existing.identity[0].principal_id
 
     key_permissions = [
       "Get",

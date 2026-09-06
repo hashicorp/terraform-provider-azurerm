@@ -4401,8 +4401,8 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
     unique = true
   }
 
-  // indices can cause test to be inconsistent
-  // I believe there is a bug within the azurerm_cosmosdb_mongo_collection that causes inconsistent results on read
+  # indices can cause test to be inconsistent
+  # I believe there is a bug within the azurerm_cosmosdb_mongo_collection that causes inconsistent results on read
   lifecycle {
     ignore_changes = [
       index
@@ -4451,10 +4451,10 @@ resource "azurerm_cosmosdb_account" "test" {
     }
   }
 
-  // As "restore_timestamp_in_utc" is retrieved dynamically, so it would cause diff when tf plan. So we have to ignore it here.
+  # As "restore_timestamp_in_utc" is retrieved dynamically, so it would cause diff when tf plan. So we have to ignore it here.
   lifecycle {
     ignore_changes = [
-      restore.0.restore_timestamp_in_utc
+      restore[0].restore_timestamp_in_utc
     ]
   }
 }
@@ -4550,10 +4550,10 @@ resource "azurerm_cosmosdb_account" "test" {
     tables_to_restore          = [azurerm_cosmosdb_table.test.name, azurerm_cosmosdb_table.test2.name]
   }
 
-  // As "restore_timestamp_in_utc" is retrieved dynamically, so it would cause diff when tf plan. So we have to ignore it here.
+  # As "restore_timestamp_in_utc" is retrieved dynamically, so it would cause diff when tf plan. So we have to ignore it here.
   lifecycle {
     ignore_changes = [
-      restore.0.restore_timestamp_in_utc
+      restore[0].restore_timestamp_in_utc
     ]
   }
 }
@@ -4665,10 +4665,10 @@ resource "azurerm_cosmosdb_account" "test" {
     }
   }
 
-  // As "restore_timestamp_in_utc" is retrieved dynamically, so it would cause diff when tf plan. So we have to ignore it here.
+  # As "restore_timestamp_in_utc" is retrieved dynamically, so it would cause diff when tf plan. So we have to ignore it here.
   lifecycle {
     ignore_changes = [
-      restore.0.restore_timestamp_in_utc
+      restore[0].restore_timestamp_in_utc
     ]
   }
 }

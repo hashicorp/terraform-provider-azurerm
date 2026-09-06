@@ -206,8 +206,8 @@ resource "azurerm_key_vault_access_policy" "test" {
     "GetRotationPolicy",
   ]
 
-  tenant_id = azurerm_log_analytics_cluster.test.identity.0.tenant_id
-  object_id = azurerm_log_analytics_cluster.test.identity.0.principal_id
+  tenant_id = azurerm_log_analytics_cluster.test.identity[0].tenant_id
+  object_id = azurerm_log_analytics_cluster.test.identity[0].principal_id
 
   depends_on = [azurerm_key_vault_access_policy.terraform]
 }
@@ -386,7 +386,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "c
   name               = "%[6]s"
   scope              = "/keys"
   role_definition_id = data.azurerm_key_vault_managed_hardware_security_module_role_definition.encrypt-user.resource_manager_id
-  principal_id       = azurerm_log_analytics_cluster.test.identity.0.principal_id
+  principal_id       = azurerm_log_analytics_cluster.test.identity[0].principal_id
 
   depends_on = [azurerm_key_vault_managed_hardware_security_module_role_assignment.test1]
 }

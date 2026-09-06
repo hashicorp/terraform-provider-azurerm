@@ -209,8 +209,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_marketplace_role_assignment" "test" {
-  role_definition_id = "${data.azurerm_role_definition.test.id}"
-  principal_id       = "${data.azurerm_client_config.test.object_id}"
+  role_definition_id = data.azurerm_role_definition.test.id
+  principal_id       = data.azurerm_client_config.test.object_id
   description        = "Test Role Assignment"
 
   lifecycle {
@@ -279,7 +279,7 @@ data "azurerm_role_definition" "test" {
 
 resource "azurerm_marketplace_role_assignment" "test" {
   name               = "%s"
-  role_definition_id = "${data.azurerm_role_definition.test.id}"
+  role_definition_id = data.azurerm_role_definition.test.id
   principal_id       = data.azurerm_client_config.test.object_id
 
   lifecycle {

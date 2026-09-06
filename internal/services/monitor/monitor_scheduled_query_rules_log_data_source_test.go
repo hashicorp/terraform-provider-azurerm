@@ -33,7 +33,7 @@ func (r MonitorScheduledQueryRulesLogDataSource) LogToMetricActionConfig(data ac
 
 data "azurerm_monitor_scheduled_query_rules_log" "test" {
   name                = basename(azurerm_monitor_scheduled_query_rules_log.test.id)
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, MonitorScheduledQueryRulesLogResource{}.LogToMetricActionConfigBasic(data))
 }

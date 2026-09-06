@@ -66,7 +66,7 @@ resource "azurerm_machine_learning_workspace" "example" {
 }
 
 resource "azurerm_storage_account" "example2" {
-  name                     = "example-sa"
+  name                     = "examplesa"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"

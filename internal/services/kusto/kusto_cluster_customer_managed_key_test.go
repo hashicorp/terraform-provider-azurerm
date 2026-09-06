@@ -461,8 +461,8 @@ resource "azurerm_key_vault_certificate" "cert" {
   }
 }
 
-// Purge Protection must be enabled to configure Managed HSM Key
-// https://learn.microsoft.com/en-us/azure/data-explorer/security#store-customer-managed-keys-in-azure-key-vault
+# Purge Protection must be enabled to configure Managed HSM Key
+# https://learn.microsoft.com/en-us/azure/data-explorer/security#store-customer-managed-keys-in-azure-key-vault
 resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   name                       = "kvHsm%[3]d"
   resource_group_name        = azurerm_resource_group.test.name
@@ -507,7 +507,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "c
   role_definition_id = data.azurerm_key_vault_managed_hardware_security_module_role_definition.crypto-user.resource_manager_id
   principal_id       = data.azurerm_client_config.current.object_id
 
-  // Avoid role assignments conflicts.
+  # Avoid role assignments conflicts.
   depends_on = [azurerm_key_vault_managed_hardware_security_module_role_assignment.client1]
 }
 
@@ -518,7 +518,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "k
   role_definition_id = data.azurerm_key_vault_managed_hardware_security_module_role_definition.encrypt-user.resource_manager_id
   principal_id       = azurerm_kusto_cluster.test.identity[0].principal_id
 
-  // Avoid role assignments conflicts.
+  # Avoid role assignments conflicts.
   depends_on = [azurerm_key_vault_managed_hardware_security_module_role_assignment.client2]
 }
 
@@ -585,8 +585,8 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_access_policy" "cluster" {
   key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_kusto_cluster.test.identity.0.tenant_id
-  object_id    = azurerm_kusto_cluster.test.identity.0.principal_id
+  tenant_id    = azurerm_kusto_cluster.test.identity[0].tenant_id
+  object_id    = azurerm_kusto_cluster.test.identity[0].principal_id
 
   key_permissions = ["Get", "UnwrapKey", "WrapKey"]
 }

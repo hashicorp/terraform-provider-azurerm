@@ -295,7 +295,7 @@ resource "azurerm_storage_account" "test" {
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_storage_account.test.id
   role_definition_name = "Storage Blob Data Reader"
-  principal_id         = azurerm_data_factory.test.identity.0.principal_id
+  principal_id         = azurerm_data_factory.test.identity[0].principal_id
 }
 
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {

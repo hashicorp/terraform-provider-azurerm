@@ -178,7 +178,7 @@ data "azuread_domains" "test" {
 }
 
 resource "azuread_user" "test" {
-  user_principal_name = "acctestUser-%[1]d1@${data.azuread_domains.test.domains.0.domain_name}"
+  user_principal_name = "acctestUser-%[1]d1@${data.azuread_domains.test.domains[0].domain_name}"
   display_name        = "acctestUser-%[1]d1"
   password            = "p@$$Wd%[2]s"
 }

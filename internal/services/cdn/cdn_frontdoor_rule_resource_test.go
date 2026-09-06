@@ -1359,7 +1359,7 @@ func (r CdnFrontDoorRuleResource) batchRuleImport(data acceptance.TestData) stri
 %[1]s
 
 import {
-  id = "${azurerm_cdn_frontdoor_batch_rule_set.test.id}/rules/${azurerm_cdn_frontdoor_batch_rule_set.test.rule.0.name}"
+  id = "${azurerm_cdn_frontdoor_batch_rule_set.test.id}/rules/${azurerm_cdn_frontdoor_batch_rule_set.test.rule[0].name}"
   to = azurerm_cdn_frontdoor_rule.test
 }
 

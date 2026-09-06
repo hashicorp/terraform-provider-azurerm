@@ -183,7 +183,7 @@ resource "azurerm_container_registry" "test" {
   name                = "testacccr%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  // Premium sku is required when creating a hub with AllowInternetOutbound or AllowOnlyApprovedOutbound isolation mode
+  # Premium sku is required when creating a hub with AllowInternetOutbound or AllowOnlyApprovedOutbound isolation mode
   sku = "Premium"
 }
 
