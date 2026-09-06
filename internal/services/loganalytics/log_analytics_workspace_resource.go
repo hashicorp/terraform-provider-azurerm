@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionrules"
 	sharedKeyWorkspaces "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2025-07-01/workspaces"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -32,6 +33,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity
+
+const azureLogAnalyticsWorkspaceName = "azurerm_log_analytics_workspace"
+
 func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceLogAnalyticsWorkspaceCreate,
@@ -41,10 +46,11 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(resourceLogAnalyticsWorkspaceCustomDiff),
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := workspaces.ParseWorkspaceID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&workspaces.WorkspaceId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&workspaces.WorkspaceId{}),
 
 		SchemaVersion: 3,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -108,7 +114,7 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice([]string{
 					// creation with `Premium` and `Standard` is not allowed on API side, keep these values for existing resources.
 					string(workspaces.WorkspaceSkuNameEnumPerGBTwoZeroOneEight),
@@ -141,8 +147,9 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 			},
 
 			"retention_in_days": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because Azure assigns a default retention period when not specified
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(30, 730),
 			},
@@ -313,8 +320,7 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 	capacityReservationLevel, ok := d.GetOk(propName)
 	if ok {
 		if strings.EqualFold(skuName, string(workspaces.WorkspaceSkuNameEnumCapacityReservation)) {
-			capacityReservationLevelValue := int64(capacityReservationLevel.(int))
-			parameters.Properties.Sku.CapacityReservationLevel = &capacityReservationLevelValue
+			parameters.Properties.Sku.CapacityReservationLevel = pointer.To(int64(capacityReservationLevel.(int)))
 		} else {
 			return fmt.Errorf("`%s` can only be used with the `CapacityReservation` SKU", propName)
 		}
@@ -332,10 +338,13 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 		parameters.Identity = expanded
 	}
 
-	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return err
 	}
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	// `data_collection_rule_id` also needs an additional update.
 	// error message: Default dcr is not applicable on workspace creation, please provide it on update.
@@ -524,10 +533,14 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceLogAnalyticsWorkspaceFlatten(ctx, sharedKeyClient, d, id, resp.Model, true)
+}
+
+func resourceLogAnalyticsWorkspaceFlatten(ctx context.Context, sharedKeyClient *sharedKeyWorkspaces.WorkspacesClient, d *pluginsdk.ResourceData, id *workspaces.WorkspaceId, model *workspaces.Workspace, includeResource bool) error {
 	d.Set("name", id.WorkspaceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if model.Identity != nil {
 			flattenedIdentity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
 			if err != nil {
@@ -586,25 +599,27 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 			}
 			d.Set("data_collection_rule_id", defaultDataCollectionRuleResourceId)
 
-			sharedKeyId := sharedKeyWorkspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
-			sharedKeysResp, err := sharedKeyClient.SharedKeysGetSharedKeys(ctx, sharedKeyId)
-			if err != nil {
-				log.Printf("[ERROR] Unable to List Shared keys for Log Analytics workspaces %s: %+v", id.WorkspaceName, err)
-			} else {
-				if sharedKeysModel := sharedKeysResp.Model; sharedKeysModel != nil {
-					d.Set("primary_shared_key", pointer.From(sharedKeysModel.PrimarySharedKey))
-					d.Set("secondary_shared_key", pointer.From(sharedKeysModel.SecondarySharedKey))
+			if includeResource {
+				sharedKeyId := sharedKeyWorkspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
+				sharedKeysResp, err := sharedKeyClient.SharedKeysGetSharedKeys(ctx, sharedKeyId)
+				if err != nil {
+					log.Printf("[ERROR] Unable to List Shared keys for Log Analytics workspaces %s: %+v", id.WorkspaceName, err)
+				} else {
+					if sharedKeysModel := sharedKeysResp.Model; sharedKeysModel != nil {
+						d.Set("primary_shared_key", pointer.From(sharedKeysModel.PrimarySharedKey))
+						d.Set("secondary_shared_key", pointer.From(sharedKeysModel.SecondarySharedKey))
+					}
 				}
 			}
 		}
 
 		d.Set("location", location.Normalize(model.Location))
 
-		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
+		if err := tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
 			return err
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceLogAnalyticsWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {

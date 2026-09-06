@@ -116,7 +116,7 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 		"worker_count": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.IntAtLeast(1),
 		},
 
@@ -129,7 +129,7 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 		"maximum_elastic_worker_count": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.IntAtLeast(0),
 		},
 

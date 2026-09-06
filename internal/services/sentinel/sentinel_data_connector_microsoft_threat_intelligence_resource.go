@@ -52,7 +52,7 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Arguments() map[string
 		"tenant_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},

@@ -136,8 +136,6 @@ func resourceApiManagementIdentityProviderAADRead(d *pluginsdk.ResourceData, met
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroupName
-	serviceName := id.ServiceName
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
@@ -150,8 +148,8 @@ func resourceApiManagementIdentityProviderAADRead(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("api_management_name", serviceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("api_management_name", id.ServiceName)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {

@@ -216,9 +216,8 @@ func expandAzureRmPrivateDnsPtrRecords(d *pluginsdk.ResourceData) *[]privatedns.
 	records := make([]privatedns.PtrRecord, len(recordStrings))
 
 	for i, v := range recordStrings {
-		fqdn := v.(string)
 		records[i] = privatedns.PtrRecord{
-			Ptrdname: &fqdn,
+			Ptrdname: pointer.To(v.(string)),
 		}
 	}
 

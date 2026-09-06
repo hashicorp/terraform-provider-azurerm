@@ -1158,7 +1158,7 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisCustomSetupScript(customSetupS
 
 func flattenDataFactoryIntegrationRuntimeAzureSsisPackageStore(input *[]integrationruntimes.PackageStore) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	result := make([]interface{}, 0)

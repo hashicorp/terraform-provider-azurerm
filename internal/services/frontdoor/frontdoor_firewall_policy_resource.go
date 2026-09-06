@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -40,7 +39,7 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.WebApplicationFirewallPolicyIDInsensitively(id)
+			_, err := webapplicationfirewallpolicies.ParseFrontDoorWebApplicationFirewallPolicyIDInsensitively(id)
 			return err
 		}),
 
@@ -576,13 +575,12 @@ func expandFrontDoorFirewallMatchConditions(input []interface{}) []webapplicatio
 		matchVariable := match["match_variable"].(string)
 		selector := match["selector"].(string)
 		operator := match["operator"].(string)
-		negateCondition := match["negation_condition"].(bool)
 		matchValues := match["match_values"].([]interface{})
 		transforms := match["transforms"].([]interface{})
 
 		matchCondition := webapplicationfirewallpolicies.MatchCondition{
 			Operator:        webapplicationfirewallpolicies.Operator(operator),
-			NegateCondition: &negateCondition,
+			NegateCondition: pointer.To(match["negation_condition"].(bool)),
 			MatchValue:      *helpers.ExpandStringSlice(matchValues),
 			Transforms:      expandFrontDoorFirewallTransforms(transforms),
 		}
@@ -625,19 +623,17 @@ func expandFrontDoorFirewallManagedRules(input []interface{}) *webapplicationfir
 
 		ruleType := managedRule["type"].(string)
 		version := managedRule["version"].(string)
-		overrides := managedRule["override"].([]interface{})
-		exclusions := managedRule["exclusion"].([]interface{})
 
 		managedRuleSet := webapplicationfirewallpolicies.ManagedRuleSet{
 			RuleSetType:    ruleType,
 			RuleSetVersion: version,
 		}
 
-		if exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(exclusions); exclusions != nil {
+		if exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(managedRule["exclusion"].([]interface{})); exclusions != nil {
 			managedRuleSet.Exclusions = exclusions
 		}
 
-		if ruleGroupOverrides := expandFrontDoorFirewallManagedRuleGroupOverride(overrides); ruleGroupOverrides != nil {
+		if ruleGroupOverrides := expandFrontDoorFirewallManagedRuleGroupOverride(managedRule["override"].([]interface{})); ruleGroupOverrides != nil {
 			managedRuleSet.RuleGroupOverrides = ruleGroupOverrides
 		}
 
@@ -684,18 +680,16 @@ func expandFrontDoorFirewallManagedRuleGroupOverride(input []interface{}) *[]web
 		override := v.(map[string]interface{})
 
 		ruleGroupName := override["rule_group_name"].(string)
-		rules := override["rule"].([]interface{})
-		exclusions := override["exclusion"].([]interface{})
 
 		managedRuleGroupOverride := webapplicationfirewallpolicies.ManagedRuleGroupOverride{
 			RuleGroupName: ruleGroupName,
 		}
 
-		if exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(exclusions); exclusions != nil {
+		if exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(override["exclusion"].([]interface{})); exclusions != nil {
 			managedRuleGroupOverride.Exclusions = exclusions
 		}
 
-		if managedRuleOverride := expandFrontDoorFirewallRuleOverride(rules); managedRuleOverride != nil {
+		if managedRuleOverride := expandFrontDoorFirewallRuleOverride(override["rule"].([]interface{})); managedRuleOverride != nil {
 			managedRuleGroupOverride.Rules = managedRuleOverride
 		}
 
@@ -719,16 +713,14 @@ func expandFrontDoorFirewallRuleOverride(input []interface{}) *[]webapplicationf
 			enabled = webapplicationfirewallpolicies.ManagedRuleEnabledStateEnabled
 		}
 		ruleId := rule["rule_id"].(string)
-		action := webapplicationfirewallpolicies.ActionType(rule["action"].(string))
-		exclusions := rule["exclusion"].([]interface{})
 
 		managedRuleOverride := webapplicationfirewallpolicies.ManagedRuleOverride{
 			RuleId:       ruleId,
 			EnabledState: &enabled,
-			Action:       &action,
+			Action:       pointer.ToEnum[webapplicationfirewallpolicies.ActionType](rule["action"].(string)),
 		}
 
-		if exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(exclusions); exclusions != nil {
+		if exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(rule["exclusion"].([]interface{})); exclusions != nil {
 			managedRuleOverride.Exclusions = exclusions
 		}
 

@@ -6,6 +6,7 @@ package lint
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -160,7 +161,7 @@ func parseHunkNewStart(line string) (int, bool) {
 }
 
 func git(root string, args ...string) (string, error) {
-	cmd := exec.Command("git", args...)
+	cmd := exec.CommandContext(context.Background(), "git", args...)
 	cmd.Dir = root
 	var out, stderr bytes.Buffer
 	cmd.Stdout = &out

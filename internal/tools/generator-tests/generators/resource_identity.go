@@ -4,6 +4,7 @@
 package generators
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -454,7 +455,7 @@ func (d *resourceIdentityData) exec() error {
 			}
 
 			// Run gofumpt
-			cmd := exec.Command("gofumpt", "-w", goFile)
+			cmd := exec.CommandContext(context.Background(), "gofumpt", "-w", goFile)
 			if err := cmd.Run(); err != nil {
 				return fmt.Errorf("failed running gofumpt on %s: %w", goFile, err)
 			}

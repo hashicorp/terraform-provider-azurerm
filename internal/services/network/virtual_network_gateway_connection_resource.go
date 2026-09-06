@@ -150,20 +150,20 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 			"use_policy_based_traffic_selectors": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"routing_weight": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.IntBetween(0, 32000),
 			},
 
 			"express_route_gateway_bypass": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"private_link_fast_path_enabled": {
@@ -175,7 +175,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 			"connection_protocol": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice(virtualnetworkgatewayconnections.PossibleValuesForVirtualNetworkGatewayConnectionProtocol(), false),
 			},
@@ -276,14 +276,14 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 						"sa_datasize": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.IntBetween(0, math.MaxInt32),
 						},
 
 						"sa_lifetime": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.IntAtLeast(300),
 						},
 					},
@@ -473,15 +473,12 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 		}
 
 		if props.IPsecPolicies != nil {
-			ipsecPolicies := flattenVirtualNetworkGatewayConnectionIpsecPolicies(props.IPsecPolicies)
-
-			if err := d.Set("ipsec_policy", ipsecPolicies); err != nil {
+			if err := d.Set("ipsec_policy", flattenVirtualNetworkGatewayConnectionIpsecPolicies(props.IPsecPolicies)); err != nil {
 				return fmt.Errorf("setting `ipsec_policy`: %+v", err)
 			}
 		}
 
-		trafficSelectorPolicies := flattenVirtualNetworkGatewayConnectionTrafficSelectorPolicies(props.TrafficSelectorPolicies)
-		if err := d.Set("traffic_selector_policy", trafficSelectorPolicies); err != nil {
+		if err := d.Set("traffic_selector_policy", flattenVirtualNetworkGatewayConnectionTrafficSelectorPolicies(props.TrafficSelectorPolicies)); err != nil {
 			return fmt.Errorf("setting `traffic_selector_policy`: %+v", err)
 		}
 
@@ -703,8 +700,7 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 	}
 
 	if v, ok := d.GetOk("authorization_key"); ok {
-		authorizationKey := v.(string)
-		props.AuthorizationKey = &authorizationKey
+		props.AuthorizationKey = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("dpd_timeout_seconds"); ok {
@@ -712,9 +708,8 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 	}
 
 	if v, ok := d.GetOk("express_route_circuit_id"); ok {
-		expressRouteCircuitId := v.(string)
 		props.Peer = &virtualnetworkgatewayconnections.SubResource{
-			Id: &expressRouteCircuitId,
+			Id: pointer.To(v.(string)),
 		}
 	}
 

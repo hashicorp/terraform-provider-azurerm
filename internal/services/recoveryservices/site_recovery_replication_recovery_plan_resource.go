@@ -350,7 +350,6 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Create() sdk.ResourceFunc {
 			}
 
 			// FailoverDeploymentModelClassic is used for other cloud service back up to Azure.
-			deploymentModel := replicationrecoveryplans.FailoverDeploymentModelResourceManager
 
 			groupValue, err := expandRecoveryGroup(model.ShutdownRecoveryGroup, model.FailoverRecoveryGroup, model.BootRecoveryGroup)
 			if err != nil {
@@ -361,7 +360,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Create() sdk.ResourceFunc {
 				Properties: replicationrecoveryplans.CreateRecoveryPlanInputProperties{
 					PrimaryFabricId:         model.SourceRecoveryFabricId,
 					RecoveryFabricId:        model.TargetRecoveryFabricId,
-					FailoverDeploymentModel: &deploymentModel,
+					FailoverDeploymentModel: pointer.To(replicationrecoveryplans.FailoverDeploymentModelResourceManager),
 					Groups:                  groupValue,
 				},
 			}

@@ -91,7 +91,7 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 			"throughput": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validate.CosmosThroughput,
 			},
 
@@ -114,7 +114,7 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 			"index_policy": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -134,7 +134,7 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 						"included_paths": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
@@ -145,7 +145,7 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 						"excluded_paths": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
@@ -228,10 +228,9 @@ func resourceCosmosDbGremlinGraphCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if partitionkeypaths != "" {
-		partitionKindHash := cosmosdb.PartitionKindHash
 		db.Properties.Resource.PartitionKey = &cosmosdb.ContainerPartitionKey{
 			Paths: &[]string{partitionkeypaths},
-			Kind:  &partitionKindHash,
+			Kind:  pointer.To(cosmosdb.PartitionKindHash),
 		}
 		if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
 			db.Properties.Resource.PartitionKey.Version = pointer.To(int64(partitionKeyVersion.(int)))
@@ -296,10 +295,9 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if partitionkeypaths != "" {
-		partitionKindHash := cosmosdb.PartitionKindHash
 		db.Properties.Resource.PartitionKey = &cosmosdb.ContainerPartitionKey{
 			Paths: &[]string{partitionkeypaths},
-			Kind:  &partitionKindHash,
+			Kind:  pointer.To(cosmosdb.PartitionKindHash),
 		}
 
 		if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {

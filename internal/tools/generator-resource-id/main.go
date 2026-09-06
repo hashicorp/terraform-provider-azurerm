@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
@@ -128,8 +130,7 @@ func parseServicePackageName(relativePath string) (*string, error) {
 		return nil, fmt.Errorf("not enough segments")
 	}
 
-	servicePackageName := segments[serviceIndex+1]
-	return &servicePackageName, nil
+	return pointer.To(segments[serviceIndex+1]), nil
 }
 
 func convertToSnakeCase(input string) string {
@@ -1107,14 +1108,14 @@ func (f GolangCodeFormatter) Format(input string) (*string, error) {
 }
 
 func (f GolangCodeFormatter) runGoFmt(filePath string) {
-	cmd := exec.Command("gofmt", "-w", filePath)
+	cmd := exec.CommandContext(context.Background(), "gofmt", "-w", filePath)
 	// intentionally not using these errors since the exit codes are kinda uninteresting
 	_ = cmd.Start()
 	_ = cmd.Wait()
 }
 
 func (f GolangCodeFormatter) runGoImports(filePath string) {
-	cmd := exec.Command("goimports", "-w", filePath)
+	cmd := exec.CommandContext(context.Background(), "goimports", "-w", filePath)
 	// intentionally not using these errors since the exit codes are kinda uninteresting
 	_ = cmd.Start()
 	_ = cmd.Wait()
@@ -1126,6 +1127,5 @@ func (f GolangCodeFormatter) readFileContents(filePath string) (*string, error) 
 		return nil, err
 	}
 
-	contents := string(data)
-	return &contents, nil
+	return pointer.To(string(data)), nil
 }

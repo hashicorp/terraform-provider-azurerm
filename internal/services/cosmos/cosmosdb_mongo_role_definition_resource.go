@@ -347,7 +347,7 @@ func expandResource(input []Resource) *mongorbacs.PrivilegeResource {
 func flattenResource(input *mongorbacs.PrivilegeResource) []Resource {
 	var result []Resource
 	if input == nil {
-		return result
+		return []Resource{}
 	}
 
 	resource := Resource{
