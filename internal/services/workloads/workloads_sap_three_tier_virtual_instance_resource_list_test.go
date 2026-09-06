@@ -20,7 +20,7 @@ func TestAccWorkloadsSAPThreeTierVirtualInstance_list_basic(t *testing.T) {
 	listResourceAddress := "azurerm_workloads_sap_three_tier_virtual_instance.list"
 	data := acceptance.BuildTestData(t, "azurerm_workloads_sap_three_tier_virtual_instance", "test1")
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

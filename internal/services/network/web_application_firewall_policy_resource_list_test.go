@@ -18,7 +18,7 @@ func TestAccWebApplicationFirewallPolicy_listBySubscriptionAndRG(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "testlist1")
 	r := WebApplicationFirewallPolicyResource{}
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

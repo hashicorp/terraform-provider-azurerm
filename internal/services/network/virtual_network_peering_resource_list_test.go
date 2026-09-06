@@ -18,7 +18,7 @@ func TestAccVirtualNetworkPeering_listByVirtualNetworkID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "testlist1")
 	r := VirtualNetworkPeeringResource{}
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

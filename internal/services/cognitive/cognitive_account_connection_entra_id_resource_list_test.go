@@ -22,7 +22,7 @@ func TestAccCognitiveAccountConnectionEntraID_list(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_entra_id", "test")
 	r := CognitiveAccountConnectionEntraIdResource{}
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

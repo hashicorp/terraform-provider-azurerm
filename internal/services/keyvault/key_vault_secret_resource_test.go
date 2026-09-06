@@ -47,7 +47,7 @@ func TestAccKeyVaultSecret_writeOnlyValue(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
 	r := KeyVaultSecretResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
+	acceptance.RunParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
 		},
@@ -79,7 +79,7 @@ func TestAccKeyVaultSecret_updateToWriteOnlyValue(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
 	r := KeyVaultSecretResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
+	acceptance.RunParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
 		},

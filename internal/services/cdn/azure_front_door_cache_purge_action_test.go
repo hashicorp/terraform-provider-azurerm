@@ -27,7 +27,7 @@ func TestAccAzureFrontDoorCachePurgeAction_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_front_door_cache_purge", "test")
 	a := AzureFrontDoorCachePurgeAction{}
 
-	resource.ParallelTest(t, resource.TestCase{
+	acceptance.RunParallelTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
@@ -47,7 +47,7 @@ func TestAccAzureFrontDoorCachePurgeAction_complete(t *testing.T) {
 	a := AzureFrontDoorCachePurgeAction{}
 	a.preCheck(t)
 
-	resource.ParallelTest(t, resource.TestCase{
+	acceptance.RunParallelTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),

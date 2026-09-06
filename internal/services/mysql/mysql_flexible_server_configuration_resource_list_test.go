@@ -16,7 +16,7 @@ func TestAccMySqlFlexibleServerConfiguration_list_by_resource_group(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server_configuration", "testlist")
 	r := MysqlFlexibleServerConfigurationResource{}
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

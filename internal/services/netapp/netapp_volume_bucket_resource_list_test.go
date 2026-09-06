@@ -25,7 +25,7 @@ func TestAccNetAppVolumeBucket_list(t *testing.T) {
 	poolName := fmt.Sprintf("acctest-NetAppPool-%d", data.RandomInteger)
 	volumeName := fmt.Sprintf("acctest-NetAppVolume-%d", data.RandomInteger)
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

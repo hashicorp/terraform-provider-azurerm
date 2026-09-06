@@ -20,7 +20,7 @@ func TestAccDedicatedHostGroup_listBySubscriptionAndRG(t *testing.T) {
 	r := DedicatedHostGroupResource{}
 	listResourceAddress := "azurerm_dedicated_host_group.list"
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

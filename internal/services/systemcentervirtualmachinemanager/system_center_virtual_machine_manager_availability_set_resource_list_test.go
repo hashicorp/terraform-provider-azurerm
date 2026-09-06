@@ -25,7 +25,7 @@ func TestAccSystemCenterVirtualMachineManagerAvailabilitySet_list_basic(t *testi
 
 	data := acceptance.BuildTestData(t, "azurerm_system_center_virtual_machine_manager_availability_set", "testlist")
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

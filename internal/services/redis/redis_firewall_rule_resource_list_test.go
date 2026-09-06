@@ -19,7 +19,7 @@ func TestAccRedisFirewallRule_list_by_resource_group(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_firewall_rule", "testlist")
 	r := RedisFirewallRuleResource{}
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

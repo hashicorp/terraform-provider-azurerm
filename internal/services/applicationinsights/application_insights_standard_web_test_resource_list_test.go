@@ -21,7 +21,7 @@ func TestAccApplicationInsightsStandardWebTest_list_basic(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_standard_web_test", "test1")
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

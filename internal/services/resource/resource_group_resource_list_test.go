@@ -18,7 +18,7 @@ func TestAccResourceGroup_list_basic(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

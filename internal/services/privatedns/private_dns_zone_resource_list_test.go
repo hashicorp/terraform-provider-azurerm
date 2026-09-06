@@ -25,7 +25,7 @@ func TestAccPrivateDnsZone_list_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone", "test")
 	listResourceAddress := "azurerm_private_dns_zone.list"
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

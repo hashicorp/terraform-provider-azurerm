@@ -25,7 +25,7 @@ func TestAccSystemCenterVirtualMachineManagerServer_list_basic(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_system_center_virtual_machine_manager_server", "testlist")
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

@@ -22,7 +22,7 @@ func TestAccCdnFrontDoorBatchRuleSet_listByProfileID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_batch_rule_set", "testlist1")
 	r := CdnFrontdoorBatchRuleSetResource{}
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

@@ -18,7 +18,7 @@ func TestAccVirtualHubConnection_listByVirtualHubID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "testlist1")
 	r := VirtualHubConnectionResource{}
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

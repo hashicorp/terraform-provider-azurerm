@@ -20,7 +20,7 @@ func TestAccAvailabilitySet_listBySubscriptionAndRG(t *testing.T) {
 	r := AvailabilitySetResource{}
 	listResourceAddress := "azurerm_availability_set.list"
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

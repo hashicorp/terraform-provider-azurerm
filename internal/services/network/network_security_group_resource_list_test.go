@@ -17,7 +17,7 @@ func TestAccNetworkSecurityGroup_list_basic(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

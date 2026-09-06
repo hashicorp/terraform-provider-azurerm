@@ -7,6 +7,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/go-version"
@@ -196,7 +198,7 @@ func (td TestData) ResourceRegressionTest(t *testing.T, testResource types.TestR
 		Steps: steps,
 	}
 
-	resource.ParallelTest(t, testCase)
+	RunParallelTest(t, testCase)
 }
 
 // ResourceSequentialRegressionTest is ResourceRegressionTest for resources whose tests cannot run in
@@ -244,7 +246,7 @@ func (td TestData) ResourceSequentialRegressionTest(t *testing.T, testResource t
 		Steps: steps,
 	}
 
-	resource.Test(t, testCase)
+	RunTest(t, testCase)
 }
 
 // DataSourceRegressionTest runs an acceptance test for data source regression - the data source equivalent of ResourceRegressionTest.
@@ -286,7 +288,7 @@ func (td TestData) DataSourceRegressionTest(t *testing.T, steps []TestStep, prev
 		Steps:    steps,
 	}
 
-	resource.ParallelTest(t, testCase)
+	RunParallelTest(t, testCase)
 }
 
 // ResourceRegressionAdditionalStepsTest runs an acceptance test for resource regression scenarios that require multiple steps to set up.
@@ -330,7 +332,7 @@ func (td TestData) ResourceRegressionAdditionalStepsTest(t *testing.T, testResou
 		Steps: steps,
 	}
 
-	resource.ParallelTest(t, testCase)
+	RunParallelTest(t, testCase)
 }
 
 func RunTestsInSequence(t *testing.T, tests map[string]map[string]func(t *testing.T)) {
@@ -345,7 +347,55 @@ func RunTestsInSequence(t *testing.T, tests map[string]map[string]func(t *testin
 	}
 }
 
+// ExportConfigsDirEnv names the directory acceptance test configs are exported to instead of
+// being run - see exportStepConfigs.
+const ExportConfigsDirEnv = "ARM_ACCTEST_EXPORT_CONFIGS_DIR"
+
+// exportStepConfigs writes every step config of the test case to
+// $ARM_ACCTEST_EXPORT_CONFIGS_DIR/<test name>/<step>/main.tf and skips the test, so the exact
+// terraform each step would apply can be linted (make tflint-acctests) without touching Azure.
+// Returns true when the test was skipped.
+func exportStepConfigs(t *testing.T, testCase resource.TestCase) bool {
+	dir := os.Getenv(ExportConfigsDirEnv)
+	if dir == "" {
+		return false
+	}
+	for i, step := range testCase.Steps {
+		if step.Config == "" {
+			continue
+		}
+		stepDir := filepath.Join(dir, t.Name(), strconv.Itoa(i+1))
+		if err := os.MkdirAll(stepDir, 0o755); err != nil {
+			t.Fatalf("creating %s: %+v", stepDir, err)
+		}
+		if err := os.WriteFile(filepath.Join(stepDir, "main.tf"), []byte(step.Config), 0o644); err != nil {
+			t.Fatalf("writing %s: %+v", stepDir, err)
+		}
+	}
+	t.Skipf("configs exported to %s", dir)
+	return true
+}
+
+// RunTest / RunParallelTest wrap resource.Test / resource.ParallelTest for tests that build their
+// own resource.TestCase (list / action tests) so they also honour config export.
+func RunTest(t *testing.T, testCase resource.TestCase) {
+	if exportStepConfigs(t, testCase) {
+		return
+	}
+	resource.Test(t, testCase)
+}
+
+func RunParallelTest(t *testing.T, testCase resource.TestCase) {
+	if exportStepConfigs(t, testCase) {
+		return
+	}
+	resource.ParallelTest(t, testCase)
+}
+
 func (td TestData) runAcceptanceTest(t *testing.T, testCase resource.TestCase) {
+	if exportStepConfigs(t, testCase) {
+		return
+	}
 	testclient.RegisterTestT(t)
 	defer testclient.UnregisterTestT()
 
@@ -362,6 +412,9 @@ func (td TestData) runAcceptanceTest(t *testing.T, testCase resource.TestCase) {
 }
 
 func (td TestData) runAcceptanceSequentialTest(t *testing.T, testCase resource.TestCase) {
+	if exportStepConfigs(t, testCase) {
+		return
+	}
 	if os.Getenv("TC_TEST_VIA_VCR") != "" {
 		defer func(testName string) {
 			_ = vcr.StopRecorder(testName)

@@ -19,7 +19,7 @@ func TestAccRedisCache_list(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "testlist")
 	r := RedisCacheResource{}
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

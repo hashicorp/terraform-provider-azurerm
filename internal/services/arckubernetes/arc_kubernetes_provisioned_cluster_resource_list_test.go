@@ -17,7 +17,7 @@ func TestAccArcKubernetesProvisionedCluster_listBySubscriptionAndRG(t *testing.T
 	r := ArcKubernetesProvisionedClusterResource{}
 	listResourceAddress := "azurerm_arc_kubernetes_provisioned_cluster.list"
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

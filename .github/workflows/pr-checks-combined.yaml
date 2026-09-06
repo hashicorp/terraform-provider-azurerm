@@ -47,15 +47,20 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       website: ${{ steps.filter.outputs.website }}
+      website_files: ${{ steps.filter.outputs.website_files }}
       go: ${{ steps.filter.outputs.go }}
       scripts: ${{ steps.filter.outputs.scripts }}
       examples: ${{ steps.filter.outputs.examples }}
       vendor: ${{ steps.filter.outputs.vendor }}
+      acctests: ${{ steps.filter.outputs.acctests }}
+      acctests_files: ${{ steps.filter.outputs.acctests_files }}
+      tflint-config: ${{ steps.filter.outputs.tflint-config }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
       - uses: dorny/paths-filter@0e4a8c6effa4802afeda77dc8d303f8176d7dfad # v3
         id: filter
         with:
+          list-files: json # *_files outputs (used by tflint to lint only the changed files)
           filters: |
             website:
               - 'website/**'
@@ -72,6 +77,12 @@ jobs:
               - 'vendor/**'
               - 'go.mod'
               - 'go.sum'
+            acctests:
+              - 'internal/**/*_test.go'
+            tflint-config:
+              - '.tflint.hcl'
+              - 'scripts/checks/tflint-*.sh'
+              - 'internal/acceptance/**'
 
   # ==========================================
   # Phase 1: Fail-Fast
@@ -114,6 +125,87 @@ jobs:
     uses: ./.github/workflows/pr-comment-failure-outdated.yaml
     with:
       check_name: "Vendor Dependencies Check"
+
+  # ------------------------------------------
+
+  # tflint on the terraform the acceptance tests apply (rendered by the tests themselves), the
+  # blocks embedded in website docs, and the examples - terrafmt only checks formatting. PRs lint
+  # just the changed packages / files (a full pass is ~10 min); main-checks.yaml runs everything.
+  tflint:
+    needs: paths-filter
+    if: |
+      needs.paths-filter.outputs.acctests == 'true' ||
+      needs.paths-filter.outputs.website == 'true' ||
+      needs.paths-filter.outputs.examples == 'true' ||
+      needs.paths-filter.outputs.tflint-config == 'true'
+    runs-on: ubuntu-latest
+    env:
+      ACCTESTS_FILES: ${{ needs.paths-filter.outputs.acctests_files }}
+      WEBSITE_FILES: ${{ needs.paths-filter.outputs.website_files }}
+      FULL_RUN: ${{ needs.paths-filter.outputs.tflint-config }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+      - name: Install tooling
+        run: |
+          # tflint version is sourced from the GNUmakefile - the single source of truth
+          go install github.com/terraform-linters/tflint@"$(sed -n 's/^TFLINT_VERSION *:= *//p' GNUmakefile)"
+          go install github.com/katbyte/terrafmt@latest
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ~/.tflint.d/plugins
+          key: tflint-plugins-${{ hashFiles('.tflint.hcl') }}
+      - run: make tflint-init
+      - name: Acceptance tests
+        if: needs.paths-filter.outputs.acctests == 'true' || needs.paths-filter.outputs.tflint-config == 'true'
+        run: |
+          if [ "$FULL_RUN" = "true" ]; then
+            make tflint-acctests
+          else
+            # the packages whose tests changed
+            make tflint-acctests PKGS="$(jq -r '.[]' <<< "$ACCTESTS_FILES" | xargs -n1 dirname | sort -u | sed 's|^|./|' | tr '\n' ' ')"
+          fi
+      - name: Website docs
+        if: always() && (needs.paths-filter.outputs.website == 'true' || needs.paths-filter.outputs.tflint-config == 'true')
+        run: |
+          if [ "$FULL_RUN" = "true" ]; then
+            make tflint-website
+          else
+            jq -r '.[] | select(endswith(".html.markdown"))' <<< "$WEBSITE_FILES" | scripts/checks/tflint-embedded.sh --files
+          fi
+      - name: Examples
+        if: always() && (needs.paths-filter.outputs.examples == 'true' || needs.paths-filter.outputs.tflint-config == 'true')
+        run: make tflint-examples
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::Terraform Linting failed."
+          echo ""
+          echo "tflint found problems in the terraform applied by acceptance tests, embedded in website docs, or in examples."
+          echo "Run 'make tflint-acctests PKGS=./internal/services/<service>/...', 'make tflint-website' or"
+          echo "'make tflint-examples' locally (config in .tflint.hcl). Acceptance test findings are reported"
+          echo "as '<test name> step <n> line <l>' against the config that step applies."
+
+  tflint-save-artifacts:
+    needs: tflint
+    if: always() && needs.tflint.result == 'failure'
+    uses: ./.github/workflows/pr-save-artifacts.yaml
+
+  tflint-on-fail:
+    needs: tflint
+    if: always() && needs.tflint.result == 'failure'
+    uses: ./.github/workflows/pr-comment-failure.yaml
+    with:
+      check_name: "Terraform Linting"
+
+  tflint-on-success:
+    needs: tflint
+    if: always() && needs.tflint.result == 'success'
+    uses: ./.github/workflows/pr-comment-failure-outdated.yaml
+    with:
+      check_name: "Terraform Linting"
 
   # ------------------------------------------
 

@@ -22,7 +22,7 @@ func TestAccUserAssignedIdentity_list(t *testing.T) {
 	resourceName := fmt.Sprintf("acctestuai-0-%d", data.RandomInteger)
 	resourceGroupName := fmt.Sprintf("acctestrg-%d", data.RandomInteger)
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

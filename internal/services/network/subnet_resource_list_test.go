@@ -17,7 +17,7 @@ func TestAccSubnet_list_basic(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test1")
 
-	resource.ParallelTest(t, resource.TestCase{
+	acceptance.RunParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

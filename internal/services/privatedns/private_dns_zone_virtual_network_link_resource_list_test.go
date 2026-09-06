@@ -18,7 +18,7 @@ func TestAccPrivateDnsPrivateDnsZoneVirtualNetworkLink_listByPrivateDnsZoneID(t 
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone_virtual_network_link", "testlist1")
 	r := PrivateDnsZoneVirtualNetworkLinkResource{}
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

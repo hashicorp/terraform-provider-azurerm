@@ -126,6 +126,29 @@ jobs:
           go-version-file: ./.go-version
       - run: go run internal/tools/preview-api-version-linter/main.go
 
+  tflint:
+    runs-on: custom-linux-large
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+      - name: Install tooling
+        run: |
+          # tflint version is sourced from the GNUmakefile - the single source of truth
+          go install github.com/terraform-linters/tflint@"$(sed -n 's/^TFLINT_VERSION *:= *//p' GNUmakefile)"
+          go install github.com/katbyte/terrafmt@latest
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ~/.tflint.d/plugins
+          key: tflint-plugins-${{ hashFiles('.tflint.hcl') }}
+      - run: make tflint-init
+      - run: make tflint-acctests
+      - if: always()
+        run: make tflint-website
+      - if: always()
+        run: make tflint-examples
+
   shellcheck:
     runs-on: ubuntu-latest
     steps:

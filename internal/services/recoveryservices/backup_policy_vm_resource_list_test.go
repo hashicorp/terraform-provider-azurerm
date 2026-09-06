@@ -20,7 +20,7 @@ func TestAccBackupProtectionPolicyVM_listByRecoveryVaultID(t *testing.T) {
 	r := BackupProtectionPolicyVMResource{}
 	listResourceAddress := "azurerm_backup_policy_vm.list"
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

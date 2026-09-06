@@ -17,7 +17,7 @@ func TestAccManagedRedisFlushDatabasesAction_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_redis_databases_flush", "test")
 	a := ManagedRedisFlushDatabasesAction{}
 
-	resource.ParallelTest(t, resource.TestCase{
+	acceptance.RunParallelTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
@@ -35,7 +35,7 @@ func TestAccManagedRedisFlushDatabasesAction_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_redis_databases_flush", "test")
 	a := ManagedRedisFlushDatabasesAction{}
 
-	resource.ParallelTest(t, resource.TestCase{
+	acceptance.RunParallelTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),

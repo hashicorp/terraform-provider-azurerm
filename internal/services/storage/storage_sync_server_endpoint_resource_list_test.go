@@ -20,7 +20,7 @@ func testAccStorageSyncServerEndpoint_list_basic(t *testing.T) {
 	listResourceAddress := "azurerm_storage_sync_server_endpoint.list"
 	data := acceptance.BuildTestData(t, "azurerm_storage_sync_server_endpoint", "test")
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		PreCheck: func() { acceptance.PreCheck(t) },
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),

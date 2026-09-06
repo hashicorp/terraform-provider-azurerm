@@ -20,7 +20,7 @@ func TestAccRedhatOpenshiftCluster_list_basic(t *testing.T) {
 	listResourceAddress := "azurerm_redhat_openshift_cluster.list"
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

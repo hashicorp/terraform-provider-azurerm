@@ -20,7 +20,7 @@ func TestAccNetAppVolumeBucketCredentialsAction_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_bucket_credentials", "test")
 	a := NetAppVolumeBucketCredentialsAction{}
 
-	resource.ParallelTest(t, resource.TestCase{
+	acceptance.RunParallelTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"tls": {

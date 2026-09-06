@@ -11,6 +11,10 @@ GOLANGCI_LINT_VERSION := $(shell sed -n 's/^version: *//p' scripts/.custom-gcl.y
 # in .github/workflows/workflow-actionlint.yml.
 ACTIONLINT_VERSION := $(shell sed -n 's/.*actionlint\/cmd\/actionlint@//p' .github/workflows/workflow-actionlint.yml)
 
+# The single source of truth for the tflint version - the hcl lint CI jobs read this line.
+# The tflint-ruleset-azurerm version is pinned in .tflint.hcl.
+TFLINT_VERSION := v0.64.0
+
 
 .EXPORT_ALL_VARIABLES:
 
@@ -41,6 +45,7 @@ tools: ## Install the tools required to develop the provider
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install mvdan.cc/gofumpt@latest
 	go install github.com/rhysd/actionlint/cmd/actionlint@$(ACTIONLINT_VERSION)
+	go install github.com/terraform-linters/tflint@$(TFLINT_VERSION)
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin $(GOLANGCI_LINT_VERSION)
 	@$(MAKE) golangci-with-modules
 
@@ -119,6 +124,31 @@ tfproviderlint: golangci-with-modules ## Check terraform schema definitions with
 azproviderlint: golangci-with-modules ## Check source code with only the azproviderlint checks
 	@echo "==> Checking source code with azproviderlint (via golangci-lint)..."
 	@./scripts/golangci-with-modules run -v --enable-only azproviderlint ./...
+
+# tflint (config in .tflint.hcl) checks terraform correctness: invalid names/enum values/skus and
+# deprecated syntax. terrafmt only checks formatting. Acceptance tests are linted from the configs
+# they actually apply (rendered by the tests themselves, see scripts/checks/tflint-acctests.sh).
+# tflint always resolves the config relative to the working directory, hence the absolute path.
+tflint-init: ## Install the tflint plugins pinned in .tflint.hcl
+	@command -v tflint >/dev/null || (echo "tflint not installed. Install via 'make tools' or: go install github.com/terraform-linters/tflint@$(TFLINT_VERSION)" && exit 1)
+	@tflint --config "$(CURDIR)/.tflint.hcl" --init
+
+tflint-acctests: PKGS ?= ./internal/services/...
+tflint-acctests: tflint-init ## Check the terraform the acceptance tests apply with tflint (PKGS=./internal/services/<service>/... to limit)
+	@"$(CURDIR)/scripts/checks/tflint-acctests.sh" $(PKGS)
+
+tflint-website: tflint-init ## Check the terraform blocks embedded in website docs with tflint
+	@"$(CURDIR)/scripts/checks/tflint-embedded.sh" ./website '*.html.markdown'
+
+tflint-examples: tflint-init ## Check the terraform examples with tflint
+	@echo "==> Checking examples with tflint..."
+	@tflint --config "$(CURDIR)/.tflint.hcl" --chdir=./examples --recursive --format=compact
+
+tflint-examples-fix: tflint-init ## Fix tflint findings in the terraform examples (remaining findings are reported)
+	@echo "==> Fixing examples with tflint..."
+	@tflint --config "$(CURDIR)/.tflint.hcl" --chdir=./examples --recursive --fix --format=compact
+
+hcl-lint: tflint-acctests tflint-website tflint-examples ## Check all terraform (acceptance tests, website docs, examples) with tflint
 
 yamllint: ## Check YAML files with yamllint (config in .yamllint.yml)
 	@command -v yamllint >/dev/null || (echo "yamllint not installed. Install via: brew install yamllint (macOS) or pip install yamllint" && exit 1)
@@ -226,4 +256,4 @@ resource-counts: ## Print the number of resources and data sources in the provid
 
 pr-check: generate build test lint website-lint ## Run the same set of checks CI runs against a PR
 
-.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint actionlint yamllint markdownlint shellcheck depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check
+.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint actionlint yamllint markdownlint shellcheck tflint-init tflint-acctests tflint-website tflint-examples tflint-examples-fix hcl-lint depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check

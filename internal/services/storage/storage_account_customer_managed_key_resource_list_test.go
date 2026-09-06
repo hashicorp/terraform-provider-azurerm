@@ -19,7 +19,7 @@ func TestAccStorageAccountCustomerManagedKey_list(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_customer_managed_key", "testlist")
 	r := StorageAccountCustomerManagedKeyResource{}
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

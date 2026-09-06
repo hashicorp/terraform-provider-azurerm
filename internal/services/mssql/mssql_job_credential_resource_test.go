@@ -79,7 +79,7 @@ func TestAccMsSqlJobCredential_writeOnlyPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_credential", "test")
 	r := MsSqlJobCredentialResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
+	acceptance.RunParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
 		},
@@ -103,7 +103,7 @@ func TestAccMsSqlJobCredential_updateToWriteOnlyPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_credential", "test")
 	r := MsSqlJobCredentialResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
+	acceptance.RunParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
 		},

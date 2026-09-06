@@ -21,7 +21,7 @@ func TestAccWebAppSetSlotDistributionAction_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_app_set_slot_distribution", "test")
 	a := WebAppSetSlotDistributionAction{}
 
-	resource.ParallelTest(t, resource.TestCase{
+	acceptance.RunParallelTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
@@ -45,7 +45,7 @@ func TestAccWebAppSetSlotDistributionAction_multiRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_app_set_slot_distribution", "test")
 	a := WebAppSetSlotDistributionAction{}
 
-	resource.ParallelTest(t, resource.TestCase{
+	acceptance.RunParallelTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),

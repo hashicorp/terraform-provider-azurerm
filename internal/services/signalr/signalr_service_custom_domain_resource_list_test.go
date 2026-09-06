@@ -24,7 +24,7 @@ func TestAccSignalrServiceCustomDomainResource_listBySignalRServiceID(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service_custom_domain", "testlist")
 	r := SignalrServiceCustomDomainResource{}
 
-	resource.Test(t, resource.TestCase{
+	acceptance.RunTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
