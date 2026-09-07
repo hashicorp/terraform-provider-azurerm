@@ -223,7 +223,7 @@ func (r StorageMoverSmbMountEndpointResource) Update() sdk.ResourceFunc {
 					v.Description = pointer.To(model.Description)
 				}
 
-				if metadata.ResourceData.HasChange("username_key_vault_secret_id") || metadata.ResourceData.HasChange("password_key_vault_secret_id") {
+				if metadata.ResourceData.HasChanges("username_key_vault_secret_id", "password_key_vault_secret_id") {
 					bothSet := model.UsernameKeyVaultSecretId != "" && model.PasswordKeyVaultSecretId != ""
 					bothEmpty := model.UsernameKeyVaultSecretId == "" && model.PasswordKeyVaultSecretId == ""
 					switch {
