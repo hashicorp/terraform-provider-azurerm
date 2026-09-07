@@ -82,7 +82,7 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 			"administrator_login": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				AtLeastOneOf: []string{"administrator_login", "azuread_administrator.0.azuread_authentication_only"},
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -134,14 +134,14 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 						"tenant_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.IsUUID,
 						},
 
 						"azuread_authentication_only": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 						},
 					},
 				},
@@ -172,7 +172,7 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 			"primary_user_assigned_identity_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 				RequiredWith: []string{
 					"identity",
@@ -704,8 +704,7 @@ func expandMsSqlServerAdministrators(input []interface{}) *servers.ServerExterna
 	}
 
 	if v, ok := admin["azuread_authentication_only"]; ok && v != "" {
-		adOnlyAuthentication := v.(bool)
-		adminParams.AzureADOnlyAuthentication = &adOnlyAuthentication
+		adminParams.AzureADOnlyAuthentication = pointer.To(v.(bool))
 	}
 
 	return &adminParams

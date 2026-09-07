@@ -63,15 +63,11 @@ func resourceApiManagementGroup() *pluginsdk.Resource {
 			},
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(group.GroupTypeCustom),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(group.GroupTypeCustom),
-					string(group.GroupTypeExternal),
-					string(group.GroupTypeSystem),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(group.GroupTypeCustom),
+				ValidateFunc: validation.StringInSlice(group.PossibleValuesForGroupType(), false),
 			},
 		},
 	}

@@ -73,13 +73,9 @@ func resourceConfidentialLedger() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"ledger_role_name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(confidentialledger.LedgerRoleNameAdministrator),
-								string(confidentialledger.LedgerRoleNameContributor),
-								string(confidentialledger.LedgerRoleNameReader),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(confidentialledger.PossibleValuesForLedgerRoleName(), false),
 						},
 						"principal_id": {
 							Type:         pluginsdk.TypeString,
@@ -102,13 +98,9 @@ func resourceConfidentialLedger() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"ledger_role_name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(confidentialledger.LedgerRoleNameAdministrator),
-								string(confidentialledger.LedgerRoleNameContributor),
-								string(confidentialledger.LedgerRoleNameReader),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(confidentialledger.PossibleValuesForLedgerRoleName(), false),
 						},
 						"pem_public_key": {
 							Type:         pluginsdk.TypeString,
@@ -298,12 +290,11 @@ func expandAADBasedSecurityPrincipal(input []interface{}) *[]confidentialledger.
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		ledgerRoleName := confidentialledger.LedgerRoleName(v["ledger_role_name"].(string))
 		principalId := v["principal_id"].(string)
 		tenantId := v["tenant_id"].(string)
 
 		result := confidentialledger.AADBasedSecurityPrincipal{
-			LedgerRoleName: &ledgerRoleName,
+			LedgerRoleName: pointer.ToEnum[confidentialledger.LedgerRoleName](v["ledger_role_name"].(string)),
 			PrincipalId:    pointer.To(principalId),
 			TenantId:       pointer.To(tenantId),
 		}
@@ -320,10 +311,9 @@ func expandCertBasedSecurityPrincipal(input []interface{}) *[]confidentialledger
 	for _, item := range input {
 		v := item.(map[string]interface{})
 
-		ledgerRoleName := confidentialledger.LedgerRoleName(v["ledger_role_name"].(string))
 		output = append(output, confidentialledger.CertBasedSecurityPrincipal{
 			Cert:           pointer.To(v["pem_public_key"].(string)),
-			LedgerRoleName: &ledgerRoleName,
+			LedgerRoleName: pointer.ToEnum[confidentialledger.LedgerRoleName](v["ledger_role_name"].(string)),
 		})
 	}
 

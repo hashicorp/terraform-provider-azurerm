@@ -61,12 +61,9 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"filter_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(subscriptions.FilterTypeSqlFilter),
-				string(subscriptions.FilterTypeCorrelationFilter),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(subscriptions.PossibleValuesForFilterType(), false),
 		},
 
 		"action": {
@@ -219,10 +216,9 @@ func resourceServiceBusSubscriptionRuleCreateUpdate(d *pluginsdk.ResourceData, m
 		}
 	}
 
-	filter := rules.FilterType(filterType)
 	rule := rules.Rule{
 		Properties: &rules.Ruleproperties{
-			FilterType: &filter,
+			FilterType: pointer.ToEnum[rules.FilterType](filterType),
 		},
 	}
 

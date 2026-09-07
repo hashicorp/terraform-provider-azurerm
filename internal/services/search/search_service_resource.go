@@ -65,17 +65,9 @@ func resourceSearchService() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(services.SkuNameFree),
-					string(services.SkuNameBasic),
-					string(services.SkuNameStandard),
-					string(services.SkuNameStandardTwo),
-					string(services.SkuNameStandardThree),
-					string(services.SkuNameStorageOptimizedLOne),
-					string(services.SkuNameStorageOptimizedLTwo),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(services.PossibleValuesForSkuName(), false),
 			},
 
 			"replica_count": {
@@ -106,23 +98,17 @@ func resourceSearchService() *pluginsdk.Resource {
 			},
 
 			"authentication_failure_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(services.AadAuthFailureModeHTTPFourZeroOneWithBearerChallenge),
-					string(services.AadAuthFailureModeHTTPFourZeroThree),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(services.PossibleValuesForAadAuthFailureMode(), false),
 			},
 
 			"hosting_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(services.HostingModeDefault),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(services.HostingModeDefault),
-					string(services.HostingModeHighDensity),
-				}, true),
+				Type:                  pluginsdk.TypeString,
+				Optional:              true,
+				ForceNew:              true,
+				Default:               string(services.HostingModeDefault),
+				ValidateFunc:          validation.StringInSlice(services.PossibleValuesForHostingMode(), true),
 				DiffSuppressFunc:      suppress.CaseDifference, // Breaking change introduced in https://github.com/Azure/azure-rest-api-specs/pull/37579 that changed the case of the Enum value
 				DiffSuppressOnRefresh: true,
 			},
@@ -202,13 +188,10 @@ func resourceSearchService() *pluginsdk.Resource {
 			},
 
 			"network_rule_bypass_option": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(services.SearchBypassAzureServices),
-					string(services.SearchBypassNone),
-				}, false),
-				Default: string(services.SearchBypassNone),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(services.PossibleValuesForSearchBypass(), false),
+				Default:      string(services.SearchBypassNone),
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),

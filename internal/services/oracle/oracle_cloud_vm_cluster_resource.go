@@ -97,7 +97,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"data_storage_size_in_tbs": {
 			Type:         pluginsdk.TypeFloat,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validate.DataStorageSizeInTbs,
 		},
@@ -105,7 +105,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"db_node_storage_size_in_gbs": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 		},
 
@@ -147,7 +147,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"memory_size_in_gbs": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 		},
 
@@ -185,14 +185,14 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"cluster_name": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 		},
 
 		"data_collection_options": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 			MaxItems: 1,
 			MinItems: 1,
@@ -201,21 +201,21 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 					"diagnostics_events_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Computed: true,
+						Computed: true, // azignore:AZS007 - pre-existing violation
 						ForceNew: true,
 					},
 
 					"health_monitoring_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Computed: true,
+						Computed: true, // azignore:AZS007 - pre-existing violation
 						ForceNew: true,
 					},
 
 					"incident_logs_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Computed: true,
+						Computed: true, // azignore:AZS007 - pre-existing violation
 						ForceNew: true,
 					},
 				},
@@ -225,7 +225,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"data_storage_percentage": {
 			Type:         schema.TypeInt,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.IntInSlice([]int{35, 40, 60, 80}),
 		},
@@ -233,21 +233,21 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"domain": {
 			Type:     schema.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 		},
 
 		"local_backup_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 		},
 
 		"sparse_diskgroup_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 		},
 
@@ -270,7 +270,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"system_version": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validate.SystemVersion,
 		},
@@ -278,14 +278,14 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"time_zone": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 		},
 
 		"zone_id": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 		},
 

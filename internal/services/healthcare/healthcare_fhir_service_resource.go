@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -20,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/validate"
@@ -72,14 +74,11 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"kind": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(fhirservices.FhirServiceKindFhirNegativeRFour),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(fhirservices.FhirServiceKindFhirNegativeRFour),
-					string(fhirservices.FhirServiceKindFhirNegativeStuThree),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(fhirservices.FhirServiceKindFhirNegativeRFour),
+				ValidateFunc: validation.StringInSlice(fhirservices.PossibleValuesForFhirServiceKind(), false),
 			},
 
 			"access_policy_object_ids": {
@@ -368,9 +367,8 @@ func expandOciArtifacts(input []interface{}) *[]fhirservices.ServiceOciArtifactE
 	for _, artifactSet := range input {
 		artifactRaw := artifactSet.(map[string]interface{})
 
-		loginServer := artifactRaw["login_server"].(string)
 		artifact := fhirservices.ServiceOciArtifactEntry{
-			LoginServer: &loginServer,
+			LoginServer: pointer.To(artifactRaw["login_server"].(string)),
 			ImageName:   nil,
 			Digest:      nil,
 		}
@@ -456,33 +454,14 @@ func resourceHealthcareApisFhirServiceDelete(d *pluginsdk.ResourceData, meta int
 	}
 
 	log.Printf("[DEBUG] Waiting for %s to be deleted..", id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"Pending"},
-		Target:                    []string{"Deleted"},
-		Refresh:                   fhirServiceStateStatusCodeRefreshFunc(ctx, client, *id),
-		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
-		ContinuousTargetOccurence: 3,
-		PollInterval:              10 * time.Second,
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(3, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, *id)
+		return resp.HttpResponse, err
+	}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
 	}
 	return nil
-}
-
-func fhirServiceStateStatusCodeRefreshFunc(ctx context.Context, client *fhirservices.FhirServicesClient, id fhirservices.FhirServiceId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return res, "Deleted", nil
-			}
-			return nil, "Error", fmt.Errorf("polling for the status of %s: %+v", id, err)
-		}
-
-		return res, "Pending", nil
-	}
 }
 
 func expandFhirAuthentication(input []interface{}) *fhirservices.FhirServiceAuthenticationConfiguration {
@@ -530,18 +509,16 @@ func expandFhirCorsConfiguration(input []interface{}) *fhirservices.FhirServiceC
 	allowedOrigins := *helpers.ExpandStringSlice(block["allowed_origins"].(*pluginsdk.Set).List())
 	allowedHeaders := *helpers.ExpandStringSlice(block["allowed_headers"].(*pluginsdk.Set).List())
 	allowedMethods := *helpers.ExpandStringSlice(block["allowed_methods"].(*pluginsdk.Set).List())
-	allowCredentials := block["credentials_allowed"].(bool)
 
 	cors := &fhirservices.FhirServiceCorsConfiguration{
 		Origins:          &allowedOrigins,
 		Headers:          &allowedHeaders,
 		Methods:          &allowedMethods,
-		AllowCredentials: &allowCredentials,
+		AllowCredentials: pointer.To(block["credentials_allowed"].(bool)),
 	}
 
 	if v, ok := block["max_age_in_seconds"]; ok {
-		maxAgeInSeconds := int64(v.(int))
-		cors.MaxAge = &maxAgeInSeconds
+		cors.MaxAge = pointer.To(int64(v.(int)))
 	}
 
 	return cors

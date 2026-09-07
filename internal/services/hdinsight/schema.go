@@ -36,13 +36,10 @@ func SchemaHDInsightName() *pluginsdk.Schema {
 
 func SchemaHDInsightTier() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeString,
-		Required: true,
-		ForceNew: true,
-		ValidateFunc: validation.StringInSlice([]string{
-			string(clusters.TierStandard),
-			string(clusters.TierPremium),
-		}, false),
+		Type:         pluginsdk.TypeString,
+		Required:     true,
+		ForceNew:     true,
+		ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForTier(), false),
 	}
 }
 
@@ -252,14 +249,11 @@ func SchemaHDInsightsNetwork() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"connection_direction": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ForceNew: true,
-					Default:  string(clusters.ResourceProviderConnectionInbound),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(clusters.ResourceProviderConnectionInbound),
-						string(clusters.ResourceProviderConnectionOutbound),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					Default:      string(clusters.ResourceProviderConnectionInbound),
+					ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForResourceProviderConnection(), false),
 				},
 
 				"private_link_enabled": {
@@ -447,12 +441,10 @@ func ExpandHDInsightComputeIsolationProperties(input []interface{}) *clusters.Co
 	}
 
 	v := input[0].(map[string]interface{})
-	enableComputeIsolation := v["compute_isolation_enabled"].(bool)
-	hostSku := v["host_sku"].(string)
 
 	return &clusters.ComputeIsolationProperties{
-		EnableComputeIsolation: &enableComputeIsolation,
-		HostSku:                &hostSku,
+		EnableComputeIsolation: pointer.To(v["compute_isolation_enabled"].(bool)),
+		HostSku:                pointer.To(v["host_sku"].(string)),
 	}
 }
 
@@ -695,12 +687,11 @@ func flattenHDInsightPrivateLinkConfigurations(input *[]clusters.PrivateLinkConf
 	}
 
 	v := pointer.From(input)[0]
-	ipConfig := v.Properties.IPConfigurations[0]
 	return []interface{}{
 		map[string]interface{}{
 			"name":             v.Name,
 			"group_id":         v.Properties.GroupId,
-			"ip_configuration": flattenHDInsightPrivateLinkConfigurationIpConfigurationProperties(&ipConfig),
+			"ip_configuration": flattenHDInsightPrivateLinkConfigurationIpConfigurationProperties(pointer.To(v.Properties.IPConfigurations[0])),
 		},
 	}
 }
@@ -1004,12 +995,9 @@ func SchemaHDInsightPrivateLinkConfigurationIpConfiguration() *pluginsdk.Schema 
 				},
 
 				"private_ip_allocation_method": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(clusters.PrivateIPAllocationMethodDynamic),
-						string(clusters.PrivateIPAllocationMethodStatic),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForPrivateIPAllocationMethod(), false),
 				},
 
 				"subnet_id": {
@@ -1026,13 +1014,11 @@ func ExpandHDInsightsDiskEncryptionProperties(input []interface{}) (*clusters.Di
 	v := input[0].(map[string]interface{})
 
 	encryptionAlgorithm := v["encryption_algorithm"].(string)
-	encryptionAtHost := v["encryption_at_host_enabled"].(bool)
-	keyVaultManagedIdentityId := v["key_vault_managed_identity_id"].(string)
 
 	diskEncryptionProps := &clusters.DiskEncryptionProperties{
 		EncryptionAlgorithm: pointer.ToEnum[clusters.JsonWebKeyEncryptionAlgorithm](encryptionAlgorithm),
-		EncryptionAtHost:    &encryptionAtHost,
-		MsiResourceId:       &keyVaultManagedIdentityId,
+		EncryptionAtHost:    pointer.To(v["encryption_at_host_enabled"].(bool)),
+		MsiResourceId:       pointer.To(v["key_vault_managed_identity_id"].(string)),
 	}
 
 	if id, ok := v["key_vault_key_id"]; ok && id.(string) != "" {
@@ -1282,16 +1268,8 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 											Type:     pluginsdk.TypeList,
 											Required: true,
 											Elem: &pluginsdk.Schema{
-												Type: pluginsdk.TypeString,
-												ValidateFunc: validation.StringInSlice([]string{
-													string(clusters.DaysOfWeekMonday),
-													string(clusters.DaysOfWeekTuesday),
-													string(clusters.DaysOfWeekWednesday),
-													string(clusters.DaysOfWeekThursday),
-													string(clusters.DaysOfWeekFriday),
-													string(clusters.DaysOfWeekSaturday),
-													string(clusters.DaysOfWeekSunday),
-												}, false),
+												Type:         pluginsdk.TypeString,
+												ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForDaysOfWeek(), false),
 											},
 										},
 
@@ -1467,16 +1445,8 @@ func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsi
 											Type:     pluginsdk.TypeList,
 											Required: true,
 											Elem: &pluginsdk.Schema{
-												Type: pluginsdk.TypeString,
-												ValidateFunc: validation.StringInSlice([]string{
-													string(clusters.DaysOfWeekMonday),
-													string(clusters.DaysOfWeekTuesday),
-													string(clusters.DaysOfWeekWednesday),
-													string(clusters.DaysOfWeekThursday),
-													string(clusters.DaysOfWeekFriday),
-													string(clusters.DaysOfWeekSaturday),
-													string(clusters.DaysOfWeekSunday),
-												}, false),
+												Type:         pluginsdk.TypeString,
+												ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForDaysOfWeek(), false),
 											},
 										},
 
@@ -1838,7 +1808,7 @@ func findHDInsightConnectivityEndpoint(name string, input *[]clusters.Connectivi
 
 func FlattenHDInsightNodeAutoscaleDefinition(input *clusters.Autoscale) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	result := map[string]interface{}{}
@@ -1854,7 +1824,7 @@ func FlattenHDInsightNodeAutoscaleDefinition(input *clusters.Autoscale) []interf
 	if len(result) > 0 {
 		return []interface{}{result}
 	}
-	return nil
+	return []interface{}{}
 }
 
 func FlattenHDInsightAutoscaleCapacityDefinition(input *clusters.AutoscaleCapacity) []interface{} {

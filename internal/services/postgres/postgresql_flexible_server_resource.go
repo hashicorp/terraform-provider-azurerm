@@ -76,7 +76,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			"administrator_login": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.All(validation.StringIsNotWhiteSpace, validate.AdminUsernames),
 			},
 
@@ -107,7 +107,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				MaxItems: 1,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"active_directory_auth_enabled": {
@@ -135,7 +135,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			"sku_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validate.FlexibleServerSkuName,
 			},
 
@@ -148,14 +148,14 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			"storage_mb": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4193280, 4194304, 8388608, 16777216, 33553408}),
 			},
 
 			"storage_tier": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servers.AzureManagedDiskPerformanceTierPFour),
 					string(servers.AzureManagedDiskPerformanceTierPSix),
@@ -171,20 +171,40 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"storage_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(servers.StorageTypePremiumLRS),
+				ForceNew: true,
+				// NOTE: not using `servers.PossibleValuesForStorageType()` because it includes `UltraSSD_LRS`, which is not GA yet
+				ValidateFunc: validation.StringInSlice([]string{
+					string(servers.StorageTypePremiumLRS),
+					string(servers.StorageTypePremiumVTwoLRS),
+				}, false),
+			},
+
+			"storage_iops": {
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// NOTE: O+C Azure computes IOPs for Premium_LRS or from source server
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(3000, 80000),
+			},
+
+			"storage_throughput": {
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// NOTE: O+C Azure computes throughput for Premium_LRS or from source server
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(125, 1200),
+			},
+
 			"version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(servers.PostgresMajorVersionOneOne),
-					string(servers.PostgresMajorVersionOneTwo),
-					string(servers.PostgresMajorVersionOneThree),
-					string(servers.PostgresMajorVersionOneFour),
-					string(servers.PostgresMajorVersionOneFive),
-					string(servers.PostgresMajorVersionOneSix),
-					string(servers.PostgresMajorVersionOneSeven),
-					string(servers.PostgresMajorVersionOneEight),
-				}, false),
+				// Note: O+C because Azure assigns a version when not explicitly set
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForPostgresMajorVersion(), false),
 			},
 
 			"zone": commonschema.ZoneSingleOptional(),
@@ -212,7 +232,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			"private_dns_zone_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				// todo make this case sensitive when https://github.com/Azure/azure-rest-api-specs/issues/26346 is fixed
 				DiffSuppressFunc: suppress.CaseDifference,
 				// This is `computed`, because there is a breaking change to require this field when setting vnet.
@@ -268,7 +288,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			"backup_retention_days": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.IntBetween(7, 35),
 			},
 
@@ -286,12 +306,9 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"mode": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(servers.HighAvailabilityModeZoneRedundant),
-								string(servers.HighAvailabilityModeSameZone),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(servers.PossibleValuesForHighAvailabilityMode(), false),
 						},
 
 						"standby_availability_zone": commonschema.ZoneSingleOptional(),
@@ -406,6 +423,10 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}
 				return nil
 			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				if diff.Get("storage_type").(string) == string(servers.StorageTypePremiumVTwoLRS) {
+					return nil
+				}
+
 				storageTierMappings := validate.InitializeFlexibleServerStorageTierDefaults()
 				var newTier string
 				var newMb int
@@ -489,6 +510,58 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 				if (oldIdentityType == string(identity.TypeUserAssigned) && newIdentityType == string(identity.TypeSystemAssigned)) || (oldIdentityType == string(identity.TypeUserAssigned) && newIdentityType == string(identity.TypeNone)) || (oldIdentityType == string(identity.TypeSystemAssignedUserAssigned) && newIdentityType == string(identity.TypeSystemAssigned)) || (oldIdentityType == string(identity.TypeSystemAssignedUserAssigned) && newIdentityType == string(identity.TypeNone)) {
 					diff.ForceNew("identity.0.type")
+				}
+
+				return nil
+			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				configMap := diff.GetRawConfig().AsValueMap()
+				createMode := diff.Get("create_mode").(string)
+
+				if diff.Get("storage_type").(string) == string(servers.StorageTypePremiumVTwoLRS) {
+					version := diff.Get("version").(string)
+					if version == string(servers.PostgresMajorVersionOneOne) || version == string(servers.PostgresMajorVersionOneTwo) || version == string(servers.PostgresMajorVersionOneThree) {
+						return fmt.Errorf("PostgreSQL version `%s` is not supported when `storage_type` is `PremiumV2_LRS`", version)
+					}
+
+					if skuName, ok := diff.GetOk("sku_name"); ok {
+						if strings.HasPrefix(skuName.(string), "B_") {
+							return errors.New("burstable compute tier is not supported when `storage_type` is `PremiumV2_LRS`")
+						}
+					}
+
+					if v := configMap["storage_tier"]; !v.IsNull() {
+						return errors.New("`storage_tier` is not supported when `storage_type` is `PremiumV2_LRS`")
+					}
+
+					if diff.Get("auto_grow_enabled").(bool) {
+						return errors.New("`auto_grow_enabled` is not supported when `storage_type` is `PremiumV2_LRS`")
+					}
+
+					if diff.Get("geo_redundant_backup_enabled").(bool) {
+						if _, ok := diff.GetOk("customer_managed_key"); ok {
+							return errors.New("`geo_redundant_backup_enabled` with `customer_managed_key` is not supported when `storage_type` is `PremiumV2_LRS`")
+						}
+					}
+
+					if createMode == "" || createMode == string(servers.CreateModeDefault) {
+						if v := configMap["storage_iops"]; v.IsNull() {
+							return errors.New("`storage_iops` is required when `storage_type` is `PremiumV2_LRS` and `create_mode` is `Default`")
+						}
+
+						if v := configMap["storage_throughput"]; v.IsNull() {
+							return errors.New("`storage_throughput` is required when `storage_type` is `PremiumV2_LRS` and `create_mode` is `Default`")
+						}
+					}
+				}
+
+				if diff.Get("storage_type").(string) == string(servers.StorageTypePremiumLRS) {
+					if v := configMap["storage_iops"]; !v.IsNull() {
+						return errors.New("`storage_iops` is only supported when `storage_type` is `PremiumV2_LRS`")
+					}
+
+					if v := configMap["storage_throughput"]; !v.IsNull() {
+						return errors.New("`storage_throughput` is only supported when `storage_type` is `PremiumV2_LRS`")
+					}
 				}
 
 				return nil
@@ -645,9 +718,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		storageMb = int(*storage.StorageSizeGB) * 1024
 	}
 
-	if storage.Tier == nil || *storage.Tier == "" {
-		// determine the correct default storage_tier based
-		// on the defined storage_mb...
+	if pointer.From(storage.Type) != servers.StorageTypePremiumVTwoLRS && pointer.From(storage.Tier) == "" {
 		storageTierMappings := validate.InitializeFlexibleServerStorageTierDefaults()
 		storageTiers := storageTierMappings[storageMb]
 		storage.Tier = pointer.To(storageTiers.DefaultTier)
@@ -681,13 +752,11 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if createMode != "" {
-		createModeAttr := servers.CreateMode(createMode)
-		parameters.Properties.CreateMode = &createModeAttr
+		parameters.Properties.CreateMode = pointer.ToEnum[servers.CreateMode](createMode)
 	}
 
 	if v, ok := d.GetOk("version"); ok && v.(string) != "" {
-		version := servers.PostgresMajorVersion(v.(string))
-		parameters.Properties.Version = &version
+		parameters.Properties.Version = pointer.ToEnum[servers.PostgresMajorVersion](v.(string))
 	}
 
 	if v, ok := d.GetOk("zone"); ok && v.(string) != "" {
@@ -822,6 +891,18 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 
 				if storage.Tier != nil {
 					d.Set("storage_tier", string(*storage.Tier))
+				}
+
+				if storage.Type != nil {
+					d.Set("storage_type", string(*storage.Type))
+				}
+
+				if storage.Iops != nil {
+					d.Set("storage_iops", *storage.Iops)
+				}
+
+				if storage.Throughput != nil {
+					d.Set("storage_throughput", *storage.Throughput)
 				}
 			}
 
@@ -978,10 +1059,9 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		createMode := d.Get("create_mode").(string)
 		replicationRole := d.Get("replication_role").(string)
 		if createMode == string(servers.CreateModeReplica) && replicationRole == string(servers.ReplicationRoleNone) {
-			replicationRole := servers.ReplicationRoleNone
 			parameters := servers.ServerForPatch{
 				Properties: &servers.ServerPropertiesForPatch{
-					ReplicationRole: &replicationRole,
+					ReplicationRole: pointer.To(servers.ReplicationRoleNone),
 				},
 			}
 
@@ -1007,7 +1087,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfigForPatch(d.Get("authentication").([]interface{}))
 	}
 
-	if d.HasChanges("auto_grow_enabled", "storage_mb", "storage_tier") {
+	if d.HasChanges("auto_grow_enabled", "storage_mb", "storage_tier", "storage_iops", "storage_throughput") {
 		// TODO remove the additional update after https://github.com/Azure/azure-rest-api-specs/issues/22867 is fixed
 		storage := expandArmServerStorage(d)
 
@@ -1073,7 +1153,6 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if requireUpdateOnLogin {
-		updateMode := servers.CreateModeUpdate
 		// Login password can be set using `administrator_password` or `administrator_password_wo`
 		loginPassword := d.Get("administrator_password").(string)
 		if !woPassword.IsNull() {
@@ -1083,7 +1162,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		loginParameters := servers.Server{
 			Location: location.Normalize(d.Get("location").(string)),
 			Properties: &servers.ServerProperties{
-				CreateMode:                 &updateMode,
+				CreateMode:                 pointer.To(servers.CreateModeUpdate),
 				AuthConfig:                 expandFlexibleServerAuthConfig(d.Get("authentication").([]interface{})),
 				AdministratorLogin:         pointer.To(d.Get("administrator_login").(string)),
 				AdministratorLoginPassword: &loginPassword,
@@ -1181,8 +1260,18 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 		storage.StorageSizeGB = pointer.To(int64(v.(int) / 1024))
 	}
 
+	storage.Type = pointer.ToEnum[servers.StorageType](d.Get("storage_type").(string))
+
 	if v, ok := d.GetOk("storage_tier"); ok {
 		storage.Tier = pointer.ToEnum[servers.AzureManagedDiskPerformanceTier](v.(string))
+	}
+
+	if v, ok := d.GetOk("storage_iops"); ok {
+		storage.Iops = pointer.To(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("storage_throughput"); ok {
+		storage.Throughput = pointer.To(int64(v.(int)))
 	}
 
 	return &storage
@@ -1309,17 +1398,15 @@ func flattenArmServerMaintenanceWindow(input *servers.MaintenanceWindow) []inter
 
 func expandFlexibleServerHighAvailability(inputs []interface{}, isCreate bool) *servers.HighAvailability {
 	if len(inputs) == 0 || inputs[0] == nil {
-		highAvailability := servers.PostgreSqlFlexibleServerHighAvailabilityModeDisabled
 		return &servers.HighAvailability{
-			Mode: &highAvailability,
+			Mode: pointer.To(servers.PostgreSqlFlexibleServerHighAvailabilityModeDisabled),
 		}
 	}
 
 	input := inputs[0].(map[string]interface{})
 
-	mode := servers.PostgreSqlFlexibleServerHighAvailabilityMode(input["mode"].(string))
 	result := servers.HighAvailability{
-		Mode: &mode,
+		Mode: pointer.ToEnum[servers.PostgreSqlFlexibleServerHighAvailabilityMode](input["mode"].(string)),
 	}
 
 	// service team confirmed it doesn't support to update `high_availability.0.standby_availability_zone` after the PostgreSQL Flexible Server resource is created
@@ -1334,17 +1421,15 @@ func expandFlexibleServerHighAvailability(inputs []interface{}, isCreate bool) *
 
 func expandFlexibleServerHighAvailabilityForPatch(inputs []interface{}, isCreate bool) *servers.HighAvailabilityForPatch {
 	if len(inputs) == 0 || inputs[0] == nil {
-		highAvailability := servers.PostgreSqlFlexibleServerHighAvailabilityModeDisabled
 		return &servers.HighAvailabilityForPatch{
-			Mode: &highAvailability,
+			Mode: pointer.To(servers.PostgreSqlFlexibleServerHighAvailabilityModeDisabled),
 		}
 	}
 
 	input := inputs[0].(map[string]interface{})
 
-	mode := servers.PostgreSqlFlexibleServerHighAvailabilityMode(input["mode"].(string))
 	result := servers.HighAvailabilityForPatch{
-		Mode: &mode,
+		Mode: pointer.ToEnum[servers.PostgreSqlFlexibleServerHighAvailabilityMode](input["mode"].(string)),
 	}
 
 	// service team confirmed it doesn't support to update `high_availability.0.standby_availability_zone` after the PostgreSQL Flexible Server resource is created
@@ -1461,9 +1546,8 @@ func expandFlexibleServerDataEncryption(input []interface{}) *servers.DataEncryp
 	}
 	v := input[0].(map[string]interface{})
 
-	det := servers.DataEncryptionTypeAzureKeyVault
 	dataEncryption := servers.DataEncryption{
-		Type: &det,
+		Type: pointer.To(servers.DataEncryptionTypeAzureKeyVault),
 	}
 
 	if keyVaultKeyId := v["key_vault_key_id"].(string); keyVaultKeyId != "" {

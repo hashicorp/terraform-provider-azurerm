@@ -29,7 +29,7 @@ jobs:
       - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
         with:
           distribution: zulu
-          java-version: 17
+          java-version: 21
           java-package: jdk
       - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
