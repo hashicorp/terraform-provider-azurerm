@@ -32,7 +32,6 @@ The following resources currently support Preflight Validation:
 * `azurerm_dashboard_grafana`
 * `azurerm_eventgrid_namespace`
 * `azurerm_managed_redis`
-* `azurerm_monitor_data_collection_endpoint`
 * `azurerm_nginx_deployment`
 * `azurerm_service_plan`
 * `azurerm_virtual_machine_extension`

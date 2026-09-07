@@ -181,69 +181,57 @@ func expandCreateForVirtualMachineExtension(d *schema.ResourceDiff, location str
 }
 
 // resolvePreflightVMLocation looks up the location of the parent VM for use in preflight
-// validation. Returns skip=true if the virtual_machine_id is not yet known (cross-resource
-// computed value) or if the VM cannot be found, so that validation is gracefully skipped
-// rather than failing the plan.
-func resolvePreflightVMLocation(ctx context.Context, client *clients.Client, d *schema.ResourceDiff) (loc string, skip bool) {
+// validation. Returns skip=true if the virtual_machine_id is not yet known or the VM does not
+// exist and no location fallback is configured.
+func resolvePreflightVMLocation(ctx context.Context, client *clients.Client, d *schema.ResourceDiff) (loc string, skip bool, err error) {
 	vmIdRaw := d.Get("virtual_machine_id").(string)
 	if vmIdRaw == "" {
-		// virtual_machine_id is (known after apply) — skip gracefully.
-		return "", true
+		return "", true, nil
 	}
 
 	vmId, err := virtualmachines.ParseVirtualMachineID(vmIdRaw)
 	if err != nil {
-		return "", true
+		return "", false, fmt.Errorf("parsing virtual_machine_id for preflight validation: %w", err)
 	}
 
 	vm, err := client.Compute.VirtualMachinesClient.Get(ctx, *vmId, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(vm.HttpResponse) {
-			// VM doesn't exist yet — gracefully skip.
-			return "", true
+			if fallback := client.Features.EnhancedValidation.LocationFallback; fallback != nil {
+				return *fallback, false, nil
+			}
+
+			return "", true, nil
 		}
-		// For any other error also skip rather than failing plan.
-		return "", true
+
+		return "", false, fmt.Errorf("retrieving %s for preflight validation: %+v", vmId, err)
 	}
 
 	if vm.Model == nil || vm.Model.Location == "" {
-		return "", true
+		return "", false, fmt.Errorf("determining location of %s for preflight validation: location was missing", vmId)
 	}
 
-	return vm.Model.Location, false
+	return vm.Model.Location, false, nil
 }
 
 // resourceVirtualMachineExtensionCustomizeDiff implements preflight validation for
-// azurerm_virtual_machine_extension. It uses Pattern 2 (create and ForceNew replacement
-// only) because in-place updates do not change the extension type or its parent VM, so
-// running the full ARM PUT payload against the preflight API on every update would produce
-// false positives from immutable fields (publisher, virtual_machine_id) that cannot change
-// without a ForceNew destroy+create.
+// azurerm_virtual_machine_extension. The resource uses the same complete PUT payload for
+// create and update, so validation can run for both operations.
 func resourceVirtualMachineExtensionCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 	client := meta.(*clients.Client)
 
-	if !client.Features.EnhancedValidation.PreflightEnabled {
+	if d == nil || !client.Features.EnhancedValidation.PreflightEnabled {
 		return nil
 	}
 
-	isNewResource := d.Id() == ""
-	isForceNewReplacement := false
-
-	if !isNewResource {
-		forceNewKeys := []string{"name", "virtual_machine_id", "publisher"}
-		for _, key := range forceNewKeys {
-			if d.HasChange(key) {
-				isForceNewReplacement = true
-				break
-			}
-		}
-	}
-
-	if !isNewResource && !isForceNewReplacement {
+	if len(d.GetChangedKeysPrefix("")) == 0 && d.Id() != "" {
 		return nil
 	}
 
-	loc, skip := resolvePreflightVMLocation(ctx, client, d)
+	loc, skip, err := resolvePreflightVMLocation(ctx, client, d)
+	if err != nil {
+		return err
+	}
 	if skip {
 		return nil
 	}
@@ -251,7 +239,7 @@ func resourceVirtualMachineExtensionCustomizeDiff(ctx context.Context, d *schema
 	vmIdRaw := d.Get("virtual_machine_id").(string)
 	vmId, err := virtualmachines.ParseVirtualMachineID(vmIdRaw)
 	if err != nil {
-		return nil
+		return fmt.Errorf("parsing virtual_machine_id for preflight validation: %w", err)
 	}
 
 	extensionName := d.Get("name").(string)

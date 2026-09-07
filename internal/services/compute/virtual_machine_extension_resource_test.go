@@ -160,11 +160,78 @@ func TestAccVirtualMachineExtension_completePreflightPlan(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.preflightVirtualMachine(data),
+		},
+		{
 			Config:             r.completePreflightPlan(data),
 			PlanOnly:           true,
 			ExpectNonEmptyPlan: true,
 		},
 	})
+}
+
+func (r VirtualMachineExtensionResource) preflightVirtualMachine(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctvn-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctni-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                            = "acctvm-%[1]d"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
+  network_interface_ids           = [azurerm_network_interface.test.id]
+  size                            = "Standard_F2"
+  computer_name                   = "hostname%[1]d"
+  admin_username                  = "testadmin"
+  admin_password                  = "Password1234!"
+  disable_password_authentication = false
+
+  os_disk {
+    name                 = "myosdisk1-%[1]d"
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r VirtualMachineExtensionResource) completePreflightPlan(data acceptance.TestData) string {
@@ -173,6 +240,7 @@ provider "azurerm" {
   features {
     enhanced_validation {
       preflight_enabled = true
+      preflight_location_fallback = "%[2]s"
     }
   }
 }
