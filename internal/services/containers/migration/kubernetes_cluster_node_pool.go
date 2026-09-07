@@ -8,7 +8,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-04-01/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
