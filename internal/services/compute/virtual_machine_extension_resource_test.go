@@ -239,7 +239,7 @@ func (r VirtualMachineExtensionResource) completePreflightPlan(data acceptance.T
 provider "azurerm" {
   features {
     enhanced_validation {
-      preflight_enabled = true
+      preflight_enabled           = true
       preflight_location_fallback = "%[2]s"
     }
   }
