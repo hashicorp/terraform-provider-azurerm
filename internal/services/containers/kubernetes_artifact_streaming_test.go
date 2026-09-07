@@ -99,8 +99,8 @@ func TestArtifactStreamingDefaultNodePoolDisable(t *testing.T) {
 	var updated *managedclusters.AgentPoolArtifactStreamingProfile
 	resource := &schema.Resource{
 		Schema: map[string]*schema.Schema{"default_node_pool": containers.SchemaDefaultNodePool()},
-		Update: func(data *schema.ResourceData, _ interface{}) error {
-			profiles, err := containers.ExpandDefaultNodePool(data)
+		Update: func(d *schema.ResourceData, _ interface{}) error {
+			profiles, err := containers.ExpandDefaultNodePool(d)
 			if err == nil {
 				updated = (*profiles)[0].ArtifactStreamingProfile
 			}
