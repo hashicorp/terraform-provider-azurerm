@@ -11,9 +11,7 @@ description: |-
 Manages an Application Gateway.
 
 ~> **Note:** The `backend_address_pool`, `backend_http_settings`, `http_listener`, `private_link_configuration`, `request_routing_rule`, `redirect_configuration`, `probe`, `ssl_certificate`,
-and `frontend_port` properties are Sets as the service API returns these lists of objects in a different order from how the provider sends them. As Sets are stored using a hash, if one 
-value is added or removed from the Set, Terraform considers the entire list of objects changed and the plan shows that it is removing every value in the list and re-adding it with the 
-new information. Though Terraform is showing all the values being removed and re-added, we are not actually removing anything unless the user specifies a removal in the configfile.
+and `frontend_port` properties are Sets as the service API returns these lists of objects in a different order from how the provider sends them. A changed set member may appear as a removed block followed by an added block in the plan. This does not imply replacement of the Application Gateway; check the resource-level action in the plan. Unchanged blocks are preserved when their only differences are absent-value representations introduced during planning.
 
 ## Example Usage
 

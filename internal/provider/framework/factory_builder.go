@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-testing/echoprovider"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/applicationgateway"
 )
 
 func ProtoV6ProviderFactoriesInit(_ context.Context, providerNames ...string) map[string]func() (tfprotov6.ProviderServer, error) {
@@ -53,7 +54,7 @@ func ProtoV5ProviderServerFactory(ctx context.Context) (func() tfprotov5.Provide
 	v2Provider := provider.AzureProvider()
 
 	providers := []func() tfprotov5.ProviderServer{
-		v2Provider.GRPCProvider,
+		sdkProviderServer(v2Provider),
 		providerserver.NewProtocol5(NewFrameworkProvider(v2Provider)),
 	}
 
@@ -87,7 +88,7 @@ func ProtoV5ProviderServerFactoryWithTestName(ctx context.Context, testName stri
 	v2Provider := provider.AzureProviderWithTestName(testName)
 
 	providers := []func() tfprotov5.ProviderServer{
-		v2Provider.GRPCProvider,
+		sdkProviderServer(v2Provider),
 		providerserver.NewProtocol5(NewFrameworkProvider(v2Provider)),
 	}
 
@@ -101,4 +102,12 @@ func ProtoV5ProviderServerFactoryWithTestName(ctx context.Context, testName stri
 
 func V5ProviderWithoutPluginSDK() func() tfprotov5.ProviderServer {
 	return providerserver.NewProtocol5(NewFrameworkV5Provider())
+}
+
+// sdkProviderServer applies Application Gateway nested block plan normalization to
+// both the production server and the acceptance-test server.
+func sdkProviderServer(provider *schema.Provider) func() tfprotov5.ProviderServer {
+	return func() tfprotov5.ProviderServer {
+		return applicationgateway.Wrap(provider.GRPCProvider(), provider.ResourcesMap["azurerm_application_gateway"])
+	}
 }
