@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `node_image_selection_type` - (Optional) The node image selection type for the auto upgrade profile. When omitted, no node image selection preference is sent to Azure. Possible values are `Consistent` and `Latest`.
 
-* `update_strategy_id` - (Optional) The ID of the Fleet Update Strategy to use for this auto upgrade profile.
+* `update_strategy_id` - (Optional) The ID of the Fleet Update Strategy to use for this auto upgrade profile. Changing this forces a new Kubernetes Fleet Auto Upgrade Profile to be created.
 
 ## Attributes Reference
 
