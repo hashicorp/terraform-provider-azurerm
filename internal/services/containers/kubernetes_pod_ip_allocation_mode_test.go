@@ -36,7 +36,7 @@ func TestPodIPAllocationModeDefaultNodePoolConversion(t *testing.T) {
 		t.Run(mode, func(t *testing.T) {
 			profile := managedclusters.ManagedClusterAgentPoolProfile{Name: "default"}
 			if mode != "" {
-				profile.PodIPAllocationMode = pointer.To(managedclusters.PodIPAllocationMode(mode))
+				profile.PodIPAllocationMode = pointer.ToEnum[managedclusters.PodIPAllocationMode](mode)
 			}
 			result := containers.ConvertDefaultNodePoolToAgentPool(&[]managedclusters.ManagedClusterAgentPoolProfile{profile})
 			if mode == "" {
