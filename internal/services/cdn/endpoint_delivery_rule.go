@@ -237,18 +237,13 @@ func expandDeliveryRuleActions(input map[string]interface{}) ([]cdn.BasicDeliver
 }
 
 func flattenArmCdnEndpointDeliveryRule(deliveryRule cdn.DeliveryRule) (*map[string]interface{}, error) {
-	name := ""
-	if deliveryRule.Name != nil {
-		name = *deliveryRule.Name
-	}
-
 	order := -1
 	if deliveryRule.Order != nil {
 		order = int(*deliveryRule.Order)
 	}
 
 	output := map[string]interface{}{
-		"name":  name,
+		"name":  pointer.From(deliveryRule.Name),
 		"order": order,
 	}
 

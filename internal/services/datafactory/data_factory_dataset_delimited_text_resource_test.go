@@ -405,7 +405,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "content"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -433,7 +433,7 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
     filename  = "foo.txt"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (DatasetDelimitedTextResource) blob(data acceptance.TestData) string {
@@ -457,7 +457,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "content"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -495,7 +495,7 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
   first_row_as_header = true
   null_value          = "NULL"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (DatasetDelimitedTextResource) blob_empty_path(data acceptance.TestData) string {
@@ -519,7 +519,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "content"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -556,7 +556,7 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
   null_value          = "NULL"
 
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (DatasetDelimitedTextResource) blobFS(data acceptance.TestData) string {
@@ -725,7 +725,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "content"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -764,5 +764,5 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
   first_row_as_header = true
   null_value          = "NULL"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

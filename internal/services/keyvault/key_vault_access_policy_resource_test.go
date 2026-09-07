@@ -145,10 +145,7 @@ func (t KeyVaultAccessPolicyResource) Exists(ctx context.Context, clients *clien
 	if model := resp.Model; model != nil && model.Properties.AccessPolicies != nil {
 		for _, policy := range *model.Properties.AccessPolicies {
 			if strings.EqualFold(policy.ObjectId, id.ObjectID()) {
-				aid := ""
-				if policy.ApplicationId != nil {
-					aid = *policy.ApplicationId
-				}
+				aid := pointer.From(policy.ApplicationId)
 
 				if strings.EqualFold(aid, id.ApplicationId()) {
 					found = true
@@ -346,11 +343,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctestkv-%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

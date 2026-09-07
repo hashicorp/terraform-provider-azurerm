@@ -89,11 +89,29 @@ The following arguments are supported:
 
 !> **Note:** The `sharing_scope` property is only available to users who have been explicitly registered and granted access by the Azure Networking Product Group.
 
-* `service_endpoints` - (Optional) The list of Service endpoints to associate with the subnet. Possible values include: `Microsoft.AzureActiveDirectory`, `Microsoft.AzureCosmosDB`, `Microsoft.ContainerRegistry`, `Microsoft.EventHub`, `Microsoft.KeyVault`, `Microsoft.ServiceBus`, `Microsoft.Sql`, `Microsoft.Storage`, `Microsoft.Storage.Global` and `Microsoft.Web`.
-
--> **Note:** In order to use `Microsoft.Storage.Global` service endpoint (which allows access to virtual networks in other regions), you must enable the `AllowGlobalTagsForStorage` feature in your subscription. This is currently a preview feature, please see the [official documentation](https://learn.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-cli#enabling-access-to-virtual-networks-in-other-regions-preview) for more information.
+* `service_endpoint` - (Optional) A `service_endpoint` block as defined below.
 
 * `service_endpoint_policy_ids` - (Optional) The list of IDs of Service Endpoint Policies to associate with the subnet.
+
+* `network_security_group_id_wo` - (Optional, Write-Only) The ID of the Network Security Group to associate with the subnet.
+
+-> **Note:** This property is only meant for environments where Azure Policy requires Network Security Groups to be specified during Subnet creation/update. It is recommended to use the `azurerm_subnet_network_security_group_association` resource instead.
+
+* `network_security_group_id_wo_version` - (Optional) An integer that must be incremented whenever `network_security_group_id_wo` is updated. Required if `network_security_group_id_wo` is specified.
+
+* `route_table_id_wo` - (Optional, Write-Only) The ID of the Route Table to associate with the subnet.
+
+-> **Note:** This property is only meant for environments where Azure Policy requires Route Tables to be specified during Subnet creation/update. It is recommended to use the `azurerm_subnet_route_table_association` resource instead.
+
+* `route_table_id_wo_version` - (Optional) An integer that must be incremented whenever `route_table_id_wo` is updated. Required if `route_table_id_wo` is specified.
+
+---
+
+A `service_endpoint` block supports the following:
+
+* `service` - (Required) The name of the Service endpoint to associate with the subnet. Possible values are `Microsoft.AzureActiveDirectory`, `Microsoft.AzureCosmosDB`, `Microsoft.CognitiveService`, `Microsoft.ContainerRegistry`, `Microsoft.EventHub`, `Microsoft.KeyVault`, `Microsoft.ServiceBus`, `Microsoft.Sql`, `Microsoft.Storage`, `Microsoft.Storage.Global`, and `Microsoft.Web`.
+
+* `network_identifier` - (Optional) The ARM resource ID of the network identifier to associate with the service endpoint.
 
 ---
 
@@ -111,7 +129,7 @@ An `ip_address_pool` block supports the following:
 
 * `number_of_ip_addresses` - (Required) The number of IP addresses to allocated to the subnet. The value must be a string that represents a positive number, e.g., `"100"`.
 
--> **Note:** `number_of_ip_addresses` cannot be decreased.
+~> **Note:** `number_of_ip_addresses` cannot be decreased.
 
 ---
 

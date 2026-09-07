@@ -71,12 +71,10 @@ func resourceComputeInstance() *pluginsdk.Resource {
 			},
 
 			"authorization_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(machinelearningcomputes.ComputeInstanceAuthorizationTypePersonal),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(machinelearningcomputes.PossibleValuesForComputeInstanceAuthorizationType(), false),
 			},
 
 			"assign_to_user": {
@@ -248,7 +246,7 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	// https://learn.microsoft.com/azure/machine-learning/how-to-create-attach-compute-cluster?view=azureml-api-2&tabs=python#limitations
 
 	if v, ok := d.GetOk("authorization_type"); ok {
-		props.Properties.ComputeInstanceAuthorizationType = pointer.To(machinelearningcomputes.ComputeInstanceAuthorizationType(v.(string)))
+		props.Properties.ComputeInstanceAuthorizationType = pointer.ToEnum[machinelearningcomputes.ComputeInstanceAuthorizationType](v.(string))
 	}
 
 	parameters.Properties = props

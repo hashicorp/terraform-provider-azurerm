@@ -79,6 +79,8 @@ The following arguments are supported:
 
 * `rules` - (Required) One or more `rules` blocks as defined below.
 
+* `metrics_enabled` - (Optional) Whether metrics are enabled for this object replication. Defaults to `false`.
+
 ---
 
 A `rules` block supports the following:

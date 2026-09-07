@@ -9,10 +9,10 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -138,12 +138,12 @@ func TestAccBotServiceAzureBot_cmekEnabled(t *testing.T) {
 }
 
 func (t BotServiceAzureBotResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.BotServiceID(state.ID)
+	id, err := commonids.ParseBotServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Bot.BotClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Bot.BotClient.Get(ctx, id.ResourceGroupName, id.BotServiceName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
@@ -228,7 +228,7 @@ resource "azurerm_bot_service_azure_bot" "test" {
   public_network_access_enabled         = false
   icon_url                              = "https://registry.terraform.io/images/providers/azure.png"
   endpoint                              = "https://example.com"
-  developer_app_insights_api_key        = azurerm_application_insights_api_key.test.api_key
+  developer_app_insights_api_key        = "IamAFakeKeyToTestTheAttribute00000000000"
   developer_app_insights_application_id = azurerm_application_insights.test.app_id
 
   tags = {
@@ -354,7 +354,7 @@ resource "azurerm_key_vault" "test" {
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
   purge_protection_enabled    = true
-  enable_rbac_authorization   = true
+  rbac_authorization_enabled  = true
   sku_name                    = "standard"
 }
 

@@ -83,6 +83,8 @@ The following attributes are exported:
 
 * `storage_account_access_key` - The access key which will be used to access the backend storage account for the Logic App.
 
+* `storage_key_vault_secret_id` - The Key Vault Secret ID, optionally including version, that contains the connection string to the backend storage account for the Logic App.
+
 * `storage_account_share_name` - The name of the share used by the logic app.
 
 * `tags` - A mapping of tags assigned to the resource.

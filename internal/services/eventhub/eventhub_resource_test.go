@@ -15,14 +15,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type EventHubResource struct{}
 
-func TestAccEventHubPartitionCount_validation(t *testing.T) {
+func TestAccEventHub_partitionCountValidation(t *testing.T) {
 	cases := []struct {
 		Value    int
 		ErrCount int
@@ -66,7 +65,7 @@ func TestAccEventHubPartitionCount_validation(t *testing.T) {
 	}
 }
 
-func TestAccEventHubMessageRetentionCount_validation(t *testing.T) {
+func TestAccEventHub_messageRetentionCountValidation(t *testing.T) {
 	cases := []struct {
 		Value    int
 		ErrCount int
@@ -110,7 +109,7 @@ func TestAccEventHubMessageRetentionCount_validation(t *testing.T) {
 	}
 }
 
-func TestAccEventHubArchiveNameFormat_validation(t *testing.T) {
+func TestAccEventHub_archiveNameFormatValidation(t *testing.T) {
 	cases := []struct {
 		Value    string
 		ErrCount int
@@ -233,14 +232,14 @@ func TestAccEventHub_partitionCountUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, 2),
+			Config: r.partitionCount(data, 2),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("partition_count").HasValue("2"),
 			),
 		},
 		{
-			Config: r.partitionCountUpdate(data),
+			Config: r.partitionCount(data, 10),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("partition_count").HasValue("10"),
@@ -545,33 +544,6 @@ func (EventHubResource) Exists(ctx context.Context, clients *clients.Client, sta
 }
 
 func (EventHubResource) basic(data acceptance.TestData, partitionCount int) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-eventhub-%d"
-  location = "%s"
-}
-
-resource "azurerm_eventhub_namespace" "test" {
-  name                = "acctesteventhubnamespace-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-}
-
-resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = %d
-  message_retention   = 1
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, partitionCount)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -612,7 +584,7 @@ resource "azurerm_eventhub" "import" {
 `, template)
 }
 
-func (EventHubResource) partitionCountUpdate(data acceptance.TestData) string {
+func (EventHubResource) partitionCount(data acceptance.TestData, partitionCount int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -633,10 +605,10 @@ resource "azurerm_eventhub_namespace" "test" {
 resource "azurerm_eventhub" "test" {
   name              = "acctesteventhub-%d"
   namespace_id      = azurerm_eventhub_namespace.test.id
-  partition_count   = 10
+  partition_count   = %d
   message_retention = 1
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, partitionCount)
 }
 
 func (EventHubResource) standard(data acceptance.TestData) string {
@@ -1107,7 +1079,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctest%s"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomString)

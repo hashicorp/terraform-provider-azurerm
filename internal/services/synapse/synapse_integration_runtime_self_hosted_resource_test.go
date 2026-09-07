@@ -81,7 +81,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "content"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -109,7 +109,7 @@ resource "azurerm_synapse_firewall_rule" "test" {
   start_ip_address     = "0.0.0.0"
   end_ip_address       = "255.255.255.255"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func (r SynapseIntegrationRuntimeSelfHostedResource) basic(data acceptance.TestData) string {

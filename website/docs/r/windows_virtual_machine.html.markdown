@@ -68,7 +68,7 @@ resource "azurerm_windows_virtual_machine" "example" {
   name                = "example-machine"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  size                = "Standard_F2"
+  size                = "Standard_D4_v5"
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
@@ -103,7 +103,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the Windows Virtual Machine should be exist. Changing this forces a new resource to be created.
 
-* `size` - (Required) The SKU which should be used for this Virtual Machine, such as `Standard_F2`.
+* `size` - (Required) The SKU which should be used for this Virtual Machine, such as `Standard_D4_v5`.
 
 ---
 
@@ -339,8 +339,6 @@ A `os_disk` block supports the following:
 * `security_encryption_type` - (Optional) Encryption Type when the Virtual Machine is a Confidential VM. Possible values are `VMGuestStateOnly` and `DiskWithVMGuestState`. Changing this forces a new resource to be created.
 
 ~> **Note:** `vtpm_enabled` must be set to `true` when `security_encryption_type` is specified.
-
-~> **Note:** `encryption_at_host_enabled` cannot be set to `true` when `security_encryption_type` is set to `DiskWithVMGuestState`.
 
 * `write_accelerator_enabled` - (Optional) Should Write Accelerator be Enabled for this OS Disk? Defaults to `false`.
 

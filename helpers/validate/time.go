@@ -87,14 +87,13 @@ func ISO8601RepeatingTime(i interface{}, k string) (warnings []string, errors []
 	}
 
 	dateTime := partsWithoutPrefix[:pIndex]
-	duration := partsWithoutPrefix[pIndex+1:]
 
 	if _, err := iso8601.Parse(dateTime, time.UTC); err != nil {
 		errors = append(errors, fmt.Errorf("%q has the invalid ISO8601 date format %q: %+v", k, i, err))
 		return
 	}
 
-	if _, err := period.Parse(duration); err != nil {
+	if _, err := period.Parse(partsWithoutPrefix[pIndex+1:]); err != nil {
 		errors = append(errors, err)
 		return
 	}

@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -157,27 +156,6 @@ func TestAccKubernetesClusterNodePool_kubeletAndLinuxOSConfigPartial(t *testing.
 			Check: acceptance.ComposeTestCheckFunc(
 
 				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesClusterNodePool_kubeletAndLinuxOSConfigDeprecated(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("this test is only valid in versions prior to 5.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
-	r := KubernetesClusterNodePoolResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.kubeletAndLinuxOSConfigDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kubelet_config.0.container_log_max_line").HasValue("100000"),
-				check.That(data.ResourceName).Key("kubelet_config.0.container_log_max_size_mb").HasValue("100"),
 			),
 		},
 		data.ImportStep(),
@@ -1087,6 +1065,23 @@ func TestAccKubernetesClusterNodePool_workloadRuntime(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterNodePool_workloadRuntimeKataVmIsolation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.workloadRuntimeKataVmIsolation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("os_sku").HasValue("AzureLinux"),
+				check.That(data.ResourceName).Key("workload_runtime").HasValue("KataVmIsolation"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesClusterNodePool_windowsProfileOutboundNatEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
@@ -1306,8 +1301,7 @@ func (KubernetesClusterNodePoolResource) scaleNodePool(nodeCount int) acceptance
 
 		nodePool.Model.Properties.Count = pointer.To(int64(nodeCount))
 
-		err = clients.Containers.AgentPoolsClient.CreateOrUpdateThenPoll(ctx, parsedAgentPoolId, *nodePool.Model, agentpools.DefaultCreateOrUpdateOperationOptions())
-		if err != nil {
+		if err = clients.Containers.AgentPoolsClient.CreateOrUpdateThenPoll(ctx, parsedAgentPoolId, *nodePool.Model, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("Bad: updating node pool %q: %+v", nodePoolName, err)
 		}
 
@@ -1549,6 +1543,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -1618,65 +1617,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 }
 
 func (KubernetesClusterNodePoolResource) kubeletAndLinuxOSConfigPartial(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
-    upgrade_settings {
-      max_surge = "10%%"
-    }
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-
-resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                  = "internal"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
-  node_count            = 1
-  upgrade_settings {
-    max_surge = "10%%"
-  }
-
-  kubelet_config {
-    cpu_manager_policy    = "static"
-    cpu_cfs_quota_enabled = true
-    cpu_cfs_quota_period  = "10ms"
-  }
-
-  linux_os_config {
-    transparent_huge_page_enabled = "always"
-
-    sysctl_config {
-      fs_aio_max_nr               = 65536
-      fs_file_max                 = 100000
-      fs_inotify_max_user_watches = 1000000
-    }
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-	}
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1700,6 +1640,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -1730,57 +1675,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func (KubernetesClusterNodePoolResource) kubeletAndLinuxOSConfigDeprecated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%[1]d"
-
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
-    upgrade_settings {
-      max_surge = "10%%%%"
-    }
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-
-resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                  = "internal"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
-  node_count            = 1
-  upgrade_settings {
-    max_surge = "10%%%%"
-  }
-
-  kubelet_config {
-    cpu_manager_policy        = "static"
-    cpu_cfs_quota_enabled     = true
-    cpu_cfs_quota_period      = "10ms"
-    container_log_max_size_mb = 100
-    container_log_max_line    = 100000
-  }
-}
-`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (KubernetesClusterNodePoolResource) availabilityZonesConfig(data acceptance.TestData) string {
@@ -1822,6 +1716,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -1900,6 +1799,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -2317,6 +2221,11 @@ resource "azurerm_kubernetes_cluster" "test" {
       max_surge = "10%%"
     }
   }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
   network_profile {
     network_plugin = "azure"
   }
@@ -2393,6 +2302,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
   identity {
     type = "SystemAssigned"
@@ -2780,15 +2694,22 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
-  kubernetes_version  = "1.32.9"
+  kubernetes_version  = "1.32"
+  sku_tier            = "Premium"
+  support_plan        = "AKSLongTermSupport"
 
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_D2s_v3"
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -2811,7 +2732,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "windoz"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_D2s_v3"
   node_count            = 1
   os_type               = "Windows"
   os_sku                = "Windows2019"
@@ -2903,6 +2824,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -2947,6 +2873,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -2974,6 +2905,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -3129,6 +3065,11 @@ resource "azurerm_kubernetes_cluster" "test" {
       max_surge = "10%%"
     }
   }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
   identity {
     type = "SystemAssigned"
   }
@@ -3168,6 +3109,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
   identity {
     type = "SystemAssigned"
@@ -3239,6 +3185,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
@@ -3307,6 +3258,11 @@ resource "azurerm_kubernetes_cluster" "test" {
       max_surge = "10%%"
     }
   }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
   identity {
     type = "SystemAssigned"
   }
@@ -3345,6 +3301,11 @@ resource "azurerm_kubernetes_cluster" "test" {
       max_surge = "10%%"
     }
   }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
   identity {
     type = "SystemAssigned"
   }
@@ -3359,6 +3320,51 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, workloadRuntime)
+}
+
+func (KubernetesClusterNodePoolResource) workloadRuntimeKataVmIsolation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  kubernetes_version  = %q
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v3"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_D4s_v3"
+  os_sku                = "AzureLinux"
+  workload_runtime      = "KataVmIsolation"
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, currentKubernetesVersion)
 }
 
 func (KubernetesClusterNodePoolResource) windowsProfileOutboundNatEnabled(data acceptance.TestData) string {
@@ -3384,6 +3390,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
   identity {
     type = "SystemAssigned"
@@ -3440,6 +3451,11 @@ resource "azurerm_kubernetes_cluster" "test" {
       max_surge = "10%%"
     }
   }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
   identity {
     type = "SystemAssigned"
   }
@@ -3491,6 +3507,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
   identity {
     type = "SystemAssigned"
@@ -3544,6 +3565,11 @@ resource "azurerm_kubernetes_cluster" "test" {
       max_surge = "10%%"
     }
   }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
   identity {
     type = "SystemAssigned"
   }
@@ -3583,6 +3609,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
   identity {
     type = "SystemAssigned"
@@ -3643,6 +3674,11 @@ resource "azurerm_kubernetes_cluster" "test" {
       max_surge = "10%%"
     }
   }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
   identity {
     type = "SystemAssigned"
   }
@@ -3685,6 +3721,11 @@ resource "azurerm_kubernetes_cluster" "test" {
       max_surge = "10%%"
     }
   }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
   identity {
     type = "SystemAssigned"
   }
@@ -3726,11 +3767,17 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.1.${count.index}.0/24"]
-  service_endpoints = [
-    "Microsoft.Storage.Global",
-    "Microsoft.AzureActiveDirectory",
-    "Microsoft.KeyVault"
-  ]
+  service_endpoint {
+    service = "Microsoft.Storage.Global"
+  }
+
+  service_endpoint {
+    service = "Microsoft.AzureActiveDirectory"
+  }
+
+  service_endpoint {
+    service = "Microsoft.KeyVault"
+  }
 
   lifecycle {
     # AKS automatically configures subnet delegations when the subnets are assigned
@@ -3755,6 +3802,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -3831,6 +3883,11 @@ resource "azurerm_kubernetes_cluster" "test" {
       max_surge = "10%%"
     }
   }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
   identity {
     type = "SystemAssigned"
   }
@@ -3903,6 +3960,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
   network_profile {
     network_plugin = "azure"
@@ -4014,6 +4076,11 @@ resource "azurerm_kubernetes_cluster" "test1" {
       max_surge = "10%%"
     }
   }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
   network_profile {
     network_plugin = "azure"
   }
@@ -4036,6 +4103,11 @@ resource "azurerm_kubernetes_cluster" "test2" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
   network_profile {
     network_plugin = "azure"

@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -179,7 +178,7 @@ func (r AppServiceSourceControlTokenResource) Delete() sdk.ResourceFunc {
 }
 
 func (r AppServiceSourceControlTokenResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.AppServiceSourceControlTokenID
+	return validation.StringInSlice([]string{"/providers/Microsoft.Web/sourceControls/GitHub"}, false)
 }
 
 func (r AppServiceSourceControlTokenResource) Update() sdk.ResourceFunc {

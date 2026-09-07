@@ -212,26 +212,30 @@ func (r StorageMoverNfsFileShareTargetEndpointResource) Read() sdk.ResourceFunc 
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := StorageMoverNfsFileShareTargetEndpointModel{
-				Name:           id.EndpointName,
-				StorageMoverId: storagemovers.NewStorageMoverID(id.SubscriptionId, id.ResourceGroupName, id.StorageMoverName).ID(),
-			}
-
-			if model := resp.Model; model != nil {
-				if v, ok := model.Properties.(endpoints.AzureStorageNfsFileShareEndpointProperties); ok {
-					state.FileShareName = v.FileShareName
-					state.StorageAccountId = v.StorageAccountResourceId
-
-					state.Description = pointer.From(v.Description)
-				}
-			}
-
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-				return err
-			}
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r StorageMoverNfsFileShareTargetEndpointResource) flatten(metadata sdk.ResourceMetaData, id *endpoints.EndpointId, model *endpoints.Endpoint) error {
+	state := StorageMoverNfsFileShareTargetEndpointModel{
+		Name:           id.EndpointName,
+		StorageMoverId: storagemovers.NewStorageMoverID(id.SubscriptionId, id.ResourceGroupName, id.StorageMoverName).ID(),
+	}
+
+	if model != nil {
+		if v, ok := model.Properties.(endpoints.AzureStorageNfsFileShareEndpointProperties); ok {
+			state.FileShareName = v.FileShareName
+			state.StorageAccountId = v.StorageAccountResourceId
+			state.Description = pointer.From(v.Description)
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r StorageMoverNfsFileShareTargetEndpointResource) Delete() sdk.ResourceFunc {

@@ -214,7 +214,7 @@ resource "azurerm_iot_security_solution" "test" {
   events_to_export           = ["RawEvents"]
   disabled_data_sources      = ["TwinData"]
 
-  recommendations_enabled {
+  recommendations {
     acr_authentication               = false
     agent_send_unutilized_msg        = false
     baseline                         = false

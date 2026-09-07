@@ -396,7 +396,7 @@ resource "azurerm_arc_kubernetes_flux_configuration" "test" {
 
 func (r ArcKubernetesFluxConfigurationResource) azureBlobWithAccountKey(data acceptance.TestData, credential string, privateKey string, publicKey string) string {
 	return fmt.Sprintf(`
-				%[1]s
+					%[1]s
 
 resource "azurerm_storage_account" "test" {
   name                     = "sa%[2]d"
@@ -432,7 +432,7 @@ resource "azurerm_arc_kubernetes_flux_configuration" "test" {
     azurerm_arc_kubernetes_cluster_extension.test
   ]
 }
-`, r.template(data, credential, privateKey, publicKey), data.RandomInteger)
+	`, r.template(data, credential, privateKey, publicKey), data.RandomInteger)
 }
 
 func (r ArcKubernetesFluxConfigurationResource) azureBlobWithSasToken(data acceptance.TestData, credential string, privateKey string, publicKey string) string {
@@ -441,7 +441,7 @@ func (r ArcKubernetesFluxConfigurationResource) azureBlobWithSasToken(data accep
 	endDate := utcNow.Add(time.Hour * 48).Format(time.RFC3339)
 
 	return fmt.Sprintf(`
-				%[1]s
+					%[1]s
 
 resource "azurerm_storage_account" "test" {
   name                     = "sa%[2]d"
@@ -510,12 +510,12 @@ resource "azurerm_arc_kubernetes_flux_configuration" "test" {
     azurerm_arc_kubernetes_cluster_extension.test
   ]
 }
-`, r.template(data, credential, privateKey, publicKey), data.RandomInteger, startDate, endDate)
+	`, r.template(data, credential, privateKey, publicKey), data.RandomInteger, startDate, endDate)
 }
 
 func (r ArcKubernetesFluxConfigurationResource) azureBlobWithServicePrincipalSecret(data acceptance.TestData, credential string, privateKey string, publicKey string) string {
 	return fmt.Sprintf(`
-				%[1]s
+					%[1]s
 
 provider "azuread" {}
 
@@ -584,12 +584,12 @@ resource "azurerm_arc_kubernetes_flux_configuration" "test" {
     azurerm_role_assignment.test_blob
   ]
 }
-`, r.template(data, credential, privateKey, publicKey), data.RandomInteger)
+	`, r.template(data, credential, privateKey, publicKey), data.RandomInteger)
 }
 
 func (r ArcKubernetesFluxConfigurationResource) azureBlobWithServicePrincipalCertificate(data acceptance.TestData, credential string, privateKey string, publicKey string) string {
 	return fmt.Sprintf(`
-				%[1]s
+					%[1]s
 
 provider "azuread" {}
 
@@ -656,7 +656,7 @@ resource "azurerm_arc_kubernetes_flux_configuration" "test" {
     azurerm_role_assignment.test_blob
   ]
 }
-`, r.template(data, credential, privateKey, publicKey), data.RandomInteger, os.Getenv("ARM_CLIENT_CERTIFICATE"), os.Getenv("ARM_CLIENT_CERTIFICATE_PASSWORD"))
+	`, r.template(data, credential, privateKey, publicKey), data.RandomInteger, os.Getenv("ARM_CLIENT_CERTIFICATE"), os.Getenv("ARM_CLIENT_CERTIFICATE_PASSWORD"))
 }
 
 func (r ArcKubernetesFluxConfigurationResource) kustomizationNameDuplicated(data acceptance.TestData, credential string, privateKey string, publicKey string) string {

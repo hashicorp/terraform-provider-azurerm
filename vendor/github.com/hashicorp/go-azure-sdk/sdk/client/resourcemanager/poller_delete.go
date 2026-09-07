@@ -24,7 +24,7 @@ type deletePoller struct {
 	resourcePath         string
 }
 
-func deletePollerFromResponse(response *client.Response, client *Client, pollingInterval time.Duration) (*deletePoller, error) {
+func deletePollerFromResponse(response *client.Response, c *Client, pollingInterval time.Duration) (*deletePoller, error) {
 	// if we've gotten to this point then we're polling against a Resource Manager resource/operation of some kind
 	// we next need to determine if the current URI is a Resource Manager resource, or if we should be polling on the
 	// resource (e.g. `/my/resource`) rather than an operation on the resource (e.g. `/my/resource/start`)
@@ -47,9 +47,13 @@ func deletePollerFromResponse(response *client.Response, client *Client, polling
 		return nil, fmt.Errorf("determining Resource Manager Resource Path from %q: %+v", originalUri, err)
 	}
 
+	if s, ok := response.Header[client.SkipPollingDelayHeader]; ok && s[0] == "true" {
+		pollingInterval = 0
+	}
+
 	return &deletePoller{
 		apiVersion:           apiVersion,
-		client:               client,
+		client:               c,
 		initialRetryDuration: pollingInterval,
 		originalUri:          originalUri,
 		resourcePath:         *resourcePath,
@@ -104,13 +108,6 @@ func (p deletePoller) Poll(ctx context.Context) (result *pollers.PollResult, err
 	}
 
 	return
-}
-
-func (p deletePoller) SkipDelay() bool {
-	if p.client != nil {
-		return client.IsVcrReplaying(p.client.Transport)
-	}
-	return false
 }
 
 var _ client.Options = deleteOptions{}

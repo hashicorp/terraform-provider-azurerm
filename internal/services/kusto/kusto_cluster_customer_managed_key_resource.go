@@ -324,8 +324,7 @@ func resourceKustoClusterCustomerManagedKeyDelete(d *pluginsdk.ResourceData, met
 		},
 	}
 
-	err = client.UpdateThenPoll(ctx, *clusterID, props, clusters.DefaultUpdateOperationOptions())
-	if err != nil {
+	if err = client.UpdateThenPoll(ctx, *clusterID, props, clusters.DefaultUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("removing Customer Managed Key for %s: %+v", clusterID, err)
 	}
 

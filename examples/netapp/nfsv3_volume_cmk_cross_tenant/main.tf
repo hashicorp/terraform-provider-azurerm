@@ -14,7 +14,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~>4.0"
+      version = "~>5.0"
     }
     time = {
       source  = "hashicorp/time"
@@ -75,11 +75,10 @@ resource "azurerm_private_dns_zone" "keyvault" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "keyvault" {
-  name                  = "${var.prefix}-dns-link"
-  resource_group_name   = azurerm_resource_group.example.name
-  private_dns_zone_name = azurerm_private_dns_zone.keyvault.name
-  virtual_network_id    = azurerm_virtual_network.example.id
-  registration_enabled  = false
+  name                 = "${var.prefix}-dns-link"
+  private_dns_zone_id  = azurerm_private_dns_zone.keyvault.id
+  virtual_network_id   = azurerm_virtual_network.example.id
+  registration_enabled = false
 }
 
 # Private endpoint to the cross-tenant key vault
@@ -185,7 +184,7 @@ resource "azurerm_netapp_volume" "example" {
   export_policy_rule {
     rule_index          = 1
     allowed_clients     = ["0.0.0.0/0"]
-    protocols_enabled   = ["NFSv3"]
+    protocol            = ["NFSv3"]
     unix_read_only      = false
     unix_read_write     = true
     root_access_enabled = true
