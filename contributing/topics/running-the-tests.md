@@ -4,7 +4,7 @@
 
 Acceptance Tests for each Data Source/Resource are located within a Service Package, as such the Acceptance Tests for a given Service Package can be run via:
 
-```sh 
+```sh
 make acctests SERVICE='<service>' TESTTIMEOUT='60m'
 ```
 

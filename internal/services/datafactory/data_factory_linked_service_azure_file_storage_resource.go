@@ -222,8 +222,7 @@ func resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *pluginsdk.R
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		fileStorageLinkedService.Annotations = &annotations
+		fileStorageLinkedService.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -284,13 +283,11 @@ func resourceDataFactoryLinkedServiceAzureFileStorageRead(d *pluginsdk.ResourceD
 		d.Set("user_id", fileStorage.UserID.(string))
 	}
 
-	annotations := flattenDataFactoryAnnotations(fileStorage.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(fileStorage.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations` for Data Factory Azure File Storage %s: %+v", *id, err)
 	}
 
-	parameters := flattenLinkedServiceParameters(fileStorage.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(fileStorage.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 

@@ -140,14 +140,14 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 
 			"target_network_id": {
 				Type:         pluginsdk.TypeString,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				Optional:     true,
 				ValidateFunc: commonids.ValidateVirtualNetworkID,
 			},
 
 			"test_network_id": {
 				Type:         pluginsdk.TypeString,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				Optional:     true,
 				ValidateFunc: commonids.ValidateVirtualNetworkID,
 			},
@@ -157,7 +157,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			"unmanaged_disk": {
 				Type:       pluginsdk.TypeSet,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				ForceNew:   true,
 				Elem: &pluginsdk.Resource{
@@ -195,7 +195,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			"managed_disk": {
 				Type:       pluginsdk.TypeSet,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Set:        resourceSiteRecoveryReplicatedVMDiskHash,
 				Elem: &pluginsdk.Resource{
@@ -274,7 +274,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			"target_virtual_machine_size": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				// O+C if not specified, this gets set to the vm_size of the virtual machine
+				// Note: O+C if not specified, this gets set to the vm_size of the virtual machine
 				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -282,7 +282,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			"network_interface": {
 				Type:       pluginsdk.TypeList,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem:       networkInterfaceResource(),
 			},
@@ -357,7 +357,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"source_network_interface_id": {
 				Type:         pluginsdk.TypeString,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
@@ -371,7 +371,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
@@ -676,8 +676,7 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta in
 
 	var targetAvailabilitySetID *string
 	if id, isSet := d.GetOk("target_availability_set_id"); isSet {
-		tmp := id.(string)
-		targetAvailabilitySetID = &tmp
+		targetAvailabilitySetID = pointer.To(id.(string))
 	} else {
 		targetAvailabilitySetID = nil
 	}
@@ -751,14 +750,11 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta in
 	managedDisks := make([]replicationprotecteditems.A2AVMManagedDiskUpdateDetails, 0, len(existingDisks))
 	for _, raw := range existingDisks {
 		diskInput := raw.(map[string]interface{})
-		diskId := diskInput["disk_id"].(string)
-		targetReplicaDiskType := diskInput["target_replica_disk_type"].(string)
-		targetDiskType := diskInput["target_disk_type"].(string)
 
 		managedDisks = append(managedDisks, replicationprotecteditems.A2AVMManagedDiskUpdateDetails{
-			DiskId:                         &diskId,
-			RecoveryReplicaDiskAccountType: &targetReplicaDiskType,
-			RecoveryTargetDiskAccountType:  &targetDiskType,
+			DiskId:                         pointer.To(diskInput["disk_id"].(string)),
+			RecoveryReplicaDiskAccountType: pointer.To(diskInput["target_replica_disk_type"].(string)),
+			RecoveryTargetDiskAccountType:  pointer.To(diskInput["target_disk_type"].(string)),
 			DiskEncryptionInfo:             expandDiskEncryption(diskInput["target_disk_encryption"].([]interface{})),
 		})
 	}
@@ -1095,11 +1091,9 @@ func resourceSiteRecoveryReplicatedItemDelete(d *pluginsdk.ResourceData, meta in
 
 	client := meta.(*clients.Client).RecoveryServices.ReplicationProtectedItemsClient
 
-	disableProtectionReason := replicationprotecteditems.DisableProtectionReasonNotSpecified
-
 	disableProtectionInput := replicationprotecteditems.DisableProtectionInput{
 		Properties: replicationprotecteditems.DisableProtectionInputProperties{
-			DisableProtectionReason: &disableProtectionReason,
+			DisableProtectionReason: pointer.To(replicationprotecteditems.DisableProtectionReasonNotSpecified),
 			// It's a workaround for https://github.com/hashicorp/pandora/issues/1864
 			ReplicationProviderInput: replicationprotecteditems.BaseDisableProtectionProviderSpecificInputImpl{
 				InstanceType: string(siterecovery.InstanceTypeDisableProtectionProviderSpecificInput),

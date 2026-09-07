@@ -70,10 +70,10 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			// Service will create a route table for the user if this is not specified.
 			"routing": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				// Note: O+C because the service will create a route table for the user if this is not specified.
 				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
@@ -99,7 +99,7 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 						"propagated_route_table": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{

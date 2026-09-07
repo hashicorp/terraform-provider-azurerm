@@ -177,8 +177,7 @@ func resourceDataFactoryLinkedServiceSnowflakeCreateUpdate(d *pluginsdk.Resource
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		snowflakeLinkedService.Annotations = &annotations
+		snowflakeLinkedService.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -227,13 +226,11 @@ func resourceDataFactoryLinkedServiceSnowflakeRead(d *pluginsdk.ResourceData, me
 	d.Set("additional_properties", snowflake.AdditionalProperties)
 	d.Set("description", snowflake.Description)
 
-	annotations := flattenDataFactoryAnnotations(snowflake.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(snowflake.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenLinkedServiceParameters(snowflake.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(snowflake.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 

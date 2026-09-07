@@ -168,8 +168,7 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Create() sdk.ResourceFunc
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			scheduleID := parse.NewManagedInstanceStartStopScheduleID(id.SubscriptionId, id.ResourceGroupName, id.ManagedInstanceName, "default")
-			metadata.SetID(scheduleID)
+			metadata.SetID(parse.NewManagedInstanceStartStopScheduleID(id.SubscriptionId, id.ResourceGroupName, id.ManagedInstanceName, "default"))
 
 			return nil
 		},

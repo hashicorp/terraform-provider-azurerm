@@ -182,8 +182,7 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if v, ok := d.GetOk("principal_type"); ok {
-		principalType := v.(string)
-		roleAssignment.PrincipalType = &principalType
+		roleAssignment.PrincipalType = pointer.To(v.(string))
 	}
 
 	resp, err := client.CreateRoleAssignment(ctx, roleAssignment, uuid)
@@ -195,8 +194,7 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("empty or nil ID returned for Synapse RoleAssignment %q", roleName)
 	}
 
-	resourceId := parse.NewRoleAssignmentId(synapseScope, *resp.ID).ID()
-	d.SetId(resourceId)
+	d.SetId(parse.NewRoleAssignmentId(synapseScope, *resp.ID).ID())
 	return resourceSynapseRoleAssignmentRead(d, meta)
 }
 

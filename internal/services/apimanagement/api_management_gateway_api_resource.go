@@ -94,8 +94,7 @@ func resourceApiManagementGatewayApiCreate(d *pluginsdk.ResourceData, meta inter
 		}
 	}
 
-	params := gatewayapi.AssociationContract{}
-	if _, err = client.CreateOrUpdate(ctx, id, params); err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id, gatewayapi.AssociationContract{}); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	d.SetId(id.ID())

@@ -136,7 +136,7 @@ func eventSubscriptionSchemaEventHubEndpointID(conflictsWith []string) *pluginsd
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeString,
 		Optional:      true,
-		Computed:      true,
+		Computed:      true, // azignore:AZS007 - pre-existing violation
 		ConflictsWith: conflictsWith,
 		ValidateFunc:  eventhubs.ValidateEventhubID,
 	}
@@ -146,7 +146,7 @@ func eventSubscriptionSchemaHybridConnectionEndpointID(conflictsWith []string) *
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeString,
 		Optional:      true,
-		Computed:      true,
+		Computed:      true, // azignore:AZS007 - pre-existing violation
 		ConflictsWith: conflictsWith,
 		ValidateFunc:  hybridconnections.ValidateHybridConnectionID,
 	}
@@ -241,7 +241,7 @@ func eventSubscriptionSchemaIncludedEventTypes() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		Elem: &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -721,7 +721,7 @@ func eventSubscriptionSchemaRetryPolicy() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeList,
 		MaxItems: 1,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"max_delivery_attempts": {

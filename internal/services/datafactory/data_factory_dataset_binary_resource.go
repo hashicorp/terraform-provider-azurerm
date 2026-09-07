@@ -290,9 +290,8 @@ func resourceDataFactoryDatasetBinaryCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
-		name := v.(string)
 		binaryTableset.Folder = &datafactory.DatasetFolder{
-			Name: &name,
+			Name: pointer.To(v.(string)),
 		}
 	}
 
@@ -301,18 +300,16 @@ func resourceDataFactoryDatasetBinaryCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		binaryTableset.Annotations = &annotations
+		binaryTableset.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
 		binaryTableset.AdditionalProperties = v.(map[string]interface{})
 	}
 
-	datasetType := string(datafactory.TypeBasicDatasetTypeBinary)
 	dataset := datafactory.DatasetResource{
 		Properties: &binaryTableset,
-		Type:       &datasetType,
+		Type:       pointer.To(string(datafactory.TypeBasicDatasetTypeBinary)),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, dataset, ""); err != nil {
@@ -366,8 +363,7 @@ func resourceDataFactoryDatasetBinaryRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
-	annotations := flattenDataFactoryAnnotations(binaryTable.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(binaryTable.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
@@ -394,8 +390,7 @@ func resourceDataFactoryDatasetBinaryRead(d *pluginsdk.ResourceData, meta interf
 			}
 		}
 
-		compression := flattenDataFactoryDatasetCompression(properties.Compression)
-		if err := d.Set("compression", compression); err != nil {
+		if err := d.Set("compression", flattenDataFactoryDatasetCompression(properties.Compression)); err != nil {
 			return fmt.Errorf("setting `compression`: %+v", err)
 		}
 	}

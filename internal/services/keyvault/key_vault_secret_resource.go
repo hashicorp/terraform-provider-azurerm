@@ -174,14 +174,12 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if v, ok := d.GetOk("not_before_date"); ok {
 		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		notBeforeUnixTime := date.UnixTime(notBeforeDate)
-		parameters.SecretAttributes.NotBefore = &notBeforeUnixTime
+		parameters.SecretAttributes.NotBefore = pointer.To(date.UnixTime(notBeforeDate))
 	}
 
 	if v, ok := d.GetOk("expiration_date"); ok {
 		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		expirationUnixTime := date.UnixTime(expirationDate)
-		parameters.SecretAttributes.Expires = &expirationUnixTime
+		parameters.SecretAttributes.Expires = pointer.To(date.UnixTime(expirationDate))
 	}
 
 	if resp, err := client.SetSecret(ctx, *keyVaultBaseUrl, name, parameters); err != nil {
@@ -198,7 +196,7 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 				stateConf := &pluginsdk.StateChangeConf{
 					Pending:                   []string{"pending"},
 					Target:                    []string{"available"},
-					Refresh:                   keyVaultChildItemRefreshFunc(*secret),
+					Refresh:                   keyVaultChildItemRefreshFunc(ctx, *secret),
 					Delay:                     30 * time.Second,
 					PollInterval:              10 * time.Second,
 					ContinuousTargetOccurence: 10,
@@ -277,14 +275,12 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if v, ok := d.GetOk("not_before_date"); ok {
 		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		notBeforeUnixTime := date.UnixTime(notBeforeDate)
-		secretAttributes.NotBefore = &notBeforeUnixTime
+		secretAttributes.NotBefore = pointer.To(date.UnixTime(notBeforeDate))
 	}
 
 	if v, ok := d.GetOk("expiration_date"); ok {
 		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		expirationUnixTime := date.UnixTime(expirationDate)
-		secretAttributes.Expires = &expirationUnixTime
+		secretAttributes.Expires = pointer.To(date.UnixTime(expirationDate))
 	}
 
 	if d.HasChanges("value", "value_wo_version") {

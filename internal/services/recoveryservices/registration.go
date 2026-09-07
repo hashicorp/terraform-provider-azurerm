@@ -32,15 +32,15 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		BackupProtectionPolicyVMWorkloadResource{},
-		SiteRecoveryReplicationRecoveryPlanResource{},
-		ReplicationPolicyHyperVResource{},
-		HyperVSiteResource{},
-		HyperVReplicationPolicyAssociationResource{},
 		HyperVNetworkMappingResource{},
-		VMWareReplicationPolicyResource{},
-		VMWareReplicationPolicyAssociationResource{},
+		HyperVReplicationPolicyAssociationResource{},
+		HyperVSiteResource{},
+		ReplicationPolicyHyperVResource{},
+		SiteRecoveryReplicationRecoveryPlanResource{},
 		VaultGuardProxyResource{},
 		VMWareReplicatedVmResource{},
+		VMWareReplicationPolicyAssociationResource{},
+		VMWareReplicationPolicyResource{},
 	}
 }
 
@@ -59,10 +59,10 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
+		"azurerm_backup_policy_file_share":           dataSourceBackupPolicyFileShare(),
+		"azurerm_backup_policy_vm":                   dataSourceBackupPolicyVm(),
 		"azurerm_site_recovery_fabric":               dataSourceSiteRecoveryFabric(),
 		"azurerm_site_recovery_protection_container": dataSourceSiteRecoveryProtectionContainer(),
-		"azurerm_backup_policy_vm":                   dataSourceBackupPolicyVm(),
-		"azurerm_backup_policy_file_share":           dataSourceBackupPolicyFileShare(),
 		"azurerm_site_recovery_replication_policy":   dataSourceSiteRecoveryReplicationPolicy(),
 	}
 }
@@ -73,9 +73,9 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_backup_container_storage_account":           resourceBackupProtectionContainerStorageAccount(),
 		"azurerm_backup_policy_file_share":                   resourceBackupProtectionPolicyFileShare(),
+		"azurerm_backup_policy_vm":                           resourceBackupProtectionPolicyVM(),
 		"azurerm_backup_protected_file_share":                resourceBackupProtectedFileShare(),
 		"azurerm_backup_protected_vm":                        resourceRecoveryServicesBackupProtectedVM(),
-		"azurerm_backup_policy_vm":                           resourceBackupProtectionPolicyVM(),
 		"azurerm_recovery_services_vault":                    resourceRecoveryServicesVault(),
 		"azurerm_site_recovery_fabric":                       resourceSiteRecoveryFabric(),
 		"azurerm_site_recovery_network_mapping":              resourceSiteRecoveryNetworkMapping(),

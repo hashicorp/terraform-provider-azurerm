@@ -164,10 +164,9 @@ func (r ApplicationInsightsWorkbookResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
-			kindValue := workbooks.WorkbookSharedTypeKindShared
 			properties := &workbooks.Workbook{
 				Identity: identityValue,
-				Kind:     &kindValue,
+				Kind:     pointer.To(workbooks.WorkbookSharedTypeKindShared),
 				Location: location.Normalize(model.Location),
 				Properties: &workbooks.WorkbookProperties{
 					Category:       model.Category,
