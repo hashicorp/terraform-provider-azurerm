@@ -10,6 +10,8 @@ description: |-
 
 Manages a Storage Discovery workspace. A workspace defines which storage resources to scan across your Microsoft Entra tenant and how to segment reporting for them.
 
+-> **Note:** It can take up to 24 hours after workspace creation for metrics to begin appearing in reports.
+
 ## Example Usage
 
 ```hcl
@@ -58,6 +60,8 @@ The following arguments are supported:
 
 -> **Note:** A maximum of 10 scopes are supported.
 
+-> **Note:** Scopes can be added or removed without replacing the workspace. Changing `resource_types`, `tag_keys_only`, or `tags` within an existing scope, identified by its `display_name`, forces a new workspace to be created.
+
 * `workspace_roots` - (Required) A set of top-level Azure resource identifiers (Subscription IDs or Resource Group IDs) where Storage Discovery initiates its scan for storage accounts. You cannot specify both a subscription and its child resource group. Changing this forces a new resource to be created.
 
 -> **Note:** A maximum of 100 workspace roots are supported.
@@ -66,7 +70,7 @@ The following arguments are supported:
 
 * `description` - (Optional) A description for the Discovery workspace resource. This must be between 0 and 1024 characters long.
 
-* `sku` - (Optional) Specifies the Storage Discovery pricing plan. Possible values are `Free` and `Standard`. Defaults to `Standard`. See [Understand Storage Discovery Pricing](https://learn.microsoft.com/azure/storage-discovery/understand-pricing) for details.
+* `sku` - (Optional) Specifies the Storage Discovery pricing plan. Possible values are `Free` and `Standard`. Defaults to `Standard`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the resource.
 
@@ -76,7 +80,7 @@ A `scope` block supports the following:
 
 * `display_name` - (Required) The display name for this scope. Must be unique within the workspace, be 4-64 characters long, and can only contain letters, numbers, spaces, and hyphens. Cannot start or end with a number, space, or hyphen, and cannot contain consecutive hyphens or spaces.
 
-* `resource_types` - (Required) A set of Azure resource type strings to include in this scope. Possible values are `Microsoft.Storage/storageAccounts`.
+* `resource_types` - (Required) A set of Azure resource type strings to include in this scope. The only possible value is `Microsoft.Storage/storageAccounts`.
 
 * `tag_keys_only` - (Optional) A set of tag keys used to filter resources. Resources with any of these tag keys will be included.
 
@@ -87,8 +91,6 @@ A `scope` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Storage Discovery Workspace.
-
--> **Note:** It can take up to 24 hours after workspace creation for metrics to begin appearing in reports.
 
 ## Timeouts
 

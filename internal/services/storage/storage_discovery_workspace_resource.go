@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -31,8 +32,6 @@ var (
 )
 
 type StorageDiscoveryWorkspaceResource struct{}
-
-const storageDiscoveryWorkspaceMaxScopes = 10
 
 type StorageDiscoveryWorkspaceModel struct {
 	Name              string                       `tfschema:"name"`
@@ -85,7 +84,7 @@ func (r StorageDiscoveryWorkspaceResource) Arguments() map[string]*pluginsdk.Sch
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MinItems: 1,
-			MaxItems: storageDiscoveryWorkspaceMaxScopes,
+			MaxItems: 10,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"display_name": {
@@ -135,7 +134,7 @@ func (r StorageDiscoveryWorkspaceResource) Arguments() map[string]*pluginsdk.Sch
 			MaxItems: 100,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: validate.StorageDiscoveryWorkspaceRoot,
+				ValidateFunc: validation.Any(commonids.ValidateSubscriptionID, commonids.ValidateResourceGroupID),
 			},
 		},
 
@@ -198,7 +197,7 @@ func (r StorageDiscoveryWorkspaceResource) CustomizeDiff() sdk.ResourceFunc {
 
 			for _, rootID := range workspaceRoots {
 				if subscriptionID, err := commonids.ParseSubscriptionID(rootID); err == nil {
-					subscriptionIDs[subscriptionID.SubscriptionId] = true
+					subscriptionIDs[strings.ToLower(subscriptionID.SubscriptionId)] = true
 					continue
 				}
 
@@ -208,7 +207,7 @@ func (r StorageDiscoveryWorkspaceResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			for _, rgID := range resourceGroupIDs {
-				if subscriptionIDs[rgID.SubscriptionId] {
+				if subscriptionIDs[strings.ToLower(rgID.SubscriptionId)] {
 					return fmt.Errorf("cannot specify both subscription ID `/subscriptions/%s` and its child resource group ID `%s` in `workspace_roots`", rgID.SubscriptionId, rgID.ID())
 				}
 			}
@@ -288,21 +287,22 @@ func (r StorageDiscoveryWorkspaceResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", id)
+			}
+
 			state := StorageDiscoveryWorkspaceModel{
 				Name:              id.StorageDiscoveryWorkspaceName,
 				ResourceGroupName: id.ResourceGroupName,
+				Location:          location.Normalize(resp.Model.Location),
+				Tags:              pointer.From(resp.Model.Tags),
 			}
 
-			if resp.Model != nil {
-				state.Location = location.Normalize(resp.Model.Location)
-				state.Tags = pointer.From(resp.Model.Tags)
-
-				if props := resp.Model.Properties; props != nil {
-					state.Description = pointer.From(props.Description)
-					state.WorkspaceRoots = props.WorkspaceRoots
-					state.Sku = pointer.FromEnum(props.Sku)
-					state.Scope = flattenStorageDiscoveryScopes(props.Scopes)
-				}
+			if props := resp.Model.Properties; props != nil {
+				state.Description = pointer.From(props.Description)
+				state.WorkspaceRoots = props.WorkspaceRoots
+				state.Sku = pointer.FromEnum(props.Sku)
+				state.Scope = flattenStorageDiscoveryScopes(props.Scopes)
 			}
 
 			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
@@ -429,10 +429,6 @@ func flattenStorageDiscoveryScopes(input []storagediscoveryworkspaces.StorageDis
 	return result
 }
 
-func storageDiscoveryScopesRequireReplacement(oldRaw, newRaw interface{}) bool {
-	return storageDiscoveryScopeReplacementPath(oldRaw, newRaw) != ""
-}
-
 func storageDiscoveryScopeReplacementPath(oldRaw, newRaw interface{}) string {
 	oldScopes := oldRaw.([]interface{})
 	newScopes := newRaw.([]interface{})
@@ -458,16 +454,22 @@ func storageDiscoveryScopeReplacementPath(oldRaw, newRaw interface{}) string {
 			continue
 		}
 
+		replacementField := ""
 		if !oldScope["resource_types"].(*pluginsdk.Set).Equal(newScope["resource_types"]) {
-			return fmt.Sprintf("scope.%d.resource_types", index)
+			replacementField = "resource_types"
+		} else if !oldScope["tag_keys_only"].(*pluginsdk.Set).Equal(newScope["tag_keys_only"]) {
+			replacementField = "tag_keys_only"
+		} else if !reflect.DeepEqual(oldScope["tags"], newScope["tags"]) {
+			replacementField = "tags"
 		}
 
-		if !oldScope["tag_keys_only"].(*pluginsdk.Set).Equal(newScope["tag_keys_only"]) {
-			return fmt.Sprintf("scope.%d.tag_keys_only", index)
-		}
-
-		if !reflect.DeepEqual(oldScope["tags"], newScope["tags"]) {
-			return fmt.Sprintf("scope.%d.tags", index)
+		if replacementField != "" {
+			// ForceNew requires a positional change. When a scope moves, its filters
+			// can match those previously at its new index, but its display name changes.
+			if index >= len(oldScopes) || oldScopes[index] == nil || oldScopes[index].(map[string]interface{})["display_name"] != newScope["display_name"] {
+				replacementField = "display_name"
+			}
+			return fmt.Sprintf("scope.%d.%s", index, replacementField)
 		}
 	}
 

@@ -104,9 +104,23 @@ func TestAccStorageDiscoveryWorkspace_update(t *testing.T) {
 			},
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scope.#").HasValue("2"),
+				check.That(data.ResourceName).Key("scope.#").HasValue("3"),
 				check.That(data.ResourceName).Key("sku").HasValue("Free"),
 				check.That(data.ResourceName).Key("workspace_roots.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scope.#").HasValue("1"),
+				check.That(data.ResourceName).Key("sku").HasValue("Standard"),
 			),
 		},
 		data.ImportStep(),
@@ -121,6 +135,7 @@ func TestAccStorageDiscoveryWorkspace_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.basic(data),
 			ConfigPlanChecks: resource.ConfigPlanChecks{
@@ -311,6 +326,11 @@ resource "azurerm_storage_discovery_workspace" "test" {
     tag_keys_only  = ["environment"]
   }
 
+  scope {
+    display_name   = "AnotherScope"
+    resource_types = ["Microsoft.Storage/storageAccounts"]
+  }
+
   tags = {
     environment = "test"
   }
@@ -353,6 +373,11 @@ resource "azurerm_storage_discovery_workspace" "test" {
     display_name   = "AdditionalScope"
     resource_types = ["Microsoft.Storage/storageAccounts"]
     tag_keys_only  = ["environment"]
+  }
+
+  scope {
+    display_name   = "AnotherScope"
+    resource_types = ["Microsoft.Storage/storageAccounts"]
   }
 
   tags = {
