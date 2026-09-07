@@ -57,9 +57,9 @@ The following arguments are supported:
 
 * `storage_mover_id` - (Required) Specifies the ID of the Storage Mover. Changing this forces a new resource to be created.
 
-* `storage_account_id` - (Required) Specifies the ID of the Storage Account that hosts the SMB file share. Changing this forces a new resource to be created.
-
 * `file_share_name` - (Required) The name of the Azure Files share (the same value as the `name` argument of the [`azurerm_storage_share`](storage_share.html) resource). Changing this forces a new resource to be created.
+
+* `storage_account_id` - (Required) Specifies the ID of the Storage Account that hosts the SMB file share. Changing this forces a new resource to be created.
 
 * `description` - (Optional) A description for this Target Endpoint.
 

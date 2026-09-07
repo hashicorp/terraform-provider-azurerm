@@ -354,7 +354,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -399,12 +399,12 @@ resource "azurerm_role_assignment" "test_storage_blob_data_contrib_system" {
   scope                = azurerm_storage_account.test.id
   principal_id         = azurerm_iothub.test.identity[0].principal_id
 }
-`, data.Locations.Primary, data.RandomInteger, data.RandomString)
+	`, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
 func (r IotHubFileUploadResource) basicWithConnectionStringUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+	%s
 
 resource "azurerm_storage_account" "test2" {
   name                     = "acctestsa2%s"
@@ -416,7 +416,7 @@ resource "azurerm_storage_account" "test2" {
 
 resource "azurerm_storage_container" "test2" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test2.name
+  storage_account_id    = azurerm_storage_account.test2.id
   container_access_type = "private"
 }
 
@@ -425,16 +425,16 @@ resource "azurerm_iothub_file_upload" "test" {
   connection_string = azurerm_storage_account.test2.primary_blob_connection_string
   container_name    = azurerm_storage_container.test2.name
 }
-`, r.template(data), data.RandomString)
+	`, r.template(data), data.RandomString)
 }
 
 func (r IotHubFileUploadResource) basicWithContainerNameUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+	%s
 
 resource "azurerm_storage_container" "test2" {
   name                  = "test2"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -443,7 +443,7 @@ resource "azurerm_iothub_file_upload" "test" {
   connection_string = azurerm_storage_account.test.primary_blob_connection_string
   container_name    = azurerm_storage_container.test2.name
 }
-`, r.template(data))
+	`, r.template(data))
 }
 
 func (r IotHubFileUploadResource) defaultTTL(data acceptance.TestData, defaultTTL string) string {
@@ -537,7 +537,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -557,5 +557,5 @@ resource "azurerm_iothub" "test" {
     ]
   }
 }
-`, data.Locations.Primary, data.RandomInteger, data.RandomString)
+	`, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }

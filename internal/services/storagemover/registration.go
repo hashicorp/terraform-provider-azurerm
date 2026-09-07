@@ -74,5 +74,6 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 		StorageMoverProjectListResource{},
 		StorageMoverSmbFileShareTargetEndpointListResource{},
 		StorageMoverSourceEndpointListResource{},
+		StorageMoverTargetEndpointListResource{},
 	}
 }

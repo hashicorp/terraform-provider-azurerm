@@ -653,7 +653,6 @@ func TestAccLinuxFunctionApp_elasticPremiumCompleteWithVnetProperties(t *testing
 	})
 }
 
-// TODO 4.0 remove post 4.0
 func TestAccLinuxFunctionApp_elasticPremiumComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
@@ -1729,7 +1728,7 @@ func TestAccLinuxFunctionApp_storageAccountKeyVaultSecretVersionless(t *testing.
 	})
 }
 
-func TestAccLinuxFunctionAppASEv3_basicWithVnetProperties(t *testing.T) {
+func TestAccLinuxFunctionApp_ASEv3BasicWithVnetProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
 
@@ -2460,12 +2459,12 @@ provider "azurerm" {
   features {}
 }
 
-%s
+	%s
 
 resource "azurerm_storage_share" "test" {
-  name                 = "test"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 1
+  name               = "test"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
 }
 
 resource "azurerm_linux_function_app" "test" {
@@ -2485,7 +2484,7 @@ resource "azurerm_linux_function_app" "test" {
 
   site_config {}
 }
-`, r.template(data, planSku), data.RandomInteger)
+	`, r.template(data, planSku), data.RandomInteger)
 }
 
 func (r LinuxFunctionAppResource) stickySettings(data acceptance.TestData) string {
@@ -3830,7 +3829,6 @@ resource "azurerm_linux_function_app" "test" {
 `, r.storageContainerTemplate(data, SkuElasticPremiumPlan), data.RandomInteger)
 }
 
-// TODO 4.0 remove this test case as it's replaced by vNetIntegration_subnet1WithVnetProperties
 func (r LinuxFunctionAppResource) elasticComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -4266,6 +4264,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv-%[2]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -4347,6 +4346,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv-%[2]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -4488,11 +4488,11 @@ resource "azurerm_service_plan" "update" {
 
 func (r LinuxFunctionAppResource) storageContainerTemplate(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
-%s
+	%s
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -4559,9 +4559,9 @@ resource "azurerm_subnet" "test" {
     }
   }
 
-  service_endpoints = [
-    "Microsoft.Storage"
-  ]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
 }
 
 resource "azurerm_storage_account_network_rules" "test" {
@@ -5003,7 +5003,7 @@ resource "azurerm_linux_function_app" "test" {
 
 func (r LinuxFunctionAppResource) templateWithStorageAccountExtras(data acceptance.TestData, planSKU string) string {
 	return fmt.Sprintf(`
-%s
+	%s
 
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acct-%d"
@@ -5013,26 +5013,26 @@ resource "azurerm_user_assigned_identity" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "test"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 1
+  name               = "test"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
 }
 
 resource "azurerm_storage_container" "test2" {
   name                  = "test2"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_share" "test2" {
-  name                 = "test2"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 1
+  name               = "test2"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
 }
 
 data "azurerm_storage_account_sas" "test" {

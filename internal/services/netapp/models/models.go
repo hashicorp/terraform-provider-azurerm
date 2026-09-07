@@ -189,3 +189,79 @@ type NetAppBackupPolicyModel struct {
 	MonthlyBackupsToKeep int64             `tfschema:"monthly_backups_to_keep"`
 	Enabled              bool              `tfschema:"enabled"`
 }
+
+type NetAppVolumeBucketNfsUser struct {
+	GroupID int64 `tfschema:"group_id"`
+	UserID  int64 `tfschema:"user_id"`
+}
+
+type NetAppVolumeBucketServer struct {
+	Fqdn                        string `tfschema:"fqdn"`
+	CertificatePem              string `tfschema:"certificate_pem"`
+	OnCertificateConflictAction string `tfschema:"on_certificate_conflict_action"`
+}
+
+type NetAppVolumeBucketKeyVault struct {
+	CertificateKeyVaultUri string `tfschema:"certificate_key_vault_uri"`
+	CertificateName        string `tfschema:"certificate_name"`
+	CredentialsKeyVaultUri string `tfschema:"credentials_key_vault_uri"`
+	CredentialsSecretName  string `tfschema:"credentials_secret_name"`
+}
+
+type NetAppVolumeBucketModel struct {
+	Name                        string                       `tfschema:"name"`
+	VolumeID                    string                       `tfschema:"volume_id"`
+	Path                        string                       `tfschema:"path"`
+	Permissions                 string                       `tfschema:"permissions"`
+	FileSystemNfsUser           []NetAppVolumeBucketNfsUser  `tfschema:"file_system_nfs_user"`
+	FileSystemCifsUsername      string                       `tfschema:"file_system_cifs_username"`
+	KeyVault                    []NetAppVolumeBucketKeyVault `tfschema:"key_vault"`
+	Status                      string                       `tfschema:"status"`
+	ServerIPAddress             string                       `tfschema:"server_ip_address"`
+	ServerCertificateCommonName string                       `tfschema:"server_certificate_common_name"`
+	ServerCertificateExpiryDate string                       `tfschema:"server_certificate_expiry_date"`
+}
+
+type NetAppVolumeBucketWithServerModel struct {
+	Name                        string                       `tfschema:"name"`
+	VolumeID                    string                       `tfschema:"volume_id"`
+	Path                        string                       `tfschema:"path"`
+	Permissions                 string                       `tfschema:"permissions"`
+	FileSystemNfsUser           []NetAppVolumeBucketNfsUser  `tfschema:"file_system_nfs_user"`
+	FileSystemCifsUsername      string                       `tfschema:"file_system_cifs_username"`
+	Server                      []NetAppVolumeBucketServer   `tfschema:"server"`
+	KeyVault                    []NetAppVolumeBucketKeyVault `tfschema:"key_vault"`
+	Status                      string                       `tfschema:"status"`
+	ServerIPAddress             string                       `tfschema:"server_ip_address"`
+	ServerCertificateCommonName string                       `tfschema:"server_certificate_common_name"`
+	ServerCertificateExpiryDate string                       `tfschema:"server_certificate_expiry_date"`
+}
+
+type NetAppVolumeBucketDataSourceModel struct {
+	Name                        string                       `tfschema:"name"`
+	NetAppVolumeID              string                       `tfschema:"netapp_volume_id"`
+	Path                        string                       `tfschema:"path"`
+	Permissions                 string                       `tfschema:"permissions"`
+	FileSystemNfsUser           []NetAppVolumeBucketNfsUser  `tfschema:"file_system_nfs_user"`
+	FileSystemCifsUsername      string                       `tfschema:"file_system_cifs_username"`
+	KeyVault                    []NetAppVolumeBucketKeyVault `tfschema:"key_vault"`
+	Status                      string                       `tfschema:"status"`
+	ServerIPAddress             string                       `tfschema:"server_ip_address"`
+	ServerCertificateCommonName string                       `tfschema:"server_certificate_common_name"`
+	ServerCertificateExpiryDate string                       `tfschema:"server_certificate_expiry_date"`
+}
+
+type NetAppVolumeBucketWithServerDataSourceModel struct {
+	Name                        string                       `tfschema:"name"`
+	NetAppVolumeID              string                       `tfschema:"netapp_volume_id"`
+	Path                        string                       `tfschema:"path"`
+	Permissions                 string                       `tfschema:"permissions"`
+	FileSystemNfsUser           []NetAppVolumeBucketNfsUser  `tfschema:"file_system_nfs_user"`
+	FileSystemCifsUsername      string                       `tfschema:"file_system_cifs_username"`
+	Server                      []NetAppVolumeBucketServer   `tfschema:"server"`
+	KeyVault                    []NetAppVolumeBucketKeyVault `tfschema:"key_vault"`
+	Status                      string                       `tfschema:"status"`
+	ServerIPAddress             string                       `tfschema:"server_ip_address"`
+	ServerCertificateCommonName string                       `tfschema:"server_certificate_common_name"`
+	ServerCertificateExpiryDate string                       `tfschema:"server_certificate_expiry_date"`
+}

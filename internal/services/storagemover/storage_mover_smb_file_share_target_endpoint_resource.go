@@ -73,18 +73,18 @@ func (r StorageMoverSmbFileShareTargetEndpointResource) Arguments() map[string]*
 			ValidateFunc: storagemovers.ValidateStorageMoverID,
 		},
 
-		"storage_account_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: commonids.ValidateStorageAccountID,
-		},
-
 		"file_share_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.StorageShareName,
+		},
+
+		"storage_account_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateStorageAccountID,
 		},
 
 		"description": {

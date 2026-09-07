@@ -40,11 +40,11 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		EmailCommunicationServiceDomainSenderUsernameResource{},
+		CommunicationServiceResource{},
 		EmailCommunicationServiceDomainResource{},
+		EmailCommunicationServiceDomainSenderUsernameResource{},
 		EmailCommunicationServiceResource{},
 		EmailDomainAssociationResource{},
-		CommunicationServiceResource{},
 	}
 }
 

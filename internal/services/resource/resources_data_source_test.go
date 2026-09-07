@@ -13,6 +13,16 @@ import (
 
 type ResourcesDataSource struct{}
 
+func TestAccDataSourceResources_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_resources", "test")
+	r := ResourcesDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.ByName(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceResources_ByName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_resources", "test")
 	r := ResourcesDataSource{}

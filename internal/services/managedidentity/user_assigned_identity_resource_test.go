@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type UserAssignedIdentityTestResource struct{}
+type UserAssignedIdentityResource struct{}
 
 func TestAccUserAssignedIdentity_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_user_assigned_identity", "test")
-	r := UserAssignedIdentityTestResource{}
+	r := UserAssignedIdentityResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccUserAssignedIdentity_basic(t *testing.T) {
 
 func TestAccUserAssignedIdentity_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_user_assigned_identity", "test")
-	r := UserAssignedIdentityTestResource{}
+	r := UserAssignedIdentityResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccUserAssignedIdentity_requiresImport(t *testing.T) {
 
 func TestAccUserAssignedIdentity_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_user_assigned_identity", "test")
-	r := UserAssignedIdentityTestResource{}
+	r := UserAssignedIdentityResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccUserAssignedIdentity_complete(t *testing.T) {
 
 func TestAccUserAssignedIdentity_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_user_assigned_identity", "test")
-	r := UserAssignedIdentityTestResource{}
+	r := UserAssignedIdentityResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -92,7 +92,7 @@ func TestAccUserAssignedIdentity_update(t *testing.T) {
 	})
 }
 
-func (r UserAssignedIdentityTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r UserAssignedIdentityResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseUserAssignedIdentityID(state.ID)
 	if err != nil {
 		return nil, err
@@ -106,7 +106,7 @@ func (r UserAssignedIdentityTestResource) Exists(ctx context.Context, clients *c
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r UserAssignedIdentityTestResource) basic(data acceptance.TestData) string {
+func (r UserAssignedIdentityResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -122,7 +122,7 @@ resource "azurerm_user_assigned_identity" "test" {
 `, r.template(data))
 }
 
-func (r UserAssignedIdentityTestResource) requiresImport(data acceptance.TestData) string {
+func (r UserAssignedIdentityResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -134,7 +134,7 @@ resource "azurerm_user_assigned_identity" "import" {
 `, r.basic(data))
 }
 
-func (r UserAssignedIdentityTestResource) complete(data acceptance.TestData) string {
+func (r UserAssignedIdentityResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -156,7 +156,7 @@ resource "azurerm_user_assigned_identity" "test" {
 `, r.template(data))
 }
 
-func (r UserAssignedIdentityTestResource) template(data acceptance.TestData) string {
+func (r UserAssignedIdentityResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "primary_location" {
   default = %q

@@ -83,12 +83,9 @@ func (r MsSqlVirtualMachineGroupResource) Arguments() map[string]*pluginsdk.Sche
 		},
 
 		"sql_image_sku": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(sqlvirtualmachinegroups.SqlVMGroupImageSkuDeveloper),
-				string(sqlvirtualmachinegroups.SqlVMGroupImageSkuEnterprise),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(sqlvirtualmachinegroups.PossibleValuesForSqlVMGroupImageSku(), false),
 		},
 
 		"wsfc_domain_profile": {
@@ -98,13 +95,10 @@ func (r MsSqlVirtualMachineGroupResource) Arguments() map[string]*pluginsdk.Sche
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"cluster_subnet_type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(sqlvirtualmachinegroups.ClusterSubnetTypeMultiSubnet),
-							string(sqlvirtualmachinegroups.ClusterSubnetTypeSingleSubnet),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringInSlice(sqlvirtualmachinegroups.PossibleValuesForClusterSubnetType(), false),
 					},
 
 					"fqdn": {
@@ -196,7 +190,7 @@ func (r MsSqlVirtualMachineGroupResource) Create() sdk.ResourceFunc {
 			parameters := sqlvirtualmachinegroups.SqlVirtualMachineGroup{
 				Properties: &sqlvirtualmachinegroups.SqlVirtualMachineGroupProperties{
 					SqlImageOffer:     pointer.To(model.SqlImageOffer),
-					SqlImageSku:       pointer.To(sqlvirtualmachinegroups.SqlVMGroupImageSku(model.SqlImageSku)),
+					SqlImageSku:       pointer.ToEnum[sqlvirtualmachinegroups.SqlVMGroupImageSku](model.SqlImageSku),
 					WsfcDomainProfile: expandMsSqlVirtualMachineGroupWsfcDomainProfile(model.WsfcDomainProfile),
 				},
 
@@ -285,7 +279,7 @@ func (r MsSqlVirtualMachineGroupResource) Update() sdk.ResourceFunc {
 			parameters := sqlvirtualmachinegroups.SqlVirtualMachineGroup{
 				Properties: &sqlvirtualmachinegroups.SqlVirtualMachineGroupProperties{
 					SqlImageOffer:     pointer.To(model.SqlImageOffer),
-					SqlImageSku:       pointer.To(sqlvirtualmachinegroups.SqlVMGroupImageSku(model.SqlImageSku)),
+					SqlImageSku:       pointer.ToEnum[sqlvirtualmachinegroups.SqlVMGroupImageSku](model.SqlImageSku),
 					WsfcDomainProfile: expandMsSqlVirtualMachineGroupWsfcDomainProfile(model.WsfcDomainProfile),
 				},
 
@@ -327,7 +321,7 @@ func expandMsSqlVirtualMachineGroupWsfcDomainProfile(wsfcDomainProfile []WsfcDom
 	}
 
 	result := sqlvirtualmachinegroups.WsfcDomainProfile{
-		ClusterSubnetType:        pointer.To(sqlvirtualmachinegroups.ClusterSubnetType(wsfcDomainProfile[0].ClusterSubnetType)),
+		ClusterSubnetType:        pointer.ToEnum[sqlvirtualmachinegroups.ClusterSubnetType](wsfcDomainProfile[0].ClusterSubnetType),
 		DomainFqdn:               pointer.To(wsfcDomainProfile[0].Fqdn),
 		OuPath:                   pointer.To(wsfcDomainProfile[0].OrganizationalUnitPath),
 		ClusterBootstrapAccount:  pointer.To(wsfcDomainProfile[0].ClusterBootstrapAccountName),

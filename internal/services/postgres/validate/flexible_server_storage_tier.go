@@ -15,7 +15,7 @@ type StorageTiers struct {
 
 // Creates a map of valid StorageTiers based on the storage_mb for the PostgreSQL Flexible Server
 func InitializeFlexibleServerStorageTierDefaults() map[int]StorageTiers {
-	storageTiersMappings := map[int]StorageTiers{
+	return map[int]StorageTiers{
 		32768: {servers.AzureManagedDiskPerformanceTierPFour, &[]string{
 			string(servers.AzureManagedDiskPerformanceTierPFour),
 			string(servers.AzureManagedDiskPerformanceTierPSix),
@@ -84,6 +84,4 @@ func InitializeFlexibleServerStorageTierDefaults() map[int]StorageTiers {
 			string(servers.AzureManagedDiskPerformanceTierPEightZero),
 		}, &[]int{80}},
 	}
-
-	return storageTiersMappings
 }

@@ -215,15 +215,13 @@ func (r KubernetesClusterTrustedAccessRoleBindingResource) mapTrustedAccessRoleB
 }
 
 func (r KubernetesClusterTrustedAccessRoleBindingResource) mapKubernetesClusterTrustedAccessRoleBindingResourceSchemaToTrustedAccessRoleBindingProperties(input KubernetesClusterTrustedAccessRoleBindingResourceSchema, output *trustedaccess.TrustedAccessRoleBindingProperties) {
-	roles := append([]string{}, input.Roles...)
-	output.Roles = roles
+	output.Roles = append([]string{}, input.Roles...)
 
 	output.SourceResourceId = input.SourceResourceId
 }
 
 func (r KubernetesClusterTrustedAccessRoleBindingResource) mapTrustedAccessRoleBindingPropertiesToKubernetesClusterTrustedAccessRoleBindingResourceSchema(input trustedaccess.TrustedAccessRoleBindingProperties, output *KubernetesClusterTrustedAccessRoleBindingResourceSchema) {
-	roles := append([]string{}, input.Roles...)
-	output.Roles = roles
+	output.Roles = append([]string{}, input.Roles...)
 
 	output.SourceResourceId = input.SourceResourceId
 }

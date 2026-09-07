@@ -25,8 +25,7 @@ func Flatten(tagMap map[string]*string) map[string]interface{} {
 }
 
 func FlattenAndSet(d *pluginsdk.ResourceData, tagMap map[string]*string) error {
-	flattened := Flatten(tagMap)
-	if err := d.Set("tags", flattened); err != nil {
+	if err := d.Set("tags", Flatten(tagMap)); err != nil {
 		return fmt.Errorf("setting `tags`: %s", err)
 	}
 

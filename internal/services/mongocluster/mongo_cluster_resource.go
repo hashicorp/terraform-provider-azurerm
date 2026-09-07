@@ -5,6 +5,7 @@ package mongocluster
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -17,8 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2025-09-01/mongoclusters"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2026-06-01/mongoclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -85,7 +85,7 @@ func (r MongoClusterResource) ResourceType() string {
 }
 
 func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			ForceNew: true,
 			Required: true,
@@ -290,12 +290,6 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 	}
-
-	if !features.FivePointOh() {
-		args["customer_managed_key"].Elem.(*pluginsdk.Resource).Schema["key_vault_key_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeAny)
-	}
-
-	return args
 }
 
 func (r MongoClusterResource) Attributes() map[string]*pluginsdk.Schema {
@@ -379,7 +373,7 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			if state.CreateMode != "" {
-				parameter.Properties.CreateMode = pointer.To(mongoclusters.CreateMode(state.CreateMode))
+				parameter.Properties.CreateMode = pointer.ToEnum[mongoclusters.CreateMode](state.CreateMode)
 			}
 
 			parameter.Properties.PreviewFeatures = expandPreviewFeatures(state.PreviewFeatures)
@@ -409,11 +403,11 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 
 			if state.HighAvailabilityMode != "" {
 				parameter.Properties.HighAvailability = &mongoclusters.HighAvailabilityProperties{
-					TargetMode: pointer.To(mongoclusters.HighAvailabilityMode(state.HighAvailabilityMode)),
+					TargetMode: pointer.ToEnum[mongoclusters.HighAvailabilityMode](state.HighAvailabilityMode),
 				}
 			}
 
-			parameter.Properties.PublicNetworkAccess = pointer.To(mongoclusters.PublicNetworkAccess(state.PublicNetworkAccess))
+			parameter.Properties.PublicNetworkAccess = pointer.ToEnum[mongoclusters.PublicNetworkAccess](state.PublicNetworkAccess)
 
 			if state.StorageSizeInGb != 0 {
 				parameter.Properties.Storage = &mongoclusters.StorageProperties{
@@ -530,18 +524,18 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("high_availability_mode") {
 				payload.Properties.HighAvailability = &mongoclusters.HighAvailabilityProperties{
-					TargetMode: pointer.To(mongoclusters.HighAvailabilityMode(state.HighAvailabilityMode)),
+					TargetMode: pointer.ToEnum[mongoclusters.HighAvailabilityMode](state.HighAvailabilityMode),
 				}
 			}
 
 			if metadata.ResourceData.HasChange("public_network_access") {
-				payload.Properties.PublicNetworkAccess = pointer.To(mongoclusters.PublicNetworkAccess(state.PublicNetworkAccess))
+				payload.Properties.PublicNetworkAccess = pointer.ToEnum[mongoclusters.PublicNetworkAccess](state.PublicNetworkAccess)
 			}
 
 			if metadata.ResourceData.HasChange("storage_size_in_gb") {
 				payload.Properties.Storage = &mongoclusters.StorageProperties{
 					SizeGb: pointer.To(state.StorageSizeInGb),
-					Type:   pointer.To(mongoclusters.StorageType(state.StorageType)),
+					Type:   pointer.ToEnum[mongoclusters.StorageType](state.StorageType),
 				}
 			}
 
@@ -721,28 +715,28 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 
 			switch state.CreateMode {
 			case string(mongoclusters.CreateModeDefault):
-				if state.AdministratorUserName == "" {
-					return fmt.Errorf("`administrator_username` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
+				if isNativeAuthRequired(metadata) && state.AdministratorUserName == "" {
+					return errors.New("`administrator_username` is required when `authentication_methods` contains `NativeAuth` or is not configured")
 				}
 
 				if state.ComputeTier == "" {
-					return fmt.Errorf("`compute_tier` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
+					return fmt.Errorf("`compute_tier` is required when `create_mode` is `%s`", string(mongoclusters.CreateModeDefault))
 				}
 
 				if state.StorageSizeInGb == 0 {
-					return fmt.Errorf("`storage_size_in_gb` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
+					return fmt.Errorf("`storage_size_in_gb` is required when `create_mode` is `%s`", string(mongoclusters.CreateModeDefault))
 				}
 
 				if state.HighAvailabilityMode == "" {
-					return fmt.Errorf("`high_availability_mode` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
+					return fmt.Errorf("`high_availability_mode` is required when `create_mode` is `%s`", string(mongoclusters.CreateModeDefault))
 				}
 
 				if state.ShardCount == 0 {
-					return fmt.Errorf("`shard_count` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
+					return fmt.Errorf("`shard_count` is required when `create_mode` is `%s`", string(mongoclusters.CreateModeDefault))
 				}
 
 				if state.Version == "" {
-					return fmt.Errorf("`version` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
+					return fmt.Errorf("`version` is required when `create_mode` is `%s`", string(mongoclusters.CreateModeDefault))
 				}
 			case string(mongoclusters.CreateModeGeoReplica):
 				if state.SourceLocation == "" {
@@ -950,4 +944,30 @@ func flattenMongoClusterAuthConfig(input *mongoclusters.AuthConfigProperties) []
 	}
 
 	return results
+}
+
+func isNativeAuthRequired(metadata sdk.ResourceMetaData) bool {
+	authMethodsRaw := metadata.ResourceDiff.GetRawConfig().AsValueMap()["authentication_methods"]
+	if !authMethodsRaw.IsKnown() {
+		return false
+	}
+	if authMethodsRaw.IsNull() {
+		return true
+	}
+
+	authMethods := authMethodsRaw.AsValueSet().Values()
+	if len(authMethods) == 0 {
+		return true
+	}
+
+	for _, v := range authMethods {
+		if !v.IsKnown() {
+			continue
+		}
+		if v.AsString() == string(mongoclusters.AuthenticationModeNativeAuth) {
+			return true
+		}
+	}
+
+	return false
 }

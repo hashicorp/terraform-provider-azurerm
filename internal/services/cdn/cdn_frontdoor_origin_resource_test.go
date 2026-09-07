@@ -9,12 +9,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigins"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CdnFrontDoorOriginResource struct{}
@@ -236,24 +235,20 @@ func TestAccCdnFrontDoorOrigin_OriginHostHeaderRegression(t *testing.T) {
 }
 
 func (r CdnFrontDoorOriginResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FrontDoorOriginID(state.ID)
+	id, err := afdorigins.ParseOriginGroupOriginID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	client := clients.Cdn.FrontDoorOriginsClient
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, id.OriginName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return pointer.To(false), nil
-		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return pointer.To(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-//nolint:unused
 func (r CdnFrontDoorOriginResource) templatePrivateLinkStorage(data acceptance.TestData) string {
 	template := r.template(data, "Premium_AzureFrontDoor", false)
 	return fmt.Sprintf(`
@@ -313,7 +308,6 @@ resource "azurerm_storage_account" "test" {
 `, template, data.RandomString)
 }
 
-// nolint: unused
 func (r CdnFrontDoorOriginResource) templatePrivateLinkLoadBalancer(data acceptance.TestData) string {
 	template := r.template(data, "Premium_AzureFrontDoor", true)
 	return fmt.Sprintf(`
@@ -375,11 +369,9 @@ resource "azurerm_private_link_service" "test" {
 `, template, data.RandomInteger)
 }
 
-//nolint:unused
 func (r CdnFrontDoorOriginResource) templatePrivateLinkWebApp(data acceptance.TestData) string {
 	template := r.template(data, "Premium_AzureFrontDoor", false)
 	return fmt.Sprintf(`
-
 %s
 
 resource "azurerm_service_plan" "test" {
@@ -400,14 +392,14 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "testaccsc%[3]s"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "test"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 1
+  name               = "test"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
 }
 
 data "azurerm_storage_account_sas" "test" {
@@ -551,7 +543,6 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 `, template, data.RandomInteger)
 }
 
-// nolint: unused
 func (r CdnFrontDoorOriginResource) privateLinkBlobPrimary(data acceptance.TestData) string {
 	template := r.templatePrivateLinkStorage(data)
 	return fmt.Sprintf(`
@@ -582,7 +573,6 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 `, template, data.RandomInteger)
 }
 
-// nolint: unused
 func (r CdnFrontDoorOriginResource) privateLinkStaticWebSite(data acceptance.TestData) string {
 	template := r.templatePrivateLinkStorageStaticWebSite(data)
 	return fmt.Sprintf(`
@@ -613,7 +603,6 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 `, template, data.RandomInteger)
 }
 
-// nolint: unused
 func (r CdnFrontDoorOriginResource) privateLinkAppServices(data acceptance.TestData) string {
 	template := r.templatePrivateLinkWebApp(data)
 	return fmt.Sprintf(`
@@ -644,7 +633,6 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 `, template, data.RandomInteger)
 }
 
-// nolint: unused
 func (r CdnFrontDoorOriginResource) privateLinkLoadBalancer(data acceptance.TestData) string {
 	template := r.templatePrivateLinkLoadBalancer(data)
 	return fmt.Sprintf(`

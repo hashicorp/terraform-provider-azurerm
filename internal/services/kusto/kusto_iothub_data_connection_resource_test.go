@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/dataconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -96,8 +97,7 @@ func (KustoIotHubDataConnectionResource) Exists(ctx context.Context, clients *cl
 		if !ok {
 			return nil, fmt.Errorf("%s is not an IotHub Data Connection", id.String())
 		}
-		exists := value.Properties != nil
-		return &exists, nil
+		return pointer.To(value.Properties != nil), nil
 	} else {
 		return nil, fmt.Errorf("response model is empty")
 	}

@@ -37,8 +37,7 @@ type SchemaJSON struct {
 
 func (b *SchemaJSON) UnmarshalJSON(body []byte) error {
 	var m map[string]interface{}
-	err := json.Unmarshal(body, &m)
-	if err != nil {
+	if err := json.Unmarshal(body, &m); err != nil {
 		return err
 	}
 	b.Type, _ = m["type"].(string)

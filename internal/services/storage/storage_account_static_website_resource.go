@@ -18,7 +18,7 @@ import (
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_account_static_website -service-package-name storage -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id" -test-name "complete"
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id "storage_account_id" -test-name "complete"
 
 type AccountStaticWebsiteResource struct{}
 

@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -144,7 +144,7 @@ func resourceCdnFrontDoorProfileCreate(d *pluginsdk.ResourceData, meta interface
 			OriginResponseTimeoutSeconds: pointer.To(int64(d.Get("response_timeout_seconds").(int))),
 		},
 		Sku: profiles.Sku{
-			Name: pointer.To(profiles.SkuName(d.Get("sku_name").(string))),
+			Name: pointer.ToEnum[profiles.SkuName](d.Get("sku_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -152,7 +152,7 @@ func resourceCdnFrontDoorProfileCreate(d *pluginsdk.ResourceData, meta interface
 	props.Properties.LogScrubbing = expandCdnFrontDoorProfileLogScrubbing(d.Get("log_scrubbing_rule").(*pluginsdk.Set).List())
 
 	if v, ok := d.GetOk("identity"); ok {
-		i, err := identity.ExpandSystemAndUserAssignedMap(v.([]interface{}))
+		i, err := identity.ExpandLegacySystemAndUserAssignedMap(v.([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -195,7 +195,7 @@ func resourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("sku_name", string(pointer.From(skuName)))
 		}
 
-		identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
@@ -248,7 +248,7 @@ func resourceCdnFrontDoorProfileUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("identity") {
-		i, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		i, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -256,8 +256,7 @@ func resourceCdnFrontDoorProfileUpdate(d *pluginsdk.ResourceData, meta interface
 		props.Identity = i
 	}
 
-	err = client.UpdateThenPoll(ctx, pointer.From(id), props)
-	if err != nil {
+	if err = client.UpdateThenPoll(ctx, pointer.From(id), props); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 

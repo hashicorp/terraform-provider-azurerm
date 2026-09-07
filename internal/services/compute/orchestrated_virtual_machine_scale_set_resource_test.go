@@ -10,11 +10,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -1070,77 +1069,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 }
 
 func (r OrchestratedVirtualMachineScaleSetResource) basicWindows(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-OVMSS-%[1]d"
-  location = "%[2]s"
-}
-
-%[3]s
-
-resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctestOVMSS-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku_name  = "Standard_D1_v2"
-  instances = 2
-
-  platform_fault_domain_count = 2
-
-  os_profile {
-    windows_configuration {
-      computer_name_prefix = "testvm"
-      admin_username       = "myadmin"
-      admin_password       = "Passwword1234"
-
-      enable_automatic_updates = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
-
-      winrm_listener {
-        protocol = "Http"
-      }
-
-    }
-  }
-
-  network_interface {
-    name    = "TestNetworkProfile-%[1]d"
-    primary = true
-
-    ip_configuration {
-      name      = "TestIPConfiguration"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-
-      public_ip_address {
-        name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label"
-        idle_timeout_in_minutes = 4
-      }
-    }
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter-Server-Core"
-    version   = "latest"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1169,9 +1097,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
 
-      enable_automatic_updates = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
+      automatic_updates_enabled = true
+      provision_vm_agent        = true
+      timezone                  = "W. Europe Standard Time"
 
       winrm_listener {
         protocol = "Http"
@@ -1241,9 +1169,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
 
-      enable_automatic_updates = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
+      automatic_updates_enabled = true
+      provision_vm_agent        = true
+      timezone                  = "W. Europe Standard Time"
 
       winrm_listener {
         protocol = "Http"
@@ -1318,8 +1246,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
 
-      enable_automatic_updates = true
-      provision_vm_agent       = true
+      automatic_updates_enabled = true
+      provision_vm_agent        = true
 
       winrm_listener {
         protocol = "Http"
@@ -1776,93 +1704,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 }
 
 func (r OrchestratedVirtualMachineScaleSetResource) bootDiagnostic(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-%[3]s
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment                     = "staging"
-    allow_nested_items_to_be_public = true
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
-resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctestOVMSS-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku_name  = "Standard_D1_v2"
-  instances = 2
-
-  platform_fault_domain_count = 2
-
-  os_profile {
-    linux_configuration {
-      computer_name_prefix = "testvm-%[1]d"
-      admin_username       = "myadmin"
-      admin_password       = "Passwword1234"
-
-      disable_password_authentication = false
-    }
-  }
-
-  boot_diagnostics {
-    storage_account_uri = azurerm_storage_account.test.primary_blob_endpoint
-  }
-
-  network_interface {
-    name    = "TestNetworkProfile"
-    primary = true
-
-    ip_configuration {
-      name      = "TestIPConfiguration"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-
-      public_ip_address {
-        name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label"
-        idle_timeout_in_minutes = 4
-      }
-    }
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1883,8 +1724,7 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   tags = {
-    environment                     = "staging"
-    allow_nested_items_to_be_public = true
+    environment = "staging"
   }
 }
 
@@ -2323,7 +2163,8 @@ resource "azurerm_application_gateway" "test" {
     name      = "ip-config-private"
     subnet_id = azurerm_subnet.gwtest.id
 
-    private_ip_address_allocation = "Dynamic"
+    private_ip_address_allocation = "Static"
+    private_ip_address            = "10.0.3.10"
   }
 
   frontend_port {
@@ -2467,9 +2308,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
 
-      enable_automatic_updates = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
+      automatic_updates_enabled = true
+      provision_vm_agent        = true
+      timezone                  = "W. Europe Standard Time"
 
       winrm_listener {
         protocol = "Http"
@@ -2556,9 +2397,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
 
-      enable_automatic_updates = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
+      automatic_updates_enabled = true
+      provision_vm_agent        = true
+      timezone                  = "W. Europe Standard Time"
 
       winrm_listener {
         protocol = "Http"

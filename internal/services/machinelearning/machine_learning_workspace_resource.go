@@ -185,14 +185,14 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			"managed_network": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"isolation_mode": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForIsolationMode(), false),
 						},
 						"provision_on_creation_enabled": {
@@ -323,7 +323,7 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Sku: &workspaces.Sku{
 			Name: d.Get("sku_name").(string),
-			Tier: pointer.To(workspaces.SkuTier(d.Get("sku_name").(string))),
+			Tier: pointer.ToEnum[workspaces.SkuTier](d.Get("sku_name").(string)),
 		},
 		Kind:     pointer.To(d.Get("kind").(string)),
 		Identity: expandedIdentity,
@@ -476,7 +476,7 @@ func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta inte
 	if d.HasChange("sku_name") {
 		payload.Sku = &workspaces.Sku{
 			Name: d.Get("sku_name").(string),
-			Tier: pointer.To(workspaces.SkuTier(d.Get("sku_name").(string))),
+			Tier: pointer.ToEnum[workspaces.SkuTier](d.Get("sku_name").(string)),
 		}
 	}
 
@@ -591,8 +591,7 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 			}
 			d.Set("key_vault_id", kvId.ID())
 
-			featureStoreSettings := flattenMachineLearningWorkspaceFeatureStore(props.FeatureStoreSettings)
-			if err := d.Set("feature_store", featureStoreSettings); err != nil {
+			if err := d.Set("feature_store", flattenMachineLearningWorkspaceFeatureStore(props.FeatureStoreSettings)); err != nil {
 				return fmt.Errorf("setting `feature_store`: %+v", err)
 			}
 
@@ -681,7 +680,7 @@ func flattenMachineLearningWorkspaceIdentity(input *identity.LegacySystemAndUser
 			transform.TenantId = input.TenantId
 		}
 
-		if input != nil && input.IdentityIds != nil {
+		if input.IdentityIds != nil {
 			for k, v := range input.IdentityIds {
 				transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
 					ClientId:    v.ClientId,
@@ -813,7 +812,7 @@ func expandMachineLearningWorkspaceManagedNetwork(i []interface{}) (*workspaces.
 	v := i[0].(map[string]interface{})
 
 	return &workspaces.ManagedNetworkSettings{
-		IsolationMode: pointer.To(workspaces.IsolationMode(v["isolation_mode"].(string))),
+		IsolationMode: pointer.ToEnum[workspaces.IsolationMode](v["isolation_mode"].(string)),
 	}, v["provision_on_creation_enabled"].(bool)
 }
 

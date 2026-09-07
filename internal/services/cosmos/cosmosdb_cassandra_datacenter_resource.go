@@ -25,7 +25,7 @@ import (
 )
 
 func resourceCassandraDatacenter() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceCassandraDatacenterCreate,
 		Read:   resourceCassandraDatacenterRead,
 		Update: resourceCassandraDatacenterUpdate,
@@ -127,8 +127,6 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
 func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface{}) error {

@@ -213,10 +213,9 @@ func expandStatefulAgentModel(input []StatefulAgentModel) pools.AgentProfile {
 			stateful.ResourcePredictions = pointer.To(interface{}(*resourcePredictions))
 		}
 
-		manualPredictionProfile := &pools.ManualResourcePredictionsProfile{
+		stateful.ResourcePredictionsProfile = &pools.ManualResourcePredictionsProfile{
 			Kind: pools.ResourcePredictionsProfileTypeManual,
 		}
-		stateful.ResourcePredictionsProfile = manualPredictionProfile
 	} else if len(agentProfile.AutomaticResourcePrediction) > 0 {
 		automaticResourcePrediction := agentProfile.AutomaticResourcePrediction[0]
 
@@ -225,8 +224,7 @@ func expandStatefulAgentModel(input []StatefulAgentModel) pools.AgentProfile {
 		}
 
 		if automaticResourcePrediction.PredictionPreference != "" {
-			predictionPreference := pools.PredictionPreference(automaticResourcePrediction.PredictionPreference)
-			automaticPredictionProfile.PredictionPreference = &predictionPreference
+			automaticPredictionProfile.PredictionPreference = pointer.ToEnum[pools.PredictionPreference](automaticResourcePrediction.PredictionPreference)
 		}
 
 		stateful.ResourcePredictionsProfile = automaticPredictionProfile
@@ -254,10 +252,9 @@ func expandStatelessAgentModel(input []StatelessAgentModel) pools.AgentProfile {
 			stateless.ResourcePredictions = pointer.To(interface{}(*resourcePredictions))
 		}
 
-		manualPredictionProfile := &pools.ManualResourcePredictionsProfile{
+		stateless.ResourcePredictionsProfile = &pools.ManualResourcePredictionsProfile{
 			Kind: pools.ResourcePredictionsProfileTypeManual,
 		}
-		stateless.ResourcePredictionsProfile = manualPredictionProfile
 	} else if len(agentProfile.AutomaticResourcePrediction) > 0 {
 		automaticPredictionProfile := &pools.AutomaticResourcePredictionsProfile{
 			Kind: pools.ResourcePredictionsProfileTypeAutomatic,
@@ -265,8 +262,7 @@ func expandStatelessAgentModel(input []StatelessAgentModel) pools.AgentProfile {
 
 		automaticResourcePrediction := agentProfile.AutomaticResourcePrediction[0]
 		if automaticResourcePrediction.PredictionPreference != "" {
-			predictionPreference := pools.PredictionPreference(automaticResourcePrediction.PredictionPreference)
-			automaticPredictionProfile.PredictionPreference = &predictionPreference
+			automaticPredictionProfile.PredictionPreference = pointer.ToEnum[pools.PredictionPreference](automaticResourcePrediction.PredictionPreference)
 		}
 
 		stateless.ResourcePredictionsProfile = automaticPredictionProfile

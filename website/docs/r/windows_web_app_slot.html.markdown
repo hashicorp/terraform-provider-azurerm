@@ -108,7 +108,7 @@ The following arguments are supported:
 
 * `virtual_network_backup_restore_enabled` - (Optional) Whether backup and restore operations over the linked virtual network are enabled. Defaults to `false`.
 
-* `virtual_network_image_pull_enabled` - (Optional) Whether traffic for the image pull should be routed over the virtual network.
+* `virtual_network_image_pull_enabled` - (Optional) Whether traffic for the image pull should be routed over the virtual network. Defaults to `false`.
 
 ~> **Note:** `virtual_network_image_pull_enabled` must be set to `true` when running in an App Service Environment.
 
@@ -188,7 +188,7 @@ An `application_stack` block supports the following:
 
 ~> **Note:** For compatible combinations of `java_version`, `java_container` and `java_container_version` users can use `az webapp list-runtimes` from command line.
 
-* `node_version` - (Optional) The version of node to use when `current_stack` is set to `node`. Possible values include `~12`, `~14`, `~16`, `~18`, `~20` and `~22`.
+* `node_version` - (Optional) The version of node to use when `current_stack` is set to `node`. Possible values include `~12`, `~14`, `~16`, `~18`, `~20`, `~22` and `~24`.
 
 ~> **Note:** This property conflicts with `java_version`.
 
