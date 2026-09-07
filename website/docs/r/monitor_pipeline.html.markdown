@@ -191,10 +191,7 @@ resource "azurerm_monitor_pipeline" "example" {
     name                   = "example-otlp-receiver"
     type                   = "OTLP"
     tls_configuration_name = "example-mutual-tls"
-
-    otlp {
-      endpoint = "0.0.0.0:4317"
-    }
+    otlp_endpoint          = "0.0.0.0:4317"
   }
 
   tls_configuration {
@@ -376,14 +373,6 @@ An `exporter` block supports the following:
 
 ---
 
-An `otlp` block supports the following:
-
-* `endpoint` - (Required) The endpoint the OTLP receiver listens on.
-
--> **Note:** `endpoint` must use the format `<host>:<port>`, for example `0.0.0.0:4317`, with a port between `1` and `65535`.
-
----
-
 A `persistence` block supports the following:
 
 * `maximum_storage_usage_in_gb` - (Optional) The maximum local storage the exporter is allowed to use, in gigabytes.
@@ -440,7 +429,9 @@ A `receiver` block supports the following:
 
 * `type` - (Required) The type of this receiver. Possible values are `OTLP` and `Syslog`.
 
-* `otlp` - (Optional) An `otlp` block as defined above. Only used when `type` is `OTLP`.
+* `otlp_endpoint` - (Optional) The endpoint the OTLP receiver listens on. Only used when `type` is `OTLP`.
+
+-> **Note:** `otlp_endpoint` must use the format `<host>:<port>`, for example `0.0.0.0:4317`, with a port between `1` and `65535`.
 
 * `syslog` - (Optional) A `syslog` block as defined below. Only used when `type` is `Syslog`.
 
@@ -448,7 +439,7 @@ A `receiver` block supports the following:
 
 ~> **Note:** `tls_configuration_name` must be between 4 and 33 characters, contain only letters, numbers, and hyphens, must not start or end with a hyphen, and must reference the `name` of a `tls_configuration` block defined on this resource. It is not supported when `syslog.transport_protocol` is `udp`.
 
-~> **Note:** `otlp` must be set and `syslog` must not be set when `type` is `OTLP`. `syslog` must be set and `otlp` must not be set when `type` is `Syslog`.
+~> **Note:** `otlp_endpoint` must be set and `syslog` must not be set when `type` is `OTLP`. `syslog` must be set and `otlp_endpoint` must not be set when `type` is `Syslog`.
 
 ---
 

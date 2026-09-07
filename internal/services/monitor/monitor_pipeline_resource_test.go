@@ -727,10 +727,7 @@ resource "azurerm_monitor_pipeline" "test" {
     name                   = local.otlp_receiver_name
     type                   = "OTLP"
     tls_configuration_name = local.mtls_configuration_name
-
-    otlp {
-      endpoint = "0.0.0.0:4317"
-    }
+    otlp_endpoint          = "0.0.0.0:4317"
   }
 
   tls_configuration {
@@ -938,10 +935,7 @@ resource "azurerm_monitor_pipeline" "test" {
     name                   = local.otlp_receiver_name
     type                   = "OTLP"
     tls_configuration_name = local.mtls_configuration_name
-
-    otlp {
-      endpoint = "0.0.0.0:4318"
-    }
+    otlp_endpoint          = "0.0.0.0:4318"
   }
 
   receiver {

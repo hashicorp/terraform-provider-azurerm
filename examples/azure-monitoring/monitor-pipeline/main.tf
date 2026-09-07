@@ -398,10 +398,7 @@ resource "azurerm_monitor_pipeline" "example" {
     name                   = "example-otlp-receiver"
     type                   = "OTLP"
     tls_configuration_name = "example-mutual-tls"
-
-    otlp {
-      endpoint = "0.0.0.0:4317"
-    }
+    otlp_endpoint          = "0.0.0.0:4317"
   }
 
   tls_configuration {

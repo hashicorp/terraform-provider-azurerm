@@ -117,13 +117,9 @@ type PipelineGroupBatchProcessorModel struct {
 type PipelineGroupReceiverModel struct {
 	Name                 string                             `tfschema:"name"`
 	Type                 string                             `tfschema:"type"`
-	Otlp                 []PipelineGroupOtlpReceiverModel   `tfschema:"otlp"`
+	OtlpEndpoint         string                             `tfschema:"otlp_endpoint"`
 	Syslog               []PipelineGroupSyslogReceiverModel `tfschema:"syslog"`
 	TlsConfigurationName string                             `tfschema:"tls_configuration_name"`
-}
-
-type PipelineGroupOtlpReceiverModel struct {
-	Endpoint string `tfschema:"endpoint"`
 }
 
 type PipelineGroupSyslogReceiverModel struct {
@@ -468,22 +464,13 @@ func (r MonitorPipelineResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringInSlice(pipelinegroups.PossibleValuesForReceiverType(), false),
 					},
 
-					"otlp": {
-						Type:     pluginsdk.TypeList,
+					"otlp_endpoint": {
+						Type:     pluginsdk.TypeString,
 						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"endpoint": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringMatch(
-										regexp.MustCompile(`^(?:[a-zA-Z][a-zA-Z0-9+.-]*://)?(?:\[[0-9a-fA-F:.]+\]|[^:/?#[:space:]]*):(?:[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$`),
-										"must be in the form `<host>:<port>` with a numeric port between `1` and `65535`",
-									),
-								},
-							},
-						},
+						ValidateFunc: validation.StringMatch(
+							regexp.MustCompile(`^(?:[a-zA-Z][a-zA-Z0-9+.-]*://)?(?:\[[0-9a-fA-F:.]+\]|[^:/?#[:space:]]*):(?:[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$`),
+							"must be in the form `<host>:<port>` with a numeric port between `1` and `65535`",
+						),
 					},
 
 					"syslog": {
@@ -512,6 +499,8 @@ func (r MonitorPipelineResource) Arguments() map[string]*pluginsdk.Schema {
 									Optional: true,
 									// NOTE: O+C - Azure defaults this to ["all"] when omitted.
 									Computed: true,
+									// MaxItems matches the number of AllowedFormats enum values; no combination can exceed this.
+									MaxItems: len(pipelinegroups.PossibleValuesForAllowedFormats()),
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
 										ValidateFunc: validation.StringInSlice(pipelinegroups.PossibleValuesForAllowedFormats(), false),
@@ -705,8 +694,8 @@ func validatePipelineGroupReceivers(input []PipelineGroupReceiverModel, tlsConfi
 
 		switch receiver.Type {
 		case string(pipelinegroups.ReceiverTypeOTLP):
-			if len(receiver.Otlp) == 0 {
-				return fmt.Errorf("`receiver.%d.otlp` must be set when `type` is `%s`", i, pipelinegroups.ReceiverTypeOTLP)
+			if receiver.OtlpEndpoint == "" {
+				return fmt.Errorf("`receiver.%d.otlp_endpoint` must be set when `type` is `%s`", i, pipelinegroups.ReceiverTypeOTLP)
 			}
 			if len(receiver.Syslog) > 0 {
 				return fmt.Errorf("`receiver.%d.syslog` must not be set when `type` is `%s`", i, pipelinegroups.ReceiverTypeOTLP)
@@ -715,8 +704,8 @@ func validatePipelineGroupReceivers(input []PipelineGroupReceiverModel, tlsConfi
 			if len(receiver.Syslog) == 0 {
 				return fmt.Errorf("`receiver.%d.syslog` must be set when `type` is `%s`", i, pipelinegroups.ReceiverTypeSyslog)
 			}
-			if len(receiver.Otlp) > 0 {
-				return fmt.Errorf("`receiver.%d.otlp` must not be set when `type` is `%s`", i, pipelinegroups.ReceiverTypeSyslog)
+			if receiver.OtlpEndpoint != "" {
+				return fmt.Errorf("`receiver.%d.otlp_endpoint` must not be set when `type` is `%s`", i, pipelinegroups.ReceiverTypeSyslog)
 			}
 		}
 
@@ -1333,9 +1322,9 @@ func expandPipelineGroupReceivers(input []PipelineGroupReceiverModel) []pipeline
 		receiver.TlsConfiguration = pointer.ToOrNil(v.TlsConfigurationName)
 
 		switch {
-		case len(v.Otlp) > 0:
+		case v.OtlpEndpoint != "":
 			receiver.Otlp = &pipelinegroups.OtlpReceiver{
-				Endpoint: v.Otlp[0].Endpoint,
+				Endpoint: v.OtlpEndpoint,
 			}
 		case len(v.Syslog) > 0:
 			syslog := v.Syslog[0]
@@ -1367,9 +1356,7 @@ func flattenPipelineGroupReceivers(input []pipelinegroups.Receiver) []PipelineGr
 		}
 
 		if v.Otlp != nil {
-			receiver.Otlp = []PipelineGroupOtlpReceiverModel{
-				{Endpoint: v.Otlp.Endpoint},
-			}
+			receiver.OtlpEndpoint = v.Otlp.Endpoint
 		}
 
 		if v.Syslog != nil {
