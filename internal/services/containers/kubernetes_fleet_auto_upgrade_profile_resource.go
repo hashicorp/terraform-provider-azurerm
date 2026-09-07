@@ -200,30 +200,34 @@ func (r KubernetesFleetAutoUpgradeProfileResource) Delete() sdk.ResourceFunc {
 }
 
 func (r KubernetesFleetAutoUpgradeProfileResource) flatten(metadata sdk.ResourceMetaData, id *autoupgradeprofiles.AutoUpgradeProfileId, model *autoupgradeprofiles.AutoUpgradeProfile) error {
+	if model == nil {
+		return fmt.Errorf("retrieving %s: model was nil", id)
+	}
+	if model.Properties == nil {
+		return fmt.Errorf("retrieving %s: properties were nil", id)
+	}
+
 	state := KubernetesFleetAutoUpgradeProfileResourceModel{
 		Name:                     id.AutoUpgradeProfileName,
 		KubernetesFleetManagerId: commonids.NewKubernetesFleetID(id.SubscriptionId, id.ResourceGroupName, id.FleetName).ID(),
 		Enabled:                  true,
 	}
 
-	if model != nil {
-		if props := model.Properties; props != nil {
-			state.Channel = string(props.Channel)
-			if props.UpdateStrategyId != nil {
-				updateStrategyId, err := fleetupdatestrategies.ParseUpdateStrategyID(*props.UpdateStrategyId)
-				if err != nil {
-					return err
-				}
-				state.UpdateStrategyId = updateStrategyId.ID()
-			}
-			if props.Disabled != nil {
-				state.Enabled = !*props.Disabled
-			}
-
-			if props.NodeImageSelection != nil {
-				state.NodeImageSelectionType = string(props.NodeImageSelection.Type)
-			}
+	props := model.Properties
+	state.Channel = string(props.Channel)
+	if props.UpdateStrategyId != nil {
+		updateStrategyId, err := fleetupdatestrategies.ParseUpdateStrategyID(*props.UpdateStrategyId)
+		if err != nil {
+			return err
 		}
+		state.UpdateStrategyId = updateStrategyId.ID()
+	}
+	if props.Disabled != nil {
+		state.Enabled = !*props.Disabled
+	}
+
+	if props.NodeImageSelection != nil {
+		state.NodeImageSelectionType = string(props.NodeImageSelection.Type)
 	}
 
 	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
@@ -259,7 +263,7 @@ func (r KubernetesFleetAutoUpgradeProfileResource) Update() sdk.ResourceFunc {
 			payload := *existing.Model
 
 			if payload.Properties == nil {
-				payload.Properties = &autoupgradeprofiles.AutoUpgradeProfileProperties{}
+				return fmt.Errorf("retrieving %s: properties were nil", id)
 			}
 
 			if metadata.ResourceData.HasChange("channel") {
