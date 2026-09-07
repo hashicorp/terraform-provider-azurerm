@@ -71,7 +71,8 @@ func TestAccDataSourceKubernetesAutomaticCluster_privateClusterEnabled(t *testin
 		{
 			Config: r.privateClusterEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("private_cluster.#").HasValue("1"),
+				check.That(data.ResourceName).Key("private_cluster.0.public_fully_qualified_domain_name_enabled").HasValue("true"),
 			),
 		},
 	})
