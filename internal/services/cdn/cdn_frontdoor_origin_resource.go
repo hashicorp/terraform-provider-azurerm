@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -29,7 +30,7 @@ import (
 )
 
 func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceCdnFrontDoorOriginCreate,
 		Read:   resourceCdnFrontDoorOriginRead,
 		Update: resourceCdnFrontDoorOriginUpdate,
@@ -45,6 +46,11 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := afdorigins.ParseOriginGroupOriginID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.CdnFrontDoorOriginV0ToV1{},
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -159,8 +165,6 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
 func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{}) error {

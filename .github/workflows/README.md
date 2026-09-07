@@ -5,7 +5,7 @@
 Workflow files are grouped by prefix:
 
 | Prefix | Purpose |
-|---|---|
+| --- | --- |
 | `pr-*` | Pull request automation (triage, labels, housekeeping) |
 | `pr-check-*` | Standalone PR checks that cannot live inside `pr-checks-combined.yaml` (special runners, OIDC auth, or their own path filters) |
 | `pr-waiting-response-*` | The `waiting-response` label machinery (see below) |
@@ -14,6 +14,7 @@ Workflow files are grouped by prefix:
 | `changelog-*` | Changelog automation |
 | `auto-pr-*` | Bots that open PRs for automated regeneration branches |
 | `teamcity-*` | TeamCity (acceptance test infrastructure) configuration and triggers |
+| `main-checks.yaml` | Tree-state CI checks re-run on every push to `main`/`release/**` (catches semantic merge conflicts); failures surface as commit checks, no PR machinery |
 
 `build.yml` and `provider-release.yml` are HashiCorp Common Release Tooling (CRT)
 files referenced by external release pipelines — do not rename them.

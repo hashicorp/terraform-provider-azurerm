@@ -389,15 +389,9 @@ func flattenLiveTraceConfig(input *webpubsub.LiveTraceConfiguration) []interface
 
 	if input.Categories != nil {
 		for _, item := range *input.Categories {
-			name := ""
-			if item.Name != nil {
-				name = *item.Name
-			}
+			name := pointer.From(item.Name)
 
-			var cateEnabled string
-			if item.Enabled != nil {
-				cateEnabled = *item.Enabled
-			}
+			cateEnabled := pointer.From(item.Enabled)
 
 			switch name {
 			case "MessagingLogs":

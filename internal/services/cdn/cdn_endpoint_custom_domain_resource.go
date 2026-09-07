@@ -11,8 +11,10 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
@@ -21,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
@@ -55,7 +56,7 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.EndpointID,
+				ValidateFunc: validation.AsGeneratedID(endpoints.ParseEndpointIDInsensitively),
 			},
 
 			"host_name": {
@@ -72,20 +73,14 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"certificate_type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cdn.CertificateTypeShared),
-								string(cdn.CertificateTypeDedicated),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInEnumSlice(cdn.PossibleCertificateTypeValues(), false),
 						},
 						"protocol_type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cdn.ProtocolTypeServerNameIndication),
-								string(cdn.ProtocolTypeIPBased),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInEnumSlice(cdn.PossibleProtocolTypeValues(), false),
 						},
 						"tls_version": {
 							Type:     pluginsdk.TypeString,
@@ -146,22 +141,24 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	cdnEndpointId, err := parse.EndpointID(d.Get("cdn_endpoint_id").(string))
+	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+	cdnEndpointId, err := endpoints.ParseEndpointIDInsensitively(d.Get("cdn_endpoint_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewCustomDomainID(cdnEndpointId.SubscriptionId, cdnEndpointId.ResourceGroup, cdnEndpointId.ProfileName, cdnEndpointId.Name, d.Get("name").(string))
+	id := parse.NewCustomDomainID(cdnEndpointId.SubscriptionId, cdnEndpointId.ResourceGroupName, cdnEndpointId.ProfileName, cdnEndpointId.EndpointName, d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for existing %q: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_cdn_endpoint_custom_domain", id.ID())
 		}
 	}
@@ -339,7 +336,7 @@ func resourceArmCdnEndpointCustomDomainRead(d *pluginsdk.ResourceData, meta inte
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[DEBUG] %q was not found - removing from state!", id)
 			d.SetId("")
 			return nil
@@ -348,7 +345,7 @@ func resourceArmCdnEndpointCustomDomainRead(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
-	cdnEndpointId := parse.NewEndpointID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.EndpointName)
+	cdnEndpointId := endpoints.NewEndpointID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.EndpointName)
 
 	d.Set("name", resp.Name)
 	d.Set("cdn_endpoint_id", cdnEndpointId.ID())
@@ -417,7 +414,7 @@ func expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input []interface{}
 	}
 
 	raw := input[0].(map[string]interface{})
-	output := &cdn.ManagedHTTPSParameters{
+	return &cdn.ManagedHTTPSParameters{
 		CertificateSourceParameters: &cdn.CertificateSourceParameters{
 			OdataType:       pointer.To("#Microsoft.Azure.Cdn.Models.CdnCertificateSourceParameters"),
 			CertificateType: cdn.CertificateType(raw["certificate_type"].(string)),
@@ -426,8 +423,6 @@ func expandArmCdnEndpointCustomDomainCdnManagedHttpsSettings(input []interface{}
 		ProtocolType:      cdn.ProtocolType(raw["protocol_type"].(string)),
 		MinimumTLSVersion: cdn.MinimumTLSVersion(raw["tls_version"].(string)),
 	}
-
-	return output
 }
 
 func expandArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Context, input []interface{}, clients *clients.Client) (cdn.BasicCustomDomainHTTPSParameters, error) {
@@ -523,10 +518,7 @@ func flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Conte
 	}
 	secretName := *params.SecretName
 
-	var secretVersion string
-	if params.SecretVersion != nil {
-		secretVersion = *params.SecretVersion
-	}
+	secretVersion := pointer.From(params.SecretVersion)
 
 	keyVaultId := commonids.NewKeyVaultID(subscriptionId, resourceGroupName, vaultName)
 	keyVaultBaseUrl, err := keyVaultsClient.BaseUriForKeyVault(ctx, keyVaultId)

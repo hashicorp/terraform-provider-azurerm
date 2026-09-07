@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type LocationsDataSource struct{}
@@ -18,15 +17,10 @@ type LocationsDataSource struct{}
 func TestAccLocationDataSource_NonExistingRegion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_location", "test")
 
-	expectedErrorStr := "no location was found for \"not-existing-region\""
-	if !features.FivePointOh() {
-		expectedErrorStr = "\"not-existing-region\" was not found in the list of supported Azure Locations"
-	}
-
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config:      LocationsDataSource{}.basic("not-existing-region"),
-			ExpectError: regexp.MustCompile(expectedErrorStr),
+			ExpectError: regexp.MustCompile("no location was found for \"not-existing-region\""),
 		},
 	})
 }

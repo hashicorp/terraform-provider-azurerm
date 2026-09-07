@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -44,7 +43,7 @@ func resourceDiskEncryptionSet() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.DiskEncryptionSetID(id)
+			_, err := commonids.ParseDiskEncryptionSetID(id)
 			return err
 		}),
 
@@ -73,15 +72,11 @@ func resourceDiskEncryptionSet() *pluginsdk.Resource {
 			},
 
 			"encryption_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(diskencryptionsets.DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(diskencryptionsets.DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey),
-					string(diskencryptionsets.DiskEncryptionSetTypeEncryptionAtRestWithPlatformAndCustomerKeys),
-					string(diskencryptionsets.DiskEncryptionSetTypeConfidentialVMEncryptedWithCustomerKey),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(diskencryptionsets.DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey),
+				ValidateFunc: validation.StringInSlice(diskencryptionsets.PossibleValuesForDiskEncryptionSetType(), false),
 			},
 
 			"federated_client_id": {

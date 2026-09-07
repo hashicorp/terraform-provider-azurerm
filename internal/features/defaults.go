@@ -11,8 +11,8 @@ func Default() UserFeatures {
 			RecoverSoftDeleted:       true,
 		},
 		EnhancedValidation: EnhancedValidationFeatures{
-			Locations:         !FivePointOh(),
-			ResourceProviders: !FivePointOh(),
+			Locations:         false,
+			ResourceProviders: false,
 			PreflightEnabled:  false,
 			LocationFallback:  nil,
 		},

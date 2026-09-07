@@ -275,15 +275,17 @@ The following arguments are supported:
 
 A `managed_disk` block supports the following:
 
+-> **Note:** If omitted, the API will return managed disks and terraform will commit them to state. If explicitly configured, only the specified disks will be replicated. New entries can be added non-destructively; however, entry removal will force a new resource to be created
+
 * `disk_id` - (Required) Id of disk that should be replicated. Changing this forces a new resource to be created.
 
 * `staging_storage_account_id` - (Required) Storage account that should be used for caching. Changing this forces a new resource to be created.
 
 * `target_resource_group_id` - (Required) Resource group disk should belong to when a failover is done. Changing this forces a new resource to be created.
 
-* `target_disk_type` - (Required) What type should the disk be when a failover is done. Possible values are `Standard_LRS`, `Premium_LRS`, `PremiumV2_LRS`, `StandardSSD_LRS`, `UltraSSD_LRS`, `StandardSSD_ZRS` and `Premium_ZRS`. Changing this forces a new resource to be created.
+* `target_disk_type` - (Required) What type should the disk be when a failover is done. Possible values are `Standard_LRS`, `Premium_LRS`, `PremiumV2_LRS`, `StandardSSD_LRS`, `UltraSSD_LRS`, `StandardSSD_ZRS` and `Premium_ZRS`.
 
-* `target_replica_disk_type` - (Required) What type should the disk be that holds the replication data. Possible values are `Standard_LRS`, `Premium_LRS`, `PremiumV2_LRS`, `StandardSSD_LRS`, `UltraSSD_LRS`, `StandardSSD_ZRS` and `Premium_ZRS`. Changing this forces a new resource to be created.
+* `target_replica_disk_type` - (Required) What type should the disk be that holds the replication data. Possible values are `Standard_LRS`, `Premium_LRS`, `PremiumV2_LRS`, `StandardSSD_LRS`, `UltraSSD_LRS`, `StandardSSD_ZRS` and `Premium_ZRS`.
 
 * `target_disk_encryption_set_id` - (Optional) The Disk Encryption Set that the Managed Disk will be associated with. Changing this forces a new resource to be created.
 

@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/secrets"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -21,7 +22,6 @@ import (
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCdnFrontDoorSecret() *pluginsdk.Resource {
@@ -287,7 +287,7 @@ func flattenCdnFrontDoorSecretParameters(ctx context.Context, input secrets.Secr
 		map[string]interface{}{
 			"expiration_date":           pointer.From(customerCertificate.ExpirationDate),
 			"key_vault_certificate_id":  certificateID,
-			"subject_alternative_names": utils.FlattenStringSlice(customerCertificate.SubjectAlternativeNames),
+			"subject_alternative_names": helpers.FlattenStringSlice(customerCertificate.SubjectAlternativeNames),
 		},
 	}
 	results = append(results, result)

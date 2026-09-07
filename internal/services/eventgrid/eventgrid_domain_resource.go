@@ -176,12 +176,10 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 							Required: true,
 						},
 						"action": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(domains.IPActionTypeAllow),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(domains.IPActionTypeAllow),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(domains.IPActionTypeAllow),
+							ValidateFunc: validation.StringInSlice(domains.PossibleValuesForIPActionType(), false),
 						},
 					},
 				},
@@ -243,7 +241,7 @@ func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			AutoDeleteTopicWithLastSubscription:  pointer.To(d.Get("auto_delete_topic_with_last_subscription").(bool)),
 			DisableLocalAuth:                     pointer.To(!d.Get("local_auth_enabled").(bool)),
 			InboundIPRules:                       inboundIPRules,
-			InputSchema:                          pointer.To(domains.InputSchema(d.Get("input_schema").(string))),
+			InputSchema:                          pointer.ToEnum[domains.InputSchema](d.Get("input_schema").(string)),
 			InputSchemaMapping:                   expandDomainInputMapping(d),
 			PublicNetworkAccess:                  pointer.To(publicNetworkAccess),
 		},
@@ -377,13 +375,11 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 			d.Set("input_schema", inputSchema)
 
-			inputMappingFields := flattenDomainInputMapping(props.InputSchemaMapping)
-			if err := d.Set("input_mapping_fields", inputMappingFields); err != nil {
+			if err := d.Set("input_mapping_fields", flattenDomainInputMapping(props.InputSchemaMapping)); err != nil {
 				return fmt.Errorf("setting `input_schema_mapping_fields`: %+v", err)
 			}
 
-			inputMappingDefaultValues := flattenDomainInputMappingDefaultValues(props.InputSchemaMapping)
-			if err := d.Set("input_mapping_default_values", inputMappingDefaultValues); err != nil {
+			if err := d.Set("input_mapping_default_values", flattenDomainInputMappingDefaultValues(props.InputSchemaMapping)); err != nil {
 				return fmt.Errorf("setting `input_schema_mapping_fields`: %+v", err)
 			}
 
@@ -393,8 +389,7 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 
-			inboundIPRules := flattenDomainInboundIPRules(props.InboundIPRules)
-			if err := d.Set("inbound_ip_rule", inboundIPRules); err != nil {
+			if err := d.Set("inbound_ip_rule", flattenDomainInboundIPRules(props.InboundIPRules)); err != nil {
 				return fmt.Errorf("setting `inbound_ip_rule`: %+v", err)
 			}
 
@@ -617,7 +612,7 @@ func expandDomainInboundIPRules(input []interface{}) *[]domains.InboundIPRule {
 	for _, item := range input {
 		rawRule := item.(map[string]interface{})
 		rules = append(rules, domains.InboundIPRule{
-			Action: pointer.To(domains.IPActionType(rawRule["action"].(string))),
+			Action: pointer.ToEnum[domains.IPActionType](rawRule["action"].(string)),
 			IPMask: pointer.To(rawRule["ip_mask"].(string)),
 		})
 	}

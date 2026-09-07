@@ -38,38 +38,7 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 				Required:     true,
 				ValidateFunc: validate.AccountName,
 			},
-			"display_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-			"vm_size": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-			"max_tasks_per_node": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
-			},
-			"fixed_scale": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"target_dedicated_nodes": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-						"target_low_priority_nodes": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-						"resize_timeout": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+
 			"auto_scale": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -86,42 +55,7 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
-			"storage_image_reference": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
 
-						"publisher": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"offer": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"sku": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"version": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-			"node_agent_sku_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
 			"container_configuration": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -150,13 +84,7 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
-			"start_task": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: startTaskDSSchema(),
-				},
-			},
+
 			"data_disks": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -193,6 +121,12 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"display_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"extensions": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -236,6 +170,28 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"fixed_scale": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"target_dedicated_nodes": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+						"target_low_priority_nodes": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+						"resize_timeout": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"inter_node_communication": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -244,76 +200,12 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
-			"node_placement": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"policy": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-			"os_disk_placement": {
-				Type:     pluginsdk.TypeString,
+
+			"max_tasks_per_node": {
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
-			"user_accounts": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"password": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"elevation_level": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"linux_user_configuration": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"uid": {
-										Type:     pluginsdk.TypeInt,
-										Computed: true,
-									},
-									"gid": {
-										Type:     pluginsdk.TypeInt,
-										Computed: true,
-									},
-									"ssh_private_key": {
-										Type:      pluginsdk.TypeString,
-										Computed:  true,
-										Sensitive: true,
-									},
-								},
-							},
-						},
-						"windows_user_configuration": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"login_mode": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
+
 			"metadata": {
 				Type:     pluginsdk.TypeMap,
 				Computed: true,
@@ -442,6 +334,7 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
+
 			"network_configuration": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -524,6 +417,71 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"node_agent_sku_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"node_placement": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"policy": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"os_disk_placement": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"start_task": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: startTaskDSSchema(),
+				},
+			},
+
+			"storage_image_reference": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"publisher": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"offer": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"sku": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"version": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"task_scheduling_policy": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -536,6 +494,67 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"user_accounts": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"password": {
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"elevation_level": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"linux_user_configuration": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"uid": {
+										Type:     pluginsdk.TypeInt,
+										Computed: true,
+									},
+									"gid": {
+										Type:     pluginsdk.TypeInt,
+										Computed: true,
+									},
+									"ssh_private_key": {
+										Type:      pluginsdk.TypeString,
+										Computed:  true,
+										Sensitive: true,
+									},
+								},
+							},
+						},
+						"windows_user_configuration": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"login_mode": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
+			"vm_size": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"windows": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -553,7 +572,7 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 }
 
 func startTaskDSSchema() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"command_line": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -672,7 +691,6 @@ func startTaskDSSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
-	return s
 }
 
 func batchPoolDataContainerRegistry() map[string]*schema.Schema {

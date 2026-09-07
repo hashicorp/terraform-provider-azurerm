@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -36,7 +35,7 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity -parent-id "virtual_machine_id"
 
 func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceMsSqlVirtualMachineCreateUpdate,
 		Read:   resourceMsSqlVirtualMachineRead,
 		Update: resourceMsSqlVirtualMachineCreateUpdate,
@@ -65,14 +64,10 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"sql_license_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(sqlvirtualmachines.SqlServerLicenseTypePAYG),
-					string(sqlvirtualmachines.SqlServerLicenseTypeAHUB),
-					string(sqlvirtualmachines.SqlServerLicenseTypeDR),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(sqlvirtualmachines.PossibleValuesForSqlServerLicenseType(), false),
 			},
 
 			"auto_backup": {
@@ -98,10 +93,7 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 										Type:             pluginsdk.TypeString,
 										Required:         true,
 										DiffSuppressFunc: suppress.CaseDifference,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(sqlvirtualmachines.FullBackupFrequencyTypeDaily),
-											string(sqlvirtualmachines.FullBackupFrequencyTypeWeekly),
-										}, false),
+										ValidateFunc:     validation.StringInSlice(sqlvirtualmachines.PossibleValuesForFullBackupFrequencyType(), false),
 									},
 
 									"full_backup_start_hour": {
@@ -127,16 +119,8 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 										Optional: true,
 										MinItems: 1,
 										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												string(sqlvirtualmachines.AutoBackupDaysOfWeekMonday),
-												string(sqlvirtualmachines.AutoBackupDaysOfWeekTuesday),
-												string(sqlvirtualmachines.AutoBackupDaysOfWeekWednesday),
-												string(sqlvirtualmachines.AutoBackupDaysOfWeekThursday),
-												string(sqlvirtualmachines.AutoBackupDaysOfWeekFriday),
-												string(sqlvirtualmachines.AutoBackupDaysOfWeekSaturday),
-												string(sqlvirtualmachines.AutoBackupDaysOfWeekSunday),
-											}, false),
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice(sqlvirtualmachines.PossibleValuesForAutoBackupDaysOfWeek(), false),
 										},
 									},
 								},
@@ -313,14 +297,10 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"sql_connectivity_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(sqlvirtualmachines.ConnectivityTypePRIVATE),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(sqlvirtualmachines.ConnectivityTypeLOCAL),
-					string(sqlvirtualmachines.ConnectivityTypePRIVATE),
-					string(sqlvirtualmachines.ConnectivityTypePUBLIC),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(sqlvirtualmachines.ConnectivityTypePRIVATE),
+				ValidateFunc: validation.StringInSlice(sqlvirtualmachines.PossibleValuesForConnectivityType(), false),
 			},
 
 			"sql_connectivity_update_password": {
@@ -402,22 +382,14 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"disk_type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(sqlvirtualmachines.DiskConfigurationTypeNEW),
-								string(sqlvirtualmachines.DiskConfigurationTypeEXTEND),
-								string(sqlvirtualmachines.DiskConfigurationTypeADD),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(sqlvirtualmachines.PossibleValuesForDiskConfigurationType(), false),
 						},
 						"storage_workload_type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(sqlvirtualmachines.SqlWorkloadTypeGENERAL),
-								string(sqlvirtualmachines.SqlWorkloadTypeOLTP),
-								string(sqlvirtualmachines.SqlWorkloadTypeDW),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(sqlvirtualmachines.PossibleValuesForSqlWorkloadType(), false),
 						},
 						"system_db_on_data_disk_enabled": {
 							Type:     pluginsdk.TypeBool,
@@ -468,17 +440,6 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["auto_backup"].Elem.(*pluginsdk.Resource).Schema["encryption_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "`encryption_enabled` has been deprecated and will be removed in v5.0 of the AzureRM Provider. Encryption is enabled when `encryption_password` is set; otherwise disabled.",
-		}
-	}
-
-	return resource
 }
 
 func resourceMsSqlVirtualMachineCustomDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
@@ -545,7 +506,6 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	connectivityType := sqlvirtualmachines.ConnectivityType(d.Get("sql_connectivity_type").(string))
-	sqlManagement := sqlvirtualmachines.SqlManagementModeFull
 	sqlServerLicenseType := sqlvirtualmachines.SqlServerLicenseType(d.Get("sql_license_type").(string))
 	autoBackupSettings, err := expandSqlVirtualMachineAutoBackupSettings(d.Get("auto_backup").([]interface{}))
 	if err != nil {
@@ -573,7 +533,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 				},
 				SqlInstanceSettings: sqlInstance,
 			},
-			SqlManagement:                &sqlManagement,
+			SqlManagement:                pointer.To(sqlvirtualmachines.SqlManagementModeFull),
 			SqlServerLicenseType:         &sqlServerLicenseType,
 			StorageConfigurationSettings: expandSqlVirtualMachineStorageConfigurationSettings(d.Get("storage_configuration").([]interface{})),
 			VirtualMachineResourceId:     pointer.To(d.Get("virtual_machine_id").(string)),
@@ -833,14 +793,6 @@ func resourceMsSqlVirtualMachineAutoBackupSettingsRefreshFunc(ctx context.Contex
 							return resp, "Pending", nil
 						}
 					default:
-						// To be removed in 5.0:
-						// When `encryption_enabled` is not set in config, but `encryption_password` is, `v != val` will always be `true`.
-						// This causes an infinite loop until the resource creation times out. To avoid this, continue to the next iteration of the loop if
-						// `prop` is `encryption_enabled`.
-						if !features.FivePointOh() && prop == "encryption_enabled" {
-							continue
-						}
-
 						if v != val {
 							return resp, "Pending", nil
 						}
@@ -885,12 +837,10 @@ func expandSqlVirtualMachineAutoBackupSettings(input []interface{}) (*sqlvirtual
 			ret.BackupSystemDbs = pointer.To(v.(bool))
 		}
 
-		backupScheduleTypeAutomated := sqlvirtualmachines.BackupScheduleTypeAutomated
-		ret.BackupScheduleType = &backupScheduleTypeAutomated
+		ret.BackupScheduleType = pointer.To(sqlvirtualmachines.BackupScheduleTypeAutomated)
 		if v, ok := config["manual_schedule"]; ok && len(v.([]interface{})) > 0 {
 			manualSchedule := v.([]interface{})[0].(map[string]interface{})
-			backupScheduleTypeManual := sqlvirtualmachines.BackupScheduleTypeManual
-			ret.BackupScheduleType = &backupScheduleTypeManual
+			ret.BackupScheduleType = pointer.To(sqlvirtualmachines.BackupScheduleTypeManual)
 
 			fullBackupFrequency := sqlvirtualmachines.FullBackupFrequencyType(manualSchedule["full_backup_frequency"].(string))
 
@@ -970,7 +920,7 @@ func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachines.AutoBacku
 		encryptionPassword = d.Get("auto_backup.0.encryption_password").(string)
 	}
 
-	ret := []interface{}{
+	return []interface{}{
 		map[string]interface{}{
 			"encryption_password":             encryptionPassword,
 			"manual_schedule":                 manualSchedule,
@@ -980,12 +930,6 @@ func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachines.AutoBacku
 			"system_databases_backup_enabled": autoBackup.BackupSystemDbs != nil && *autoBackup.BackupSystemDbs,
 		},
 	}
-
-	if !features.FivePointOh() {
-		ret[0].(map[string]interface{})["encryption_enabled"] = pointer.From(autoBackup.EnableEncryption)
-	}
-
-	return ret
 }
 
 func expandSqlVirtualMachineAutoBackupSettingsDaysOfWeek(input []interface{}) *[]sqlvirtualmachines.AutoBackupDaysOfWeek {
@@ -1059,13 +1003,11 @@ func expandSqlVirtualMachineAutoPatchingSettings(input []interface{}) *sqlvirtua
 
 	autoPatchingSetting := input[0].(map[string]interface{})
 
-	dayOfWeek := sqlvirtualmachines.DayOfWeek(autoPatchingSetting["day_of_week"].(string))
-
 	return &sqlvirtualmachines.AutoPatchingSettings{
 		Enable:                        pointer.To(true),
 		MaintenanceWindowDuration:     pointer.To(int64(autoPatchingSetting["maintenance_window_duration_in_minutes"].(int))),
 		MaintenanceWindowStartingHour: pointer.To(int64(autoPatchingSetting["maintenance_window_starting_hour"].(int))),
-		DayOfWeek:                     &dayOfWeek,
+		DayOfWeek:                     pointer.ToEnum[sqlvirtualmachines.DayOfWeek](autoPatchingSetting["day_of_week"].(string)),
 	}
 }
 
@@ -1118,11 +1060,9 @@ func expandSqlVirtualMachineAssessmentSettingsSchedule(input []interface{}) *sql
 
 	scheduleConfig := input[0].(map[string]interface{})
 
-	dayOfWeek := sqlvirtualmachines.AssessmentDayOfWeek(scheduleConfig["day_of_week"].(string))
-
 	schedule := &sqlvirtualmachines.Schedule{
 		Enable:    pointer.To(true),
-		DayOfWeek: &dayOfWeek,
+		DayOfWeek: pointer.ToEnum[sqlvirtualmachines.AssessmentDayOfWeek](scheduleConfig["day_of_week"].(string)),
 		StartTime: pointer.To(scheduleConfig["start_time"].(string)),
 	}
 
@@ -1213,11 +1153,6 @@ func flattenSqlVirtualMachineKeyVaultCredential(keyVault *sqlvirtualmachines.Key
 		return []interface{}{}
 	}
 
-	name := ""
-	if keyVault.CredentialName != nil {
-		name = *keyVault.CredentialName
-	}
-
 	keyVaultUrl := ""
 	if v, ok := d.GetOk("key_vault_credential.0.key_vault_url"); ok {
 		keyVaultUrl = v.(string)
@@ -1235,7 +1170,7 @@ func flattenSqlVirtualMachineKeyVaultCredential(keyVault *sqlvirtualmachines.Key
 
 	return []interface{}{
 		map[string]interface{}{
-			"name":                     name,
+			"name":                     pointer.From(keyVault.CredentialName),
 			"key_vault_url":            keyVaultUrl,
 			"service_principal_name":   servicePrincipalName,
 			"service_principal_secret": servicePrincipalSecret,
@@ -1260,12 +1195,9 @@ func expandSqlVirtualMachineStorageConfigurationSettings(input []interface{}) *s
 	}
 	storageSettings := input[0].(map[string]interface{})
 
-	diskConfigurationType := sqlvirtualmachines.DiskConfigurationType(storageSettings["disk_type"].(string))
-	storageWorkloadType := sqlvirtualmachines.StorageWorkloadType(storageSettings["storage_workload_type"].(string))
-
 	return &sqlvirtualmachines.StorageConfigurationSettings{
-		DiskConfigurationType: &diskConfigurationType,
-		StorageWorkloadType:   &storageWorkloadType,
+		DiskConfigurationType: pointer.ToEnum[sqlvirtualmachines.DiskConfigurationType](storageSettings["disk_type"].(string)),
+		StorageWorkloadType:   pointer.ToEnum[sqlvirtualmachines.StorageWorkloadType](storageSettings["storage_workload_type"].(string)),
 		SqlSystemDbOnDataDisk: pointer.To(storageSettings["system_db_on_data_disk_enabled"].(bool)),
 		SqlDataSettings:       expandSqlVirtualMachineDataStorageSettings(storageSettings["data_settings"].([]interface{})),
 		SqlLogSettings:        expandSqlVirtualMachineDataStorageSettings(storageSettings["log_settings"].([]interface{})),
@@ -1283,15 +1215,10 @@ func flattenSqlVirtualMachineStorageConfigurationSettings(input *sqlvirtualmachi
 		diskType = string(*input.DiskConfigurationType)
 	}
 
-	systemDbOnDataDisk := false
-	if input.SqlSystemDbOnDataDisk != nil {
-		systemDbOnDataDisk = *input.SqlSystemDbOnDataDisk
-	}
-
 	output := map[string]interface{}{
 		"storage_workload_type":          storageWorkloadType,
 		"disk_type":                      diskType,
-		"system_db_on_data_disk_enabled": systemDbOnDataDisk,
+		"system_db_on_data_disk_enabled": pointer.From(input.SqlSystemDbOnDataDisk),
 		"data_settings":                  flattenSqlVirtualMachineStorageSettings(input.SqlDataSettings),
 		"log_settings":                   flattenSqlVirtualMachineStorageSettings(input.SqlLogSettings),
 		"temp_db_settings":               flattenSqlVirtualMachineTempDbSettings(input.SqlTempDbSettings),
@@ -1434,45 +1361,20 @@ func flattenSqlVirtualMachineSQLInstance(input *sqlvirtualmachines.SQLInstanceSe
 
 	collation := *input.Collation
 
-	isIfiEnabled := false
-	if input.IsIfiEnabled != nil {
-		isIfiEnabled = *input.IsIfiEnabled
-	}
-
-	isLpimEnabled := false
-	if input.IsLpimEnabled != nil {
-		isLpimEnabled = *input.IsLpimEnabled
-	}
-
-	isOptimizeForAdhocWorkloadsEnabled := false
-	if input.IsOptimizeForAdHocWorkloadsEnabled != nil {
-		isOptimizeForAdhocWorkloadsEnabled = *input.IsOptimizeForAdHocWorkloadsEnabled
-	}
-
-	var maxDop int64 = 0
-	if input.MaxDop != nil {
-		maxDop = *input.MaxDop
-	}
-
 	var maxServerMemoryMB int64 = math.MaxInt32
 	if input.MaxServerMemoryMB != nil {
 		maxServerMemoryMB = *input.MaxServerMemoryMB
 	}
 
-	var minServerMemoryMB int64 = 0
-	if input.MinServerMemoryMB != nil {
-		minServerMemoryMB = *input.MinServerMemoryMB
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"adhoc_workloads_optimization_enabled": isOptimizeForAdhocWorkloadsEnabled,
+			"adhoc_workloads_optimization_enabled": pointer.From(input.IsOptimizeForAdHocWorkloadsEnabled),
 			"collation":                            collation,
-			"instant_file_initialization_enabled":  isIfiEnabled,
-			"lock_pages_in_memory_enabled":         isLpimEnabled,
-			"max_dop":                              maxDop,
+			"instant_file_initialization_enabled":  pointer.From(input.IsIfiEnabled),
+			"lock_pages_in_memory_enabled":         pointer.From(input.IsLpimEnabled),
+			"max_dop":                              pointer.From(input.MaxDop),
 			"max_server_memory_mb":                 maxServerMemoryMB,
-			"min_server_memory_mb":                 minServerMemoryMB,
+			"min_server_memory_mb":                 pointer.From(input.MinServerMemoryMB),
 		},
 	}
 }

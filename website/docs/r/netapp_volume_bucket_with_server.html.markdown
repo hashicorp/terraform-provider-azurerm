@@ -395,4 +395,4 @@ terraform import azurerm_netapp_volume_bucket_with_server.example /subscriptions
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.NetApp` - 2026-01-01
+* `Microsoft.NetApp` - 2026-05-01

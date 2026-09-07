@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -22,8 +23,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+const azureVirtualHubConnectionResourceName = "azurerm_virtual_hub_connection"
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_hub_connection -service-package-name network -properties "name" -compare-values "subscription_id:virtual_hub_id,resource_group_name:virtual_hub_id,virtual_hub_name:virtual_hub_id"
 
@@ -78,14 +80,14 @@ func resourceVirtualHubConnection() *pluginsdk.Resource {
 			"routing": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"associated_route_table_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: virtualwans.ValidateHubRouteTableID,
 							AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table", "routing.0.static_vnet_route"},
 						},
@@ -105,14 +107,14 @@ func resourceVirtualHubConnection() *pluginsdk.Resource {
 						"propagated_route_table": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"labels": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
-										Computed: true,
+										Computed: true, // azignore:AZS007 - pre-existing violation
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
@@ -123,7 +125,7 @@ func resourceVirtualHubConnection() *pluginsdk.Resource {
 									"route_table_ids": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
-										Computed: true,
+										Computed: true, // azignore:AZS007 - pre-existing violation
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
 											ValidateFunc: virtualwans.ValidateHubRouteTableID,
@@ -136,14 +138,11 @@ func resourceVirtualHubConnection() *pluginsdk.Resource {
 						},
 
 						"static_vnet_local_route_override_criteria": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ForceNew: true,
-							Default:  string(virtualwans.VnetLocalRouteOverrideCriteriaContains),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(virtualwans.VnetLocalRouteOverrideCriteriaContains),
-								string(virtualwans.VnetLocalRouteOverrideCriteriaEqual),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							Default:      string(virtualwans.VnetLocalRouteOverrideCriteriaContains),
+							ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForVnetLocalRouteOverrideCriteria(), false),
 						},
 
 						"static_vnet_propagate_static_routes_enabled": {
@@ -221,7 +220,7 @@ func resourceVirtualHubConnectionCreateOrUpdate(d *pluginsdk.ResourceData, meta 
 				}
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_virtual_hub_connection", id.ID())
+				return tf.ImportAsExistsError(azureVirtualHubConnectionResourceName, id.ID())
 			}
 		}
 	}
@@ -284,10 +283,14 @@ func resourceVirtualHubConnectionRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceVirtualHubConnectionFlatten(d, id, resp.Model)
+}
+
+func resourceVirtualHubConnectionFlatten(d *pluginsdk.ResourceData, id *virtualwans.HubVirtualNetworkConnectionId, model *virtualwans.HubVirtualNetworkConnection) error {
 	d.Set("name", id.HubVirtualNetworkConnectionName)
 	d.Set("virtual_hub_id", virtualwans.NewVirtualHubID(id.SubscriptionId, id.ResourceGroupName, id.VirtualHubName).ID())
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("internet_security_enabled", props.EnableInternetSecurity)
 			remoteVirtualNetworkId := ""
@@ -341,7 +344,7 @@ func expandVirtualHubConnectionRouting(input []interface{}) *virtualwans.Routing
 			StaticRoutes: expandVirtualHubConnectionVnetStaticRoute(v["static_vnet_route"].([]interface{})),
 			StaticRoutesConfig: &virtualwans.StaticRoutesConfig{
 				PropagateStaticRoutes:          pointer.To(v["static_vnet_propagate_static_routes_enabled"].(bool)),
-				VnetLocalRouteOverrideCriteria: pointer.To(virtualwans.VnetLocalRouteOverrideCriteria(v["static_vnet_local_route_override_criteria"].(string))),
+				VnetLocalRouteOverrideCriteria: pointer.ToEnum[virtualwans.VnetLocalRouteOverrideCriteria](v["static_vnet_local_route_override_criteria"].(string)),
 			},
 		},
 	}
@@ -381,7 +384,7 @@ func expandVirtualHubConnectionPropagatedRouteTable(input []interface{}) *virtua
 	result := virtualwans.PropagatedRouteTable{}
 
 	if labels := v["labels"].(*pluginsdk.Set).List(); len(labels) != 0 {
-		result.Labels = utils.ExpandStringSlice(labels)
+		result.Labels = helpers.ExpandStringSlice(labels)
 	}
 
 	if routeTableIds := v["route_table_ids"].([]interface{}); len(routeTableIds) != 0 {
@@ -412,7 +415,7 @@ func expandVirtualHubConnectionVnetStaticRoute(input []interface{}) *[]virtualwa
 		}
 
 		if addressPrefixes := v["address_prefixes"].(*pluginsdk.Set).List(); len(addressPrefixes) != 0 {
-			result.AddressPrefixes = utils.ExpandStringSlice(addressPrefixes)
+			result.AddressPrefixes = helpers.ExpandStringSlice(addressPrefixes)
 		}
 
 		if nextHopIPAddress := v["next_hop_ip_address"].(string); nextHopIPAddress != "" {
@@ -487,7 +490,7 @@ func flattenVirtualHubConnectionPropagatedRouteTable(input *virtualwans.Propagat
 
 	labels := make([]interface{}, 0)
 	if input.Labels != nil {
-		labels = utils.FlattenStringSlice(input.Labels)
+		labels = helpers.FlattenStringSlice(input.Labels)
 	}
 
 	routeTableIds := make([]interface{}, 0)
@@ -510,25 +513,15 @@ func flattenVirtualHubConnectionVnetStaticRoute(input *virtualwans.VnetRoute) []
 	}
 
 	for _, item := range *input.StaticRoutes {
-		var name string
-		if item.Name != nil {
-			name = *item.Name
-		}
-
-		var nextHopIpAddress string
-		if item.NextHopIPAddress != nil {
-			nextHopIpAddress = *item.NextHopIPAddress
-		}
-
 		addressPrefixes := make([]interface{}, 0)
 		if item.AddressPrefixes != nil {
-			addressPrefixes = utils.FlattenStringSlice(item.AddressPrefixes)
+			addressPrefixes = helpers.FlattenStringSlice(item.AddressPrefixes)
 		}
 
 		v := map[string]interface{}{
-			"name":                name,
+			"name":                pointer.From(item.Name),
 			"address_prefixes":    addressPrefixes,
-			"next_hop_ip_address": nextHopIpAddress,
+			"next_hop_ip_address": pointer.From(item.NextHopIPAddress),
 		}
 
 		results = append(results, v)

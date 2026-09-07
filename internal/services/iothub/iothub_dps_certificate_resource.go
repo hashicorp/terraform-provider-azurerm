@@ -136,11 +136,7 @@ func resourceIotHubDPSCertificateRead(d *pluginsdk.ResourceData, meta interface{
 	// We are unable to set `certificate_content` since it is not returned from the API
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			isVerified := false
-			if props.IsVerified != nil {
-				isVerified = *props.IsVerified
-			}
-			d.Set("is_verified", isVerified)
+			d.Set("is_verified", pointer.From(props.IsVerified))
 		}
 	}
 

@@ -6,7 +6,6 @@ package securitycenter
 import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -42,26 +41,20 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	resources := map[string]*pluginsdk.Resource{
+	return map[string]*pluginsdk.Resource{
 		"azurerm_advanced_threat_protection":                                      resourceAdvancedThreatProtection(),
 		"azurerm_iot_security_device_group":                                       resourceIotSecurityDeviceGroup(),
 		"azurerm_iot_security_solution":                                           resourceIotSecuritySolution(),
 		"azurerm_security_center_assessment":                                      resourceSecurityCenterAssessment(),
 		"azurerm_security_center_assessment_policy":                               resourceArmSecurityCenterAssessmentPolicy(),
+		"azurerm_security_center_automation":                                      resourceSecurityCenterAutomation(),
 		"azurerm_security_center_contact":                                         resourceSecurityCenterContact(),
+		"azurerm_security_center_server_vulnerability_assessment_virtual_machine": resourceServerVulnerabilityAssessmentVirtualMachine(),
+		"azurerm_security_center_server_vulnerability_assessments_setting":        resourceSecurityCenterServerVulnerabilityAssessmentsSetting(),
 		"azurerm_security_center_setting":                                         resourceSecurityCenterSetting(),
 		"azurerm_security_center_subscription_pricing":                            resourceSecurityCenterSubscriptionPricing(),
 		"azurerm_security_center_workspace":                                       resourceSecurityCenterWorkspace(),
-		"azurerm_security_center_automation":                                      resourceSecurityCenterAutomation(),
-		"azurerm_security_center_server_vulnerability_assessments_setting":        resourceSecurityCenterServerVulnerabilityAssessmentsSetting(),
-		"azurerm_security_center_server_vulnerability_assessment_virtual_machine": resourceServerVulnerabilityAssessmentVirtualMachine(),
 	}
-
-	if !features.FivePointOh() {
-		resources["azurerm_security_center_auto_provisioning"] = resourceSecurityCenterAutoProvisioning()
-	}
-
-	return resources
 }
 
 func (r Registration) DataSources() []sdk.DataSource {

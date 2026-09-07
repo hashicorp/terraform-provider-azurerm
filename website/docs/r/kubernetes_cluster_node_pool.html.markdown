@@ -122,11 +122,13 @@ The following arguments are supported:
 
 * `os_disk_type` - (Optional) The type of disk which should be used for the Operating System. Possible values are `Ephemeral` and `Managed`. Defaults to `Managed`. Changing this property requires specifying `temporary_name_for_rotation`.
 
-* `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the Node Pool should exist. Changing this property requires specifying `temporary_name_for_rotation`.
-
 * `pod_ip_allocation_mode` - (Optional) The IP allocation mode for pods in the agent pool. Possible values are `DynamicIndividual` and `StaticBlock`. Must be used with `pod_subnet_id`. Changing this forces a new resource to be created.
 
-* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `AzureLinux3`, `Ubuntu`, `Ubuntu2204`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` when os_type=Linux or `Windows2019` if os_type=Windows (`Windows2022` Kubernetes ≥1.33). Changing between `AzureLinux` and `Ubuntu` does not replace the resource; any other change forces a new resource to be created.
+-> **Note:** `StaticBlock` requires Azure CNI Pod Subnet and Kubernetes version `1.28` or later. A pod subnet cannot mix static block and dynamic individual allocation. Existing node pools cannot be migrated between these modes in place. See the [Azure documentation](https://learn.microsoft.com/azure/aks/configure-azure-cni-static-block-allocation) for subnet sizing and limitations.
+
+* `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the Node Pool should exist. Changing this property requires specifying `temporary_name_for_rotation`.
+
+* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `AzureLinux3`, `Ubuntu`, `Ubuntu2204`, `Ubuntu2404`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` when os_type=Linux or `Windows2019` if os_type=Windows (`Windows2022` Kubernetes ≥1.33). Changing between `AzureLinux` and `Ubuntu` does not replace the resource; any other change forces a new resource to be created.
 
 -> **Note:** `Windows2019` is deprecated and not supported for Kubernetes version ≥1.33.
 
