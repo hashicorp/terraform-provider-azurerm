@@ -235,23 +235,11 @@ func resourceStreamAnalyticsReferenceInputMsSqlRead(d *pluginsdk.ResourceData, m
 			}
 
 			if referenceInputAzureSql.Properties != nil {
-				server := ""
-				if v := referenceInputAzureSql.Properties.Server; v != nil {
-					server = *v
-				}
-				d.Set("server", server)
+				d.Set("server", pointer.From(referenceInputAzureSql.Properties.Server))
 
-				database := ""
-				if v := referenceInputAzureSql.Properties.Database; v != nil {
-					database = *v
-				}
-				d.Set("database", database)
+				d.Set("database", pointer.From(referenceInputAzureSql.Properties.Database))
 
-				username := ""
-				if v := referenceInputAzureSql.Properties.User; v != nil {
-					username = *v
-				}
-				d.Set("username", username)
+				d.Set("username", pointer.From(referenceInputAzureSql.Properties.User))
 
 				refreshType := ""
 				if v := referenceInputAzureSql.Properties.RefreshType; v != nil {
@@ -259,29 +247,13 @@ func resourceStreamAnalyticsReferenceInputMsSqlRead(d *pluginsdk.ResourceData, m
 				}
 				d.Set("refresh_type", refreshType)
 
-				intervalDuration := ""
-				if v := referenceInputAzureSql.Properties.RefreshRate; v != nil {
-					intervalDuration = *v
-				}
-				d.Set("refresh_interval_duration", intervalDuration)
+				d.Set("refresh_interval_duration", pointer.From(referenceInputAzureSql.Properties.RefreshRate))
 
-				fullSnapshotQuery := ""
-				if v := referenceInputAzureSql.Properties.FullSnapshotQuery; v != nil {
-					fullSnapshotQuery = *v
-				}
-				d.Set("full_snapshot_query", fullSnapshotQuery)
+				d.Set("full_snapshot_query", pointer.From(referenceInputAzureSql.Properties.FullSnapshotQuery))
 
-				deltaSnapshotQuery := ""
-				if v := referenceInputAzureSql.Properties.DeltaSnapshotQuery; v != nil {
-					deltaSnapshotQuery = *v
-				}
-				d.Set("delta_snapshot_query", deltaSnapshotQuery)
+				d.Set("delta_snapshot_query", pointer.From(referenceInputAzureSql.Properties.DeltaSnapshotQuery))
 
-				table := ""
-				if v := referenceInputAzureSql.Properties.Table; v != nil {
-					table = *v
-				}
-				d.Set("table", table)
+				d.Set("table", pointer.From(referenceInputAzureSql.Properties.Table))
 			}
 		}
 	}

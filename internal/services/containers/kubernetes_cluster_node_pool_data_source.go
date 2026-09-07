@@ -23,7 +23,7 @@ import (
 )
 
 func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
-	dataSource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceKubernetesClusterNodePoolRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -168,8 +168,6 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			"zones": commonschema.ZonesMultipleComputed(),
 		},
 	}
-
-	return dataSource
 }
 
 func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -291,11 +289,7 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 		}
 		d.Set("priority", priority)
 
-		proximityPlacementGroupId := ""
-		if props.ProximityPlacementGroupID != nil {
-			proximityPlacementGroupId = *props.ProximityPlacementGroupID
-		}
-		d.Set("proximity_placement_group_id", proximityPlacementGroupId)
+		d.Set("proximity_placement_group_id", pointer.From(props.ProximityPlacementGroupID))
 
 		spotMaxPrice := -1.0
 		if props.SpotMaxPrice != nil {

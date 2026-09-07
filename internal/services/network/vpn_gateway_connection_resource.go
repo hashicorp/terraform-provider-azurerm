@@ -70,10 +70,10 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			// Service will create a route table for the user if this is not specified.
 			"routing": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				// Note: O+C because the service will create a route table for the user if this is not specified.
 				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
@@ -99,7 +99,7 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 						"propagated_route_table": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -426,11 +426,7 @@ func resourceVpnGatewayConnectionResourceRead(d *pluginsdk.ResourceData, meta in
 			}
 			d.Set("remote_vpn_site_id", vpnSiteId)
 
-			enableInternetSecurity := false
-			if props.EnableInternetSecurity != nil {
-				enableInternetSecurity = *props.EnableInternetSecurity
-			}
-			d.Set("internet_security_enabled", enableInternetSecurity)
+			d.Set("internet_security_enabled", pointer.From(props.EnableInternetSecurity))
 
 			if err := d.Set("routing", flattenVpnGatewayConnectionRoutingConfiguration(props.RoutingConfiguration)); err != nil {
 				return fmt.Errorf(`setting "routing": %v`, err)
@@ -831,10 +827,7 @@ func flattenVpnGatewayConnectionNatRuleIds(input *[]virtualwans.SubResource) []i
 	}
 
 	for _, item := range *input {
-		var id string
-		if item.Id != nil {
-			id = *item.Id
-		}
+		id := pointer.From(item.Id)
 
 		results = append(results, id)
 	}

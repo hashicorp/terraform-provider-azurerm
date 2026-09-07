@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -19,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
@@ -271,12 +271,12 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("checking for presence of existing Data Factory Databricks %s: %+v", id, err)
 				}
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return tf.ImportAsExistsError("azurerm_data_factory_linked_service_azure_databricks", id.ID())
 			}
 		}
@@ -386,8 +386,7 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 			}
 		}
 
-		initScripts := newClusterMap["init_scripts"]
-		databricksProperties.NewClusterInitScripts = &initScripts
+		databricksProperties.NewClusterInitScripts = pointer.To(newClusterMap["init_scripts"])
 	}
 
 	databricksLinkedService := &datafactory.AzureDatabricksLinkedService{
@@ -409,8 +408,7 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		databricksLinkedService.Annotations = &annotations
+		databricksLinkedService.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -440,7 +438,7 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, m
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -556,13 +554,11 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, m
 	d.Set("additional_properties", databricks.AdditionalProperties)
 	d.Set("description", databricks.Description)
 
-	annotations := flattenDataFactoryAnnotations(databricks.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(databricks.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenLinkedServiceParameters(databricks.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(databricks.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
@@ -583,9 +579,9 @@ func resourceDataFactoryLinkedServiceDatabricksDelete(d *pluginsdk.ResourceData,
 		return err
 	}
 
-	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(response) {
+		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting Data Factory Databricks %s: %+v", *id, err)
 		}
 	}

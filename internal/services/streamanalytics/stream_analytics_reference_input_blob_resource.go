@@ -256,29 +256,13 @@ func resourceStreamAnalyticsReferenceInputBlobRead(d *pluginsdk.ResourceData, me
 			}
 
 			if referenceInputBlob.Properties != nil {
-				dateFormat := ""
-				if v := referenceInputBlob.Properties.DateFormat; v != nil {
-					dateFormat = *v
-				}
-				d.Set("date_format", dateFormat)
+				d.Set("date_format", pointer.From(referenceInputBlob.Properties.DateFormat))
 
-				pathPattern := ""
-				if v := referenceInputBlob.Properties.PathPattern; v != nil {
-					pathPattern = *v
-				}
-				d.Set("path_pattern", pathPattern)
+				d.Set("path_pattern", pointer.From(referenceInputBlob.Properties.PathPattern))
 
-				containerName := ""
-				if v := referenceInputBlob.Properties.Container; v != nil {
-					containerName = *v
-				}
-				d.Set("storage_container_name", containerName)
+				d.Set("storage_container_name", pointer.From(referenceInputBlob.Properties.Container))
 
-				timeFormat := ""
-				if v := referenceInputBlob.Properties.TimeFormat; v != nil {
-					timeFormat = *v
-				}
-				d.Set("time_format", timeFormat)
+				d.Set("time_format", pointer.From(referenceInputBlob.Properties.TimeFormat))
 
 				authMode := ""
 				if v := referenceInputBlob.Properties.AuthenticationMode; v != nil {

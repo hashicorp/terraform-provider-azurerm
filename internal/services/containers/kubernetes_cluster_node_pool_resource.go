@@ -118,7 +118,7 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 }
 
 func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -136,7 +136,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"node_count": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.IntBetween(0, 1000),
 		},
 
@@ -154,7 +154,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: computeValidate.HostGroupID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseDedicatedHostGroupIDInsensitively),
 		},
 
 		// Optional
@@ -166,13 +166,10 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"eviction_policy": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.ScaleSetEvictionPolicyDelete),
-				string(agentpools.ScaleSetEvictionPolicyDeallocate),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForScaleSetEvictionPolicy(), false),
 		},
 
 		"kubelet_config": schemaNodePoolKubeletConfig(),
@@ -205,13 +202,10 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"kubelet_disk_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.KubeletDiskTypeOS),
-				string(agentpools.KubeletDiskTypeTemporary),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForKubeletDiskType(), false),
 		},
 
 		"max_count": {
@@ -223,7 +217,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"max_pods": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"mode": {
@@ -248,7 +242,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"node_labels": {
 			Type:     pluginsdk.TypeMap,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -279,31 +273,29 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"orchestrator_version": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"os_disk_size_gb": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.IntAtLeast(1),
 		},
 
 		"os_disk_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  agentpools.OSDiskTypeManaged,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.OSDiskTypeEphemeral),
-				string(agentpools.OSDiskTypeManaged),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      agentpools.OSDiskTypeManaged,
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForOSDiskType(), false),
 		},
 
 		"os_sku": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true, // defaults to Ubuntu if using Linux
+			// Note: O+C because defaults to Ubuntu if using Linux
+			Computed: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(agentpools.OSSKUAzureLinux),
 				string(agentpools.OSSKUAzureLinuxThree),
@@ -316,14 +308,11 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"os_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(agentpools.OSTypeLinux),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.OSTypeLinux),
-				string(agentpools.OSTypeWindows),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      string(agentpools.OSTypeLinux),
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForOSType(), false),
 		},
 
 		"pod_subnet_id": {
@@ -333,14 +322,11 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"priority": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(agentpools.ScaleSetPriorityRegular),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.ScaleSetPriorityRegular),
-				string(agentpools.ScaleSetPrioritySpot),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      string(agentpools.ScaleSetPriorityRegular),
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForScaleSetPriority(), false),
 		},
 
 		"proximity_placement_group_id": {
@@ -365,13 +351,10 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"scale_down_mode": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(agentpools.ScaleDownModeDelete),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.ScaleDownModeDeallocate),
-				string(agentpools.ScaleDownModeDelete),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(agentpools.ScaleDownModeDelete),
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForScaleDownMode(), false),
 		},
 
 		"temporary_name_for_rotation": {
@@ -412,13 +395,9 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"workload_runtime": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.WorkloadRuntimeKataVMIsolation),
-				string(agentpools.WorkloadRuntimeOCIContainer),
-				string(agentpools.WorkloadRuntimeWasmWasi),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForWorkloadRuntime(), false),
 		},
 
 		"zones": commonschema.ZonesMultipleOptional(),
@@ -438,8 +417,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 	}
-
-	return s
 }
 
 func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -601,8 +578,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.MaxPods = pointer.To(maxPods)
 	}
 
-	nodeLabelsRaw := d.Get("node_labels").(map[string]interface{})
-	if nodeLabels := expandNodeLabels(nodeLabelsRaw); len(*nodeLabels) > 0 {
+	if nodeLabels := expandNodeLabels(d.Get("node_labels").(map[string]interface{})); len(*nodeLabels) > 0 {
 		profile.NodeLabels = nodeLabels
 	}
 
@@ -610,8 +586,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.NodePublicIPPrefixID = pointer.To(nodePublicIPPrefixID)
 	}
 
-	nodeTaintsRaw := d.Get("node_taints").([]interface{})
-	if nodeTaints := helpers.ExpandStringSlice(nodeTaintsRaw); len(*nodeTaints) > 0 {
+	if nodeTaints := helpers.ExpandStringSlice(d.Get("node_taints").([]interface{})); len(*nodeTaints) > 0 {
 		profile.NodeTaints = nodeTaints
 	}
 
@@ -720,16 +695,14 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	}
 	if nodeSubnetID != nil {
 		// Wait for vnet and node subnet to come back to Succeeded before releasing any locks
-		err = network.NewSubnetAndVnetPoller(subnetClient, vnetClient, nodeSubnetID, timeout).Poll(ctx)
-		if err != nil {
+		if err = network.NewSubnetAndVnetPoller(subnetClient, vnetClient, nodeSubnetID, timeout).Poll(ctx); err != nil {
 			return fmt.Errorf("waiting for provisioning state of subnet for AKS Node Pool creation %s: %+v", *nodeSubnetID, err)
 		}
 	}
 
 	if podSubnetID != nil {
 		// Wait for vnet and pod subnet to come back to Succeeded before releasing any locks
-		err = network.NewSubnetAndVnetPoller(subnetClient, vnetClient, podSubnetID, timeout).Poll(ctx)
-		if err != nil {
+		if err = network.NewSubnetAndVnetPoller(subnetClient, vnetClient, podSubnetID, timeout).Poll(ctx); err != nil {
 			return fmt.Errorf("waiting for provisioning state of the pod subnet for AKS Node Pool creation %s: %+v", *podSubnetID, err)
 		}
 	}
@@ -763,10 +736,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	props := existing.Model.Properties
 
 	// store the existing value should the user have opted to ignore it
-	enableAutoScaling := false
-	if props.EnableAutoScaling != nil {
-		enableAutoScaling = *props.EnableAutoScaling
-	}
+	enableAutoScaling := pointer.From(props.EnableAutoScaling)
 
 	log.Printf("[DEBUG] Determining delta for existing %s..", *id)
 
@@ -841,10 +811,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		}
 		if existingNodePool := existingNodePoolResp.Model; existingNodePool != nil && existingNodePool.Properties != nil {
 			orchestratorVersion := d.Get("orchestrator_version").(string)
-			currentOrchestratorVersion := ""
-			if v := existingNodePool.Properties.CurrentOrchestratorVersion; v != nil {
-				currentOrchestratorVersion = *v
-			}
+			currentOrchestratorVersion := pointer.From(existingNodePool.Properties.CurrentOrchestratorVersion)
 			if err := validateNodePoolSupportsVersion(ctx, containersClient, currentOrchestratorVersion, *id, orchestratorVersion); err != nil {
 				return err
 			}
@@ -1045,8 +1012,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 		log.Printf("[DEBUG] Cycled Node Pool..")
 	} else {
-		err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, agentpools.DefaultCreateOrUpdateOperationOptions())
-		if err != nil {
+		if err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("updating Node Pool %s: %+v", *id, err)
 		}
 	}
@@ -1249,8 +1215,7 @@ func resourceKubernetesClusterNodePoolDelete(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id, agentpools.DefaultDeleteOperationOptions())
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id, agentpools.DefaultDeleteOperationOptions()); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
@@ -1571,14 +1536,8 @@ func flattenAgentPoolLinuxOSConfig(input *agentpools.LinuxOSConfig) ([]interface
 	if input.SwapFileSizeMB != nil {
 		swapFileSizeMB = int(*input.SwapFileSizeMB)
 	}
-	var transparentHugePageDefrag string
-	if input.TransparentHugePageDefrag != nil {
-		transparentHugePageDefrag = *input.TransparentHugePageDefrag
-	}
-	var transparentHugePageEnabled string
-	if input.TransparentHugePageEnabled != nil {
-		transparentHugePageEnabled = *input.TransparentHugePageEnabled
-	}
+	transparentHugePageDefrag := pointer.From(input.TransparentHugePageDefrag)
+	transparentHugePageEnabled := pointer.From(input.TransparentHugePageEnabled)
 	sysctlConfig, err := flattenAgentPoolSysctlConfig(input.Sysctls)
 	if err != nil {
 		return nil, err
@@ -1700,10 +1659,7 @@ func flattenAgentPoolSysctlConfig(input *agentpools.SysctlConfig) ([]interface{}
 	if input.NetIPv4TcpMaxTwBuckets != nil {
 		netIpv4TcpMaxTwBuckets = int(*input.NetIPv4TcpMaxTwBuckets)
 	}
-	var netIpv4TcpTwReuse bool
-	if input.NetIPv4TcpTwReuse != nil {
-		netIpv4TcpTwReuse = *input.NetIPv4TcpTwReuse
-	}
+	netIpv4TcpTwReuse := pointer.From(input.NetIPv4TcpTwReuse)
 	var netNetfilterNfConntrackBuckets int
 	if input.NetNetfilterNfConntrackBuckets != nil {
 		netNetfilterNfConntrackBuckets = int(*input.NetNetfilterNfConntrackBuckets)

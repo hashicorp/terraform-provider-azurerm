@@ -760,22 +760,14 @@ func expandBackupProtectionPolicyVMArchivedRP(input []interface{}) protectionpol
 
 func flattenBackupProtectionPolicyVMResourceGroup(rpDetail protectionpolicies.InstantRPAdditionalDetails) []interface{} {
 	if rpDetail.AzureBackupRGNamePrefix == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	block := map[string]interface{}{}
 
-	prefix := ""
-	if rpDetail.AzureBackupRGNamePrefix != nil {
-		prefix = *rpDetail.AzureBackupRGNamePrefix
-	}
-	block["prefix"] = prefix
+	block["prefix"] = pointer.From(rpDetail.AzureBackupRGNamePrefix)
 
-	suffix := ""
-	if rpDetail.AzureBackupRGNameSuffix != nil {
-		suffix = *rpDetail.AzureBackupRGNameSuffix
-	}
-	block["suffix"] = suffix
+	block["suffix"] = pointer.From(rpDetail.AzureBackupRGNameSuffix)
 
 	return []interface{}{block}
 }
@@ -1074,7 +1066,7 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 		"instant_restore_retention_days": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.IntBetween(1, 30),
 		},
 

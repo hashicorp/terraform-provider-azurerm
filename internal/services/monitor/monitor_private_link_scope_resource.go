@@ -164,8 +164,7 @@ func resourceMonitorPrivateLinkScopeDelete(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	err = client.PrivateLinkScopesDeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.PrivateLinkScopesDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

@@ -436,8 +436,7 @@ func (VirtualMachineImplicitDataDiskFromSourceResource) Destroy(ctx context.Cont
 					return nil, err
 				}
 
-				err = diskClient.DeleteThenPoll(ctx, *diskId)
-				if err != nil {
+				if err = diskClient.DeleteThenPoll(ctx, *diskId); err != nil {
 					return nil, fmt.Errorf("deleting Managed Disk %s: %+v", *diskId, err)
 				}
 			}

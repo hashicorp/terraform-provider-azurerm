@@ -108,13 +108,9 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 			},
 
 			"caching": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachines.CachingTypesNone),
-					string(virtualmachines.CachingTypesReadOnly),
-					string(virtualmachines.CachingTypesReadWrite),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForCachingTypes(), false),
 			},
 
 			"create_option": {

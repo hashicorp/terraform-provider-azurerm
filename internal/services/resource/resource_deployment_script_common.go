@@ -97,15 +97,11 @@ func getDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 		},
 
 		"cleanup_preference": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(deploymentscripts.CleanupOptionsOnSuccess),
-				string(deploymentscripts.CleanupOptionsOnExpiration),
-				string(deploymentscripts.CleanupOptionsAlways),
-			}, false),
-			Default: string(deploymentscripts.CleanupOptionsAlways),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(deploymentscripts.PossibleValuesForCleanupOptions(), false),
+			Default:      string(deploymentscripts.CleanupOptionsAlways),
 		},
 
 		"container": {
@@ -364,7 +360,7 @@ func expandStorageAccountConfigurationModel(inputList []StorageAccountConfigurat
 func flattenContainerConfigurationModel(input *deploymentscripts.ContainerConfiguration) []ContainerConfigurationModel {
 	var outputList []ContainerConfigurationModel
 	if input == nil {
-		return outputList
+		return []ContainerConfigurationModel{}
 	}
 
 	if input.ContainerGroupName != nil {
@@ -414,7 +410,7 @@ func flattenEnvironmentVariableModelArray(inputList *[]deploymentscripts.Environ
 func flattenStorageAccountConfigurationModel(input *deploymentscripts.StorageAccountConfiguration, originalList []StorageAccountConfigurationModel) []StorageAccountConfigurationModel {
 	var outputList []StorageAccountConfigurationModel
 	if input == nil {
-		return outputList
+		return []StorageAccountConfigurationModel{}
 	}
 
 	output := StorageAccountConfigurationModel{}

@@ -118,8 +118,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *plugin
 
 	props.IPConfigurations = mapFieldsToNetworkInterface(props.IPConfigurations, info)
 
-	err = client.CreateOrUpdateCallbackThenPoll(ctx, *networkInterfaceId, *read.Model, sdk.SetIDCallback(meta, &id, d))
-	if err != nil {
+	if err = client.CreateOrUpdateCallbackThenPoll(ctx, *networkInterfaceId, *read.Model, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("updating Application Security Group Association for %s: %+v", *networkInterfaceId, err)
 	}
 
@@ -222,8 +221,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *plugin
 	info.applicationSecurityGroupIDs = applicationSecurityGroupIds
 	props.IPConfigurations = mapFieldsToNetworkInterface(props.IPConfigurations, info)
 
-	err = client.CreateOrUpdateThenPoll(ctx, *id.First, *read.Model)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, *id.First, *read.Model); err != nil {
 		return fmt.Errorf("removing Application Security Group for %s: %+v", id.First, err)
 	}
 

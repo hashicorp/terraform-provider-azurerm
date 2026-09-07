@@ -34,11 +34,11 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		AlertProcessingRuleActionGroupResource{},
 		AlertProcessingRuleSuppressionResource{},
+		AlertPrometheusRuleGroupResource{},
 		DataCollectionEndpointResource{},
 		DataCollectionRuleAssociationResource{},
 		DataCollectionRuleResource{},
 		ScheduledQueryRulesAlertV2Resource{},
-		AlertPrometheusRuleGroupResource{},
 		WorkspaceResource{},
 	}
 }
@@ -57,23 +57,21 @@ func (r Registration) WebsiteCategories() []string {
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
-	dataSources := map[string]*pluginsdk.Resource{
+	return map[string]*pluginsdk.Resource{
 		"azurerm_monitor_action_group":                dataSourceMonitorActionGroup(),
 		"azurerm_monitor_diagnostic_categories":       dataSourceMonitorDiagnosticCategories(),
 		"azurerm_monitor_scheduled_query_rules_alert": dataSourceMonitorScheduledQueryRulesAlert(),
 		"azurerm_monitor_scheduled_query_rules_log":   dataSourceMonitorScheduledQueryRulesLog(),
 	}
-
-	return dataSources
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	resources := map[string]*pluginsdk.Resource{
+	return map[string]*pluginsdk.Resource{
 		"azurerm_monitor_aad_diagnostic_setting":      resourceMonitorAADDiagnosticSetting(),
-		"azurerm_monitor_autoscale_setting":           resourceMonitorAutoScaleSetting(),
 		"azurerm_monitor_action_group":                resourceMonitorActionGroup(),
 		"azurerm_monitor_activity_log_alert":          resourceMonitorActivityLogAlert(),
+		"azurerm_monitor_autoscale_setting":           resourceMonitorAutoScaleSetting(),
 		"azurerm_monitor_diagnostic_setting":          resourceMonitorDiagnosticSetting(),
 		"azurerm_monitor_metric_alert":                resourceMonitorMetricAlert(),
 		"azurerm_monitor_private_link_scope":          resourceMonitorPrivateLinkScope(),
@@ -82,8 +80,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_monitor_scheduled_query_rules_log":   resourceMonitorScheduledQueryRulesLog(),
 		"azurerm_monitor_smart_detector_alert_rule":   resourceMonitorSmartDetectorAlertRule(),
 	}
-
-	return resources
 }
 
 func (r Registration) Actions() []func() action.Action {

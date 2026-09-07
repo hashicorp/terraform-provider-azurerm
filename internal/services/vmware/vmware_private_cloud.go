@@ -4,6 +4,7 @@
 package vmware
 
 import (
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/privateclouds"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 )
@@ -27,22 +28,10 @@ func flattenPrivateCloudCircuit(input *privateclouds.Circuit) []interface{} {
 		return make([]interface{}, 0)
 	}
 
-	var expressRouteId string
-	if input.ExpressRouteID != nil {
-		expressRouteId = *input.ExpressRouteID
-	}
-	var expressRoutePrivatePeeringId string
-	if input.ExpressRoutePrivatePeeringID != nil {
-		expressRoutePrivatePeeringId = *input.ExpressRoutePrivatePeeringID
-	}
-	var primarySubnet string
-	if input.PrimarySubnet != nil {
-		primarySubnet = *input.PrimarySubnet
-	}
-	var secondarySubnet string
-	if input.SecondarySubnet != nil {
-		secondarySubnet = *input.SecondarySubnet
-	}
+	expressRouteId := pointer.From(input.ExpressRouteID)
+	expressRoutePrivatePeeringId := pointer.From(input.ExpressRoutePrivatePeeringID)
+	primarySubnet := pointer.From(input.PrimarySubnet)
+	secondarySubnet := pointer.From(input.SecondarySubnet)
 	return []interface{}{
 		map[string]interface{}{
 			"express_route_id":                 expressRouteId,

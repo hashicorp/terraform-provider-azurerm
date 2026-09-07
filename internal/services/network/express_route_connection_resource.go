@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -25,7 +24,7 @@ import (
 )
 
 func resourceExpressRouteConnection() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceExpressRouteConnectionCreate,
 		Read:   resourceExpressRouteConnectionRead,
 		Update: resourceExpressRouteConnectionUpdate,
@@ -86,7 +85,7 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 			"routing": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -105,7 +104,7 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 						"associated_route_table_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: virtualwans.ValidateHubRouteTableID,
 							AtLeastOneOf: []string{"routing.0.associated_route_table_id", "routing.0.propagated_route_table"},
 						},
@@ -113,14 +112,14 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 						"propagated_route_table": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"labels": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
-										Computed: true,
+										Computed: true, // azignore:AZS007 - pre-existing violation
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
@@ -131,7 +130,7 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 									"route_table_ids": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
-										Computed: true,
+										Computed: true, // azignore:AZS007 - pre-existing violation
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
 											ValidateFunc: virtualwans.ValidateHubRouteTableID,
@@ -154,31 +153,6 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["private_link_fast_path_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Deprecated: "`private_link_fast_path_enabled` has been deprecated as it is no longer supported by the resource and will be removed in v5.0 of the AzureRM Provider",
-		}
-
-		resource.Schema["internet_security_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"enable_internet_security"},
-		}
-
-		resource.Schema["enable_internet_security"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"internet_security_enabled"},
-			Deprecated:    "the `enable_internet_security` property has been deprecated in favour of the `internet_security_enabled` property and will be removed in v5.0 of the AzureRM Provider",
-		}
-	}
-
-	return resource
 }
 
 func resourceExpressRouteConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -206,18 +180,13 @@ func resourceExpressRouteConnectionCreate(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	enableInternetSecurity := d.Get("internet_security_enabled").(bool)
-	if !features.FivePointOh() && !d.GetRawConfig().AsValueMap()["enable_internet_security"].IsNull() {
-		enableInternetSecurity = d.Get("enable_internet_security").(bool)
-	}
-
 	parameters := expressrouteconnections.ExpressRouteConnection{
 		Name: id.ExpressRouteConnectionName,
 		Properties: &expressrouteconnections.ExpressRouteConnectionProperties{
 			ExpressRouteCircuitPeering: expressrouteconnections.ExpressRouteCircuitPeeringId{
 				Id: pointer.To(d.Get("express_route_circuit_peering_id").(string)),
 			},
-			EnableInternetSecurity:    pointer.To(enableInternetSecurity),
+			EnableInternetSecurity:    pointer.To(d.Get("internet_security_enabled").(bool)),
 			RoutingConfiguration:      expandExpressRouteConnectionRouting(d.Get("routing").([]interface{})),
 			RoutingWeight:             pointer.To(int64(d.Get("routing_weight").(int))),
 			ExpressRouteGatewayBypass: pointer.To(d.Get("express_route_gateway_bypass_enabled").(bool)),
@@ -265,18 +234,12 @@ func resourceExpressRouteConnectionRead(d *pluginsdk.ResourceData, meta interfac
 			d.Set("authorization_key", props.AuthorizationKey)
 
 			d.Set("internet_security_enabled", props.EnableInternetSecurity)
-			if !features.FivePointOh() {
-				d.Set("enable_internet_security", props.EnableInternetSecurity)
-			}
 
 			if props.ExpressRouteGatewayBypass != nil {
 				d.Set("express_route_gateway_bypass_enabled", props.ExpressRouteGatewayBypass)
 			}
 
-			circuitPeeringID := ""
-			if v := props.ExpressRouteCircuitPeering.Id; v != nil {
-				circuitPeeringID = *v
-			}
+			circuitPeeringID := pointer.From(props.ExpressRouteCircuitPeering.Id)
 			peeringId, err := commonids.ParseExpressRouteCircuitPeeringIDInsensitively(circuitPeeringID)
 			if err != nil {
 				return err
@@ -327,14 +290,7 @@ func resourceExpressRouteConnectionUpdate(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	if !features.FivePointOh() && d.HasChanges("enable_internet_security", "internet_security_enabled") {
-		if d.HasChange("enable_internet_security") && !d.GetRawConfig().AsValueMap()["enable_internet_security"].IsNull() {
-			props.EnableInternetSecurity = pointer.To(d.Get("enable_internet_security").(bool))
-		}
-		if d.HasChange("internet_security_enabled") && !d.GetRawConfig().AsValueMap()["internet_security_enabled"].IsNull() {
-			props.EnableInternetSecurity = pointer.To(d.Get("internet_security_enabled").(bool))
-		}
-	} else if d.HasChange("internet_security_enabled") {
+	if d.HasChange("internet_security_enabled") {
 		props.EnableInternetSecurity = pointer.To(d.Get("internet_security_enabled").(bool))
 	}
 

@@ -19,7 +19,7 @@ var _ pluginsdk.StateUpgrade = ApiV0ToV1{}
 type ApiV0ToV1 struct{}
 
 func (ApiV0ToV1) Schema() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": schemaz.SchemaApiManagementApiName(),
 
 		"api_management_name": schemaz.SchemaApiManagementName(),
@@ -263,8 +263,6 @@ func (ApiV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 	}
-
-	return schema
 }
 
 func (ApiV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {

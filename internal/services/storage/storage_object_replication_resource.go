@@ -368,10 +368,7 @@ func flattenObjectReplicationRules(input *[]objectreplicationpolicyoperationgrou
 		destinationContainer := item.DestinationContainer
 		sourceContainer := item.SourceContainer
 
-		var ruleId string
-		if item.RuleId != nil {
-			ruleId = *item.RuleId
-		}
+		ruleId := pointer.From(item.RuleId)
 
 		var minCreationTime string
 		if item.Filters != nil && item.Filters.MinCreationTime != nil {

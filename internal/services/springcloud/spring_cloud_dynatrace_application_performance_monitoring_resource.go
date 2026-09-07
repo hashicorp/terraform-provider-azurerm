@@ -167,8 +167,7 @@ func (s SpringCloudDynatraceApplicationPerformanceMonitoringResource) Create() s
 				apmReference := appplatform.ApmReference{
 					ResourceId: id.ID(),
 				}
-				err = client.ServicesEnableApmGloballyThenPoll(ctx, *springId, apmReference)
-				if err != nil {
+				if err = client.ServicesEnableApmGloballyThenPoll(ctx, *springId, apmReference); err != nil {
 					return fmt.Errorf("enabling %s globally: %+v", id, err)
 				}
 			}
@@ -238,8 +237,7 @@ func (s SpringCloudDynatraceApplicationPerformanceMonitoringResource) Update() s
 				Properties: properties,
 			}
 
-			err = client.ApmsCreateOrUpdateThenPoll(ctx, *id, resource)
-			if err != nil {
+			if err = client.ApmsCreateOrUpdateThenPoll(ctx, *id, resource); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -249,13 +247,11 @@ func (s SpringCloudDynatraceApplicationPerformanceMonitoringResource) Update() s
 				}
 				springId := commonids.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroupName, id.SpringName)
 				if model.GloballyEnabled {
-					err := client.ServicesEnableApmGloballyThenPoll(ctx, springId, apmReference)
-					if err != nil {
+					if err := client.ServicesEnableApmGloballyThenPoll(ctx, springId, apmReference); err != nil {
 						return fmt.Errorf("enabling %s globally: %+v", id, err)
 					}
 				} else {
-					err := client.ServicesDisableApmGloballyThenPoll(ctx, springId, apmReference)
-					if err != nil {
+					if err := client.ServicesDisableApmGloballyThenPoll(ctx, springId, apmReference); err != nil {
 						return fmt.Errorf("disabling %s globally: %+v", id, err)
 					}
 				}
@@ -349,8 +345,7 @@ func (s SpringCloudDynatraceApplicationPerformanceMonitoringResource) Delete() s
 				return err
 			}
 
-			err = client.ApmsDeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.ApmsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

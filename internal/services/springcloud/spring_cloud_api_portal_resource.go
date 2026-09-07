@@ -295,8 +295,7 @@ func (s SpringCloudAPIPortalResource) Update() sdk.ResourceFunc {
 				Properties: properties,
 				Sku:        sku,
 			}
-			err = client.ApiPortalsCreateOrUpdateThenPoll(ctx, *id, apiPortalResource)
-			if err != nil {
+			if err = client.ApiPortalsCreateOrUpdateThenPoll(ctx, *id, apiPortalResource); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -364,8 +363,7 @@ func (s SpringCloudAPIPortalResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.ApiPortalsDeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.ApiPortalsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -422,7 +420,7 @@ func flattenAPIPortalSsoProperties(input *appplatform.SsoProperties, old []ApiPo
 
 func flattenSpringCloudAPIPortalGatewayIds(ids *[]string) []string {
 	if ids == nil || len(*ids) == 0 {
-		return nil
+		return []string{}
 	}
 	out := make([]string, 0)
 	for _, id := range *ids {

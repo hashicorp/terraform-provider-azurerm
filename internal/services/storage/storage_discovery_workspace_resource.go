@@ -73,7 +73,7 @@ func (r StorageDiscoveryWorkspaceResource) Arguments() map[string]*pluginsdk.Sch
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.StorageDiscoveryWorkspaceName,
+			ValidateFunc: validate.StorageDiscoveryWorkspaceName(),
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -90,7 +90,7 @@ func (r StorageDiscoveryWorkspaceResource) Arguments() map[string]*pluginsdk.Sch
 					"display_name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validate.StorageDiscoveryScopeDisplayName,
+						ValidateFunc: validate.StorageDiscoveryScopeDisplayName(),
 					},
 
 					"resource_types": {
@@ -455,11 +455,12 @@ func storageDiscoveryScopeReplacementPath(oldRaw, newRaw interface{}) string {
 		}
 
 		replacementField := ""
-		if !oldScope["resource_types"].(*pluginsdk.Set).Equal(newScope["resource_types"]) {
+		switch {
+		case !oldScope["resource_types"].(*pluginsdk.Set).Equal(newScope["resource_types"]):
 			replacementField = "resource_types"
-		} else if !oldScope["tag_keys_only"].(*pluginsdk.Set).Equal(newScope["tag_keys_only"]) {
+		case !oldScope["tag_keys_only"].(*pluginsdk.Set).Equal(newScope["tag_keys_only"]):
 			replacementField = "tag_keys_only"
-		} else if !reflect.DeepEqual(oldScope["tags"], newScope["tags"]) {
+		case !reflect.DeepEqual(oldScope["tags"], newScope["tags"]):
 			replacementField = "tags"
 		}
 

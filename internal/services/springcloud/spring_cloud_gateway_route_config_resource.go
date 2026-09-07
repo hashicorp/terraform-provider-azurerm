@@ -9,16 +9,15 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
@@ -44,7 +43,9 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SpringCloudGatewayRouteConfigID(id)
+			// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+			_, err := appplatform_rm.ParseRouteConfigIDInsensitively(id)
 			return err
 		}),
 
@@ -59,7 +60,7 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SpringCloudGatewayID,
+				ValidateFunc: validation.AsGeneratedID(appplatform_rm.ParseGatewayIDInsensitively),
 			},
 
 			"open_api": {
@@ -78,18 +79,15 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 			},
 
 			"protocol": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(appplatform.GatewayRouteConfigProtocolHTTP),
-					string(appplatform.GatewayRouteConfigProtocolHTTPS),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInEnumSlice(appplatform.PossibleGatewayRouteConfigProtocolValues(), false),
 			},
 
 			"spring_cloud_app_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.SpringCloudAppID,
+				ValidateFunc: validation.AsGeneratedID(appplatform_rm.ParseAppIDInsensitively),
 			},
 
 			"filters": {
@@ -192,21 +190,23 @@ func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	gatewayId, err := parse.SpringCloudGatewayID(d.Get("spring_cloud_gateway_id").(string))
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	gatewayId, err := appplatform_rm.ParseGatewayIDInsensitively(d.Get("spring_cloud_gateway_id").(string))
 	if err != nil {
 		return err
 	}
-	id := parse.NewSpringCloudGatewayRouteConfigID(subscriptionId, gatewayId.ResourceGroup, gatewayId.SpringName, gatewayId.GatewayName, d.Get("name").(string))
+	id := appplatform_rm.NewRouteConfigID(subscriptionId, gatewayId.ResourceGroupName, gatewayId.SpringName, gatewayId.GatewayName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.RouteConfigName)
+			existing, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.GatewayName, id.RouteConfigName)
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)
 				}
 			}
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return tf.ImportAsExistsError("azurerm_spring_cloud_gateway_route_config", id.ID())
 			}
 		}
@@ -232,7 +232,7 @@ func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData
 		gatewayRouteConfigResource.Properties.Predicates = helpers.ExpandStringSlice(predicates)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.RouteConfigName, gatewayRouteConfigResource)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.SpringName, id.GatewayName, id.RouteConfigName, gatewayRouteConfigResource)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -253,14 +253,16 @@ func resourceSpringCloudGatewayRouteConfigRead(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudGatewayRouteConfigID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseRouteConfigIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.RouteConfigName)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.GatewayName, id.RouteConfigName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] appplatform %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -268,13 +270,13 @@ func resourceSpringCloudGatewayRouteConfigRead(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	d.Set("name", id.RouteConfigName)
-	d.Set("spring_cloud_gateway_id", parse.NewSpringCloudGatewayID(id.SubscriptionId, id.ResourceGroup, id.SpringName, id.GatewayName).ID())
+	d.Set("spring_cloud_gateway_id", appplatform_rm.NewGatewayID(id.SubscriptionId, id.ResourceGroupName, id.SpringName, id.GatewayName).ID())
 	if props := resp.Properties; props != nil {
 		// The returned value has inconsistent casing
 		// TODO: Remove the normalization codes once the following issue is fixed.
 		// Issue: https://github.com/Azure/azure-rest-api-specs/issues/22845
 		if props.AppResourceID != nil {
-			appId, err := parse.SpringCloudAppIDInsensitively(*props.AppResourceID)
+			appId, err := appplatform_rm.ParseAppIDInsensitively(*props.AppResourceID)
 			if err != nil {
 				return fmt.Errorf("parsing `spring_cloud_app_id`: %+v", err)
 			}
@@ -305,12 +307,14 @@ func resourceSpringCloudGatewayRouteConfigDelete(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudGatewayRouteConfigID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseRouteConfigIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.GatewayName, id.RouteConfigName)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.SpringName, id.GatewayName, id.RouteConfigName)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
@@ -347,39 +351,15 @@ func flattenGatewayRouteConfigGatewayAPIRouteArray(input *[]appplatform.GatewayA
 	}
 
 	for _, item := range *input {
-		var description string
-		if item.Description != nil {
-			description = *item.Description
-		}
-		var order int32
-		if item.Order != nil {
-			order = *item.Order
-		}
-		var ssoEnabled bool
-		if item.SsoEnabled != nil {
-			ssoEnabled = *item.SsoEnabled
-		}
-		var title string
-		if item.Title != nil {
-			title = *item.Title
-		}
-		var tokenRelay bool
-		if item.TokenRelay != nil {
-			tokenRelay = *item.TokenRelay
-		}
-		var uri string
-		if item.URI != nil {
-			uri = *item.URI
-		}
 		results = append(results, map[string]interface{}{
-			"description":            description,
+			"description":            pointer.From(item.Description),
 			"filters":                helpers.FlattenStringSlice(item.Filters),
-			"order":                  order,
+			"order":                  pointer.From(item.Order),
 			"predicates":             helpers.FlattenStringSlice(item.Predicates),
-			"sso_validation_enabled": ssoEnabled,
-			"title":                  title,
-			"token_relay":            tokenRelay,
-			"uri":                    uri,
+			"sso_validation_enabled": pointer.From(item.SsoEnabled),
+			"title":                  pointer.From(item.Title),
+			"token_relay":            pointer.From(item.TokenRelay),
+			"uri":                    pointer.From(item.URI),
 			"classification_tags":    helpers.FlattenStringSlice(item.Tags),
 		})
 	}
@@ -402,14 +382,9 @@ func flattenGatewayRouteConfigOpenApi(input *appplatform.GatewayRouteConfigOpenA
 		return []interface{}{}
 	}
 
-	uri := ""
-	if input.URI != nil {
-		uri = *input.URI
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"uri": uri,
+			"uri": pointer.From(input.URI),
 		},
 	}
 }

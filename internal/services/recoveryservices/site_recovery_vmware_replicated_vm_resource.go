@@ -699,8 +699,7 @@ func (r VMWareReplicatedVmResource) Update() sdk.ResourceFunc {
 				Properties: &props,
 			}
 
-			err = client.UpdateThenPoll(ctx, *id, parameters)
-			if err != nil {
+			if err = client.UpdateThenPoll(ctx, *id, parameters); err != nil {
 				return fmt.Errorf("updating %q: %+v", id, err)
 			}
 
@@ -841,11 +840,9 @@ func (r VMWareReplicatedVmResource) Delete() sdk.ResourceFunc {
 
 			client := metadata.Client.RecoveryServices.ReplicationProtectedItemsClient
 
-			disableProtectionReason := replicationprotecteditems.DisableProtectionReasonNotSpecified
-
 			disableProtectionInput := replicationprotecteditems.DisableProtectionInput{
 				Properties: replicationprotecteditems.DisableProtectionInputProperties{
-					DisableProtectionReason: &disableProtectionReason,
+					DisableProtectionReason: pointer.To(replicationprotecteditems.DisableProtectionReasonNotSpecified),
 					// It's a workaround for https://github.com/hashicorp/pandora/issues/1864
 					ReplicationProviderInput: replicationprotecteditems.BaseDisableProtectionProviderSpecificInputImpl{
 						InstanceType: string(siterecovery.InstanceTypeDisableProtectionProviderSpecificInput),
@@ -853,8 +850,7 @@ func (r VMWareReplicatedVmResource) Delete() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.DeleteThenPoll(ctx, *id, disableProtectionInput)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id, disableProtectionInput); err != nil {
 				return fmt.Errorf("deleting %s : %+v", id.String(), err)
 			}
 

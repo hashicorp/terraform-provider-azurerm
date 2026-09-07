@@ -63,13 +63,10 @@ func (r LogAnalyticsWorkspaceTableResource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"plan": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(tables.TablePlanEnumAnalytics),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(tables.TablePlanEnumAnalytics),
-				string(tables.TablePlanEnumBasic),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(tables.TablePlanEnumAnalytics),
+			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForTablePlanEnum(), false),
 		},
 
 		"retention_in_days": {

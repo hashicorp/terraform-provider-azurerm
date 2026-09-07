@@ -429,11 +429,6 @@ service/oracle:
   - any-glob-to-any-file:
     - internal/services/oracle/**/*
 
-service/orbital:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/orbital/**/*
-
 service/paloalto:
 - changed-files:
   - any-glob-to-any-file:

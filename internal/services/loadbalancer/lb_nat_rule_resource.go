@@ -95,7 +95,7 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			"floating_ip_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"tcp_reset_enabled": {
@@ -320,8 +320,7 @@ func resourceArmLoadBalancerNatRuleDelete(d *pluginsdk.ResourceData, meta interf
 			natRules = append(natRules[:index], natRules[index+1:]...)
 			props.InboundNatRules = &natRules
 
-			err := client.CreateOrUpdateThenPoll(ctx, plbId, *model)
-			if err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, plbId, *model); err != nil {
 				return fmt.Errorf("Creating/Updating %s: %+v", *id, err)
 			}
 		}

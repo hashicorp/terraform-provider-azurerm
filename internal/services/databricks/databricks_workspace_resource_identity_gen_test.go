@@ -25,7 +25,7 @@ func TestAccDatabricksWorkspace_resourceIdentity(t *testing.T) {
 
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
-			Config: r.basicForResourceIdentity(data),
+			Config: r.basic(data, "premium"),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_databricks_workspace.test", checkedFields),
 				statecheck.ExpectIdentityValue("azurerm_databricks_workspace.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),

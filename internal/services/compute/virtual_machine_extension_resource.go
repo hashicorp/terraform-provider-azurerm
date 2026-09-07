@@ -194,8 +194,7 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 
 	if settingsString := d.Get("settings").(string); settingsString != "" {
 		var result interface{}
-		err := json.Unmarshal([]byte(settingsString), &result)
-		if err != nil {
+		if err := json.Unmarshal([]byte(settingsString), &result); err != nil {
 			return fmt.Errorf("unmarshaling `settings`: %+v", err)
 		}
 		extension.Properties.Settings = pointer.To(result)
@@ -203,8 +202,7 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 
 	if protectedSettingsString := d.Get("protected_settings").(string); protectedSettingsString != "" {
 		var result interface{}
-		err := json.Unmarshal([]byte(protectedSettingsString), &result)
-		if err != nil {
+		if err := json.Unmarshal([]byte(protectedSettingsString), &result); err != nil {
 			return fmt.Errorf("unmarshaling `protected_settings`: %+v", err)
 		}
 		extension.Properties.ProtectedSettings = pointer.To(result)
@@ -276,11 +274,7 @@ func resourceVirtualMachineExtensionsRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("protected_settings_from_key_vault", flattenProtectedSettingsFromKeyVault(props.ProtectedSettingsFromKeyVault))
 			d.Set("provision_after_extensions", pointer.From(props.ProvisionAfterExtensions))
 
-			suppressFailure := false
-			if props.SuppressFailures != nil {
-				suppressFailure = *props.SuppressFailures
-			}
-			d.Set("failure_suppression_enabled", suppressFailure)
+			d.Set("failure_suppression_enabled", pointer.From(props.SuppressFailures))
 
 			if props.Settings != nil {
 				settings, err := json.Marshal(props.Settings)

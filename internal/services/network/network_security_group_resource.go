@@ -34,7 +34,7 @@ import (
 var networkSecurityGroupResourceName = "azurerm_network_security_group"
 
 func resourceNetworkSecurityGroup() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceNetworkSecurityGroupCreate,
 		Read:   resourceNetworkSecurityGroupRead,
 		Update: resourceNetworkSecurityGroupUpdate,
@@ -68,7 +68,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 				Type:       pluginsdk.TypeSet,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				Set:        hashNetworkSecurityRule,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -84,16 +84,9 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 						},
 
 						"protocol": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(networksecuritygroups.SecurityRuleProtocolAny),
-								string(networksecuritygroups.SecurityRuleProtocolTcp),
-								string(networksecuritygroups.SecurityRuleProtocolUdp),
-								string(networksecuritygroups.SecurityRuleProtocolIcmp),
-								string(networksecuritygroups.SecurityRuleProtocolAh),
-								string(networksecuritygroups.SecurityRuleProtocolEsp),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(networksecuritygroups.PossibleValuesForSecurityRuleProtocol(), false),
 						},
 
 						"source_port_range": {
@@ -165,12 +158,9 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 						},
 
 						"access": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(networksecuritygroups.SecurityRuleAccessAllow),
-								string(networksecuritygroups.SecurityRuleAccessDeny),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(networksecuritygroups.PossibleValuesForSecurityRuleAccess(), false),
 						},
 
 						"priority": {
@@ -180,12 +170,9 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 						},
 
 						"direction": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(networksecuritygroups.SecurityRuleDirectionInbound),
-								string(networksecuritygroups.SecurityRuleDirectionOutbound),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(networksecuritygroups.PossibleValuesForSecurityRuleDirection(), false),
 						},
 					},
 				},
@@ -194,8 +181,6 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	return resource
 }
 
 func resourceNetworkSecurityGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -330,8 +315,7 @@ func resourceNetworkSecurityGroupFlatten(d *pluginsdk.ResourceData, id *networks
 	if nsg != nil {
 		d.Set("location", location.NormalizeNilable(nsg.Location))
 		if props := nsg.Properties; props != nil {
-			flattenedRules := flattenNetworkSecurityRules(props.SecurityRules)
-			if err := d.Set("security_rule", flattenedRules); err != nil {
+			if err := d.Set("security_rule", flattenNetworkSecurityRules(props.SecurityRules)); err != nil {
 				return fmt.Errorf("setting `security_rule`: %+v", err)
 			}
 		}

@@ -68,21 +68,10 @@ func flattenVirtualMachineAdditionalCapabilities(input *virtualmachines.Addition
 		return []interface{}{}
 	}
 
-	ultraSsdEnabled := false
-
-	if input.UltraSSDEnabled != nil {
-		ultraSsdEnabled = *input.UltraSSDEnabled
-	}
-
-	hibernationEnabled := false
-	if input.HibernationEnabled != nil {
-		hibernationEnabled = *input.HibernationEnabled
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"ultra_ssd_enabled":   ultraSsdEnabled,
-			"hibernation_enabled": hibernationEnabled,
+			"ultra_ssd_enabled":   pointer.From(input.UltraSSDEnabled),
+			"hibernation_enabled": pointer.From(input.HibernationEnabled),
 		},
 	}
 }
@@ -128,19 +117,15 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"caching": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachines.CachingTypesNone),
-						string(virtualmachines.CachingTypesReadOnly),
-						string(virtualmachines.CachingTypesReadWrite),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForCachingTypes(), false),
 				},
 
 				"storage_account_type": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					// whilst this appears in the Update block the API returns this when changing:
 					// Changing property 'osDisk.managedDisk.storageAccountType' is not allowed
 					ForceNew: true,
@@ -174,23 +159,17 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"option": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								ForceNew: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(virtualmachines.DiffDiskOptionsLocal),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ForceNew:     true,
+								ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForDiffDiskOptions(), false),
 							},
 							"placement": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								ForceNew: true,
-								Default:  string(virtualmachines.DiffDiskPlacementCacheDisk),
-								ValidateFunc: validation.StringInSlice([]string{
-									string(virtualmachines.DiffDiskPlacementCacheDisk),
-									string(virtualmachines.DiffDiskPlacementResourceDisk),
-									string(virtualmachines.DiffDiskPlacementNVMeDisk),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ForceNew:     true,
+								Default:      string(virtualmachines.DiffDiskPlacementCacheDisk),
+								ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForDiffDiskPlacement(), false),
 							},
 						},
 					},
@@ -209,8 +188,9 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 				},
 
 				"disk_size_gb": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					// Note: O+C because Azure computes disk size when not specified
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(0, 4095),
 				},
@@ -219,7 +199,7 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ForceNew: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ConflictsWith: []string{
 						"os_managed_disk_id",
 					},
@@ -345,10 +325,7 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 		diskSizeGb = int(*input.DiskSizeGB)
 	}
 
-	var name string
-	if input.Name != nil {
-		name = *input.Name
-	}
+	name := pointer.From(input.Name)
 
 	diskEncryptionSetId := ""
 	storageAccountType := ""
@@ -405,10 +382,7 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 		}
 	}
 
-	writeAcceleratorEnabled := false
-	if input.WriteAcceleratorEnabled != nil {
-		writeAcceleratorEnabled = *input.WriteAcceleratorEnabled
-	}
+	writeAcceleratorEnabled := pointer.From(input.WriteAcceleratorEnabled)
 	return []interface{}{
 		map[string]interface{}{
 			"caching":                          string(pointer.From(input.Caching)),
@@ -449,7 +423,7 @@ func virtualMachineTerminationNotificationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -476,11 +450,10 @@ func expandOsImageNotificationProfile(input []interface{}) *virtualmachines.OSIm
 	}
 
 	raw := input[0].(map[string]interface{})
-	timeout := raw["timeout"].(string)
 
 	return &virtualmachines.OSImageNotificationProfile{
 		Enable:           pointer.To(true),
-		NotBeforeTimeout: &timeout,
+		NotBeforeTimeout: pointer.To(raw["timeout"].(string)),
 	}
 }
 
@@ -492,18 +465,16 @@ func expandTerminateNotificationProfile(input []interface{}) *virtualmachines.Te
 	}
 
 	raw := input[0].(map[string]interface{})
-	enabled := raw["enabled"].(bool)
-	timeout := raw["timeout"].(string)
 
 	return &virtualmachines.TerminateNotificationProfile{
-		Enable:           &enabled,
-		NotBeforeTimeout: &timeout,
+		Enable:           pointer.To(raw["enabled"].(bool)),
+		NotBeforeTimeout: pointer.To(raw["timeout"].(string)),
 	}
 }
 
 func flattenOsImageNotificationProfile(input *virtualmachines.OSImageNotificationProfile) []interface{} {
 	if input == nil || !pointer.From(input.Enable) {
-		return nil
+		return []interface{}{}
 	}
 
 	timeout := "PT15M"
@@ -618,7 +589,7 @@ func expandVirtualMachineGalleryApplication(input []interface{}) *[]virtualmachi
 
 func flattenVirtualMachineGalleryApplication(input *[]virtualmachines.VMGalleryApplication) []interface{} {
 	if len(*input) == 0 {
-		return nil
+		return []interface{}{}
 	}
 
 	out := make([]interface{}, 0)

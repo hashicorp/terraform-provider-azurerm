@@ -81,7 +81,7 @@ var (
 )
 
 func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -102,7 +102,7 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"app_settings": {
 			Type:     pluginsdk.TypeMap,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -123,7 +123,7 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"client_affinity_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"client_certificate_mode": {
@@ -164,7 +164,7 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"connection_string": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -173,21 +173,9 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(webapps.ConnectionStringTypeApiHub),
-							string(webapps.ConnectionStringTypeCustom),
-							string(webapps.ConnectionStringTypeDocDb),
-							string(webapps.ConnectionStringTypeEventHub),
-							string(webapps.ConnectionStringTypeMySql),
-							string(webapps.ConnectionStringTypeNotificationHub),
-							string(webapps.ConnectionStringTypePostgreSQL),
-							string(webapps.ConnectionStringTypeRedisCache),
-							string(webapps.ConnectionStringTypeServiceBus),
-							string(webapps.ConnectionStringTypeSQLAzure),
-							string(webapps.ConnectionStringTypeSQLServer),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForConnectionStringType(), false),
 					},
 
 					"value": {
@@ -256,7 +244,7 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_account_share_name": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"version": {
@@ -278,8 +266,6 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	return s
 }
 
 func (r LogicAppResource) Attributes() map[string]*pluginsdk.Schema {
@@ -923,17 +909,12 @@ var (
 )
 
 func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([]webapps.NameValuePair, error) {
-	appKindPropName := "APP_KIND"
-	appKindPropValue := "workflowApp"
-
 	var storageConnection string
 	if d.StorageKeyVaultSecretID != "" {
 		storageConnection = fmt.Sprintf(helpers.StorageStringFmtKV, d.StorageKeyVaultSecretID)
 	} else {
 		storageConnection = fmt.Sprintf(helpers.StorageStringFmt, d.StorageAccountName, d.StorageAccountAccessKey, endpointSuffix)
 	}
-
-	functionVersion := d.Version
 
 	contentShare := strings.ToLower(d.Name) + "-content"
 	if d.StorageAccountShareName != "" {
@@ -942,16 +923,13 @@ func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([
 
 	basicSettings := []webapps.NameValuePair{
 		{Name: &storageAppSettingName, Value: &storageConnection},
-		{Name: &functionVersionAppSettingName, Value: &functionVersion},
-		{Name: &appKindPropName, Value: &appKindPropValue},
+		{Name: &functionVersionAppSettingName, Value: pointer.To(d.Version)},
+		{Name: pointer.To("APP_KIND"), Value: pointer.To("workflowApp")},
 		{Name: &contentShareAppSettingName, Value: &contentShare},
 		{Name: &contentFileConnStringAppSettingName, Value: &storageConnection},
 	}
 
 	if d.UseExtensionBundle {
-		extensionBundlePropName := "AzureFunctionsJobHost__extensionBundle__id"
-		extensionBundleName := "Microsoft.Azure.Functions.ExtensionBundle.Workflows"
-		extensionBundleVersionPropName := "AzureFunctionsJobHost__extensionBundle__version"
 		extensionBundleVersion := d.BundleVersion
 
 		if extensionBundleVersion == "" {
@@ -961,8 +939,8 @@ func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([
 		}
 
 		bundleSettings := []webapps.NameValuePair{
-			{Name: &extensionBundlePropName, Value: &extensionBundleName},
-			{Name: &extensionBundleVersionPropName, Value: &extensionBundleVersion},
+			{Name: pointer.To("AzureFunctionsJobHost__extensionBundle__id"), Value: pointer.To("Microsoft.Azure.Functions.ExtensionBundle.Workflows")},
+			{Name: pointer.To("AzureFunctionsJobHost__extensionBundle__version"), Value: &extensionBundleVersion},
 		}
 
 		return append(basicSettings, bundleSettings...), nil
@@ -1024,7 +1002,7 @@ func flattenLogicAppStandardIpRestriction(input *[]webapps.IPSecurityRestriction
 	restrictions := make([]interface{}, 0)
 
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	for _, v := range *input {
@@ -1042,17 +1020,9 @@ func flattenLogicAppStandardIpRestriction(input *[]webapps.IPSecurityRestriction
 			}
 		}
 
-		subnetId := ""
-		if subnetIdRaw := v.VnetSubnetResourceId; subnetIdRaw != nil {
-			subnetId = *subnetIdRaw
-		}
-		restriction["virtual_network_subnet_id"] = subnetId
+		restriction["virtual_network_subnet_id"] = pointer.From(v.VnetSubnetResourceId)
 
-		name := ""
-		if nameRaw := v.Name; nameRaw != nil {
-			name = *nameRaw
-		}
-		restriction["name"] = name
+		restriction["name"] = pointer.From(v.Name)
 
 		priority := 0
 		if priorityRaw := v.Priority; priorityRaw != nil {
@@ -1060,11 +1030,7 @@ func flattenLogicAppStandardIpRestriction(input *[]webapps.IPSecurityRestriction
 		}
 		restriction["priority"] = priority
 
-		action := ""
-		if actionRaw := v.Action; actionRaw != nil {
-			action = *actionRaw
-		}
-		restriction["action"] = action
+		restriction["action"] = pointer.From(v.Action)
 
 		if headers := v.Headers; headers != nil {
 			restriction["headers"] = flattenHeaders(*headers)

@@ -266,8 +266,7 @@ func (r LoadBalancerRule) Destroy(ctx context.Context, client *clients.Client, s
 	}
 	loadBalancer.Model.Properties.LoadBalancingRules = &rules
 
-	err = client.LoadBalancers.LoadBalancersClient.CreateOrUpdateThenPoll(ctx, plbId, *loadBalancer.Model)
-	if err != nil {
+	if err = client.LoadBalancers.LoadBalancersClient.CreateOrUpdateThenPoll(ctx, plbId, *loadBalancer.Model); err != nil {
 		return nil, fmt.Errorf("updating %s: %+v", *id, err)
 	}
 

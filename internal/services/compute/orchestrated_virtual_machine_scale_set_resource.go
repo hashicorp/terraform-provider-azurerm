@@ -22,6 +22,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimages"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -100,7 +102,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"instances": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.IntBetween(0, 1000),
 			},
 
@@ -181,13 +183,10 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"eviction_policy": {
 				// only applicable when `priority` is set to `Spot`
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachinescalesets.VirtualMachineEvictionPolicyTypesDeallocate),
-					string(virtualmachinescalesets.VirtualMachineEvictionPolicyTypesDelete),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForVirtualMachineEvictionPolicyTypes(), false),
 			},
 
 			"extension_operations_enabled": {
@@ -272,7 +271,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			// for this bool
 			"single_placement_group": {
 				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Optional: true,
 			},
 
@@ -281,8 +280,8 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Optional: true,
 				ValidateFunc: validation.Any(
 					images.ValidateImageID,
-					computeValidate.SharedImageID,
-					computeValidate.SharedImageVersionID,
+					validation.AsGeneratedID(galleryimages.ParseGalleryImageIDInsensitively),
+					validation.AsGeneratedID(galleryimageversions.ParseImageVersionIDInsensitively),
 					computeValidate.CommunityGalleryImageID,
 					computeValidate.CommunityGalleryImageVersionID,
 					computeValidate.SharedGalleryImageID,
@@ -315,15 +314,11 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			},
 
 			"upgrade_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(virtualmachinescalesets.UpgradeModeManual),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachinescalesets.UpgradeModeAutomatic),
-					string(virtualmachinescalesets.UpgradeModeManual),
-					string(virtualmachinescalesets.UpgradeModeRolling),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(virtualmachinescalesets.UpgradeModeManual),
+				ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForUpgradeMode(), false),
 			},
 
 			"user_data_base64": {
@@ -598,8 +593,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 	sourceImageId := d.Get("source_image_id").(string)
 	if len(sourceImageReferenceRaw) != 0 || sourceImageId != "" {
-		sourceImageReference := expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
-		virtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
+		virtualMachineProfile.StorageProfile.ImageReference = expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
 	}
 
 	if userData, ok := d.GetOk("user_data_base64"); ok {
@@ -753,8 +747,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
-	additionalCapabilities := ExpandOrchestratedVirtualMachineScaleSetAdditionalCapabilities(additionalCapabilitiesRaw)
-	props.Properties.AdditionalCapabilities = additionalCapabilities
+	props.Properties.AdditionalCapabilities = ExpandOrchestratedVirtualMachineScaleSetAdditionalCapabilities(additionalCapabilitiesRaw)
 
 	if v, ok := d.GetOk("data_disk"); ok {
 		ultraSSDEnabled := d.Get("additional_capabilities.0.ultra_ssd_enabled").(bool)
@@ -1137,8 +1130,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				sourceImageId := d.Get("source_image_id").(string)
 
 				if len(sourceImageReferenceRaw) != 0 || sourceImageId != "" {
-					sourceImageReference := expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
-					updateProps.VirtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
+					updateProps.VirtualMachineProfile.StorageProfile.ImageReference = expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
 				}
 
 				// Must include all storage profile properties when updating disk image.  See: https://github.com/hashicorp/terraform-provider-azurerm/issues/8273
@@ -1509,8 +1501,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				if nwProfile := profile.NetworkProfile; nwProfile != nil {
 					d.Set("network_api_version", pointer.From(nwProfile.NetworkApiVersion))
 
-					flattenedNics := FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
-					if err := d.Set("network_interface", flattenedNics); err != nil {
+					if err := d.Set("network_interface", FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)); err != nil {
 						return fmt.Errorf("setting `network_interface`: %w", err)
 					}
 				}
@@ -1542,8 +1533,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 
 				if policy := props.UpgradePolicy; policy != nil {
 					upgradeMode = string(pointer.From(policy.Mode))
-					flattenedRolling := FlattenVirtualMachineScaleSetRollingUpgradePolicy(policy.RollingUpgradePolicy)
-					if err := d.Set("rolling_upgrade_policy", flattenedRolling); err != nil {
+					if err := d.Set("rolling_upgrade_policy", FlattenVirtualMachineScaleSetRollingUpgradePolicy(policy.RollingUpgradePolicy)); err != nil {
 						return fmt.Errorf("setting `rolling_upgrade_policy`: %w", err)
 					}
 				}

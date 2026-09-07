@@ -35,13 +35,10 @@ func additionalUnattendContentSchema() *pluginsdk.Schema {
 					Sensitive: true,
 				},
 				"setting": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachines.SettingNamesAutoLogon),
-						string(virtualmachines.SettingNamesFirstLogonCommands),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForSettingNames(), false),
 				},
 			},
 		},
@@ -69,13 +66,10 @@ func additionalUnattendContentSchemaVM() *pluginsdk.Schema {
 					Sensitive: true,
 				},
 				"setting": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachines.SettingNamesAutoLogon),
-						string(virtualmachines.SettingNamesFirstLogonCommands),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForSettingNames(), false),
 				},
 			},
 		},
@@ -276,10 +270,7 @@ func flattenBootDiagnostics(input *virtualmachines.DiagnosticsProfile) []interfa
 		return []interface{}{}
 	}
 
-	storageAccountUri := ""
-	if input.BootDiagnostics.StorageUri != nil {
-		storageAccountUri = *input.BootDiagnostics.StorageUri
-	}
+	storageAccountUri := pointer.From(input.BootDiagnostics.StorageUri)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -293,10 +284,7 @@ func flattenBootDiagnosticsVMSS(input *virtualmachinescalesets.DiagnosticsProfil
 		return []interface{}{}
 	}
 
-	storageAccountUri := ""
-	if input.BootDiagnostics.StorageUri != nil {
-		storageAccountUri = *input.BootDiagnostics.StorageUri
-	}
+	storageAccountUri := pointer.From(input.BootDiagnostics.StorageUri)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -528,20 +516,11 @@ func flattenPlan(input *virtualmachines.Plan) []interface{} {
 		return []interface{}{}
 	}
 
-	name := ""
-	if input.Name != nil {
-		name = *input.Name
-	}
+	name := pointer.From(input.Name)
 
-	product := ""
-	if input.Product != nil {
-		product = *input.Product
-	}
+	product := pointer.From(input.Product)
 
-	publisher := ""
-	if input.Publisher != nil {
-		publisher = *input.Publisher
-	}
+	publisher := pointer.From(input.Publisher)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -557,20 +536,11 @@ func flattenPlanVMSS(input *virtualmachinescalesets.Plan) []interface{} {
 		return []interface{}{}
 	}
 
-	name := ""
-	if input.Name != nil {
-		name = *input.Name
-	}
+	name := pointer.From(input.Name)
 
-	product := ""
-	if input.Product != nil {
-		product = *input.Product
-	}
+	product := pointer.From(input.Product)
 
-	publisher := ""
-	if input.Publisher != nil {
-		publisher = *input.Publisher
-	}
+	publisher := pointer.From(input.Publisher)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -875,13 +845,10 @@ func winRmListenerSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"protocol": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachines.ProtocolTypesHTTP),
-						string(virtualmachines.ProtocolTypesHTTPS),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForProtocolTypes(), false),
 				},
 
 				"certificate_url": {
@@ -907,13 +874,10 @@ func winRmListenerSchemaVM() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"protocol": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachines.ProtocolTypesHTTP),
-						string(virtualmachines.ProtocolTypesHTTPS),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForProtocolTypes(), false),
 				},
 
 				"certificate_url": {
@@ -984,10 +948,7 @@ func flattenWinRMListener(input *virtualmachines.WinRMConfiguration) []interface
 	output := make([]interface{}, 0)
 
 	for _, v := range *input.Listeners {
-		certificateUrl := ""
-		if v.CertificateURL != nil {
-			certificateUrl = *v.CertificateURL
-		}
+		certificateUrl := pointer.From(v.CertificateURL)
 
 		output = append(output, map[string]interface{}{
 			"certificate_url": certificateUrl,
@@ -1006,10 +967,7 @@ func flattenWinRMListenerVMSS(input *virtualmachinescalesets.WinRMConfiguration)
 	output := make([]interface{}, 0)
 
 	for _, v := range *input.Listeners {
-		certificateUrl := ""
-		if v.CertificateURL != nil {
-			certificateUrl = *v.CertificateURL
-		}
+		certificateUrl := pointer.From(v.CertificateURL)
 
 		output = append(output, map[string]interface{}{
 			"certificate_url": certificateUrl,
@@ -1166,15 +1124,9 @@ func flattenWindowsSecrets(input *[]virtualmachines.VaultSecretGroup) []interfac
 
 		if v.VaultCertificates != nil {
 			for _, c := range *v.VaultCertificates {
-				store := ""
-				if c.CertificateStore != nil {
-					store = *c.CertificateStore
-				}
+				store := pointer.From(c.CertificateStore)
 
-				url := ""
-				if c.CertificateURL != nil {
-					url = *c.CertificateURL
-				}
+				url := pointer.From(c.CertificateURL)
 
 				certificates = append(certificates, map[string]interface{}{
 					"store": store,
@@ -1209,15 +1161,9 @@ func flattenWindowsSecretsVMSS(input *[]virtualmachinescalesets.VaultSecretGroup
 
 		if v.VaultCertificates != nil {
 			for _, c := range *v.VaultCertificates {
-				store := ""
-				if c.CertificateStore != nil {
-					store = *c.CertificateStore
-				}
+				store := pointer.From(c.CertificateStore)
 
-				url := ""
-				if c.CertificateURL != nil {
-					url = *c.CertificateURL
-				}
+				url := pointer.From(c.CertificateURL)
 
 				certificates = append(certificates, map[string]interface{}{
 					"store": store,

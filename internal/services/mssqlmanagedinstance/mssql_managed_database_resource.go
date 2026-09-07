@@ -63,7 +63,7 @@ func (r MsSqlManagedDatabaseResource) ModelObject() interface{} {
 }
 
 func (r MsSqlManagedDatabaseResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ManagedDatabaseID
+	return commonids.ValidateSqlManagedInstanceDatabaseID
 }
 
 func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
@@ -84,13 +84,13 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ManagedInstanceID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlManagedInstanceIDInsensitively),
 		},
 
 		"long_term_retention_policy": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -125,7 +125,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 					"week_of_year": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.IntBetween(0, 52),
 						AtLeastOneOf: atLeastOneOf,
 					},
@@ -158,7 +158,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         schema.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.Any(validate.ManagedDatabaseID, validate.RestorableDatabaseID),
+						ValidateFunc: validation.Any(validation.AsGeneratedID(commonids.ParseSqlManagedInstanceDatabaseIDInsensitively), validate.RestorableDatabaseID),
 					},
 				},
 			},
@@ -294,8 +294,7 @@ func (r MsSqlManagedDatabaseResource) Update() sdk.ResourceFunc {
 					Tags:     pointer.To(model.Tags),
 				}
 
-				err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-				if err != nil {
+				if err = client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 					return fmt.Errorf("updating %s: %+v", id, err)
 				}
 			}
@@ -405,8 +404,7 @@ func (r MsSqlManagedDatabaseResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -426,14 +424,12 @@ func expandLongTermRetentionPolicy(ltrPolicy []LongTermRetentionPolicy) *managed
 		weekOfYear = ltrPolicy[0].WeekOfYear
 	}
 
-	result := &managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties{
+	return &managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties{
 		WeeklyRetention:  &ltrPolicy[0].WeeklyRetention,
 		MonthlyRetention: &ltrPolicy[0].MonthlyRetention,
 		YearlyRetention:  &ltrPolicy[0].YearlyRetention,
 		WeekOfYear:       &weekOfYear,
 	}
-
-	return result
 }
 
 func flattenLongTermRetentionPolicy(ltrPolicy managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties) []LongTermRetentionPolicy {

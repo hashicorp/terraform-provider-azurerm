@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -106,11 +107,7 @@ func dataSourceKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceDa
 		d.Set("sku_name", skuName)
 
 		if props := model.Properties; props != nil {
-			tenantId := ""
-			if props.TenantId != nil {
-				tenantId = *props.TenantId
-			}
-			d.Set("tenant_id", tenantId)
+			d.Set("tenant_id", pointer.From(props.TenantId))
 			d.Set("admin_object_ids", helpers.FlattenStringSlice(props.InitialAdminObjectIds))
 			d.Set("hsm_uri", props.HsmUri)
 			d.Set("purge_protection_enabled", props.EnablePurgeProtection)

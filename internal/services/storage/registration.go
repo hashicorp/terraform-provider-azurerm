@@ -36,9 +36,9 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
+		"azurerm_storage_account":                    dataSourceStorageAccount(),
 		"azurerm_storage_account_blob_container_sas": dataSourceStorageAccountBlobContainerSharedAccessSignature(),
 		"azurerm_storage_account_sas":                dataSourceStorageAccountSharedAccessSignature(),
-		"azurerm_storage_account":                    dataSourceStorageAccount(),
 		"azurerm_storage_blob":                       dataSourceStorageBlob(),
 		"azurerm_storage_container":                  dataSourceStorageContainer(),
 		"azurerm_storage_encryption_scope":           dataSourceStorageEncryptionScope(),
@@ -79,17 +79,17 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
+		storageContainersDataSource{},
 		storageTableDataSource{},
 		storageTableEntitiesDataSource{},
-		storageContainersDataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		AccountQueuePropertiesResource{},
-		AccountTablePropertiesResource{},
 		AccountStaticWebsiteResource{},
+		AccountTablePropertiesResource{},
 		LocalUserResource{},
 		StorageContainerImmutabilityPolicyResource{},
 		StorageDiscoveryWorkspaceResource{},

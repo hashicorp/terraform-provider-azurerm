@@ -374,8 +374,7 @@ func (KubernetesClusterResource) updateDefaultNodePoolAgentCount(nodeCount int) 
 
 		nodePool.Model.Properties.Count = pointer.To(int64(nodeCount))
 
-		err = clients.Containers.AgentPoolsClient.CreateOrUpdateThenPoll(ctx, agentPoolId, *nodePool.Model, agentpools.DefaultCreateOrUpdateOperationOptions())
-		if err != nil {
+		if err = clients.Containers.AgentPoolsClient.CreateOrUpdateThenPoll(ctx, agentPoolId, *nodePool.Model, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("Bad: updating node pool %q: %+v", nodePoolName, err)
 		}
 

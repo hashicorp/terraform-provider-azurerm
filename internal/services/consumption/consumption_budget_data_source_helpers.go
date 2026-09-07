@@ -4,6 +4,7 @@
 package consumption
 
 import (
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 )
@@ -17,14 +18,9 @@ func flattenConsumptionBudgetTimePeriod(input *budgets.BudgetTimePeriod) []inter
 
 	startDate := input.StartDate
 
-	endDate := ""
-	if v := input.EndDate; v != nil {
-		endDate = *v
-	}
-
 	return append(timePeriod, map[string]interface{}{
 		"start_date": startDate,
-		"end_date":   endDate,
+		"end_date":   pointer.From(input.EndDate),
 	})
 }
 

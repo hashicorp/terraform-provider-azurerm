@@ -13,9 +13,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/capacitypools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
@@ -507,8 +507,7 @@ func flattenNetAppVolumeGroupSAPHanaVolumes(ctx context.Context, input *[]volume
 		volumeGroupVolume.VolumeSpecName = pointer.From(props.VolumeSpecName)
 
 		if props.UsageThreshold > 0 {
-			usageThreshold := props.UsageThreshold / 1073741824
-			volumeGroupVolume.StorageQuotaInGB = usageThreshold
+			volumeGroupVolume.StorageQuotaInGB = props.UsageThreshold / 1073741824
 		}
 
 		if props.ExportPolicy != nil && props.ExportPolicy.Rules != nil && len(pointer.From(props.ExportPolicy.Rules)) > 0 {
@@ -590,8 +589,7 @@ func flattenNetAppVolumeGroupOracleVolumes(ctx context.Context, input *[]volumeg
 		volumeGroupVolume.VolumeSpecName = pointer.From(props.VolumeSpecName)
 
 		if props.UsageThreshold > 0 {
-			usageThreshold := props.UsageThreshold / 1073741824
-			volumeGroupVolume.StorageQuotaInGB = usageThreshold
+			volumeGroupVolume.StorageQuotaInGB = props.UsageThreshold / 1073741824
 		}
 
 		if props.ExportPolicy != nil && props.ExportPolicy.Rules != nil && len(pointer.From(props.ExportPolicy.Rules)) > 0 {

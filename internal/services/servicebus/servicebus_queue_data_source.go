@@ -18,7 +18,7 @@ import (
 )
 
 func dataSourceServiceBusQueue() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceServiceBusQueueRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -114,8 +114,6 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
 func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) error {

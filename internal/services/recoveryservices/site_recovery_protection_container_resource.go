@@ -134,8 +134,7 @@ func resourceSiteRecoveryProtectionContainerDelete(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting site recovery protection container %s : %+v", id.String(), err)
 	}
 

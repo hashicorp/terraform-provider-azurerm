@@ -45,7 +45,7 @@ func (r DataConnectorDynamics365Resource) Arguments() map[string]*pluginsdk.Sche
 		"tenant_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},

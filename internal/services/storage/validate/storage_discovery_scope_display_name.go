@@ -4,49 +4,22 @@
 package validate
 
 import (
-	stderrors "errors"
 	"regexp"
-	"strings"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var (
-	storageDiscoveryScopeDisplayNameCharset  = regexp.MustCompile(`^[a-zA-Z0-9\- ]+$`)
-	storageDiscoveryScopeDisplayNameStartNum = regexp.MustCompile(`^[0-9]`)
-	storageDiscoveryScopeDisplayNameEndNum   = regexp.MustCompile(`[0-9]$`)
-)
-
-func StorageDiscoveryScopeDisplayName(v interface{}, _ string) (warnings []string, errors []error) {
-	input := v.(string)
-
-	if len(input) < 4 || len(input) > 64 {
-		errors = append(errors, stderrors.New("scope display name must be between 4 and 64 characters"))
-		return warnings, errors
-	}
-
-	if strings.HasPrefix(input, " ") || strings.HasSuffix(input, " ") {
-		errors = append(errors, stderrors.New("scope display name cannot start or end with a space"))
-		return warnings, errors
-	}
-
-	if strings.HasPrefix(input, "-") || strings.HasSuffix(input, "-") {
-		errors = append(errors, stderrors.New("scope display name cannot start or end with a hyphen"))
-		return warnings, errors
-	}
-
-	if storageDiscoveryScopeDisplayNameStartNum.MatchString(input) || storageDiscoveryScopeDisplayNameEndNum.MatchString(input) {
-		errors = append(errors, stderrors.New("scope display name cannot start or end with a number"))
-		return warnings, errors
-	}
-
-	if strings.Contains(input, "  ") || strings.Contains(input, "--") {
-		errors = append(errors, stderrors.New("scope display name cannot contain consecutive spaces or hyphens"))
-		return warnings, errors
-	}
-
-	if !storageDiscoveryScopeDisplayNameCharset.MatchString(input) {
-		errors = append(errors, stderrors.New("scope display name can only contain letters, numbers, spaces, and hyphens"))
-		return warnings, errors
-	}
-
-	return warnings, errors
+func StorageDiscoveryScopeDisplayName() pluginsdk.SchemaValidateFunc {
+	return validation.All(
+		validation.StringLenBetween(4, 64),
+		validation.StringMatch(
+			regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9 -]*[a-zA-Z]$`),
+			"must start and end with a letter and can only contain letters, numbers, spaces, and hyphens",
+		),
+		validation.StringDoesNotMatch(
+			regexp.MustCompile(`  |--`),
+			"cannot contain consecutive spaces or hyphens",
+		),
+	)
 }

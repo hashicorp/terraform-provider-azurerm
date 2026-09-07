@@ -98,25 +98,19 @@ func resourceVirtualNetworkGatewayNatRule() *pluginsdk.Resource {
 			},
 
 			"mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(virtualnetworkgateways.VpnNatRuleModeEgressSnat),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualnetworkgateways.VpnNatRuleModeEgressSnat),
-					string(virtualnetworkgateways.VpnNatRuleModeIngressSnat),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(virtualnetworkgateways.VpnNatRuleModeEgressSnat),
+				ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForVpnNatRuleMode(), false),
 			},
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(virtualnetworkgateways.VpnNatRuleTypeStatic),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualnetworkgateways.VpnNatRuleTypeStatic),
-					string(virtualnetworkgateways.VpnNatRuleTypeDynamic),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(virtualnetworkgateways.VpnNatRuleTypeStatic),
+				ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForVpnNatRuleType(), false),
 			},
 
 			"ip_configuration_id": {
@@ -294,19 +288,9 @@ func flattenVirtualNetworkGatewayNatRuleMappings(input *[]virtualnetworkgateways
 	}
 
 	for _, item := range *input {
-		var addressSpace string
-		if item.AddressSpace != nil {
-			addressSpace = *item.AddressSpace
-		}
-
-		var portRange string
-		if item.PortRange != nil {
-			portRange = *item.PortRange
-		}
-
 		results = append(results, map[string]interface{}{
-			"address_space": addressSpace,
-			"port_range":    portRange,
+			"address_space": pointer.From(item.AddressSpace),
+			"port_range":    pointer.From(item.PortRange),
 		})
 	}
 

@@ -286,11 +286,6 @@ func flattenServiceEndpointPolicyDefinitions(input *[]serviceendpointpolicies.Se
 
 	output := make([]interface{}, 0)
 	for _, e := range *input {
-		name := ""
-		if e.Name != nil {
-			name = *e.Name
-		}
-
 		var (
 			description     = ""
 			service         = ""
@@ -307,7 +302,7 @@ func flattenServiceEndpointPolicyDefinitions(input *[]serviceendpointpolicies.Se
 		}
 
 		output = append(output, map[string]interface{}{
-			"name":              name,
+			"name":              pointer.From(e.Name),
 			"description":       description,
 			"service_resources": serviceResource,
 			"service":           service,

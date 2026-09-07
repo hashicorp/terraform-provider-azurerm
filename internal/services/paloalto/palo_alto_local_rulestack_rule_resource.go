@@ -62,7 +62,7 @@ func (r LocalRuleStackRule) ResourceType() string {
 }
 
 func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -177,8 +177,6 @@ func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	return schema
 }
 
 func (r LocalRuleStackRule) Attributes() map[string]*pluginsdk.Schema {

@@ -161,8 +161,7 @@ func (r AutonomousDatabaseBackupResource) Read() sdk.ResourceFunc {
 			}
 
 			if backup == nil {
-				err := metadata.MarkAsGone(id)
-				if err != nil {
+				if err := metadata.MarkAsGone(id); err != nil {
 					return err
 				}
 				return nil

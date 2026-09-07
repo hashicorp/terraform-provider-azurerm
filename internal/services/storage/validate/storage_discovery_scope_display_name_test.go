@@ -34,7 +34,7 @@ func TestStorageDiscoveryScopeDisplayName(t *testing.T) {
 		{strings.Repeat("a", 65), true},
 	}
 	for _, tc := range testCases {
-		_, errs := StorageDiscoveryScopeDisplayName(tc.input, "display_name")
+		_, errs := StorageDiscoveryScopeDisplayName()(tc.input, "display_name")
 		if tc.shouldError && len(errs) == 0 {
 			t.Errorf("Expected %q to fail validation", tc.input)
 		}

@@ -149,11 +149,7 @@ func (r ClusterResource) Read() sdk.ResourceFunc {
 				state.Location = *model.Location
 				state.Tags = tags.Flatten(model.Tags)
 
-				var capacity int64
-				if v := model.Sku.Capacity; v != nil {
-					capacity = *v
-				}
-				state.StreamingCapacity = capacity
+				state.StreamingCapacity = pointer.From(model.Sku.Capacity)
 			}
 
 			return metadata.Encode(&state)

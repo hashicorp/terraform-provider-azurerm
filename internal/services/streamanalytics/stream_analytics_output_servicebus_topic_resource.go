@@ -221,29 +221,13 @@ func resourceStreamAnalyticsOutputServiceBusTopicRead(d *pluginsdk.ResourceData,
 				return fmt.Errorf("converting %s to a ServiceBus Topic Output", *id)
 			}
 
-			topicName := ""
-			if v := output.Properties.TopicName; v != nil {
-				topicName = *v
-			}
-			d.Set("topic_name", topicName)
+			d.Set("topic_name", pointer.From(output.Properties.TopicName))
 
-			namespace := ""
-			if v := output.Properties.ServiceBusNamespace; v != nil {
-				namespace = *v
-			}
-			d.Set("servicebus_namespace", namespace)
+			d.Set("servicebus_namespace", pointer.From(output.Properties.ServiceBusNamespace))
 
-			accessPolicy := ""
-			if v := output.Properties.SharedAccessPolicyName; v != nil {
-				accessPolicy = *v
-			}
-			d.Set("shared_access_policy_name", accessPolicy)
+			d.Set("shared_access_policy_name", pointer.From(output.Properties.SharedAccessPolicyName))
 
-			var propertyColumns []string
-			if v := output.Properties.PropertyColumns; v != nil {
-				propertyColumns = *v
-			}
-			d.Set("property_columns", propertyColumns)
+			d.Set("property_columns", pointer.From(output.Properties.PropertyColumns))
 
 			authMode := ""
 			if v := output.Properties.AuthenticationMode; v != nil {

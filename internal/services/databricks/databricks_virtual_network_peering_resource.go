@@ -250,11 +250,7 @@ func resourceDatabricksVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta
 		}
 		d.Set("virtual_network_id", databricksVirtualNetworkId)
 
-		remoteVirtualNetworkId := ""
-		if model.Properties.RemoteVirtualNetwork.Id != nil {
-			remoteVirtualNetworkId = *model.Properties.RemoteVirtualNetwork.Id
-		}
-		d.Set("remote_virtual_network_id", remoteVirtualNetworkId)
+		d.Set("remote_virtual_network_id", pointer.From(model.Properties.RemoteVirtualNetwork.Id))
 	}
 
 	return pluginsdk.SetResourceIdentityData(d, id)

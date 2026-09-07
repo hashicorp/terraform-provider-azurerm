@@ -89,8 +89,7 @@ func (r VirtualNetworkListResource) List(ctx context.Context, request list.ListR
 
 			rd.SetId(id.ID())
 
-			err = resourceVirtualNetworkFlatten(rd, *id, &vnet)
-			if err != nil {
+			if err = resourceVirtualNetworkFlatten(rd, *id, &vnet); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, "encoding Resource data", err)
 				return
 			}

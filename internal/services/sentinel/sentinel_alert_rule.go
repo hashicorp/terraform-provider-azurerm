@@ -122,12 +122,10 @@ func expandAlertRuleIncidentConfiguration(input []interface{}, createIncidentKey
 
 	raw := input[0].(map[string]interface{})
 
-	output := &alertrules.IncidentConfiguration{
+	return &alertrules.IncidentConfiguration{
 		CreateIncident:        raw[createIncidentKey].(bool),
 		GroupingConfiguration: expandAlertRuleGrouping(raw["grouping"].([]interface{}), withGroupByPrefix),
 	}
-
-	return output
 }
 
 func flattenAlertRuleIncidentConfiguration(input *alertrules.IncidentConfiguration, createIncidentKey string, withGroupByPrefix bool) []interface{} {
@@ -152,8 +150,7 @@ func expandAlertRuleEventGroupingSetting(input []interface{}) *alertrules.EventG
 	result := alertrules.EventGroupingSettings{}
 
 	if aggregationKind := v["aggregation_method"].(string); aggregationKind != "" {
-		kind := alertrules.EventGroupingAggregationKind(aggregationKind)
-		result.AggregationKind = &kind
+		result.AggregationKind = pointer.ToEnum[alertrules.EventGroupingAggregationKind](aggregationKind)
 	}
 
 	return &result
@@ -303,26 +300,6 @@ func flattenAlertRuleAlertDetailsOverride(input *alertrules.AlertDetailsOverride
 		return []interface{}{}
 	}
 
-	var descriptionFormat string
-	if input.AlertDescriptionFormat != nil {
-		descriptionFormat = *input.AlertDescriptionFormat
-	}
-
-	var displayNameFormat string
-	if input.AlertDisplayNameFormat != nil {
-		displayNameFormat = *input.AlertDisplayNameFormat
-	}
-
-	var severityColumnName string
-	if input.AlertSeverityColumnName != nil {
-		severityColumnName = *input.AlertSeverityColumnName
-	}
-
-	var tacticsColumnName string
-	if input.AlertTacticsColumnName != nil {
-		tacticsColumnName = *input.AlertTacticsColumnName
-	}
-
 	var dynamicProperties []interface{}
 	if input.AlertDynamicProperties != nil {
 		dynamicProperties = flattenAlertRuleAlertDynamicProperties(input.AlertDynamicProperties)
@@ -330,10 +307,10 @@ func flattenAlertRuleAlertDetailsOverride(input *alertrules.AlertDetailsOverride
 
 	return []interface{}{
 		map[string]interface{}{
-			"description_format":   descriptionFormat,
-			"display_name_format":  displayNameFormat,
-			"severity_column_name": severityColumnName,
-			"tactics_column_name":  tacticsColumnName,
+			"description_format":   pointer.From(input.AlertDescriptionFormat),
+			"display_name_format":  pointer.From(input.AlertDisplayNameFormat),
+			"severity_column_name": pointer.From(input.AlertSeverityColumnName),
+			"tactics_column_name":  pointer.From(input.AlertTacticsColumnName),
 			"dynamic_property":     dynamicProperties,
 		},
 	}
@@ -347,9 +324,8 @@ func expandAlertRuleAlertDynamicProperties(input []interface{}) *[]alertrules.Al
 	output := make([]alertrules.AlertPropertyMapping, 0, len(input))
 	for _, v := range input {
 		b := v.(map[string]interface{})
-		property := alertrules.AlertProperty(b["name"].(string))
 		output = append(output, alertrules.AlertPropertyMapping{
-			AlertProperty: &property,
+			AlertProperty: pointer.ToEnum[alertrules.AlertProperty](b["name"].(string)),
 			Value:         pointer.To(b["value"].(string)),
 		})
 	}
@@ -385,9 +361,8 @@ func expandAlertRuleEntityMapping(input []interface{}) *[]alertrules.EntityMappi
 	result := make([]alertrules.EntityMapping, 0, len(input))
 	for _, e := range input {
 		b := e.(map[string]interface{})
-		mappingType := alertrules.EntityMappingType(b["entity_type"].(string))
 		result = append(result, alertrules.EntityMapping{
-			EntityType:    &mappingType,
+			EntityType:    pointer.ToEnum[alertrules.EntityMappingType](b["entity_type"].(string)),
 			FieldMappings: expandAlertRuleFieldMapping(b["field_mapping"].([]interface{})),
 		})
 	}
@@ -439,19 +414,9 @@ func flattenAlertRuleFieldMapping(input *[]alertrules.FieldMapping) []interface{
 
 	output := make([]interface{}, 0, len(*input))
 	for _, e := range *input {
-		var identifier string
-		if e.Identifier != nil {
-			identifier = *e.Identifier
-		}
-
-		var columnName string
-		if e.ColumnName != nil {
-			columnName = *e.ColumnName
-		}
-
 		output = append(output, map[string]interface{}{
-			"identifier":  identifier,
-			"column_name": columnName,
+			"identifier":  pointer.From(e.Identifier),
+			"column_name": pointer.From(e.ColumnName),
 		})
 	}
 
@@ -481,13 +446,8 @@ func flattenAlertRuleSentinelEntityMapping(input *[]alertrules.SentinelEntityMap
 
 	output := make([]interface{}, 0, len(*input))
 	for _, e := range *input {
-		var columnName string
-		if e.ColumnName != nil {
-			columnName = *e.ColumnName
-		}
-
 		output = append(output, map[string]interface{}{
-			"column_name": columnName,
+			"column_name": pointer.From(e.ColumnName),
 		})
 	}
 

@@ -1301,8 +1301,7 @@ func (KubernetesClusterNodePoolResource) scaleNodePool(nodeCount int) acceptance
 
 		nodePool.Model.Properties.Count = pointer.To(int64(nodeCount))
 
-		err = clients.Containers.AgentPoolsClient.CreateOrUpdateThenPoll(ctx, parsedAgentPoolId, *nodePool.Model, agentpools.DefaultCreateOrUpdateOperationOptions())
-		if err != nil {
+		if err = clients.Containers.AgentPoolsClient.CreateOrUpdateThenPoll(ctx, parsedAgentPoolId, *nodePool.Model, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("Bad: updating node pool %q: %+v", nodePoolName, err)
 		}
 

@@ -10,13 +10,13 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
@@ -72,19 +72,19 @@ func (s SpringCloudDevToolPortalResource) Arguments() map[string]*schema.Schema 
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.SpringCloudServiceID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSpringCloudServiceIDInsensitively),
 		},
 
 		"application_accelerator_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"application_live_view_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"public_network_access_enabled": {
@@ -144,18 +144,20 @@ func (s SpringCloudDevToolPortalResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.AppPlatform.DevToolPortalClient
-			springId, err := parse.SpringCloudServiceID(model.SpringCloudServiceId)
+			// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+			springId, err := commonids.ParseSpringCloudServiceIDInsensitively(model.SpringCloudServiceId)
 			if err != nil {
 				return fmt.Errorf("parsing spring service ID: %+v", err)
 			}
-			id := parse.NewSpringCloudDevToolPortalID(springId.SubscriptionId, springId.ResourceGroup, springId.SpringName, model.Name)
+			id := parse.NewSpringCloudDevToolPortalID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.DevToolPortalName)
-				if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+				if err != nil && !response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)
 				}
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					return metadata.ResourceRequiresImport(s.ResourceType(), id)
 				}
 			}
@@ -237,7 +239,7 @@ func (s SpringCloudDevToolPortalResource) Read() sdk.ResourceFunc {
 
 			resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.DevToolPortalName)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.Response.Response) {
 					return metadata.MarkAsGone(id)
 				}
 
@@ -245,7 +247,7 @@ func (s SpringCloudDevToolPortalResource) Read() sdk.ResourceFunc {
 			}
 			state := SpringCloudDevToolPortalModel{
 				Name:                 id.DevToolPortalName,
-				SpringCloudServiceId: parse.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroup, id.SpringName).ID(),
+				SpringCloudServiceId: commonids.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroup, id.SpringName).ID(),
 			}
 
 			var model SpringCloudDevToolPortalModel
@@ -341,19 +343,9 @@ func flattenSpringCloudDevToolPortalSsoProperties(properties *appplatform.DevToo
 		return []SsoModel{}
 	}
 
-	clientId := ""
-	if properties.ClientID != nil {
-		clientId = *properties.ClientID
-	}
-
 	clientSecret := ""
 	if len(model.Sso) != 0 {
 		clientSecret = model.Sso[0].ClientSecret
-	}
-
-	metadataUrl := ""
-	if properties.MetadataURL != nil {
-		metadataUrl = *properties.MetadataURL
 	}
 
 	scopes := make([]string, 0)
@@ -363,9 +355,9 @@ func flattenSpringCloudDevToolPortalSsoProperties(properties *appplatform.DevToo
 
 	return []SsoModel{
 		{
-			ClientId:     clientId,
+			ClientId:     pointer.From(properties.ClientID),
 			ClientSecret: clientSecret,
-			MetadataUrl:  metadataUrl,
+			MetadataUrl:  pointer.From(properties.MetadataURL),
 			Scope:        scopes,
 		},
 	}

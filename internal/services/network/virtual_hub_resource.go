@@ -131,14 +131,10 @@ func resourceVirtualHub() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 
 			"hub_routing_preference": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(virtualwans.HubRoutingPreferenceExpressRoute),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualwans.HubRoutingPreferenceExpressRoute),
-					string(virtualwans.HubRoutingPreferenceVpnGateway),
-					string(virtualwans.HubRoutingPreferenceASPath),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(virtualwans.HubRoutingPreferenceExpressRoute),
+				ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForHubRoutingPreference(), false),
 			},
 
 			"default_route_table_id": {
@@ -447,15 +443,10 @@ func flattenVirtualHubRoute(input *virtualwans.VirtualHubRouteTable) []interface
 
 	for _, item := range *input.Routes {
 		addressPrefixes := helpers.FlattenStringSlice(item.AddressPrefixes)
-		nextHopIpAddress := ""
-
-		if item.NextHopIPAddress != nil {
-			nextHopIpAddress = *item.NextHopIPAddress
-		}
 
 		results = append(results, map[string]interface{}{
 			"address_prefixes":    addressPrefixes,
-			"next_hop_ip_address": nextHopIpAddress,
+			"next_hop_ip_address": pointer.From(item.NextHopIPAddress),
 		})
 	}
 

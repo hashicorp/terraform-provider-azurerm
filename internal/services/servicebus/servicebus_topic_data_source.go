@@ -17,7 +17,7 @@ import (
 )
 
 func dataSourceServiceBusTopic() *pluginsdk.Resource {
-	d := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceServiceBusTopicRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -88,8 +88,6 @@ func dataSourceServiceBusTopic() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return d
 }
 
 func dataSourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) error {

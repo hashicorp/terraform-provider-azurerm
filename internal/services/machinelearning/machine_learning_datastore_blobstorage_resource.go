@@ -96,11 +96,7 @@ func (r MachineLearningDataStoreBlobStorage) Arguments() map[string]*pluginsdk.S
 		"service_data_auth_identity": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(datastore.ServiceDataAccessAuthIdentityNone),
-				string(datastore.ServiceDataAccessAuthIdentityWorkspaceSystemAssignedIdentity),
-				string(datastore.ServiceDataAccessAuthIdentityWorkspaceUserAssignedIdentity),
-			},
+			ValidateFunc: validation.StringInSlice(datastore.PossibleValuesForServiceDataAccessAuthIdentity(),
 				false),
 			Default: string(datastore.ServiceDataAccessAuthIdentityNone),
 		},
@@ -379,11 +375,7 @@ func (r MachineLearningDataStoreBlobStorage) Read() sdk.ResourceFunc {
 				}
 			}
 
-			desc := ""
-			if v := data.Description; v != nil {
-				desc = *v
-			}
-			model.Description = desc
+			model.Description = pointer.From(data.Description)
 
 			if data.Tags != nil {
 				model.Tags = *data.Tags
