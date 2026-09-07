@@ -30,7 +30,7 @@ func TestAccPrivateDnsARecord_listByPrivateDnsZoneID(t *testing.T) {
 			},
 			{
 				Query:  true,
-				Config: r.basicQuery(data),
+				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLengthAtLeast("azurerm_private_dns_a_record.list", 1),
 					querycheck.ExpectIdentity(
@@ -49,7 +49,7 @@ func TestAccPrivateDnsARecord_listByPrivateDnsZoneID(t *testing.T) {
 	})
 }
 
-func (r PrivateDnsARecordResource) basicQuery(data acceptance.TestData) string {
+func (r PrivateDnsARecordResource) basicQuery() string {
 	return `
 list "azurerm_private_dns_a_record" "list" {
   provider = azurerm

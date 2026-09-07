@@ -1766,8 +1766,7 @@ func (l LinuxWebAppV0toV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		if err != nil {
 			return nil, err
 		}
-		newId := parsedId.ID()
-		rawState["service_plan_id"] = newId
+		rawState["service_plan_id"] = parsedId.ID()
 		return rawState, nil
 	}
 }

@@ -38,13 +38,12 @@ func ExpandDataLakeGen2AceList(input []interface{}) (*accesscontrol.ACL, error) 
 
 		permissions := v["permissions"].(string)
 
-		ace := accesscontrol.ACE{
+		aceList[i] = accesscontrol.ACE{
 			IsDefault:    isDefault,
 			TagType:      tagType,
 			TagQualifier: id,
 			Permissions:  permissions,
 		}
-		aceList[i] = ace
 	}
 
 	return &accesscontrol.ACL{Entries: aceList}, nil

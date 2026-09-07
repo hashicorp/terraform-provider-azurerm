@@ -114,7 +114,7 @@ func TestAccPublicIp_standard_withDNSLabel(t *testing.T) {
 	})
 }
 
-func TestAccPublicIpStatic_withReverseFqdn(t *testing.T) {
+func TestAccPublicIp_staticWithReverseFqdn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIpResource{}
 	dnl := fmt.Sprintf("acctestdnl-%d", data.RandomInteger)

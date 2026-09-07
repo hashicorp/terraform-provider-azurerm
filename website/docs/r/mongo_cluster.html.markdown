@@ -45,6 +45,8 @@ The following arguments are supported:
 
 * `administrator_username` - (Optional) The administrator username of the MongoDB Cluster. Changing this forces a new resource to be created.
 
+~> **Note:** `administrator_username` is required when `authentication_methods` contains `NativeAuth` or is not configured.
+
 * `create_mode` - (Optional) The creation mode for the MongoDB Cluster. Possible values are `Default`, `GeoReplica` and `PointInTimeRestore`. Defaults to `Default`. Changing this forces a new resource to be created.
 
 * `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below. Changing this forces a new resource to be created.
@@ -154,4 +156,4 @@ terraform import azurerm_mongo_cluster.example /subscriptions/00000000-0000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DocumentDB` - 2025-09-01
+* `Microsoft.DocumentDB` - 2026-06-01

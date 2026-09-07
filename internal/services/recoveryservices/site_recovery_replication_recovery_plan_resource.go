@@ -220,11 +220,8 @@ func replicationRecoveryPlanActionSchema() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(replicationrecoveryplans.PossibleOperationsDirectionsPrimaryToRecovery),
-						string(replicationrecoveryplans.PossibleOperationsDirectionsRecoveryToPrimary),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(replicationrecoveryplans.PossibleValuesForPossibleOperationsDirections(), false),
 				},
 			},
 
@@ -248,12 +245,9 @@ func replicationRecoveryPlanActionSchema() *pluginsdk.Resource {
 			},
 
 			"fabric_location": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(replicationrecoveryplans.RecoveryPlanActionLocationPrimary),
-					string(replicationrecoveryplans.RecoveryPlanActionLocationRecovery),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(replicationrecoveryplans.PossibleValuesForRecoveryPlanActionLocation(), false),
 			},
 
 			"manual_action_instruction": {
@@ -356,7 +350,6 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Create() sdk.ResourceFunc {
 			}
 
 			// FailoverDeploymentModelClassic is used for other cloud service back up to Azure.
-			deploymentModel := replicationrecoveryplans.FailoverDeploymentModelResourceManager
 
 			groupValue, err := expandRecoveryGroup(model.ShutdownRecoveryGroup, model.FailoverRecoveryGroup, model.BootRecoveryGroup)
 			if err != nil {
@@ -367,7 +360,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Create() sdk.ResourceFunc {
 				Properties: replicationrecoveryplans.CreateRecoveryPlanInputProperties{
 					PrimaryFabricId:         model.SourceRecoveryFabricId,
 					RecoveryFabricId:        model.TargetRecoveryFabricId,
-					FailoverDeploymentModel: &deploymentModel,
+					FailoverDeploymentModel: pointer.To(replicationrecoveryplans.FailoverDeploymentModelResourceManager),
 					Groups:                  groupValue,
 				},
 			}
@@ -472,9 +465,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Update() sdk.ResourceFunc {
 
 			groupValue = *resp.Model.Properties.Groups
 
-			if metadata.ResourceData.HasChange("boot_recovery_group") ||
-				metadata.ResourceData.HasChange("failover_recovery_group") ||
-				metadata.ResourceData.HasChange("shutdown_recovery_group") {
+			if metadata.ResourceData.HasChanges("boot_recovery_group", "failover_recovery_group", "shutdown_recovery_group") {
 				groupValue, err = expandRecoveryGroup(model.ShutdownRecoveryGroup, model.FailoverRecoveryGroup, model.BootRecoveryGroup)
 			}
 
@@ -488,8 +479,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Update() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.UpdateThenPoll(ctx, *id, parameters)
-			if err != nil {
+			if err = client.UpdateThenPoll(ctx, *id, parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -509,8 +499,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting site recovery protection replication plan %q : %+v", id, err)
 			}
 

@@ -383,14 +383,9 @@ func flattenTargetService(input servicelinker.TargetServiceBase) string {
 }
 
 func flattenSecretStore(input servicelinker.SecretStore) []SecretStoreModel {
-	var keyVaultId string
-	if input.KeyVaultId != nil {
-		keyVaultId = *input.KeyVaultId
-	}
-
 	return []SecretStoreModel{
 		{
-			KeyVaultId: keyVaultId,
+			KeyVaultId: pointer.From(input.KeyVaultId),
 		},
 	}
 }

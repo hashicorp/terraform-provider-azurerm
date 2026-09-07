@@ -36,8 +36,7 @@ func (c requireDiff) String() string {
 	if c.RequiredMiss == ShouldBeComputed {
 		return fmt.Sprintf("%s Fields listed under Attributes Reference should not be marked Required/Optional", c.Str())
 	}
-	str := fmt.Sprintf("%s should be %s", c.Str(), util.Blue(c.RequiredMiss))
-	return str
+	return fmt.Sprintf("%s should be %s", c.Str(), util.Blue(c.RequiredMiss))
 }
 
 func (c requireDiff) Fix(line string) (result string, err error) {

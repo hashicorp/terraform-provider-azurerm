@@ -193,23 +193,9 @@ func resourceContainerRegistryAgentPoolRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
-			count := int64(0)
-			if v := props.Count; v != nil {
-				count = *v
-			}
-			d.Set("instance_count", count)
-
-			tier := ""
-			if v := props.Tier; v != nil {
-				tier = *v
-			}
-			d.Set("tier", tier)
-
-			virtualNetworkSubnetId := ""
-			if v := props.VirtualNetworkSubnetResourceId; v != nil {
-				virtualNetworkSubnetId = *v
-			}
-			d.Set("virtual_network_subnet_id", virtualNetworkSubnetId)
+			d.Set("instance_count", pointer.From(props.Count))
+			d.Set("tier", pointer.From(props.Tier))
+			d.Set("virtual_network_subnet_id", pointer.From(props.VirtualNetworkSubnetResourceId))
 		}
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err

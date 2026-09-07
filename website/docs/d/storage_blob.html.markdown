@@ -14,9 +14,8 @@ Use this data source to access information about an existing Storage Blob.
 
 ```hcl
 data "azurerm_storage_blob" "example" {
-  name                   = "example-blob-name"
-  storage_account_name   = "example-storage-account-name"
-  storage_container_name = "example-storage-container-name"
+  name                 = "example-blob-name"
+  storage_container_id = "example-storage-container-id"
 }
 ```
 
@@ -24,11 +23,9 @@ data "azurerm_storage_blob" "example" {
 
 The following arguments are supported:
 
-* `name` - The name of the Blob.
+* `name` - (Required) The name of the Blob.
 
-* `storage_account_name` - The name of the Storage Account where the Container exists.
-
-* `storage_container_name` - The name of the Storage Container where the Blob exists.
+* `storage_container_id` - (Required) The ID of the Storage Container where the Blob exists.
 
 ## Attributes Reference
 

@@ -113,7 +113,7 @@ func (r JobStorageAccountResource) Create() sdk.ResourceFunc {
 				Properties: &streamingjobs.StreamingJobProperties{
 					JobStorageAccount: &streamingjobs.JobStorageAccount{
 						AccountName:        pointer.To(model.StorageAccountName),
-						AuthenticationMode: pointer.To(streamingjobs.AuthenticationMode(model.AuthenticationMode)),
+						AuthenticationMode: pointer.ToEnum[streamingjobs.AuthenticationMode](model.AuthenticationMode),
 					},
 				},
 			}
@@ -205,7 +205,7 @@ func (r JobStorageAccountResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("authentication_mode") {
-				payload.Properties.JobStorageAccount.AuthenticationMode = pointer.To(streamingjobs.AuthenticationMode(model.AuthenticationMode))
+				payload.Properties.JobStorageAccount.AuthenticationMode = pointer.ToEnum[streamingjobs.AuthenticationMode](model.AuthenticationMode)
 			}
 
 			if metadata.ResourceData.HasChange("storage_account_name") {

@@ -68,17 +68,16 @@ resource "azurerm_storage_encryption_scope" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "containerdstest-%[1]s"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_blob" "test" {
-  name                   = "example.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  encryption_scope       = azurerm_storage_encryption_scope.test.name
-  type                   = "Block"
-  source                 = "%[4]s"
+  name                 = "example.vhd"
+  storage_container_id = azurerm_storage_container.test.id
+  encryption_scope     = azurerm_storage_encryption_scope.test.name
+  type                 = "Block"
+  source               = "%[4]s"
 
   metadata = {
     k1 = "v1"
@@ -94,9 +93,8 @@ func (d StorageBlobDataSource) basicWithDataSource(data acceptance.TestData, fil
 %s
 
 data "azurerm_storage_blob" "test" {
-  name                   = azurerm_storage_blob.test.name
-  storage_account_name   = azurerm_storage_blob.test.storage_account_name
-  storage_container_name = azurerm_storage_blob.test.storage_container_name
+  name                 = azurerm_storage_blob.test.name
+  storage_container_id = azurerm_storage_blob.test.storage_container_id
 }
 `, config)
 }

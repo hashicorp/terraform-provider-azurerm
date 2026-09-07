@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name application_insights_workbook -test-name basicForResourceIdentity -properties "name,resource_group_name" -service-package-name applicationinsights -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -test-name basicForResourceIdentity
 
 package applicationinsights
 
@@ -164,10 +164,9 @@ func (r ApplicationInsightsWorkbookResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
-			kindValue := workbooks.WorkbookSharedTypeKindShared
 			properties := &workbooks.Workbook{
 				Identity: identityValue,
-				Kind:     &kindValue,
+				Kind:     pointer.To(workbooks.WorkbookSharedTypeKindShared),
 				Location: location.Normalize(model.Location),
 				Properties: &workbooks.WorkbookProperties{
 					Category:       model.Category,

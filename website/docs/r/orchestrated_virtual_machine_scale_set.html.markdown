@@ -368,6 +368,8 @@ A `network_interface` block supports the following:
 
 ~> **Note:** If multiple `network_interface` blocks are specified, one must be set to `primary`.
 
+* `tags` - (Optional) A mapping of tags to assign to the Network Interface created by this Network Interface Configuration.
+
 ---
 
 An `os_disk` block supports the following:
@@ -593,4 +595,4 @@ terraform import azurerm_orchestrated_virtual_machine_scale_set.example /subscri
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Compute` - 2024-11-01
+* `Microsoft.Compute` - 2025-04-01

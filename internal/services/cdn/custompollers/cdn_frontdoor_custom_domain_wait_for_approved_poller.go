@@ -12,18 +12,18 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-04-15/afdcustomdomains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
 
 var _ pollers.PollerType = &frontDoorCustomDomainWaitForApprovedPoller{}
 
 type frontDoorCustomDomainWaitForApprovedPoller struct {
-	client *afdcustomdomains.AFDCustomDomainsClient
-	id     afdcustomdomains.CustomDomainId
+	client *afddomains.AFDDomainsClient
+	id     afddomains.CustomDomainId
 }
 
-func NewFrontDoorCustomDomainWaitForApprovedPoller(client *afdcustomdomains.AFDCustomDomainsClient, id afdcustomdomains.CustomDomainId) pollers.PollerType {
+func NewFrontDoorCustomDomainWaitForApprovedPoller(client *afddomains.AFDDomainsClient, id afddomains.CustomDomainId) pollers.PollerType {
 	return &frontDoorCustomDomainWaitForApprovedPoller{
 		client: client,
 		id:     id,
@@ -31,7 +31,7 @@ func NewFrontDoorCustomDomainWaitForApprovedPoller(client *afdcustomdomains.AFDC
 }
 
 func (p frontDoorCustomDomainWaitForApprovedPoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
-	resp, err := p.client.Get(ctx, p.id)
+	resp, err := p.client.AFDCustomDomainsGet(ctx, p.id)
 	pollInterval := 30 * time.Second
 	if resp.HttpResponse != nil {
 		if retryAfter := resp.HttpResponse.Header.Get("Retry-After"); retryAfter != "" {
@@ -64,7 +64,7 @@ func (p frontDoorCustomDomainWaitForApprovedPoller) Poll(ctx context.Context) (*
 	deploymentStatus := pointer.From(model.Properties.DeploymentStatus)
 	provisioningState := pointer.From(model.Properties.ProvisioningState)
 
-	if provisioningState == afdcustomdomains.AfdProvisioningStateFailed {
+	if provisioningState == afddomains.AfdProvisioningStateFailed {
 		log.Printf("[DEBUG] AFD Custom Domain %s provisioning failed (deploymentStatus=%q provisioningState=%q)", p.id, string(deploymentStatus), string(provisioningState))
 		return nil, fmt.Errorf("provisioning for %s failed with `provisioningState` `%s`", p.id, provisioningState)
 	}
@@ -79,8 +79,8 @@ func (p frontDoorCustomDomainWaitForApprovedPoller) Poll(ctx context.Context) (*
 
 	state := *model.Properties.DomainValidationState
 	switch state {
-	case afdcustomdomains.DomainValidationStateApproved:
-		if deploymentStatus != afdcustomdomains.DeploymentStatusSucceeded {
+	case afddomains.DomainValidationStateApproved:
+		if deploymentStatus != afddomains.DeploymentStatusSucceeded {
 			log.Printf("[DEBUG] AFD Custom Domain %s validation approved but deployment not succeeded yet (deploymentStatus=%q provisioningState=%q)", p.id, string(deploymentStatus), string(provisioningState))
 			return &pollers.PollResult{
 				PollInterval: pollInterval,
@@ -93,7 +93,7 @@ func (p frontDoorCustomDomainWaitForApprovedPoller) Poll(ctx context.Context) (*
 			PollInterval: pollInterval,
 			Status:       pollers.PollingStatusSucceeded,
 		}, nil
-	case afdcustomdomains.DomainValidationStateRejected, afdcustomdomains.DomainValidationStateTimedOut, afdcustomdomains.DomainValidationStateInternalError:
+	case afddomains.DomainValidationStateRejected, afddomains.DomainValidationStateTimedOut, afddomains.DomainValidationStateInternalError:
 		log.Printf("[DEBUG] AFD Custom Domain %s domain validation terminal state=%q (deploymentStatus=%q provisioningState=%q)", p.id, state, string(deploymentStatus), string(provisioningState))
 		return nil, fmt.Errorf("domain validation for %s failed with `domainValidationState` `%s`", p.id, state)
 	default:

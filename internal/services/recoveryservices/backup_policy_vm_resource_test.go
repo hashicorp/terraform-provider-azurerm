@@ -18,6 +18,8 @@ import (
 
 type BackupProtectionPolicyVMResource struct{}
 
+type BackupPolicyVmResource = BackupProtectionPolicyVMResource
+
 func TestAccBackupProtectionPolicyVM_policyTypeDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 	r := BackupProtectionPolicyVMResource{}

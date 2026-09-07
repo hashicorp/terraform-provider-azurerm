@@ -187,7 +187,7 @@ func (r StorageMoverSmbMountEndpointResource) Create() sdk.ResourceFunc {
 			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
 				return err
 			}
-			return metadata.Encode(&model)
+			return nil
 		},
 	}
 }

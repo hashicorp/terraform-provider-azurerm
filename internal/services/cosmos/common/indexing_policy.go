@@ -120,7 +120,7 @@ func ExpandAzureRmCosmosDbIndexingPolicy(d *pluginsdk.ResourceData) *cosmosdb.In
 
 func flattenCosmosDBIndexingPolicyExcludedPaths(input *[]cosmosdb.ExcludedPath) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	excludedPaths := make([]interface{}, 0)
@@ -147,13 +147,8 @@ func flattenCosmosDBIndexingPolicyCompositeIndex(input []cosmosdb.CompositePath)
 
 	indexPairs := make([]interface{}, 0)
 	for _, v := range input {
-		path := ""
-		if v.Path != nil {
-			path = *v.Path
-		}
-
 		block := make(map[string]interface{})
-		block["path"] = path
+		block["path"] = pointer.From(v.Path)
 		block["order"] = v.Order
 		indexPairs = append(indexPairs, block)
 	}
@@ -179,7 +174,7 @@ func FlattenCosmosDBIndexingPolicyCompositeIndexes(input *[][]cosmosdb.Composite
 
 func flattenCosmosDBIndexingPolicyIncludedPaths(input *[]cosmosdb.IncludedPath) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	includedPaths := make([]interface{}, 0)
@@ -201,10 +196,7 @@ func FlattenCosmosDBIndexingPolicySpatialIndexes(input *[]cosmosdb.SpatialSpec) 
 	indexes := make([]interface{}, 0)
 
 	for _, v := range *input {
-		var path string
-		if v.Path != nil {
-			path = *v.Path
-		}
+		path := pointer.From(v.Path)
 		indexes = append(indexes, map[string]interface{}{
 			"path":  path,
 			"types": flattenCosmosDBIndexingPolicySpatialIndexesTypes(v.Types),
@@ -216,7 +208,7 @@ func FlattenCosmosDBIndexingPolicySpatialIndexes(input *[]cosmosdb.SpatialSpec) 
 
 func flattenCosmosDBIndexingPolicySpatialIndexesTypes(input *[]cosmosdb.SpatialType) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	types := make([]interface{}, 0)

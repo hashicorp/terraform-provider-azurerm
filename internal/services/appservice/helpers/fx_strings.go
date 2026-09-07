@@ -22,7 +22,6 @@ const (
 	FxStringPrefixPhp            FxStringPrefix = "PHP"
 	FxStringPrefixPowerShell     FxStringPrefix = "POWERSHELL"
 	FxStringPrefixPython         FxStringPrefix = "PYTHON"
-	FxStringPrefixRuby           FxStringPrefix = "RUBY"
 	FxStringPrefixTomcat         FxStringPrefix = "TOMCAT"
 )
 
@@ -95,9 +94,6 @@ func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 
 	case FxStringPrefixPython:
 		result.PythonVersion = parts[1]
-
-	case FxStringPrefixRuby:
-		result.RubyVersion = parts[1]
 	}
 
 	return result

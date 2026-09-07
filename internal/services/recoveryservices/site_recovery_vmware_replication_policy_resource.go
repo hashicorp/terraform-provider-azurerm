@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -41,7 +40,7 @@ func (r VMWareReplicationPolicyResource) ResourceType() string {
 }
 
 func (r VMWareReplicationPolicyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ReplicationPolicyID
+	return replicationpolicies.ValidateReplicationPolicyID
 }
 
 func (r VMWareReplicationPolicyResource) Arguments() map[string]*pluginsdk.Schema {
@@ -215,8 +214,7 @@ func (r VMWareReplicationPolicyResource) Update() sdk.ResourceFunc {
 					},
 				},
 			}
-			err = client.UpdateThenPoll(ctx, *id, parameters)
-			if err != nil {
+			if err = client.UpdateThenPoll(ctx, *id, parameters); err != nil {
 				return fmt.Errorf("updating %q: %+v", id, err)
 			}
 
@@ -236,8 +234,7 @@ func (r VMWareReplicationPolicyResource) Delete() sdk.ResourceFunc {
 
 			client := metadata.Client.RecoveryServices.ReplicationPoliciesClient
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s : %+v", id, err)
 			}
 
