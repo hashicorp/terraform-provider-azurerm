@@ -56,7 +56,7 @@ func TestEndpointName(t *testing.T) {
 	}
 
 	for _, v := range testData {
-		_, errors := EndpointName(v.input, "name")
+		_, errors := EndpointName()(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %q to validate as %t but got %t", v.input, v.expected, actual)

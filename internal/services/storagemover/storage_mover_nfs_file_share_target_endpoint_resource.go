@@ -60,7 +60,7 @@ func (r StorageMoverNfsFileShareTargetEndpointResource) Arguments() map[string]*
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: storageMoverValidate.EndpointName,
+			ValidateFunc: storageMoverValidate.EndpointName(),
 		},
 
 		"storage_mover_id": {

@@ -59,7 +59,7 @@ func (r StorageMoverSourceEndpointResource) Arguments() map[string]*pluginsdk.Sc
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: storageMoverValidate.EndpointName,
+			ValidateFunc: storageMoverValidate.EndpointName(),
 		},
 
 		"storage_mover_id": {
