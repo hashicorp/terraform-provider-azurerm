@@ -44,7 +44,7 @@ func dataSourceArmTrafficManagerProfile() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"max_return": {
+			"maximum_return": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
@@ -174,7 +174,7 @@ func dataSourceArmTrafficManagerProfileRead(d *pluginsdk.ResourceData, meta inte
 				trafficRoutingMethod = string(*profile.TrafficRoutingMethod)
 			}
 			d.Set("traffic_routing_method", trafficRoutingMethod)
-			d.Set("max_return", profile.MaxReturn)
+			d.Set("maximum_return", profile.MaxReturn)
 
 			d.Set("dns_config", flattenAzureRMTrafficManagerProfileDNSConfig(profile.DnsConfig))
 			d.Set("monitor_config", flattenAzureRMTrafficManagerProfileMonitorConfig(profile.MonitorConfig))

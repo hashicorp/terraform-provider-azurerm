@@ -167,7 +167,7 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice(profiles.PossibleValuesForProfileStatus(), false),
 			},
 
-			"max_return": {
+			"max_return": { // azignore:AZS006 - named `maximum_return` in the data source to follow new naming conventions
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(1, 8),

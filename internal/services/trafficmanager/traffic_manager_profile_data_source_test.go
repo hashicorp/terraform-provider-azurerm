@@ -33,7 +33,7 @@ func TestAccTrafficManagerProfileDataSource_multiValue(t *testing.T) {
 		{
 			Config: TrafficManagerProfileDataSource{}.multiValue(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("max_return").HasValue("8"),
+				check.That(data.ResourceName).Key("maximum_return").HasValue("8"),
 			),
 		},
 	})
