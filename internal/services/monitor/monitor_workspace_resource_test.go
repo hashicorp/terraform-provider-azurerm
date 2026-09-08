@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type WorkspaceTestResource struct{}
+type MonitorWorkspaceResource struct{}
 
 func TestMonitorWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_workspace", "test")
-	r := WorkspaceTestResource{}
+	r := MonitorWorkspaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -36,7 +36,7 @@ func TestMonitorWorkspace_basic(t *testing.T) {
 
 func TestMonitorWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_workspace", "test")
-	r := WorkspaceTestResource{}
+	r := MonitorWorkspaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -50,7 +50,7 @@ func TestMonitorWorkspace_requiresImport(t *testing.T) {
 
 func TestMonitorWorkspace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_workspace", "test")
-	r := WorkspaceTestResource{}
+	r := MonitorWorkspaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -64,7 +64,7 @@ func TestMonitorWorkspace_complete(t *testing.T) {
 
 func TestMonitorWorkspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_workspace", "test")
-	r := WorkspaceTestResource{}
+	r := MonitorWorkspaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -85,7 +85,7 @@ func TestMonitorWorkspace_update(t *testing.T) {
 
 func TestMonitorWorkspace_publicNetworkAccess(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_workspace", "test")
-	r := WorkspaceTestResource{}
+	r := MonitorWorkspaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -111,7 +111,7 @@ func TestMonitorWorkspace_publicNetworkAccess(t *testing.T) {
 	})
 }
 
-func (r WorkspaceTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r MonitorWorkspaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azuremonitorworkspaces.ParseAccountID(state.ID)
 	if err != nil {
 		return nil, err
@@ -128,7 +128,7 @@ func (r WorkspaceTestResource) Exists(ctx context.Context, clients *clients.Clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r WorkspaceTestResource) template(data acceptance.TestData) string {
+func (r MonitorWorkspaceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctest-rg-%d"
@@ -137,7 +137,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r WorkspaceTestResource) basic(data acceptance.TestData) string {
+func (r MonitorWorkspaceResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -154,7 +154,7 @@ resource "azurerm_monitor_workspace" "test" {
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r WorkspaceTestResource) requiresImport(data acceptance.TestData) string {
+func (r MonitorWorkspaceResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -167,7 +167,7 @@ resource "azurerm_monitor_workspace" "import" {
 `, config, data.Locations.Primary)
 }
 
-func (r WorkspaceTestResource) complete(data acceptance.TestData) string {
+func (r MonitorWorkspaceResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -187,7 +187,7 @@ resource "azurerm_monitor_workspace" "test" {
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r WorkspaceTestResource) update(data acceptance.TestData) string {
+func (r MonitorWorkspaceResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -207,7 +207,7 @@ resource "azurerm_monitor_workspace" "test" {
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r WorkspaceTestResource) publicNetworkAccessDisabled(data acceptance.TestData) string {
+func (r MonitorWorkspaceResource) publicNetworkAccessDisabled(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
