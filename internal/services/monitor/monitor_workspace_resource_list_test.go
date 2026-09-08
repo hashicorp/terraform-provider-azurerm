@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccWorkspace_listBySubscriptionAndRG(t *testing.T) {
+func TestAccMonitorWorkspace_listBySubscriptionAndRG(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_workspace", "testlist1")
 	r := MonitorWorkspaceResource{}
 
