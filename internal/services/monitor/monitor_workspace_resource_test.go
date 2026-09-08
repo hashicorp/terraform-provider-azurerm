@@ -19,7 +19,7 @@ import (
 
 type MonitorWorkspaceResource struct{}
 
-func TestMonitorWorkspace_basic(t *testing.T) {
+func TestAccMonitorWorksparkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_workspace", "test")
 	r := MonitorWorkspaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -34,7 +34,7 @@ func TestMonitorWorkspace_basic(t *testing.T) {
 	})
 }
 
-func TestMonitorWorkspace_requiresImport(t *testing.T) {
+func TestAccMonitorWorksparkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_workspace", "test")
 	r := MonitorWorkspaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -48,7 +48,7 @@ func TestMonitorWorkspace_requiresImport(t *testing.T) {
 	})
 }
 
-func TestMonitorWorkspace_complete(t *testing.T) {
+func TestAccMonitorWorksparkspace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_workspace", "test")
 	r := MonitorWorkspaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -62,7 +62,7 @@ func TestMonitorWorkspace_complete(t *testing.T) {
 	})
 }
 
-func TestMonitorWorkspace_update(t *testing.T) {
+func TestAccMonitorWorksparkspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_workspace", "test")
 	r := MonitorWorkspaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -83,7 +83,7 @@ func TestMonitorWorkspace_update(t *testing.T) {
 	})
 }
 
-func TestMonitorWorkspace_publicNetworkAccess(t *testing.T) {
+func TestAccMonitorWorksparkspace_publicNetworkAccess(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_workspace", "test")
 	r := MonitorWorkspaceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
