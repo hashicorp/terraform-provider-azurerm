@@ -470,6 +470,11 @@ func (FirewallResource) edgeZone(data acceptance.TestData) string {
 	// @tombuildsstuff: WestUS has an edge zone available - so hard-code to that for now
 	data.Locations.Primary = "westus"
 
+	// Unlike a regional deployment, `AzureFirewallSubnet` must not be created explicitly in an Edge Zone -
+	// the Azure Firewall service creates and manages it, and creating it up front causes the deployment to
+	// fail. The subnet is therefore referenced by ID rather than created.
+	// https://learn.microsoft.com/azure/extended-zones/deploy-azure-firewall
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -492,14 +497,6 @@ resource "azurerm_virtual_network" "test" {
   edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
 }
 
-resource "azurerm_subnet" "test" {
-  name                            = "AzureFirewallSubnet"
-  resource_group_name             = azurerm_resource_group.test.name
-  virtual_network_name            = azurerm_virtual_network.test.name
-  address_prefixes                = ["10.0.1.0/24"]
-  default_outbound_access_enabled = false
-}
-
 resource "azurerm_public_ip" "test" {
   name                = "acctestpip%d"
   location            = azurerm_resource_group.test.location
@@ -519,7 +516,7 @@ resource "azurerm_firewall" "test" {
 
   ip_configuration {
     name                 = "configuration"
-    subnet_id            = azurerm_subnet.test.id
+    subnet_id            = "${azurerm_virtual_network.test.id}/subnets/AzureFirewallSubnet"
     public_ip_address_id = azurerm_public_ip.test.id
   }
 }

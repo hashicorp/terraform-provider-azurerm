@@ -72,6 +72,10 @@ The following arguments are supported:
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Firewall should exist. Changing this forces a new Firewall to be created.
 
+-> **Note:** Deploying resources into an Edge Zone requires your subscription to be registered for that Edge Zone first - see [Request access to Azure Extended Zones](https://learn.microsoft.com/azure/extended-zones/request-access). The Virtual Network and Public IP Address used by the Firewall must be located in the same Edge Zone.
+
+-> **Note:** When `edge_zone` is specified, the `AzureFirewallSubnet` is created and managed by the Azure Firewall service and so must not be created explicitly - see the `subnet_id` field within the `ip_configuration` block below for more information.
+
 * `firewall_policy_id` - (Optional) The ID of the Firewall Policy applied to this Firewall.
 
 * `ip_configuration` - (Optional) An `ip_configuration` block as documented below.
@@ -103,6 +107,8 @@ An `ip_configuration` block supports the following:
 * `subnet_id` - (Optional) Reference to the subnet associated with the IP Configuration. Changing this forces a new resource to be created.
 
 -> **Note:** The Subnet used for the Firewall must have the name `AzureFirewallSubnet` and the subnet mask must be at least a `/26`.
+
+-> **Note:** When `edge_zone` is specified, the `AzureFirewallSubnet` is created and managed by the Azure Firewall service during deployment. In this case the Subnet must not be created via the `azurerm_subnet` resource, since doing so causes the Firewall deployment to fail - instead, reference it by ID, for example `subnet_id = "${azurerm_virtual_network.example.id}/subnets/AzureFirewallSubnet"`. See [Deploy Azure Firewall in Azure Extended Zones](https://learn.microsoft.com/azure/extended-zones/deploy-azure-firewall) for more information.
 
 -> **Note:** At least one and only one `ip_configuration` block may contain a `subnet_id`.
 
