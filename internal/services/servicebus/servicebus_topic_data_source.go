@@ -67,7 +67,7 @@ func dataSourceServiceBusTopic() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"max_message_size_in_kilobytes": {
+			"maximum_message_size_in_kb": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
@@ -134,7 +134,7 @@ func dataSourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("batched_operations_enabled", props.EnableBatchedOperations)
 			d.Set("express_enabled", props.EnableExpress)
 			d.Set("partitioning_enabled", props.EnablePartitioning)
-			d.Set("max_message_size_in_kilobytes", props.MaxMessageSizeInKilobytes)
+			d.Set("maximum_message_size_in_kb", props.MaxMessageSizeInKilobytes)
 			d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 			d.Set("support_ordering", props.SupportOrdering)
 
