@@ -60,9 +60,20 @@ func (c AppsClient) Update(ctx context.Context, id IotAppId, input AppPatch) (re
 
 // UpdateThenPoll performs Update then polls until it's completed
 func (c AppsClient) UpdateThenPoll(ctx context.Context, id IotAppId, input AppPatch) error {
+	return c.UpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// UpdateCallbackThenPoll performs Update, runs the optional callback function, then polls until it's completed
+func (c AppsClient) UpdateCallbackThenPoll(ctx context.Context, id IotAppId, input AppPatch, callback func() error) error {
 	result, err := c.Update(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Update: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

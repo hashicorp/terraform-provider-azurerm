@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel_test
@@ -10,13 +10,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2024-09-01/automationrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SentinelAutomationRuleResource struct {
@@ -180,12 +180,12 @@ func (r SentinelAutomationRuleResource) Exists(ctx context.Context, clients *cli
 
 	if resp, err := client.Get(ctx, *id); err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r SentinelAutomationRuleResource) basic(data acceptance.TestData) string {
@@ -335,7 +335,7 @@ resource "azuread_service_principal" "test" {
 }
 
 resource "azuread_service_principal_password" "test" {
-  service_principal_id = azuread_service_principal.test.object_id
+  service_principal_id = azuread_service_principal.test.id
 }
 
 
@@ -406,7 +406,7 @@ data "azurerm_role_definition" "sentinel" {
 }
 
 data "azuread_service_principal" "sentinel" {
-  application_id = "98785600-1bb7-4fb9-b9fa-19afe2c8a360"
+  client_id = "98785600-1bb7-4fb9-b9fa-19afe2c8a360"
 }
 
 resource "azurerm_role_assignment" "test" {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appconfiguration
@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -45,13 +46,11 @@ func (p *ClientFilter) UnmarshalJSON(b []byte) error {
 		case "microsoft.targeting":
 			{
 				var out TargetingFeatureFilter
-				mpc := mapstructure.DecoderConfig{TagName: "json", Result: &out}
-				mpd, err := mapstructure.NewDecoder(&mpc)
+				mpd, err := mapstructure.NewDecoder(pointer.To(mapstructure.DecoderConfig{TagName: "json", Result: &out}))
 				if err != nil {
 					return err
 				}
-				err = mpd.Decode(filterRaw)
-				if err != nil {
+				if err = mpd.Decode(filterRaw); err != nil {
 					return err
 				}
 				filtersOut = append(filtersOut, out)
@@ -59,13 +58,11 @@ func (p *ClientFilter) UnmarshalJSON(b []byte) error {
 		case "microsoft.timewindow":
 			{
 				var out TimewindowFeatureFilter
-				mpc := mapstructure.DecoderConfig{TagName: "json", Result: &out}
-				mpd, err := mapstructure.NewDecoder(&mpc)
+				mpd, err := mapstructure.NewDecoder(pointer.To(mapstructure.DecoderConfig{TagName: "json", Result: &out}))
 				if err != nil {
 					return err
 				}
-				err = mpd.Decode(filterRaw)
-				if err != nil {
+				if err = mpd.Decode(filterRaw); err != nil {
 					return err
 				}
 				filtersOut = append(filtersOut, out)
@@ -73,20 +70,28 @@ func (p *ClientFilter) UnmarshalJSON(b []byte) error {
 		case "microsoft.percentage":
 			{
 				var out PercentageFeatureFilter
-				mpc := mapstructure.DecoderConfig{TagName: "json", Result: &out}
-				mpd, err := mapstructure.NewDecoder(&mpc)
+				mpd, err := mapstructure.NewDecoder(pointer.To(mapstructure.DecoderConfig{TagName: "json", Result: &out}))
 				if err != nil {
 					return err
 				}
-				err = mpd.Decode(filterRaw)
-				if err != nil {
+				if err = mpd.Decode(filterRaw); err != nil {
 					return err
 				}
 				filtersOut = append(filtersOut, out)
 			}
 
 		default:
-			return fmt.Errorf("unknown type %q", name)
+			{
+				var out CustomFilter
+				mpd, err := mapstructure.NewDecoder(pointer.To(mapstructure.DecoderConfig{TagName: "json", Result: &out}))
+				if err != nil {
+					return err
+				}
+				if err = mpd.Decode(filterRaw); err != nil {
+					return err
+				}
+				filtersOut = append(filtersOut, out)
+			}
 		}
 	}
 
@@ -120,6 +125,11 @@ type TargetingFilterAudience struct {
 	DefaultRolloutPercentage int64                     `json:"DefaultRolloutPercentage" tfschema:"default_rollout_percentage"`
 	Users                    []string                  `json:"Users"                    tfschema:"users"`
 	Groups                   []TargetingGroupParameter `json:"Groups"                   tfschema:"groups"`
+}
+
+type CustomFilter struct {
+	Name       string            `json:"name"       tfschema:"name"`
+	Parameters map[string]string `json:"parameters" tfschema:"parameters"`
 }
 
 type TargetingFeatureFilter struct {

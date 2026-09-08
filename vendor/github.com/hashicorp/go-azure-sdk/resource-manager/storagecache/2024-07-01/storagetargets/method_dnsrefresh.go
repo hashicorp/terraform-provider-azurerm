@@ -57,9 +57,20 @@ func (c StorageTargetsClient) DnsRefresh(ctx context.Context, id StorageTargetId
 
 // DnsRefreshThenPoll performs DnsRefresh then polls until it's completed
 func (c StorageTargetsClient) DnsRefreshThenPoll(ctx context.Context, id StorageTargetId) error {
+	return c.DnsRefreshCallbackThenPoll(ctx, id, nil)
+}
+
+// DnsRefreshCallbackThenPoll performs DnsRefresh, runs the optional callback function, then polls until it's completed
+func (c StorageTargetsClient) DnsRefreshCallbackThenPoll(ctx context.Context, id StorageTargetId, callback func() error) error {
 	result, err := c.DnsRefresh(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing DnsRefresh: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

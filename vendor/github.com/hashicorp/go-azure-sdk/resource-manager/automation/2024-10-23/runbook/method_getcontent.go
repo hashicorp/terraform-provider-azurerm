@@ -21,7 +21,7 @@ type GetContentOperationResponse struct {
 // GetContent ...
 func (c RunbookClient) GetContent(ctx context.Context, id RunbookId) (result GetContentOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "text/powershell",
+		ContentType: "text/plain",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

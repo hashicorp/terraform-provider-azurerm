@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -9,16 +9,15 @@ import (
 	"os"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/file/files"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/file/shares"
@@ -73,10 +72,19 @@ func resourceStorageShareFile() *pluginsdk.Resource {
 		},
 
 		"source": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-			ForceNew:     true,
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  validation.StringIsNotEmpty,
+			ForceNew:      true,
+			ConflictsWith: []string{"source_content"},
+		},
+
+		"source_content": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  validation.StringIsNotEmpty,
+			ForceNew:      true,
+			ConflictsWith: []string{"source"},
 		},
 
 		"content_length": {
@@ -86,27 +94,6 @@ func resourceStorageShareFile() *pluginsdk.Resource {
 
 		"metadata": MetaDataSchema(),
 	}
-
-	if !features.FivePointOh() {
-		schema["storage_share_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ValidateFunc: storageValidate.StorageShareDataPlaneID,
-			ExactlyOneOf: []string{"storage_share_id", "storage_share_url"},
-			Deprecated:   "This property has been deprecated in favour of `storage_share_url` and will be removed in version 5.0 of the Provider.",
-		}
-		schema["storage_share_url"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ValidateFunc: storageValidate.StorageShareDataPlaneID,
-			ExactlyOneOf: []string{"storage_share_id", "storage_share_url"},
-		}
-	}
-
 	return &pluginsdk.Resource{
 		Create: resourceStorageShareFileCreate,
 		Read:   resourceStorageShareFileRead,
@@ -139,20 +126,9 @@ func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{})
 		storageShareId *shares.ShareId
 		err            error
 	)
-	if !features.FivePointOh() {
-		storageShareURL := d.Get("storage_share_url")
-		if storageShareURL == "" {
-			storageShareURL = d.Get("storage_share_id")
-		}
-		storageShareId, err = shares.ParseShareID(storageShareURL.(string), storageClient.StorageDomainSuffix)
-		if err != nil {
-			return err
-		}
-	} else {
-		storageShareId, err = shares.ParseShareID(d.Get("storage_share_url").(string), storageClient.StorageDomainSuffix)
-		if err != nil {
-			return err
-		}
+	storageShareId, err = shares.ParseShareID(d.Get("storage_share_url").(string), storageClient.StorageDomainSuffix)
+	if err != nil {
+		return err
 	}
 
 	fileName := d.Get("name").(string)
@@ -178,22 +154,24 @@ func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("building File Share Directories Client: %s", err)
 	}
 
-	existing, err := client.GetProperties(ctx, storageShareId.ShareName, path, fileName)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetProperties(ctx, storageShareId.ShareName, path, fileName)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_share_file", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_storage_share_file", id.ID())
+		}
 	}
 
 	input := files.CreateInput{
 		MetaData:           ExpandMetaData(d.Get("metadata").(map[string]interface{})),
-		ContentType:        utils.String(d.Get("content_type").(string)),
-		ContentEncoding:    utils.String(d.Get("content_encoding").(string)),
-		ContentDisposition: utils.String(d.Get("content_disposition").(string)),
+		ContentType:        pointer.To(d.Get("content_type").(string)),
+		ContentEncoding:    pointer.To(d.Get("content_encoding").(string)),
+		ContentDisposition: pointer.To(d.Get("content_disposition").(string)),
 	}
 
 	if v, ok := d.GetOk("content_md5"); ok {
@@ -211,7 +189,21 @@ func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{})
 		if err != nil {
 			return fmt.Errorf("opening file: %s", err)
 		}
+		defer file.Close()
+	} else if v, ok := d.GetOk("source_content"); ok {
+		file, err = os.CreateTemp(os.TempDir(), "share-file-")
+		if err != nil {
+			return fmt.Errorf("creating temporary file: %s", err)
+		}
+		defer os.Remove(file.Name())
+		defer file.Close()
 
+		if _, err = file.WriteString(v.(string)); err != nil {
+			return fmt.Errorf("writing `source_content` to temporary file: %s", err)
+		}
+	}
+
+	if file != nil {
 		info, err := file.Stat()
 		if err != nil {
 			return fmt.Errorf("'stat'-ing File %q (File Share %q / Account %q): %v", fileName, storageShareId.ShareName, storageShareId.AccountId.AccountName, err)
@@ -270,11 +262,11 @@ func resourceStorageShareFileUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	if d.HasChange("content_type") || d.HasChange("content_encoding") || d.HasChange("content_disposition") {
+	if d.HasChanges("content_type", "content_encoding", "content_disposition") {
 		input := files.SetPropertiesInput{
-			ContentType:        utils.String(d.Get("content_type").(string)),
-			ContentEncoding:    utils.String(d.Get("content_encoding").(string)),
-			ContentDisposition: utils.String(d.Get("content_disposition").(string)),
+			ContentType:        pointer.To(d.Get("content_type").(string)),
+			ContentEncoding:    pointer.To(d.Get("content_encoding").(string)),
+			ContentDisposition: pointer.To(d.Get("content_disposition").(string)),
 			ContentLength:      int64(d.Get("content_length").(int)),
 			MetaData:           ExpandMetaData(d.Get("metadata").(map[string]interface{})),
 		}
@@ -324,7 +316,6 @@ func resourceStorageShareFileRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	props, err := client.GetProperties(ctx, id.ShareName, id.DirectoryPath, id.FileName)
 	if err != nil {
-		log.Printf("retrieving %s: %s", id, err)
 		d.SetId("")
 		return nil
 	}
@@ -332,9 +323,6 @@ func resourceStorageShareFileRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("name", id.FileName)
 	d.Set("path", id.DirectoryPath)
 	d.Set("storage_share_url", shares.NewShareID(id.AccountId, id.ShareName).ID())
-	if !features.FivePointOh() {
-		d.Set("storage_share_id", shares.NewShareID(id.AccountId, id.ShareName).ID())
-	}
 
 	if err = d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
 		return fmt.Errorf("setting `metadata`: %s", err)

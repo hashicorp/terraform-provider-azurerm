@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -16,24 +16,24 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2023-05-01/containerinstance"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2025-09-01/containerinstance"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceContainerGroup() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceContainerGroupCreate,
 		Read:   resourceContainerGroupRead,
 		Delete: resourceContainerGroupDelete,
@@ -75,13 +75,10 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			},
 
 			"os_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(containerinstance.OperatingSystemTypesWindows),
-					string(containerinstance.OperatingSystemTypesLinux),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForOperatingSystemTypes(), false),
 			},
 
 			"image_registry_credential": {
@@ -126,10 +123,11 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"network_profile_id": {
-				Type:       pluginsdk.TypeString,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "the 'network_profile_id' has been removed from the latest versions of the container instance API and has been deprecated. It no longer functions and will be removed from the 4.0 AzureRM provider. Please use the 'subnet_ids' field instead",
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
+				// TODO: 6.0 - remove this, was meant to be removed in 4.0...
+				Deprecated: "the 'network_profile_id' has been removed from the latest versions of the container instance API and has been deprecated. It no longer functions and will be removed from the 6.0 AzureRM provider. Please use the 'subnet_ids' field instead",
 			},
 
 			// lintignore:S018
@@ -159,15 +157,11 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			},
 
 			"restart_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(containerinstance.ContainerGroupRestartPolicyAlways),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(containerinstance.ContainerGroupRestartPolicyAlways),
-					string(containerinstance.ContainerGroupRestartPolicyNever),
-					string(containerinstance.ContainerGroupRestartPolicyOnFailure),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(containerinstance.ContainerGroupRestartPolicyAlways),
+				ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForContainerGroupRestartPolicy(), false),
 			},
 
 			"dns_name_label": {
@@ -177,23 +171,17 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			},
 
 			"dns_name_label_reuse_policy": {
-				Type:     pluginsdk.TypeString,
-				ForceNew: true,
-				Optional: true,
-				Default:  string(containerinstance.DnsNameLabelReusePolicyUnsecure),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(containerinstance.DnsNameLabelReusePolicyNoreuse),
-					string(containerinstance.DnsNameLabelReusePolicyResourceGroupReuse),
-					string(containerinstance.DnsNameLabelReusePolicySubscriptionReuse),
-					string(containerinstance.DnsNameLabelReusePolicyTenantReuse),
-					string(containerinstance.DnsNameLabelReusePolicyUnsecure),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				ForceNew:     true,
+				Optional:     true,
+				Default:      string(containerinstance.DnsNameLabelReusePolicyUnsecure),
+				ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForDnsNameLabelReusePolicy(), false),
 			},
 
 			"exposed_port": {
 				Type:       pluginsdk.TypeSet,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ForceNew:   true,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Set:        resourceContainerGroupPortsHash,
@@ -207,14 +195,11 @@ func resourceContainerGroup() *pluginsdk.Resource {
 						},
 
 						"protocol": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ForceNew: true,
-							Default:  string(containerinstance.ContainerGroupNetworkProtocolTCP),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(containerinstance.ContainerGroupNetworkProtocolTCP),
-								string(containerinstance.ContainerGroupNetworkProtocolUDP),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							Default:      string(containerinstance.ContainerGroupNetworkProtocolTCP),
+							ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForContainerGroupNetworkProtocol(), false),
 						},
 					},
 				},
@@ -262,7 +247,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 						"commands": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
@@ -370,7 +355,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 						"commands": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
@@ -419,13 +404,10 @@ func resourceContainerGroup() *pluginsdk.Resource {
 									},
 
 									"log_type": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										ForceNew: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(containerinstance.LogAnalyticsLogTypeContainerInsights),
-											string(containerinstance.LogAnalyticsLogTypeContainerInstanceLogs),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForLogAnalyticsLogType(), false),
 									},
 
 									"metadata": {
@@ -494,7 +476,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: keyVaultValidate.NestedItemId,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 			},
 
 			"key_vault_user_assigned_identity_id": {
@@ -519,8 +501,6 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			return nil
 		},
 	}
-
-	return resource
 }
 
 func containerVolumeSchema() *pluginsdk.Schema {
@@ -647,15 +627,17 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	id := containerinstance.NewContainerGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.ContainerGroupsGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.ContainerGroupsGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_container_group", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_container_group", id.ID())
+		}
 	}
 
 	location := location.Normalize(d.Get("location").(string))
@@ -694,12 +676,12 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Location: &location,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: containerinstance.ContainerGroupPropertiesProperties{
-			Sku:                      pointer.To(containerinstance.ContainerGroupSku(d.Get("sku").(string))),
+			Sku:                      pointer.ToEnum[containerinstance.ContainerGroupSku](d.Get("sku").(string)),
 			InitContainers:           initContainers,
 			Containers:               containers,
 			Diagnostics:              diagnostics,
 			RestartPolicy:            &restartPolicy,
-			OsType:                   containerinstance.OperatingSystemTypes(OSType),
+			OsType:                   pointer.ToEnum[containerinstance.OperatingSystemTypes](OSType),
 			Volumes:                  &containerGroupVolumes,
 			ImageRegistryCredentials: expandContainerImageRegistryCredentials(d),
 			DnsConfig:                expandContainerGroupDnsConfig(dnsConfig),
@@ -729,12 +711,12 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if keyVaultKeyId := d.Get("key_vault_key_id").(string); keyVaultKeyId != "" {
-		keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyId)
+		keyId, err := keyvault.ParseNestedItemID(keyVaultKeyId, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return fmt.Errorf("parsing Key Vault Key ID: %+v", err)
 		}
 		containerGroup.Properties.EncryptionProperties = &containerinstance.EncryptionProperties{
-			VaultBaseURL: keyId.KeyVaultBaseUrl,
+			VaultBaseURL: keyId.KeyVaultBaseURL,
 			KeyName:      keyId.Name,
 			KeyVersion:   keyId.Version,
 		}
@@ -745,7 +727,7 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if priority := d.Get("priority").(string); priority != "" {
-		containerGroup.Properties.Priority = pointer.To(containerinstance.ContainerGroupPriority(priority))
+		containerGroup.Properties.Priority = pointer.ToEnum[containerinstance.ContainerGroupPriority](priority)
 	}
 
 	// Avoid parallel provisioning if "subnet_ids" are given.
@@ -761,7 +743,7 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if err := client.ContainerGroupsCreateOrUpdateThenPoll(ctx, id, containerGroup); err != nil {
+	if err := client.ContainerGroupsCreateOrUpdateCallbackThenPoll(ctx, id, containerGroup, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -827,7 +809,7 @@ func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("tags") {
-		updateParameters := containerinstance.Resource{
+		updateParameters := containerinstance.ContainerGroupUpdate{
 			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 		}
 
@@ -893,12 +875,10 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		d.Set("priority", priority)
 
-		containerConfigs := flattenContainerGroupContainers(d, &props.Containers, props.Volumes)
-		if err := d.Set("container", containerConfigs); err != nil {
+		if err := d.Set("container", flattenContainerGroupContainers(d, &props.Containers, props.Volumes)); err != nil {
 			return fmt.Errorf("setting `container`: %+v", err)
 		}
-		initContainerConfigs := flattenContainerGroupInitContainers(d, props.InitContainers, props.Volumes)
-		if err := d.Set("init_container", initContainerConfigs); err != nil {
+		if err := d.Set("init_container", flattenContainerGroupInitContainers(d, props.InitContainers, props.Volumes)); err != nil {
 			return fmt.Errorf("setting `init_container`: %+v", err)
 		}
 
@@ -911,7 +891,7 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.Set("ip_address", address.IP)
 			exposedPorts := make([]interface{}, len(address.Ports))
 			for i := range address.Ports {
-				exposedPorts[i] = (address.Ports)[i]
+				exposedPorts[i] = address.Ports[i]
 			}
 			d.Set("exposed_port", flattenPorts(exposedPorts))
 			d.Set("dns_name_label", address.DnsNameLabel)
@@ -932,7 +912,11 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		d.Set("restart_policy", restartPolicy)
 
-		d.Set("os_type", string(props.OsType))
+		osType := ""
+		if props.OsType != nil {
+			osType = string(*props.OsType)
+		}
+		d.Set("os_type", osType)
 		d.Set("dns_config", flattenContainerGroupDnsConfig(props.DnsConfig))
 
 		if err := d.Set("diagnostics", flattenContainerGroupDiagnostics(d, props.Diagnostics)); err != nil {
@@ -960,7 +944,7 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 				return fmt.Errorf("empty value returned for Key Vault Key Name")
 			}
 			keyVersion = kvProps.KeyVersion
-			keyId, err := keyVaultParse.NewNestedItemID(keyVaultUri, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
+			keyId, err := keyvault.NewNestedItemID(keyVaultUri, keyvault.NestedItemTypeKey, keyName, keyVersion)
 			if err != nil {
 				return err
 			}
@@ -1118,11 +1102,9 @@ func expandContainerSecurityContext(input []interface{}) *containerinstance.Secu
 
 	raw := input[0].(map[string]interface{})
 
-	output := &containerinstance.SecurityContextDefinition{
+	return &containerinstance.SecurityContextDefinition{
 		Privileged: pointer.To(raw["privilege_enabled"].(bool)),
 	}
-
-	return output
 }
 
 func flattenContainerSecurityContext(input *containerinstance.SecurityContextDefinition) []interface{} {
@@ -1130,14 +1112,9 @@ func flattenContainerSecurityContext(input *containerinstance.SecurityContextDef
 		return []interface{}{}
 	}
 
-	var privileged bool
-	if v := input.Privileged; v != nil {
-		privileged = *v
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"privilege_enabled": privileged,
+			"privilege_enabled": pointer.From(input.Privileged),
 		},
 	}
 }
@@ -1153,15 +1130,14 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 		data := containerConfig.(map[string]interface{})
 
 		name := data["name"].(string)
-		image := data["image"].(string)
 		cpu := data["cpu"].(float64)
 		memory := data["memory"].(float64)
 
 		container := containerinstance.Container{
 			Name: name,
 			Properties: containerinstance.ContainerProperties{
-				Image: image,
-				Resources: containerinstance.ResourceRequirements{
+				Image: pointer.To(data["image"].(string)),
+				Resources: &containerinstance.ResourceRequirements{
 					Requests: containerinstance.ResourceRequests{
 						MemoryInGB: memory,
 						Cpu:        cpu,
@@ -1194,15 +1170,13 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 				port := int64(portObj["port"].(int))
 				proto := portObj["protocol"].(string)
 
-				containerProtocol := containerinstance.ContainerNetworkProtocol(proto)
 				ports = append(ports, containerinstance.ContainerPort{
 					Port:     port,
-					Protocol: &containerProtocol,
+					Protocol: pointer.ToEnum[containerinstance.ContainerNetworkProtocol](proto),
 				})
-				groupProtocol := containerinstance.ContainerGroupNetworkProtocol(proto)
 				containerInstancePorts = append(containerInstancePorts, containerinstance.Port{
 					Port:     port,
-					Protocol: &groupProtocol,
+					Protocol: pointer.ToEnum[containerinstance.ContainerGroupNetworkProtocol](proto),
 				})
 			}
 			container.Properties.Ports = &ports
@@ -1277,8 +1251,7 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 				val[protocol] = true
 				cgpMap[p.Port] = val
 			} else {
-				protoMap := map[containerinstance.ContainerGroupNetworkProtocol]bool{protocol: true}
-				cgpMap[p.Port] = protoMap
+				cgpMap[p.Port] = map[containerinstance.ContainerGroupNetworkProtocol]bool{protocol: true}
 			}
 		}
 
@@ -1292,10 +1265,9 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 					and protocol. Any ports exposed on the container group must also be exposed on an individual container`,
 					port, proto, port, proto)
 			}
-			portProtocol := containerinstance.ContainerGroupNetworkProtocol(proto)
 			containerGroupPorts = append(containerGroupPorts, containerinstance.Port{
 				Port:     port,
-				Protocol: &portProtocol,
+				Protocol: pointer.ToEnum[containerinstance.ContainerGroupNetworkProtocol](proto),
 			})
 		}
 	} else {
@@ -1407,7 +1379,7 @@ func expandSingleContainerVolume(input interface{}) (*[]containerinstance.Volume
 		vm := containerinstance.VolumeMount{
 			Name:      name,
 			MountPath: mountPath,
-			ReadOnly:  pointer.FromBool(readOnly),
+			ReadOnly:  pointer.To(readOnly),
 		}
 
 		volumeMounts = append(volumeMounts, vm)
@@ -1445,7 +1417,7 @@ func expandSingleContainerVolume(input interface{}) (*[]containerinstance.Volume
 			}
 			cv.AzureFile = &containerinstance.AzureFileVolume{
 				ShareName:          shareName,
-				ReadOnly:           pointer.FromBool(readOnly),
+				ReadOnly:           pointer.To(readOnly),
 				StorageAccountName: storageAccountName,
 				StorageAccountKey:  pointer.To(storageAccountKey),
 			}
@@ -1502,29 +1474,29 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 		probeConfig := p.(map[string]interface{})
 
 		if v := probeConfig["initial_delay_seconds"].(int); v > 0 {
-			probe.InitialDelaySeconds = pointer.FromInt64(int64(v))
+			probe.InitialDelaySeconds = pointer.To(int64(v))
 		}
 
 		if v := probeConfig["period_seconds"].(int); v > 0 {
-			probe.PeriodSeconds = pointer.FromInt64(int64(v))
+			probe.PeriodSeconds = pointer.To(int64(v))
 		}
 
 		if v := probeConfig["failure_threshold"].(int); v > 0 {
-			probe.FailureThreshold = pointer.FromInt64(int64(v))
+			probe.FailureThreshold = pointer.To(int64(v))
 		}
 
 		if v := probeConfig["success_threshold"].(int); v > 0 {
-			probe.SuccessThreshold = pointer.FromInt64(int64(v))
+			probe.SuccessThreshold = pointer.To(int64(v))
 		}
 
 		if v := probeConfig["timeout_seconds"].(int); v > 0 {
-			probe.TimeoutSeconds = pointer.FromInt64(int64(v))
+			probe.TimeoutSeconds = pointer.To(int64(v))
 		}
 
 		commands := probeConfig["exec"].([]interface{})
 		if len(commands) > 0 {
 			exec := containerinstance.ContainerExec{
-				Command: utils.ExpandStringSlice(commands),
+				Command: helpers.ExpandStringSlice(commands),
 			}
 			probe.Exec = &exec
 		}
@@ -1541,12 +1513,10 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 				port := x["port"].(int)
 				scheme := x["scheme"].(string)
 
-				httpGetScheme := containerinstance.Scheme(scheme)
-
 				probe.HTTPGet = &containerinstance.ContainerHTTPGet{
 					Path:        pointer.To(path),
 					Port:        int64(port),
-					Scheme:      &httpGetScheme,
+					Scheme:      pointer.ToEnum[containerinstance.Scheme](scheme),
 					HTTPHeaders: expandContainerProbeHttpHeaders(x["http_headers"].(map[string]interface{})),
 				}
 			}
@@ -1573,27 +1543,20 @@ func expandContainerProbeHttpHeaders(input map[string]interface{}) *[]containeri
 
 func flattenContainerProbeHttpHeaders(input *[]containerinstance.HTTPHeader) map[string]interface{} {
 	if input == nil {
-		return nil
+		return map[string]interface{}{}
 	}
 
 	output := map[string]interface{}{}
 	for _, header := range *input {
-		name := ""
-		if header.Name != nil {
-			name = *header.Name
-		}
-		value := ""
-		if header.Value != nil {
-			value = *header.Value
-		}
-		output[name] = value
+		name := pointer.From(header.Name)
+		output[name] = pointer.From(header.Value)
 	}
 	return output
 }
 
 func flattenContainerImageRegistryCredentials(d *pluginsdk.ResourceData, input *[]containerinstance.ImageRegistryCredential) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 	configsOld := d.Get("image_registry_credential").([]interface{})
 
@@ -1621,7 +1584,7 @@ func flattenContainerImageRegistryCredentials(d *pluginsdk.ResourceData, input *
 
 func flattenContainerGroupInitContainers(d *pluginsdk.ResourceData, initContainers *[]containerinstance.InitContainerDefinition, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
 	if initContainers == nil {
-		return nil
+		return []interface{}{}
 	}
 	// map old container names to index so we can look up things up
 	nameIndexMap := map[string]int{}
@@ -1750,8 +1713,7 @@ func flattenContainerVolume(containerConfig map[string]interface{}, containersCo
 			// found container config for current container
 			// extract volume mounts from config
 			if v, ok := data["volume"]; ok {
-				containerVolumesRaw := v.([]interface{})
-				containerVolumesConfig = &containerVolumesRaw
+				containerVolumesConfig = pointer.To(v.([]interface{}))
 			}
 		}
 	}
@@ -1797,8 +1759,7 @@ func flattenContainerVolume(containerConfig map[string]interface{}, containersCo
 				cv := cvr.(map[string]interface{})
 				rawName := cv["name"].(string)
 				if vm.Name == rawName {
-					storageAccountKey := cv["storage_account_key"].(string)
-					volumeConfig["storage_account_key"] = storageAccountKey
+					volumeConfig["storage_account_key"] = cv["storage_account_key"].(string)
 					volumeConfig["secret"] = cv["secret"]
 				}
 			}
@@ -1819,8 +1780,7 @@ func flattenContainerSecureEnvironmentVariables(input *[]containerinstance.Envir
 
 	for _, envVar := range *input {
 		if envVar.Value == nil {
-			envVarValue := d.Get(fmt.Sprintf("%s.%d.secure_environment_variables.%s", rootPropName, oldContainerIndex, envVar.Name))
-			output[envVar.Name] = envVarValue
+			output[envVar.Name] = d.Get(fmt.Sprintf("%s.%d.secure_environment_variables.%s", rootPropName, oldContainerIndex, envVar.Name))
 		}
 	}
 
@@ -1933,14 +1893,12 @@ func expandContainerGroupDiagnostics(input []interface{}) *containerinstance.Con
 	}
 
 	if logType := analyticsV["log_type"].(string); logType != "" {
-		t := containerinstance.LogAnalyticsLogType(logType)
-		logAnalytics.LogType = &t
+		logAnalytics.LogType = pointer.ToEnum[containerinstance.LogAnalyticsLogType](logType)
 
 		metadataMap := analyticsV["metadata"].(map[string]interface{})
 		metadata := make(map[string]string)
 		for k, v := range metadataMap {
-			strValue := v.(string)
-			metadata[k] = strValue
+			metadata[k] = v.(string)
 		}
 
 		logAnalytics.Metadata = &metadata
@@ -2001,8 +1959,8 @@ func resourceContainerGroupPortsHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%d-", m["port"].(int)))
-		buf.WriteString(fmt.Sprintf("%s-", m["protocol"].(string)))
+		fmt.Fprintf(&buf, "%d-", m["port"].(int))
+		fmt.Fprintf(&buf, "%s-", m["protocol"].(string))
 	}
 
 	return pluginsdk.HashString(buf.String())

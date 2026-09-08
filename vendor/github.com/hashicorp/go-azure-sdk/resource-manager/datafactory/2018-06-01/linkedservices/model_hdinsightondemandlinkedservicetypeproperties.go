@@ -14,7 +14,7 @@ type HDInsightOnDemandLinkedServiceTypeProperties struct {
 	ClusterPassword              SecretBase                                               `json:"clusterPassword"`
 	ClusterResourceGroup         interface{}                                              `json:"clusterResourceGroup"`
 	ClusterResourceGroupAuthType *HDInsightOndemandClusterResourceGroupAuthenticationType `json:"clusterResourceGroupAuthType,omitempty"`
-	ClusterSize                  int64                                                    `json:"clusterSize"`
+	ClusterSize                  interface{}                                              `json:"clusterSize"`
 	ClusterSshPassword           SecretBase                                               `json:"clusterSshPassword"`
 	ClusterSshUserName           *interface{}                                             `json:"clusterSshUserName,omitempty"`
 	ClusterType                  *interface{}                                             `json:"clusterType,omitempty"`
@@ -54,7 +54,7 @@ func (s *HDInsightOnDemandLinkedServiceTypeProperties) UnmarshalJSON(bytes []byt
 		ClusterNamePrefix            *interface{}                                             `json:"clusterNamePrefix,omitempty"`
 		ClusterResourceGroup         interface{}                                              `json:"clusterResourceGroup"`
 		ClusterResourceGroupAuthType *HDInsightOndemandClusterResourceGroupAuthenticationType `json:"clusterResourceGroupAuthType,omitempty"`
-		ClusterSize                  int64                                                    `json:"clusterSize"`
+		ClusterSize                  interface{}                                              `json:"clusterSize"`
 		ClusterSshUserName           *interface{}                                             `json:"clusterSshUserName,omitempty"`
 		ClusterType                  *interface{}                                             `json:"clusterType,omitempty"`
 		ClusterUserName              *interface{}                                             `json:"clusterUserName,omitempty"`

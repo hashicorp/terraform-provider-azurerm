@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -146,7 +146,7 @@ func (sbu BlobUpload) uploadBlockBlobFromContent(ctx context.Context) error {
 	}
 	defer os.Remove(tmpFile.Name())
 
-	if _, err = tmpFile.Write([]byte(sbu.SourceContent)); err != nil {
+	if _, err = tmpFile.WriteString(sbu.SourceContent); err != nil {
 		return fmt.Errorf("writing Source Content to Temp File: %s", err)
 	}
 	defer tmpFile.Close()
@@ -206,7 +206,7 @@ func (sbu BlobUpload) uploadPageBlobFromContent(ctx context.Context) error {
 	}
 	defer os.Remove(tmpFile.Name())
 
-	if _, err = tmpFile.Write([]byte(sbu.SourceContent)); err != nil {
+	if _, err = tmpFile.WriteString(sbu.SourceContent); err != nil {
 		return fmt.Errorf("writing Source Content to Temp File: %s", err)
 	}
 	defer tmpFile.Close()

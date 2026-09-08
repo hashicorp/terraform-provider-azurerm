@@ -1,0 +1,77 @@
+
+## `github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/backupautomaticandondemands` Documentation
+
+The `backupautomaticandondemands` SDK allows for interaction with Azure Resource Manager `postgresql` (API Version `2025-08-01`).
+
+This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
+
+### Import Path
+
+```go
+import "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/backupautomaticandondemands"
+```
+
+
+### Client Initialization
+
+```go
+client := backupautomaticandondemands.NewBackupAutomaticAndOnDemandsClientWithBaseURI("https://management.azure.com")
+client.Client.Authorizer = authorizer
+```
+
+
+### Example Usage: `BackupAutomaticAndOnDemandsClient.BackupsAutomaticAndOnDemandCreate`
+
+```go
+ctx := context.TODO()
+id := backupautomaticandondemands.NewBackupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerName", "backupName")
+
+if err := client.BackupsAutomaticAndOnDemandCreateThenPoll(ctx, id); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `BackupAutomaticAndOnDemandsClient.BackupsAutomaticAndOnDemandDelete`
+
+```go
+ctx := context.TODO()
+id := backupautomaticandondemands.NewBackupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerName", "backupName")
+
+if err := client.BackupsAutomaticAndOnDemandDeleteThenPoll(ctx, id); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `BackupAutomaticAndOnDemandsClient.BackupsAutomaticAndOnDemandGet`
+
+```go
+ctx := context.TODO()
+id := backupautomaticandondemands.NewBackupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerName", "backupName")
+
+read, err := client.BackupsAutomaticAndOnDemandGet(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `BackupAutomaticAndOnDemandsClient.BackupsAutomaticAndOnDemandListByServer`
+
+```go
+ctx := context.TODO()
+id := backupautomaticandondemands.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerName")
+
+// alternatively `client.BackupsAutomaticAndOnDemandListByServer(ctx, id)` can be used to do batched pagination
+items, err := client.BackupsAutomaticAndOnDemandListByServerComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```

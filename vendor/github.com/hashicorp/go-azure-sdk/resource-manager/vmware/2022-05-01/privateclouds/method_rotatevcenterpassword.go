@@ -57,9 +57,20 @@ func (c PrivateCloudsClient) RotateVcenterPassword(ctx context.Context, id Priva
 
 // RotateVcenterPasswordThenPoll performs RotateVcenterPassword then polls until it's completed
 func (c PrivateCloudsClient) RotateVcenterPasswordThenPoll(ctx context.Context, id PrivateCloudId) error {
+	return c.RotateVcenterPasswordCallbackThenPoll(ctx, id, nil)
+}
+
+// RotateVcenterPasswordCallbackThenPoll performs RotateVcenterPassword, runs the optional callback function, then polls until it's completed
+func (c PrivateCloudsClient) RotateVcenterPasswordCallbackThenPoll(ctx context.Context, id PrivateCloudId, callback func() error) error {
 	result, err := c.RotateVcenterPassword(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing RotateVcenterPassword: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

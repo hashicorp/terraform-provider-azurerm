@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package hdinsight
@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) pluginsdk.UpdateFunc {
@@ -96,8 +95,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 				}
 
 				if newEdgeNodeInt != 0 {
-					err = createHDInsightEdgeNodes(ctx, applicationsClient, applicationId, edgeNodeConfig)
-					if err != nil {
+					if err = createHDInsightEdgeNodes(ctx, applicationsClient, applicationId, edgeNodeConfig); err != nil {
 						return err
 					}
 				}
@@ -271,14 +269,12 @@ func flattenHDInsightRoles(d *pluginsdk.ResourceData, input *clusters.ComputePro
 
 	if definition.EdgeNodeDef != nil {
 		edgeNode := FindHDInsightRole(input.Roles, "edgenode")
-		edgeNodes := FlattenHDInsightNodeDefinition(edgeNode, existingEdgeNodes, *definition.EdgeNodeDef)
-		result["edge_node"] = edgeNodes
+		result["edge_node"] = FlattenHDInsightNodeDefinition(edgeNode, existingEdgeNodes, *definition.EdgeNodeDef)
 	}
 
 	if definition.KafkaManagementNodeDef != nil {
 		kafkaManagementNode := FindHDInsightRole(input.Roles, "kafkamanagementnode")
-		kafkaManagementNodes := FlattenHDInsightNodeDefinition(kafkaManagementNode, existingKafkaManagementNodes, *definition.KafkaManagementNodeDef)
-		result["kafka_management_node"] = kafkaManagementNodes
+		result["kafka_management_node"] = FlattenHDInsightNodeDefinition(kafkaManagementNode, existingKafkaManagementNodes, *definition.KafkaManagementNodeDef)
 	}
 
 	return []interface{}{
@@ -293,26 +289,24 @@ func createHDInsightEdgeNodes(ctx context.Context, client *applications.Applicat
 		Properties: &applications.ApplicationProperties{
 			ComputeProfile: &applications.ComputeProfile{
 				Roles: &[]applications.Role{{
-					Name: utils.String("edgenode"),
+					Name: pointer.To("edgenode"),
 					HardwareProfile: &applications.HardwareProfile{
-						VMSize: utils.String(input["vm_size"].(string)),
+						VMSize: pointer.To(input["vm_size"].(string)),
 					},
 					TargetInstanceCount: pointer.To(int64(input["target_instance_count"].(int))),
 				}},
 			},
 			InstallScriptActions: installScriptActions,
-			ApplicationType:      utils.String("CustomApplication"),
+			ApplicationType:      pointer.To("CustomApplication"),
 		},
 	}
 
 	if v, ok := input["https_endpoints"]; ok {
-		httpsEndpoints := expandHDInsightApplicationEdgeNodeHttpsEndpoints(v.([]interface{}))
-		payload.Properties.HTTPSEndpoints = httpsEndpoints
+		payload.Properties.HTTPSEndpoints = expandHDInsightApplicationEdgeNodeHttpsEndpoints(v.([]interface{}))
 	}
 
 	if v, ok := input["uninstall_script_actions"]; ok {
-		uninstallScriptActions := expandHDInsightApplicationEdgeNodeUninstallScriptActions(v.([]interface{}))
-		payload.Properties.UninstallScriptActions = uninstallScriptActions
+		payload.Properties.UninstallScriptActions = expandHDInsightApplicationEdgeNodeUninstallScriptActions(v.([]interface{}))
 	}
 
 	if err := client.CreateThenPoll(ctx, applicationId, payload); err != nil {

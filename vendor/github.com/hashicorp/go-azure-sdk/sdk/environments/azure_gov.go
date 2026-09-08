@@ -31,6 +31,7 @@ func AzureUSGovernment() *Environment {
 	env.MySql = MySqlAPI("mysql.database.usgovcloudapi.net").WithResourceIdentifier("https://ossrdbms-aad.database.usgovcloudapi.net")
 	env.OperationalInsights = OperationalInsightsAPI().WithResourceIdentifier("https://api.loganalytics.us")
 	env.Postgresql = PostgresqlAPI("postgres.database.usgovcloudapi.net").WithResourceIdentifier("https://ossrdbms-aad.database.usgovcloudapi.net")
+	env.Search = SearchAPI("search.azure.us").WithResourceIdentifier("https://search.azure.us")
 	env.ServiceBus = ServiceBusAPI("https://servicebus.usgovcloudapi.net", "servicebus.usgovcloudapi.net").WithResourceIdentifier("https://servicebus.usgovcloudapi.net")
 	env.Sql = SqlAPI("database.usgovcloudapi.net").WithResourceIdentifier("https://database.usgovcloudapi.net")
 	env.Storage = StorageAPI("core.usgovcloudapi.net")

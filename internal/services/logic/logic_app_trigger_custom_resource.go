@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logic
@@ -135,8 +135,7 @@ func resourceLogicAppTriggerCustomDelete(d *pluginsdk.ResourceData, meta interfa
 
 	workflowId := workflows.NewWorkflowID(id.SubscriptionId, id.ResourceGroupName, id.WorkflowName)
 
-	err = resourceLogicAppTriggerRemove(d, meta, workflowId, id.TriggerName)
-	if err != nil {
+	if err = resourceLogicAppTriggerRemove(d, meta, workflowId, id.TriggerName); err != nil {
 		return fmt.Errorf("removing Trigger %s: %+v", id, err)
 	}
 

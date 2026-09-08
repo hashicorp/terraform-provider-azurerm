@@ -48,12 +48,8 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := fluidrelayservers.NewFluidRelayServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fluidRelayServerName")
 
-read, err := client.Delete(ctx, id)
-if err != nil {
+if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
-}
-if model := read.Model; model != nil {
-	// do something with the model/response object
 }
 ```
 

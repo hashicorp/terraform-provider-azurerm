@@ -208,7 +208,7 @@ A `liveness_probe` block supports the following:
 
 * `transport` - (Required) Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.
 
-* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.
+* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.
 
 * `header` - (Optional) A `header` block as detailed below.
 
@@ -238,7 +238,7 @@ A `readiness_probe` block supports the following:
 
 * `transport` - (Required) Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.
 
-* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.
+* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `48`. Defaults to `3`.
 
 * `header` - (Optional) A `header` block as detailed below.
 
@@ -270,7 +270,7 @@ A `startup_probe` block supports the following:
 
 * `transport` - (Required) Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.
 
-* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.
+* `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `240`. Defaults to `3`.
 
 * `header` - (Optional) A `header` block as detailed below.
 
@@ -382,7 +382,7 @@ A `scale` block supports the following:
 
 * `polling_interval_in_seconds` - (Optional) Interval to check each event source in seconds.
 
-* `rules` - (Optional) A `rules` block as defined below.
+* `rules` - (Optional) One or more `rules` blocks as defined below.
 
 ---
 
@@ -394,7 +394,9 @@ A `rules` block supports the following:
 
 * `metadata` - (Required) Metadata properties to describe the scale rule.
 
-* `authentication` - (Optional) A `authentication` block as defined below.
+* `authentication` - (Optional) One or more `authentication` blocks as defined below.
+
+* `identity_id` - (Optional) The ID of the identity used to authenticate with the scale rule backend. This can either be the Resource ID of a User Assigned Identity, or `System` for the System Assigned Identity.
 
 ---
 

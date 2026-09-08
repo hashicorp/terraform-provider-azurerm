@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resourceproviders
@@ -33,7 +33,7 @@ func TestEnhancedValidationDisabled(t *testing.T) {
 	}
 	enhancedEnabled = false
 	defer func() {
-		enhancedEnabled = features.EnhancedValidationEnabled()
+		enhancedEnabled = features.EnhancedValidationResourceProvidersEnabled()
 		cachedResourceProviders = nil
 	}()
 
@@ -73,7 +73,7 @@ func TestEnhancedValidationEnabled(t *testing.T) {
 	enhancedEnabled = true
 	cachedResourceProviders = &[]string{"Microsoft.Compute"}
 	defer func() {
-		enhancedEnabled = features.EnhancedValidationEnabled()
+		enhancedEnabled = features.EnhancedValidationResourceProvidersEnabled()
 		cachedResourceProviders = nil
 	}()
 

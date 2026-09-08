@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -10,8 +10,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -21,15 +24,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceArmResourcePolicyExemption() *pluginsdk.Resource {
+func resourceResourcePolicyExemption() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmResourcePolicyExemptionCreateUpdate,
-		Read:   resourceArmResourcePolicyExemptionRead,
-		Update: resourceArmResourcePolicyExemptionCreateUpdate,
-		Delete: resourceArmResourcePolicyExemptionDelete,
+		Create: resourceResourcePolicyExemptionCreateUpdate,
+		Read:   resourceResourcePolicyExemptionRead,
+		Update: resourceResourcePolicyExemptionCreateUpdate,
+		Delete: resourceResourcePolicyExemptionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ResourcePolicyExemptionID(id)
@@ -59,12 +61,9 @@ func resourceArmResourcePolicyExemption() *pluginsdk.Resource {
 			},
 
 			"exemption_category": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(policy.ExemptionCategoryMitigated),
-					string(policy.ExemptionCategoryWaiver),
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInEnumSlice(policy.PossibleExemptionCategoryValues(), false),
 			},
 
 			"policy_assignment_id": {
@@ -106,7 +105,7 @@ func resourceArmResourcePolicyExemption() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmResourcePolicyExemptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourcePolicyExemptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.ExemptionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -114,31 +113,33 @@ func resourceArmResourcePolicyExemptionCreateUpdate(d *pluginsdk.ResourceData, m
 	id := parse.NewResourcePolicyExemptionId(d.Get("resource_id").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceId, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceId, id.Name)
+			if err != nil {
+				if !response.WasNotFound(existing.Response.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
+				}
 			}
-		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_resource_policy_exemption", *existing.ID)
+			if existing.ID != nil && *existing.ID != "" {
+				return tf.ImportAsExistsError("azurerm_resource_policy_exemption", *existing.ID)
+			}
 		}
 	}
 
 	exemption := policy.Exemption{
 		ExemptionProperties: &policy.ExemptionProperties{
-			PolicyAssignmentID:           utils.String(d.Get("policy_assignment_id").(string)),
-			PolicyDefinitionReferenceIds: utils.ExpandStringSlice(d.Get("policy_definition_reference_ids").([]interface{})),
+			PolicyAssignmentID:           pointer.To(d.Get("policy_assignment_id").(string)),
+			PolicyDefinitionReferenceIds: helpers.ExpandStringSlice(d.Get("policy_definition_reference_ids").([]interface{})),
 			ExemptionCategory:            policy.ExemptionCategory(d.Get("exemption_category").(string)),
 		},
 	}
 
 	if v, ok := d.GetOk("display_name"); ok {
-		exemption.DisplayName = utils.String(v.(string))
+		exemption.DisplayName = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("description"); ok {
-		exemption.Description = utils.String(v.(string))
+		exemption.Description = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("expires_on"); ok {
@@ -161,12 +162,14 @@ func resourceArmResourcePolicyExemptionCreateUpdate(d *pluginsdk.ResourceData, m
 		return fmt.Errorf("creating/updating %s: %+v", id.ID(), err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
-	return resourceArmResourcePolicyExemptionRead(d, meta)
+	return resourceResourcePolicyExemptionRead(d, meta)
 }
 
-func resourceArmResourcePolicyExemptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourcePolicyExemptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.ExemptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -178,7 +181,7 @@ func resourceArmResourcePolicyExemptionRead(d *pluginsdk.ResourceData, meta inte
 
 	resp, err := client.Get(ctx, id.ResourceId, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] Error reading Policy Exemption %q - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -195,7 +198,7 @@ func resourceArmResourcePolicyExemptionRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("description", props.Description)
 		d.Set("exemption_category", string(props.ExemptionCategory))
 
-		if err := d.Set("policy_definition_reference_ids", utils.FlattenStringSlice(props.PolicyDefinitionReferenceIds)); err != nil {
+		if err := d.Set("policy_definition_reference_ids", helpers.FlattenStringSlice(props.PolicyDefinitionReferenceIds)); err != nil {
 			return fmt.Errorf("setting `policy_definition_reference_ids: %+v", err)
 		}
 
@@ -213,7 +216,7 @@ func resourceArmResourcePolicyExemptionRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmResourcePolicyExemptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourcePolicyExemptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.ExemptionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

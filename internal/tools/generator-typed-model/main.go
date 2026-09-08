@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package main
@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/dave/jennifer/jen"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 )
@@ -31,8 +32,7 @@ func main() {
 	f := jen.NewFile("main")
 	modelStmts := modelForSchemaMap(snake2Camel(strings.TrimPrefix(rt, "azurerm_"))+"Model", resource.Schema)
 	for _, stmt := range modelStmts {
-		stmt := stmt
-		f.Add(&stmt)
+		f.Add(pointer.To(stmt))
 	}
 	fmt.Printf("%#v", f)
 }

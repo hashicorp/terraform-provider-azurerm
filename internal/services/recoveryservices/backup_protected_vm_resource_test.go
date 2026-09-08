@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices_test
@@ -117,33 +117,6 @@ func TestAccBackupProtectedVm_updateBackupPolicyId(t *testing.T) {
 			// Remove backup policies and vault
 			ResourceName: data.ResourceName,
 			Config:       r.basePolicyTest(data),
-		},
-	})
-}
-
-func TestAccBackupProtectedVm_updateVault(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
-	r := BackupProtectedVmResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.updateVaultFirstBackupVm(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.updateVaultSecondBackupVm(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-			),
-		},
-		{
-			// vault cannot be deleted unless we unregister all backups
-			Config: r.additionalVault(data),
 		},
 	})
 }
@@ -348,7 +321,12 @@ func (r BackupProtectedVmResource) Exists(ctx context.Context, clients *clients.
 func (BackupProtectedVmResource) base(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    recovery_service {
+      vm_backup_stop_protection_and_retain_data_on_destroy = true
+      purge_protected_items_from_vault_on_destroy          = true
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -387,8 +365,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
   domain_name_label   = "acctestip%d"
 }
 
@@ -472,8 +450,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_backup_policy_vm" "test" {
@@ -535,8 +511,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
   domain_name_label   = "acctestip%[1]d"
 }
 
@@ -622,8 +598,6 @@ resource "azurerm_recovery_services_vault" "test" {
   sku                 = "Standard"
 
   immutability = "Unlocked"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_backup_policy_vm" "test" {
@@ -681,8 +655,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
   domain_name_label   = "acctestip%d"
 }
 
@@ -766,8 +740,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_backup_policy_vm" "test" {
@@ -790,7 +762,12 @@ resource "azurerm_backup_policy_vm" "test" {
 func (BackupProtectedVmResource) baseWithoutVM(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    recovery_service {
+      vm_backup_stop_protection_and_retain_data_on_destroy = true
+      purge_protected_items_from_vault_on_destroy          = true
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -829,8 +806,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
   domain_name_label   = "acctestip%d"
 }
 
@@ -847,8 +824,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_backup_policy_vm" "test" {
@@ -906,8 +881,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
   domain_name_label   = "acctestip%d"
 }
 
@@ -994,8 +969,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
-
-  soft_delete_enabled = true
 }
 
 resource "azurerm_backup_policy_vm" "test" {
@@ -1049,7 +1022,12 @@ resource "azurerm_backup_protected_vm" "test" {
 func (BackupProtectedVmResource) basePolicyTest(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    recovery_service {
+      vm_backup_stop_protection_and_retain_data_on_destroy = true
+      purge_protected_items_from_vault_on_destroy          = true
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1088,8 +1066,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
   domain_name_label   = "acctestip%d"
 }
 
@@ -1189,8 +1167,6 @@ resource "azurerm_recovery_services_vault" "test2" {
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_backup_policy_vm" "test2" {
@@ -1235,32 +1211,6 @@ resource "azurerm_backup_protected_vm" "test" {
   include_disk_luns = [0]
 }
 `, r.baseWithoutVM(data))
-}
-
-func (r BackupProtectedVmResource) updateVaultFirstBackupVm(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_backup_protected_vm" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  recovery_vault_name = azurerm_recovery_services_vault.test.name
-  backup_policy_id    = azurerm_backup_policy_vm.test.id
-  source_vm_id        = azurerm_virtual_machine.test.id
-}
-`, r.additionalVault(data))
-}
-
-func (r BackupProtectedVmResource) updateVaultSecondBackupVm(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_backup_protected_vm" "test" {
-  resource_group_name = azurerm_resource_group.test2.name
-  recovery_vault_name = azurerm_recovery_services_vault.test2.name
-  backup_policy_id    = azurerm_backup_policy_vm.test2.id
-  source_vm_id        = azurerm_virtual_machine.test.id
-}
-`, r.additionalVault(data))
 }
 
 func (r BackupProtectedVmResource) protectionStopped(data acceptance.TestData) string {
@@ -1400,8 +1350,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
   domain_name_label   = "acctestip%[1]d"
 }
 
@@ -1486,8 +1436,7 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 
-  soft_delete_enabled = false
-  immutability        = "Unlocked"
+  immutability = "Unlocked"
 }
 
 %[4]s

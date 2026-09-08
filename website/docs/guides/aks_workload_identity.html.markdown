@@ -10,7 +10,7 @@ description: |-
 Terraform supports a number of different methods for authenticating to Azure:
 
 - [Authenticating to Azure using the Azure CLI](azure_cli.html)
-* [Authenticating to Azure using Managed Service Identity](managed_service_identity.html)
+- [Authenticating to Azure using Managed Service Identity](managed_service_identity.html)
 - [Authenticating to Azure using a Service Principal and a Client Certificate](service_principal_client_certificate.html)
 - [Authenticating to Azure using a Service Principal and a Client Secret](service_principal_client_secret.html)
 - [Authenticating to Azure using OpenID Connect](service_principal_oidc.html)
@@ -69,7 +69,7 @@ data "azurerm_role_definition" "contributor" {
 resource "azurerm_role_assignment" "example" {
   scope              = data.azurerm_subscription.current.id
   role_definition_id = "${data.azurerm_subscription.current.id}${data.azurerm_role_definition.contributor.id}"
-  principal_id       = azurerm_user_assigned_identity.wayfinder_main.principal_id
+  principal_id       = azurerm_user_assigned_identity.myworkload_identity.principal_id
 }
 
 output "myworkload_identity_client_id" {
@@ -108,7 +108,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=4.1.0"
+      version = "=5.0.0"
     }
   }
 }
@@ -130,7 +130,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=4.1.0"
+      version = "=5.0.0"
     }
   }
 }

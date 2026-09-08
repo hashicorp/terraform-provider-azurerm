@@ -8,3 +8,7 @@ const defaultApiVersion = "2022-11-10"
 func userAgent() string {
 	return "hashicorp/go-azure-sdk/privateendpointconnections/2022-11-10"
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}

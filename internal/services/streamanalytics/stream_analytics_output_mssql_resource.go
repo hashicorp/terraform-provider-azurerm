@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -135,13 +135,15 @@ func resourceStreamAnalyticsOutputSqlCreateUpdate(d *pluginsdk.ResourceData, met
 
 	id := outputs.NewOutputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil && !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
-		}
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_output_mssql", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_stream_analytics_output_mssql", id.ID())
+			}
 		}
 	}
 
@@ -151,7 +153,7 @@ func resourceStreamAnalyticsOutputSqlCreateUpdate(d *pluginsdk.ResourceData, met
 		Table:              pointer.To(d.Get("table").(string)),
 		MaxBatchCount:      pointer.To(d.Get("max_batch_count").(float64)),
 		MaxWriterCount:     pointer.To(d.Get("max_writer_count").(float64)),
-		AuthenticationMode: pointer.To(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+		AuthenticationMode: pointer.ToEnum[outputs.AuthenticationMode](d.Get("authentication_mode").(string)),
 	}
 
 	// Add user/password dataSourceProperties only if authentication mode requires them
@@ -216,29 +218,13 @@ func resourceStreamAnalyticsOutputSqlRead(d *pluginsdk.ResourceData, meta interf
 				return fmt.Errorf("converting %s to a SQL Output", *id)
 			}
 
-			server := ""
-			if v := output.Properties.Server; v != nil {
-				server = *v
-			}
-			d.Set("server", server)
+			d.Set("server", pointer.From(output.Properties.Server))
 
-			database := ""
-			if v := output.Properties.Database; v != nil {
-				database = *v
-			}
-			d.Set("database", database)
+			d.Set("database", pointer.From(output.Properties.Database))
 
-			table := ""
-			if v := output.Properties.Table; v != nil {
-				table = *v
-			}
-			d.Set("table", table)
+			d.Set("table", pointer.From(output.Properties.Table))
 
-			user := ""
-			if v := output.Properties.User; v != nil {
-				user = *v
-			}
-			d.Set("user", user)
+			d.Set("user", pointer.From(output.Properties.User))
 
 			authMode := ""
 			if v := output.Properties.AuthenticationMode; v != nil {

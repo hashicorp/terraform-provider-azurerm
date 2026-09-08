@@ -56,9 +56,20 @@ func (c MachineLearningComputesClient) ComputeStart(ctx context.Context, id Comp
 
 // ComputeStartThenPoll performs ComputeStart then polls until it's completed
 func (c MachineLearningComputesClient) ComputeStartThenPoll(ctx context.Context, id ComputeId) error {
+	return c.ComputeStartCallbackThenPoll(ctx, id, nil)
+}
+
+// ComputeStartCallbackThenPoll performs ComputeStart, runs the optional callback function, then polls until it's completed
+func (c MachineLearningComputesClient) ComputeStartCallbackThenPoll(ctx context.Context, id ComputeId, callback func() error) error {
 	result, err := c.ComputeStart(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ComputeStart: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

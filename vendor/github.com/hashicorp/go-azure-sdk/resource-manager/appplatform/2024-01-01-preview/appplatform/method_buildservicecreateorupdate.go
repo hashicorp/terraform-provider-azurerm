@@ -62,9 +62,20 @@ func (c AppPlatformClient) BuildServiceCreateOrUpdate(ctx context.Context, id Bu
 
 // BuildServiceCreateOrUpdateThenPoll performs BuildServiceCreateOrUpdate then polls until it's completed
 func (c AppPlatformClient) BuildServiceCreateOrUpdateThenPoll(ctx context.Context, id BuildServiceId, input BuildService) error {
+	return c.BuildServiceCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// BuildServiceCreateOrUpdateCallbackThenPoll performs BuildServiceCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) BuildServiceCreateOrUpdateCallbackThenPoll(ctx context.Context, id BuildServiceId, input BuildService, callback func() error) error {
 	result, err := c.BuildServiceCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing BuildServiceCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

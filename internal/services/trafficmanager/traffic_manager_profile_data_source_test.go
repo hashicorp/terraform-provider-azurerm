@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package trafficmanager_test
@@ -13,7 +13,7 @@ import (
 
 type TrafficManagerProfileDataSource struct{}
 
-func TestAccAzureRMDataSourceTrafficManagerProfile(t *testing.T) {
+func TestAccTrafficManagerProfileDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_traffic_manager_profile", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{

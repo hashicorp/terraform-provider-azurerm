@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -248,8 +248,7 @@ func (SubscriptionConsumptionBudgetV1ToV2) UpgradeFunc() pluginsdk.StateUpgrader
 			return nil, fmt.Errorf("parsing %q: %+v", idRaw, err)
 		}
 
-		newSubscriptionId := commonids.NewSubscriptionID(id.Scope).ID()
-		rawState["subscription_id"] = newSubscriptionId
+		rawState["subscription_id"] = commonids.NewSubscriptionID(id.Scope).ID()
 
 		return rawState, nil
 	}

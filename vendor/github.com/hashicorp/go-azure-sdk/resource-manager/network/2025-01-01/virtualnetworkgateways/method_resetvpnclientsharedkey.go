@@ -57,9 +57,20 @@ func (c VirtualNetworkGatewaysClient) ResetVpnClientSharedKey(ctx context.Contex
 
 // ResetVpnClientSharedKeyThenPoll performs ResetVpnClientSharedKey then polls until it's completed
 func (c VirtualNetworkGatewaysClient) ResetVpnClientSharedKeyThenPoll(ctx context.Context, id VirtualNetworkGatewayId) error {
+	return c.ResetVpnClientSharedKeyCallbackThenPoll(ctx, id, nil)
+}
+
+// ResetVpnClientSharedKeyCallbackThenPoll performs ResetVpnClientSharedKey, runs the optional callback function, then polls until it's completed
+func (c VirtualNetworkGatewaysClient) ResetVpnClientSharedKeyCallbackThenPoll(ctx context.Context, id VirtualNetworkGatewayId, callback func() error) error {
 	result, err := c.ResetVpnClientSharedKey(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ResetVpnClientSharedKey: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

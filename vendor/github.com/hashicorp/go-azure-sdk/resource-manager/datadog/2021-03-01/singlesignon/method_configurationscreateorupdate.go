@@ -62,9 +62,20 @@ func (c SingleSignOnClient) ConfigurationsCreateOrUpdate(ctx context.Context, id
 
 // ConfigurationsCreateOrUpdateThenPoll performs ConfigurationsCreateOrUpdate then polls until it's completed
 func (c SingleSignOnClient) ConfigurationsCreateOrUpdateThenPoll(ctx context.Context, id SingleSignOnConfigurationId, input DatadogSingleSignOnResource) error {
+	return c.ConfigurationsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ConfigurationsCreateOrUpdateCallbackThenPoll performs ConfigurationsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c SingleSignOnClient) ConfigurationsCreateOrUpdateCallbackThenPoll(ctx context.Context, id SingleSignOnConfigurationId, input DatadogSingleSignOnResource, callback func() error) error {
 	result, err := c.ConfigurationsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ConfigurationsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

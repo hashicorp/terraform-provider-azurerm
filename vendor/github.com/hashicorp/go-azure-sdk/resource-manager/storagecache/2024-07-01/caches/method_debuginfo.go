@@ -58,9 +58,20 @@ func (c CachesClient) DebugInfo(ctx context.Context, id CacheId) (result DebugIn
 
 // DebugInfoThenPoll performs DebugInfo then polls until it's completed
 func (c CachesClient) DebugInfoThenPoll(ctx context.Context, id CacheId) error {
+	return c.DebugInfoCallbackThenPoll(ctx, id, nil)
+}
+
+// DebugInfoCallbackThenPoll performs DebugInfo, runs the optional callback function, then polls until it's completed
+func (c CachesClient) DebugInfoCallbackThenPoll(ctx context.Context, id CacheId, callback func() error) error {
 	result, err := c.DebugInfo(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing DebugInfo: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

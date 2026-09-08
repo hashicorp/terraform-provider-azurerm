@@ -62,9 +62,20 @@ func (c ManagedDatabasesClient) StartMove(ctx context.Context, id commonids.SqlM
 
 // StartMoveThenPoll performs StartMove then polls until it's completed
 func (c ManagedDatabasesClient) StartMoveThenPoll(ctx context.Context, id commonids.SqlManagedInstanceDatabaseId, input ManagedDatabaseStartMoveDefinition) error {
+	return c.StartMoveCallbackThenPoll(ctx, id, input, nil)
+}
+
+// StartMoveCallbackThenPoll performs StartMove, runs the optional callback function, then polls until it's completed
+func (c ManagedDatabasesClient) StartMoveCallbackThenPoll(ctx context.Context, id commonids.SqlManagedInstanceDatabaseId, input ManagedDatabaseStartMoveDefinition, callback func() error) error {
 	result, err := c.StartMove(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing StartMove: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

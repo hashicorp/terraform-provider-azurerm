@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 provider "azurerm" {
@@ -51,6 +51,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "main" {
       computer_name_prefix = var.prefix
       admin_username       = "adminuser"
       admin_password       = "P@$$w0rd1234!"
+      patch_mode           = "AutomaticByPlatform"
+      hotpatching_enabled  = true
 
       winrm_listener {
         protocol = "Http"

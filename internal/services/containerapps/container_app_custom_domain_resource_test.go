@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containerapps_test
@@ -266,6 +266,7 @@ resource "azurerm_container_app_environment" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   location                   = azurerm_resource_group.test.location
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  logs_destination           = "log-analytics"
 }
 
 resource "azurerm_container_app_environment_certificate" "test" {

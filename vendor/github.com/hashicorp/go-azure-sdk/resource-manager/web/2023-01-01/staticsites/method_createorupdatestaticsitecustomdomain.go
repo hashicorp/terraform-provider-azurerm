@@ -62,9 +62,20 @@ func (c StaticSitesClient) CreateOrUpdateStaticSiteCustomDomain(ctx context.Cont
 
 // CreateOrUpdateStaticSiteCustomDomainThenPoll performs CreateOrUpdateStaticSiteCustomDomain then polls until it's completed
 func (c StaticSitesClient) CreateOrUpdateStaticSiteCustomDomainThenPoll(ctx context.Context, id CustomDomainId, input StaticSiteCustomDomainRequestPropertiesARMResource) error {
+	return c.CreateOrUpdateStaticSiteCustomDomainCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateOrUpdateStaticSiteCustomDomainCallbackThenPoll performs CreateOrUpdateStaticSiteCustomDomain, runs the optional callback function, then polls until it's completed
+func (c StaticSitesClient) CreateOrUpdateStaticSiteCustomDomainCallbackThenPoll(ctx context.Context, id CustomDomainId, input StaticSiteCustomDomainRequestPropertiesARMResource, callback func() error) error {
 	result, err := c.CreateOrUpdateStaticSiteCustomDomain(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdateStaticSiteCustomDomain: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

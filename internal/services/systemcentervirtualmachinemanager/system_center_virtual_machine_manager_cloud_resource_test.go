@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package systemcentervirtualmachinemanager_test
@@ -9,17 +9,17 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/clouds"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SystemCenterVirtualMachineManagerCloudResource struct{}
 
-func TestAccSystemCenterVirtualMachineManagerCloudSequential(t *testing.T) {
+func TestAccSystemCenterVirtualMachineManagerCloud_sequential(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests because only one System Center Virtual Machine Manager Server can be onboarded at a time on a given Custom Location
 
 	if os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID") == "" || os.Getenv("ARM_TEST_FQDN") == "" || os.Getenv("ARM_TEST_USERNAME") == "" || os.Getenv("ARM_TEST_PASSWORD") == "" {
@@ -28,10 +28,11 @@ func TestAccSystemCenterVirtualMachineManagerCloudSequential(t *testing.T) {
 
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"scvmmCloud": {
-			"basic":          testAccSystemCenterVirtualMachineManagerCloud_basic,
-			"requiresImport": testAccSystemCenterVirtualMachineManagerCloud_requiresImport,
-			"complete":       testAccSystemCenterVirtualMachineManagerCloud_complete,
-			"update":         testAccSystemCenterVirtualMachineManagerCloud_update,
+			"basic":            testAccSystemCenterVirtualMachineManagerCloud_basic,
+			"requiresImport":   testAccSystemCenterVirtualMachineManagerCloud_requiresImport,
+			"complete":         testAccSystemCenterVirtualMachineManagerCloud_complete,
+			"update":           testAccSystemCenterVirtualMachineManagerCloud_update,
+			"resourceIdentity": testAccSystemCenterVirtualMachineManagerCloud_resourceIdentity,
 		},
 	})
 }
@@ -128,7 +129,7 @@ func (r SystemCenterVirtualMachineManagerCloudResource) Exists(ctx context.Conte
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r SystemCenterVirtualMachineManagerCloudResource) basic(data acceptance.TestData) string {

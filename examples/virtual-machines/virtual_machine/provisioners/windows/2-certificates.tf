@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 data "azurerm_client_config" "current" {}
@@ -9,6 +9,7 @@ resource "azurerm_key_vault" "example" {
   resource_group_name = azurerm_resource_group.example.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
 
+  rbac_authorization_enabled      = false
   enabled_for_deployment          = true
   enabled_for_template_deployment = true
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2018, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resourceids
@@ -93,11 +93,16 @@ func (p Parser) Parse(input string, insensitively bool) (*ParseResult, error) {
 
 	hasScopeAtStart := p.segments[0].Type == ScopeSegmentType
 	hasScopeAtEnd := p.segments[len(p.segments)-1].Type == ScopeSegmentType
+	hasDataPlaneBaseURIAtStart := p.segments[0].Type == DataPlaneBaseURISegmentType
+	dataPlaneHasScopeAtStart := false
+	if len(p.segments) > 1 {
+		dataPlaneHasScopeAtStart = p.segments[1].Type == ScopeSegmentType && hasDataPlaneBaseURIAtStart
+	}
 
 	// go through and build up a regex which will count for the `middle` components of the Resource ID
 	nonScopeComponentsRegex := ""
 	for i, segment := range p.segments {
-		if (i == 0 && hasScopeAtStart) || (i == len(p.segments)-1 && hasScopeAtEnd) {
+		if (i == 0 && hasScopeAtStart) || (i == len(p.segments)-1 && hasScopeAtEnd) || (i == 1 && dataPlaneHasScopeAtStart) {
 			continue
 		}
 
@@ -127,7 +132,7 @@ func (p Parser) Parse(input string, insensitively bool) (*ParseResult, error) {
 				continue
 			}
 
-		case ResourceGroupSegmentType, SubscriptionIdSegmentType, UserSpecifiedSegmentType:
+		case ResourceGroupSegmentType, SubscriptionIdSegmentType, UserSpecifiedSegmentType, DataPlaneBaseURISegmentType:
 			{
 				nonScopeComponentsRegex += "/(.){1,}"
 				continue
@@ -135,22 +140,43 @@ func (p Parser) Parse(input string, insensitively bool) (*ParseResult, error) {
 		}
 	}
 
-	var scopePrefix string
+	var idPrefix string
 	if hasScopeAtStart {
 		prefix, err := p.parseScopePrefix(input, nonScopeComponentsRegex, insensitively)
 		if err != nil {
 			return nil, fmt.Errorf("parsing scope prefix: %+v", err)
 		}
 
-		scopePrefix = *prefix
+		idPrefix = *prefix
 		parseResult.Parsed[p.segments[0].Name] = *prefix
+	}
+
+	uri := input
+
+	if hasDataPlaneBaseURIAtStart {
+		prefix, err := p.parseDataPlaneBaseURIPrefix(input)
+		if err != nil {
+			return nil, fmt.Errorf("parsing scope prefix: %+v", err)
+		}
+
+		idPrefix = *prefix
+		parseResult.Parsed[p.segments[0].Name] = strings.TrimSuffix(*prefix, "/") // Trim the trailing / to match up to the ID builder value or we'll get a double
+		if dataPlaneHasScopeAtStart {
+			scope, err := p.parseScopeSegment(input, insensitively)
+			if err != nil {
+				return nil, fmt.Errorf("parsing data plane scope: %+v", err)
+			}
+
+			parseResult.Parsed[p.segments[1].Name] = *scope
+			uri = strings.ReplaceAll(uri, *scope, "/fakeScope")
+		}
 	}
 
 	// trim off the scopePrefix and the leading `/` to give us the segments we expect plus the final scope string
 	// at the end, if present
-	uri := input
-	if hasScopeAtStart {
-		uri = strings.TrimPrefix(uri, scopePrefix)
+
+	if hasScopeAtStart || hasDataPlaneBaseURIAtStart {
+		uri = strings.TrimPrefix(uri, idPrefix)
 		uri = strings.TrimPrefix(uri, "/")
 
 		// add a fake start so that the indexes match when we loop around, else we're updating the index below
@@ -164,13 +190,18 @@ func (p Parser) Parse(input string, insensitively bool) (*ParseResult, error) {
 		return nil, NewNumberOfSegmentsDidntMatchError(p.resourceId, parseResult)
 	}
 
-	if hasScopeAtStart {
+	if hasScopeAtStart || hasDataPlaneBaseURIAtStart {
 		// trim off the fake start since we use any remaining uri as a suffixScope
 		uri = strings.TrimPrefix(uri, "fakestart/")
 	}
 
+	if dataPlaneHasScopeAtStart {
+		uri = strings.TrimPrefix(uri, "fakeScope")
+		uri = strings.TrimPrefix(uri, "/")
+	}
+
 	for i, segment := range p.segments {
-		if (i == 0 && hasScopeAtStart) || (i == len(p.segments)-1 && hasScopeAtEnd) {
+		if (i == 0 && hasScopeAtStart) || (i == 0 && hasDataPlaneBaseURIAtStart) || (i == len(p.segments)-1 && hasScopeAtEnd) || (i == 1 && dataPlaneHasScopeAtStart) {
 			continue
 		}
 
@@ -235,6 +266,55 @@ func (p Parser) parseScopePrefix(input, regexForNonScopeSegments string, insensi
 	v := values[1]
 	if v == "" {
 		return nil, fmt.Errorf("unable to find the scope prefix from the value %q using the regex %q", input, regexToUse)
+	}
+	return &v, nil
+}
+
+func (p Parser) parseScopeSegment(input string, insensitively bool) (*string, error) {
+	knownPatterns := []string{
+		`(subscriptions\/[^\/]+\/resourceGroups\/[^\/]+)`,
+		`providers/Microsoft.Management/managementGroups/[^\/]+`,
+	}
+	for _, regexToUse := range knownPatterns {
+		if insensitively {
+			regexToUse = fmt.Sprintf("(?i)%s", regexToUse)
+		}
+		r, err := regexp.Compile(regexToUse)
+		if err != nil {
+			return nil, fmt.Errorf("internal error: compiling regex %q to find scope prefix: %+v", regexToUse, err)
+		}
+		// 0 is the entire string, 1 will be the scope prefix, we can ignore the rest
+		values := r.FindStringSubmatch(input)
+		if len(values) < 2 {
+			continue
+		}
+		v := values[1]
+		if v == "" {
+			return nil, fmt.Errorf("unable to find the scope prefix from the value %q using the regex %q", input, regexToUse)
+		}
+		if !strings.HasPrefix(v, "/") {
+			v = "/" + v
+		}
+		return &v, nil
+	}
+
+	return nil, fmt.Errorf("input %q does not match any supported scope pattern", input)
+}
+
+func (p Parser) parseDataPlaneBaseURIPrefix(input string) (*string, error) {
+	regexToUse := `^((?i:https?)://[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)`
+	r, err := regexp.Compile(regexToUse)
+	if err != nil {
+		return nil, fmt.Errorf("internal error: compiling regex %q to find BaseURI prefix: %+v", regexToUse, err)
+	}
+	// 0 is the entire string, 1 will be the scope prefix, we can ignore the rest
+	values := r.FindStringSubmatch(input)
+	if len(values) < 2 {
+		return nil, fmt.Errorf("unable to find the BaseURI prefix from the value %q with the regex %q", input, regexToUse)
+	}
+	v := values[1]
+	if v == "" {
+		return nil, fmt.Errorf("unable to find the BaseURI prefix from the value %q using the regex %q", input, regexToUse)
 	}
 	return &v, nil
 }

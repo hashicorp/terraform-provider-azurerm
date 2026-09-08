@@ -46,6 +46,7 @@ The following attributes are exported:
 * `principal_id` - The Service Principal ID of the User Assigned Identity.
 * `client_id` - The Client ID of the User Assigned Identity.
 * `tenant_id` - The Tenant ID of the User Assigned Identity.
+* `isolation_scope` - The isolation scope for the User Assigned Identity.
 * `tags` - A mapping of tags assigned to the User Assigned Identity.
 
 ## Timeouts

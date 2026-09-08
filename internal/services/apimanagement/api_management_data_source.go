@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -17,9 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tenantaccess"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -257,7 +255,7 @@ func dataSourceApiManagementRead(d *pluginsdk.ResourceData, meta interface{}) er
 	d.Set("resource_group_name", resourceGroup)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", azure.NormalizeLocation(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
 		identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 		if err != nil {
@@ -334,9 +332,6 @@ func flattenDataSourceApiManagementHostnameConfigurations(input *[]apimanagement
 		output["negotiate_client_certificate"] = pointer.From(config.NegotiateClientCertificate)
 
 		output["key_vault_certificate_id"] = pointer.From(config.KeyVaultId)
-		if !features.FivePointOh() {
-			output["key_vault_id"] = pointer.From(config.KeyVaultId)
-		}
 
 		switch strings.ToLower(string(config.Type)) {
 		case strings.ToLower(string(apimanagementservice.HostnameTypeProxy)):
@@ -393,7 +388,7 @@ func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagementser
 }
 
 func apiManagementDataSourceHostnameSchema() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"host_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -409,15 +404,6 @@ func apiManagementDataSourceHostnameSchema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 	}
-
-	if !features.FivePointOh() {
-		s["key_vault_id"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		}
-	}
-
-	return s
 }
 
 func apiManagementDataSourceHostnameProxySchema() map[string]*pluginsdk.Schema {

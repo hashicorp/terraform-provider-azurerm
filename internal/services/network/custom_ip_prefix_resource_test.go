@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -24,7 +24,7 @@ const (
 	ipv6TestCidr = "2620:10c:5001::/48"
 )
 
-func TestAccCustomIpPrefixV4(t *testing.T) {
+func TestAccCustomIpPrefix_v4(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"ipv4": {
 			"commissioned":   testAccCustomIpPrefix_ipv4,
@@ -33,7 +33,7 @@ func TestAccCustomIpPrefixV4(t *testing.T) {
 	})
 }
 
-func TestAccCustomIpPrefixV6(t *testing.T) {
+func TestAccCustomIpPrefix_v6(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"ipv6": {
 			"commissioned": testAccCustomIpPrefix_ipv6,

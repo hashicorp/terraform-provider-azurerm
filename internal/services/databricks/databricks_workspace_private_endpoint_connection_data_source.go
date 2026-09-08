@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package databricks
@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -77,7 +78,6 @@ func dataSourceDatabricksWorkspacePrivateEndpointConnectionRead(d *pluginsdk.Res
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	workspace := d.Get("workspace_id").(string)
-	endpointId := d.Get("private_endpoint_id").(string)
 
 	id, err := workspaces.ParseWorkspaceID(workspace)
 	if err != nil {
@@ -96,7 +96,7 @@ func dataSourceDatabricksWorkspacePrivateEndpointConnectionRead(d *pluginsdk.Res
 	d.SetId(id.ID())
 
 	d.Set("workspace_id", workspace)
-	d.Set("private_endpoint_id", endpointId)
+	d.Set("private_endpoint_id", d.Get("private_endpoint_id").(string))
 
 	if model := resp.Model; model != nil {
 		if err := d.Set("connections", flattenPrivateEndpointConnections(model.Properties.PrivateEndpointConnections)); err != nil {
@@ -114,25 +114,13 @@ func flattenPrivateEndpointConnections(input *[]workspaces.PrivateEndpointConnec
 	}
 
 	for _, v := range *input {
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
+		name := pointer.From(v.Name)
 
-		workspacePrivateEndpointId := ""
-		if v.Id != nil {
-			workspacePrivateEndpointId = *v.Id
-		}
+		workspacePrivateEndpointId := pointer.From(v.Id)
 
 		connState := v.Properties.PrivateLinkServiceConnectionState
-		actionRequired := ""
-		if connState.ActionsRequired != nil {
-			actionRequired = *connState.ActionsRequired
-		}
-		description := ""
-		if connState.Description != nil {
-			description = *connState.Description
-		}
+		actionRequired := pointer.From(connState.ActionsRequired)
+		description := pointer.From(connState.Description)
 		status := ""
 		if connState.Status != "" {
 			status = string(connState.Status)

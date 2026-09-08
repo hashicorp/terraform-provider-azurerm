@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package bot
@@ -8,17 +8,17 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
@@ -30,8 +30,15 @@ func resourceBotChannelSlack() *pluginsdk.Resource {
 		Update: resourceBotChannelSlackUpdate,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.BotChannelID(id)
+			_, err := commonids.ParseBotServiceChannelID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			// v0 -> v1 normalises the casing of IDs imported while this resource parsed them with the
+			// case-insensitive legacy parser, so they can be parsed with the case-sensitive SDK parser
+			0: migration.BotChannelSlackV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -95,15 +102,16 @@ func resourceBotChannelSlackCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceId := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameSlackChannel))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, resourceId.ChannelName)
+	resourceId := commonids.NewBotServiceChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameSlackChannel))
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, resourceId.ResourceGroupName, resourceId.BotServiceName, resourceId.ChannelType)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Slack Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
+			if !response.WasNotFound(existing.Response.Response) {
+				return fmt.Errorf("checking for presence of existing Slack Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroupName, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_bot_channel_slack", resourceId.ID())
 		}
 	}
@@ -111,26 +119,26 @@ func resourceBotChannelSlackCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	channel := botservice.BotChannel{
 		Properties: botservice.SlackChannel{
 			Properties: &botservice.SlackChannelProperties{
-				ClientID:                utils.String(d.Get("client_id").(string)),
-				ClientSecret:            utils.String(d.Get("client_secret").(string)),
-				VerificationToken:       utils.String(d.Get("verification_token").(string)),
-				LandingPageURL:          utils.String(d.Get("landing_page_url").(string)),
-				IsEnabled:               utils.Bool(true),
-				RegisterBeforeOAuthFlow: utils.Bool(true),
+				ClientID:                pointer.To(d.Get("client_id").(string)),
+				ClientSecret:            pointer.To(d.Get("client_secret").(string)),
+				VerificationToken:       pointer.To(d.Get("verification_token").(string)),
+				LandingPageURL:          pointer.To(d.Get("landing_page_url").(string)),
+				IsEnabled:               pointer.To(true),
+				RegisterBeforeOAuthFlow: pointer.To(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameSlackChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
 	if v, ok := d.GetOk("signing_secret"); ok {
 		channel, _ := channel.Properties.AsSlackChannel()
-		channel.Properties.SigningSecret = utils.String(v.(string))
+		channel.Properties.SigningSecret = pointer.To(v.(string))
 	}
 
-	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, botservice.ChannelNameSlackChannel, channel); err != nil {
-		return fmt.Errorf("creating Slack Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
+	if _, err := client.Create(ctx, resourceId.ResourceGroupName, resourceId.BotServiceName, botservice.ChannelNameSlackChannel, channel); err != nil {
+		return fmt.Errorf("creating Slack Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroupName, err)
 	}
 
 	d.SetId(resourceId.ID())
@@ -142,24 +150,24 @@ func resourceBotChannelSlackRead(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotChannelID(d.Id())
+	id, err := commonids.ParseBotServiceChannelID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameSlackChannel))
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName, string(botservice.ChannelNameSlackChannel))
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Slack Channel for Bot %q (Resource Group %q) was not found - removing from state!", id.BotServiceName, id.ResourceGroup)
+		if response.WasNotFound(resp.Response.Response) {
+			log.Printf("[INFO] Slack Channel for Bot %q (Resource Group %q) was not found - removing from state!", id.BotServiceName, id.ResourceGroupName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retreving Slack Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroup, err)
+		return fmt.Errorf("retreving Slack Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroupName, err)
 	}
 
 	d.Set("bot_name", id.BotServiceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.Properties; props != nil {
@@ -179,7 +187,7 @@ func resourceBotChannelSlackUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotChannelID(d.Id())
+	id, err := commonids.ParseBotServiceChannelID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -187,26 +195,26 @@ func resourceBotChannelSlackUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	channel := botservice.BotChannel{
 		Properties: botservice.SlackChannel{
 			Properties: &botservice.SlackChannelProperties{
-				ClientID:                utils.String(d.Get("client_id").(string)),
-				ClientSecret:            utils.String(d.Get("client_secret").(string)),
-				VerificationToken:       utils.String(d.Get("verification_token").(string)),
-				LandingPageURL:          utils.String(d.Get("landing_page_url").(string)),
-				IsEnabled:               utils.Bool(true),
-				RegisterBeforeOAuthFlow: utils.Bool(true),
+				ClientID:                pointer.To(d.Get("client_id").(string)),
+				ClientSecret:            pointer.To(d.Get("client_secret").(string)),
+				VerificationToken:       pointer.To(d.Get("verification_token").(string)),
+				LandingPageURL:          pointer.To(d.Get("landing_page_url").(string)),
+				IsEnabled:               pointer.To(true),
+				RegisterBeforeOAuthFlow: pointer.To(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameSlackChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
 	if v, ok := d.GetOk("signing_secret"); ok {
 		channel, _ := channel.Properties.AsSlackChannel()
-		channel.Properties.SigningSecret = utils.String(v.(string))
+		channel.Properties.SigningSecret = pointer.To(v.(string))
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameSlackChannel, channel); err != nil {
-		return fmt.Errorf("updating Slack Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroup, err)
+	if _, err := client.Update(ctx, id.ResourceGroupName, id.BotServiceName, botservice.ChannelNameSlackChannel, channel); err != nil {
+		return fmt.Errorf("updating Slack Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroupName, err)
 	}
 
 	return resourceBotChannelSlackRead(d, meta)
@@ -217,15 +225,15 @@ func resourceBotChannelSlackDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotChannelID(d.Id())
+	id, err := commonids.ParseBotServiceChannelID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameSlackChannel))
+	resp, err := client.Delete(ctx, id.ResourceGroupName, id.BotServiceName, string(botservice.ChannelNameSlackChannel))
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("deleting Slack Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroup, err)
+			return fmt.Errorf("deleting Slack Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroupName, err)
 		}
 	}
 

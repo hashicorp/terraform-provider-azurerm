@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helper
@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resources"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/replicationlinks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/replicationlinks"
 )
 
 // FindDatabaseReplicationPartners looks for partner databases having one of the specified replication roles, by
@@ -84,7 +84,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 		listOptions := resources.ListOperationOptions{
 			Expand: nil,
 			Filter: pointer.To(filter),
-			Top:    pointer.FromInt64(100),
+			Top:    pointer.To(int64(100)),
 		}
 
 		resourcesIterator, err := resourcesClient.ListComplete(ctx, *linkSubscription, listOptions)
@@ -168,7 +168,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 
 						log.Printf("[INFO] SQL Database Preferred Enclave Type: %q :: Partner SQL Database Preferred Enclave Type: %q", primaryEnclaveType, partnerDatabasePropsPreferredEnclaveType)
 
-						if partnerDatabase.Id != nil && partnerDatabaseProps != nil && partnerDatabasePropsPreferredEnclaveType == string(primaryEnclaveType) {
+						if partnerDatabase.Id != nil && partnerDatabasePropsPreferredEnclaveType == string(primaryEnclaveType) {
 							log.Printf("[INFO] Found Partner SQL Database ID: %s", partnerDatabaseId)
 							partnerDatabases = append(partnerDatabases, *partnerDatabase)
 						} else {

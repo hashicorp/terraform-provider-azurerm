@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -6,12 +6,11 @@ package compute_test
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"testing"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -429,58 +428,6 @@ func TestAccOrchestratedVirtualMachineScaleSet_importLinux(t *testing.T) {
 	})
 }
 
-func TestAccOrchestratedVirtualMachineScaleSet_skuProfileErrorConfiguration(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	r := OrchestratedVirtualMachineScaleSetResource{}
-
-	// TODO - Remove this override when Preview is rolled out to westeurope - currently only supported in EastUS, WestUS, EastUS2, and WestUS2
-	data.Locations.Primary = "eastus2"
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.skuProfileWithoutSkuName(data),
-			ExpectError: regexp.MustCompile("`sku_profile` can only be configured when `sku_name` is set"),
-		},
-		{
-			Config:      r.skuProfileSkuNameIsNotMix(data),
-			ExpectError: regexp.MustCompile("`sku_profile` can only be configured when `sku_name` is set"),
-		},
-		{
-			Config:      r.skuProfileNotExist(data),
-			ExpectError: regexp.MustCompile("`sku_profile` must be configured when `sku_name` is set"),
-		},
-	})
-}
-
-func TestAccOrchestratedVirtualMachineScaleSet_skuProfile(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-	r := OrchestratedVirtualMachineScaleSetResource{}
-
-	// TODO - Remove this override when Preview is rolled out to westeurope - currently only supported in EastUS, WestUS, EastUS2, and WestUS2
-	data.Locations.Primary = "eastus2"
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.skuProfile(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config: r.skuProfileUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config: r.skuProfile(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-	})
-}
-
 func TestAccOrchestratedVirtualMachineScaleSet_priorityMixPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
@@ -612,7 +559,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_regression29748(t *testing.T) {
 	})
 }
 
-func (t OrchestratedVirtualMachineScaleSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r OrchestratedVirtualMachineScaleSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -637,7 +584,7 @@ func (OrchestratedVirtualMachineScaleSetResource) Destroy(ctx context.Context, c
 	defer cancel()
 
 	if err := client.Compute.VirtualMachineScaleSetsClient.DeleteThenPoll(ctx2, *id, virtualmachinescalesets.DefaultDeleteOperationOptions()); err != nil {
-		return nil, fmt.Errorf("Bad: deleting %s: %+v", *id, err)
+		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return pointer.To(true), nil
@@ -686,8 +633,7 @@ func (OrchestratedVirtualMachineScaleSetResource) hasApplicationGateway(ctx cont
 }
 
 // Net new tests for the 2021-07-01 version of the API
-func (OrchestratedVirtualMachineScaleSetResource) basic(data acceptance.TestData) string {
-	r := OrchestratedVirtualMachineScaleSetResource{}
+func (r OrchestratedVirtualMachineScaleSetResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -754,8 +700,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) regression15299(data acceptance.TestData) string {
-	r := OrchestratedVirtualMachineScaleSetResource{}
+func (r OrchestratedVirtualMachineScaleSetResource) regression15299(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -871,8 +816,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "import" {
 `, r.basic(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) evictionPolicyDelete(data acceptance.TestData) string {
-	r := OrchestratedVirtualMachineScaleSetResource{}
+func (r OrchestratedVirtualMachineScaleSetResource) evictionPolicyDelete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -978,8 +922,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, SharedImageVersionResource{}.imageVersionSpecializedByVM(data), data.RandomInteger)
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) withPPG(data acceptance.TestData) string {
-	r := OrchestratedVirtualMachineScaleSetResource{}
+func (r OrchestratedVirtualMachineScaleSetResource) withPPG(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1052,8 +995,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) basicApplicationSecurity(data acceptance.TestData) string {
-	r := OrchestratedVirtualMachineScaleSetResource{}
+func (r OrchestratedVirtualMachineScaleSetResource) basicApplicationSecurity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1126,8 +1068,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) basicWindows(data acceptance.TestData) string {
-	r := OrchestratedVirtualMachineScaleSetResource{}
+func (r OrchestratedVirtualMachineScaleSetResource) basicWindows(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1156,9 +1097,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
 
-      enable_automatic_updates = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
+      automatic_updates_enabled = true
+      provision_vm_agent        = true
+      timezone                  = "W. Europe Standard Time"
 
       winrm_listener {
         protocol = "Http"
@@ -1199,8 +1140,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) otherAdditionalUnattendContent(data acceptance.TestData) string {
-	r := OrchestratedVirtualMachineScaleSetResource{}
+func (r OrchestratedVirtualMachineScaleSetResource) otherAdditionalUnattendContent(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1229,9 +1169,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
 
-      enable_automatic_updates = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
+      automatic_updates_enabled = true
+      provision_vm_agent        = true
+      timezone                  = "W. Europe Standard Time"
 
       winrm_listener {
         protocol = "Http"
@@ -1277,8 +1217,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) basicWindowsNoTimezone(data acceptance.TestData) string {
-	r := OrchestratedVirtualMachineScaleSetResource{}
+func (r OrchestratedVirtualMachineScaleSetResource) basicWindowsNoTimezone(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1307,8 +1246,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
 
-      enable_automatic_updates = true
-      provision_vm_agent       = true
+      automatic_updates_enabled = true
+      provision_vm_agent        = true
 
       winrm_listener {
         protocol = "Http"
@@ -1764,8 +1703,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) bootDiagnostic(data acceptance.TestData) string {
-	r := OrchestratedVirtualMachineScaleSetResource{}
+func (r OrchestratedVirtualMachineScaleSetResource) bootDiagnostic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1792,7 +1730,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -1852,8 +1790,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) bootDiagnostic_noStorage(data acceptance.TestData) string {
-	r := OrchestratedVirtualMachineScaleSetResource{}
+func (r OrchestratedVirtualMachineScaleSetResource) bootDiagnostic_noStorage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2126,8 +2063,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) applicationGatewayTemplate(data acceptance.TestData) string {
-	r := OrchestratedVirtualMachineScaleSetResource{}
+func (r OrchestratedVirtualMachineScaleSetResource) applicationGatewayTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2198,8 +2134,8 @@ resource "azurerm_public_ip" "gwtest" {
   name                = "acctest-pubip-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
-  sku                 = "Basic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -2227,7 +2163,8 @@ resource "azurerm_application_gateway" "test" {
     name      = "ip-config-private"
     subnet_id = azurerm_subnet.gwtest.id
 
-    private_ip_address_allocation = "Dynamic"
+    private_ip_address_allocation = "Static"
+    private_ip_address            = "10.0.3.10"
   }
 
   frontend_port {
@@ -2328,465 +2265,6 @@ resource "azurerm_subnet_nat_gateway_association" "example" {
 `, data.RandomInteger, publicIpSku)
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) skuProfileWithoutSkuName(data acceptance.TestData) string {
-	r := OrchestratedVirtualMachineScaleSetResource{}
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-OVMSS-%[1]d"
-  location = "%[2]s"
-}
-
-%[3]s
-
-resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctestOVMSS-spotPriorityMixVMSS-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  priority                    = "Spot"
-  eviction_policy             = "Delete"
-  instances                   = 3
-  platform_fault_domain_count = 1
-
-  sku_profile {
-    allocation_strategy = "CapacityOptimized"
-    vm_sizes            = ["Standard_D8s_v5", "Standard_D2s_v5", "Standard_D4s_v5"]
-  }
-
-  tags = {
-    "SkipASMAzSecPack"                                                         = "true",
-    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true",
-    "prevent_deletion_if_contains_resources"                                   = "false"
-  }
-
-  os_profile {
-    windows_configuration {
-      computer_name_prefix = "testvm"
-      admin_username       = "myadmin"
-      admin_password       = "Passwword1234"
-
-      enable_automatic_updates = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
-
-      winrm_listener {
-        protocol = "Http"
-      }
-    }
-  }
-
-  network_interface {
-    name    = "TestNetworkProfile-%[1]d"
-    primary = true
-
-    ip_configuration {
-      name      = "TestIPConfiguration"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-
-      public_ip_address {
-        name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label"
-        idle_timeout_in_minutes = 4
-      }
-    }
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter-Server-Core"
-    version   = "latest"
-  }
-
-  priority_mix {
-    base_regular_count            = 4
-    regular_percentage_above_base = 50
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
-}
-
-func (OrchestratedVirtualMachineScaleSetResource) skuProfileSkuNameIsNotMix(data acceptance.TestData) string {
-	r := OrchestratedVirtualMachineScaleSetResource{}
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-OVMSS-%[1]d"
-  location = "%[2]s"
-}
-
-%[3]s
-
-resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctestOVMSS-spotPriorityMixVMSS-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  priority                    = "Spot"
-  eviction_policy             = "Delete"
-  sku_name                    = "Standard_D1_v2"
-  instances                   = 3
-  platform_fault_domain_count = 1
-
-  sku_profile {
-    allocation_strategy = "CapacityOptimized"
-    vm_sizes            = ["Standard_D8s_v5", "Standard_D2s_v5", "Standard_D4s_v5"]
-  }
-
-  tags = {
-    "SkipASMAzSecPack"                                                         = "true",
-    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true",
-    "prevent_deletion_if_contains_resources"                                   = "false"
-  }
-
-  os_profile {
-    windows_configuration {
-      computer_name_prefix = "testvm"
-      admin_username       = "myadmin"
-      admin_password       = "Passwword1234"
-
-      enable_automatic_updates = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
-
-      winrm_listener {
-        protocol = "Http"
-      }
-    }
-  }
-
-  network_interface {
-    name    = "TestNetworkProfile-%[1]d"
-    primary = true
-
-    ip_configuration {
-      name      = "TestIPConfiguration"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-
-      public_ip_address {
-        name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label"
-        idle_timeout_in_minutes = 4
-      }
-    }
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter-Server-Core"
-    version   = "latest"
-  }
-
-  priority_mix {
-    base_regular_count            = 4
-    regular_percentage_above_base = 50
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
-}
-
-func (OrchestratedVirtualMachineScaleSetResource) skuProfileNotExist(data acceptance.TestData) string {
-	r := OrchestratedVirtualMachineScaleSetResource{}
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-OVMSS-%[1]d"
-  location = "%[2]s"
-}
-
-%[3]s
-
-resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctestOVMSS-spotPriorityMixVMSS-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  priority                    = "Spot"
-  eviction_policy             = "Delete"
-  sku_name                    = "Mix"
-  instances                   = 3
-  platform_fault_domain_count = 1
-
-  tags = {
-    "SkipASMAzSecPack"                                                         = "true",
-    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true",
-    "prevent_deletion_if_contains_resources"                                   = "false"
-  }
-
-  os_profile {
-    windows_configuration {
-      computer_name_prefix = "testvm"
-      admin_username       = "myadmin"
-      admin_password       = "Passwword1234"
-
-      enable_automatic_updates = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
-
-      winrm_listener {
-        protocol = "Http"
-      }
-    }
-  }
-
-  network_interface {
-    name    = "TestNetworkProfile-%[1]d"
-    primary = true
-
-    ip_configuration {
-      name      = "TestIPConfiguration"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-
-      public_ip_address {
-        name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label"
-        idle_timeout_in_minutes = 4
-      }
-    }
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter-Server-Core"
-    version   = "latest"
-  }
-
-  priority_mix {
-    base_regular_count            = 4
-    regular_percentage_above_base = 50
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
-}
-
-func (OrchestratedVirtualMachineScaleSetResource) skuProfile(data acceptance.TestData) string {
-	r := OrchestratedVirtualMachineScaleSetResource{}
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-OVMSS-%[1]d"
-  location = "%[2]s"
-}
-
-%[3]s
-
-resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctestOVMSS-spotPriorityMixVMSS-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  priority                    = "Spot"
-  eviction_policy             = "Delete"
-  sku_name                    = "Mix"
-  instances                   = 3
-  platform_fault_domain_count = 1
-
-  sku_profile {
-    allocation_strategy = "CapacityOptimized"
-    vm_sizes            = ["Standard_D8s_v5", "Standard_D2s_v5", "Standard_D4s_v5"]
-  }
-
-  tags = {
-    "SkipASMAzSecPack"                                                         = "true",
-    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true",
-    "prevent_deletion_if_contains_resources"                                   = "false"
-  }
-
-  os_profile {
-    windows_configuration {
-      computer_name_prefix = "testvm"
-      admin_username       = "myadmin"
-      admin_password       = "Passwword1234"
-
-      enable_automatic_updates = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
-
-      winrm_listener {
-        protocol = "Http"
-      }
-    }
-  }
-
-  network_interface {
-    name    = "TestNetworkProfile-%[1]d"
-    primary = true
-
-    ip_configuration {
-      name      = "TestIPConfiguration"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-
-      public_ip_address {
-        name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label"
-        idle_timeout_in_minutes = 4
-      }
-    }
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter-Server-Core"
-    version   = "latest"
-  }
-
-  priority_mix {
-    base_regular_count            = 4
-    regular_percentage_above_base = 50
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
-}
-
-func (OrchestratedVirtualMachineScaleSetResource) skuProfileUpdate(data acceptance.TestData) string {
-	r := OrchestratedVirtualMachineScaleSetResource{}
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-OVMSS-%[1]d"
-  location = "%[2]s"
-}
-
-%[3]s
-
-resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctestOVMSS-spotPriorityMixVMSS-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  priority                    = "Spot"
-  eviction_policy             = "Delete"
-  sku_name                    = "Mix"
-  instances                   = 3
-  platform_fault_domain_count = 1
-
-  sku_profile {
-    allocation_strategy = "LowestPrice"
-    vm_sizes            = ["Standard_D4s_v5", "Standard_D2s_v5"]
-  }
-
-  tags = {
-    "SkipASMAzSecPack"                                                         = "true",
-    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true",
-    "prevent_deletion_if_contains_resources"                                   = "false"
-  }
-
-  os_profile {
-    windows_configuration {
-      computer_name_prefix = "testvm"
-      admin_username       = "myadmin"
-      admin_password       = "Passwword1234"
-
-      enable_automatic_updates = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
-
-      winrm_listener {
-        protocol = "Http"
-      }
-    }
-  }
-
-  network_interface {
-    name    = "TestNetworkProfile-%[1]d"
-    primary = true
-
-    ip_configuration {
-      name      = "TestIPConfiguration"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-
-      public_ip_address {
-        name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label"
-        idle_timeout_in_minutes = 4
-      }
-    }
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter-Server-Core"
-    version   = "latest"
-  }
-
-  priority_mix {
-    base_regular_count            = 4
-    regular_percentage_above_base = 50
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
-}
-
 func (OrchestratedVirtualMachineScaleSetResource) priorityMixPolicy(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
@@ -2830,9 +2308,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
 
-      enable_automatic_updates = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
+      automatic_updates_enabled = true
+      provision_vm_agent        = true
+      timezone                  = "W. Europe Standard Time"
 
       winrm_listener {
         protocol = "Http"
@@ -2877,8 +2355,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) updatePriorityMixPolicy(data acceptance.TestData) string {
-	r := OrchestratedVirtualMachineScaleSetResource{}
+func (r OrchestratedVirtualMachineScaleSetResource) updatePriorityMixPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -2920,9 +2397,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_username       = "myadmin"
       admin_password       = "Passwword1234"
 
-      enable_automatic_updates = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
+      automatic_updates_enabled = true
+      provision_vm_agent        = true
+      timezone                  = "W. Europe Standard Time"
 
       winrm_listener {
         protocol = "Http"

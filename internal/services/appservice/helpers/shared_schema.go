@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IpRestriction struct {
@@ -83,7 +82,7 @@ func IpRestrictionSchema() *pluginsdk.Schema {
 				"name": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The name which should be used for this `ip_restriction`.",
 				},
@@ -124,7 +123,7 @@ func IpRestrictionSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"ip_address": {
@@ -502,7 +501,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 				"allowed_external_redirect_urls": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -513,16 +512,10 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 				"default_provider": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true, // Once set, cannot be unset
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.BuiltInAuthenticationProviderAzureActiveDirectory),
-						string(webapps.BuiltInAuthenticationProviderFacebook),
-						string(webapps.BuiltInAuthenticationProviderGithub),
-						string(webapps.BuiltInAuthenticationProviderGoogle),
-						string(webapps.BuiltInAuthenticationProviderMicrosoftAccount),
-						string(webapps.BuiltInAuthenticationProviderTwitter),
-					}, false),
-					Description: "The default authentication provider to use when multiple providers are configured. Possible values include: `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount`, `Twitter`, `Github`.",
+					// Note: O+C because Once set, cannot be unset
+					Computed:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForBuiltInAuthenticationProvider(), false),
+					Description:  "The default authentication provider to use when multiple providers are configured. Possible values include: `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount`, `Twitter`, `Github`.",
 				},
 
 				"issuer": {
@@ -535,7 +528,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 				"runtime_version": {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					Description: "The RuntimeVersion of the Authentication / Authorization feature in use.",
 				},
 
@@ -568,12 +561,10 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 				"unauthenticated_client_action": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true, // Once set, cannot be removed
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.UnauthenticatedClientActionAllowAnonymous),
-						string(webapps.UnauthenticatedClientActionRedirectToLoginPage),
-					}, false),
-					Description: "The action to take when an unauthenticated client attempts to access the app. Possible values include: `RedirectToLoginPage`, `AllowAnonymous`.",
+					// Note: O+C because Once set, cannot be removed
+					Computed:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForUnauthenticatedClientAction(), false),
+					Description:  "The action to take when an unauthenticated client attempts to access the app. Possible values include: `RedirectToLoginPage`, `AllowAnonymous`.",
 				},
 
 				"active_directory": AadAuthSettingsSchema(),
@@ -1226,20 +1217,20 @@ func ExpandIpRestrictions(restrictions []IpRestriction) (*[]webapps.IPSecurityRe
 
 		var restriction webapps.IPSecurityRestriction
 		if v.Name != "" {
-			restriction.Name = utils.String(v.Name)
+			restriction.Name = pointer.To(v.Name)
 		}
 
 		if v.IpAddress != "" {
-			restriction.IPAddress = utils.String(v.IpAddress)
+			restriction.IPAddress = pointer.To(v.IpAddress)
 		}
 
 		if v.ServiceTag != "" {
-			restriction.IPAddress = utils.String(v.ServiceTag)
+			restriction.IPAddress = pointer.To(v.ServiceTag)
 			restriction.Tag = pointer.To(webapps.IPFilterTagServiceTag)
 		}
 
 		if v.VnetSubnetId != "" {
-			restriction.VnetSubnetResourceId = utils.String(v.VnetSubnetId)
+			restriction.VnetSubnetResourceId = pointer.To(v.VnetSubnetId)
 		}
 
 		if v.Description != "" {
@@ -1304,7 +1295,7 @@ func ExpandAuthSettings(auth []AuthSettings) *webapps.SiteAuthSettings {
 
 	props.AllowedExternalRedirectURLs = &v.AllowedExternalRedirectURLs
 
-	props.DefaultProvider = pointer.To(webapps.BuiltInAuthenticationProvider(v.DefaultProvider))
+	props.DefaultProvider = pointer.ToEnum[webapps.BuiltInAuthenticationProvider](v.DefaultProvider)
 
 	props.Issuer = pointer.To(v.Issuer)
 
@@ -1314,7 +1305,7 @@ func ExpandAuthSettings(auth []AuthSettings) *webapps.SiteAuthSettings {
 
 	props.TokenRefreshExtensionHours = pointer.To(v.TokenRefreshExtensionHours)
 
-	props.UnauthenticatedClientAction = pointer.To(webapps.UnauthenticatedClientAction(v.UnauthenticatedClientAction))
+	props.UnauthenticatedClientAction = pointer.ToEnum[webapps.UnauthenticatedClientAction](v.UnauthenticatedClientAction)
 
 	a := AadAuthSettings{}
 	if len(v.AzureActiveDirectoryAuth) > 0 {
@@ -1410,11 +1401,7 @@ func FlattenAuthSettings(auth *webapps.SiteAuthSettings) []AuthSettings {
 		result.AdditionalLoginParameters = params
 	}
 
-	var allowedRedirectUrls []string
-	if props.AllowedExternalRedirectURLs != nil {
-		allowedRedirectUrls = *props.AllowedExternalRedirectURLs
-	}
-	result.AllowedExternalRedirectURLs = allowedRedirectUrls
+	result.AllowedExternalRedirectURLs = pointer.From(props.AllowedExternalRedirectURLs)
 
 	if props.Issuer != nil {
 		result.Issuer = *props.Issuer
@@ -1631,7 +1618,7 @@ func FlattenWebStringDictionary(input *webapps.StringDictionary) map[string]stri
 func FlattenSiteCredentials(input *webapps.User) []SiteCredential {
 	var result []SiteCredential
 	if input == nil || input.Properties == nil {
-		return result
+		return []SiteCredential{}
 	}
 
 	userProps := *input.Properties
@@ -1646,7 +1633,7 @@ func FlattenSiteCredentials(input *webapps.User) []SiteCredential {
 func FlattenSiteCredentialsLogicApp(input *webapps.User) []SiteCredentialLogicApp {
 	var result []SiteCredentialLogicApp
 	if input == nil || input.Properties == nil {
-		return result
+		return []SiteCredentialLogicApp{}
 	}
 
 	userProps := *input.Properties

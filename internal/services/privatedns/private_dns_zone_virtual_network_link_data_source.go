@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package privatedns
@@ -31,7 +31,6 @@ func dataSourcePrivateDnsZoneVirtualNetworkLink() *pluginsdk.Resource {
 				Required: true,
 			},
 
-			// TODO: in 4.0 switch this to `private_dns_zone_id`
 			"private_dns_zone_name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,

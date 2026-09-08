@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -97,14 +97,16 @@ func (r VirtualMachineRestorePointResource) Create() sdk.ResourceFunc {
 
 			id := restorepoints.NewRestorePointID(collectionId.SubscriptionId, collectionId.ResourceGroupName, collectionId.RestorePointCollectionName, config.Name)
 
-			existing, err := client.Get(ctx, id, restorepoints.DefaultGetOperationOptions())
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id, restorepoints.DefaultGetOperationOptions())
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := restorepoints.RestorePoint{
@@ -126,7 +128,7 @@ func (r VirtualMachineRestorePointResource) Create() sdk.ResourceFunc {
 				parameters.Properties.ExcludeDisks = pointer.To(excludedDisks)
 			}
 
-			if err = client.CreateThenPoll(ctx, id, parameters); err != nil {
+			if err = client.CreateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

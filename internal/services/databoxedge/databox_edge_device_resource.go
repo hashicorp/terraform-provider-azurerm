@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package databoxedge
@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/devices"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -21,6 +22,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 type DevicePropertiesModel struct {
 	Capacity            int64    `tfschema:"capacity"`
@@ -46,7 +49,14 @@ type EdgeDeviceModel struct {
 
 type EdgeDeviceResource struct{}
 
-var _ sdk.ResourceWithUpdate = EdgeDeviceResource{}
+var (
+	_ sdk.ResourceWithUpdate   = EdgeDeviceResource{}
+	_ sdk.ResourceWithIdentity = EdgeDeviceResource{}
+)
+
+func (r EdgeDeviceResource) Identity() resourceids.ResourceId {
+	return &devices.DataBoxEdgeDeviceId{}
+}
 
 func (r EdgeDeviceResource) ModelObject() interface{} {
 	return &EdgeDeviceModel{}
@@ -167,14 +177,17 @@ func (r EdgeDeviceResource) Create() sdk.ResourceFunc {
 			}
 
 			id := devices.NewDataBoxEdgeDeviceID(subscriptionId, metaModel.ResourceGroupName, metaModel.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_databox_edge_device", id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError("azurerm_databox_edge_device", id.ID())
+				}
 			}
 
 			dataBoxEdgeDevice := devices.DataBoxEdgeDevice{
@@ -188,6 +201,9 @@ func (r EdgeDeviceResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -228,6 +244,10 @@ func (r EdgeDeviceResource) Read() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
 
 			return metadata.Encode(&state)
 		},
@@ -299,8 +319,8 @@ func expandDeviceSku(input string) *devices.Sku {
 	}
 
 	return &devices.Sku{
-		Name: pointer.To(devices.SkuName(v.Name)),
-		Tier: pointer.To(devices.SkuTier(v.Tier)),
+		Name: pointer.ToEnum[devices.SkuName](v.Name),
+		Tier: pointer.ToEnum[devices.SkuTier](v.Tier),
 	}
 }
 
@@ -322,7 +342,7 @@ func flattenDeviceProperties(input *devices.DataBoxEdgeDeviceProperties) []Devic
 		o := DevicePropertiesModel{}
 		if input.ConfiguredRoleTypes != nil {
 			for _, item := range *input.ConfiguredRoleTypes {
-				configuredRoleTypes = append(configuredRoleTypes, (string)(item))
+				configuredRoleTypes = append(configuredRoleTypes, string(item))
 			}
 			o.ConfiguredRoleTypes = configuredRoleTypes
 		}
@@ -400,7 +420,5 @@ func flattenDeviceSku(input *devices.Sku) string {
 		tier = devices.SkuTierStandard
 	}
 
-	skuName := fmt.Sprintf("%s-%s", name, tier)
-
-	return skuName
+	return fmt.Sprintf("%s-%s", name, tier)
 }

@@ -87,9 +87,20 @@ func (c VpnGatewaysClient) Reset(ctx context.Context, id VpnGatewayId, options R
 
 // ResetThenPoll performs Reset then polls until it's completed
 func (c VpnGatewaysClient) ResetThenPoll(ctx context.Context, id VpnGatewayId, options ResetOperationOptions) error {
+	return c.ResetCallbackThenPoll(ctx, id, options, nil)
+}
+
+// ResetCallbackThenPoll performs Reset, runs the optional callback function, then polls until it's completed
+func (c VpnGatewaysClient) ResetCallbackThenPoll(ctx context.Context, id VpnGatewayId, options ResetOperationOptions, callback func() error) error {
 	result, err := c.Reset(ctx, id, options)
 	if err != nil {
 		return fmt.Errorf("performing Reset: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

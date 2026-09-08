@@ -62,9 +62,20 @@ func (c RegistriesClient) ScheduleRun(ctx context.Context, id RegistryId, input 
 
 // ScheduleRunThenPoll performs ScheduleRun then polls until it's completed
 func (c RegistriesClient) ScheduleRunThenPoll(ctx context.Context, id RegistryId, input RunRequest) error {
+	return c.ScheduleRunCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ScheduleRunCallbackThenPoll performs ScheduleRun, runs the optional callback function, then polls until it's completed
+func (c RegistriesClient) ScheduleRunCallbackThenPoll(ctx context.Context, id RegistryId, input RunRequest, callback func() error) error {
 	result, err := c.ScheduleRun(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ScheduleRun: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

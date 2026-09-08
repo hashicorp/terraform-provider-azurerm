@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package md
@@ -149,8 +149,7 @@ func extractFieldFromLine(line string) (field *model.Field) {
 			}
 		}
 		if len(enums) == 0 && strings.Index(res[3], "`") > 0 {
-			guessValues := codeReg.FindAllString(res[3], -1)
-			field.SetGuessEnums(guessValues)
+			field.SetGuessEnums(codeReg.FindAllString(res[3], -1))
 		}
 	}
 	field.AddEnum(enums...)

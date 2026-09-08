@@ -61,9 +61,20 @@ func (c OracleSubscriptionsClient) AddAzureSubscriptions(ctx context.Context, id
 
 // AddAzureSubscriptionsThenPoll performs AddAzureSubscriptions then polls until it's completed
 func (c OracleSubscriptionsClient) AddAzureSubscriptionsThenPoll(ctx context.Context, id commonids.SubscriptionId, input AzureSubscriptions) error {
+	return c.AddAzureSubscriptionsCallbackThenPoll(ctx, id, input, nil)
+}
+
+// AddAzureSubscriptionsCallbackThenPoll performs AddAzureSubscriptions, runs the optional callback function, then polls until it's completed
+func (c OracleSubscriptionsClient) AddAzureSubscriptionsCallbackThenPoll(ctx context.Context, id commonids.SubscriptionId, input AzureSubscriptions, callback func() error) error {
 	result, err := c.AddAzureSubscriptions(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing AddAzureSubscriptions: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

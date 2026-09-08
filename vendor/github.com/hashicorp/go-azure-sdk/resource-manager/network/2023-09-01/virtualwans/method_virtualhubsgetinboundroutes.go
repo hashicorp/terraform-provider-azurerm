@@ -62,9 +62,20 @@ func (c VirtualWANsClient) VirtualHubsGetInboundRoutes(ctx context.Context, id V
 
 // VirtualHubsGetInboundRoutesThenPoll performs VirtualHubsGetInboundRoutes then polls until it's completed
 func (c VirtualWANsClient) VirtualHubsGetInboundRoutesThenPoll(ctx context.Context, id VirtualHubId, input GetInboundRoutesParameters) error {
+	return c.VirtualHubsGetInboundRoutesCallbackThenPoll(ctx, id, input, nil)
+}
+
+// VirtualHubsGetInboundRoutesCallbackThenPoll performs VirtualHubsGetInboundRoutes, runs the optional callback function, then polls until it's completed
+func (c VirtualWANsClient) VirtualHubsGetInboundRoutesCallbackThenPoll(ctx context.Context, id VirtualHubId, input GetInboundRoutesParameters, callback func() error) error {
 	result, err := c.VirtualHubsGetInboundRoutes(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing VirtualHubsGetInboundRoutes: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

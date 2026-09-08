@@ -15,13 +15,13 @@ import (
 type GetContentOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *interface{}
+	Model        *string
 }
 
 // GetContent ...
 func (c NodeReportsClient) GetContent(ctx context.Context, id ReportId) (result GetContentOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json; charset=utf-8",
+		ContentType: "text/plain",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -44,7 +44,7 @@ func (c NodeReportsClient) GetContent(ctx context.Context, id ReportId) (result 
 		return
 	}
 
-	var model interface{}
+	var model string
 	result.Model = &model
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return

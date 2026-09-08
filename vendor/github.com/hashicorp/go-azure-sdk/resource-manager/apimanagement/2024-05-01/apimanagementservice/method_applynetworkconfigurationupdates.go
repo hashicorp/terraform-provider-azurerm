@@ -62,9 +62,20 @@ func (c ApiManagementServiceClient) ApplyNetworkConfigurationUpdates(ctx context
 
 // ApplyNetworkConfigurationUpdatesThenPoll performs ApplyNetworkConfigurationUpdates then polls until it's completed
 func (c ApiManagementServiceClient) ApplyNetworkConfigurationUpdatesThenPoll(ctx context.Context, id ServiceId, input ApiManagementServiceApplyNetworkConfigurationParameters) error {
+	return c.ApplyNetworkConfigurationUpdatesCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ApplyNetworkConfigurationUpdatesCallbackThenPoll performs ApplyNetworkConfigurationUpdates, runs the optional callback function, then polls until it's completed
+func (c ApiManagementServiceClient) ApplyNetworkConfigurationUpdatesCallbackThenPoll(ctx context.Context, id ServiceId, input ApiManagementServiceApplyNetworkConfigurationParameters, callback func() error) error {
 	result, err := c.ApplyNetworkConfigurationUpdates(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ApplyNetworkConfigurationUpdates: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

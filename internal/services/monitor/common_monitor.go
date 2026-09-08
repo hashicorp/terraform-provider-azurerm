@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -6,8 +6,8 @@ package monitor
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func flattenAzureRmScheduledQueryRulesAlertAction(input *scheduledqueryrules.AzNsActionGroup) []interface{} {
@@ -28,15 +28,15 @@ func expandMonitorScheduledQueryRulesCommonSource(d *pluginsdk.ResourceData) sch
 	dataSourceID := d.Get("data_source_id").(string)
 
 	source := scheduledqueryrules.Source{
-		AuthorizedResources: utils.ExpandStringSlice(authorizedResourceIDs),
+		AuthorizedResources: helpers.ExpandStringSlice(authorizedResourceIDs),
 		DataSourceId:        dataSourceID,
 	}
 
 	if query, ok := d.GetOk("query"); ok {
-		source.Query = utils.String(query.(string))
+		source.Query = pointer.To(query.(string))
 	}
 	if queryType, ok := d.GetOk("query_type"); ok {
-		source.QueryType = pointer.To(scheduledqueryrules.QueryType(queryType.(string)))
+		source.QueryType = pointer.ToEnum[scheduledqueryrules.QueryType](queryType.(string))
 	}
 
 	return source

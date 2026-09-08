@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package check
@@ -105,7 +105,9 @@ func (d *DiffResult) ToString() string {
 			`------
 %d issues found in %d resources
 ------`,
-			count, resourceCount))
+			count, resourceCount,
+		),
+	)
 	return bs.String()
 }
 

@@ -58,9 +58,20 @@ func (c CosmosDBClient) TableResourcesMigrateTableToAutoscale(ctx context.Contex
 
 // TableResourcesMigrateTableToAutoscaleThenPoll performs TableResourcesMigrateTableToAutoscale then polls until it's completed
 func (c CosmosDBClient) TableResourcesMigrateTableToAutoscaleThenPoll(ctx context.Context, id TableId) error {
+	return c.TableResourcesMigrateTableToAutoscaleCallbackThenPoll(ctx, id, nil)
+}
+
+// TableResourcesMigrateTableToAutoscaleCallbackThenPoll performs TableResourcesMigrateTableToAutoscale, runs the optional callback function, then polls until it's completed
+func (c CosmosDBClient) TableResourcesMigrateTableToAutoscaleCallbackThenPoll(ctx context.Context, id TableId, callback func() error) error {
 	result, err := c.TableResourcesMigrateTableToAutoscale(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing TableResourcesMigrateTableToAutoscale: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

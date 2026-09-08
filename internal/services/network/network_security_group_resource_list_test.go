@@ -15,7 +15,7 @@ import (
 func TestAccNetworkSecurityGroup_list_basic(t *testing.T) {
 	r := NetworkSecurityGroupResource{}
 
-	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test1")
+	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -27,14 +27,18 @@ func TestAccNetworkSecurityGroup_list_basic(t *testing.T) {
 				Config: r.basicList(data),
 			},
 			{
-				Query:             true,
-				Config:            r.basicQuery(),
-				ConfigQueryChecks: []querycheck.QueryCheck{}, // TODO
+				Query:  true,
+				Config: r.basicQuery(),
+				QueryResultChecks: []querycheck.QueryResultCheck{
+					querycheck.ExpectLengthAtLeast("azurerm_network_security_group.list", 3),
+				},
 			},
 			{
-				Query:             true,
-				Config:            r.basicQueryByResourceGroupName(data),
-				ConfigQueryChecks: []querycheck.QueryCheck{}, // TODO
+				Query:  true,
+				Config: r.basicQueryByResourceGroupName(data),
+				QueryResultChecks: []querycheck.QueryResultCheck{
+					querycheck.ExpectLength("azurerm_network_security_group.list", 3),
+				},
 			},
 		},
 	})
@@ -51,20 +55,10 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_network_security_group" "test1" {
-  name                = "acctestNSG1-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
+resource "azurerm_network_security_group" "test" {
+  count = 3
 
-resource "azurerm_network_security_group" "test2" {
-  name                = "acctestNSG2-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_network_security_group" "test3" {
-  name                = "acctestNSG3-%[1]d"
+  name                = "acctestNSG${count.index}-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }

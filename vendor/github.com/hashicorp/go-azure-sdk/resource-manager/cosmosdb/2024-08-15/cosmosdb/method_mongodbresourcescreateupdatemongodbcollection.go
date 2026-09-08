@@ -62,9 +62,20 @@ func (c CosmosDBClient) MongoDBResourcesCreateUpdateMongoDBCollection(ctx contex
 
 // MongoDBResourcesCreateUpdateMongoDBCollectionThenPoll performs MongoDBResourcesCreateUpdateMongoDBCollection then polls until it's completed
 func (c CosmosDBClient) MongoDBResourcesCreateUpdateMongoDBCollectionThenPoll(ctx context.Context, id MongodbDatabaseCollectionId, input MongoDBCollectionCreateUpdateParameters) error {
+	return c.MongoDBResourcesCreateUpdateMongoDBCollectionCallbackThenPoll(ctx, id, input, nil)
+}
+
+// MongoDBResourcesCreateUpdateMongoDBCollectionCallbackThenPoll performs MongoDBResourcesCreateUpdateMongoDBCollection, runs the optional callback function, then polls until it's completed
+func (c CosmosDBClient) MongoDBResourcesCreateUpdateMongoDBCollectionCallbackThenPoll(ctx context.Context, id MongodbDatabaseCollectionId, input MongoDBCollectionCreateUpdateParameters, callback func() error) error {
 	result, err := c.MongoDBResourcesCreateUpdateMongoDBCollection(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing MongoDBResourcesCreateUpdateMongoDBCollection: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

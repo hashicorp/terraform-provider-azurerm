@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dns_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DnsCNameRecordResource struct{}
@@ -111,7 +111,7 @@ func TestAccDnsCNameRecord_withTags(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsCNameRecord_withAlias(t *testing.T) {
+func TestAccDnsCNameRecord_withAlias(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
 	r := DnsCNameRecordResource{}
 	targetResourceName := "azurerm_dns_cname_record.target"
@@ -136,7 +136,7 @@ func TestAccAzureRMDnsCNameRecord_withAlias(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsCNameRecord_RecordToAlias(t *testing.T) {
+func TestAccDnsCNameRecord_RecordToAlias(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
 	r := DnsCNameRecordResource{}
 	targetResourceName := "azurerm_dns_cname_record.target2"
@@ -160,7 +160,7 @@ func TestAccAzureRMDnsCNameRecord_RecordToAlias(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsCNameRecord_AliasToRecord(t *testing.T) {
+func TestAccDnsCNameRecord_AliasToRecord(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
 	r := DnsCNameRecordResource{}
 	targetResourceName := "azurerm_dns_cname_record.target2"
@@ -195,7 +195,7 @@ func (DnsCNameRecordResource) Exists(ctx context.Context, clients *clients.Clien
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (DnsCNameRecordResource) basic(data acceptance.TestData) string {

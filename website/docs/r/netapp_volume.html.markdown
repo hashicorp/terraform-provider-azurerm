@@ -126,6 +126,11 @@ resource "azurerm_netapp_volume" "example" {
     policy_enabled   = true
   }
 
+  # Enabling Advanced Ransomware Protection (ARP)
+  data_protection_advanced_ransomware {
+    protection_enabled = true
+  }
+
   # prevent the possibility of accidental data loss
   lifecycle {
     prevent_destroy = true
@@ -169,7 +174,7 @@ The following arguments are supported:
 
 * `network_features` - (Optional) Indicates which network feature to use, accepted values are `Basic` or `Standard`, it defaults to `Basic` if not defined. This is a feature in public preview and for more information about it and how to register, please refer to [Configure network features for an Azure NetApp Files volume](https://docs.microsoft.com/en-us/azure/azure-netapp-files/configure-network-features).
 
-* `storage_quota_in_gb` - (Required) The maximum Storage Quota allowed for a file system in Gigabytes.
+* `storage_quota_in_gb` - (Required) The maximum Storage Quota allowed for a file system in Gigabytes. Possible values are between `50` and `102400` for regular volumes, between `51200` and `1048576` for large volumes, and between `2400` and `2457600` for large volumes with `breakthrough_mode_enabled` set to `true`.
 
 * `snapshot_directory_visible` - (Optional) Specifies whether the .snapshot (NFS clients) or ~snapshot (SMB clients) path of a volume is visible. Defaults to `true`.
 
@@ -184,6 +189,8 @@ The following arguments are supported:
 * `data_protection_snapshot_policy` - (Optional) A `data_protection_snapshot_policy` block as defined below.
 
 * `data_protection_backup_policy` - (Optional) A `data_protection_backup_policy` block as defined below.
+
+* `data_protection_advanced_ransomware` - (Optional) A `data_protection_advanced_ransomware` block as defined below.
 
 * `export_policy_rule` - (Optional) One or more `export_policy_rule` block defined below.
 
@@ -208,6 +215,12 @@ The following arguments are supported:
 * `large_volume_enabled` - (Optional) A boolean specifying if the volume is a large volume. Defaults to `false`.
 
 -> **Note:** Large volumes must be at least 50 TiB in size and can be up to 1,024 TiB (1 PiB). For more information, please refer to [Requirements and considerations for large volumes](https://learn.microsoft.com/en-us/azure/azure-netapp-files/large-volumes-requirements-considerations)
+
+* `breakthrough_mode_enabled` - (Optional) A boolean specifying if the large volume runs in Breakthrough Mode, which places the volume on dedicated capacity providing higher throughput and greater capacity. Defaults to `false`. Changing this forces a new resource to be created.
+
+-> **Note:** `breakthrough_mode_enabled` can only be set to `true` when `large_volume_enabled` is also `true`, and requires the `ANFBreakthroughMode` and `ANFLargeVolumes` features to be registered on the subscription. Volumes using Breakthrough Mode must be sized between 2,400 GB (2,400 GiB) and 2,457,600 GB (2,400 TiB).
+
+-> **Note:** `cool_access` cannot be configured at the same time the volume is created with `breakthrough_mode_enabled` set to `true`. Cool access can be enabled on a subsequent update of the volume.
 
 * `cool_access` - (Optional) A `cool_access` block as defined below.
 
@@ -295,13 +308,31 @@ For more information on Azure NetApp Files Backup feature please see [Understand
   
 ---
 
+A `data_protection_advanced_ransomware` block is used to configure the Advanced Ransomware Protection (ARP) feature for an Azure NetApp Files volume. ARP uses machine learning to develop a profile of your volumes, alerting you of perceived threats based on file extension types, data entropy patterns, and I/OPS patterns. It supports the following:
+
+* `protection_enabled` - (Required) Enable or disable the Advanced Ransomware Protection feature.
+
+~> **Note:** Advanced Ransomware Protection is currently in preview and requires feature registration. For performance considerations and supported regions, please refer to the [Azure documentation](https://learn.microsoft.com/en-us/azure/azure-netapp-files/ransomware-configure).
+
+~> **Note:** It is recommended to enable no more than five volumes per Azure region with ARP to mitigate performance issues, and to increase QoS capacity by 5 to 10 percent due to potential performance impacts.
+
+---
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the NetApp Volume.
 
-* `mount_ip_addresses` - A list of IPv4 Addresses which should be used to mount the volume.
+* `mount_target` - One or more `mount_target` blocks as defined below.
+
+---
+
+A `mount_target` block exports the following:
+
+* `ip_address` - The IP address of the mount target.
+
+* `smb_server_fqdn` - The SMB server's Fully Qualified Domain Name (FQDN). This value is populated when the volume's `protocols` include `CIFS`; otherwise, it is empty.
 
 ## Timeouts
 
@@ -324,4 +355,4 @@ terraform import azurerm_netapp_volume.example /subscriptions/00000000-0000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.NetApp` - 2025-06-01
+* `Microsoft.NetApp` - 2026-05-01

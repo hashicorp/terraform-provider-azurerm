@@ -62,9 +62,20 @@ func (c ServerEndpointResourceClient) ServerEndpointsCreate(ctx context.Context,
 
 // ServerEndpointsCreateThenPoll performs ServerEndpointsCreate then polls until it's completed
 func (c ServerEndpointResourceClient) ServerEndpointsCreateThenPoll(ctx context.Context, id ServerEndpointId, input ServerEndpointCreateParameters) error {
+	return c.ServerEndpointsCreateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ServerEndpointsCreateCallbackThenPoll performs ServerEndpointsCreate, runs the optional callback function, then polls until it's completed
+func (c ServerEndpointResourceClient) ServerEndpointsCreateCallbackThenPoll(ctx context.Context, id ServerEndpointId, input ServerEndpointCreateParameters, callback func() error) error {
 	result, err := c.ServerEndpointsCreate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ServerEndpointsCreate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

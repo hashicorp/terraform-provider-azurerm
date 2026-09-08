@@ -8,3 +8,7 @@ const defaultApiVersion = "2024-11-30"
 func userAgent() string {
 	return "hashicorp/go-azure-sdk/federatedidentitycredentials/2024-11-30"
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}

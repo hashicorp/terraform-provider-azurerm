@@ -65,4 +65,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Databricks` - 2022-10-01-preview
+* `Microsoft.Databricks` - 2026-01-01

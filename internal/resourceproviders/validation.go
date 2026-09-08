@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resourceproviders
@@ -12,7 +12,7 @@ import (
 )
 
 // this is only here to aid testing
-var enhancedEnabled = features.EnhancedValidationEnabled()
+var enhancedEnabled = features.EnhancedValidationResourceProvidersEnabled()
 
 // EnhancedValidate returns a validation function which attempts to validate the Resource Provider
 // against the list of Resource Provider supported by this Azure Environment.
@@ -27,6 +27,7 @@ func EnhancedValidate(i interface{}, k string) ([]string, []error) {
 	return enhancedValidation(i, k)
 }
 
+// lintignore:V013 // this validates against a list of Resource Providers cached at runtime, not a static list
 func enhancedValidation(i interface{}, k string) ([]string, []error) {
 	v, ok := i.(string)
 	if !ok {

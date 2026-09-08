@@ -62,9 +62,20 @@ func (c CosmosDBClient) SqlResourcesCreateUpdateSqlUserDefinedFunction(ctx conte
 
 // SqlResourcesCreateUpdateSqlUserDefinedFunctionThenPoll performs SqlResourcesCreateUpdateSqlUserDefinedFunction then polls until it's completed
 func (c CosmosDBClient) SqlResourcesCreateUpdateSqlUserDefinedFunctionThenPoll(ctx context.Context, id UserDefinedFunctionId, input SqlUserDefinedFunctionCreateUpdateParameters) error {
+	return c.SqlResourcesCreateUpdateSqlUserDefinedFunctionCallbackThenPoll(ctx, id, input, nil)
+}
+
+// SqlResourcesCreateUpdateSqlUserDefinedFunctionCallbackThenPoll performs SqlResourcesCreateUpdateSqlUserDefinedFunction, runs the optional callback function, then polls until it's completed
+func (c CosmosDBClient) SqlResourcesCreateUpdateSqlUserDefinedFunctionCallbackThenPoll(ctx context.Context, id UserDefinedFunctionId, input SqlUserDefinedFunctionCreateUpdateParameters, callback func() error) error {
 	result, err := c.SqlResourcesCreateUpdateSqlUserDefinedFunction(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing SqlResourcesCreateUpdateSqlUserDefinedFunction: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

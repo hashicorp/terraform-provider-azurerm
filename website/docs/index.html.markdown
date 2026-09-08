@@ -29,8 +29,6 @@ Terraform supports a number of different methods for authenticating to Azure:
 
 We recommend using either a Service Principal or Managed Service Identity when running Terraform non-interactively (such as when running Terraform in a CI server) - and authenticating using the Azure CLI when running Terraform locally.
 
--> **Note:** The User, Service Principal or Managed Identity running Terraform should have permissions to register [Azure Resource Providers](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types). If the principal running Terraform has insufficient permissions to register Resource Providers then we recommend setting the property [`resource_provider_registrations`](#resource_provider_registrations) to `none` in the provider block to prevent auto-registration.
-
 ## Example Usage
 
 ```hcl
@@ -40,14 +38,13 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=4.1.0"
+      version = "=5.0.0"
     }
   }
 }
 
 # Configure the Microsoft Azure Provider
 provider "azurerm" {
-  resource_provider_registrations = "none" # This is only required when the User, Service Principal, or Identity running Terraform lacks the permissions to register Azure Resource Providers.
   features {}
 }
 
@@ -78,9 +75,9 @@ experience for you using the Azure provider.
 
 If you have a bug or feature request without an existing issue
 
-* if an existing resource or field is working in an unexpected way, [file a bug](https://github.com/hashicorp/terraform-provider-azurerm/issues/new?template=bug.md).
+* if an existing resource or field is working in an unexpected way, [file a bug](https://github.com/hashicorp/terraform-provider-azurerm/issues/new?template=Bug_Report.yml).
 
-* if you'd like the provider to support a new resource or field, [file an enhancement/feature request](https://github.com/hashicorp/terraform-provider-azurerm/issues/new?template=enhancement.md).
+* if you'd like the provider to support a new resource or field, [file an enhancement/feature request](https://github.com/hashicorp/terraform-provider-azurerm/issues/new?template=Feature_Request.yml).
 
 The provider maintainers will often use the assignee field on an issue to mark
 who is working on it.
@@ -103,7 +100,7 @@ The following arguments are supported:
 
 * `features` - (Required) A `features` block as defined below which can be used to customize the behaviour of certain Azure Provider resources.
 
-* `subscription_id` - (Required) The Subscription ID which should be used. This can also be sourced from the `ARM_SUBSCRIPTION_ID` Environment Variable.
+* `subscription_id` - (Optional) The Subscription ID which should be used. This can also be sourced from the `ARM_SUBSCRIPTION_ID` Environment Variable or the `az` CLI (the default subscription will be selected).
 
 -> **Note:** The `subscription_id` property is required when performing a plan or apply operation, but is not required to run `terraform validate`.
 
@@ -197,11 +194,11 @@ For some advanced scenarios, such as where more granular permissions are necessa
 
 * `auxiliary_tenant_ids` - (Optional) Contains a list of (up to 3) other Tenant IDs used for cross-tenant and multi-tenancy scenarios with multiple AzureRM provider definitions. The list of `auxiliary_tenant_ids` in a given AzureRM provider definition contains the other, remote Tenants and should not include its own `subscription_id` (or `ARM_SUBSCRIPTION_ID` Environment Variable).
 
-* `resource_provider_registrations` - (Optional) Specifies a pre-determined set of [Azure Resource Providers](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types) to automatically register when initializing the AzureRM Provider. Allowed values for this property are `core`, `extended`, `all`, or `none`. This can also be sourced from the `ARM_RESOURCE_PROVIDER_REGISTRATIONS` environment variable. For more information about which resource providers each set contains, see the [Resource Provider Registrations](#resource-provider-registrations) section below.
+* `resource_provider_registrations` - (Optional) Specifies a pre-determined set of [Azure Resource Providers](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types) to automatically register when initializing the AzureRM Provider. Allowed values for this property are `core`, `extended`, `all`, `legacy`, or `none`. This can also be sourced from the `ARM_RESOURCE_PROVIDER_REGISTRATIONS` environment variable. For more information about which resource providers each set contains, see the [Resource Provider Registrations](#resource-provider-registrations) section below. Defaults to `none`.
 
 * `resource_providers_to_register` - (Optional) A list of arbitrary [Azure Resource Providers](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types) to automatically register when initializing the AzureRM Provider. Can be used in combination with the `resource_provider_registrations` property. For more information, see the [Resource Provider Registrations](#resource-provider-registrations) section below.
 
--> **Note:** By default, Terraform will attempt to register any Resource Providers that it supports, even if they're not used in your configurations, to be able to display more helpful error messages. If you're running in an environment with restricted permissions, or wish to manage Resource Provider Registration outside of Terraform you may wish to disable this by setting `resource_provider_registrations` to `none`; however, please note that the error messages returned from Azure may be confusing as a result.
+-> **Note:** In version 5.0 and later, the default value for `resource_provider_registrations` is `none`, meaning no Resource Providers will be automatically registered. If you're upgrading from v4.x and want to maintain the previous behaviour, set `resource_provider_registrations = "legacy"` in your provider block. If you're running in an environment with restricted permissions, or wish to manage Resource Provider Registration outside of Terraform, `none` is the recommended setting.
 
 * `storage_use_azuread` - (Optional) Should the AzureRM Provider use AzureAD to connect to the Storage Blob & Queue APIs, rather than the SharedKey from the Storage Account? This can also be sourced from the `ARM_STORAGE_USE_AZUREAD` Environment Variable. Defaults to `false`.
 
@@ -209,7 +206,7 @@ For some advanced scenarios, such as where more granular permissions are necessa
 
 ~> **Note:** The Files Storage API does not support authenticating via AzureAD and will continue to use a SharedKey when AAD authentication is enabled.
 
-It's also possible to use multiple Provider blocks within a single Terraform configuration, for example, to work with resources across multiple Subscriptions - more information can be found [in the documentation for Providers](https://www.terraform.io/docs/configuration/providers.html#multiple-provider-instances).
+It's also possible to use multiple Provider blocks within a single Terraform configuration, for example, to work with resources across multiple Subscriptions - more information can be found [in the documentation for Providers](https://developer.hashicorp.com/terraform/language/block/provider#multiple-provider-configurations).
 
 ## Features
 
@@ -217,17 +214,18 @@ The `features` block allows configuring the behaviour of the Azure Provider, mor
 
 ## Resource Provider Registrations
 
-Before each plan or apply operation, the AzureRM Provider attempts to ensure that necessary Azure Resource Providers are registered. This process enables the necessary APIs and services for the provider to work with Azure. By default, the provider will attempt to register a small set of resource providers, which provides coverage for the most common resource types that are supported by the provider.
+Before each plan or apply operation, the AzureRM Provider attempts to ensure that necessary Azure Resource Providers are registered. This process enables the necessary APIs and services for the provider to work with Azure. By default, no resource providers are registered.
 
-You can customise this behavior as needed by setting the `resource_provider_registrations` provider property, or the `resource_providers_to_register` provider property, or both of these. The `resource_provider_registrations` property indicates a pre-determined set of resource providers to automatically register, and are:
+You can customise this behaviour as needed by setting the `resource_provider_registrations` provider property, or the `resource_providers_to_register` provider property, or both of these. The `resource_provider_registrations` property indicates a pre-determined set of resource providers to automatically register, and are:
 
+* `all` - a set of resource providers that enables every resource in the provider to be used.
 * `core` - a small set of resource providers for essential services including Compute, Networking and Storage.
 * `extended` - a larger set that provides coverage for the most common supported resources.
-* `all` - a set of resource providers that enables every resource in the provider to be used.
+* `legacy` - a larger set that contains automatically registered resource providers from previous versions of the AzureRM provider.
 * `none` - with this setting, the provider will not attempt to register any resource providers.
+
+~> **Note:** These sets will no longer be updated as the recommended approach is to manage individual resource providers specific to your requirements rather than registering a large number of them up front.
 
 To view the latest specific Azure Resource Providers included in each set, please refer to [this page](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/resourceproviders/required.go) on GitHub.
 
 In addition to, or in place of, the sets described above, you can also configure the AzureRM Provider to register specific Azure Resource Providers, by setting the `resource_providers_to_register` provider property. This should be a list of strings, containing the exact names of Azure Resource Providers to register. For a list of all resource providers, please refer to [official Azure documentation](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types).
-
--> **Note:** The User, Service Principal or Managed Identity running Terraform should have permissions to register [Azure Resource Providers](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types). If the principal running Terraform has insufficient permissions to register Resource Providers then we recommend setting the property [`resource_provider_registrations`](#resource_provider_registrations) to `none` in the provider block to prevent auto-registration.

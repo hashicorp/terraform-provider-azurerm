@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn_test
@@ -9,11 +9,16 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn"
 )
 
 type CdnProfileDataSource struct{}
 
 func TestAccCdnProfileDataSource_basic(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "data.azurerm_cdn_profile", "test")
 	d := CdnProfileDataSource{}
 
@@ -28,6 +33,10 @@ func TestAccCdnProfileDataSource_basic(t *testing.T) {
 }
 
 func TestAccCdnProfileDataSource_withTags(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "data.azurerm_cdn_profile", "test")
 	d := CdnProfileDataSource{}
 

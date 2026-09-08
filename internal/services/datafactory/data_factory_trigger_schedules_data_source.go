@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type TriggerSchedulesDataSource struct{}
@@ -71,7 +71,7 @@ func (d TriggerSchedulesDataSource) Read() sdk.ResourceFunc {
 			iter, err := client.ListByFactoryComplete(ctx, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName)
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
-					if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
+					if response.WasNotFound(v.Response) {
 						return fmt.Errorf("fetching triggers list for %s", dataFactoryId)
 					}
 				} else {

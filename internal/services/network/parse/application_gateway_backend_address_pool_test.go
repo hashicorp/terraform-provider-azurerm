@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -320,6 +320,6 @@ func TestSegmentsForApplicationGatewayBackendAddressPoolId(t *testing.T) {
 		uniqueNames[segment.Name] = struct{}{}
 	}
 	if len(uniqueNames) != len(segments) {
-		t.Fatalf("Expected the Segments to be unique but got %q unique segments and %d total segments", len(uniqueNames), len(segments))
+		t.Fatalf("Expected the Segments to be unique but got %d unique segments and %d total segments", len(uniqueNames), len(segments))
 	}
 }

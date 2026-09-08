@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package check
@@ -56,7 +56,8 @@ func (p possibleValueDiff) String() string {
 	if len(p.Spare) > 0 {
 		missInCode = fmt.Sprintf(" the following possible values are missing in the schema: %v.", possibleValueStr(p.Spare))
 	}
-	return fmt.Sprintf(`%s:%s%s`,
+	return fmt.Sprintf(
+		`%s:%s%s`,
 		p.Str(),
 		missInDoc,
 		missInCode,
@@ -339,7 +340,8 @@ func hasVersionChanges(resourceType, fieldPath string) bool {
 	if strings.Contains(fieldPath, ".") {
 		parts := strings.Split(fieldPath, ".")
 		lastPart := parts[len(parts)-1]
-		propertyPatterns = append(propertyPatterns,
+		propertyPatterns = append(
+			propertyPatterns,
 			fmt.Sprintf("`%s`", lastPart), // `last_part`
 			fmt.Sprintf(" %s ", lastPart), // last_part with spaces
 		)

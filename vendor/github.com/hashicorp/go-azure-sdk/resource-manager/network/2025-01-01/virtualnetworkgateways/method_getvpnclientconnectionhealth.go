@@ -58,9 +58,20 @@ func (c VirtualNetworkGatewaysClient) GetVpnclientConnectionHealth(ctx context.C
 
 // GetVpnclientConnectionHealthThenPoll performs GetVpnclientConnectionHealth then polls until it's completed
 func (c VirtualNetworkGatewaysClient) GetVpnclientConnectionHealthThenPoll(ctx context.Context, id VirtualNetworkGatewayId) error {
+	return c.GetVpnclientConnectionHealthCallbackThenPoll(ctx, id, nil)
+}
+
+// GetVpnclientConnectionHealthCallbackThenPoll performs GetVpnclientConnectionHealth, runs the optional callback function, then polls until it's completed
+func (c VirtualNetworkGatewaysClient) GetVpnclientConnectionHealthCallbackThenPoll(ctx context.Context, id VirtualNetworkGatewayId, callback func() error) error {
 	result, err := c.GetVpnclientConnectionHealth(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing GetVpnclientConnectionHealth: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

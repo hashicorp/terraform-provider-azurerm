@@ -1,0 +1,268 @@
+package preflight
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"strings"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	preflightvalidation "github.com/hashicorp/terraform-provider-azurerm/internal/preflight/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+)
+
+type ValidationRequest struct {
+	Location   *string                                               `json:"location"`
+	Provider   string                                                `json:"provider"`
+	ResourceId resourceids.ResourceId                                `json:"resourceId"`
+	Type       string                                                `json:"type"`
+	Resource   preflightvalidation.ResourceValidationRequestResource `json:"resource"`
+	Scope      string                                                `json:"scope"`
+}
+
+// NewValidationRequest constructs a new ValidationRequest for use with the Azure Preflight
+// Validation API. The resource type is derived automatically from the ARM ID's path segments
+// (e.g. "virtualNetworks" from a VirtualNetworkId, "sites" from an AppServiceId).
+//
+// Use NewValidationRequestWithTypeOverride when the resource provider bundles multiple product
+// offerings under the same namespace and the preflight API requires a specific type discriminator
+// that differs from the ARM path segment (e.g. Microsoft.Cache, where "redis" and
+// "redisEnterprise" are distinct validation types that do not always match the ID segment).
+//
+// NOTE: The Azure Preflight Validation API validates full ARM PUT payloads only; PATCH
+// operations are not supported. The `properties` argument must represent the complete
+// resource body exactly as it will be sent to the ARM API. A partial or PATCH-style
+// payload will produce unreliable validation results. See internal/preflight/README.md
+// for implementation patterns and guidance.
+func NewValidationRequest(location *string, id resourceids.ResourceId, apiVersion string, properties any) (ValidationRequest, error) {
+	scope, provider, resourceType, resourceName, err := parseResourceId(id)
+	if err != nil {
+		return ValidationRequest{}, fmt.Errorf("parsing resource ID for preflight validation: %w", err)
+	}
+
+	return buildValidationRequest(location, id, provider, resourceType, resourceName, scope, apiVersion, properties), nil
+}
+
+// NewValidationRequestWithTypeOverride is like NewValidationRequest but accepts an explicit
+// resourceType, overriding the value that would otherwise be derived from the ARM ID's path
+// segments. Use this when the preflight API requires a type discriminator that differs from
+// the ARM resource type path segment. Example: Microsoft.Cache/redis vs Microsoft.Cache/redisEnterprise.
+func NewValidationRequestWithTypeOverride(location *string, id resourceids.ResourceId, resourceType, apiVersion string, properties any) (ValidationRequest, error) {
+	scope, provider, _, resourceName, err := parseResourceId(id)
+	if err != nil {
+		return ValidationRequest{}, fmt.Errorf("parsing resource ID for preflight validation: %w", err)
+	}
+
+	return buildValidationRequest(location, id, provider, resourceType, resourceName, scope, apiVersion, properties), nil
+}
+
+func buildValidationRequest(location *string, id resourceids.ResourceId, provider, resourceType, resourceName, scope, apiVersion string, properties any) ValidationRequest {
+	return ValidationRequest{
+		Location:   location,
+		Provider:   provider,
+		ResourceId: id,
+		Type:       resourceType,
+		Scope:      scope,
+		Resource: preflightvalidation.ResourceValidationRequestResource{
+			ApiVersion: apiVersion,
+			Name:       resourceName,
+			Type:       fmt.Sprintf("%s/%s", provider, resourceType),
+			Properties: properties,
+		},
+	}
+}
+
+func (v ValidationRequest) ValidateResource(ctx context.Context, metadata sdk.ResourceMetaData) error {
+	client := metadata.Client.Preflight.PreflightClient
+
+	input := preflightvalidation.ResourceValidationRequest{
+		Location:       v.Location,
+		Provider:       v.Provider,
+		Resources:      []preflightvalidation.ResourceValidationRequestResource{v.Resource},
+		Scope:          v.Scope,
+		Type:           v.Type,
+		ValidationType: pointer.To(preflightvalidation.ResourceValidationTypeArmFull),
+	}
+
+	resp, err := client.ValidateResources(ctx, input)
+	if err != nil {
+		if errorDetail := extractErrorDetail(resp.HttpResponse); errorDetail != nil {
+			return errors.New(*errorDetail)
+		}
+
+		return err
+	}
+
+	if resp.Model == nil {
+		return errors.New("missing model in validate response")
+	}
+
+	model := resp.Model
+
+	if len(model.Properties.ValidatedResources) < 1 {
+		return errors.New("validation did not return an error but there were no validated resources")
+	}
+
+	return nil
+}
+
+// parseResourceId breaks down an ARM resource ID into components needed for validation using the resourceids package.
+// resourceType is returned as the slash-joined ARM path segments (without provider prefix), e.g. "redisEnterprise"
+// or "redisEnterprise/databases" for a child resource.
+func parseResourceId(id resourceids.ResourceId) (scope, provider, resourceType, resourceName string, err error) {
+	parser := resourceids.NewParserFromResourceIdType(id)
+	parsed, err := parser.Parse(id.ID(), true)
+	if err != nil {
+		return "", "", "", "", fmt.Errorf("parsing resource ID: %w", err)
+	}
+
+	segments := id.Segments()
+	providerIdx := -1
+	for i, s := range segments {
+		if s.Type == resourceids.ResourceProviderSegmentType {
+			providerIdx = i
+			provider = *s.FixedValue
+			break
+		}
+	}
+
+	if providerIdx == -1 {
+		return "", "", "", "", fmt.Errorf("resource ID is missing a resource provider segment")
+	}
+
+	var typeSegs []string
+	var nameSegs []string
+
+	for i := providerIdx + 1; i < len(segments); i++ {
+		s := segments[i]
+		switch s.Type {
+		case resourceids.ConstantSegmentType, resourceids.StaticSegmentType:
+			val, ok := parsed.SegmentNamed(s.Name, true)
+			switch {
+			case ok && val != nil:
+				typeSegs = append(typeSegs, *val)
+			case s.FixedValue != nil:
+				typeSegs = append(typeSegs, *s.FixedValue)
+			case s.PossibleValues != nil && len(*s.PossibleValues) > 0:
+				typeSegs = append(typeSegs, (*s.PossibleValues)[0])
+			}
+		case resourceids.UserSpecifiedSegmentType:
+			if val, ok := parsed.SegmentNamed(s.Name, true); ok && val != nil {
+				nameSegs = append(nameSegs, *val)
+			}
+		}
+	}
+
+	if len(typeSegs) == 0 {
+		return "", "", "", "", fmt.Errorf("resource ID contains no resource type segments after the provider")
+	}
+
+	resourceType = strings.Join(typeSegs, "/")
+	resourceName = strings.Join(nameSegs, "/")
+
+	var scopeSegments []string
+	cutOffIndex := providerIdx - 1
+	if len(typeSegs) > 1 {
+		for i := len(segments) - 1; i >= 0; i-- {
+			if segments[i].Type == resourceids.ConstantSegmentType || segments[i].Type == resourceids.StaticSegmentType {
+				cutOffIndex = i
+				break
+			}
+		}
+	}
+
+	for i := 0; i < cutOffIndex; i++ {
+		s := segments[i]
+		val, ok := parsed.SegmentNamed(s.Name, true)
+		switch {
+		case ok && val != nil:
+			scopeSegments = append(scopeSegments, *val)
+		case s.FixedValue != nil:
+			scopeSegments = append(scopeSegments, *s.FixedValue)
+		case s.PossibleValues != nil && len(*s.PossibleValues) > 0:
+			scopeSegments = append(scopeSegments, (*s.PossibleValues)[0])
+		}
+	}
+
+	if len(scopeSegments) > 0 {
+		scope = "/" + strings.Join(scopeSegments, "/")
+	}
+
+	return scope, provider, resourceType, resourceName, nil
+}
+
+func extractErrorDetail(resp *http.Response) *string {
+	if resp == nil || resp.Body == nil {
+		return nil
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil
+	}
+
+	var errorResp errorResponse
+	if err := json.Unmarshal(bodyBytes, &errorResp); err != nil {
+		return nil
+	}
+
+	var lines []string
+
+	// nested error messages
+	var collect func(d ErrorDetail, indent int)
+	collect = func(d ErrorDetail, indent int) {
+		prefix := strings.Repeat("  ", indent)
+		if d.Message != "" {
+			if d.Target != nil && *d.Target != "" {
+				lines = append(lines, fmt.Sprintf("%s%s: %s", prefix, *d.Target, d.Message))
+			} else {
+				lines = append(lines, fmt.Sprintf("%s%s", prefix, d.Message))
+			}
+		}
+		for _, child := range d.Details {
+			collect(child, indent+1)
+		}
+	}
+
+	// top-level error message
+	if errorResp.Error.Message != "" {
+		if errorResp.Error.Code != "" {
+			lines = append(lines, fmt.Sprintf("Error (%s): %s", errorResp.Error.Code, errorResp.Error.Message))
+		} else {
+			lines = append(lines, fmt.Sprintf("Error: %s", errorResp.Error.Message))
+		}
+	}
+
+	for _, d := range errorResp.Error.Details {
+		collect(d, 0)
+	}
+
+	if len(lines) > 0 {
+		msg := strings.Join(lines, "\n")
+		return &msg
+	}
+
+	return nil
+}
+
+type errorResponse struct {
+	Error ErrorBody `json:"error"`
+}
+
+type ErrorBody struct {
+	Code    string        `json:"code"`
+	Message string        `json:"message"`
+	Details []ErrorDetail `json:"details,omitempty"`
+}
+
+type ErrorDetail struct {
+	Code    string        `json:"code"`
+	Target  *string       `json:"target,omitempty"`
+	Message string        `json:"message,omitempty"`
+	Details []ErrorDetail `json:"details,omitempty"`
+}

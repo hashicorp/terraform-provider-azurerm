@@ -3,27 +3,31 @@ package integrationruntimes
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type IntegrationRuntimeResource struct {
-	Etag       *string            `json:"etag,omitempty"`
-	Id         *string            `json:"id,omitempty"`
-	Name       *string            `json:"name,omitempty"`
-	Properties IntegrationRuntime `json:"properties"`
-	Type       *string            `json:"type,omitempty"`
+	Etag       *string                `json:"etag,omitempty"`
+	Id         *string                `json:"id,omitempty"`
+	Name       *string                `json:"name,omitempty"`
+	Properties IntegrationRuntime     `json:"properties"`
+	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
+	Type       *string                `json:"type,omitempty"`
 }
 
 var _ json.Unmarshaler = &IntegrationRuntimeResource{}
 
 func (s *IntegrationRuntimeResource) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		Etag *string `json:"etag,omitempty"`
-		Id   *string `json:"id,omitempty"`
-		Name *string `json:"name,omitempty"`
-		Type *string `json:"type,omitempty"`
+		Etag       *string                `json:"etag,omitempty"`
+		Id         *string                `json:"id,omitempty"`
+		Name       *string                `json:"name,omitempty"`
+		SystemData *systemdata.SystemData `json:"systemData,omitempty"`
+		Type       *string                `json:"type,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)
@@ -32,6 +36,7 @@ func (s *IntegrationRuntimeResource) UnmarshalJSON(bytes []byte) error {
 	s.Etag = decoded.Etag
 	s.Id = decoded.Id
 	s.Name = decoded.Name
+	s.SystemData = decoded.SystemData
 	s.Type = decoded.Type
 
 	var temp map[string]json.RawMessage

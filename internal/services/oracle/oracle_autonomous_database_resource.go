@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -72,7 +72,6 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
-			ForceNew:     true,
 			ValidateFunc: validate.AutonomousDatabasePassword,
 		},
 
@@ -140,13 +139,10 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"license_model": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(autonomousdatabases.LicenseModelLicenseIncluded),
-				string(autonomousdatabases.LicenseModelBringYourOwnLicense),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForLicenseModel(), false),
 		},
 
 		"long_term_backup_schedule": {
@@ -189,11 +185,11 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		"customer_contacts": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: validate.CustomerContactEmail,
+				ValidateFunc: validation.IsEmailAddress,
 			},
 		},
 
@@ -258,28 +254,31 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 				model.ResourceGroupName,
 				model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
+
 			properties := &autonomousdatabases.AutonomousDatabaseProperties{
 				AdminPassword:                  pointer.To(model.AdminPassword),
 				BackupRetentionPeriodInDays:    pointer.To(model.BackupRetentionPeriodInDays),
 				CharacterSet:                   pointer.To(model.CharacterSet),
 				ComputeCount:                   pointer.To(model.ComputeCount),
-				ComputeModel:                   pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
+				ComputeModel:                   pointer.ToEnum[autonomousdatabases.ComputeModel](model.ComputeModel),
 				DataBaseType:                   "Regular",
 				DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTbs),
-				DbWorkload:                     pointer.To(autonomousdatabases.WorkloadType(model.DbWorkload)),
+				DbWorkload:                     pointer.ToEnum[autonomousdatabases.WorkloadType](model.DbWorkload),
 				DbVersion:                      pointer.To(model.DbVersion),
 				DisplayName:                    pointer.To(model.DisplayName),
 				IsAutoScalingEnabled:           pointer.To(model.AutoScalingEnabled),
 				IsAutoScalingForStorageEnabled: pointer.To(model.AutoScalingForStorageEnabled),
 				IsMtlsConnectionRequired:       pointer.To(model.MtlsConnectionRequired),
-				LicenseModel:                   pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
+				LicenseModel:                   pointer.ToEnum[autonomousdatabases.LicenseModel](model.LicenseModel),
 				NcharacterSet:                  pointer.To(model.NationalCharacterSet),
 				WhitelistedIPs:                 pointer.To(model.AllowedIps),
 			}
@@ -303,9 +302,10 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 				Properties: properties,
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+			metadata.SetID(id)
 
 			if len(model.LongTermBackUpSchedule) > 0 {
 				backupUpdate := autonomousdatabases.AutonomousDatabaseUpdate{
@@ -317,8 +317,6 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("configuring backup schedule for %s: %+v", id, err)
 				}
 			}
-
-			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -339,14 +337,15 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding err: %+v", err)
 			}
 
-			_, err = client.Get(ctx, *id)
-			if err != nil {
+			if _, err = client.Get(ctx, *id); err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			// Check what needs to be updated
 			needsGeneralUpdate := r.hasGeneralUpdates(metadata)
 			needsBackupScheduleUpdate := metadata.ResourceData.HasChange("long_term_backup_schedule")
+			needsPasswordUpdate := metadata.ResourceData.HasChange("admin_password")
+			needsBackupRetentionDaysUpdate := metadata.ResourceData.HasChange("backup_retention_period_in_days")
 
 			// Step 1: Handle general updates (everything except backup schedule)
 			if needsGeneralUpdate {
@@ -356,9 +355,6 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 
 				if metadata.ResourceData.HasChange("tags") {
 					generalUpdate.Tags = pointer.To(model.Tags)
-				}
-				if metadata.ResourceData.HasChange("backup_retention_period_in_days") {
-					generalUpdate.Properties.BackupRetentionPeriodInDays = pointer.To(model.BackupRetentionPeriodInDays)
 				}
 				if metadata.ResourceData.HasChange("data_storage_size_in_tbs") {
 					generalUpdate.Properties.DataStorageSizeInTbs = pointer.To(model.DataStorageSizeInTbs)
@@ -378,6 +374,31 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 
 				if err := client.UpdateThenPoll(ctx, *id, generalUpdate); err != nil {
 					return fmt.Errorf("updating general properties for %s: %+v", *id, err)
+				}
+			}
+
+			// update password
+			if needsPasswordUpdate {
+				passwordUpdate := autonomousdatabases.AutonomousDatabaseUpdate{
+					Properties: &autonomousdatabases.AutonomousDatabaseUpdateProperties{
+						AdminPassword: pointer.To(model.AdminPassword),
+					},
+				}
+
+				if err := client.UpdateThenPoll(ctx, *id, passwordUpdate); err != nil {
+					return fmt.Errorf("updating Admin password for %s: %+v", *id, err)
+				}
+			}
+
+			if needsBackupRetentionDaysUpdate {
+				backupRetentionDaysUpdate := autonomousdatabases.AutonomousDatabaseUpdate{
+					Properties: &autonomousdatabases.AutonomousDatabaseUpdateProperties{
+						BackupRetentionPeriodInDays: pointer.To(model.BackupRetentionPeriodInDays),
+					},
+				}
+
+				if err := client.UpdateThenPoll(ctx, *id, backupRetentionDaysUpdate); err != nil {
+					return fmt.Errorf("updating `backup_retention_period_in_days` for %s: %+v", *id, err)
 				}
 			}
 
@@ -441,7 +462,7 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				state.LicenseModel = string(pointer.From(props.LicenseModel))
 				state.Location = result.Model.Location
 				state.MtlsConnectionRequired = pointer.From(props.IsMtlsConnectionRequired)
-				state.Name = pointer.ToString(result.Model.Name)
+				state.Name = pointer.From(result.Model.Name)
 				state.NationalCharacterSet = pointer.From(props.NcharacterSet)
 				state.SubnetId = pointer.From(props.SubnetId)
 				state.Tags = pointer.From(result.Model.Tags)
@@ -504,7 +525,7 @@ func expandLongTermBackupSchedule(input []LongTermBackUpScheduleDetails) *autono
 	}
 	schedule := input[0]
 	return &autonomousdatabases.LongTermBackUpScheduleDetails{
-		RepeatCadence:         pointer.To(autonomousdatabases.RepeatCadenceType(schedule.RepeatCadence)),
+		RepeatCadence:         pointer.ToEnum[autonomousdatabases.RepeatCadenceType](schedule.RepeatCadence),
 		TimeOfBackup:          pointer.To(schedule.TimeOfBackup),
 		RetentionPeriodInDays: pointer.To(schedule.RetentionPeriodInDays),
 		IsDisabled:            pointer.To(!schedule.Enabled),
@@ -512,11 +533,13 @@ func expandLongTermBackupSchedule(input []LongTermBackUpScheduleDetails) *autono
 }
 
 func (r AutonomousDatabaseRegularResource) hasGeneralUpdates(metadata sdk.ResourceMetaData) bool {
-	return metadata.ResourceData.HasChange("tags") ||
-		metadata.ResourceData.HasChange("backup_retention_period_in_days") ||
-		metadata.ResourceData.HasChange("data_storage_size_in_tbs") ||
-		metadata.ResourceData.HasChange("compute_count") ||
-		metadata.ResourceData.HasChange("auto_scaling_enabled") ||
-		metadata.ResourceData.HasChange("auto_scaling_for_storage_enabled") ||
-		metadata.ResourceData.HasChange("allowed_ips")
+	// lintignore:R019 // deliberate subset: only the fields covered by the general update payload; the remaining attributes are updated via separate calls
+	return metadata.ResourceData.HasChanges(
+		"tags",
+		"data_storage_size_in_tbs",
+		"compute_count",
+		"auto_scaling_enabled",
+		"auto_scaling_for_storage_enabled",
+		"allowed_ips",
+	)
 }

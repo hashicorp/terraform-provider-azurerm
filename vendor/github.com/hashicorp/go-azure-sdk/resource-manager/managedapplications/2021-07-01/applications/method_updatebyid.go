@@ -62,9 +62,20 @@ func (c ApplicationsClient) UpdateById(ctx context.Context, id ApplicationIdId, 
 
 // UpdateByIdThenPoll performs UpdateById then polls until it's completed
 func (c ApplicationsClient) UpdateByIdThenPoll(ctx context.Context, id ApplicationIdId, input ApplicationPatchable) error {
+	return c.UpdateByIdCallbackThenPoll(ctx, id, input, nil)
+}
+
+// UpdateByIdCallbackThenPoll performs UpdateById, runs the optional callback function, then polls until it's completed
+func (c ApplicationsClient) UpdateByIdCallbackThenPoll(ctx context.Context, id ApplicationIdId, input ApplicationPatchable, callback func() error) error {
 	result, err := c.UpdateById(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing UpdateById: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

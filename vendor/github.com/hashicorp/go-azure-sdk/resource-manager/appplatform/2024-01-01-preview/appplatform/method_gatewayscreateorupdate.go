@@ -62,9 +62,20 @@ func (c AppPlatformClient) GatewaysCreateOrUpdate(ctx context.Context, id Gatewa
 
 // GatewaysCreateOrUpdateThenPoll performs GatewaysCreateOrUpdate then polls until it's completed
 func (c AppPlatformClient) GatewaysCreateOrUpdateThenPoll(ctx context.Context, id GatewayId, input GatewayResource) error {
+	return c.GatewaysCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// GatewaysCreateOrUpdateCallbackThenPoll performs GatewaysCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) GatewaysCreateOrUpdateCallbackThenPoll(ctx context.Context, id GatewayId, input GatewayResource, callback func() error) error {
 	result, err := c.GatewaysCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing GatewaysCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

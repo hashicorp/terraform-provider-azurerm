@@ -8,3 +8,7 @@ const defaultApiVersion = "2022-05-15"
 func userAgent() string {
 	return "hashicorp/go-azure-sdk/sqldedicatedgateway/2022-05-15"
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}

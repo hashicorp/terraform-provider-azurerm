@@ -1,9 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/action"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -11,6 +13,7 @@ import (
 type Registration struct{}
 
 var (
+	_ sdk.FrameworkServiceRegistration               = Registration{}
 	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
 	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
 )
@@ -48,14 +51,14 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_spring_cloud_app_cosmosdb_association": resourceSpringCloudAppCosmosDBAssociation(),
 		"azurerm_spring_cloud_app_mysql_association":    resourceSpringCloudAppMysqlAssociation(),
 		"azurerm_spring_cloud_app_redis_association":    resourceSpringCloudAppRedisAssociation(),
-		"azurerm_spring_cloud_builder":                  resourceSpringCloudBuildServiceBuilder(),
 		"azurerm_spring_cloud_build_deployment":         resourceSpringCloudBuildDeployment(),
 		"azurerm_spring_cloud_build_pack_binding":       resourceSpringCloudBuildPackBinding(),
+		"azurerm_spring_cloud_builder":                  resourceSpringCloudBuildServiceBuilder(),
 		"azurerm_spring_cloud_certificate":              resourceSpringCloudCertificate(),
+		"azurerm_spring_cloud_container_deployment":     resourceSpringCloudContainerDeployment(),
 		"azurerm_spring_cloud_custom_domain":            resourceSpringCloudCustomDomain(),
 		"azurerm_spring_cloud_gateway_custom_domain":    resourceSpringCloudGatewayCustomDomain(),
 		"azurerm_spring_cloud_gateway_route_config":     resourceSpringCloudGatewayRouteConfig(),
-		"azurerm_spring_cloud_container_deployment":     resourceSpringCloudContainerDeployment(),
 		"azurerm_spring_cloud_java_deployment":          resourceSpringCloudJavaDeployment(),
 		"azurerm_spring_cloud_service":                  resourceSpringCloudService(),
 		"azurerm_spring_cloud_storage":                  resourceSpringCloudStorage(),
@@ -68,17 +71,37 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		SpringCloudAcceleratorResource{},
+		SpringCloudAPIPortalResource{},
 		SpringCloudAppDynamicsApplicationPerformanceMonitoringResource{},
 		SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource{},
-		SpringCloudAPIPortalResource{},
-		SpringCloudAcceleratorResource{},
 		SpringCloudApplicationLiveViewResource{},
 		SpringCloudConfigurationServiceResource{},
 		SpringCloudCustomizedAcceleratorResource{},
 		SpringCloudDevToolPortalResource{},
 		SpringCloudDynatraceApplicationPerformanceMonitoringResource{},
-		SpringCloudGatewayResource{},
 		SpringCloudElasticApplicationPerformanceMonitoringResource{},
+		SpringCloudGatewayResource{},
 		SpringCloudNewRelicApplicationPerformanceMonitoringResource{},
 	}
+}
+
+func (r Registration) Actions() []func() action.Action {
+	return []func() action.Action{}
+}
+
+func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
+	return []sdk.FrameworkWrappedResource{}
+}
+
+func (r Registration) FrameworkDataSources() []sdk.FrameworkWrappedDataSource {
+	return []sdk.FrameworkWrappedDataSource{}
+}
+
+func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource {
+	return []func() ephemeral.EphemeralResource{}
+}
+
+func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
+	return []sdk.FrameworkListWrappedResource{}
 }

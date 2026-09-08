@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package bot
@@ -20,12 +20,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 func resourceArmBotConnection() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceArmBotConnectionCreate,
 		Read:   resourceArmBotConnectionRead,
 		Update: resourceArmBotConnectionUpdate,
@@ -96,8 +95,6 @@ func resourceArmBotConnection() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
 func resourceArmBotConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -107,14 +104,15 @@ func resourceArmBotConnectionCreate(d *pluginsdk.ResourceData, meta interface{})
 	defer cancel()
 
 	resourceId := parse.NewBotConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, resourceId.ConnectionName)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of existing Bot Connection %q (Bot %q / Resource Group %q): %+v", resourceId.ConnectionName, resourceId.BotServiceName, resourceId.ResourceGroup, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_bot_connection", resourceId.ID())
 		}
 	}
@@ -183,7 +181,7 @@ func resourceArmBotConnectionRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ConnectionName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] Bot Connection %q (Bot %q / Resource Group %q) was not found - removing from state!", id.ConnectionName, id.BotServiceName, id.ResourceGroup)
 			d.SetId("")
 			return nil
@@ -220,13 +218,13 @@ func resourceArmBotConnectionUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	connection := botservice.ConnectionSetting{
 		Properties: &botservice.ConnectionSettingProperties{
-			ServiceProviderDisplayName: utils.String(d.Get("service_provider_name").(string)),
-			ClientID:                   utils.String(d.Get("client_id").(string)),
-			ClientSecret:               utils.String(d.Get("client_secret").(string)),
-			Scopes:                     utils.String(d.Get("scopes").(string)),
+			ServiceProviderDisplayName: pointer.To(d.Get("service_provider_name").(string)),
+			ClientID:                   pointer.To(d.Get("client_id").(string)),
+			ClientSecret:               pointer.To(d.Get("client_secret").(string)),
+			Scopes:                     pointer.To(d.Get("scopes").(string)),
 		},
 		Kind:     botservice.KindBot,
-		Location: utils.String(d.Get("location").(string)),
+		Location: pointer.To(d.Get("location").(string)),
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -265,8 +263,8 @@ func expandBotConnectionParameters(input map[string]interface{}) *[]botservice.C
 
 	for k, v := range input {
 		output = append(output, botservice.ConnectionSettingParameter{
-			Key:   utils.String(k),
-			Value: utils.String(v.(string)),
+			Key:   pointer.To(k),
+			Value: pointer.To(v.(string)),
 		})
 	}
 	return &output

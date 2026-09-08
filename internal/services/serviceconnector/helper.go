@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package serviceconnector
@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AuthInfoModel struct {
@@ -304,7 +303,7 @@ func expandSecretStore(input []SecretStoreModel) *servicelinker.SecretStore {
 
 	keyVaultId := v.KeyVaultId
 	return &servicelinker.SecretStore{
-		KeyVaultId: utils.String(keyVaultId),
+		KeyVaultId: pointer.To(keyVaultId),
 	}
 }
 
@@ -384,14 +383,9 @@ func flattenTargetService(input servicelinker.TargetServiceBase) string {
 }
 
 func flattenSecretStore(input servicelinker.SecretStore) []SecretStoreModel {
-	var keyVaultId string
-	if input.KeyVaultId != nil {
-		keyVaultId = *input.KeyVaultId
-	}
-
 	return []SecretStoreModel{
 		{
-			KeyVaultId: keyVaultId,
+			KeyVaultId: pointer.From(input.KeyVaultId),
 		},
 	}
 }

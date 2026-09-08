@@ -1,0 +1,31 @@
+name: PR Save Artifacts
+
+# One half of the artifact relay pattern (see README.md in this directory):
+# PR checks run with a read-only token (untrusted fork code), so they cannot
+# label the PR themselves — and the privileged workflow_run workflows that can
+# (pr-waiting-response-on-ci-fail.yaml) don't know which PR the run belonged to,
+# because the workflow_run payload is empty for fork PRs. This workflow bridges
+# the two: called on failure, it uploads the repo owner/name and PR number as an
+# artifact so the workflow_run side can download it and label the right PR.
+
+permissions: {}
+
+on:
+  # This file is reused, and called from other workflows
+  workflow_call:
+
+jobs:
+  save-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - shell: bash
+        run: |
+          mkdir -p wr_actions
+          echo ${{ github.repository_owner }} > wr_actions/ghowner.txt
+          echo ${{ github.event.repository.name }} > wr_actions/ghrepo.txt
+          echo ${{ github.event.pull_request.number }} > wr_actions/prnumber.txt
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: artifact
+          path: wr_actions
+          retention-days: 1

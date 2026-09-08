@@ -9,30 +9,30 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AmazonMWSLinkedServiceTypeProperties struct {
-	AccessKeyId           interface{} `json:"accessKeyId"`
-	EncryptedCredential   *string     `json:"encryptedCredential,omitempty"`
-	Endpoint              interface{} `json:"endpoint"`
-	MarketplaceID         interface{} `json:"marketplaceID"`
-	MwsAuthToken          SecretBase  `json:"mwsAuthToken"`
-	SecretKey             SecretBase  `json:"secretKey"`
-	SellerID              interface{} `json:"sellerID"`
-	UseEncryptedEndpoints *bool       `json:"useEncryptedEndpoints,omitempty"`
-	UseHostVerification   *bool       `json:"useHostVerification,omitempty"`
-	UsePeerVerification   *bool       `json:"usePeerVerification,omitempty"`
+	AccessKeyId           interface{}  `json:"accessKeyId"`
+	EncryptedCredential   *string      `json:"encryptedCredential,omitempty"`
+	Endpoint              interface{}  `json:"endpoint"`
+	MarketplaceID         interface{}  `json:"marketplaceID"`
+	MwsAuthToken          SecretBase   `json:"mwsAuthToken"`
+	SecretKey             SecretBase   `json:"secretKey"`
+	SellerID              interface{}  `json:"sellerID"`
+	UseEncryptedEndpoints *interface{} `json:"useEncryptedEndpoints,omitempty"`
+	UseHostVerification   *interface{} `json:"useHostVerification,omitempty"`
+	UsePeerVerification   *interface{} `json:"usePeerVerification,omitempty"`
 }
 
 var _ json.Unmarshaler = &AmazonMWSLinkedServiceTypeProperties{}
 
 func (s *AmazonMWSLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		AccessKeyId           interface{} `json:"accessKeyId"`
-		EncryptedCredential   *string     `json:"encryptedCredential,omitempty"`
-		Endpoint              interface{} `json:"endpoint"`
-		MarketplaceID         interface{} `json:"marketplaceID"`
-		SellerID              interface{} `json:"sellerID"`
-		UseEncryptedEndpoints *bool       `json:"useEncryptedEndpoints,omitempty"`
-		UseHostVerification   *bool       `json:"useHostVerification,omitempty"`
-		UsePeerVerification   *bool       `json:"usePeerVerification,omitempty"`
+		AccessKeyId           interface{}  `json:"accessKeyId"`
+		EncryptedCredential   *string      `json:"encryptedCredential,omitempty"`
+		Endpoint              interface{}  `json:"endpoint"`
+		MarketplaceID         interface{}  `json:"marketplaceID"`
+		SellerID              interface{}  `json:"sellerID"`
+		UseEncryptedEndpoints *interface{} `json:"useEncryptedEndpoints,omitempty"`
+		UseHostVerification   *interface{} `json:"useHostVerification,omitempty"`
+		UsePeerVerification   *interface{} `json:"usePeerVerification,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

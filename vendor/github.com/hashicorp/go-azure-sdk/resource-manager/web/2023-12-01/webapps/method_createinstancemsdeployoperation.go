@@ -61,9 +61,20 @@ func (c WebAppsClient) CreateInstanceMSDeployOperation(ctx context.Context, id I
 
 // CreateInstanceMSDeployOperationThenPoll performs CreateInstanceMSDeployOperation then polls until it's completed
 func (c WebAppsClient) CreateInstanceMSDeployOperationThenPoll(ctx context.Context, id InstanceId, input MSDeploy) error {
+	return c.CreateInstanceMSDeployOperationCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateInstanceMSDeployOperationCallbackThenPoll performs CreateInstanceMSDeployOperation, runs the optional callback function, then polls until it's completed
+func (c WebAppsClient) CreateInstanceMSDeployOperationCallbackThenPoll(ctx context.Context, id InstanceId, input MSDeploy, callback func() error) error {
 	result, err := c.CreateInstanceMSDeployOperation(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateInstanceMSDeployOperation: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
