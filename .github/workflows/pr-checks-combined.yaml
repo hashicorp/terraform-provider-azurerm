@@ -110,7 +110,7 @@ jobs:
 
   depscheck-on-success:
     needs: depscheck
-    if: success() && needs.depscheck.result == 'success'
+    if: always() && needs.depscheck.result == 'success'
     uses: ./.github/workflows/pr-comment-failure-outdated.yaml
     with:
       check_name: "Vendor Dependencies Check"
@@ -156,7 +156,7 @@ jobs:
 
   quick-checks-on-success:
     needs: quick-checks
-    if: success() && needs.quick-checks.result == 'success'
+    if: always() && needs.quick-checks.result == 'success'
     uses: ./.github/workflows/pr-comment-failure-outdated.yaml
     with:
       check_name: "Quick CI Checks"
@@ -194,7 +194,7 @@ jobs:
 
   shellcheck-on-success:
     needs: shellcheck
-    if: success() && needs.shellcheck.result == 'success'
+    if: always() && needs.shellcheck.result == 'success'
     uses: ./.github/workflows/pr-comment-failure-outdated.yaml
     with:
       check_name: "ShellCheck Scripts"
@@ -236,7 +236,7 @@ jobs:
 
   website-lint-on-success:
     needs: website-lint
-    if: success() && needs.website-lint.result == 'success'
+    if: always() && needs.website-lint.result == 'success'
     uses: ./.github/workflows/pr-comment-failure-outdated.yaml
     with:
       check_name: "Website Linting"
@@ -320,7 +320,7 @@ jobs:
 
   build-on-success:
     needs: build
-    if: success() && needs.build.result == 'success'
+    if: always() && needs.build.result == 'success'
     uses: ./.github/workflows/pr-comment-failure-outdated.yaml
     with:
       check_name: "GoLang Compilation"
@@ -379,7 +379,7 @@ jobs:
 
   golangci-lint-on-success:
     needs: golangci-lint
-    if: success() && needs.golangci-lint.result == 'success'
+    if: always() && needs.golangci-lint.result == 'success'
     uses: ./.github/workflows/pr-comment-failure-outdated.yaml
     with:
       check_name: "GoLangCI Linting"
@@ -424,7 +424,7 @@ jobs:
 
   gencheck-on-success:
     needs: gencheck
-    if: success() && needs.gencheck.result == 'success'
+    if: always() && needs.gencheck.result == 'success'
     uses: ./.github/workflows/pr-comment-failure-outdated.yaml
     with:
       check_name: "Generation Check"
@@ -485,7 +485,7 @@ jobs:
 
   unit-tests-on-success:
     needs: unit-tests
-    if: success() && needs.unit-tests.result == 'success'
+    if: always() && needs.unit-tests.result == 'success'
     uses: ./.github/workflows/pr-comment-failure-outdated.yaml
     with:
       check_name: "Unit Tests"
@@ -532,7 +532,7 @@ jobs:
 
   validate-examples-on-success:
     needs: validate-examples
-    if: success() && needs.validate-examples.result == 'success'
+    if: always() && needs.validate-examples.result == 'success'
     uses: ./.github/workflows/pr-comment-failure-outdated.yaml
     with:
       check_name: "Validate Examples"

@@ -627,14 +627,13 @@ func expandHDInsightApplicationEdgeNodeHttpsEndpoints(input []interface{}) *[]ap
 	for _, v := range input {
 		val := v.(map[string]interface{})
 
-		accessModes := val["access_modes"].([]string)
 		destinationPort := val["destination_port"].(int64)
 		disableGatewayAuth := val["disable_gateway_auth"].(bool)
 		privateIpAddress := val["private_ip_address"].(string)
 		subDomainSuffix := val["sub_domain_suffix"].(string)
 
 		endPoint := applications.ApplicationGetHTTPSEndpoint{
-			AccessModes:        &accessModes,
+			AccessModes:        pointer.To(val["access_modes"].([]string)),
 			DestinationPort:    pointer.To(destinationPort),
 			PrivateIPAddress:   pointer.To(privateIpAddress),
 			SubDomainSuffix:    pointer.To(subDomainSuffix),

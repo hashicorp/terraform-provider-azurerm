@@ -704,8 +704,7 @@ func expandMsSqlServerAdministrators(input []interface{}) *servers.ServerExterna
 	}
 
 	if v, ok := admin["azuread_authentication_only"]; ok && v != "" {
-		adOnlyAuthentication := v.(bool)
-		adminParams.AzureADOnlyAuthentication = &adOnlyAuthentication
+		adminParams.AzureADOnlyAuthentication = pointer.To(v.(bool))
 	}
 
 	return &adminParams

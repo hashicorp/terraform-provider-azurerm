@@ -1111,20 +1111,16 @@ func expandIoTHubRoutes(d *pluginsdk.ResourceData) *[]devices.RouteProperties {
 	for _, routeRaw := range routeList {
 		route := routeRaw.(map[string]interface{})
 
-		name := route["name"].(string)
 		source := devices.RoutingSource(route["source"].(string))
-		condition := route["condition"].(string)
 
 		endpointNamesRaw := route["endpoint_names"].([]interface{})
 
-		isEnabled := route["enabled"].(bool)
-
 		routeProperties = append(routeProperties, devices.RouteProperties{
-			Name:          &name,
+			Name:          pointer.To(route["name"].(string)),
 			Source:        source,
-			Condition:     &condition,
+			Condition:     pointer.To(route["condition"].(string)),
 			EndpointNames: helpers.ExpandStringSlice(endpointNamesRaw),
-			IsEnabled:     &isEnabled,
+			IsEnabled:     pointer.To(route["enabled"].(bool)),
 		})
 	}
 
@@ -1139,14 +1135,11 @@ func expandIoTHubEnrichments(d *pluginsdk.ResourceData) *[]devices.EnrichmentPro
 	for _, enrichmentRaw := range enrichmentList {
 		enrichment := enrichmentRaw.(map[string]interface{})
 
-		key := enrichment["key"].(string)
-		value := enrichment["value"].(string)
-
 		endpointNamesRaw := enrichment["endpoint_names"].([]interface{})
 
 		enrichmentProperties = append(enrichmentProperties, devices.EnrichmentProperties{
-			Key:           &key,
-			Value:         &value,
+			Key:           pointer.To(enrichment["key"].(string)),
+			Value:         pointer.To(enrichment["value"].(string)),
 			EndpointNames: helpers.ExpandStringSlice(endpointNamesRaw),
 		})
 	}
@@ -1166,18 +1159,13 @@ func expandIoTHubFileUpload(d *pluginsdk.ResourceData) (map[string]*devices.Stor
 
 		authenticationType := devices.AuthenticationType(fileUploadMap["authentication_type"].(string))
 		identityId := fileUploadMap["identity_id"].(string)
-		connectionStr := fileUploadMap["connection_string"].(string)
-		containerName := fileUploadMap["container_name"].(string)
 		notifications = fileUploadMap["notifications"].(bool)
-		maxDeliveryCount := int32(fileUploadMap["max_delivery_count"].(int))
 		sasTTL := fileUploadMap["sas_ttl"].(string)
-		defaultTTL := fileUploadMap["default_ttl"].(string)
-		lockDuration := fileUploadMap["lock_duration"].(string)
 
 		storageEndpointProperties["$default"] = &devices.StorageEndpointProperties{
 			AuthenticationType: authenticationType,
-			ConnectionString:   &connectionStr,
-			ContainerName:      &containerName,
+			ConnectionString:   pointer.To(fileUploadMap["connection_string"].(string)),
+			ContainerName:      pointer.To(fileUploadMap["container_name"].(string)),
 		}
 
 		if sasTTL != "" {
@@ -1194,9 +1182,9 @@ func expandIoTHubFileUpload(d *pluginsdk.ResourceData) (map[string]*devices.Stor
 		}
 
 		messagingEndpointProperties["fileNotifications"] = &devices.MessagingEndpointProperties{
-			LockDurationAsIso8601: &lockDuration,
-			TTLAsIso8601:          &defaultTTL,
-			MaxDeliveryCount:      &maxDeliveryCount,
+			LockDurationAsIso8601: pointer.To(fileUploadMap["lock_duration"].(string)),
+			TTLAsIso8601:          pointer.To(fileUploadMap["default_ttl"].(string)),
+			MaxDeliveryCount:      pointer.To(int32(fileUploadMap["max_delivery_count"].(int))),
 		}
 	}
 
@@ -1276,9 +1264,6 @@ func expandIoTHubEndpoints(d *pluginsdk.ResourceData, subscriptionId string) (*d
 				return nil, fmt.Errorf("`container_name` must be specified when `type` is `AzureIotHub.StorageContainer`")
 			}
 
-			fileNameFormat := endpoint["file_name_format"].(string)
-			batchFrequencyInSeconds := int32(endpoint["batch_frequency_in_seconds"].(int))
-			maxChunkSizeInBytes := int32(endpoint["max_chunk_size_in_bytes"].(int))
 			encoding := endpoint["encoding"].(string)
 
 			storageContainer := devices.RoutingStorageContainerProperties{
@@ -1290,9 +1275,9 @@ func expandIoTHubEndpoints(d *pluginsdk.ResourceData, subscriptionId string) (*d
 				SubscriptionID:          &subscriptionID,
 				ResourceGroup:           &resourceGroup,
 				ContainerName:           &containerName,
-				FileNameFormat:          &fileNameFormat,
-				BatchFrequencyInSeconds: &batchFrequencyInSeconds,
-				MaxChunkSizeInBytes:     &maxChunkSizeInBytes,
+				FileNameFormat:          pointer.To(endpoint["file_name_format"].(string)),
+				BatchFrequencyInSeconds: pointer.To(int32(endpoint["batch_frequency_in_seconds"].(int))),
+				MaxChunkSizeInBytes:     pointer.To(int32(endpoint["max_chunk_size_in_bytes"].(int))),
 				Encoding:                devices.Encoding(encoding),
 			}
 			storageContainerProperties = append(storageContainerProperties, storageContainer)
@@ -1354,15 +1339,11 @@ func expandIoTHubFallbackRoute(d *pluginsdk.ResourceData) *devices.FallbackRoute
 
 	fallbackRouteMap := fallbackRouteList[0].(map[string]interface{})
 
-	source := fallbackRouteMap["source"].(string)
-	condition := fallbackRouteMap["condition"].(string)
-	isEnabled := fallbackRouteMap["enabled"].(bool)
-
 	return &devices.FallbackRouteProperties{
-		Source:        &source,
-		Condition:     &condition,
+		Source:        pointer.To(fallbackRouteMap["source"].(string)),
+		Condition:     pointer.To(fallbackRouteMap["condition"].(string)),
 		EndpointNames: helpers.ExpandStringSlice(fallbackRouteMap["endpoint_names"].([]interface{})),
-		IsEnabled:     &isEnabled,
+		IsEnabled:     pointer.To(fallbackRouteMap["enabled"].(bool)),
 	}
 }
 
@@ -1383,9 +1364,8 @@ func expandIoTHubCloudToDevice(d *pluginsdk.ResourceData) *devices.CloudToDevice
 	}
 	cloudToDevice := devices.CloudToDeviceProperties{}
 	ctdMap := ctdList[0].(map[string]interface{})
-	defaultTimeToLive := ctdMap["default_ttl"].(string)
 
-	cloudToDevice.DefaultTTLAsIso8601 = &defaultTimeToLive
+	cloudToDevice.DefaultTTLAsIso8601 = pointer.To(ctdMap["default_ttl"].(string))
 	cloudToDevice.MaxDeliveryCount = pointer.To(int32(ctdMap["max_delivery_count"].(int)))
 	feedback := ctdMap["feedback"].([]interface{})
 
@@ -1393,11 +1373,8 @@ func expandIoTHubCloudToDevice(d *pluginsdk.ResourceData) *devices.CloudToDevice
 	if len(feedback) > 0 {
 		feedbackMap := feedback[0].(map[string]interface{})
 
-		lockDuration := feedbackMap["lock_duration"].(string)
-		timeToLive := feedbackMap["time_to_live"].(string)
-
-		cloudToDeviceFeedback.TTLAsIso8601 = &timeToLive
-		cloudToDeviceFeedback.LockDurationAsIso8601 = &lockDuration
+		cloudToDeviceFeedback.TTLAsIso8601 = pointer.To(feedbackMap["time_to_live"].(string))
+		cloudToDeviceFeedback.LockDurationAsIso8601 = pointer.To(feedbackMap["lock_duration"].(string))
 		cloudToDeviceFeedback.MaxDeliveryCount = pointer.To(int32(feedbackMap["max_delivery_count"].(int)))
 	}
 

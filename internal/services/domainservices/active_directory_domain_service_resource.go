@@ -594,9 +594,8 @@ func domainServiceControllerRefreshFunc(ctx context.Context, client *domainservi
 }
 
 func expandDomainServiceLdaps(input []interface{}) (ldaps *domainservices.LdapsSettings) {
-	state := domainservices.LdapsDisabled
 	ldaps = &domainservices.LdapsSettings{
-		Ldaps: &state,
+		Ldaps: pointer.To(domainservices.LdapsDisabled),
 	}
 
 	if len(input) > 0 {

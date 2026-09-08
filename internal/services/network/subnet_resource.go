@@ -871,10 +871,8 @@ func expandSubnetDelegation(input []interface{}) *[]subnets.Delegation {
 
 	for _, deleValue := range input {
 		deleData := deleValue.(map[string]interface{})
-		deleName := deleData["name"].(string)
 		srvDelegations := deleData["service_delegation"].([]interface{})
 		srvDelegation := srvDelegations[0].(map[string]interface{})
-		srvName := srvDelegation["name"].(string)
 		srvActions := srvDelegation["actions"].(*pluginsdk.Set).List()
 
 		retSrvActions := make([]string, 0)
@@ -884,9 +882,9 @@ func expandSubnetDelegation(input []interface{}) *[]subnets.Delegation {
 		}
 
 		retDelegation := subnets.Delegation{
-			Name: &deleName,
+			Name: pointer.To(deleData["name"].(string)),
 			Properties: &subnets.ServiceDelegationPropertiesFormat{
-				ServiceName: &srvName,
+				ServiceName: pointer.To(srvDelegation["name"].(string)),
 				Actions:     &retSrvActions,
 			},
 		}
@@ -955,8 +953,7 @@ func flattenSubnetNetworkPolicy(input string) bool {
 func expandSubnetServiceEndpointPolicies(input []interface{}) *[]subnets.ServiceEndpointPolicy {
 	output := make([]subnets.ServiceEndpointPolicy, 0)
 	for _, policy := range input {
-		policy := policy.(string)
-		output = append(output, subnets.ServiceEndpointPolicy{Id: &policy})
+		output = append(output, subnets.ServiceEndpointPolicy{Id: pointer.To(policy.(string))})
 	}
 	return &output
 }

@@ -29,6 +29,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyVaultsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
@@ -70,7 +71,7 @@ var (
 )
 
 func resourceStorageAccount() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceStorageAccountCreate,
 		Read:   resourceStorageAccountRead,
 		Update: resourceStorageAccountUpdate,
@@ -354,10 +355,11 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
+			"public_network_access": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(storageaccounts.PublicNetworkAccessEnabled),
+				ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForPublicNetworkAccess(), false),
 			},
 
 			"dns_endpoint_type": {
@@ -1207,8 +1209,46 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				}
 				return false
 			}),
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+				if !features.SixPointOh() {
+					// If both are `null`/unset, set diff to return default of `true` / `Enabled`
+					// to ensure removal functions while O+C in 5.x
+					if rawConfig := d.GetRawConfig().AsValueMap(); rawConfig["public_network_access"].IsNull() && rawConfig["public_network_access_enabled"].IsNull() {
+						if err := d.SetNew("public_network_access", string(storageaccounts.PublicNetworkAccessEnabled)); err != nil {
+							return err
+						}
+						if err := d.SetNew("public_network_access_enabled", true); err != nil {
+							return err
+						}
+					}
+				}
+
+				return nil
+			}),
 		),
 	}
+
+	if !features.SixPointOh() {
+		r.Schema["public_network_access_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			// Note: O+C because in 5.x this value may be affected by `public_network_access`
+			Computed:      true,
+			ConflictsWith: []string{"public_network_access"},
+			Deprecated:    "`public_network_access_enabled` has been deprecated in favour of `public_network_access` and will be removed in v6.0 of the AzureRM provider",
+		}
+
+		r.Schema["public_network_access"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C because in 5.x this value may be affected by `public_network_access_enabled`
+			Computed:      true,
+			ConflictsWith: []string{"public_network_access_enabled"},
+			ValidateFunc:  validation.StringInSlice(storageaccounts.PossibleValuesForPublicNetworkAccess(), false),
+		}
+	}
+
+	return r
 }
 
 func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -1242,10 +1282,18 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	provisionedBillingModelVersion := d.Get("provisioned_billing_model_version").(string)
 	replicationType := d.Get("account_replication_type").(string)
 
-	publicNetworkAccess := storageaccounts.PublicNetworkAccessDisabled
-	if d.Get("public_network_access_enabled").(bool) {
-		publicNetworkAccess = storageaccounts.PublicNetworkAccessEnabled
+	publicNetworkAccess := storageaccounts.PublicNetworkAccessEnabled
+	if !pluginsdk.IsExplicitlyNullInConfig(d, "public_network_access") {
+		// (features.SixPointOh) In 6.0, the only line needed is the below, it can be inlined in the payload instantiation
+		publicNetworkAccess = storageaccounts.PublicNetworkAccess(d.Get("public_network_access").(string))
 	}
+
+	if !features.SixPointOh() {
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "public_network_access_enabled") && !d.Get("public_network_access_enabled").(bool) {
+			publicNetworkAccess = storageaccounts.PublicNetworkAccessDisabled
+		}
+	}
+
 	expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
@@ -1648,13 +1696,21 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if d.HasChange("network_rules") {
 		props.NetworkAcls = expandAccountNetworkRules(d.Get("network_rules").([]interface{}), tenantId)
 	}
-	if d.HasChange("public_network_access_enabled") {
-		publicNetworkAccess := storageaccounts.PublicNetworkAccessDisabled
-		if d.Get("public_network_access_enabled").(bool) {
-			publicNetworkAccess = storageaccounts.PublicNetworkAccessEnabled
-		}
-		props.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+
+	if d.HasChange("public_network_access") {
+		props.PublicNetworkAccess = pointer.ToEnum[storageaccounts.PublicNetworkAccess](d.Get("public_network_access").(string))
 	}
+
+	if !features.SixPointOh() {
+		if d.HasChange("public_network_access_enabled") {
+			publicNetworkAccess := storageaccounts.PublicNetworkAccessDisabled
+			if d.Get("public_network_access_enabled").(bool) {
+				publicNetworkAccess = storageaccounts.PublicNetworkAccessEnabled
+			}
+			props.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+		}
+	}
+
 	if d.HasChange("routing") {
 		props.RoutingPreference = expandAccountRoutingPreference(d.Get("routing").([]interface{}))
 	}
@@ -1973,11 +2029,14 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 		}
 		d.Set("min_tls_version", minTlsVersion)
 
-		publicNetworkAccessEnabled := true
-		if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == storageaccounts.PublicNetworkAccessDisabled {
-			publicNetworkAccessEnabled = false
+		if !features.SixPointOh() {
+			publicNetworkAccessEnabled := true
+			if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess != storageaccounts.PublicNetworkAccessEnabled {
+				publicNetworkAccessEnabled = false
+			}
+			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 		}
-		d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
+		d.Set("public_network_access", pointer.FromEnum(props.PublicNetworkAccess))
 
 		allowSharedKeyAccess := true
 		if props.AllowSharedKeyAccess != nil {
