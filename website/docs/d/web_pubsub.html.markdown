@@ -51,7 +51,21 @@ The following attributes are exported:
 
 * `secondary_connection_string` - The secondary connection string of the Web Pubsub service.
 
+* `live_trace` - A `live_trace` block as documented below.
+
 * `identity` - An `identity` block as documented below.
+
+---
+
+A `live_trace` block exports the following:
+
+* `enabled` - Whether the live trace is enabled.
+
+* `messaging_logs_enabled` - Whether the log category `MessagingLogs` is enabled.
+
+* `connectivity_logs_enabled` - Whether the log category `ConnectivityLogs` is enabled.
+
+* `http_request_logs_enabled` - Whether the log category `HttpRequestLogs` is enabled.
 
 ---
 
@@ -59,7 +73,7 @@ The `identity` block exports the following:
 
 * `type` - The type of identity used for the web pubsub.
 
-* `user_assigned_identity_id` - The ID of the User Assigned Identity. This value will be empty when using system assigned identity.
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to the Web Pubsub service.
 
 * `principal_id` - The principal id of the system assigned identity.
 
