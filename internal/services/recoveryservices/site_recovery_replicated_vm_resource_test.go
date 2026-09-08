@@ -1017,7 +1017,7 @@ resource "azurerm_key_vault" "test" {
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
   enabled_for_disk_encryption = true
-  purge_protection_enabled    = true
+  purge_protection_enabled    = false
   soft_delete_retention_days  = 7
 }
 
@@ -1252,6 +1252,13 @@ resource "azurerm_virtual_network" "test2" {
   location            = azurerm_site_recovery_fabric.test2.location
 }
 
+resource "azurerm_subnet" "test2" {
+  name                 = "snet-%[1]d_2"
+  resource_group_name  = azurerm_resource_group.test2.name
+  virtual_network_name = azurerm_virtual_network.test2.name
+  address_prefixes     = ["192.168.2.0/24"]
+}
+
 resource "azurerm_site_recovery_network_mapping" "test" {
   resource_group_name         = azurerm_resource_group.test2.name
   recovery_vault_name         = azurerm_recovery_services_vault.test.name
@@ -1278,7 +1285,8 @@ resource "azurerm_key_vault" "test2" {
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
   enabled_for_disk_encryption = true
-  purge_protection_enabled    = true
+  purge_protection_enabled    = false
+  soft_delete_retention_days  = 7
 }
 
 resource "azurerm_key_vault_access_policy" "service-principal2" {
@@ -1378,7 +1386,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   network_interface {
     source_network_interface_id = azurerm_network_interface.test.id
     ip_configuration {
-      target_subnet_name = "snet-%[1]d"
+      target_subnet_name = azurerm_subnet.test2.name
     }
   }
 
