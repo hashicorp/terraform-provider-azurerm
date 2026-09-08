@@ -253,7 +253,9 @@ func (r ManagementGroupPolicyDefinitionResource) Read() sdk.ResourceFunc {
 						state.PolicyRule = flattenedPolicyRule
 
 						roleIDs, _ := getPolicyRoleDefinitionIDs(flattenedPolicyRule)
-						metadata.ResourceData.Set("role_definition_ids", roleIDs)
+						if err := metadata.ResourceData.Set("role_definition_ids", roleIDs); err != nil {
+							return fmt.Errorf("setting `role_definition_ids`: %+v", err)
+						}
 					}
 
 					flattenedParameters, err := flattenParameterDefinitionsValueToStringForPolicyDefinition(props.Parameters)
