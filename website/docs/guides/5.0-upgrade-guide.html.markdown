@@ -92,7 +92,6 @@ provider "azurerm" {
 
 For more information, see the [Resource Provider Registrations](index.html#resource-provider-registrations) section in the provider documentation.
 
-
 #### Enhanced Validation
 
 The `enhanced_validation` block has been moved inside the `features` block. Additionally, the enhanced validation defaults have changed, and a new `preflight_enabled` property has been added.
@@ -117,6 +116,7 @@ provider "azurerm" {
 **Timing Impact:** With enhanced validation enabled, invalid locations or resource providers are caught at `terraform plan` time. With it disabled (the new default in 5.0), these errors are caught at `terraform apply` time when Azure rejects the request.
 
 This change was made because:
+
 * A region may be functional even if not present in the ARM region list
 * The MetaData Service call adds latency to provider initialization
 

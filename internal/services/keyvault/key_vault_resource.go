@@ -384,7 +384,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending:                   []string{"pending"},
 			Target:                    []string{"available"},
-			Refresh:                   keyVaultRefreshFunc(vaultUri),
+			Refresh:                   keyVaultRefreshFunc(ctx, vaultUri),
 			Delay:                     30 * time.Second,
 			PollInterval:              10 * time.Second,
 			ContinuousTargetOccurence: 10,
@@ -639,8 +639,7 @@ func resourceKeyVaultFlatten(ctx context.Context, managementClient *dataplane.Ba
 			return fmt.Errorf("setting `network_acls`: %+v", err)
 		}
 
-		flattenedPolicies := flattenAccessPolicies(model.Properties.AccessPolicies)
-		if err := d.Set("access_policy", flattenedPolicies); err != nil {
+		if err := d.Set("access_policy", flattenAccessPolicies(model.Properties.AccessPolicies)); err != nil {
 			return fmt.Errorf("setting `access_policy`: %+v", err)
 		}
 
@@ -770,7 +769,7 @@ func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func keyVaultRefreshFunc(vaultUri string) pluginsdk.StateRefreshFunc {
+func keyVaultRefreshFunc(ctx context.Context, vaultUri string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Checking to see if KeyVault %q is available..", vaultUri)
 
@@ -780,7 +779,12 @@ func keyVaultRefreshFunc(vaultUri string) pluginsdk.StateRefreshFunc {
 			},
 		}
 
-		conn, err := client.Get(vaultUri)
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, vaultUri, nil)
+		if err != nil {
+			return nil, "pending", fmt.Errorf("building request to check %q: %s", vaultUri, err)
+		}
+
+		conn, err := client.Do(req)
 		if err != nil {
 			log.Printf("[DEBUG] Didn't find KeyVault at %q", vaultUri)
 			return nil, "pending", fmt.Errorf("connecting to %q: %s", vaultUri, err)

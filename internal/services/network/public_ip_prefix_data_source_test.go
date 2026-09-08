@@ -5,6 +5,7 @@ package network_test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipprefixes"
@@ -33,6 +34,7 @@ func TestAccDataSourcePublicIPPrefix_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("ip_prefix").Exists(),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.env").HasValue("test"),
+				check.That(data.ResourceName).Key("ip_version").HasValue(string(publicipprefixes.IPVersionIPvFour)),
 			),
 		},
 	})
@@ -70,4 +72,34 @@ data "azurerm_public_ip_prefix" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 `, resourceGroupName, data.Locations.Primary, name)
+}
+
+func TestAccDataSourcePublicIPPrefix_customIpPrefix(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	r := PublicIPPrefixDataSource{}
+
+	if os.Getenv("ARM_TEST_CUSTOM_IP_PREFIX_ID") == "" {
+		t.Skip("ARM_TEST_CUSTOM_IP_PREFIX_ID env var not set")
+	}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.customIpPrefix(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("ip_version").HasValue(string(publicipprefixes.IPVersionIPvSix)),
+				check.That(data.ResourceName).Key("custom_ip_prefix_id").HasValue(os.Getenv("ARM_TEST_CUSTOM_IP_PREFIX_ID")),
+			),
+		},
+	})
+}
+
+func (PublicIPPrefixDataSource) customIpPrefix(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_public_ip_prefix" "test" {
+  name                = azurerm_public_ip_prefix.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, PublicIpPrefixResource{}.customIpPrefix(data))
 }

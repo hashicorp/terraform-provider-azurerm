@@ -17,8 +17,8 @@ body:
     attributes:
       label: ARM API Version Stability
       description: |
-        The AzureRM provider is implemented using **stable** Azure Resource Manager (ARM) APIs. Preview versions are prone to sudden breaking changes and are generally **not** allowed unless strict exception criteria are met. 
-        
+        The AzureRM provider is implemented using **stable** Azure Resource Manager (ARM) APIs. Preview versions are prone to sudden breaking changes and are generally **not** allowed unless strict exception criteria are met.
+
         Please read our [Guide: ARM API Versions](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/contributing/topics/guide-api-version.md) for more information.
       options:
         - label: I confirm that this feature request relies on a stable ARM API, or I have read the guide and believe this request qualifies for an exception.
@@ -34,7 +34,7 @@ body:
         * Please vote on this issue by adding a :thumbsup: [reaction](https://blog.github.com/2016-03-10-add-reactions-to-pull-requests-issues-and-comments/) to the original issue to help the community and maintainers prioritize this request
         * Please do not leave comments along the lines of "+1", "me too" or "any updates", they generate extra noise for issue followers and do not help prioritize the request
         * If you are interested in working on this issue or have submitted a pull request, please leave a comment and review the [contribution guide](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/contributing/README.md) to help.
-        
+
         <!--- Thank you for keeping this note for the community --->
     validations:
       required: true

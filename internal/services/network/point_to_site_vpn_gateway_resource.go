@@ -319,8 +319,7 @@ func resourcePointToSiteVPNGatewayRead(d *pluginsdk.ResourceData, meta interface
 
 		if props := model.Properties; props != nil {
 			d.Set("dns_servers", helpers.FlattenStringSlice(props.CustomDnsServers))
-			flattenedConfigurations := flattenPointToSiteVPNGatewayConnectionConfiguration(props.P2SConnectionConfigurations)
-			if err := d.Set("connection_configuration", flattenedConfigurations); err != nil {
+			if err := d.Set("connection_configuration", flattenPointToSiteVPNGatewayConnectionConfiguration(props.P2SConnectionConfigurations)); err != nil {
 				return fmt.Errorf("setting `connection_configuration`: %+v", err)
 			}
 

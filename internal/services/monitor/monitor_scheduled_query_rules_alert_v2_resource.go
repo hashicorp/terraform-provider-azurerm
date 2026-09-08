@@ -439,9 +439,8 @@ func (r ScheduledQueryRulesAlertV2Resource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			kind := scheduledqueryrules.KindLogAlert
 			properties := &scheduledqueryrules.ScheduledQueryRuleResource{
-				Kind:     &kind,
+				Kind:     pointer.To(scheduledqueryrules.KindLogAlert),
 				Location: location.Normalize(model.Location),
 				Properties: scheduledqueryrules.ScheduledQueryRuleProperties{
 					AutoMitigate:                          &model.AutoMitigate,
@@ -740,8 +739,7 @@ func expandScheduledQueryRulesAlertV2ActionsModel(inputList []ScheduledQueryRule
 		}
 		output.ActionProperties = &m
 	} else {
-		m := map[string]string{}
-		output.ActionProperties = &m
+		output.ActionProperties = pointer.To(map[string]string{})
 	}
 
 	return &output
@@ -812,7 +810,7 @@ func expandScheduledQueryRulesAlertV2FailingPeriodsModel(inputList []ScheduledQu
 func flattenScheduledQueryRulesAlertV2ActionsModel(input *scheduledqueryrules.Actions) []ScheduledQueryRulesAlertV2ActionsModel {
 	var outputList []ScheduledQueryRulesAlertV2ActionsModel
 	if input == nil {
-		return outputList
+		return []ScheduledQueryRulesAlertV2ActionsModel{}
 	}
 
 	output := ScheduledQueryRulesAlertV2ActionsModel{}
@@ -898,7 +896,7 @@ func flattenScheduledQueryRulesAlertV2DimensionModel(inputList *[]scheduledquery
 func flattenScheduledQueryRulesAlertV2FailingPeriodsModel(input *scheduledqueryrules.ConditionFailingPeriods) []ScheduledQueryRulesAlertV2FailingPeriodsModel {
 	var outputList []ScheduledQueryRulesAlertV2FailingPeriodsModel
 	if input == nil {
-		return outputList
+		return []ScheduledQueryRulesAlertV2FailingPeriodsModel{}
 	}
 
 	output := ScheduledQueryRulesAlertV2FailingPeriodsModel{}

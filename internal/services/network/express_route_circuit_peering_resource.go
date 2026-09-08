@@ -512,8 +512,7 @@ func resourceExpressRouteCircuitPeeringRead(d *pluginsdk.ResourceData, meta inte
 			}
 			d.Set("route_filter_id", routeFilterId)
 
-			config := flattenExpressRouteCircuitPeeringMicrosoftConfig(props.MicrosoftPeeringConfig)
-			if err := d.Set("microsoft_peering_config", config); err != nil {
+			if err := d.Set("microsoft_peering_config", flattenExpressRouteCircuitPeeringMicrosoftConfig(props.MicrosoftPeeringConfig)); err != nil {
 				return fmt.Errorf("setting `microsoft_peering_config`: %+v", err)
 			}
 			if err := d.Set("ipv6", flattenExpressRouteCircuitIpv6PeeringConfig(props.IPv6PeeringConfig)); err != nil {
