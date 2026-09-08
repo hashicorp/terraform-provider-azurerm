@@ -122,13 +122,10 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 			},
 
 			"edition": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(integrationruntimes.IntegrationRuntimeEditionStandard),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(integrationruntimes.IntegrationRuntimeEditionStandard),
-					string(integrationruntimes.IntegrationRuntimeEditionEnterprise),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(integrationruntimes.IntegrationRuntimeEditionStandard),
+				ValidateFunc: validation.StringInSlice(integrationruntimes.PossibleValuesForIntegrationRuntimeEdition(), false),
 			},
 
 			"copy_compute_scale": {
@@ -171,13 +168,10 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 			},
 
 			"license_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(integrationruntimes.IntegrationRuntimeLicenseTypeLicenseIncluded),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(integrationruntimes.IntegrationRuntimeLicenseTypeLicenseIncluded),
-					string(integrationruntimes.IntegrationRuntimeLicenseTypeBasePrice),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(integrationruntimes.IntegrationRuntimeLicenseTypeLicenseIncluded),
+				ValidateFunc: validation.StringInSlice(integrationruntimes.PossibleValuesForIntegrationRuntimeLicenseType(), false),
 			},
 
 			"vnet_integration": {
@@ -1164,7 +1158,7 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisCustomSetupScript(customSetupS
 
 func flattenDataFactoryIntegrationRuntimeAzureSsisPackageStore(input *[]integrationruntimes.PackageStore) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	result := make([]interface{}, 0)

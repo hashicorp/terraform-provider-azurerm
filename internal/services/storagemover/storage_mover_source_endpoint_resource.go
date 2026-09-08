@@ -87,15 +87,11 @@ func (r StorageMoverSourceEndpointResource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"nfs_version": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(endpoints.NfsVersionNFSauto),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(endpoints.NfsVersionNFSauto),
-				string(endpoints.NfsVersionNFSvFour),
-				string(endpoints.NfsVersionNFSvThree),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      string(endpoints.NfsVersionNFSauto),
+			ValidateFunc: validation.StringInSlice(endpoints.PossibleValuesForNfsVersion(), false),
 		},
 
 		"description": {

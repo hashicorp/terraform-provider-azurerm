@@ -35,13 +35,10 @@ func additionalUnattendContentSchema() *pluginsdk.Schema {
 					Sensitive: true,
 				},
 				"setting": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachines.SettingNamesAutoLogon),
-						string(virtualmachines.SettingNamesFirstLogonCommands),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForSettingNames(), false),
 				},
 			},
 		},
@@ -69,13 +66,10 @@ func additionalUnattendContentSchemaVM() *pluginsdk.Schema {
 					Sensitive: true,
 				},
 				"setting": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachines.SettingNamesAutoLogon),
-						string(virtualmachines.SettingNamesFirstLogonCommands),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForSettingNames(), false),
 				},
 			},
 		},
@@ -851,13 +845,10 @@ func winRmListenerSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"protocol": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachines.ProtocolTypesHTTP),
-						string(virtualmachines.ProtocolTypesHTTPS),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForProtocolTypes(), false),
 				},
 
 				"certificate_url": {
@@ -883,13 +874,10 @@ func winRmListenerSchemaVM() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"protocol": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ForceNew: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachines.ProtocolTypesHTTP),
-						string(virtualmachines.ProtocolTypesHTTPS),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForProtocolTypes(), false),
 				},
 
 				"certificate_url": {

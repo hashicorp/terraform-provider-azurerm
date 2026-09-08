@@ -174,7 +174,7 @@ The following arguments are supported:
 
 * `network_features` - (Optional) Indicates which network feature to use, accepted values are `Basic` or `Standard`, it defaults to `Basic` if not defined. This is a feature in public preview and for more information about it and how to register, please refer to [Configure network features for an Azure NetApp Files volume](https://docs.microsoft.com/en-us/azure/azure-netapp-files/configure-network-features).
 
-* `storage_quota_in_gb` - (Required) The maximum Storage Quota allowed for a file system in Gigabytes.
+* `storage_quota_in_gb` - (Required) The maximum Storage Quota allowed for a file system in Gigabytes. Possible values are between `50` and `102400` for regular volumes, between `51200` and `1048576` for large volumes, and between `2400` and `2457600` for large volumes with `breakthrough_mode_enabled` set to `true`.
 
 * `snapshot_directory_visible` - (Optional) Specifies whether the .snapshot (NFS clients) or ~snapshot (SMB clients) path of a volume is visible. Defaults to `true`.
 
@@ -215,6 +215,12 @@ The following arguments are supported:
 * `large_volume_enabled` - (Optional) A boolean specifying if the volume is a large volume. Defaults to `false`.
 
 -> **Note:** Large volumes must be at least 50 TiB in size and can be up to 1,024 TiB (1 PiB). For more information, please refer to [Requirements and considerations for large volumes](https://learn.microsoft.com/en-us/azure/azure-netapp-files/large-volumes-requirements-considerations)
+
+* `breakthrough_mode_enabled` - (Optional) A boolean specifying if the large volume runs in Breakthrough Mode, which places the volume on dedicated capacity providing higher throughput and greater capacity. Defaults to `false`. Changing this forces a new resource to be created.
+
+-> **Note:** `breakthrough_mode_enabled` can only be set to `true` when `large_volume_enabled` is also `true`, and requires the `ANFBreakthroughMode` and `ANFLargeVolumes` features to be registered on the subscription. Volumes using Breakthrough Mode must be sized between 2,400 GB (2,400 GiB) and 2,457,600 GB (2,400 TiB).
+
+-> **Note:** `cool_access` cannot be configured at the same time the volume is created with `breakthrough_mode_enabled` set to `true`. Cool access can be enabled on a subsequent update of the volume.
 
 * `cool_access` - (Optional) A `cool_access` block as defined below.
 
@@ -349,4 +355,4 @@ terraform import azurerm_netapp_volume.example /subscriptions/00000000-0000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.NetApp` - 2026-01-01
+* `Microsoft.NetApp` - 2026-05-01

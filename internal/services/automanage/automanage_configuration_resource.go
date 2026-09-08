@@ -753,7 +753,7 @@ func expandConfigurationProfile(model ConfigurationModel) *interface{} {
 
 func flattenAntiMalwareConfig(configMap map[string]interface{}) []AntimalwareConfiguration {
 	if val, ok := configMap["Antimalware/Enable"]; !ok || (val == nil) {
-		return nil
+		return []AntimalwareConfiguration{}
 	}
 
 	antimalware := make([]AntimalwareConfiguration, 1)
@@ -806,7 +806,7 @@ func flattenAntiMalwareConfig(configMap map[string]interface{}) []AntimalwareCon
 
 func flattenAzureSecurityBaselineConfig(configMap map[string]interface{}) []AzureSecurityBaselineConfiguration {
 	if val, ok := configMap["AzureSecurityBaseline/Enable"]; !ok || (val == nil) {
-		return nil
+		return []AzureSecurityBaselineConfiguration{}
 	}
 
 	azureSecurityBaseline := make([]AzureSecurityBaselineConfiguration, 1)
@@ -821,7 +821,7 @@ func flattenAzureSecurityBaselineConfig(configMap map[string]interface{}) []Azur
 
 func flattenBackupConfig(configMap map[string]interface{}) []BackupConfiguration {
 	if val, ok := configMap["Backup/Enable"]; !ok || (val == nil) {
-		return nil
+		return []BackupConfiguration{}
 	}
 
 	backup := make([]BackupConfiguration, 1)

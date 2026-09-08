@@ -11,9 +11,9 @@ import (
 	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policydefinitions"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.DefinitionsClient, displayName, managementGroupName string,
@@ -63,7 +63,7 @@ func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.Defini
 func getPolicyDefinitionByName(ctx context.Context, client *policy.DefinitionsClient, name, managementGroupName string) (res policy.Definition, err error) {
 	if managementGroupName == "" {
 		res, err = client.GetBuiltIn(ctx, name)
-		if utils.ResponseWasNotFound(res.Response) {
+		if response.WasNotFound(res.Response.Response) {
 			res, err = client.Get(ctx, name)
 		}
 	} else {
@@ -88,7 +88,7 @@ func getPolicyDefinitionByID(ctx context.Context, client *policydefinitions.Poli
 func getPolicySetDefinitionByName(ctx context.Context, client *policy.SetDefinitionsClient, name, managementGroupID string) (res policy.SetDefinition, err error) {
 	if managementGroupID == "" {
 		res, err = client.GetBuiltIn(ctx, name)
-		if utils.ResponseWasNotFound(res.Response) {
+		if response.WasNotFound(res.Response.Response) {
 			res, err = client.Get(ctx, name)
 		}
 	} else {

@@ -38,9 +38,11 @@ jobs:
       - name: env_vars
         id: env_vars
         run: |
-          echo "ghrepo=$(cat artifact/ghrepo.txt)" >>${GITHUB_OUTPUT}
-          echo "ghowner=$(cat artifact/ghowner.txt)" >>${GITHUB_OUTPUT}
-          echo "prnumber=$(cat artifact/prnumber.txt)" >>${GITHUB_OUTPUT}
+          {
+            echo "ghrepo=$(cat artifact/ghrepo.txt)"
+            echo "ghowner=$(cat artifact/ghowner.txt)"
+            echo "prnumber=$(cat artifact/prnumber.txt)"
+          } >> "${GITHUB_OUTPUT}"
       - name: Add waiting-response on fail
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:

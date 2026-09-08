@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/privateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
@@ -53,12 +54,9 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 			},
 
 			"default_action": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(signalr.ACLActionAllow),
-					string(signalr.ACLActionDeny),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(signalr.PossibleValuesForACLAction(), false),
 			},
 
 			"public_network": {
@@ -72,13 +70,8 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 							Optional:      true,
 							ConflictsWith: []string{"public_network.0.denied_request_types"},
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(signalr.SignalRRequestTypeClientConnection),
-									string(signalr.SignalRRequestTypeRESTAPI),
-									string(signalr.SignalRRequestTypeServerConnection),
-									string(signalr.SignalRRequestTypeTrace),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(signalr.PossibleValuesForSignalRRequestType(), false),
 							},
 						},
 
@@ -87,13 +80,8 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 							Optional:      true,
 							ConflictsWith: []string{"public_network.0.allowed_request_types"},
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(signalr.SignalRRequestTypeClientConnection),
-									string(signalr.SignalRRequestTypeRESTAPI),
-									string(signalr.SignalRRequestTypeServerConnection),
-									string(signalr.SignalRRequestTypeTrace),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(signalr.PossibleValuesForSignalRRequestType(), false),
 							},
 						},
 					},
@@ -115,13 +103,8 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(signalr.SignalRRequestTypeClientConnection),
-									string(signalr.SignalRRequestTypeRESTAPI),
-									string(signalr.SignalRRequestTypeServerConnection),
-									string(signalr.SignalRRequestTypeTrace),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(signalr.PossibleValuesForSignalRRequestType(), false),
 							},
 						},
 
@@ -129,13 +112,8 @@ func resourceArmSignalRServiceNetworkACL() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(signalr.SignalRRequestTypeClientConnection),
-									string(signalr.SignalRRequestTypeRESTAPI),
-									string(signalr.SignalRRequestTypeServerConnection),
-									string(signalr.SignalRRequestTypeTrace),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(signalr.PossibleValuesForSignalRRequestType(), false),
 							},
 						},
 					},
@@ -280,7 +258,6 @@ func resourceSignalRServiceNetworkACLDelete(d *pluginsdk.ResourceData, meta inte
 
 	model := *resp.Model
 
-	defaultAction := signalr.ACLActionDeny
 	defaultRequestTypes := []signalr.SignalRRequestType{
 		signalr.SignalRRequestTypeClientConnection,
 		signalr.SignalRRequestTypeRESTAPI,
@@ -288,7 +265,7 @@ func resourceSignalRServiceNetworkACLDelete(d *pluginsdk.ResourceData, meta inte
 		signalr.SignalRRequestTypeTrace,
 	}
 	networkACL := &signalr.SignalRNetworkACLs{
-		DefaultAction: &defaultAction,
+		DefaultAction: pointer.To(signalr.ACLActionDeny),
 		PublicNetwork: &signalr.NetworkACL{
 			Allow: &defaultRequestTypes,
 		},

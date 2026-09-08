@@ -9,14 +9,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
@@ -46,7 +45,7 @@ func (s SpringCloudAcceleratorResource) ModelObject() interface{} {
 }
 
 func (s SpringCloudAcceleratorResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.SpringCloudAcceleratorID
+	return appplatform_rm.ValidateApplicationAcceleratorID
 }
 
 func (s SpringCloudAcceleratorResource) StateUpgraders() sdk.StateUpgradeData {
@@ -71,7 +70,7 @@ func (s SpringCloudAcceleratorResource) Arguments() map[string]*schema.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.SpringCloudServiceID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSpringCloudServiceIDInsensitively),
 		},
 	}
 }
@@ -90,24 +89,26 @@ func (s SpringCloudAcceleratorResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.AppPlatform.ApplicationAcceleratorClient
-			springId, err := parse.SpringCloudServiceID(model.SpringCloudServiceId)
+			// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+			springId, err := commonids.ParseSpringCloudServiceIDInsensitively(model.SpringCloudServiceId)
 			if err != nil {
 				return fmt.Errorf("parsing spring service ID: %+v", err)
 			}
-			id := parse.NewSpringCloudAcceleratorID(springId.SubscriptionId, springId.ResourceGroup, springId.SpringName, model.Name)
+			id := appplatform_rm.NewApplicationAcceleratorID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-				existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.ApplicationAcceleratorName)
-				if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+				existing, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.ApplicationAcceleratorName)
+				if err != nil && !response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)
 				}
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					return metadata.ResourceRequiresImport(s.ResourceType(), id)
 				}
 			}
 
 			AcceleratorResource := appplatform.ApplicationAcceleratorResource{}
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.ApplicationAcceleratorName, AcceleratorResource)
+			future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.SpringName, id.ApplicationAcceleratorName, AcceleratorResource)
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -129,14 +130,16 @@ func (s SpringCloudAcceleratorResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppPlatform.ApplicationAcceleratorClient
 
-			id, err := parse.SpringCloudAcceleratorID(metadata.ResourceData.Id())
+			// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+			id, err := appplatform_rm.ParseApplicationAcceleratorIDInsensitively(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.ApplicationAcceleratorName)
+			resp, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.ApplicationAcceleratorName)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.Response.Response) {
 					return metadata.MarkAsGone(id)
 				}
 
@@ -144,7 +147,7 @@ func (s SpringCloudAcceleratorResource) Read() sdk.ResourceFunc {
 			}
 			state := SpringCloudAcceleratorModel{
 				Name:                 id.ApplicationAcceleratorName,
-				SpringCloudServiceId: parse.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroup, id.SpringName).ID(),
+				SpringCloudServiceId: commonids.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroupName, id.SpringName).ID(),
 			}
 			return metadata.Encode(&state)
 		},
@@ -157,12 +160,14 @@ func (s SpringCloudAcceleratorResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppPlatform.ApplicationAcceleratorClient
 
-			id, err := parse.SpringCloudAcceleratorID(metadata.ResourceData.Id())
+			// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+			id, err := appplatform_rm.ParseApplicationAcceleratorIDInsensitively(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			future, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.ApplicationAcceleratorName)
+			future, err := client.Delete(ctx, id.ResourceGroupName, id.SpringName, id.ApplicationAcceleratorName)
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
