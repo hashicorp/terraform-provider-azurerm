@@ -6,12 +6,14 @@ package applicationgateway
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"testing"
 
 	"github.com/hashicorp/go-cty/cty"
 	ctyjson "github.com/hashicorp/go-cty/cty/json"
 	"github.com/hashicorp/go-cty/cty/msgpack"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -49,7 +51,7 @@ func TestPlanResourceChange(t *testing.T) {
 					after[1] = cty.ObjectVal(attrs)
 				}
 				req := testRequest(t, resource, before, after)
-				response, err := Wrap(p.GRPCProvider(), resource).PlanResourceChange(t.Context(), req)
+				response, err := NewServerFactory(p)().PlanResourceChange(t.Context(), req)
 				planned := testPlanned(t, resource, response, err).GetAttr("http_listener")
 				if planned.LengthInt() != len(after) {
 					t.Fatalf("got %d listeners, want %d", planned.LengthInt(), len(after))
@@ -72,7 +74,7 @@ func TestPlanResourceChange(t *testing.T) {
 						}
 					} else {
 						for _, key := range []string{"host_names", "ssl_profile_name"} {
-							if !listener.GetAttr(key).RawEquals(expected.GetAttr(key)) && (!absentString(listener.GetAttr(key)) || !absentString(expected.GetAttr(key))) {
+							if !listener.GetAttr(key).RawEquals(expected.GetAttr(key)) && (!isAbsentString(listener.GetAttr(key)) || !isAbsentString(expected.GetAttr(key))) {
 								t.Errorf("lost configured %s change for %q", key, name)
 							}
 						}
@@ -97,13 +99,13 @@ func TestOtherResourceUnchanged(t *testing.T) {
 	req.TypeName = "azurerm_other"
 	raw, err := p.GRPCProvider().PlanResourceChange(t.Context(), req)
 	want := testPlanned(t, resource, raw, err)
-	got, err := Wrap(p.GRPCProvider(), resource).PlanResourceChange(t.Context(), req)
+	got, err := NewServerFactory(p)().PlanResourceChange(t.Context(), req)
 	if !testPlanned(t, resource, got, err).RawEquals(want) {
 		t.Fatal("changed another resource's plan")
 	}
 }
 
-func TestNormalizeListenersBoundaries(t *testing.T) {
+func TestPreserveUnchangedListeners(t *testing.T) {
 	_, resource := testProvider()
 	old := testListener(t, resource, "private", "empty")
 	for _, name := range []string{"absent_profile", "configured_profile", "known_profile", "configured_port", "unknown_existing_id", "new_profile_id", "unknown_set", "empty_set"} {
@@ -137,7 +139,7 @@ func TestNormalizeListenersBoundaries(t *testing.T) {
 			case "empty_set":
 				planned = cty.SetValEmpty(prior.Type())
 			}
-			got := normalizeCollection(before, planned, resource.Schema["http_listener"])
+			got := preserveUnchangedCollection(before, planned, resource.Schema["http_listener"])
 			changed := !got.RawEquals(planned)
 			if changed != wantChanged {
 				t.Fatalf("changed = %t, want %t", changed, wantChanged)
@@ -153,6 +155,83 @@ func TestNormalizeListenersBoundaries(t *testing.T) {
 	}
 }
 
+func TestPlanResourceChangePreservationBoundaries(t *testing.T) {
+	for _, action := range []string{"update", "create", "destroy", "replacement", "different_id", "unknown_id", "unknown_state", "deferred", "diagnostic_error", "rpc_error", "missing_prior", "missing_plan", "missing_response"} {
+		t.Run(action, func(t *testing.T) {
+			_, resource := testProvider()
+			listener := testListener(t, resource, "private", "empty")
+			req := testRequest(t, resource, []cty.Value{listener}, []cty.Value{listener})
+			planned, err := decode(req.PriorState, resource.CoreConfigSchema().ImpliedType())
+			if err != nil {
+				t.Fatal(err)
+			}
+			attributes := planned.AsValueMap()
+			listenerAttributes := listener.AsValueMap()
+			listenerAttributes["ssl_profile_id"] = cty.UnknownVal(cty.String)
+			attributes["http_listener"] = cty.SetVal([]cty.Value{cty.ObjectVal(listenerAttributes)})
+			planned = cty.ObjectVal(attributes)
+			response := &tfprotov5.PlanResourceChangeResponse{PlannedState: testDynamic(t, planned)}
+			var rpcError error
+			switch action {
+			case "create":
+				req.PriorState = testDynamic(t, cty.NullVal(planned.Type()))
+			case "destroy":
+				response.PlannedState = testDynamic(t, cty.NullVal(planned.Type()))
+			case "replacement":
+				response.RequiresReplace = []*tftypes.AttributePath{tftypes.NewAttributePath().WithAttributeName("id")}
+			case "different_id":
+				attributes["id"] = cty.StringVal("another-gateway")
+				response.PlannedState = testDynamic(t, cty.ObjectVal(attributes))
+			case "unknown_id":
+				attributes["id"] = cty.UnknownVal(cty.String)
+				response.PlannedState = testDynamic(t, cty.ObjectVal(attributes))
+			case "unknown_state":
+				response.PlannedState = testDynamic(t, cty.UnknownVal(planned.Type()))
+			case "deferred":
+				response.Deferred = &tfprotov5.Deferred{Reason: tfprotov5.DeferredReasonProviderConfigUnknown}
+			case "diagnostic_error":
+				response.Diagnostics = []*tfprotov5.Diagnostic{{Severity: tfprotov5.DiagnosticSeverityError, Summary: "planning failed"}}
+			case "rpc_error":
+				rpcError = errors.New("planning failed")
+			case "missing_prior":
+				req.PriorState = nil
+			case "missing_plan":
+				response.PlannedState = nil
+			case "missing_response":
+				response = nil
+			}
+
+			var originalPlan *tfprotov5.DynamicValue
+			if response != nil {
+				originalPlan = response.PlannedState
+			}
+			server := &staticPlanServer{response: response, err: rpcError}
+			got, err := wrapServer(server, resource).PlanResourceChange(t.Context(), req)
+			if got != response || err != rpcError {
+				t.Fatalf("did not preserve the delegated response and error: %v", err)
+			}
+			if action == "update" {
+				preserved := testPlanned(t, resource, got, err).GetAttr("http_listener")
+				if !preserved.RawEquals(cty.SetVal([]cty.Value{listener})) {
+					t.Fatal("did not preserve the unchanged listener")
+				}
+			} else if got != nil && got.PlannedState != originalPlan {
+				t.Fatal("rewrote a plan that should have been passed through")
+			}
+		})
+	}
+}
+
+type staticPlanServer struct {
+	tfprotov5.ProviderServer
+	response *tfprotov5.PlanResourceChangeResponse
+	err      error
+}
+
+func (s *staticPlanServer) PlanResourceChange(context.Context, *tfprotov5.PlanResourceChangeRequest) (*tfprotov5.PlanResourceChangeResponse, error) {
+	return s.response, s.err
+}
+
 func TestKnownComputedChangePreserved(t *testing.T) {
 	p, resource := testProvider()
 	before := []cty.Value{testListener(t, resource, "private", "empty")}
@@ -166,7 +245,7 @@ func TestKnownComputedChangePreserved(t *testing.T) {
 		attrs["http_listener"] = cty.SetVal([]cty.Value{cty.ObjectVal(listener)})
 		response.PlannedState = testDynamic(t, cty.ObjectVal(attrs))
 	}}
-	response, err := Wrap(delegate, resource).PlanResourceChange(t.Context(), req)
+	response, err := wrapServer(delegate, resource).PlanResourceChange(t.Context(), req)
 	planned := testPlanned(t, resource, response, err).GetAttr("http_listener").AsValueSlice()[0]
 	if planned.GetAttr("frontend_port_id").IsKnown() || planned.GetAttr("ssl_profile_id").IsKnown() {
 		t.Fatal("normalized a listener with a real computed change")

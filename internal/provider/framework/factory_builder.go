@@ -54,7 +54,7 @@ func ProtoV5ProviderServerFactory(ctx context.Context) (func() tfprotov5.Provide
 	v2Provider := provider.AzureProvider()
 
 	providers := []func() tfprotov5.ProviderServer{
-		sdkProviderServer(v2Provider),
+		applicationgateway.NewServerFactory(v2Provider),
 		providerserver.NewProtocol5(NewFrameworkProvider(v2Provider)),
 	}
 
@@ -88,7 +88,7 @@ func ProtoV5ProviderServerFactoryWithTestName(ctx context.Context, testName stri
 	v2Provider := provider.AzureProviderWithTestName(testName)
 
 	providers := []func() tfprotov5.ProviderServer{
-		sdkProviderServer(v2Provider),
+		applicationgateway.NewServerFactory(v2Provider),
 		providerserver.NewProtocol5(NewFrameworkProvider(v2Provider)),
 	}
 
@@ -102,12 +102,4 @@ func ProtoV5ProviderServerFactoryWithTestName(ctx context.Context, testName stri
 
 func V5ProviderWithoutPluginSDK() func() tfprotov5.ProviderServer {
 	return providerserver.NewProtocol5(NewFrameworkV5Provider())
-}
-
-// sdkProviderServer applies Application Gateway nested block plan normalization to
-// both the production server and the acceptance-test server.
-func sdkProviderServer(provider *schema.Provider) func() tfprotov5.ProviderServer {
-	return func() tfprotov5.ProviderServer {
-		return applicationgateway.Wrap(provider.GRPCProvider(), provider.ResourcesMap["azurerm_application_gateway"])
-	}
 }

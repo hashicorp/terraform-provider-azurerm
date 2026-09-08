@@ -14,9 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 )
 
-// Exercise every repeatable named block from the production gateway schema,
-// including nested lists/sets. Azure client configuration is deliberately not
-// needed to test how the SDK plans these blocks.
 func TestGatewayBlocks(t *testing.T) {
 	gateway := (network.Registration{}).SupportedResources()[resourceName]
 	for key, field := range gateway.Schema {
@@ -65,7 +62,7 @@ func TestGatewayBlocks(t *testing.T) {
 					wrap := func(values []cty.Value, id cty.Value) *tfprotov5.DynamicValue {
 						return testDynamic(t, cty.ObjectVal(map[string]cty.Value{"id": id, key: collectionValue(typ, values)}))
 					}
-					response, err := Wrap(provider.GRPCProvider(), resource).PlanResourceChange(t.Context(), &tfprotov5.PlanResourceChangeRequest{
+					response, err := NewServerFactory(provider)().PlanResourceChange(t.Context(), &tfprotov5.PlanResourceChangeRequest{
 						TypeName: resourceName, PriorState: wrap(before, cty.StringVal("gateway")), Config: wrap(config, cty.NullVal(cty.String)), ProposedNewState: wrap(proposed, cty.StringVal("gateway")),
 					})
 					planned := testPlanned(t, resource, response, err).GetAttr(key)
@@ -152,7 +149,7 @@ func blockFixture(resource *schema.Resource, typ cty.Type, name string, empty bo
 		if key == "id" {
 			reference = "name"
 		}
-		if value, ok := attrs[reference]; ok && !absentString(value) {
+		if value, ok := attrs[reference]; ok && !isAbsentString(value) {
 			attrs[key] = cty.StringVal("/fake/" + name + "/" + key)
 		}
 	}
