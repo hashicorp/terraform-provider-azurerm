@@ -356,7 +356,7 @@ func flattenBatchPoolMountConfig(d *pluginsdk.ResourceData, config *pool.MountCo
 		nfsMountConfigList = append(nfsMountConfigList, nfsMountConfig)
 		mountConfig["nfs_mount"] = nfsMountConfigList
 	default:
-		return nil
+		return map[string]interface{}{}
 	}
 
 	return mountConfig
@@ -445,28 +445,23 @@ func ExpandBatchPoolImageReference(list []interface{}) (*pool.ImageReference, er
 	imageRef := &pool.ImageReference{}
 
 	if storageImageRef["id"] != nil && storageImageRef["id"] != "" {
-		storageImageRefID := storageImageRef["id"].(string)
-		imageRef.Id = &storageImageRefID
+		imageRef.Id = pointer.To(storageImageRef["id"].(string))
 	}
 
 	if storageImageRef["offer"] != nil && storageImageRef["offer"] != "" {
-		storageImageRefOffer := storageImageRef["offer"].(string)
-		imageRef.Offer = &storageImageRefOffer
+		imageRef.Offer = pointer.To(storageImageRef["offer"].(string))
 	}
 
 	if storageImageRef["publisher"] != nil && storageImageRef["publisher"] != "" {
-		storageImageRefPublisher := storageImageRef["publisher"].(string)
-		imageRef.Publisher = &storageImageRefPublisher
+		imageRef.Publisher = pointer.To(storageImageRef["publisher"].(string))
 	}
 
 	if storageImageRef["sku"] != nil && storageImageRef["sku"] != "" {
-		storageImageRefSku := storageImageRef["sku"].(string)
-		imageRef.Sku = &storageImageRefSku
+		imageRef.Sku = pointer.To(storageImageRef["sku"].(string))
 	}
 
 	if storageImageRef["version"] != nil && storageImageRef["version"] != "" {
-		storageImageRefVersion := storageImageRef["version"].(string)
-		imageRef.Version = &storageImageRefVersion
+		imageRef.Version = pointer.To(storageImageRef["version"].(string))
 	}
 
 	return imageRef, nil
@@ -541,15 +536,11 @@ func ExpandBatchPoolStartTask(list []interface{}) (*pool.StartTask, error) {
 
 	startTaskValue := list[0].(map[string]interface{})
 
-	startTaskCmdLine := startTaskValue["command_line"].(string)
-
 	maxTaskRetryCount := int64(1)
 
 	if v := startTaskValue["task_retry_maximum"].(int); v >= -1 {
 		maxTaskRetryCount = int64(v)
 	}
-
-	waitForSuccess := startTaskValue["wait_for_success"].(bool)
 
 	userIdentityList := startTaskValue["user_identity"].([]interface{})
 	if len(userIdentityList) == 0 {
@@ -633,9 +624,9 @@ func ExpandBatchPoolStartTask(list []interface{}) (*pool.StartTask, error) {
 	}
 
 	startTask := &pool.StartTask{
-		CommandLine:       &startTaskCmdLine,
+		CommandLine:       pointer.To(startTaskValue["command_line"].(string)),
 		MaxTaskRetryCount: &maxTaskRetryCount,
-		WaitForSuccess:    &waitForSuccess,
+		WaitForSuccess:    pointer.To(startTaskValue["wait_for_success"].(bool)),
 		UserIdentity:      &userIdentity,
 		ResourceFiles:     &resourceFiles,
 	}
@@ -655,8 +646,7 @@ func ExpandBatchPoolStartTask(list []interface{}) (*pool.StartTask, error) {
 				containerSettings.ContainerRunOptions = pointer.To(containerRunOptions.(string))
 			}
 			if registries, ok := settingMap["registry"].([]interface{}); ok && len(registries) > 0 && registries[0] != nil {
-				containerRegMap := registries[0].(map[string]interface{})
-				if containerRegistryRef, err := expandBatchPoolContainerRegistry(containerRegMap); err == nil {
+				if containerRegistryRef, err := expandBatchPoolContainerRegistry(registries[0].(map[string]interface{})); err == nil {
 					containerSettings.Registry = containerRegistryRef
 				}
 			}
@@ -675,8 +665,7 @@ func expandBatchPoolVirtualMachineConfig(d *pluginsdk.ResourceData) (*pool.Virtu
 
 	result.NodeAgentSkuId = d.Get("node_agent_sku_id").(string)
 
-	storageImageReferenceSet := d.Get("storage_image_reference").([]interface{})
-	if imageReference, err := ExpandBatchPoolImageReference(storageImageReferenceSet); err == nil {
+	if imageReference, err := ExpandBatchPoolImageReference(d.Get("storage_image_reference").([]interface{})); err == nil {
 		if imageReference != nil {
 			// if an image reference ID is specified, the user wants use a custom image. This property is mutually exclusive with other properties.
 			if imageReference.Id != nil && (imageReference.Offer != nil || imageReference.Publisher != nil || imageReference.Sku != nil || imageReference.Version != nil) {
@@ -807,8 +796,7 @@ func expandBatchPoolExtensions(list []interface{}) (*[]pool.VmExtension, error) 
 	var result []pool.VmExtension
 
 	for _, tempItem := range list {
-		item := tempItem.(map[string]interface{})
-		if batchPoolExtension, err := expandBatchPoolExtension(item); err == nil {
+		if batchPoolExtension, err := expandBatchPoolExtension(tempItem.(map[string]interface{})); err == nil {
 			result = append(result, *batchPoolExtension)
 		} else {
 			return nil, err
@@ -908,11 +896,10 @@ func expandCommonEnvironmentProperties(env map[string]interface{}) *[]pool.Envir
 	envSettings := make([]pool.EnvironmentSetting, 0)
 
 	for k, v := range env {
-		theValue := v.(string)
 		theKey := k
 		envSetting := pool.EnvironmentSetting{
 			Name:  theKey,
-			Value: &theValue,
+			Value: pointer.To(v.(string)),
 		}
 
 		envSettings = append(envSettings, envSetting)

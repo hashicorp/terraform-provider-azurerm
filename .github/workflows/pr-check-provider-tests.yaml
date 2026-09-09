@@ -32,9 +32,9 @@ jobs:
       - id: check-secrets
         run: |
           if [[ "${ACTIONS_ID_TOKEN_REQUEST_URL}" == "" ]]; then
-            echo "available=false" | tee ${GITHUB_OUTPUT}
+            echo "available=false" | tee "${GITHUB_OUTPUT}"
           else
-            echo "available=true" | tee ${GITHUB_OUTPUT}
+            echo "available=true" | tee "${GITHUB_OUTPUT}"
           fi
 
   provider-tests:
@@ -60,16 +60,16 @@ jobs:
 
       - name: Set OIDC Token
         run: |
-          echo "ARM_OIDC_TOKEN=$(curl -H "Accept: application/json; api-version=2.0" -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" -H "Content-Type: application/json" -G --data-urlencode "audience=api://AzureADTokenExchange" "${ACTIONS_ID_TOKEN_REQUEST_URL}" | jq -r '.value')" >>${GITHUB_ENV}
+          echo "ARM_OIDC_TOKEN=$(curl -H "Accept: application/json; api-version=2.0" -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" -H "Content-Type: application/json" -G --data-urlencode "audience=api://AzureADTokenExchange" "${ACTIONS_ID_TOKEN_REQUEST_URL}" | jq -r '.value')" >>"${GITHUB_ENV}"
 
       - name: Set OIDC Token File Path
-        run: echo "${ARM_OIDC_TOKEN}" >"${RUNNER_TEMP}/oidc-token.jwt" && echo "ARM_OIDC_TOKEN_FILE_PATH=${RUNNER_TEMP}/oidc-token.jwt" >>${GITHUB_ENV}
+        run: echo "${ARM_OIDC_TOKEN}" >"${RUNNER_TEMP}/oidc-token.jwt" && echo "ARM_OIDC_TOKEN_FILE_PATH=${RUNNER_TEMP}/oidc-token.jwt" >>"${GITHUB_ENV}"
 
       - name: Set Client ID Path
-        run: echo "${{ secrets.ARM_CLIENT_ID }}" >"${RUNNER_TEMP}/client-id" && echo "ARM_CLIENT_ID_PATH=${RUNNER_TEMP}/client-id" >>${GITHUB_ENV}
+        run: echo "${{ secrets.ARM_CLIENT_ID }}" >"${RUNNER_TEMP}/client-id" && echo "ARM_CLIENT_ID_PATH=${RUNNER_TEMP}/client-id" >>"${GITHUB_ENV}"
 
       - name: Set Client Secret Path
-        run: echo "${{ secrets.ARM_CLIENT_SECRET }}" >"${RUNNER_TEMP}/client-secret" && echo "ARM_CLIENT_SECRET_PATH=${RUNNER_TEMP}/client-secret" >>${GITHUB_ENV}
+        run: echo "${{ secrets.ARM_CLIENT_SECRET }}" >"${RUNNER_TEMP}/client-secret" && echo "ARM_CLIENT_SECRET_PATH=${RUNNER_TEMP}/client-secret" >>"${GITHUB_ENV}"
 
       - name: Run provider tests
         run: make testacc TEST=./internal/provider TESTARGS="-run '^TestAcc'"

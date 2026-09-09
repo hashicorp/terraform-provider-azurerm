@@ -114,12 +114,9 @@ func (r ManagerConnectivityConfigurationResource) Arguments() map[string]*plugin
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"group_connectivity": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(connectivityconfigurations.GroupConnectivityNone),
-							string(connectivityconfigurations.GroupConnectivityDirectlyConnected),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(connectivityconfigurations.PossibleValuesForGroupConnectivity(), false),
 					},
 
 					"global_mesh_enabled": {
@@ -142,12 +139,9 @@ func (r ManagerConnectivityConfigurationResource) Arguments() map[string]*plugin
 		},
 
 		"connectivity_topology": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(connectivityconfigurations.ConnectivityTopologyHubAndSpoke),
-				string(connectivityconfigurations.ConnectivityTopologyMesh),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(connectivityconfigurations.PossibleValuesForConnectivityTopology(), false),
 		},
 
 		"connected_group_address_overlap_enabled": {

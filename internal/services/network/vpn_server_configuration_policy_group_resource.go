@@ -66,13 +66,9 @@ func resourceVPNServerConfigurationPolicyGroup() *pluginsdk.Resource {
 						},
 
 						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(virtualwans.VpnPolicyMemberAttributeTypeAADGroupId),
-								string(virtualwans.VpnPolicyMemberAttributeTypeCertificateGroupId),
-								string(virtualwans.VpnPolicyMemberAttributeTypeRadiusAzureGroupId),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForVpnPolicyMemberAttributeType(), false),
 						},
 
 						"value": {

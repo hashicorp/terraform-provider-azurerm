@@ -181,28 +181,14 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 													ValidateFunc: validate.ISO8601Duration,
 												},
 												"time_aggregation": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(autoscalesettings.TimeAggregationTypeAverage),
-														string(autoscalesettings.TimeAggregationTypeCount),
-														string(autoscalesettings.TimeAggregationTypeMaximum),
-														string(autoscalesettings.TimeAggregationTypeMinimum),
-														string(autoscalesettings.TimeAggregationTypeTotal),
-														string(autoscalesettings.TimeAggregationTypeLast),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(autoscalesettings.PossibleValuesForTimeAggregationType(), false),
 												},
 												"operator": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(autoscalesettings.ComparisonOperationTypeEquals),
-														string(autoscalesettings.ComparisonOperationTypeGreaterThan),
-														string(autoscalesettings.ComparisonOperationTypeGreaterThanOrEqual),
-														string(autoscalesettings.ComparisonOperationTypeLessThan),
-														string(autoscalesettings.ComparisonOperationTypeLessThanOrEqual),
-														string(autoscalesettings.ComparisonOperationTypeNotEquals),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(autoscalesettings.PossibleValuesForComparisonOperationType(), false),
 												},
 												"threshold": {
 													Type:     pluginsdk.TypeFloat,
@@ -232,12 +218,9 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 															},
 
 															"operator": {
-																Type:     pluginsdk.TypeString,
-																Required: true,
-																ValidateFunc: validation.StringInSlice([]string{
-																	string(autoscalesettings.ScaleRuleMetricDimensionOperationTypeEquals),
-																	string(autoscalesettings.ScaleRuleMetricDimensionOperationTypeNotEquals),
-																}, false),
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringInSlice(autoscalesettings.PossibleValuesForScaleRuleMetricDimensionOperationType(), false),
 															},
 
 															"values": {
@@ -269,14 +252,9 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 													}, false),
 												},
 												"type": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(autoscalesettings.ScaleTypeChangeCount),
-														string(autoscalesettings.ScaleTypeExactCount),
-														string(autoscalesettings.ScaleTypePercentChangeCount),
-														string(autoscalesettings.ScaleTypeServiceAllowedNextValue),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(autoscalesettings.PossibleValuesForScaleType(), false),
 												},
 												"value": {
 													Type:         pluginsdk.TypeInt,
@@ -538,8 +516,7 @@ func resourceMonitorAutoScaleSettingRead(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("setting `predictive_scale_mode` of %s: %+v", *id, err)
 		}
 
-		notifications := flattenAzureRmMonitorAutoScaleSettingNotification(props.Notifications)
-		if err = d.Set("notification", notifications); err != nil {
+		if err = d.Set("notification", flattenAzureRmMonitorAutoScaleSettingNotification(props.Notifications)); err != nil {
 			return fmt.Errorf("setting `notification` of %s: %+v", *id, err)
 		}
 

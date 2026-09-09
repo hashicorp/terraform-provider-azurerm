@@ -61,13 +61,10 @@ func resourceDataShare() *pluginsdk.Resource {
 			},
 
 			"kind": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(share.ShareKindCopyBased),
-					string(share.ShareKindInPlace),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(share.PossibleValuesForShareKind(), false),
 			},
 
 			"description": {
@@ -88,12 +85,9 @@ func resourceDataShare() *pluginsdk.Resource {
 						},
 
 						"recurrence": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(synchronizationsetting.RecurrenceIntervalDay),
-								string(synchronizationsetting.RecurrenceIntervalHour),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(synchronizationsetting.PossibleValuesForRecurrenceInterval(), false),
 						},
 
 						"start_time": {

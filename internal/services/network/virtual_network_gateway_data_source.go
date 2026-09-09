@@ -294,13 +294,11 @@ func dataSourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("setting `ip_configuration`: %+v", err)
 		}
 
-		vpnConfigFlat := flattenVirtualNetworkGatewayDataSourceVpnClientConfig(props.VpnClientConfiguration)
-		if err := d.Set("vpn_client_configuration", vpnConfigFlat); err != nil {
+		if err := d.Set("vpn_client_configuration", flattenVirtualNetworkGatewayDataSourceVpnClientConfig(props.VpnClientConfiguration)); err != nil {
 			return fmt.Errorf("setting `vpn_client_configuration`: %+v", err)
 		}
 
-		bgpSettingsFlat := flattenVirtualNetworkGatewayDataSourceBgpSettings(props.BgpSettings)
-		if err := d.Set("bgp_settings", bgpSettingsFlat); err != nil {
+		if err := d.Set("bgp_settings", flattenVirtualNetworkGatewayDataSourceBgpSettings(props.BgpSettings)); err != nil {
 			return fmt.Errorf("setting `bgp_settings`: %+v", err)
 		}
 

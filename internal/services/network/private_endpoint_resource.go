@@ -212,9 +212,9 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 						},
 						// lintignore:S013
 						"member_name": {
-							Type: pluginsdk.TypeString,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
 							// NOTE: O+C This value should remain optional computed as there are certain cases where Azure will error if you pass in a member id when it isn't expecting one.
-							Optional:     true,
 							Computed:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -342,12 +342,20 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	privateDnsZoneGroup := d.Get("private_dns_zone_group").([]interface{})
 
+	// Certain child resources like those for cognitive account lock the parent resource to make sure we don't try and update the parent when it's not ready.
+	// Due to that, we'll lock on that resource id to try and prevent those type of errors.
+	privateLinkServiceConnections, privateLinkServiceConnectionIds := expandPrivateLinkEndpointServiceConnection(d.Get("private_service_connection").([]interface{}), false)
+	manualPrivateLinkServiceConnections, manualPrivateLinkServiceConnectionIds := expandPrivateLinkEndpointServiceConnection(d.Get("private_service_connection").([]interface{}), true)
+	privateLinkServiceConnectionIds = append(privateLinkServiceConnectionIds, manualPrivateLinkServiceConnectionIds...)
+	locks.MultipleByID(pointer.To(privateLinkServiceConnectionIds))
+	defer locks.UnlockMultipleByID(pointer.To(privateLinkServiceConnectionIds))
+
 	parameters := privateendpoints.PrivateEndpoint{
 		Location:         pointer.To(location.Normalize(d.Get("location").(string))),
 		ExtendedLocation: expandEdgeZoneModel(d.Get("edge_zone").(string)),
 		Properties: &privateendpoints.PrivateEndpointProperties{
-			PrivateLinkServiceConnections:       expandPrivateLinkEndpointServiceConnection(d.Get("private_service_connection").([]interface{}), false),
-			ManualPrivateLinkServiceConnections: expandPrivateLinkEndpointServiceConnection(d.Get("private_service_connection").([]interface{}), true),
+			PrivateLinkServiceConnections:       privateLinkServiceConnections,
+			ManualPrivateLinkServiceConnections: manualPrivateLinkServiceConnections,
 			Subnet: &privateendpoints.Subnet{
 				Id: pointer.To(d.Get("subnet_id").(string)),
 			},
@@ -519,14 +527,22 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	subnetId := d.Get("subnet_id").(string)
 	customNicName := d.Get("custom_network_interface_name").(string)
 
+	// Certain child resources like those for cognitive account lock the parent resource to make sure we don't try and update the parent when it's not ready.
+	// Due to that, we'll lock on that resource id to try and prevent those type of errors.
+	privateLinkServiceConnections, privateLinkServiceConnectionIds := expandPrivateLinkEndpointServiceConnection(privateServiceConnections, false)
+	manualPrivateLinkServiceConnections, manualPrivateLinkServiceConnectionIds := expandPrivateLinkEndpointServiceConnection(privateServiceConnections, true)
+	privateLinkServiceConnectionIds = append(privateLinkServiceConnectionIds, manualPrivateLinkServiceConnectionIds...)
+	locks.MultipleByID(pointer.To(privateLinkServiceConnectionIds))
+	defer locks.UnlockMultipleByID(pointer.To(privateLinkServiceConnectionIds))
+
 	// TODO: in future it'd be nice to support conditional updates here, but one problem at a time
 	parameters := privateendpoints.PrivateEndpoint{
 		Location:         pointer.To(location),
 		ExtendedLocation: expandEdgeZoneModel(d.Get("edge_zone").(string)),
 		Properties: &privateendpoints.PrivateEndpointProperties{
 			ApplicationSecurityGroups:           applicationSecurityGroupAssociation,
-			PrivateLinkServiceConnections:       expandPrivateLinkEndpointServiceConnection(privateServiceConnections, false),
-			ManualPrivateLinkServiceConnections: expandPrivateLinkEndpointServiceConnection(privateServiceConnections, true),
+			PrivateLinkServiceConnections:       privateLinkServiceConnections,
+			ManualPrivateLinkServiceConnections: manualPrivateLinkServiceConnections,
 			Subnet: &privateendpoints.Subnet{
 				Id: pointer.To(subnetId),
 			},
@@ -675,18 +691,15 @@ func resourcePrivateEndpointFlatten(ctx context.Context, metaClient *clients.Cli
 				}
 			}
 
-			networkInterface := flattenNetworkInterface(networkInterfaceId)
-			if err := d.Set("network_interface", networkInterface); err != nil {
+			if err := d.Set("network_interface", flattenNetworkInterface(networkInterfaceId)); err != nil {
 				return fmt.Errorf("setting `network_interface`: %+v", err)
 			}
 
-			flattenedConnection := flattenPrivateLinkEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)
-			if err := d.Set("private_service_connection", flattenedConnection); err != nil {
+			if err := d.Set("private_service_connection", flattenPrivateLinkEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)); err != nil {
 				return fmt.Errorf("setting `private_service_connection`: %+v", err)
 			}
 
-			flattenedipconfiguration := flattenPrivateEndpointIPConfigurations(props.IPConfigurations)
-			if err := d.Set("ip_configuration", flattenedipconfiguration); err != nil {
+			if err := d.Set("ip_configuration", flattenPrivateEndpointIPConfigurations(props.IPConfigurations)); err != nil {
 				return fmt.Errorf("setting `ip_configuration`: %+v", err)
 			}
 
@@ -765,6 +778,27 @@ func resourcePrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) 
 			if subnet := props.Subnet; subnet != nil && subnet.Id != nil {
 				subnetId = *subnet.Id
 			}
+
+			// Certain child resources like those for cognitive account lock the parent resource to make sure we don't try and update the parent when it's not ready.
+			// Due to that, we'll lock on that resource id to try and prevent those type of errors.
+			privateLinkServiceConnectionIds := make([]string, 0)
+			if privateLinkServiceConnections := props.PrivateLinkServiceConnections; privateLinkServiceConnections != nil {
+				for _, connection := range *privateLinkServiceConnections {
+					if connectionProps := connection.Properties; connectionProps != nil {
+						privateLinkServiceConnectionIds = append(privateLinkServiceConnectionIds, pointer.From(connectionProps.PrivateLinkServiceId))
+					}
+				}
+			}
+			if manualPrivateLinkServiceConnections := props.ManualPrivateLinkServiceConnections; manualPrivateLinkServiceConnections != nil {
+				for _, connection := range *manualPrivateLinkServiceConnections {
+					if connectionProps := connection.Properties; connectionProps != nil {
+						privateLinkServiceConnectionIds = append(privateLinkServiceConnectionIds, pointer.From(connectionProps.PrivateLinkServiceId))
+					}
+				}
+			}
+
+			locks.MultipleByID(pointer.To(privateLinkServiceConnectionIds))
+			defer locks.UnlockMultipleByID(pointer.To(privateLinkServiceConnectionIds))
 		}
 	}
 	if subnetId == "" {
@@ -786,8 +820,9 @@ func resourcePrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func expandPrivateLinkEndpointServiceConnection(input []interface{}, parseManual bool) *[]privateendpoints.PrivateLinkServiceConnection {
+func expandPrivateLinkEndpointServiceConnection(input []interface{}, parseManual bool) (*[]privateendpoints.PrivateLinkServiceConnection, []string) {
 	results := make([]privateendpoints.PrivateLinkServiceConnection, 0)
+	privateConnectionResourceIds := make([]string, 0)
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
@@ -795,6 +830,8 @@ func expandPrivateLinkEndpointServiceConnection(input []interface{}, parseManual
 		if privateConnectionResourceId == "" {
 			privateConnectionResourceId = v["private_connection_resource_alias"].(string)
 		}
+		privateConnectionResourceIds = append(privateConnectionResourceIds, privateConnectionResourceId)
+
 		subresourceNames := v["subresource_names"].([]interface{})
 		requestMessage := v["request_message"].(string)
 		isManual := v["is_manual_connection"].(bool)
@@ -817,7 +854,7 @@ func expandPrivateLinkEndpointServiceConnection(input []interface{}, parseManual
 		}
 	}
 
-	return &results
+	return &results, privateConnectionResourceIds
 }
 
 func expandPrivateEndpointIPConfigurations(input []interface{}) *[]privateendpoints.PrivateEndpointIPConfiguration {

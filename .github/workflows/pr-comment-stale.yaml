@@ -19,9 +19,9 @@ jobs:
         with:
           stale-pr-message: |
             This PR is being labeled as "stale" because it has not been updated for 30 or more days.
-            
+
             If this PR is still valid, please remove the "stale" label. If this PR is blocked, please add it to the "Blocked" milestone.
-            
+
             If you need some help completing this PR, please leave a comment letting us know. Thank you!
           stale-pr-label: 'stale'
           only-labels: 'waiting-response'

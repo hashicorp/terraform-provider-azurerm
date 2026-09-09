@@ -64,13 +64,10 @@ func resourceApiManagementUser() *pluginsdk.Resource {
 			},
 
 			"confirmation": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(user.ConfirmationInvite),
-					string(user.ConfirmationSignup),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(user.PossibleValuesForConfirmation(), false),
 			},
 
 			"note": {
@@ -87,7 +84,7 @@ func resourceApiManagementUser() *pluginsdk.Resource {
 			"state": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice([]string{
 					string(user.UserStateActive),
 					string(user.UserStateBlocked),

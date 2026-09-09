@@ -50,12 +50,9 @@ func dataSourcePublicIPSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"allocation_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(publicipaddresses.IPAllocationMethodDynamic),
-				string(publicipaddresses.IPAllocationMethodStatic),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(publicipaddresses.PossibleValuesForIPAllocationMethod(), false),
 		},
 
 		"public_ips": {
@@ -141,8 +138,7 @@ func dataSourcePublicIPsRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	id := fmt.Sprintf("networkPublicIPs/resourceGroup/%s/namePrefix=%s;attachmentStatus=%s;allocationType=%s", resourceGroupId.ResourceGroupName, prefix, attachmentStatus, allocationType)
 	d.SetId(base64.StdEncoding.EncodeToString([]byte(id)))
 
-	results := flattenDataSourcePublicIPs(filteredIPAddresses)
-	if err := d.Set("public_ips", results); err != nil {
+	if err := d.Set("public_ips", flattenDataSourcePublicIPs(filteredIPAddresses)); err != nil {
 		return fmt.Errorf("setting `public_ips`: %+v", err)
 	}
 

@@ -96,13 +96,9 @@ func resourceRedisCache() *pluginsdk.Resource {
 			},
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(redisresources.SkuNameBasic),
-					string(redisresources.SkuNameStandard),
-					string(redisresources.SkuNamePremium),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(redisresources.PossibleValuesForSkuName(), false),
 			},
 
 			"minimum_tls_version": {
@@ -135,7 +131,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 			"private_static_ip_address": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				// NOTE O+C: in some cases this gets a default value if omitted. This can remain o+c as it is ForceNew and cannot be updated
+				// NOTE: O+C in some cases this gets a default value if omitted. This can remain o+c as it is ForceNew and cannot be updated
 				Computed: true,
 				ForceNew: true,
 			},
@@ -143,7 +139,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 			"redis_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{

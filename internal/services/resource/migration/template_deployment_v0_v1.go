@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/deployments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -73,7 +73,7 @@ func (t TemplateDeploymentV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldId := rawState["id"].(string)
 
-		id, err := parse.ResourceGroupTemplateDeploymentIDInsensitively(oldId)
+		id, err := deployments.ParseResourceGroupProviderDeploymentIDInsensitively(oldId)
 		if err != nil {
 			return rawState, fmt.Errorf("parsing existing Resource ID %q: %+v", oldId, err)
 		}

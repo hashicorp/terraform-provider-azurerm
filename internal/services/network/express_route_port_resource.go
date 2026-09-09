@@ -27,10 +27,10 @@ import (
 )
 
 var expressRoutePortSchema = &pluginsdk.Schema{
-	Type: pluginsdk.TypeList,
-	// Service will always create a pair of links automatically. Users can't add or remove link, but only manipulate existing ones.
-	// This is because the link is actually a map to the physical pair of ports on the MS edge device.
+	Type:     pluginsdk.TypeList,
 	Optional: true,
+	// Note: O+C because the service will always create a pair of links automatically. Users can't add or remove link, but only manipulate existing ones.
+	// This is because the link is actually a map to the physical pair of ports on the MS edge device.
 	Computed: true,
 	MinItems: 1,
 	MaxItems: 1,
@@ -42,15 +42,10 @@ var expressRoutePortSchema = &pluginsdk.Schema{
 				Default:  false,
 			},
 			"macsec_cipher": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(expressrouteports.ExpressRouteLinkMacSecCipherGcmAesOneTwoEight),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(expressrouteports.ExpressRouteLinkMacSecCipherGcmAesOneTwoEight),
-					string(expressrouteports.ExpressRouteLinkMacSecCipherGcmAesTwoFiveSix),
-					string(expressrouteports.ExpressRouteLinkMacSecCipherGcmAesXpnOneTwoEight),
-					string(expressrouteports.ExpressRouteLinkMacSecCipherGcmAesXpnTwoFiveSix),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(expressrouteports.ExpressRouteLinkMacSecCipherGcmAesOneTwoEight),
+				ValidateFunc: validation.StringInSlice(expressrouteports.PossibleValuesForExpressRouteLinkMacSecCipher(), false),
 			},
 			"macsec_ckn_keyvault_secret_id": {
 				Type:         pluginsdk.TypeString,
@@ -141,25 +136,19 @@ func resourceArmExpressRoutePort() *pluginsdk.Resource {
 			},
 
 			"encapsulation": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(expressrouteports.ExpressRoutePortsEncapsulationDotOneQ),
-					string(expressrouteports.ExpressRoutePortsEncapsulationQinQ),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(expressrouteports.PossibleValuesForExpressRoutePortsEncapsulation(), false),
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"billing_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(expressrouteports.ExpressRoutePortsBillingTypeMeteredData),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(expressrouteports.ExpressRoutePortsBillingTypeMeteredData),
-					string(expressrouteports.ExpressRoutePortsBillingTypeUnlimitedData),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(expressrouteports.ExpressRoutePortsBillingTypeMeteredData),
+				ValidateFunc: validation.StringInSlice(expressrouteports.PossibleValuesForExpressRoutePortsBillingType(), false),
 			},
 
 			"link1": expressRoutePortSchema,
@@ -456,7 +445,7 @@ func expandExpressRoutePortLink(idx int, input []interface{}) *expressrouteports
 
 func flattenExpressRoutePortLinks(links *[]expressrouteports.ExpressRouteLink) ([]interface{}, []interface{}, error) {
 	if links == nil {
-		return nil, nil, nil
+		return []interface{}{}, []interface{}{}, nil
 	}
 	length := len(*links)
 	if length != 2 {

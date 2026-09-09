@@ -89,9 +89,10 @@ func resourceStorageContainer() *pluginsdk.Resource {
 			},
 
 			"default_encryption_scope": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true, // needed because a dummy value is returned when unspecified
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C because needed because a dummy value is returned when unspecified
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageEncryptionScopeName,
 			},

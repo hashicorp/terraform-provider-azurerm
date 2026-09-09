@@ -34,7 +34,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	dataplane "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -86,12 +85,9 @@ func resourceKeyVault() *pluginsdk.Resource {
 			},
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(vaults.SkuNameStandard),
-					string(vaults.SkuNamePremium),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(vaults.PossibleValuesForSkuName(), false),
 			},
 
 			"tenant_id": {
@@ -104,7 +100,7 @@ func resourceKeyVault() *pluginsdk.Resource {
 				Type:       pluginsdk.TypeList,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				MaxItems:   1024,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -149,25 +145,19 @@ func resourceKeyVault() *pluginsdk.Resource {
 			"network_acls": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"default_action": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(vaults.NetworkRuleActionAllow),
-								string(vaults.NetworkRuleActionDeny),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(vaults.PossibleValuesForNetworkRuleAction(), false),
 						},
 						"bypass": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(vaults.NetworkRuleBypassOptionsNone),
-								string(vaults.NetworkRuleBypassOptionsAzureServices),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(vaults.PossibleValuesForNetworkRuleBypassOptions(), false),
 						},
 						"ip_rules": {
 							Type:     pluginsdk.TypeSet,
@@ -394,7 +384,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending:                   []string{"pending"},
 			Target:                    []string{"available"},
-			Refresh:                   keyVaultRefreshFunc(vaultUri),
+			Refresh:                   keyVaultRefreshFunc(ctx, vaultUri),
 			Delay:                     30 * time.Second,
 			PollInterval:              10 * time.Second,
 			ContinuousTargetOccurence: 10,
@@ -649,8 +639,7 @@ func resourceKeyVaultFlatten(ctx context.Context, managementClient *dataplane.Ba
 			return fmt.Errorf("setting `network_acls`: %+v", err)
 		}
 
-		flattenedPolicies := flattenAccessPolicies(model.Properties.AccessPolicies)
-		if err := d.Set("access_policy", flattenedPolicies); err != nil {
+		if err := d.Set("access_policy", flattenAccessPolicies(model.Properties.AccessPolicies)); err != nil {
 			return fmt.Errorf("setting `access_policy`: %+v", err)
 		}
 
@@ -675,7 +664,7 @@ func resourceKeyVaultFlatten(ctx context.Context, managementClient *dataplane.Ba
 		// to ignore the error if the data plane call fails.
 		contacts, err := managementClient.GetCertificateContacts(ctx, d.Get("vault_uri").(string))
 		if err != nil {
-			if publicNetworkAccessEnabled && (!utils.ResponseWasForbidden(contacts.Response) && !utils.ResponseWasNotFound(contacts.Response)) {
+			if publicNetworkAccessEnabled && (!response.WasForbidden(contacts.Response.Response) && !response.WasNotFound(contacts.Response.Response)) {
 				return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
 			}
 		}
@@ -780,7 +769,7 @@ func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func keyVaultRefreshFunc(vaultUri string) pluginsdk.StateRefreshFunc {
+func keyVaultRefreshFunc(ctx context.Context, vaultUri string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Checking to see if KeyVault %q is available..", vaultUri)
 
@@ -790,7 +779,12 @@ func keyVaultRefreshFunc(vaultUri string) pluginsdk.StateRefreshFunc {
 			},
 		}
 
-		conn, err := client.Get(vaultUri)
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, vaultUri, nil)
+		if err != nil {
+			return nil, "pending", fmt.Errorf("building request to check %q: %s", vaultUri, err)
+		}
+
+		conn, err := client.Do(req)
 		if err != nil {
 			log.Printf("[DEBUG] Didn't find KeyVault at %q", vaultUri)
 			return nil, "pending", fmt.Errorf("connecting to %q: %s", vaultUri, err)

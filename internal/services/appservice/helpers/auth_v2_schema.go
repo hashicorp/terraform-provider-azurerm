@@ -108,16 +108,11 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 				},
 
 				"unauthenticated_action": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(webapps.UnauthenticatedClientActionV2RedirectToLoginPage),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.UnauthenticatedClientActionV2RedirectToLoginPage),
-						string(webapps.UnauthenticatedClientActionV2AllowAnonymous),
-						string(webapps.UnauthenticatedClientActionV2ReturnFourZeroOne),
-						string(webapps.UnauthenticatedClientActionV2ReturnFourZeroThree),
-					}, false),
-					Description: "The action to take for requests made without authentication. Possible values include `RedirectToLoginPage`, `AllowAnonymous`, `Return401`, and `Return403`. Defaults to `RedirectToLoginPage`.",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(webapps.UnauthenticatedClientActionV2RedirectToLoginPage),
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForUnauthenticatedClientActionV2(), false),
+					Description:  "The action to take for requests made without authentication. Possible values include `RedirectToLoginPage`, `AllowAnonymous`, `Return401`, and `Return403`. Defaults to `RedirectToLoginPage`.",
 				},
 
 				"default_provider": {
@@ -172,15 +167,11 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 				},
 
 				"forward_proxy_convention": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(webapps.ForwardProxyConventionNoProxy),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.ForwardProxyConventionNoProxy),
-						string(webapps.ForwardProxyConventionCustom),
-						string(webapps.ForwardProxyConventionStandard),
-					}, false),
-					Description: "The convention used to determine the url of the request made. Possible values include `ForwardProxyConventionNoProxy`, `ForwardProxyConventionStandard`, `ForwardProxyConventionCustom`. Defaults to `ForwardProxyConventionNoProxy`",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(webapps.ForwardProxyConventionNoProxy),
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForForwardProxyConvention(), false),
+					Description:  "The convention used to determine the url of the request made. Possible values include `ForwardProxyConventionNoProxy`, `ForwardProxyConventionStandard`, `ForwardProxyConventionCustom`. Defaults to `ForwardProxyConventionNoProxy`",
 				},
 
 				"forward_proxy_custom_host_header_name": {
@@ -385,14 +376,11 @@ func authV2LoginSchema() *pluginsdk.Schema {
 				},
 
 				"cookie_expiration_convention": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(webapps.CookieExpirationConventionFixedTime),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.CookieExpirationConventionIdentityProviderDerived),
-						string(webapps.CookieExpirationConventionFixedTime),
-					}, false),
-					Description: "The method by which cookies expire. Possible values include: `FixedTime`, and `IdentityProviderDerived`. Defaults to `FixedTime`.",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(webapps.CookieExpirationConventionFixedTime),
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForCookieExpirationConvention(), false),
+					Description:  "The method by which cookies expire. Possible values include: `FixedTime`, and `IdentityProviderDerived`. Defaults to `FixedTime`.",
 				},
 
 				"cookie_expiration_time": {
@@ -1472,7 +1460,7 @@ func FacebookAuthV2SettingsSchema() *pluginsdk.Schema {
 				"graph_api_version": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The version of the Facebook API to be used while logging in.",
 				},
@@ -2074,7 +2062,7 @@ func flattenTwitterAuthV2Settings(input *webapps.Twitter) []TwitterAuthV2Setting
 		return []TwitterAuthV2Settings{result}
 	}
 
-	return nil
+	return []TwitterAuthV2Settings{}
 }
 
 func ExpandAuthV2Settings(input []AuthV2Settings) *webapps.SiteAuthSettingsV2 {

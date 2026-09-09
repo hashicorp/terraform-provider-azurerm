@@ -60,12 +60,8 @@ func (r ManagerSecurityAdminConfigurationResource) Arguments() map[string]*plugi
 			Optional: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(securityadminconfigurations.NetworkIntentPolicyBasedServiceAll),
-					string(securityadminconfigurations.NetworkIntentPolicyBasedServiceAllowRulesOnly),
-					string(securityadminconfigurations.NetworkIntentPolicyBasedServiceNone),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice(securityadminconfigurations.PossibleValuesForNetworkIntentPolicyBasedService(), false),
 			},
 		},
 
