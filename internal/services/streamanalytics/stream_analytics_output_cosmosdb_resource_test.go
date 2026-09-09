@@ -34,6 +34,25 @@ func TestAccStreamAnalyticsOutputCosmosDB_basic(t *testing.T) {
 	})
 }
 
+func TestAccStreamAnalyticsOutputCosmosDB_crossResourceGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_cosmosdb", "test")
+	r := StreamAnalyticsOutputCosmosDBResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.crossResourceGroup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cosmosdb_sql_database_id").MatchesOtherKey(check.That("azurerm_cosmosdb_sql_database.test").Key("id")),
+			),
+		},
+		{
+			Config:   r.crossResourceGroup(data),
+			PlanOnly: true,
+		},
+	})
+}
+
 func TestAccStreamAnalyticsOutputCosmosDB_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_cosmosdb", "test")
 	r := StreamAnalyticsOutputCosmosDBResource{}
@@ -115,6 +134,25 @@ resource "azurerm_stream_analytics_output_cosmosdb" "test" {
 `, r.template(data), data.RandomString, data.RandomInteger)
 }
 
+func (r StreamAnalyticsOutputCosmosDBResource) crossResourceGroup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_resource_group" "cosmos" {
+  name     = "acctestRG-cosmos-%[2]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_stream_analytics_output_cosmosdb" "test" {
+  name                     = "acctestoutput-%[2]d"
+  stream_analytics_job_id  = azurerm_stream_analytics_job.test.id
+  cosmosdb_account_key     = azurerm_cosmosdb_account.test.primary_key
+  cosmosdb_sql_database_id = azurerm_cosmosdb_sql_database.test.id
+  container_name           = azurerm_cosmosdb_sql_container.test.name
+}
+`, r.templateWithCosmosDBResourceGroup(data, "azurerm_resource_group.cosmos"), data.RandomInteger, data.Locations.Primary)
+}
+
 func (r StreamAnalyticsOutputCosmosDBResource) updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -176,6 +214,10 @@ resource "azurerm_stream_analytics_output_cosmosdb" "import" {
 }
 
 func (r StreamAnalyticsOutputCosmosDBResource) template(data acceptance.TestData) string {
+	return r.templateWithCosmosDBResourceGroup(data, "azurerm_resource_group.test")
+}
+
+func (r StreamAnalyticsOutputCosmosDBResource) templateWithCosmosDBResourceGroup(data acceptance.TestData, cosmosDBResourceGroup string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -188,8 +230,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctestacc%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = %[4]s.location
+  resource_group_name = %[4]s.name
   offer_type          = "Standard"
   kind                = "GlobalDocumentDB"
 
@@ -200,7 +242,7 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   geo_location {
-    location          = azurerm_resource_group.test.location
+    location          = %[4]s.location
     failover_priority = 0
   }
 }
@@ -239,5 +281,5 @@ resource "azurerm_stream_analytics_job" "test" {
 QUERY
 
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, cosmosDBResourceGroup)
 }
