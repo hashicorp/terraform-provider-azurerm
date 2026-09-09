@@ -44,7 +44,7 @@ jobs:
             const body = `A changelog entry for this PR is missing or invalid. Please add one using:
 
             \`\`\`
-            changeloggy add --pr ${{ github.event.pull_request.number }} --type <type> "<body>"
+            changeloggy add --pr ${{ github.event.pull_request.number }} --type <type> '<body>'
             \`\`\`
 
             Available types:
