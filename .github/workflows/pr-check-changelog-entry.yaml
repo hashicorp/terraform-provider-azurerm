@@ -39,7 +39,7 @@ jobs:
         with:
           script: |
             const { execSync } = require('child_process');
-            const types = execSync('changeloggy types --table').toString();
+            const types = execSync('changeloggy types').toString();
             const prNumber = ${{ github.event.pull_request.number }};
             const body = `A changelog entry for this PR is missing or invalid. Please add one using:
 
