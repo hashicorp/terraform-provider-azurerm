@@ -1,5 +1,5 @@
 ---
-subcategory: "Durable Task"
+subcategory: "Durable Task Scheduler"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_durable_task_scheduler"
 description: |-
@@ -33,13 +33,13 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Durable Task Scheduler. Changing this forces a new resource to be created.
 
--> **Note:** `name` must be between `3` and `63` characters, start and end with an alphanumeric character, and only contain alphanumeric characters and hyphens.
+-> **Note:** `name` must be between `3` and `64` characters, start and end with an alphanumeric character, and only contain alphanumeric characters and hyphens.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Durable Task Scheduler should exist. Changing this forces a new resource to be created.
 
 * `location` - (Required) The Azure Region where the Durable Task Scheduler should exist. Changing this forces a new resource to be created.
 
-* `ip_allowlist` - (Required) A list of IP addresses or CIDR ranges that are allowed to access the Durable Task Scheduler.
+* `ip_allowlist` - (Optional) A list of IP addresses or CIDR ranges that are allowed to access the Durable Task Scheduler. Defaults to `["0.0.0.0/0"]`.
 
 * `sku_name` - (Required) The SKU of the Durable Task Scheduler. Possible values are `Consumption` and `Dedicated`. Changing this forces a new resource to be created.
 

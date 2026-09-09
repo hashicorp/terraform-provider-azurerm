@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package durabletask
+package durabletaskscheduler
 
 import (
 	"context"
@@ -29,7 +29,7 @@ func (SchedulerListResource) ResourceFunc() *pluginsdk.Resource {
 }
 
 func (SchedulerListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.DurableTask.SchedulersClient
+	client := metadata.Client.DurableTaskScheduler.SchedulersClient
 
 	var data sdk.DefaultListModel
 	if diags := request.Config.Get(ctx, &data); diags.HasError() {

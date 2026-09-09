@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package durabletask
+package durabletaskscheduler
 
 //go:generate go run ../../tools/generator-tests resourceidentity
 
@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/durabletask/2025-11-01/schedulers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/durabletask/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/durabletaskscheduler/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -74,7 +74,9 @@ func (r SchedulerResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"ip_allowlist": {
 			Type:     pluginsdk.TypeList,
-			Required: true,
+			Optional: true,
+			Computed: true,
+			MinItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.Any(validation.IsIPAddress, validation.IsCIDR),
@@ -138,7 +140,7 @@ func (r SchedulerResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DurableTask.SchedulersClient
+			client := metadata.Client.DurableTaskScheduler.SchedulersClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model SchedulerResourceModel
@@ -159,6 +161,11 @@ func (r SchedulerResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			ipAllowList := model.IpAllowList
+			if len(ipAllowList) == 0 {
+				ipAllowList = []string{"0.0.0.0/0"}
+			}
+
 			properties := schedulers.Scheduler{
 				Location: location.Normalize(model.Location),
 				Properties: &schedulers.SchedulerProperties{
@@ -166,7 +173,7 @@ func (r SchedulerResource) Create() sdk.ResourceFunc {
 						Name:     schedulers.SchedulerSkuName(model.SkuName),
 						Capacity: pointer.ToOrNil(model.Capacity),
 					},
-					IPAllowlist: model.IpAllowList,
+					IPAllowlist: ipAllowList,
 				},
 				Tags: &model.Tags,
 			}
@@ -177,7 +184,7 @@ func (r SchedulerResource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 	}
 }
@@ -186,7 +193,7 @@ func (r SchedulerResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DurableTask.SchedulersClient
+			client := metadata.Client.DurableTaskScheduler.SchedulersClient
 
 			id, err := schedulers.ParseSchedulerID(metadata.ResourceData.Id())
 			if err != nil {
@@ -237,7 +244,7 @@ func (r SchedulerResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DurableTask.SchedulersClient
+			client := metadata.Client.DurableTaskScheduler.SchedulersClient
 
 			id, err := schedulers.ParseSchedulerID(metadata.ResourceData.Id())
 			if err != nil {
@@ -279,7 +286,7 @@ func (r SchedulerResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DurableTask.SchedulersClient
+			client := metadata.Client.DurableTaskScheduler.SchedulersClient
 
 			id, err := schedulers.ParseSchedulerID(metadata.ResourceData.Id())
 			if err != nil {

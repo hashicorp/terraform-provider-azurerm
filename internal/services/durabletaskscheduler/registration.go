@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package durabletask
+package durabletaskscheduler
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
@@ -19,7 +19,7 @@ var (
 )
 
 func (r Registration) AssociatedGitHubLabel() string {
-	return "service/durable-task"
+	return "service/durable-task-scheduler"
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
@@ -33,12 +33,12 @@ func (r Registration) Resources() []sdk.Resource {
 }
 
 func (r Registration) Name() string {
-	return "Durable Task"
+	return "Durable Task Scheduler"
 }
 
 func (r Registration) WebsiteCategories() []string {
 	return []string{
-		"Durable Task",
+		"Durable Task Scheduler",
 	}
 }
 

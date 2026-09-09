@@ -102,7 +102,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "devcenter" to testConfiguration(parallelism = 2, locationOverride = LocationConfiguration("southeastasia", "uksouth", "canadacentral", true)),
 
         // Durable Task Scheduler has limited quota per subscription and is only available in certain regions
-        "durabletask" to testConfiguration(parallelism = 1, locationOverride = LocationConfiguration("northeurope", "eastus", "northeurope", false)),
+        "durabletaskscheduler" to testConfiguration(parallelism = 1, locationOverride = LocationConfiguration("northeurope", "eastus", "northcentralus", false)),
 
         // "hdinsight" is super expensive - G class VM's are not available in westus2, quota only available in westeurope currently
         "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),

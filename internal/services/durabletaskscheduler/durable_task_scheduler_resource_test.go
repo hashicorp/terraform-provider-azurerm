@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package durabletask_test
+package durabletaskscheduler_test
 
 import (
 	"context"
@@ -28,6 +28,8 @@ func TestAccDurableTaskScheduler_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_allowlist.#").HasValue("1"),
+				check.That(data.ResourceName).Key("ip_allowlist.0").HasValue("0.0.0.0/0"),
 			),
 		},
 		data.ImportStep(),
@@ -145,7 +147,7 @@ func (r DurableTaskSchedulerResource) Exists(ctx context.Context, client *client
 		return nil, err
 	}
 
-	resp, err := client.DurableTask.SchedulersClient.Get(ctx, *id)
+	resp, err := client.DurableTaskScheduler.SchedulersClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -175,7 +177,6 @@ resource "azurerm_durable_task_scheduler" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "Consumption"
-  ip_allowlist        = ["0.0.0.0/0"]
 }
 `, r.template(data), data.RandomString)
 }

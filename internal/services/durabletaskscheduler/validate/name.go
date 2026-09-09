@@ -13,7 +13,7 @@ var durableTaskNameRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0
 
 func DurableTaskName(i interface{}, k string) ([]string, []error) {
 	return validation.All(
-		validation.StringLenBetween(3, 63),
+		validation.StringLenBetween(3, 64),
 		validation.StringMatch(durableTaskNameRegex, "must start and end with alphanumeric characters and can contain hyphens"),
 	)(i, k)
 }

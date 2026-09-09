@@ -1,5 +1,5 @@
 ---
-subcategory: "Durable Task"
+subcategory: "Durable Task Scheduler"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_durable_task_scheduler"
 description: |-

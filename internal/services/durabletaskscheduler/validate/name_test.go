@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/durabletask/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/durabletaskscheduler/validate"
 )
 
 func TestDurableTaskName(t *testing.T) {
@@ -20,7 +20,7 @@ func TestDurableTaskName(t *testing.T) {
 		{Input: "valid123", Valid: true},
 		{Input: "name-with-numbers-123", Valid: true},
 		{Input: "abc", Valid: true},
-		{Input: strings.Repeat("a", 63), Valid: true},
+		{Input: strings.Repeat("a", 64), Valid: true},
 		{Input: "scheduler-1", Valid: true},
 		{Input: "my-scheduler", Valid: true},
 		{Input: "test123scheduler", Valid: true},
@@ -34,7 +34,7 @@ func TestDurableTaskName(t *testing.T) {
 		{Input: "ab", Valid: false},
 		{Input: "-invalid", Valid: false},
 		{Input: "invalid-", Valid: false},
-		{Input: strings.Repeat("a", 64), Valid: false},
+		{Input: strings.Repeat("a", 65), Valid: false},
 	}
 
 	for _, tc := range cases {
