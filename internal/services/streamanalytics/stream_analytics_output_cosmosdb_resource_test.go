@@ -200,7 +200,7 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   geo_location {
-	location          = azurerm_resource_group.test.location
+    location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
 }
