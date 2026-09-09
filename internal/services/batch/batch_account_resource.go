@@ -381,7 +381,6 @@ func resourceBatchAccountFlatten(ctx context.Context, client *batchaccount.Batch
 			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 				return err
 			}
-			
 		}
 	}
 	return pluginsdk.SetResourceIdentityData(d, id)
