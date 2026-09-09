@@ -245,12 +245,10 @@ func (r KubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			autoUpgradeMinorVersion := model.Version == ""
-
 			properties := &extensions.Extension{
 				Plan: expandPlanModel(model.Plan),
 				Properties: &extensions.ExtensionProperties{
-					AutoUpgradeMinorVersion:        &autoUpgradeMinorVersion,
+					AutoUpgradeMinorVersion:        pointer.To(model.Version == ""),
 					ConfigurationProtectedSettings: &model.ConfigurationProtectedSettings,
 					ConfigurationSettings:          &model.ConfigurationSettings,
 				},

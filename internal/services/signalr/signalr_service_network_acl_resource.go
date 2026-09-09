@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/privateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
@@ -257,7 +258,6 @@ func resourceSignalRServiceNetworkACLDelete(d *pluginsdk.ResourceData, meta inte
 
 	model := *resp.Model
 
-	defaultAction := signalr.ACLActionDeny
 	defaultRequestTypes := []signalr.SignalRRequestType{
 		signalr.SignalRRequestTypeClientConnection,
 		signalr.SignalRRequestTypeRESTAPI,
@@ -265,7 +265,7 @@ func resourceSignalRServiceNetworkACLDelete(d *pluginsdk.ResourceData, meta inte
 		signalr.SignalRRequestTypeTrace,
 	}
 	networkACL := &signalr.SignalRNetworkACLs{
-		DefaultAction: &defaultAction,
+		DefaultAction: pointer.To(signalr.ACLActionDeny),
 		PublicNetwork: &signalr.NetworkACL{
 			Allow: &defaultRequestTypes,
 		},

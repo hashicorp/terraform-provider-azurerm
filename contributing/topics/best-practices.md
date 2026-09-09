@@ -234,6 +234,7 @@ Avoid `Optional` + `Computed` properties usage where other options exist, e.g:
 However, if no other options exist, we can use `Optional` + `Computed` in favour of having users specify `ignore_changes`.
 
 If you encounter a field that must be `Optional` and `Computed`, make sure it follows the following conventions:
+
 * The properties are in this sequence: Optional, Explanatory Comment, Computed
 * The comment should start with `// NOTE: O+C `, and then explain the reason for the field being `Optional` and `Computed`
 

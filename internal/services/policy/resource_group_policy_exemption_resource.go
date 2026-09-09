@@ -26,12 +26,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceArmResourceGroupPolicyExemption() *pluginsdk.Resource {
+func resourceResourceGroupPolicyExemption() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmResourceGroupPolicyExemptionCreateUpdate,
-		Read:   resourceArmResourceGroupPolicyExemptionRead,
-		Update: resourceArmResourceGroupPolicyExemptionCreateUpdate,
-		Delete: resourceArmResourceGroupPolicyExemptionDelete,
+		Create: resourceResourceGroupPolicyExemptionCreateUpdate,
+		Read:   resourceResourceGroupPolicyExemptionRead,
+		Update: resourceResourceGroupPolicyExemptionCreateUpdate,
+		Delete: resourceResourceGroupPolicyExemptionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ResourceGroupPolicyExemptionID(id)
@@ -105,7 +105,7 @@ func resourceArmResourceGroupPolicyExemption() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmResourceGroupPolicyExemptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourceGroupPolicyExemptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.ExemptionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -173,10 +173,10 @@ func resourceArmResourceGroupPolicyExemptionCreateUpdate(d *pluginsdk.ResourceDa
 		d.SetId(id.ID())
 	}
 
-	return resourceArmResourceGroupPolicyExemptionRead(d, meta)
+	return resourceResourceGroupPolicyExemptionRead(d, meta)
 }
 
-func resourceArmResourceGroupPolicyExemptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourceGroupPolicyExemptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.ExemptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -225,7 +225,7 @@ func resourceArmResourceGroupPolicyExemptionRead(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func resourceArmResourceGroupPolicyExemptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourceGroupPolicyExemptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.ExemptionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
