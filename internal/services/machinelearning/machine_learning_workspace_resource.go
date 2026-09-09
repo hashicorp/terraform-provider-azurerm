@@ -591,8 +591,7 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 			}
 			d.Set("key_vault_id", kvId.ID())
 
-			featureStoreSettings := flattenMachineLearningWorkspaceFeatureStore(props.FeatureStoreSettings)
-			if err := d.Set("feature_store", featureStoreSettings); err != nil {
+			if err := d.Set("feature_store", flattenMachineLearningWorkspaceFeatureStore(props.FeatureStoreSettings)); err != nil {
 				return fmt.Errorf("setting `feature_store`: %+v", err)
 			}
 

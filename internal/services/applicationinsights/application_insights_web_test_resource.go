@@ -384,9 +384,8 @@ func expandApplicationInsightsWebTestGeoLocations(input []interface{}) []webtest
 	locations := make([]webtests.WebTestGeolocation, 0)
 
 	for _, v := range input {
-		lc := v.(string)
 		loc := webtests.WebTestGeolocation{
-			Id: &lc,
+			Id: pointer.To(v.(string)),
 		}
 		locations = append(locations, loc)
 	}

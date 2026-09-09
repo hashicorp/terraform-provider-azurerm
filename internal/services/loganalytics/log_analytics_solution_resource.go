@@ -232,10 +232,8 @@ func (s LogAnalyticsSolutionResource) Read() sdk.ResourceFunc {
 						return fmt.Errorf("expected %q to match 'Solution(WorkspaceName)'", val)
 					}
 
-					solutionName := segments[0]
-					workspaceName := strings.TrimSuffix(segments[1], ")")
-					state.SolutionName = solutionName
-					state.WorkspaceName = workspaceName
+					state.SolutionName = segments[0]
+					state.WorkspaceName = strings.TrimSuffix(segments[1], ")")
 				}
 
 				if props := model.Properties; props != nil {

@@ -118,13 +118,12 @@ func (r LogAnalyticsClusterResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
-			capacityReservation := clusters.ClusterSkuNameEnumCapacityReservation
 			parameters := clusters.Cluster{
 				Location: location.Normalize(config.Location),
 				Identity: expandedIdentity,
 				Sku: &clusters.ClusterSku{
 					Capacity: pointer.To(clusters.Capacity(config.SizeGB)),
-					Name:     &capacityReservation,
+					Name:     pointer.To(clusters.ClusterSkuNameEnumCapacityReservation),
 				},
 				Tags: pointer.To(config.Tags),
 			}

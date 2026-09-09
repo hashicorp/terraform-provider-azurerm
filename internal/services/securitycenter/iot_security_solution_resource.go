@@ -530,7 +530,7 @@ func flattenIotSecuritySolutionAdditionalWorkspace(input *[]security.AdditionalW
 
 func flattenIotSecuritySolutionDisabledDataSources(input *[]security.DataSource) []interface{} {
 	if input == nil || len(*input) == 0 {
-		return nil
+		return []interface{}{}
 	}
 
 	results := make([]string, 0)

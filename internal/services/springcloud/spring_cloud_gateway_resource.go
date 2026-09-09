@@ -874,7 +874,7 @@ func flattenGatewaySsoProperties(input *appplatform.SsoProperties, old []Gateway
 
 func flattenGatewayGatewayApmTypes(input *[]appplatform.ApmType) []string {
 	if input == nil {
-		return nil
+		return []string{}
 	}
 	out := make([]string, 0)
 	for _, v := range *input {

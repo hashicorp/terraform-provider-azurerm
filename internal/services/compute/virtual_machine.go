@@ -450,11 +450,10 @@ func expandOsImageNotificationProfile(input []interface{}) *virtualmachines.OSIm
 	}
 
 	raw := input[0].(map[string]interface{})
-	timeout := raw["timeout"].(string)
 
 	return &virtualmachines.OSImageNotificationProfile{
 		Enable:           pointer.To(true),
-		NotBeforeTimeout: &timeout,
+		NotBeforeTimeout: pointer.To(raw["timeout"].(string)),
 	}
 }
 
@@ -466,18 +465,16 @@ func expandTerminateNotificationProfile(input []interface{}) *virtualmachines.Te
 	}
 
 	raw := input[0].(map[string]interface{})
-	enabled := raw["enabled"].(bool)
-	timeout := raw["timeout"].(string)
 
 	return &virtualmachines.TerminateNotificationProfile{
-		Enable:           &enabled,
-		NotBeforeTimeout: &timeout,
+		Enable:           pointer.To(raw["enabled"].(bool)),
+		NotBeforeTimeout: pointer.To(raw["timeout"].(string)),
 	}
 }
 
 func flattenOsImageNotificationProfile(input *virtualmachines.OSImageNotificationProfile) []interface{} {
 	if input == nil || !pointer.From(input.Enable) {
-		return nil
+		return []interface{}{}
 	}
 
 	timeout := "PT15M"
@@ -592,7 +589,7 @@ func expandVirtualMachineGalleryApplication(input []interface{}) *[]virtualmachi
 
 func flattenVirtualMachineGalleryApplication(input *[]virtualmachines.VMGalleryApplication) []interface{} {
 	if len(*input) == 0 {
-		return nil
+		return []interface{}{}
 	}
 
 	out := make([]interface{}, 0)

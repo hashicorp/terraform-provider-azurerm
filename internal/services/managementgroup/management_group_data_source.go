@@ -101,11 +101,10 @@ func dataSourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("reading Management Group (Display Name %q): %+v", displayName, err)
 		}
 	}
-	recurse := true
 	resp, err := client.Get(ctx, commonids.NewManagementGroupID(groupName), managementgroups.GetOperationOptions{
 		CacheControl: &managementGroupCacheControl,
 		Expand:       pointer.To(managementgroups.ExpandChildren),
-		Recurse:      &recurse,
+		Recurse:      pointer.To(true),
 	})
 	if err != nil {
 		if response.WasForbidden(resp.HttpResponse) {

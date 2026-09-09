@@ -1214,8 +1214,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("setting `protocols`: %+v", err)
 		}
 
-		hostnameConfigs := flattenApiManagementHostnameConfigurations(model.Properties.HostnameConfigurations, d)
-		if err := d.Set("hostname_configuration", hostnameConfigs); err != nil {
+		if err := d.Set("hostname_configuration", flattenApiManagementHostnameConfigurations(model.Properties.HostnameConfigurations, d)); err != nil {
 			return fmt.Errorf("setting `hostname_configuration`: %+v", err)
 		}
 		additionalLocation, err := flattenApiManagementAdditionalLocations(model.Properties.AdditionalLocations)

@@ -445,7 +445,7 @@ func expandExpressRoutePortLink(idx int, input []interface{}) *expressrouteports
 
 func flattenExpressRoutePortLinks(links *[]expressrouteports.ExpressRouteLink) ([]interface{}, []interface{}, error) {
 	if links == nil {
-		return nil, nil, nil
+		return []interface{}{}, []interface{}{}, nil
 	}
 	length := len(*links)
 	if length != 2 {

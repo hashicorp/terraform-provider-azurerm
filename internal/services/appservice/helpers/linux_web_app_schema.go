@@ -1360,5 +1360,5 @@ func flattenAutoHealSettingsLinux(autoHealRules *webapps.AutoHealRules) []AutoHe
 		return []AutoHealSettingLinux{result}
 	}
 
-	return nil
+	return []AutoHealSettingLinux{}
 }

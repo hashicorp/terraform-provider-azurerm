@@ -2062,7 +2062,7 @@ func flattenTwitterAuthV2Settings(input *webapps.Twitter) []TwitterAuthV2Setting
 		return []TwitterAuthV2Settings{result}
 	}
 
-	return nil
+	return []TwitterAuthV2Settings{}
 }
 
 func ExpandAuthV2Settings(input []AuthV2Settings) *webapps.SiteAuthSettingsV2 {

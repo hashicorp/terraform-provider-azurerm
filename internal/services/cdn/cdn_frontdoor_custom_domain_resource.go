@@ -299,14 +299,12 @@ func resourceCdnFrontDoorCustomDomainFlatten(d *pluginsdk.ResourceData, id *afdd
 		if props := model.Properties; props != nil {
 			d.Set("host_name", props.HostName)
 
-			dnsZoneId := flattenAfdDNSZoneResourceReference(props.AzureDnsZone)
-			if err := d.Set("dns_zone_id", dnsZoneId); err != nil {
+			if err := d.Set("dns_zone_id", flattenAfdDNSZoneResourceReference(props.AzureDnsZone)); err != nil {
 				return fmt.Errorf("setting `dns_zone_id`: %+v", err)
 			}
 
 			includeDefaultCipherSuite := resourceCdnFrontDoorCustomDomainCipherSuiteConfigured(d)
-			tls := flattenAfdDomainHttpsParameters(props.TlsSettings, includeDefaultCipherSuite)
-			if err := d.Set("tls", tls); err != nil {
+			if err := d.Set("tls", flattenAfdDomainHttpsParameters(props.TlsSettings, includeDefaultCipherSuite)); err != nil {
 				return fmt.Errorf("setting `tls`: %+v", err)
 			}
 
@@ -451,16 +449,14 @@ func expandAfdDomainTlsParameters(d *pluginsdk.ResourceData, input []interface{}
 	}
 
 	if minTlsVersion != "" {
-		tlsVer := afddomains.AfdMinimumTlsVersion(minTlsVersion)
-		tls.MinimumTlsVersion = &tlsVer
+		tls.MinimumTlsVersion = pointer.ToEnum[afddomains.AfdMinimumTlsVersion](minTlsVersion)
 	}
 
 	if len(cipherSuiteRaw) > 0 && cipherSuiteRaw[0] != nil {
 		cipherSuite := cipherSuiteRaw[0].(map[string]interface{})
 
 		if cipherSuiteType := cipherSuite["type"].(string); cipherSuiteType != "" {
-			cipherType := afddomains.AfdCipherSuiteSetType(cipherSuiteType)
-			tls.CipherSuiteSetType = &cipherType
+			tls.CipherSuiteSetType = pointer.ToEnum[afddomains.AfdCipherSuiteSetType](cipherSuiteType)
 		}
 
 		if customCiphersRaw := cipherSuite["custom_ciphers"].([]interface{}); len(customCiphersRaw) > 0 {

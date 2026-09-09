@@ -487,18 +487,15 @@ func resourceCdnEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 		d.Set("is_compression_enabled", pointer.From(props.IsCompressionEnabled))
 
-		contentTypes := flattenAzureRMCdnEndpointContentTypes(props.ContentTypesToCompress)
-		if err := d.Set("content_types_to_compress", contentTypes); err != nil {
+		if err := d.Set("content_types_to_compress", flattenAzureRMCdnEndpointContentTypes(props.ContentTypesToCompress)); err != nil {
 			return fmt.Errorf("setting `content_types_to_compress`: %+v", err)
 		}
 
-		geoFilters := flattenCdnEndpointGeoFilters(props.GeoFilters)
-		if err := d.Set("geo_filter", geoFilters); err != nil {
+		if err := d.Set("geo_filter", flattenCdnEndpointGeoFilters(props.GeoFilters)); err != nil {
 			return fmt.Errorf("setting `geo_filter`: %+v", err)
 		}
 
-		origins := flattenAzureRMCdnEndpointOrigin(props.Origins)
-		if err := d.Set("origin", origins); err != nil {
+		if err := d.Set("origin", flattenAzureRMCdnEndpointOrigin(props.Origins)); err != nil {
 			return fmt.Errorf("setting `origin`: %+v", err)
 		}
 

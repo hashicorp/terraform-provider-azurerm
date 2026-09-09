@@ -658,5 +658,5 @@ func flattenAutoHealSettingsWindows(autoHealRules *webapps.AutoHealRules) []Auto
 		return []AutoHealSettingWindows{result}
 	}
 
-	return nil
+	return []AutoHealSettingWindows{}
 }

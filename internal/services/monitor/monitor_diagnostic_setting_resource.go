@@ -446,8 +446,7 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 			}
 			d.Set("log_analytics_destination_type", logAnalyticsDestinationType)
 
-			enabledLogs := flattenMonitorDiagnosticEnabledLogs(resp.Model.Properties.Logs)
-			if err = d.Set("enabled_log", enabledLogs); err != nil {
+			if err = d.Set("enabled_log", flattenMonitorDiagnosticEnabledLogs(resp.Model.Properties.Logs)); err != nil {
 				return fmt.Errorf("setting `enabled_log`: %+v", err)
 			}
 

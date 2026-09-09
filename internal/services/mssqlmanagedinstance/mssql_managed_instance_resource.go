@@ -860,7 +860,7 @@ func (r MsSqlManagedInstanceResource) expandIdentity(input []identity.SystemOrUs
 
 func (r MsSqlManagedInstanceResource) flattenIdentity(input *identity.LegacySystemAndUserAssignedMap) []identity.SystemOrUserAssignedList {
 	if input == nil {
-		return nil
+		return []identity.SystemOrUserAssignedList{}
 	}
 
 	identityIds := make([]string, 0)

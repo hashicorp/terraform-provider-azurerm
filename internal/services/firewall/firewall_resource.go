@@ -682,7 +682,7 @@ func expandFirewallAdditionalProperty(d *pluginsdk.ResourceData) map[string]stri
 
 func flattenFirewallAdditionalProperty(input *map[string]string) (enabled interface{}, servers []interface{}) {
 	if input == nil || len(*input) == 0 {
-		return nil, nil
+		return nil, []interface{}{}
 	}
 
 	if enabledPtr, ok := (*input)["Network.DNS.EnableProxy"]; ok {
@@ -715,7 +715,7 @@ func expandFirewallPrivateIpRange(input []interface{}) map[string]string {
 
 func flattenFirewallPrivateIpRange(input *map[string]string) []interface{} {
 	if input == nil || len(*input) == 0 {
-		return nil
+		return []interface{}{}
 	}
 
 	attrs := *input
@@ -777,7 +777,7 @@ func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, inp
 
 func flattenFirewallVirtualHubSetting(props *azurefirewalls.AzureFirewallPropertiesFormat) []interface{} {
 	if props.VirtualHub == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	var (

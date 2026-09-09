@@ -594,9 +594,8 @@ func domainServiceControllerRefreshFunc(ctx context.Context, client *domainservi
 }
 
 func expandDomainServiceLdaps(input []interface{}) (ldaps *domainservices.LdapsSettings) {
-	state := domainservices.LdapsDisabled
 	ldaps = &domainservices.LdapsSettings{
-		Ldaps: &state,
+		Ldaps: pointer.To(domainservices.LdapsDisabled),
 	}
 
 	if len(input) > 0 {
@@ -761,7 +760,7 @@ func flattenDomainServiceNotifications(input *domainservices.NotificationSetting
 
 func flattenDomainServiceReplicaSets(input *[]domainservices.ReplicaSet) (ret []interface{}) {
 	if input == nil {
-		return
+		return []interface{}{}
 	}
 
 	for _, in := range *input {

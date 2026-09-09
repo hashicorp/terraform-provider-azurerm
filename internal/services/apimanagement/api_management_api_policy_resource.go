@@ -154,8 +154,7 @@ func resourceApiManagementAPIPolicyRead(d *pluginsdk.ResourceData, meta interfac
 
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("api_management_name", id.ServiceName)
-	apiName := getApiName(id.ApiId)
-	d.Set("api_name", apiName)
+	d.Set("api_name", getApiName(id.ApiId))
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
