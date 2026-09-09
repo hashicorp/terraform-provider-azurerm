@@ -10,10 +10,6 @@ permissions:
 on:
   pull_request:
     types: ['opened', 'synchronize', 'labeled', 'unlabeled']
-    paths:
-      - '.github/workflows/pr-check-changelog-entry.yaml'
-      - '.changelog/**'
-      - '.changeloggy.hcl'
 
 concurrency:
   group: 'changelog-entry-${{ github.head_ref }}'
