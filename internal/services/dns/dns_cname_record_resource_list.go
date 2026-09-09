@@ -62,9 +62,8 @@ func (DnsCNameRecordListResource) List(ctx context.Context, request list.ListReq
 		return
 	}
 
-	cnameType := string(recordsets.RecordTypeCNAME)
 	resp, err := client.ListByDnsZoneCompleteMatchingPredicate(ctx, *parentID, recordsets.DefaultListByDnsZoneOperationOptions(), recordsets.RecordSetOperationPredicate{
-		Type: &cnameType,
+		Type: pointer.To(string(recordsets.RecordTypeCNAME)),
 	})
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", azureDnsCNameRecordResourceName), err)

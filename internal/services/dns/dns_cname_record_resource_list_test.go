@@ -26,7 +26,7 @@ func TestAccDnsCNameRecord_listByDnsZoneID(t *testing.T) {
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		Steps: []resource.TestStep{
 			{
-				Config: r.basic(data),
+				Config: r.basicList(data),
 			},
 			{
 				Query:  true,
@@ -46,6 +46,33 @@ func TestAccDnsCNameRecord_listByDnsZoneID(t *testing.T) {
 			},
 		},
 	})
+}
+
+func (DnsCnameRecordResource) basicList(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_dns_cname_record" "test" {
+  count               = 3
+  name                = "myarecord%d${count.index}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
+  ttl                 = 300
+  record              = "contoso.com"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (r DnsCnameRecordResource) basicQuery(data acceptance.TestData) string {
