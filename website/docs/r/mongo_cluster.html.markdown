@@ -59,10 +59,6 @@ The following arguments are supported:
 
 -> **Note:** When adding or removing `identity`, a resource recreation will be triggered.
 
-* `cosmos_db_network_bypass_enabled` - (Optional) Whether Cosmos DB network bypass is enabled for the MongoDB Cluster. Defaults to `false`.
-
-~> **Note:** `cosmos_db_network_bypass_enabled` can only be set to `true` when `public_network_access` is `Disabled`, `authentication_methods` contains only `MicrosoftEntraID`, and no firewall rules exist on the cluster. This is not supported on portal yet since Entra ID-only authentication is not supported there.
-
 * `preview_features` - (Optional) The preview features that can be enabled on the MongoDB Cluster. Changing this forces a new resource to be created.
 
 * `restore` - (Optional) A `restore` block as defined below. Required when `create_mode` is set to `PointInTimeRestore`. Changing this forces a new resource to be created.
@@ -80,6 +76,10 @@ The following arguments are supported:
 * `authentication_methods` - (Optional) A list of allowed authentication modes for the MongoDB Cluster. Possible values are `NativeAuth` and `MicrosoftEntraID`.
 
 * `compute_tier` - (Optional) The compute tier to assign to the MongoDB Cluster. Possible values are `Free`, `M10`, `M20`, `M25`, `M30`, `M40`, `M50`, `M60`, `M80`, and `M200`.
+
+* `cosmos_db_network_bypass_enabled` - (Optional) Whether Cosmos DB network bypass is enabled for the MongoDB Cluster. Defaults to `false`.
+
+~> **Note:** `cosmos_db_network_bypass_enabled` can only be set to `true` when `public_network_access` is `Disabled`, `authentication_methods` contains only `MicrosoftEntraID`, and no firewall rules exist on the cluster. This is not supported on portal yet bacause Entra ID-only authentication is not supported there.
 
 * `high_availability_mode` - (Optional) The high availability mode for the MongoDB Cluster. Possibles values are `Disabled` and `ZoneRedundantPreferred`.
 
