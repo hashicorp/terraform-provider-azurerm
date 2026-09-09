@@ -1938,8 +1938,8 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_PASSWORD", dockerConfig.RegistryPassword, false)
 			dockerUrl := dockerConfig.RegistryURL
 			for _, prefix := range urlSchemes {
-				if strings.HasPrefix(dockerConfig.RegistryURL, prefix) {
-					dockerUrl = strings.TrimPrefix(dockerConfig.RegistryURL, prefix)
+				if after, ok := strings.CutPrefix(dockerConfig.RegistryURL, prefix); ok {
+					dockerUrl = after
 					continue
 				}
 			}
@@ -2672,8 +2672,8 @@ func ParseWebJobsStorageString(input string) (name, key string) {
 		return
 	}
 
-	parts := strings.Split(input, ";")
-	for _, part := range parts {
+	parts := strings.SplitSeq(input, ";")
+	for part := range parts {
 		if strings.HasPrefix(part, "AccountName") {
 			name = strings.TrimPrefix(part, "AccountName=")
 		}

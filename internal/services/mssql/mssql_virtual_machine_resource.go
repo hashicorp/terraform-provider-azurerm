@@ -1179,8 +1179,8 @@ func flattenSqlVirtualMachineKeyVaultCredential(keyVault *sqlvirtualmachines.Key
 }
 
 func mssqlVMCredentialNameDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
-	oldNamelist := strings.Split(old, ",")
-	for _, n := range oldNamelist {
+	oldNamelist := strings.SplitSeq(old, ",")
+	for n := range oldNamelist {
 		cur := strings.Split(n, ":")
 		if len(cur) > 1 && cur[1] == new {
 			return true

@@ -1907,8 +1907,8 @@ func IothubConnectionStringSuppress(k, old, new string, d *pluginsdk.ResourceDat
 
 func connectionStringToMap(connectionStr string) map[string]string {
 	m := make(map[string]string)
-	split := strings.Split(connectionStr, ";")
-	for _, v := range split {
+	split := strings.SplitSeq(connectionStr, ";")
+	for v := range split {
 		// The connection string might contain `=`
 		kv := strings.SplitN(v, "=", 2)
 		if len(kv) != 2 {

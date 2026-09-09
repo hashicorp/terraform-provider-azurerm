@@ -349,9 +349,9 @@ func flattenAccessRights(r devices.AccessRights) accessRights {
 		serviceConnect: false,
 	}
 
-	actualAccessRights := strings.Split(string(r), ",")
+	actualAccessRights := strings.SplitSeq(string(r), ",")
 
-	for _, right := range actualAccessRights {
+	for right := range actualAccessRights {
 		switch strings.ToLower(strings.Trim(right, " ")) {
 		case "registrywrite":
 			rights.registryWrite = true

@@ -6,6 +6,7 @@ package datafactory
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -175,9 +176,7 @@ func resourceDataFactoryCustomDatasetCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	additionalProperties := d.Get("additional_properties").(map[string]interface{})
-	for k, v := range additionalProperties {
-		props[k] = v
-	}
+	maps.Copy(props, additionalProperties)
 
 	if v, ok := d.GetOk("annotations"); ok {
 		props["annotations"] = v.([]interface{})

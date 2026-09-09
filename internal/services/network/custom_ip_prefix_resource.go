@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"slices"
 	"strings"
 	"time"
 
@@ -405,12 +406,7 @@ func (r CustomIpPrefixResource) Delete() sdk.ResourceFunc {
 type commissionedStates []customipprefixes.CommissionedState
 
 func (t commissionedStates) contains(i customipprefixes.CommissionedState) bool {
-	for _, s := range t {
-		if i == s {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(t, i)
 }
 
 func (t commissionedStates) strings() (out []string) {
