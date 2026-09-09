@@ -75,7 +75,8 @@ func (r SchedulerResource) Arguments() map[string]*pluginsdk.Schema {
 		"ip_allowlist": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			// NOTE: O+C SDKv2 lists cannot define schema defaults, and Azure persists `0.0.0.0/0` when this is omitted
+			// NOTE: O+C SDKv2 list schemas cannot define defaults. Azure persists `0.0.0.0/0`
+			// when the property is omitted, so Computed avoids a post-create diff.
 			Computed: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Schema{
