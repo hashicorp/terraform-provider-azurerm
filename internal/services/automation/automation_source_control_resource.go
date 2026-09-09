@@ -173,8 +173,6 @@ func (m SourceControlResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			sourceType := sourcecontrol.SourceType(model.SourceType)
-
 			var param sourcecontrol.SourceControlCreateOrUpdateParameters
 			param.Properties = sourcecontrol.SourceControlCreateOrUpdateProperties{
 				AutoSync:       pointer.To(model.AutoSync),
@@ -183,14 +181,13 @@ func (m SourceControlResource) Create() sdk.ResourceFunc {
 				FolderPath:     pointer.To(model.FolderPath),
 				PublishRunbook: pointer.To(model.PublishRunbook),
 				RepoURL:        pointer.To(model.RepoURL),
-				SourceType:     &sourceType,
+				SourceType:     pointer.ToEnum[sourcecontrol.SourceType](model.SourceType),
 			}
 
 			param.Properties.SecurityToken = &sourcecontrol.SourceControlSecurityTokenProperties{}
 			if len(model.SecurityToken) > 0 {
 				token := model.SecurityToken[0]
-				tokenType := sourcecontrol.TokenType(token.TokenType)
-				param.Properties.SecurityToken.TokenType = &tokenType
+				param.Properties.SecurityToken.TokenType = pointer.ToEnum[sourcecontrol.TokenType](token.TokenType)
 				param.Properties.SecurityToken.AccessToken = pointer.To(token.Token)
 				if token.RefreshToken != "" {
 					param.Properties.SecurityToken.RefreshToken = pointer.To(token.RefreshToken)
@@ -291,12 +288,11 @@ func (m SourceControlResource) Update() sdk.ResourceFunc {
 				prop.Description = pointer.To(model.Description)
 			}
 
-			tokenType := sourcecontrol.TokenType(model.SecurityToken[0].TokenType)
 			if meta.ResourceData.HasChange("security") {
 				prop.SecurityToken = &sourcecontrol.SourceControlSecurityTokenProperties{
 					AccessToken:  pointer.To(model.SecurityToken[0].TokenType),
 					RefreshToken: pointer.To(model.SecurityToken[0].RefreshToken),
-					TokenType:    &tokenType,
+					TokenType:    pointer.ToEnum[sourcecontrol.TokenType](model.SecurityToken[0].TokenType),
 				}
 			}
 			upd.Properties = prop

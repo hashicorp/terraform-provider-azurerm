@@ -66,18 +66,15 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"deployment_mode": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(resources.DeploymentModeComplete),
-					string(resources.DeploymentModeIncremental),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInEnumSlice(resources.PossibleDeploymentModeValues(), false),
 			},
 
 			"template_content": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ExactlyOneOf: []string{
 					"template_content",
 					"template_spec_version_id",
@@ -105,7 +102,7 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 			"parameters_content": {
 				Type:      pluginsdk.TypeString,
 				Optional:  true,
-				Computed:  true,
+				Computed:  true, // azignore:AZS007 - pre-existing violation
 				StateFunc: helpers.NormalizeJson,
 			},
 

@@ -506,7 +506,6 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	connectivityType := sqlvirtualmachines.ConnectivityType(d.Get("sql_connectivity_type").(string))
-	sqlManagement := sqlvirtualmachines.SqlManagementModeFull
 	sqlServerLicenseType := sqlvirtualmachines.SqlServerLicenseType(d.Get("sql_license_type").(string))
 	autoBackupSettings, err := expandSqlVirtualMachineAutoBackupSettings(d.Get("auto_backup").([]interface{}))
 	if err != nil {
@@ -534,7 +533,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 				},
 				SqlInstanceSettings: sqlInstance,
 			},
-			SqlManagement:                &sqlManagement,
+			SqlManagement:                pointer.To(sqlvirtualmachines.SqlManagementModeFull),
 			SqlServerLicenseType:         &sqlServerLicenseType,
 			StorageConfigurationSettings: expandSqlVirtualMachineStorageConfigurationSettings(d.Get("storage_configuration").([]interface{})),
 			VirtualMachineResourceId:     pointer.To(d.Get("virtual_machine_id").(string)),
@@ -838,12 +837,10 @@ func expandSqlVirtualMachineAutoBackupSettings(input []interface{}) (*sqlvirtual
 			ret.BackupSystemDbs = pointer.To(v.(bool))
 		}
 
-		backupScheduleTypeAutomated := sqlvirtualmachines.BackupScheduleTypeAutomated
-		ret.BackupScheduleType = &backupScheduleTypeAutomated
+		ret.BackupScheduleType = pointer.To(sqlvirtualmachines.BackupScheduleTypeAutomated)
 		if v, ok := config["manual_schedule"]; ok && len(v.([]interface{})) > 0 {
 			manualSchedule := v.([]interface{})[0].(map[string]interface{})
-			backupScheduleTypeManual := sqlvirtualmachines.BackupScheduleTypeManual
-			ret.BackupScheduleType = &backupScheduleTypeManual
+			ret.BackupScheduleType = pointer.To(sqlvirtualmachines.BackupScheduleTypeManual)
 
 			fullBackupFrequency := sqlvirtualmachines.FullBackupFrequencyType(manualSchedule["full_backup_frequency"].(string))
 
@@ -1006,13 +1003,11 @@ func expandSqlVirtualMachineAutoPatchingSettings(input []interface{}) *sqlvirtua
 
 	autoPatchingSetting := input[0].(map[string]interface{})
 
-	dayOfWeek := sqlvirtualmachines.DayOfWeek(autoPatchingSetting["day_of_week"].(string))
-
 	return &sqlvirtualmachines.AutoPatchingSettings{
 		Enable:                        pointer.To(true),
 		MaintenanceWindowDuration:     pointer.To(int64(autoPatchingSetting["maintenance_window_duration_in_minutes"].(int))),
 		MaintenanceWindowStartingHour: pointer.To(int64(autoPatchingSetting["maintenance_window_starting_hour"].(int))),
-		DayOfWeek:                     &dayOfWeek,
+		DayOfWeek:                     pointer.ToEnum[sqlvirtualmachines.DayOfWeek](autoPatchingSetting["day_of_week"].(string)),
 	}
 }
 
@@ -1065,11 +1060,9 @@ func expandSqlVirtualMachineAssessmentSettingsSchedule(input []interface{}) *sql
 
 	scheduleConfig := input[0].(map[string]interface{})
 
-	dayOfWeek := sqlvirtualmachines.AssessmentDayOfWeek(scheduleConfig["day_of_week"].(string))
-
 	schedule := &sqlvirtualmachines.Schedule{
 		Enable:    pointer.To(true),
-		DayOfWeek: &dayOfWeek,
+		DayOfWeek: pointer.ToEnum[sqlvirtualmachines.AssessmentDayOfWeek](scheduleConfig["day_of_week"].(string)),
 		StartTime: pointer.To(scheduleConfig["start_time"].(string)),
 	}
 
@@ -1202,12 +1195,9 @@ func expandSqlVirtualMachineStorageConfigurationSettings(input []interface{}) *s
 	}
 	storageSettings := input[0].(map[string]interface{})
 
-	diskConfigurationType := sqlvirtualmachines.DiskConfigurationType(storageSettings["disk_type"].(string))
-	storageWorkloadType := sqlvirtualmachines.StorageWorkloadType(storageSettings["storage_workload_type"].(string))
-
 	return &sqlvirtualmachines.StorageConfigurationSettings{
-		DiskConfigurationType: &diskConfigurationType,
-		StorageWorkloadType:   &storageWorkloadType,
+		DiskConfigurationType: pointer.ToEnum[sqlvirtualmachines.DiskConfigurationType](storageSettings["disk_type"].(string)),
+		StorageWorkloadType:   pointer.ToEnum[sqlvirtualmachines.StorageWorkloadType](storageSettings["storage_workload_type"].(string)),
 		SqlSystemDbOnDataDisk: pointer.To(storageSettings["system_db_on_data_disk_enabled"].(bool)),
 		SqlDataSettings:       expandSqlVirtualMachineDataStorageSettings(storageSettings["data_settings"].([]interface{})),
 		SqlLogSettings:        expandSqlVirtualMachineDataStorageSettings(storageSettings["log_settings"].([]interface{})),

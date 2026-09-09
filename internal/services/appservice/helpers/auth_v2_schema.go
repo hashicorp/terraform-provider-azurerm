@@ -1460,7 +1460,7 @@ func FacebookAuthV2SettingsSchema() *pluginsdk.Schema {
 				"graph_api_version": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The version of the Facebook API to be used while logging in.",
 				},
@@ -2062,7 +2062,7 @@ func flattenTwitterAuthV2Settings(input *webapps.Twitter) []TwitterAuthV2Setting
 		return []TwitterAuthV2Settings{result}
 	}
 
-	return nil
+	return []TwitterAuthV2Settings{}
 }
 
 func ExpandAuthV2Settings(input []AuthV2Settings) *webapps.SiteAuthSettingsV2 {

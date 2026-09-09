@@ -85,9 +85,10 @@ func getDimensionNames() []string {
 
 func (br consumptionBudgetBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
 	output := map[string]*pluginsdk.Schema{
-		"etag": {
+		"etag": { // TODO 6.0: this should probably be computed only?
 			Type:     pluginsdk.TypeString,
 			Computed: true,
+			// Note: O+C because Azure will always return a new value for this
 			Optional: true,
 		},
 
@@ -252,7 +253,7 @@ func (br consumptionBudgetBaseResource) arguments(fields map[string]*pluginsdk.S
 					"end_date": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.IsRFC3339Time,
 					},
 				},

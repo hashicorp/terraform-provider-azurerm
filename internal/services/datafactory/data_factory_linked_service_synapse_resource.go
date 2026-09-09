@@ -177,8 +177,7 @@ func resourceDataFactoryLinkedServiceSynapseCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		sqlDWLinkedService.Annotations = &annotations
+		sqlDWLinkedService.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -227,13 +226,11 @@ func resourceDataFactoryLinkedServiceSynapseRead(d *pluginsdk.ResourceData, meta
 	d.Set("additional_properties", sqlDW.AdditionalProperties)
 	d.Set("description", sqlDW.Description)
 
-	annotations := flattenDataFactoryAnnotations(sqlDW.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(sqlDW.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenLinkedServiceParameters(sqlDW.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(sqlDW.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 

@@ -141,13 +141,11 @@ func dataSourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		if props := model.Properties; props != nil {
-			githubConfiguration := flattenGitHubRepoConfigurationDataSource(props.RepoConfiguration)
-			if err := d.Set("github_configuration", githubConfiguration); err != nil {
+			if err := d.Set("github_configuration", flattenGitHubRepoConfigurationDataSource(props.RepoConfiguration)); err != nil {
 				return fmt.Errorf("setting `github_configuration`: %+v", err)
 			}
 
-			vstsConfiguration := flattenVSTSRepoConfigurationDataSource(props.RepoConfiguration)
-			if err := d.Set("vsts_configuration", vstsConfiguration); err != nil {
+			if err := d.Set("vsts_configuration", flattenVSTSRepoConfigurationDataSource(props.RepoConfiguration)); err != nil {
 				return fmt.Errorf("setting `vsts_configuration`: %+v", err)
 			}
 		}

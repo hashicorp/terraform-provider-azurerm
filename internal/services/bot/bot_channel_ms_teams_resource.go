@@ -61,11 +61,11 @@ func resourceBotChannelMsTeams() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			// issue: https://github.com/Azure/azure-rest-api-specs/issues/9809
-			// this field could not update to empty, so add `Computed: true` to avoid diff
 			"calling_web_hook": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C because this field could not update to empty, so add `Computed: true` to avoid diff
+				// issue: https://github.com/Azure/azure-rest-api-specs/issues/9809
 				Computed:     true,
 				ValidateFunc: validate.BotMSTeamsCallingWebHook(),
 			},

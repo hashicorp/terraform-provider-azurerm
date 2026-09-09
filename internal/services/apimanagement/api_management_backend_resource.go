@@ -253,14 +253,14 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 						"client_certificate_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.AsGeneratedID(certificate.ParseCertificateIDInsensitively),
 						},
 
 						"client_certificate_thumbprint": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"management_endpoints": {

@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -86,9 +87,10 @@ func resourceStorageDataLakeGen2FileSystem() *pluginsdk.Resource {
 			"properties": MetaDataSchema(),
 
 			"default_encryption_scope": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true, // needed because a dummy value is returned when unspecified
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C because needed because a dummy value is returned when unspecified
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.StorageEncryptionScopeName,
 			},
@@ -96,21 +98,21 @@ func resourceStorageDataLakeGen2FileSystem() *pluginsdk.Resource {
 			"owner": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.Any(validation.IsUUID, validation.StringInSlice([]string{"$superuser"}, false)),
 			},
 
 			"group": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.Any(validation.IsUUID, validation.StringInSlice([]string{"$superuser"}, false)),
 			},
 
 			"ace": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"scope": {
@@ -228,13 +230,11 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta
 
 	var owner *string
 	if v, ok := d.GetOk("owner"); ok {
-		sv := v.(string)
-		owner = &sv
+		owner = pointer.To(v.(string))
 	}
 	var group *string
 	if v, ok := d.GetOk("group"); ok {
-		sv := v.(string)
-		group = &sv
+		group = pointer.To(v.(string))
 	}
 
 	if acl != nil || owner != nil || group != nil {
@@ -310,13 +310,11 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *pluginsdk.ResourceData, meta
 
 	var owner *string
 	if v, ok := d.GetOk("owner"); ok {
-		sv := v.(string)
-		owner = &sv
+		owner = pointer.To(v.(string))
 	}
 	var group *string
 	if v, ok := d.GetOk("group"); ok {
-		sv := v.(string)
-		group = &sv
+		group = pointer.To(v.(string))
 	}
 
 	if acl != nil || owner != nil || group != nil {

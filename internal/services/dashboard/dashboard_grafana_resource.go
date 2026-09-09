@@ -274,11 +274,9 @@ func (r DashboardGrafanaResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			identityValue := expandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
-
 			properties := expandCreateForDashboardGrafana(model)
 
-			properties.Identity = identityValue
+			properties.Identity = expandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
 
 			if err := client.GrafanaCreateCallbackThenPoll(ctx, id, *properties, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -453,9 +451,7 @@ func (r DashboardGrafanaResource) Read() sdk.ResourceFunc {
 				Location:          location.NormalizeNilable(model.Location),
 			}
 
-			identityValue := flattenLegacySystemAndUserAssignedMap(model.Identity)
-
-			if err := metadata.ResourceData.Set("identity", identityValue); err != nil {
+			if err := metadata.ResourceData.Set("identity", flattenLegacySystemAndUserAssignedMap(model.Identity)); err != nil {
 				return fmt.Errorf("setting `identity`: %+v", err)
 			}
 
@@ -661,7 +657,7 @@ func expandLegacySystemAndUserAssignedMap(input []interface{}) *identity.LegacyS
 func flattenSMTPConfigurationModel(input *managedgrafanas.Smtp, data *schema.ResourceData) []SMTPConfigurationModel {
 	var outputList []SMTPConfigurationModel
 	if input == nil || !pointer.From(input.Enabled) {
-		return outputList
+		return []SMTPConfigurationModel{}
 	}
 
 	var output SMTPConfigurationModel

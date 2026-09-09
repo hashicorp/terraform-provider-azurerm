@@ -91,9 +91,9 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.AppConfigurationFeatureName,
 		},
 		"etag": {
-			Type: pluginsdk.TypeString,
-			// NOTE: O+C The value of this is updated anytime the resource changes so this should remain Computed
+			Type:     pluginsdk.TypeString,
 			Computed: true,
+			// NOTE: O+C The value of this is updated anytime the resource changes
 			Optional: true,
 		},
 		"label": {

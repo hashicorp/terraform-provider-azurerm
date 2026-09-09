@@ -68,7 +68,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 				Type:       pluginsdk.TypeSet,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				Set:        hashNetworkSecurityRule,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -315,8 +315,7 @@ func resourceNetworkSecurityGroupFlatten(d *pluginsdk.ResourceData, id *networks
 	if nsg != nil {
 		d.Set("location", location.NormalizeNilable(nsg.Location))
 		if props := nsg.Properties; props != nil {
-			flattenedRules := flattenNetworkSecurityRules(props.SecurityRules)
-			if err := d.Set("security_rule", flattenedRules); err != nil {
+			if err := d.Set("security_rule", flattenNetworkSecurityRules(props.SecurityRules)); err != nil {
 				return fmt.Errorf("setting `security_rule`: %+v", err)
 			}
 		}

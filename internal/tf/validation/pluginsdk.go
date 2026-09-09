@@ -259,6 +259,18 @@ func StringInSlice(valid []string, ignoreCase bool) func(interface{}, string) ([
 	}
 }
 
+// StringInEnumSlice returns a SchemaValidateFunc which tests if the provided value
+// is of type string and matches a value in the valid slice of string-backed enum
+// values, as returned by a track-1 SDK's Possible<Enum>Values() helper
+// will test with in lower case if ignoreCase is true
+func StringInEnumSlice[T ~string](valid []T, ignoreCase bool) func(interface{}, string) ([]string, []error) {
+	values := make([]string, len(valid))
+	for i, v := range valid {
+		values[i] = string(v)
+	}
+	return StringInSlice(values, ignoreCase)
+}
+
 // StringIsBase64 is a ValidateFunc that ensures a string can be parsed as Base64
 func StringIsBase64(i interface{}, k string) ([]string, []error) {
 	return validation.StringIsBase64(i, k)

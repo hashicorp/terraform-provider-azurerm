@@ -138,8 +138,7 @@ func (r ResourceProviderRegistrationResource) Create() sdk.ResourceFunc {
 			}
 
 			log.Printf("[DEBUG] Registering %s..", resourceId)
-			payload := providers.ProviderRegistrationRequest{}
-			if _, err := client.Register(ctx, resourceId, payload); err != nil {
+			if _, err := client.Register(ctx, resourceId, providers.ProviderRegistrationRequest{}); err != nil {
 				return fmt.Errorf("registering %s: %+v", resourceId, err)
 			}
 			metadata.SetID(resourceId)

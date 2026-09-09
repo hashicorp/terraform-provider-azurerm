@@ -102,13 +102,10 @@ func resourceIothubEndpointStorageContainerSchema() map[string]*pluginsdk.Schema
 		},
 
 		"authentication_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(devices.AuthenticationTypeKeyBased),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(devices.AuthenticationTypeKeyBased),
-				string(devices.AuthenticationTypeIdentityBased),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(devices.AuthenticationTypeKeyBased),
+			ValidateFunc: validation.StringInEnumSlice(devices.PossibleAuthenticationTypeValues(), false),
 		},
 
 		"identity_id": {
@@ -145,11 +142,7 @@ func resourceIothubEndpointStorageContainerSchema() map[string]*pluginsdk.Schema
 			ForceNew:         true,
 			Default:          string(devices.EncodingAvro),
 			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(devices.EncodingAvro),
-				string(devices.EncodingAvroDeflate),
-				string(devices.EncodingJSON),
-			}, true),
+			ValidateFunc:     validation.StringInEnumSlice(devices.PossibleEncodingValues(), true),
 		},
 
 		"subscription_id": {

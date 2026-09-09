@@ -82,14 +82,14 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 			"target_resource_type": {
 				Type:        pluginsdk.TypeString,
 				Optional:    true,
-				Computed:    true,
+				Computed:    true, // azignore:AZS007 - pre-existing violation
 				Description: `The resource type (e.g. Microsoft.Compute/virtualMachines) of the target pluginsdk. Required when using subscription, resource group scope or multiple scopes.`,
 			},
 
 			"target_resource_location": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				StateFunc:        location.StateFunc,
 				DiffSuppressFunc: location.DiffSuppressFunc,
 				Description:      `The location of the target pluginsdk. Required when using subscription, resource group scope or multiple scopes.`,
@@ -733,13 +733,13 @@ func flattenMonitorMetricAlertCriteria(input metricalerts.MetricAlertCriteria) [
 	case metricalerts.WebtestLocationAvailabilityCriteria:
 		return flattenMonitorMetricAlertWebtestLocAvailCriteria(&criteria)
 	default:
-		return nil
+		return []interface{}{}
 	}
 }
 
 func flattenMonitorMetricAlertSingleResourceMultiMetricCriteria(input *[]metricalerts.MetricCriteria) []interface{} {
 	if input == nil || len(*input) == 0 {
-		return nil
+		return []interface{}{}
 	}
 	criteria := (*input)[0]
 	metricName := criteria.MetricName
@@ -777,7 +777,7 @@ func flattenMonitorMetricAlertSingleResourceMultiMetricCriteria(input *[]metrica
 
 func flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(input *[]metricalerts.MultiMetricCriteria) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 	result := make([]interface{}, 0)
 
@@ -856,7 +856,7 @@ func flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(input *[]metrical
 
 func flattenMonitorMetricAlertWebtestLocAvailCriteria(input *metricalerts.WebtestLocationAvailabilityCriteria) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	return []interface{}{

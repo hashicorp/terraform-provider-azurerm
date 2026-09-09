@@ -19,8 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
-	sqlValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -195,7 +193,7 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Arguments() map[st
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: sqlValidate.SqlVirtualMachineID,
+						ValidateFunc: validation.AsGeneratedID(sqlvirtualmachines.ParseSqlVirtualMachineIDInsensitively),
 					},
 
 					"role": {
@@ -402,7 +400,7 @@ func expandMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfiguration
 
 		var parsedIds []interface{}
 		for _, sqlVmId := range lb.SqlVirtualMachineIds {
-			parsedId, err := parse.SqlVirtualMachineID(sqlVmId)
+			parsedId, err := sqlvirtualmachines.ParseSqlVirtualMachineID(sqlVmId)
 			if err != nil {
 				return nil, err
 			}

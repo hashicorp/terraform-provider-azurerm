@@ -109,7 +109,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 	return nil
 }
 
-func managedHSMKeyRefreshFunc(childItemUri string) pluginsdk.StateRefreshFunc {
+func managedHSMKeyRefreshFunc(ctx context.Context, childItemUri string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Checking to see if Managed HSM Key %q is available..", childItemUri)
 
@@ -119,7 +119,12 @@ func managedHSMKeyRefreshFunc(childItemUri string) pluginsdk.StateRefreshFunc {
 			Transport: PTransport,
 		}
 
-		conn, err := client.Get(childItemUri)
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, childItemUri, nil)
+		if err != nil {
+			return nil, "pending", fmt.Errorf("building request to check Managed HSM Key at %q: %s", childItemUri, err)
+		}
+
+		conn, err := client.Do(req)
 		if err != nil {
 			log.Printf("[DEBUG] Didn't find Managed HSM Key at %q", childItemUri)
 			return nil, "pending", fmt.Errorf("checking Managed HSM Key at %q: %s", childItemUri, err)

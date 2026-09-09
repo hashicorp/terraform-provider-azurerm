@@ -133,7 +133,7 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"dns_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-z0-9]+(-*[a-z0-9])*$`), "The dns name of the cluster must have lowercase letters, numbers and hyphens. The first character must be a letter and the last character a letter or number"),
 		},
 		"dns_service_enabled": {
@@ -981,9 +981,8 @@ func nodeTypeSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: func(i interface{}, s string) ([]string, []error) {
-						input := i.(string)
 						errors := make([]error, 0)
-						if _, _, err := parsePortRange(input); err != nil {
+						if _, _, err := parsePortRange(i.(string)); err != nil {
 							errors = append(errors, err)
 						}
 						return nil, errors
