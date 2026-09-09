@@ -205,48 +205,48 @@ func TestAccMongoCluster_authenticationMethodsValidation(t *testing.T) {
 	})
 }
 
-func TestAccMongoCluster_networkBypassModeValidation(t *testing.T) {
+func TestAccMongoCluster_cosmosDBNetworkBypassEnabledValidation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
 	r := MongoClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.networkBypassModeValidation(data, `["MicrosoftEntraID"]`, "Enabled"),
-			ExpectError: regexp.MustCompile("`public_network_access` must be `Disabled` when `network_bypass_mode` is `AzureCosmosDB`"),
+			Config:      r.cosmosDBNetworkBypassEnabledValidation(data, `["MicrosoftEntraID"]`, "Enabled"),
+			ExpectError: regexp.MustCompile("`public_network_access` must be `Disabled` when `cosmos_db_network_bypass_enabled` is `true`"),
 		},
 		{
-			Config:      r.networkBypassModeValidation(data, `["MicrosoftEntraID", "NativeAuth"]`, "Disabled"),
-			ExpectError: regexp.MustCompile("`authentication_methods` must contain only `MicrosoftEntraID` when `network_bypass_mode` is `AzureCosmosDB`"),
+			Config:      r.cosmosDBNetworkBypassEnabledValidation(data, `["MicrosoftEntraID", "NativeAuth"]`, "Disabled"),
+			ExpectError: regexp.MustCompile("`authentication_methods` must contain only `MicrosoftEntraID` when `cosmos_db_network_bypass_enabled` is `true`"),
 		},
 	})
 }
 
-func TestAccMongoCluster_networkBypassMode(t *testing.T) {
+func TestAccMongoCluster_cosmosDBNetworkBypassEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
 	r := MongoClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.networkBypassMode(data),
+			Config: r.cosmosDBNetworkBypassEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_bypass_mode").HasValue("AzureCosmosDB"),
+				check.That(data.ResourceName).Key("cosmos_db_network_bypass_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep("create_mode"),
 		{
-			Config: r.networkBypassModeDisabled(data),
+			Config: r.cosmosDBNetworkBypassDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_bypass_mode").HasValue(""),
+				check.That(data.ResourceName).Key("cosmos_db_network_bypass_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep("create_mode"),
 		{
-			Config: r.networkBypassMode(data),
+			Config: r.cosmosDBNetworkBypassEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_bypass_mode").HasValue("AzureCosmosDB"),
+				check.That(data.ResourceName).Key("cosmos_db_network_bypass_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep("create_mode"),
@@ -567,49 +567,49 @@ resource "azurerm_mongo_cluster" "test" {
 `, r.template(data, data.Locations.Primary), data.RandomInteger, authenticationMethods)
 }
 
-func (r MongoClusterResource) networkBypassMode(data acceptance.TestData) string {
+func (r MongoClusterResource) cosmosDBNetworkBypassEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_mongo_cluster" "test" {
-  name                   = "acctest-mc%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  shard_count            = "1"
-  compute_tier           = "M30"
-  high_availability_mode = "Disabled"
-  storage_size_in_gb     = "32"
-  version                = "7.0"
-  authentication_methods = ["MicrosoftEntraID"]
-  network_bypass_mode    = "AzureCosmosDB"
-  public_network_access  = "Disabled"
+  name                             = "acctest-mc%d"
+  resource_group_name              = azurerm_resource_group.test.name
+  location                         = azurerm_resource_group.test.location
+  shard_count                      = "1"
+  compute_tier                     = "M30"
+  high_availability_mode           = "Disabled"
+  storage_size_in_gb               = "32"
+  version                          = "7.0"
+  authentication_methods           = ["MicrosoftEntraID"]
+  cosmos_db_network_bypass_enabled = true
+  public_network_access            = "Disabled"
 }
 `, r.template(data, data.Locations.Primary), data.RandomInteger)
 }
 
-func (r MongoClusterResource) networkBypassModeValidation(data acceptance.TestData, authenticationMethods, publicNetworkAccess string) string {
+func (r MongoClusterResource) cosmosDBNetworkBypassEnabledValidation(data acceptance.TestData, authenticationMethods, publicNetworkAccess string) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_mongo_cluster" "test" {
-  name                   = "acctest-mc%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  administrator_username = "adminTerraform"
-  administrator_password = "QAZwsx123basic"
-  shard_count            = "1"
-  compute_tier           = "M30"
-  high_availability_mode = "Disabled"
-  storage_size_in_gb     = "32"
-  version                = "7.0"
-  authentication_methods = %s
-  network_bypass_mode    = "AzureCosmosDB"
-  public_network_access  = "%s"
+  name                             = "acctest-mc%d"
+  resource_group_name              = azurerm_resource_group.test.name
+  location                         = azurerm_resource_group.test.location
+  administrator_username           = "adminTerraform"
+  administrator_password           = "QAZwsx123basic"
+  shard_count                      = "1"
+  compute_tier                     = "M30"
+  high_availability_mode           = "Disabled"
+  storage_size_in_gb               = "32"
+  version                          = "7.0"
+  authentication_methods           = %s
+  cosmos_db_network_bypass_enabled = true
+  public_network_access            = "%s"
 }
 `, r.template(data, data.Locations.Primary), data.RandomInteger, authenticationMethods, publicNetworkAccess)
 }
 
-func (r MongoClusterResource) networkBypassModeDisabled(data acceptance.TestData) string {
+func (r MongoClusterResource) cosmosDBNetworkBypassDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

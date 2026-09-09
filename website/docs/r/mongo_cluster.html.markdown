@@ -59,9 +59,9 @@ The following arguments are supported:
 
 -> **Note:** When adding or removing `identity`, a resource recreation will be triggered.
 
-* `network_bypass_mode` - (Optional) The network bypass mode for the MongoDB Cluster. The only possible value is `AzureCosmosDB`; omitting this argument disables network bypass.
+* `cosmos_db_network_bypass_enabled` - (Optional) Whether Cosmos DB network bypass is enabled for the MongoDB Cluster. Defaults to `false`.
 
-~> **Note:** `network_bypass_mode` can only be set to `AzureCosmosDB` when `public_network_access` is `Disabled`, `authentication_methods` contains only `MicrosoftEntraID`, and no firewall rules exist on the cluster. This is not supported on portal yet since EntraID-only authentication is not supported there.
+~> **Note:** `cosmos_db_network_bypass_enabled` can only be set to `true` when `public_network_access` is `Disabled`, `authentication_methods` contains only `MicrosoftEntraID`, and no firewall rules exist on the cluster. This is not supported on portal yet since Entra ID-only authentication is not supported there.
 
 * `preview_features` - (Optional) The preview features that can be enabled on the MongoDB Cluster. Changing this forces a new resource to be created.
 
