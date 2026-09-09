@@ -54,11 +54,6 @@ type Authentication struct {
 	CertAuthentication []ThumbprintAuth   `tfschema:"certificate"`
 }
 
-type PortRange struct {
-	From int64 `tfschema:"from"`
-	To   int64 `tfschema:"to"`
-}
-
 type VaultCertificates struct {
 	Store string `tfschema:"store"`
 	Url   string `tfschema:"url"`

@@ -392,14 +392,6 @@ func ExpandCorsSettings(input []CorsSetting) *webapps.CorsSettings {
 	}
 }
 
-type SourceControl struct {
-	RepoURL           string `tfschema:"repo_url"`
-	Branch            string `tfschema:"branch"`
-	ManualIntegration bool   `tfschema:"manual_integration"`
-	UseMercurial      bool   `tfschema:"use_mercurial"`
-	RollbackEnabled   bool   `tfschema:"rollback_enabled"`
-}
-
 type SiteCredential struct {
 	Username string `tfschema:"name"`
 	Password string `tfschema:"password"`
