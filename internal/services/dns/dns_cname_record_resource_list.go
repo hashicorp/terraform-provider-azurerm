@@ -56,15 +56,15 @@ func (DnsCNameRecordListResource) List(ctx context.Context, request list.ListReq
 		return
 	}
 
-	parentID, err := recordsets.ParseDnsZoneID(data.DnsZoneId.ValueString())
+	dnsZoneId, err := recordsets.ParseDnsZoneID(data.DnsZoneId.ValueString())
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing parent ID for `%s`", azureDnsCNameRecordResourceName), err)
 		return
 	}
 
-	resp, err := client.ListByDnsZoneCompleteMatchingPredicate(ctx, *parentID, recordsets.DefaultListByDnsZoneOperationOptions(), recordsets.RecordSetOperationPredicate{
-		Type: pointer.To(string(recordsets.RecordTypeCNAME)),
-	})
+	zoneId := recordsets.NewZoneID(dnsZoneId.SubscriptionId, dnsZoneId.ResourceGroupName, dnsZoneId.DnsZoneName, recordsets.RecordTypeCNAME)
+
+	resp, err := client.ListByTypeComplete(ctx, zoneId, recordsets.DefaultListByTypeOperationOptions())
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", azureDnsCNameRecordResourceName), err)
 		return

@@ -30,15 +30,16 @@ func TestAccDnsCNameRecord_listByDnsZoneID(t *testing.T) {
 			},
 			{
 				Query:  true,
-				Config: r.basicQuery(data),
+				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_dns_cname_record.list", 1),
+					querycheck.ExpectLengthAtLeast("azurerm_dns_cname_record.list", 3),
 					querycheck.ExpectIdentity(
 						"azurerm_dns_cname_record.list",
 						map[string]knownvalue.Check{
 							"name":                knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"dns_zone_name":       knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"record_type":         knownvalue.StringExact("CNAME"),
 							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
 						},
 					),
@@ -66,24 +67,22 @@ resource "azurerm_dns_zone" "test" {
 
 resource "azurerm_dns_cname_record" "test" {
   count               = 3
-  name                = "myarecord%d${count.index}"
+  name                = "mycnamerecord%d${count.index}"
   resource_group_name = azurerm_resource_group.test.name
   zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
-  record              = "contoso.com"
+  record              = "contoso${count.index}.com"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r DnsCnameRecordResource) basicQuery(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
+func (r DnsCnameRecordResource) basicQuery() string {
+	return `
 list "azurerm_dns_cname_record" "list" {
   provider = azurerm
   config {
     dns_zone_id = azurerm_dns_zone.test.id
   }
 }
-`, r.basic(data))
+`
 }
