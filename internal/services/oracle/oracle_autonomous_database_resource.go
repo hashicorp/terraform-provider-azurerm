@@ -36,8 +36,8 @@ type AutonomousDatabaseRegularResourceModel struct {
 	CharacterSet                 string                          `tfschema:"character_set"`
 	ComputeCount                 float64                         `tfschema:"compute_count"`
 	ComputeModel                 string                          `tfschema:"compute_model"`
-	DataStorageSizeInGbs         int64                           `tfschema:"data_storage_size_in_gbs"`
-	DataStorageSizeInTbs         int64                           `tfschema:"data_storage_size_in_tbs"`
+	DataStorageSizeInGbs         *int64                          `tfschema:"data_storage_size_in_gbs"`
+	DataStorageSizeInTbs         *int64                          `tfschema:"data_storage_size_in_tbs"`
 	DbVersion                    string                          `tfschema:"db_version"`
 	DbWorkload                   string                          `tfschema:"db_workload"`
 	DisplayName                  string                          `tfschema:"display_name"`
@@ -105,6 +105,7 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		"data_storage_size_in_gbs": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
+			Computed:     true,
 			ExactlyOneOf: []string{"data_storage_size_in_gbs", "data_storage_size_in_tbs"},
 			ValidateFunc: validation.IntBetween(1, 393216),
 		},
@@ -112,6 +113,7 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		"data_storage_size_in_tbs": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
+			Computed:     true,
 			ExactlyOneOf: []string{"data_storage_size_in_gbs", "data_storage_size_in_tbs"},
 			ValidateFunc: validation.IntBetween(1, 384),
 		},
@@ -292,9 +294,9 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 			}
 
 			if _, ok := metadata.ResourceData.GetOk("data_storage_size_in_gbs"); ok {
-				properties.DataStorageSizeInGbs = pointer.To(model.DataStorageSizeInGbs)
+				properties.DataStorageSizeInGbs = model.DataStorageSizeInGbs
 			} else {
-				properties.DataStorageSizeInTbs = pointer.To(model.DataStorageSizeInTbs)
+				properties.DataStorageSizeInTbs = model.DataStorageSizeInTbs
 			}
 
 			if len(model.CustomerContacts) > 0 {
@@ -372,9 +374,9 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 				}
 				if metadata.ResourceData.HasChange("data_storage_size_in_gbs") || metadata.ResourceData.HasChange("data_storage_size_in_tbs") {
 					if _, ok := metadata.ResourceData.GetOk("data_storage_size_in_gbs"); ok {
-						generalUpdate.Properties.DataStorageSizeInGbs = pointer.To(model.DataStorageSizeInGbs)
+						generalUpdate.Properties.DataStorageSizeInGbs = model.DataStorageSizeInGbs
 					} else {
-						generalUpdate.Properties.DataStorageSizeInTbs = pointer.To(model.DataStorageSizeInTbs)
+						generalUpdate.Properties.DataStorageSizeInTbs = model.DataStorageSizeInTbs
 					}
 				}
 				if metadata.ResourceData.HasChange("compute_count") {
@@ -473,14 +475,16 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				state.ComputeCount = pointer.From(props.ComputeCount)
 				state.ComputeModel = pointer.FromEnum(props.ComputeModel)
 				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
-				if _, ok := metadata.ResourceData.GetOk("data_storage_size_in_gbs"); ok {
-					state.DataStorageSizeInGbs = pointer.From(props.DataStorageSizeInGbs)
-				} else if _, ok := metadata.ResourceData.GetOk("data_storage_size_in_tbs"); ok {
-					state.DataStorageSizeInTbs = pointer.From(props.DataStorageSizeInTbs)
+				if props.DataStorageSizeInGbs != nil {
+					state.DataStorageSizeInGbs = props.DataStorageSizeInGbs
+					if *props.DataStorageSizeInGbs%1024 == 0 {
+						dataStorageSizeInTbs := *props.DataStorageSizeInGbs / 1024
+						state.DataStorageSizeInTbs = &dataStorageSizeInTbs
+					}
 				} else if props.DataStorageSizeInTbs != nil {
-					state.DataStorageSizeInTbs = pointer.From(props.DataStorageSizeInTbs)
-				} else {
-					state.DataStorageSizeInGbs = pointer.From(props.DataStorageSizeInGbs)
+					state.DataStorageSizeInTbs = props.DataStorageSizeInTbs
+					dataStorageSizeInGbs := *props.DataStorageSizeInTbs * 1024
+					state.DataStorageSizeInGbs = &dataStorageSizeInGbs
 				}
 				state.DbWorkload = string(pointer.From(props.DbWorkload))
 				state.DbVersion = pointer.From(props.DbVersion)

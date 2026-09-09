@@ -113,6 +113,8 @@ func TestAdbsRegularResource_updatePublicAcces(t *testing.T) {
 			Config: r.publicAccess(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("data_storage_size_in_gbs").HasValue("1024"),
+				check.That(data.ResourceName).Key("data_storage_size_in_tbs").HasValue("1"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -120,6 +122,8 @@ func TestAdbsRegularResource_updatePublicAcces(t *testing.T) {
 			Config: r.publicAccessUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("data_storage_size_in_gbs").HasValue("1024"),
+				check.That(data.ResourceName).Key("data_storage_size_in_tbs").HasValue("1"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -134,6 +138,8 @@ func TestAdbsRegularResource_publicAccess(t *testing.T) {
 			Config: r.publicAccess(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("data_storage_size_in_gbs").HasValue("1024"),
+				check.That(data.ResourceName).Key("data_storage_size_in_tbs").HasValue("1"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -378,7 +384,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = false
   mtls_connection_required         = true
-  data_storage_size_in_tbs         = 1
+  data_storage_size_in_gbs         = 1024
   db_workload                      = "OLTP"
   admin_password                   = "TestPass#2024#"
   db_version                       = "19c"
