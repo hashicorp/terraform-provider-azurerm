@@ -105,7 +105,7 @@ A `request` block supports the following:
 
 * `http_verb` - (Optional) Which HTTP verb to use for the call. Options are 'GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', and 'OPTIONS'. Defaults to `GET`.
 
-* `parse_dependent_requests_enabled` - (Optional) Should the parsing of dependend requests be enabled? Defaults to `true`.
+* `parse_dependent_requests_enabled` - (Optional) Should the parsing of dependent requests be enabled? Defaults to `true`.
 
 ---
 

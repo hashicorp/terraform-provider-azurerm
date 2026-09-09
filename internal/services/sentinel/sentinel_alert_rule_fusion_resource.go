@@ -127,7 +127,7 @@ func resourceSentinelAlertRuleFusionCreate(d *pluginsdk.ResourceData, meta inter
 	}
 	id := alertrules.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
 
-	// The only one fusion alert is enabled by default, so we do not do exisiting check here.
+	// The only one fusion alert is enabled by default, so we do not do existing check here.
 	// https://learn.microsoft.com/en-us/azure/sentinel/configure-fusion-rules#configure-scheduled-analytics-rules-for-fusion-detections
 	params := alertrules.FusionAlertRule{
 		Properties: &alertrules.FusionAlertRuleProperties{

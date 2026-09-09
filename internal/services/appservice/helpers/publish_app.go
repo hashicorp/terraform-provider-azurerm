@@ -139,7 +139,7 @@ func PublishZipDeployLocalFileKuduPush(ctx context.Context, host string, user st
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusAccepted {
 		if resp.StatusCode == http.StatusConflict {
-			return fmt.Errorf("publising Zip Deployment failed with %s - Another operation is in progress or your application is not configured for Zip deployments", resp.Status)
+			return fmt.Errorf("publishing Zip Deployment failed with %s - Another operation is in progress or your application is not configured for Zip deployments", resp.Status)
 		}
 		return fmt.Errorf("publishing failed with status code %s", resp.Status)
 	}

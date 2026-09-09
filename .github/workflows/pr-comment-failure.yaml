@@ -50,6 +50,7 @@ jobs:
               'GoLang Compilation': 'Run `go build` or `make build` locally to reproduce and fix compilation errors.',
               'Unit Tests': 'Run `make test` locally to reproduce and fix the failing unit tests.',
               'ShellCheck Scripts': 'Run `make shellcheck` locally to check shell scripts for issues and fix any warnings or errors.',
+              'Codespell': 'Run `make codespell` locally to find spelling errors in code, docs and examples, and `make codespell-fix` to fix them. Add false positives (Azure names, API enum values) to `ignore-words-list` in `.codespellrc`.',
               'Validate Examples': 'Run `make validate-examples` locally to check that your example Terraform configurations under `examples/` are valid.',
               'Provider Tests': 'Run `make testacc TEST=./internal/provider TESTARGS="-run \'^TestAcc\'"` locally to reproduce and fix the failing provider tests.',
               'Check for new usages of deprecated functionality': 'Your changes introduce new usages of deprecated functions or patterns. Please use the recommended replacements instead.',

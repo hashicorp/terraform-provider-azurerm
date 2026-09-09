@@ -79,10 +79,10 @@ func verifyCustomHttpsConfiguration(frontendEndpointCustomHttpsConfig []interfac
 			if !azureKeyVaultCertificateHasValues(customHttpsConfiguration, false) {
 				if certificateVersion == "" {
 					// If using latest, empty string is now equivalent to using the keyword latest
-					return errors.New(`a "AzureKeyVault" managed "custom_https_configuration" block must have values in the following fileds: "azure_key_vault_certificate_secret_name" and "azure_key_vault_certificate_vault_id"`)
+					return errors.New(`a "AzureKeyVault" managed "custom_https_configuration" block must have values in the following fields: "azure_key_vault_certificate_secret_name" and "azure_key_vault_certificate_vault_id"`)
 				} else {
 					// If using a specific version of the secret
-					return errors.New(`a "AzureKeyVault" managed "custom_https_configuration" block must have values in the following fileds: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`)
+					return errors.New(`a "AzureKeyVault" managed "custom_https_configuration" block must have values in the following fields: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`)
 				}
 			}
 		}

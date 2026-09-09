@@ -48,7 +48,7 @@ func WindowsAdminPassword(i interface{}, k string) (warnings []string, errors []
 		}
 	}
 	if conditions < 3 {
-		errors = append(errors, fmt.Errorf("%q has to fulfill 3 out of these 4 conditions: Has lower characters, Has upper characters, Has a digit, Has a special character other than \"_\", fullfiled only %d conditions", k, conditions))
+		errors = append(errors, fmt.Errorf("%q has to fulfill 3 out of these 4 conditions: Has lower characters, Has upper characters, Has a digit, Has a special character other than \"_\", fulfilled only %d conditions", k, conditions))
 	}
 
 	return warnings, errors

@@ -10,6 +10,7 @@ GOLANGCI_LINT_VERSION := $(shell sed -n 's/^version: *//p' scripts/.custom-gcl.y
 # The single source of truth for the actionlint version is the go install pin
 # in .github/workflows/workflow-actionlint.yml.
 ACTIONLINT_VERSION := $(shell sed -n 's/.*actionlint\/cmd\/actionlint@//p' .github/workflows/workflow-actionlint.yml)
+CODESPELL_VERSION := 2.4.3
 
 
 .EXPORT_ALL_VARIABLES:
@@ -35,7 +36,6 @@ golangci-fix: ## renamed to lint-fix
 ##@ Build & Generate
 tools: ## Install the tools required to develop the provider
 	@echo "==> installing required tooling..."
-	go install github.com/client9/misspell/cmd/misspell@latest
 	go install github.com/YakDriver/tfproviderdocs@latest
 	go install github.com/katbyte/terrafmt@latest
 	go install golang.org/x/tools/cmd/goimports@latest
@@ -136,6 +136,16 @@ shellcheck: ## Check shell scripts with shellcheck
 	@shellcheck scripts/*.sh scripts/checks/*.sh scripts/automation/*.sh || \
 		(echo; echo "ShellCheck found issues in shell scripts."; echo "Review the errors above and fix them. See https://www.shellcheck.net/ for detailed explanations of each rule."; exit 1)
 
+codespell: ## Check spelling in code, docs and examples with codespell (config in .codespellrc)
+	@command -v codespell >/dev/null || (echo "codespell not installed. Install via: brew install codespell (macOS) or pipx install codespell==$(CODESPELL_VERSION)" && exit 1)
+	@echo "==> Checking spelling with codespell..."
+	@codespell || \
+		(echo; echo "Spelling errors found. Fix them with 'make codespell-fix', or add false positives (Azure names, enum values) to ignore-words-list in .codespellrc."; exit 1)
+
+codespell-fix: ## Fix spelling errors found by codespell
+	@command -v codespell >/dev/null || (echo "codespell not installed. Install via: brew install codespell (macOS) or pipx install codespell==$(CODESPELL_VERSION)" && exit 1)
+	@codespell -w
+
 depscheck: ## Check that go.mod/go.sum and vendor/ are in sync
 	@echo "==> Checking dependencies.."
 	@./scripts/checks/track2-check.sh
@@ -187,9 +197,6 @@ website-lint: ## Check website documentation for issues
 		echo "All documentation files must use the .html.markdown extension."; \
 		exit 1; \
 	fi
-	@echo "==> Checking documentation spelling..."
-	@misspell -error -source=text -i hdinsight,exportfs website/ || \
-		(echo; echo "Spelling errors found in documentation. Install misspell: go install github.com/client9/misspell/cmd/misspell@latest"; exit 1)
 	@echo "==> Checking documentation for errors..."
 	@tfproviderdocs check -provider-name=azurerm -require-resource-subcategory \
 		-allowed-resource-subcategories-file website/allowed-subcategories || \
@@ -226,4 +233,4 @@ resource-counts: ## Print the number of resources and data sources in the provid
 
 pr-check: generate build test lint website-lint ## Run the same set of checks CI runs against a PR
 
-.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint actionlint yamllint markdownlint shellcheck depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check
+.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint actionlint yamllint markdownlint shellcheck codespell codespell-fix depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check

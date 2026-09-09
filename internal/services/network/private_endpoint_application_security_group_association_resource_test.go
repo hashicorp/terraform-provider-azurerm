@@ -119,7 +119,7 @@ func (r PrivateEndpointApplicationSecurityGroupAssociationResource) Exists(ctx c
 	}
 
 	if response.WasNotFound(existingPrivateEndpoint.HttpResponse) {
-		return &exists, fmt.Errorf("PrivateEndpoint %q does not exsits", endpointId)
+		return &exists, fmt.Errorf("PrivateEndpoint %q does not exist", endpointId)
 	}
 
 	input := existingPrivateEndpoint
@@ -315,7 +315,7 @@ func (r PrivateEndpointApplicationSecurityGroupAssociationResource) destroy(ctx 
 	}
 
 	if response.WasNotFound(existingPrivateEndpoint.HttpResponse) {
-		return fmt.Errorf("PrivateEndpoint %q does not exsits", endpointId)
+		return fmt.Errorf("PrivateEndpoint %q does not exist", endpointId)
 	}
 
 	if existingPrivateEndpoint.Model == nil || existingPrivateEndpoint.Model.Properties == nil || existingPrivateEndpoint.Model.Properties.ApplicationSecurityGroups == nil {

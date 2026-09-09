@@ -12,7 +12,7 @@ Lists Firewall Policy resources.
 
 ## Example Usage
 
-### List all Firewall Policys in the subscription
+### List all Firewall Policies in the subscription
 
 ```hcl
 list "azurerm_firewall_policy" "example" {
@@ -22,7 +22,7 @@ list "azurerm_firewall_policy" "example" {
 }
 ```
 
-### List all Firewall Policys in a Resource Group
+### List all Firewall Policies in a Resource Group
 
 ```hcl
 list "azurerm_firewall_policy" "example" {

@@ -927,7 +927,7 @@ func flattenAzureRmMonitorAutoScaleSettingRules(input []autoscalesettings.ScaleR
 		if val := v.Value; val != nil && *val != "" {
 			i, err := strconv.Atoi(*val)
 			if err != nil {
-				return nil, fmt.Errorf("`value` %q was not convertable to an int: %s", *val, err)
+				return nil, fmt.Errorf("`value` %q was not convertible to an int: %s", *val, err)
 			}
 			action["value"] = i
 		}

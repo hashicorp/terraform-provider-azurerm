@@ -27,7 +27,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the protection container.
 
-* `recovery_vault_name` - (Required) The name of the Recovery Services Vault that the protection container is associated witth.
+* `recovery_vault_name` - (Required) The name of the Recovery Services Vault that the protection container is associated with.
 
 * `resource_group_name` - (Required) The name of the resource group in which the associated protection container resides.
 

@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description for this Local Rulestack.
 
-* `dns_subscription` - (Optional) TThe setting to use for DNS Subscription. Possible values include `BestPractice`, and `Custom`.
+* `dns_subscription` - (Optional) The setting to use for DNS Subscription. Possible values include `BestPractice`, and `Custom`.
 
 * `file_blocking_profile` - (Optional) The setting to use for the File Blocking Profile. Possible values include `BestPractice`, and `Custom`.
 

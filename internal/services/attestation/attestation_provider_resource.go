@@ -145,7 +145,7 @@ func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta interface
 		existing, err := attestationClients.ProviderClient.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of exisiting %s: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 		if !response.WasNotFound(existing.HttpResponse) {

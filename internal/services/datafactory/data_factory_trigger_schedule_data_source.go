@@ -207,7 +207,7 @@ func (d TriggerScheduleDataSource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("%s was not found", id)
 				}
-				return fmt.Errorf("retreiving %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)

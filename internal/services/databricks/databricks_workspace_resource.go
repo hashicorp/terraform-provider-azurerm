@@ -374,7 +374,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 
 				// Disabling Public Network Access means that this is a Private Endpoint Workspace
 				// Having a Load Balancer Backend Address Pool means the this is a Secure Cluster Connectivity Workspace
-				// You cannot have a Private Enpoint Workspace and a Secure Cluster Connectivity Workspace definitions in
+				// You cannot have a Private Endpoint Workspace and a Secure Cluster Connectivity Workspace definitions in
 				// the same workspace configuration...
 				if !publicNetworkAccess.(bool) {
 					if requireNsgRules.(string) == string(workspaces.RequiredNsgRulesAllRules) {
@@ -443,7 +443,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 					o, n := d.GetChange(k)
 
 					if o.(string) != "" && n.(string) == "" {
-						// Check RawConfig to prevent replacments on `(known after apply)` values
+						// Check RawConfig to prevent replacements on `(known after apply)` values
 						rawConfig := d.GetRawConfig()
 						if rawConfig.IsNull() || !rawConfig.IsKnown() {
 							return nil

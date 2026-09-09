@@ -1,0 +1,5 @@
+[codespell]
+skip = ./vendor,./.git,*.sum,*.json,*.svg,*.pem,*.key,*.crt,*.pfx,*.zip,*.png,*.jpg
+# Azure names, API enum values, country/timezone codes and short identifiers that codespell mistakes for typos
+ignore-words-list = efinitions,aks,aci,fle,fo,te,unsecure,requestor,pres,bu,ot,mis,hel,nd,usera,notin,numberin,misstype,re-use,re-used,re-uses,reenabled,alpha-numeric
+quiet-level = 35

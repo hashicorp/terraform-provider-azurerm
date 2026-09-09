@@ -95,7 +95,7 @@ func dataSourceBlueprintDefinitionRead(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("the Blueprint Definition %q not found in Scope (%q): %+v", id.BlueprintName, id.ResourceScope, err)
 		}
 
-		return fmt.Errorf("read failed for Blueprint Definition (%q) in Sccope (%q): %+v", id.BlueprintName, id.ResourceScope, err)
+		return fmt.Errorf("read failed for Blueprint Definition (%q) in Scope (%q): %+v", id.BlueprintName, id.ResourceScope, err)
 	}
 
 	d.SetId(id.ID())

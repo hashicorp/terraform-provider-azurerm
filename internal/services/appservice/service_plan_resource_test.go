@@ -285,7 +285,7 @@ func (r ServicePlanResource) Exists(ctx context.Context, client *clients.Client,
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil
 		}
-		return nil, fmt.Errorf("retreiving %s: %v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %v", id, err)
 	}
 	if response.WasNotFound(resp.HttpResponse) {
 		return pointer.To(false), nil

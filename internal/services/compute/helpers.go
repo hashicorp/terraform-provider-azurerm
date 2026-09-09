@@ -187,7 +187,7 @@ func resourceManagedDiskUpdateWithVmShutDown(ctx context.Context, clients *clien
 	// De-allocate
 	if shouldDeallocate {
 		log.Printf("[DEBUG] Deallocating %s.", virtualMachineId)
-		// Upgrading to 2021-07-01 exposed a new hibernate paramater to the Deallocate method
+		// Upgrading to 2021-07-01 exposed a new hibernate parameter to the Deallocate method
 		if err := virtualMachinesClient.DeallocateThenPoll(ctx, *virtualMachineId, virtualmachines.DefaultDeallocateOperationOptions()); err != nil {
 			return fmt.Errorf("deallocating to %s: %+v", virtualMachineId, err)
 		}
