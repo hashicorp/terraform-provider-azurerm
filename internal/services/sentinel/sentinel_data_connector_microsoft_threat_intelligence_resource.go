@@ -28,11 +28,6 @@ type DataConnectorMicrosoftThreatIntelligenceModel struct {
 	MicrosoftEmergingThreatFeedLookBackDate string `tfschema:"microsoft_emerging_threat_feed_lookback_date"`
 }
 
-type DataConnectorMicrosoftThreatIntelligenceDataType struct {
-	Enabled      bool   `tfschema:"enabled"`
-	LookbackDate string `tfschema:"lookback_date"`
-}
-
 func (s DataConnectorMicrosoftThreatIntelligenceResource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
@@ -52,7 +47,7 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Arguments() map[string
 		"tenant_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},

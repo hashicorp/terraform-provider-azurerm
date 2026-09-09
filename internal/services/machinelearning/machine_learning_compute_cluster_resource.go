@@ -152,9 +152,9 @@ func resourceComputeCluster() *pluginsdk.Resource {
 			},
 
 			"subnet_resource_id": {
-				Type: pluginsdk.TypeString,
-				// NOTE: O+C as you don't have to specify it for Azure to assign one to the cluster
+				Type:     pluginsdk.TypeString,
 				Optional: true,
+				// NOTE: O+C as you don't have to specify it for Azure to assign one to the cluster
 				Computed: true,
 				ForceNew: true,
 			},
@@ -406,13 +406,11 @@ func expandScaleSettings(input []interface{}) *machinelearningcomputes.ScaleSett
 	v := input[0].(map[string]interface{})
 
 	maxNodeCount := int64(v["max_node_count"].(int))
-	minNodeCount := int64(v["min_node_count"].(int))
-	scaleDownNodes := v["scale_down_nodes_after_idle_duration"].(string)
 
 	return &machinelearningcomputes.ScaleSettings{
 		MaxNodeCount:                maxNodeCount,
-		MinNodeCount:                &minNodeCount,
-		NodeIdleTimeBeforeScaleDown: &scaleDownNodes,
+		MinNodeCount:                pointer.To(int64(v["min_node_count"].(int))),
+		NodeIdleTimeBeforeScaleDown: pointer.To(v["scale_down_nodes_after_idle_duration"].(string)),
 	}
 }
 

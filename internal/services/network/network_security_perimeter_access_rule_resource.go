@@ -336,7 +336,7 @@ func expandAccessRuleSubscriptionIDs(subscriptionIDs []string) *[]networksecurit
 
 func flattenAccessRuleSubscriptionIDs(subscriptions *[]networksecurityperimeteraccessrules.SubscriptionId) []string {
 	if subscriptions == nil || len(*subscriptions) == 0 {
-		return nil
+		return []string{}
 	}
 
 	result := make([]string, 0, len(*subscriptions))

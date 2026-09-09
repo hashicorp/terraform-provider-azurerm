@@ -91,7 +91,7 @@ func resourceHealthcareService() *pluginsdk.Resource {
 			"authentication_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -117,7 +117,7 @@ func resourceHealthcareService() *pluginsdk.Resource {
 			"cors_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -315,8 +315,7 @@ func resourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("kind", kind)
 		}
 
-		i := identity.FlattenSystemAssigned(m.Identity)
-		if err := d.Set("identity", i); err != nil {
+		if err := d.Set("identity", identity.FlattenSystemAssigned(m.Identity)); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
@@ -405,15 +404,13 @@ func expandCorsConfiguration(d *pluginsdk.ResourceData) *service.ServiceCorsConf
 	allowedOrigins := *helpers.ExpandStringSlice(corsConfigAttr["allowed_origins"].(*pluginsdk.Set).List())
 	allowedHeaders := *helpers.ExpandStringSlice(corsConfigAttr["allowed_headers"].(*pluginsdk.Set).List())
 	allowedMethods := *helpers.ExpandStringSlice(corsConfigAttr["allowed_methods"].([]interface{}))
-	maxAgeInSeconds := int64(corsConfigAttr["max_age_in_seconds"].(int))
-	allowCredentials := corsConfigAttr["allow_credentials"].(bool)
 
 	return &service.ServiceCorsConfigurationInfo{
 		Origins:          &allowedOrigins,
 		Headers:          &allowedHeaders,
 		Methods:          &allowedMethods,
-		MaxAge:           &maxAgeInSeconds,
-		AllowCredentials: &allowCredentials,
+		MaxAge:           pointer.To(int64(corsConfigAttr["max_age_in_seconds"].(int))),
+		AllowCredentials: pointer.To(corsConfigAttr["allow_credentials"].(bool)),
 	}
 }
 
@@ -425,14 +422,11 @@ func expandAuthentication(d *pluginsdk.ResourceData) *service.ServiceAuthenticat
 	}
 
 	authConfigAttr := authConfigRaw[0].(map[string]interface{})
-	authority := authConfigAttr["authority"].(string)
-	audience := authConfigAttr["audience"].(string)
-	smartProxyEnabled := authConfigAttr["smart_proxy_enabled"].(bool)
 
 	return &service.ServiceAuthenticationConfigurationInfo{
-		Authority:         &authority,
-		Audience:          &audience,
-		SmartProxyEnabled: &smartProxyEnabled,
+		Authority:         pointer.To(authConfigAttr["authority"].(string)),
+		Audience:          pointer.To(authConfigAttr["audience"].(string)),
+		SmartProxyEnabled: pointer.To(authConfigAttr["smart_proxy_enabled"].(bool)),
 	}
 }
 

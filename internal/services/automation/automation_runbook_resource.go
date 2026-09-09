@@ -150,7 +150,7 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 			"job_schedule": {
 				Type:       pluginsdk.TypeSet,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -304,7 +304,6 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	// for existing runbook, if only job_schedule field updated, then skip update runbook
 	if d.IsNewResource() || d.HasChangeExcept("job_schedule") {
 		location := location.Normalize(d.Get("location").(string))
-		t := d.Get("tags").(map[string]interface{})
 
 		parameters := runbook.RunbookCreateOrUpdateParameters{
 			Properties: runbook.RunbookCreateOrUpdateProperties{
@@ -318,7 +317,7 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 			Location: &location,
 		}
-		if tagsVal := expandStringInterfaceMap(t); tagsVal != nil {
+		if tagsVal := expandStringInterfaceMap(d.Get("tags").(map[string]interface{})); tagsVal != nil {
 			parameters.Tags = &tagsVal
 		}
 
@@ -451,8 +450,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	jobSchedule := helper.FlattenAutomationJobSchedule(jsMap)
-	if err := d.Set("job_schedule", jobSchedule); err != nil {
+	if err := d.Set("job_schedule", helper.FlattenAutomationJobSchedule(jsMap)); err != nil {
 		return fmt.Errorf("setting `job_schedule`: %+v", err)
 	}
 

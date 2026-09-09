@@ -120,7 +120,7 @@ func firewallDataSource() *pluginsdk.Resource {
 			"dns_proxy_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"virtual_hub": {

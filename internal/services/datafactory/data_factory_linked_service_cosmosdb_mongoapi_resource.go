@@ -169,8 +169,7 @@ func resourceDataFactoryLinkedServiceCosmosDbMongoAPICreateUpdate(d *pluginsdk.R
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		cosmosdbLinkedService.Annotations = &annotations
+		cosmosdbLinkedService.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -219,13 +218,11 @@ func resourceDataFactoryLinkedServiceCosmosDbMongoAPIRead(d *pluginsdk.ResourceD
 	d.Set("additional_properties", cosmosdb.AdditionalProperties)
 	d.Set("description", cosmosdb.Description)
 
-	annotations := flattenDataFactoryAnnotations(cosmosdb.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(cosmosdb.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenLinkedServiceParameters(cosmosdb.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(cosmosdb.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
@@ -235,11 +232,9 @@ func resourceDataFactoryLinkedServiceCosmosDbMongoAPIRead(d *pluginsdk.ResourceD
 		}
 	}
 
-	databaseName := cosmosdb.Database
-	d.Set("database", databaseName)
+	d.Set("database", cosmosdb.Database)
 
-	versionAbove32 := cosmosdb.IsServerVersionAbove32
-	d.Set("server_version_is_32_or_higher", versionAbove32)
+	d.Set("server_version_is_32_or_higher", cosmosdb.IsServerVersionAbove32)
 
 	return nil
 }

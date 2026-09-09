@@ -21,7 +21,7 @@ list "azurerm_resource_group" "example" {
 }
 ```
 
-### List all Resource Groups in the subscription matching a filter 
+### List all Resource Groups in the subscription matching a filter
 
 ```hcl
 list "azurerm_resource_group" "example" {

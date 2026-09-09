@@ -72,9 +72,10 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"always_on": {
-					Type:        pluginsdk.TypeBool,
-					Optional:    true,
-					Computed:    true, // Note - several factors change the default for this, so needs to be computed.
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					// Note: O+C because several factors change the default for this, so needs to be computed.
+					Computed:    true,
 					Description: "If this Linux Web App is Always On enabled. Defaults to `false`.",
 				},
 
@@ -101,7 +102,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				"app_scale_limit": {
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					Description: "The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.",
 					// TODO Validation?
 				},
@@ -143,7 +144,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				"default_documents": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -153,7 +154,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				"elastic_instance_minimum": {
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					Description: "The number of minimum instances for this Linux Function App. Only affects apps on Elastic Premium plans.",
 				},
 
@@ -213,9 +214,10 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				},
 
 				"pre_warmed_instance_count": {
-					Type:        pluginsdk.TypeInt,
-					Optional:    true,
-					Computed:    true, // Variable defaults depending on plan etc
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					// Note: O+C because Variable defaults depending on plan etc
+					Computed:    true,
 					Description: "The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.",
 				},
 
@@ -229,7 +231,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				"remote_debugging_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2022",
 					}, false),
@@ -288,7 +290,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				"worker_count": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(1, 100),
 					Description:  "The number of Workers for this Linux Function App.",
 				},
@@ -633,7 +635,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 				"default_documents": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -643,7 +645,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 				"elastic_instance_minimum": {
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					Description: "The number of minimum instances for this Linux Function App. Only affects apps on Elastic Premium plans.",
 				},
 
@@ -712,7 +714,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 				"remote_debugging_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2017",
 						"VS2019",
@@ -773,7 +775,7 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 				"worker_count": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(1, 100),
 					Description:  "The number of Workers for this Linux Function App.",
 				},
@@ -854,9 +856,10 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"always_on": {
-					Type:        pluginsdk.TypeBool,
-					Optional:    true,
-					Computed:    true, // Note - several factors change the default for this, so needs to be computed.
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					// Note: O+C because several factors change the default for this, so needs to be computed.
+					Computed:    true,
 					Description: "If this Windows Web App is Always On enabled. Defaults to `false`.",
 				},
 
@@ -883,7 +886,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 				"app_scale_limit": {
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					Description: "The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.",
 					// TODO Validation?
 				},
@@ -911,7 +914,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 				"default_documents": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -921,7 +924,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 				"elastic_instance_minimum": {
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					Description: "The number of minimum instances for this Windows Function App. Only affects apps on Elastic Premium plans.",
 				},
 
@@ -981,9 +984,10 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 				},
 
 				"pre_warmed_instance_count": {
-					Type:        pluginsdk.TypeInt,
-					Optional:    true,
-					Computed:    true, // Variable defaults depending on plan etc
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					// Note: O+C because Variable defaults depending on plan etc
+					Computed:    true,
 					Description: "The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.",
 				},
 
@@ -997,7 +1001,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 				"remote_debugging_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2022",
 					}, false),
@@ -1056,7 +1060,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 				"worker_count": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(1, 100),
 					Description:  "The number of Workers for this Windows Function App.",
 				},
@@ -1612,7 +1616,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1642,7 +1646,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 				"use_dotnet_isolated_runtime": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ConflictsWith: []string{
 						"site_config.0.application_stack.0.java_version",
 						"site_config.0.application_stack.0.node_version",
@@ -1716,7 +1720,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 				"use_custom_runtime": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
 						"site_config.0.application_stack.0.java_version",

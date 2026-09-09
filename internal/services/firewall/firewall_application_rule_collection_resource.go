@@ -322,8 +322,7 @@ func resourceFirewallApplicationRuleCollectionRead(d *pluginsdk.ResourceData, me
 			d.Set("priority", int(*priority))
 		}
 
-		flattenedRules := flattenFirewallApplicationRuleCollectionRules(props.Rules)
-		if err := d.Set("rule", flattenedRules); err != nil {
+		if err := d.Set("rule", flattenFirewallApplicationRuleCollectionRules(props.Rules)); err != nil {
 			return fmt.Errorf("setting `rule`: %+v", err)
 		}
 	}

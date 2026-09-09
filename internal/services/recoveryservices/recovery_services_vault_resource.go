@@ -105,7 +105,7 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 			"immutability": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice(vaults.PossibleValuesForImmutabilityState(), false),
 			},
 
@@ -698,10 +698,9 @@ func expandRecoveryServicesVaultSecuritySettings(input interface{}) *vaults.Secu
 	if input == nil || len(input.(string)) == 0 {
 		return nil
 	}
-	immutabilityState := vaults.ImmutabilityState(input.(string))
 	return &vaults.SecuritySettings{
 		ImmutabilitySettings: &vaults.ImmutabilitySettings{
-			State: &immutabilityState,
+			State: pointer.ToEnum[vaults.ImmutabilityState](input.(string)),
 		},
 	}
 }

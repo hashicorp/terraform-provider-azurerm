@@ -57,14 +57,10 @@ func resourceDataFactoryTriggerTumblingWindow() *pluginsdk.Resource {
 			},
 
 			"frequency": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(datafactory.TumblingWindowFrequencyHour),
-					string(datafactory.TumblingWindowFrequencyMinute),
-					string(datafactory.TumblingWindowFrequencyMonth),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInEnumSlice(datafactory.PossibleTumblingWindowFrequencyValues(), false),
 			},
 
 			"interval": {
@@ -270,8 +266,7 @@ func resourceDataFactoryTriggerTumblingWindowCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		props.Annotations = &annotations
+		props.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {

@@ -498,7 +498,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 												"source_port_ranges": {
 													Type:     pluginsdk.TypeList,
 													Optional: true,
-													Computed: true,
+													Computed: true, // azignore:AZS007 - pre-existing violation
 													ForceNew: true,
 													Elem: &pluginsdk.Schema{
 														Type:         pluginsdk.TypeString,
@@ -691,13 +691,13 @@ func resourceBatchPool() *pluginsdk.Resource {
 			"task_scheduling_policy": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"node_fill_type": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForComputeNodeFillType(), false),
 						},
 					},
@@ -848,8 +848,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		// start task should have a user identity defined
-		userIdentity := startTask.UserIdentity
-		if userIdentityError := validateUserIdentity(userIdentity); userIdentityError != nil {
+		if userIdentityError := validateUserIdentity(startTask.UserIdentity); userIdentityError != nil {
 			return fmt.Errorf("creating %s: %+v", id, userIdentityError)
 		}
 
@@ -986,8 +985,7 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		// start task should have a user identity defined
-		userIdentity := startTask.UserIdentity
-		if userIdentityError := validateUserIdentity(userIdentity); userIdentityError != nil {
+		if userIdentityError := validateUserIdentity(startTask.UserIdentity); userIdentityError != nil {
 			return fmt.Errorf("creating %s: %+v", *id, userIdentityError)
 		}
 
@@ -1283,11 +1281,10 @@ func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*pool.ScaleSetting
 
 		autoScaleSettings := autoScale[0].(map[string]interface{})
 
-		autoScaleEvaluationInterval := autoScaleSettings["evaluation_interval"].(string)
 		autoScaleFormula := autoScaleSettings["formula"].(string)
 
 		scaleSettings.AutoScale = &pool.AutoScaleSettings{
-			EvaluationInterval: &autoScaleEvaluationInterval,
+			EvaluationInterval: pointer.To(autoScaleSettings["evaluation_interval"].(string)),
 			Formula:            autoScaleFormula,
 		}
 	} else if fixedScaleOk {
@@ -1297,14 +1294,12 @@ func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*pool.ScaleSetting
 		}
 
 		fixedScaleSettings := fixedScale[0].(map[string]interface{})
-		nodeDeallocationOption := pool.ComputeNodeDeallocationOption(fixedScaleSettings["node_deallocation_method"].(string))
 		targetDedicatedNodes := int32(fixedScaleSettings["target_dedicated_nodes"].(int))
 		targetLowPriorityNodes := int32(fixedScaleSettings["target_low_priority_nodes"].(int))
-		resizeTimeout := fixedScaleSettings["resize_timeout"].(string)
 
 		scaleSettings.FixedScale = &pool.FixedScaleSettings{
-			NodeDeallocationOption: &nodeDeallocationOption,
-			ResizeTimeout:          &resizeTimeout,
+			NodeDeallocationOption: pointer.ToEnum[pool.ComputeNodeDeallocationOption](fixedScaleSettings["node_deallocation_method"].(string)),
+			ResizeTimeout:          pointer.To(fixedScaleSettings["resize_timeout"].(string)),
 			TargetDedicatedNodes:   pointer.To(int64(targetDedicatedNodes)),
 			TargetLowPriorityNodes: pointer.To(int64(targetLowPriorityNodes)),
 		}

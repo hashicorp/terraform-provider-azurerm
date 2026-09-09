@@ -582,8 +582,7 @@ func (a MetadataResource) Update() sdk.ResourceFunc {
 			}
 
 			if plan.Kind != "" {
-				kind := sentinelmetadata.Kind(plan.Kind)
-				update.Properties.Kind = &kind
+				update.Properties.Kind = pointer.ToEnum[sentinelmetadata.Kind](plan.Kind)
 			}
 
 			if plan.ParentId != "" {
@@ -802,15 +801,13 @@ func expandMetadataDependencies(input interface{}) (dependencies *sentinelmetada
 			dependencies.ContentId = pointer.To(v.(string))
 		}
 		if v, ok := j["kind"]; ok {
-			kind := sentinelmetadata.Kind(v.(string))
-			dependencies.Kind = &kind
+			dependencies.Kind = pointer.ToEnum[sentinelmetadata.Kind](v.(string))
 		}
 		if v, ok := j["version"]; ok {
 			dependencies.Version = pointer.To(v.(string))
 		}
 		if v, ok := j["operator"]; ok {
-			op := sentinelmetadata.Operator(v.(string))
-			dependencies.Operator = &op
+			dependencies.Operator = pointer.ToEnum[sentinelmetadata.Operator](v.(string))
 		}
 		if v, ok := j["criteria"]; ok {
 			if array, ok := v.([]interface{}); ok {

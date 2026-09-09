@@ -160,8 +160,7 @@ func resourceDataFactoryLinkedServiceKeyVaultCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		azureKeyVaultLinkedService.Annotations = &annotations
+		azureKeyVaultLinkedService.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -211,13 +210,11 @@ func resourceDataFactoryLinkedServiceKeyVaultRead(d *pluginsdk.ResourceData, met
 	d.Set("additional_properties", keyVault.AdditionalProperties)
 	d.Set("description", keyVault.Description)
 
-	annotations := flattenDataFactoryAnnotations(keyVault.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(keyVault.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenLinkedServiceParameters(keyVault.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(keyVault.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 

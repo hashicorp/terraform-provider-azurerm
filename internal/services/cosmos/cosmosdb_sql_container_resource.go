@@ -105,7 +105,7 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 			"throughput": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validate.CosmosThroughput,
 			},
 

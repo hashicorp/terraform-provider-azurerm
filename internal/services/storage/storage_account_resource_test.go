@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -53,6 +54,20 @@ func TestAccStorageAccount_basic(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
+}
+
+func TestAccStorageAccount_regression(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	}, "")
 }
 
 func TestAccStorageAccount_requiresImport(t *testing.T) {
@@ -493,16 +508,117 @@ func TestAccStorageAccount_publicNetworkAccess(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.publicNetworkAccess(data, true),
+			Config: r.publicNetworkAccess(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				// (features.SixPointOh) this check can be removed from each step in 6.0, only required in 5.0 as it's optional+computed argument
+				check.That(data.ResourceName).Key("public_network_access").HasValue("Enabled"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.publicNetworkAccess(data, false),
+			Config: r.publicNetworkAccess(data, "Disabled"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access").HasValue("Disabled"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicNetworkAccess(data, "SecuredByPerimeter"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access").HasValue("SecuredByPerimeter"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicNetworkAccess(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access").HasValue("Enabled"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_publicNetworkAccessEnabledDeprecated(t *testing.T) {
+	if features.SixPointOh() {
+		t.Skip("This test is no longer valid in 6.0")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.publicNetworkAccessEnabled(data, true, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("public_network_access").HasValue("Enabled"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicNetworkAccessEnabled(data, false, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("public_network_access").HasValue("Disabled"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicNetworkAccessEnabled(data, true, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("public_network_access").HasValue("Enabled"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicNetworkAccess(data, "Enabled"),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					// Switching from deprecated to new argument should not trigger any action
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionNoop),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("public_network_access").HasValue("Enabled"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicNetworkAccess(data, "Disabled"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("public_network_access").HasValue("Disabled"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicNetworkAccess(data, "SecuredByPerimeter"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("public_network_access").HasValue("SecuredByPerimeter"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Omitting the argument should reset to the default of true/Enabled
+			Config: r.publicNetworkAccess(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("public_network_access").HasValue("Enabled"),
 			),
 		},
 		data.ImportStep(),
@@ -733,6 +849,47 @@ func TestAccStorageAccount_replicationTypeGZRS(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("account_replication_type").HasValue("RAGZRS"),
 			),
+		},
+	})
+}
+
+func TestAccStorageAccount_zonalMigration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zonalMigration(data, "LRS", false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("account_replication_type").HasValue("LRS"),
+				check.That(data.ResourceName).Key("account_replication_type_migration_in_progress").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.zonalMigration(data, "ZRS", false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("account_replication_type").HasValue("LRS"),
+				check.That(data.ResourceName).Key("account_replication_type_migration_in_progress").HasValue("true"),
+				check.That(data.ResourceName).Key("account_replication_type_migrating_to").HasValue("ZRS"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.zonalMigration(data, "ZRS", true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("account_replication_type").HasValue("LRS"),
+				check.That(data.ResourceName).Key("account_replication_type_migration_in_progress").HasValue("true"),
+				check.That(data.ResourceName).Key("account_replication_type_migrating_to").HasValue("ZRS"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.zonalMigration(data, "GRS", false),
+			ExpectError: regexp.MustCompile("a migration from `LRS` to `ZRS` is in progress"),
 		},
 	})
 }
@@ -1798,7 +1955,12 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r StorageAccountResource) publicNetworkAccess(data acceptance.TestData, enabled bool) string {
+func (r StorageAccountResource) publicNetworkAccess(data acceptance.TestData, v string) string {
+	pna := fmt.Sprintf("public_network_access = %q", v)
+	if v == "" {
+		pna = ""
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1813,12 +1975,40 @@ resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
   resource_group_name = azurerm_resource_group.test.name
 
-  location                      = azurerm_resource_group.test.location
-  account_tier                  = "Standard"
-  account_replication_type      = "LRS"
-  public_network_access_enabled = %t
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  %s
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, enabled)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, pna)
+}
+
+func (r StorageAccountResource) publicNetworkAccessEnabled(data acceptance.TestData, enabled, omitArgument bool) string {
+	pna := fmt.Sprintf("public_network_access_enabled = %t", enabled)
+	if omitArgument {
+		pna = ""
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  %s
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, pna)
 }
 
 func (r StorageAccountResource) noCrossTenantReplication(data acceptance.TestData) string {
@@ -2989,6 +3179,39 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "RAGZRS"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) zonalMigration(data acceptance.TestData, replicationType string, includeTags bool) string {
+	tags := ""
+	if includeTags {
+		tags = `
+tags = {
+  hello = "world"
+}
+`
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "%s"
+
+  %s
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, replicationType, tags)
 }
 
 func (r StorageAccountResource) largeFileShareDisabled(data acceptance.TestData) string {

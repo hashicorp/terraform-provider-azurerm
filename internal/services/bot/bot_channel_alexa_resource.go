@@ -12,11 +12,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -32,8 +33,15 @@ func resourceBotChannelAlexa() *pluginsdk.Resource {
 		Update: resourceBotChannelAlexaUpdate,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.BotChannelID(id)
+			_, err := commonids.ParseBotServiceChannelID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			// v0 -> v1 normalises the casing of IDs imported while this resource parsed them with the
+			// case-insensitive legacy parser, so they can be parsed with the case-sensitive SDK parser
+			0: migration.BotChannelAlexaV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -70,10 +78,10 @@ func resourceBotChannelAlexaCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameAlexaChannel))
+	id := commonids.NewBotServiceChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameAlexaChannel))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ChannelName)
+		existing, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName, id.ChannelType)
 		if err != nil {
 			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -96,7 +104,7 @@ func resourceBotChannelAlexaCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Kind:     botservice.KindBot,
 	}
 
-	if _, err := client.Create(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameAlexaChannel, channel); err != nil {
+	if _, err := client.Create(ctx, id.ResourceGroupName, id.BotServiceName, botservice.ChannelNameAlexaChannel, channel); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -127,12 +135,12 @@ func resourceBotChannelAlexaRead(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotChannelID(d.Id())
+	id, err := commonids.ParseBotServiceChannelID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameAlexaChannel))
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName, string(botservice.ChannelNameAlexaChannel))
 	if err != nil {
 		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", id)
@@ -144,7 +152,7 @@ func resourceBotChannelAlexaRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	d.Set("bot_name", id.BotServiceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.Properties; props != nil {
@@ -163,7 +171,7 @@ func resourceBotChannelAlexaUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotChannelID(d.Id())
+	id, err := commonids.ParseBotServiceChannelID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -180,7 +188,7 @@ func resourceBotChannelAlexaUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Kind:     botservice.KindBot,
 	}
 
-	if _, err = client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameAlexaChannel, channel); err != nil {
+	if _, err = client.Update(ctx, id.ResourceGroupName, id.BotServiceName, botservice.ChannelNameAlexaChannel, channel); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
@@ -209,12 +217,12 @@ func resourceBotChannelAlexaDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotChannelID(d.Id())
+	id, err := commonids.ParseBotServiceChannelID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameAlexaChannel))
+	resp, err := client.Delete(ctx, id.ResourceGroupName, id.BotServiceName, string(botservice.ChannelNameAlexaChannel))
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
@@ -224,9 +232,9 @@ func resourceBotChannelAlexaDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func botChannelAlexaStateRefreshFunc(ctx context.Context, client *botservice.ChannelsClient, id parse.BotChannelId) pluginsdk.StateRefreshFunc {
+func botChannelAlexaStateRefreshFunc(ctx context.Context, client *botservice.ChannelsClient, id commonids.BotServiceChannelId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ChannelName)
+		resp, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName, id.ChannelType)
 		if err != nil {
 			if !response.WasNotFound(resp.Response.Response) {
 				return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)

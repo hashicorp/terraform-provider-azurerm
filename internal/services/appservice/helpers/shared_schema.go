@@ -82,7 +82,7 @@ func IpRestrictionSchema() *pluginsdk.Schema {
 				"name": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The name which should be used for this `ip_restriction`.",
 				},
@@ -123,7 +123,7 @@ func IpRestrictionSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"ip_address": {
@@ -392,14 +392,6 @@ func ExpandCorsSettings(input []CorsSetting) *webapps.CorsSettings {
 	}
 }
 
-type SourceControl struct {
-	RepoURL           string `tfschema:"repo_url"`
-	Branch            string `tfschema:"branch"`
-	ManualIntegration bool   `tfschema:"manual_integration"`
-	UseMercurial      bool   `tfschema:"use_mercurial"`
-	RollbackEnabled   bool   `tfschema:"rollback_enabled"`
-}
-
 type SiteCredential struct {
 	Username string `tfschema:"name"`
 	Password string `tfschema:"password"`
@@ -501,7 +493,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 				"allowed_external_redirect_urls": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -510,9 +502,10 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 				},
 
 				"default_provider": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Computed:     true, // Once set, cannot be unset
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					// Note: O+C because Once set, cannot be unset
+					Computed:     true,
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForBuiltInAuthenticationProvider(), false),
 					Description:  "The default authentication provider to use when multiple providers are configured. Possible values include: `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount`, `Twitter`, `Github`.",
 				},
@@ -527,7 +520,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 				"runtime_version": {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					Description: "The RuntimeVersion of the Authentication / Authorization feature in use.",
 				},
 
@@ -558,9 +551,10 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 				},
 
 				"unauthenticated_client_action": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Computed:     true, // Once set, cannot be removed
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					// Note: O+C because Once set, cannot be removed
+					Computed:     true,
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForUnauthenticatedClientAction(), false),
 					Description:  "The action to take when an unauthenticated client attempts to access the app. Possible values include: `RedirectToLoginPage`, `AllowAnonymous`.",
 				},
@@ -1616,7 +1610,7 @@ func FlattenWebStringDictionary(input *webapps.StringDictionary) map[string]stri
 func FlattenSiteCredentials(input *webapps.User) []SiteCredential {
 	var result []SiteCredential
 	if input == nil || input.Properties == nil {
-		return result
+		return []SiteCredential{}
 	}
 
 	userProps := *input.Properties
@@ -1631,7 +1625,7 @@ func FlattenSiteCredentials(input *webapps.User) []SiteCredential {
 func FlattenSiteCredentialsLogicApp(input *webapps.User) []SiteCredentialLogicApp {
 	var result []SiteCredentialLogicApp
 	if input == nil || input.Properties == nil {
-		return result
+		return []SiteCredentialLogicApp{}
 	}
 
 	userProps := *input.Properties

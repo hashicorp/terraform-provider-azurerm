@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -26,13 +25,15 @@ func customizeHttpsConfigurationCustomizeDiff(ctx context.Context, d *pluginsdk.
 	}
 
 	if v, ok := d.GetOk("frontend_endpoint_id"); ok && v.(string) != "" {
-		id, err := parse.FrontendEndpointID(v.(string))
+		// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+		// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+		id, err := frontdoors.ParseFrontendEndpointIDInsensitively(v.(string))
 		if err != nil {
 			return err
 		}
 
 		if err := customHttpsSettings(d); err != nil {
-			return fmt.Errorf("validating Front Door Custom Https Configuration for Endpoint %q (Front Door %q / Resource Group %q): %+v", id.Name, id.FrontDoorName, id.ResourceGroup, err)
+			return fmt.Errorf("validating Front Door Custom Https Configuration for Endpoint %q (Front Door %q / Resource Group %q): %+v", id.FrontendEndpointName, id.FrontDoorName, id.ResourceGroupName, err)
 		}
 	}
 

@@ -20,7 +20,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -55,7 +55,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 				"week_of_year": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(0, 52),
 					AtLeastOneOf: atLeastOneOf,
 				},
@@ -68,7 +68,7 @@ func ShortTermRetentionPolicySchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -80,7 +80,7 @@ func ShortTermRetentionPolicySchema() *pluginsdk.Schema {
 				"backup_interval_in_hours": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntInSlice([]int{12, 24}),
 				},
 			},

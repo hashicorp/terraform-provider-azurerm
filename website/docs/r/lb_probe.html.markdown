@@ -57,6 +57,7 @@ The following arguments are supported:
 * `request_path` - (Optional) The URI used for requesting health status from the backend endpoint. Required if protocol is set to `Http` or `Https`. Otherwise, it is not allowed.
 * `interval_in_seconds` - (Optional) The interval, in seconds between probes to the backend endpoint for health status. The default value is 15, the minimum value is 5.
 * `number_of_probes` - (Optional) The number of failed probe attempts after which the backend endpoint is removed from rotation. Default to `2`. NumberOfProbes multiplied by intervalInSeconds value must be greater or equal to 10.Endpoints are returned to rotation when at least one probe is successful.
+* `no_healthy_backends_behavior` - (Optional) Determines how new connections are handled by the load balancer when all backend instances are probed down. Possible values are `AllProbedDown` and `AllProbedUp`. Defaults to `AllProbedDown`.
 
 ## Attributes Reference
 

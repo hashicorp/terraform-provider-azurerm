@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type EventHubConsumerGroupResource struct{}
+type EventhubConsumerGroupResource struct{}
 
 func TestAccEventHubConsumerGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_consumer_group", "test")
-	r := EventHubConsumerGroupResource{}
+	r := EventhubConsumerGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccEventHubConsumerGroup_basic(t *testing.T) {
 
 func TestAccEventHubConsumerGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_consumer_group", "test")
-	r := EventHubConsumerGroupResource{}
+	r := EventhubConsumerGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -53,7 +53,7 @@ func TestAccEventHubConsumerGroup_requiresImport(t *testing.T) {
 
 func TestAccEventHubConsumerGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_consumer_group", "test")
-	r := EventHubConsumerGroupResource{}
+	r := EventhubConsumerGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -68,7 +68,7 @@ func TestAccEventHubConsumerGroup_complete(t *testing.T) {
 
 func TestAccEventHubConsumerGroup_userMetadataUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_consumer_group", "test")
-	r := EventHubConsumerGroupResource{}
+	r := EventhubConsumerGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -88,7 +88,7 @@ func TestAccEventHubConsumerGroup_userMetadataUpdate(t *testing.T) {
 	})
 }
 
-func (EventHubConsumerGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (EventhubConsumerGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := consumergroups.ParseConsumerGroupID(state.ID)
 	if err != nil {
 		return nil, err
@@ -102,7 +102,7 @@ func (EventHubConsumerGroupResource) Exists(ctx context.Context, clients *client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (EventHubConsumerGroupResource) basic(data acceptance.TestData) string {
+func (EventhubConsumerGroupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -136,8 +136,8 @@ resource "azurerm_eventhub_consumer_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (EventHubConsumerGroupResource) requiresImport(data acceptance.TestData) string {
-	template := EventHubConsumerGroupResource{}.basic(data)
+func (EventhubConsumerGroupResource) requiresImport(data acceptance.TestData) string {
+	template := EventhubConsumerGroupResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -150,7 +150,7 @@ resource "azurerm_eventhub_consumer_group" "import" {
 `, template)
 }
 
-func (EventHubConsumerGroupResource) complete(data acceptance.TestData) string {
+func (EventhubConsumerGroupResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

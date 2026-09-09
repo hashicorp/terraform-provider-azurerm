@@ -57,7 +57,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
@@ -85,7 +85,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"role_definition_id": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				ForceNew:         true,
 				ExactlyOneOf:     []string{"role_definition_id", "role_definition_name"},
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -94,7 +94,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"role_definition_name": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				ForceNew:         true,
 				ExactlyOneOf:     []string{"role_definition_name", "role_definition_id"},
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -110,7 +110,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"principal_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"User",
@@ -122,7 +122,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"skip_service_principal_aad_check": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"delegated_managed_identity_resource_id": {
@@ -147,7 +147,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"condition_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice([]string{
 					"1.0",
 					"2.0",

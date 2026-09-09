@@ -829,8 +829,6 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 
 	v := input[0].(map[string]interface{})
 
-	defaultAction := cognitiveservicesaccounts.NetworkRuleAction(v["default_action"].(string))
-
 	ipRulesRaw := v["ip_rules"].(*pluginsdk.Set)
 	ipRules := make([]cognitiveservicesaccounts.IPRule, 0)
 
@@ -855,14 +853,13 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 	}
 
 	ruleSet := cognitiveservicesaccounts.NetworkRuleSet{
-		DefaultAction:       &defaultAction,
+		DefaultAction:       pointer.ToEnum[cognitiveservicesaccounts.NetworkRuleAction](v["default_action"].(string)),
 		IPRules:             &ipRules,
 		VirtualNetworkRules: &networkRules,
 	}
 
 	if b, ok := d.GetOk("network_acls.0.bypass"); ok && b != "" {
-		bypass := cognitiveservicesaccounts.ByPassSelection(v["bypass"].(string))
-		ruleSet.Bypass = &bypass
+		ruleSet.Bypass = pointer.ToEnum[cognitiveservicesaccounts.ByPassSelection](v["bypass"].(string))
 	}
 
 	return &ruleSet, subnetIds
@@ -1004,15 +1001,13 @@ func expandCognitiveAccountCustomerManagedKey(input []interface{}) *cognitiveser
 		return nil
 	}
 
-	keySource := cognitiveservicesaccounts.KeySourceMicrosoftPointKeyVault
-
 	var identity string
 	if value := v["identity_client_id"]; value != nil && value != "" {
 		identity = value.(string)
 	}
 
 	return &cognitiveservicesaccounts.Encryption{
-		KeySource: &keySource,
+		KeySource: pointer.To(cognitiveservicesaccounts.KeySourceMicrosoftPointKeyVault),
 		KeyVaultProperties: &cognitiveservicesaccounts.KeyVaultProperties{
 			KeyName:          pointer.To(keyId.Name),
 			KeyVersion:       pointer.To(keyId.Version),
@@ -1057,15 +1052,13 @@ func expandCognitiveAccountNetworkInjection(input []interface{}) *[]cognitiveser
 	for _, v := range input {
 		m := v.(map[string]interface{})
 
-		scenario := cognitiveservicesaccounts.ScenarioType(m["scenario"].(string))
-
 		var subnetId *string
 		if m["subnet_id"] != nil && m["subnet_id"] != "" {
 			subnetId = pointer.To(m["subnet_id"].(string))
 		}
 
 		results = append(results, cognitiveservicesaccounts.NetworkInjection{
-			Scenario:    &scenario,
+			Scenario:    pointer.ToEnum[cognitiveservicesaccounts.ScenarioType](m["scenario"].(string)),
 			SubnetArmId: subnetId,
 		})
 	}

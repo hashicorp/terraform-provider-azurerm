@@ -247,13 +247,11 @@ func resourceNetworkProfileFlatten(d *pluginsdk.ResourceData, id *networkprofile
 
 	if profile != nil {
 		if props := profile.Properties; props != nil {
-			cniConfigs := flattenNetworkProfileContainerNetworkInterface(props.ContainerNetworkInterfaceConfigurations)
-			if err := d.Set("container_network_interface", cniConfigs); err != nil {
+			if err := d.Set("container_network_interface", flattenNetworkProfileContainerNetworkInterface(props.ContainerNetworkInterfaceConfigurations)); err != nil {
 				return fmt.Errorf("setting `container_network_interface`: %+v", err)
 			}
 
-			cniIDs := flattenNetworkProfileContainerNetworkInterfaceIDs(props.ContainerNetworkInterfaces)
-			if err := d.Set("container_network_interface_ids", cniIDs); err != nil {
+			if err := d.Set("container_network_interface_ids", flattenNetworkProfileContainerNetworkInterfaceIDs(props.ContainerNetworkInterfaces)); err != nil {
 				return fmt.Errorf("setting `container_network_interface_ids`: %+v", err)
 			}
 		}
@@ -309,20 +307,17 @@ func expandNetworkProfileContainerNetworkInterface(input []interface{}) *[]netwo
 
 	for _, cniConfig := range input {
 		nciData := cniConfig.(map[string]interface{})
-		nciName := nciData["name"].(string)
 		ipConfigs := nciData["ip_configuration"].([]interface{})
 
 		retIPConfigs := make([]networkprofiles.IPConfigurationProfile, 0)
 		for _, ipConfig := range ipConfigs {
 			ipData := ipConfig.(map[string]interface{})
-			ipName := ipData["name"].(string)
-			subnetId := ipData["subnet_id"].(string)
 
 			retIPConfig := networkprofiles.IPConfigurationProfile{
-				Name: &ipName,
+				Name: pointer.To(ipData["name"].(string)),
 				Properties: &networkprofiles.IPConfigurationProfilePropertiesFormat{
 					Subnet: &networkprofiles.Subnet{
-						Id: &subnetId,
+						Id: pointer.To(ipData["subnet_id"].(string)),
 					},
 				},
 			}
@@ -331,7 +326,7 @@ func expandNetworkProfileContainerNetworkInterface(input []interface{}) *[]netwo
 		}
 
 		retCNIConfig := networkprofiles.ContainerNetworkInterfaceConfiguration{
-			Name: &nciName,
+			Name: pointer.To(nciData["name"].(string)),
 			Properties: &networkprofiles.ContainerNetworkInterfaceConfigurationPropertiesFormat{
 				IPConfigurations: &retIPConfigs,
 			},

@@ -84,7 +84,7 @@ func resourceVPNGateway() *pluginsdk.Resource {
 			"bgp_settings": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -108,7 +108,7 @@ func resourceVPNGateway() *pluginsdk.Resource {
 						"instance_0_bgp_peering_address": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -148,7 +148,7 @@ func resourceVPNGateway() *pluginsdk.Resource {
 						"instance_1_bgp_peering_address": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{

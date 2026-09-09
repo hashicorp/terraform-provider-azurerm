@@ -155,7 +155,7 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate(d *plug
 				stateConf := &pluginsdk.StateChangeConf{
 					Pending:                   []string{"pending"},
 					Target:                    []string{"available"},
-					Refresh:                   keyVaultChildItemRefreshFunc(*secret),
+					Refresh:                   keyVaultChildItemRefreshFunc(ctx, *secret),
 					Delay:                     30 * time.Second,
 					PollInterval:              10 * time.Second,
 					ContinuousTargetOccurence: 10,

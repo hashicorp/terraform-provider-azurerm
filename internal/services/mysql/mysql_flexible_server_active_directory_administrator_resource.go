@@ -123,9 +123,7 @@ func (r MySQLFlexibleServerAdministratorResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", flexibleServerId, err)
 			}
 
-			id := parse.NewFlexibleServerAzureActiveDirectoryAdministratorID(flexibleServerId.SubscriptionId, flexibleServerId.ResourceGroupName, flexibleServerId.FlexibleServerName, string(azureadadministrators.AdministratorTypeActiveDirectory))
-
-			metadata.SetID(id)
+			metadata.SetID(parse.NewFlexibleServerAzureActiveDirectoryAdministratorID(flexibleServerId.SubscriptionId, flexibleServerId.ResourceGroupName, flexibleServerId.FlexibleServerName, string(azureadadministrators.AdministratorTypeActiveDirectory)))
 			return nil
 		},
 	}
