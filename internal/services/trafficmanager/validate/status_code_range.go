@@ -4,33 +4,11 @@
 package validate
 
 import (
-	"fmt"
-	"strconv"
-	"strings"
+	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func StatusCodeRange(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return warnings, errors
-	}
-
-	parts := strings.Split(v, "-")
-	if len(parts) != 2 {
-		errors = append(errors, fmt.Errorf("expected %s to contain a single '-', got %v", k, i))
-		return warnings, errors
-	}
-
-	if _, err := strconv.Atoi(parts[0]); err != nil {
-		errors = append(errors, fmt.Errorf("expected %s on the left of - to be an integer, got %v: %v", k, i, err))
-		return warnings, errors
-	}
-
-	if _, err := strconv.Atoi(parts[1]); err != nil {
-		errors = append(errors, fmt.Errorf("expected %s on the right of - to be an integer, got %v: %v", k, i, err))
-		return warnings, errors
-	}
-
-	return warnings, errors
+func StatusCodeRange(i interface{}, k string) ([]string, []error) {
+	return validation.StringMatch(regexp.MustCompile(`^[0-9]+-[0-9]+$`), "expected an integer range within the format of `XXX-XXX`")(i, k)
 }

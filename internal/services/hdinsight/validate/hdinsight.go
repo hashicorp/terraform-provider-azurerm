@@ -4,7 +4,6 @@
 package validate
 
 import (
-	"fmt"
 	"regexp"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -20,13 +19,7 @@ func HDInsightClusterVersion(i interface{}, k string) (warnings []string, errors
 	)(i, k)
 }
 
-func HDInsightName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
+func HDInsightName(v interface{}, k string) ([]string, []error) {
 	// The name must be 59 characters or less and can contain letters, numbers, and hyphens (but the first and last character must be a letter or number).
-	if matched := regexp.MustCompile(`(^[a-zA-Z0-9])([a-zA-Z0-9-]{1,57})([a-zA-Z0-9]$)`).Match([]byte(value)); !matched {
-		errors = append(errors, fmt.Errorf("%q must be 59 characters or less and can contain letters, numbers, and hyphens (but the first and last character must be a letter or number)", k))
-	}
-
-	return warnings, errors
+	return validation.StringMatch(regexp.MustCompile(`(^[a-zA-Z0-9])([a-zA-Z0-9-]{1,57})([a-zA-Z0-9]$)`), "must be 59 characters or less and can contain letters, numbers, and hyphens (but the first and last character must be a letter or number)")(v, k)
 }

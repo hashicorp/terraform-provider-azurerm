@@ -70,22 +70,10 @@ func (r CustomIpPrefixResource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"cidr": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: func(i interface{}, k string) (warnings []string, errors []error) {
-				v, ok := i.(string)
-				if !ok {
-					errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-					return
-				}
-
-				if _, _, err := net.ParseCIDR(v); err != nil {
-					errors = append(errors, fmt.Errorf("expected %q to be a valid IPv4 or IPv6 network, got %v: %v", k, i, err))
-				}
-
-				return
-			},
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IsCIDR,
 		},
 
 		"parent_custom_ip_prefix_id": {

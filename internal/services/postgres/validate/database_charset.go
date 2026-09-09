@@ -4,66 +4,55 @@
 package validate
 
 import (
-	"fmt"
-	"strings"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func DatabaseCharset(v interface{}, k string) (warnings []string, errors []error) {
-	value, ok := v.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return warnings, errors
-	}
+// https://www.postgresql.org/docs/13/multibyte.html#CHARSET-TABLE
+var charsets = []string{
+	"BIG5",
+	"EUC_CN",
+	"EUC_JP",
+	"EUC_JIS_2004",
+	"EUC_KR",
+	"EUC_TW",
+	"GB18030",
+	"GBK",
+	"ISO_8859_5",
+	"ISO_8859_6",
+	"ISO_8859_7",
+	"ISO_8859_8",
+	"JOHAB",
+	"KOI8R",
+	"KOI8U",
+	"LATIN1",
+	"LATIN2",
+	"LATIN3",
+	"LATIN4",
+	"LATIN5",
+	"LATIN6",
+	"LATIN7",
+	"LATIN8",
+	"LATIN9",
+	"LATIN10",
+	"MULE_INTERNAL",
+	"SJIS",
+	"SHIFT_JIS_2004",
+	"SQL_ASCII",
+	"UHC",
+	"UTF8",
+	"WIN866",
+	"WIN874",
+	"WIN1250",
+	"WIN1251",
+	"WIN1252",
+	"WIN1253",
+	"WIN1254",
+	"WIN1255",
+	"WIN1256",
+	"WIN1257",
+	"WIN1258",
+}
 
-	// https://www.postgresql.org/docs/13/multibyte.html#CHARSET-TABLE
-	charsets := map[string]bool{
-		"BIG5":           true,
-		"EUC_CN":         true,
-		"EUC_JP":         true,
-		"EUC_JIS_2004":   true,
-		"EUC_KR":         true,
-		"EUC_TW":         true,
-		"GB18030":        true,
-		"GBK":            true,
-		"ISO_8859_5":     true,
-		"ISO_8859_6":     true,
-		"ISO_8859_7":     true,
-		"ISO_8859_8":     true,
-		"JOHAB":          true,
-		"KOI8R":          true,
-		"KOI8U":          true,
-		"LATIN1":         true,
-		"LATIN2":         true,
-		"LATIN3":         true,
-		"LATIN4":         true,
-		"LATIN5":         true,
-		"LATIN6":         true,
-		"LATIN7":         true,
-		"LATIN8":         true,
-		"LATIN9":         true,
-		"LATIN10":        true,
-		"MULE_INTERNAL":  true,
-		"SJIS":           true,
-		"SHIFT_JIS_2004": true,
-		"SQL_ASCII":      true,
-		"UHC":            true,
-		"UTF8":           true,
-		"WIN866":         true,
-		"WIN874":         true,
-		"WIN1250":        true,
-		"WIN1251":        true,
-		"WIN1252":        true,
-		"WIN1253":        true,
-		"WIN1254":        true,
-		"WIN1255":        true,
-		"WIN1256":        true,
-		"WIN1257":        true,
-		"WIN1258":        true,
-	}
-
-	if !charsets[strings.ToUpper(value)] {
-		errors = append(errors, fmt.Errorf("%s contains unknown charset %s, see https://www.postgresql.org/docs/13/multibyte.html#CHARSET-TABLE for available charsets in PostgreSQL", k, v))
-	}
-
-	return warnings, errors
+func DatabaseCharset(v interface{}, k string) ([]string, []error) {
+	return validation.StringInSlice(charsets, true)(v, k)
 }
