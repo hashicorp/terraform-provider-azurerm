@@ -8,6 +8,7 @@ debug="${debug:-}"
 echo "Preparing changelog for release..."
 
 echo "Generating changelog..."
+# shellcheck disable=SC2086 # debug is intentionally unquoted for command prefix pattern
 output="$(${debug}changeloggy generate)"
 echo "${output}"
 
