@@ -293,12 +293,12 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-recovery-%[1]d-1"
-  location = "%[2]s"
+  location = "%[3]s"
 }
 
 resource "azurerm_resource_group" "test2" {
   name     = "acctestRG-recovery-%[1]d-2"
-  location = "%[3]s"
+  location = "%[4]s"
 }
 
 resource "azurerm_recovery_services_vault" "test" {
@@ -460,7 +460,7 @@ resource "azurerm_public_ip" "test-recovery" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[1]d"
+  name                     = "acctestsa%[2]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
@@ -470,7 +470,7 @@ resource "azurerm_storage_account" "test" {
     environment = "staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, data.RandomInteger, data.RandomString, data.Locations.Primary, data.Locations.Secondary)
 }
 
 func (SiteRecoveryReplicatedVmResource) vmSizeTemplate(data acceptance.TestData, vmSize string) string {
@@ -652,7 +652,7 @@ resource "azurerm_public_ip" "test-recovery" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[1]d"
+  name                     = "acctestsa%[5]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
@@ -662,7 +662,7 @@ resource "azurerm_storage_account" "test" {
     environment = "staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, vmSize)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, vmSize, data.RandomString)
 }
 
 func (SiteRecoveryReplicatedVmResource) multipleIPTemplate(data acceptance.TestData) string {
@@ -869,7 +869,7 @@ resource "azurerm_public_ip" "test-recovery-2" {
 
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[1]d"
+  name                     = "acctestsa%[4]s"
   resource_group_name      = azurerm_resource_group.source.name
   location                 = azurerm_resource_group.source.location
   account_tier             = "Standard"
@@ -879,7 +879,7 @@ resource "azurerm_storage_account" "test" {
     environment = "staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.RandomString)
 }
 
 func (r SiteRecoveryReplicatedVmResource) basic(data acceptance.TestData) string {
@@ -1350,7 +1350,7 @@ resource "azurerm_key_vault_access_policy" "disk-encryption2" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctest%[1]d"
+  name                     = "acctest%[4]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
@@ -1530,7 +1530,7 @@ resource "azurerm_virtual_machine" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctest%[1]d"
+  name                     = "acctest%[4]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
@@ -1572,7 +1572,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     azurerm_site_recovery_protection_container_mapping.test,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.RandomString)
 }
 
 func (SiteRecoveryReplicatedVmResource) zone2zoneWithLoadBalancerBackendPool(data acceptance.TestData) string {
@@ -1596,7 +1596,7 @@ resource "azurerm_resource_group" "test2" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctest%[1]d"
+  name                     = "acctest%[3]s"
   location                 = azurerm_resource_group.test1.location
   resource_group_name      = azurerm_resource_group.test1.name
   account_tier             = "Standard"
@@ -1815,7 +1815,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     azurerm_nat_gateway_public_ip_association.test,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (SiteRecoveryReplicatedVmResource) targetDiskEncryption(data acceptance.TestData) string {
@@ -2009,7 +2009,7 @@ SETTINGS
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctest%[1]d"
+  name                     = "acctest%[4]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
@@ -2139,7 +2139,7 @@ func (r SiteRecoveryReplicatedVmResource) withBootDiagStorageAccount(data accept
 %s
 
 resource "azurerm_storage_account" "test2" {
-  name                     = "acctestre%[2]d"
+  name                     = "acctestre%[5]s"
   location                 = azurerm_resource_group.test2.location
   resource_group_name      = azurerm_resource_group.test2.name
   account_tier             = "Standard"
@@ -2174,7 +2174,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     azurerm_site_recovery_network_mapping.test,
   ]
 }
-`, r.template(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.RandomString)
 }
 
 func (r SiteRecoveryReplicatedVmResource) withCapacityReservationGroup(data acceptance.TestData) string {
