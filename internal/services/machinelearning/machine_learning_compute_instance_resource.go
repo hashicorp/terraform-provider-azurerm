@@ -71,12 +71,10 @@ func resourceComputeInstance() *pluginsdk.Resource {
 			},
 
 			"authorization_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(machinelearningcomputes.ComputeInstanceAuthorizationTypePersonal),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(machinelearningcomputes.PossibleValuesForComputeInstanceAuthorizationType(), false),
 			},
 
 			"assign_to_user": {

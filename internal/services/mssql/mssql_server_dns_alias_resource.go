@@ -10,11 +10,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverdnsaliases"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serverdnsaliases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type ServerDNSAliasModel struct {
@@ -33,7 +34,7 @@ func (m ServerDNSAliasResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ServerID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlServerIDInsensitively),
 		},
 
 		"name": {
@@ -73,12 +74,14 @@ func (m ServerDNSAliasResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			serverID, err := parse.ServerID(alias.MsSQLServerId)
+			// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+			// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+			serverID, err := commonids.ParseSqlServerIDInsensitively(alias.MsSQLServerId)
 			if err != nil {
 				return err
 			}
 
-			id := serverdnsaliases.NewDnsAliasID(serverID.SubscriptionId, serverID.ResourceGroup, serverID.Name, alias.Name)
+			id := serverdnsaliases.NewDnsAliasID(serverID.SubscriptionId, serverID.ResourceGroupName, serverID.ServerName, alias.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
@@ -118,7 +121,7 @@ func (m ServerDNSAliasResource) Read() sdk.ResourceFunc {
 			}
 			state := ServerDNSAliasModel{
 				Name:          id.DnsAliasName,
-				MsSQLServerId: parse.NewServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName).ID(),
+				MsSQLServerId: commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName).ID(),
 			}
 			if alias.Model != nil {
 				if prop := alias.Model.Properties; prop != nil {

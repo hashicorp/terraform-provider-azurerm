@@ -95,7 +95,7 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			"floating_ip_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"tcp_reset_enabled": {

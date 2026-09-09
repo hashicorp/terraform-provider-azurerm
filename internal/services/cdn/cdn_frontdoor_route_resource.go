@@ -110,15 +110,10 @@ func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
 						},
 
 						"query_string_caching_behavior": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(routes.AfdQueryStringCachingBehaviorIgnoreQueryString),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(routes.AfdQueryStringCachingBehaviorIgnoreQueryString),
-								string(routes.AfdQueryStringCachingBehaviorIgnoreSpecifiedQueryStrings),
-								string(routes.AfdQueryStringCachingBehaviorIncludeSpecifiedQueryStrings),
-								string(routes.AfdQueryStringCachingBehaviorUseQueryString),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(routes.AfdQueryStringCachingBehaviorIgnoreQueryString),
+							ValidateFunc: validation.StringInSlice(routes.PossibleValuesForAfdQueryStringCachingBehavior(), false),
 						},
 
 						"compression_enabled": {
@@ -146,14 +141,10 @@ func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
 			},
 
 			"forwarding_protocol": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(routes.ForwardingProtocolMatchRequest),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(routes.ForwardingProtocolHTTPOnly),
-					string(routes.ForwardingProtocolHTTPSOnly),
-					string(routes.ForwardingProtocolMatchRequest),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(routes.ForwardingProtocolMatchRequest),
+				ValidateFunc: validation.StringInSlice(routes.PossibleValuesForForwardingProtocol(), false),
 			},
 
 			"https_redirect_enabled": {
@@ -190,11 +181,8 @@ func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
 				Required: true,
 				MaxItems: 2,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(routes.AFDEndpointProtocolsHTTP),
-						string(routes.AFDEndpointProtocolsHTTPS),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(routes.PossibleValuesForAFDEndpointProtocols(), false),
 				},
 			},
 		},

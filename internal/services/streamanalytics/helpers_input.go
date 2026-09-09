@@ -42,11 +42,9 @@ func schemaStreamAnalyticsStreamInputSerialization() *pluginsdk.Schema {
 				},
 
 				"encoding": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(inputs.EncodingUTFEight),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(inputs.PossibleValuesForEncoding(), false),
 				},
 			},
 		},

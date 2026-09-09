@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
@@ -130,7 +131,7 @@ func resourceDatadogMonitor() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.DatadogUsersName,
+							ValidateFunc: validation.StringLenBetween(1, 50),
 						},
 
 						"email": {
@@ -144,7 +145,7 @@ func resourceDatadogMonitor() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.DatadogMonitorsPhoneNumber,
+							ValidateFunc: validation.StringLenBetween(0, 40),
 						},
 					},
 				},

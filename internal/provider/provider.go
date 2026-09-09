@@ -36,6 +36,7 @@ func AzureProviderWithTestName(testName string) *schema.Provider {
 	return azureProvider(false, testName)
 }
 
+// lintignore:V013 // false positive - this validates a UUID with an optional pid- prefix/suffix; the string comparison checks for empty values
 func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
 	// ValidatePartnerID checks if partner_id is any of the following:
 	//  * a valid UUID - will add "pid-" prefix to the ID if it is not already present
@@ -66,9 +67,7 @@ func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
 
 	// Check for pid=<guid> (without the -partnercenter suffix)
 	if strings.HasPrefix(v, "pid-") && !strings.HasSuffix(v, "-partnercenter") {
-		g := strings.TrimPrefix(v, "pid-")
-
-		if _, err := validation.IsUUID(g, ""); err != nil {
+		if _, err := validation.IsUUID(strings.TrimPrefix(v, "pid-"), ""); err != nil {
 			return nil, []error{fmt.Errorf("expected %q to be a valid UUID", k)}
 		}
 

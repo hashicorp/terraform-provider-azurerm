@@ -17,8 +17,7 @@ func Test_fixFileNormalize(t *testing.T) {
 		if en.IsDir() {
 			continue
 		}
-		fullPath := path.Join(ResourceDir(), en.Name())
-		FixFileNormalize(fullPath)
+		FixFileNormalize(path.Join(ResourceDir(), en.Name()))
 	}
 }
 
@@ -28,8 +27,7 @@ func TestMDFile(t *testing.T) {
 }
 
 func TestRegSubMatch(t *testing.T) {
-	idx := oldBlockHeadReg.FindStringSubmatchIndex("`traffic_analytics` supports the following:")
-	t.Logf("%v", idx)
+	t.Logf("%v", oldBlockHeadReg.FindStringSubmatchIndex("`traffic_analytics` supports the following:"))
 
 	for _, val := range []string{
 		"  * `abc`  def",
