@@ -71,13 +71,13 @@ kind "enhancement" {
   }
 
   type "new-property" {
-    regex    = "^`(Data Source: |List Resource: |Action: )?azurerm_[^`]+` - add support for the (`[^`]+`(, `[^`]+`)*(,? and `[^`]+`)?) (propert(y|ies)|blocks?)$"
+    regex    = "^(Data Source: |List Resource: |Action: )?`azurerm_[^`]+` - (add support for|export) the (`[^`]+`(, `[^`]+`)*(,? and `[^`]+`)?) (propert(y|ies)|blocks?)$"
     example  = "`azurerm_example` - add support for the `new_field` property"
     priority = 2
   }
 
   type "resource-enhancement" {
-    regex    = "^`(Data Source: |List Resource: |Action: )?azurerm_[^`]+` - .+$"
+    regex    = "^(Data Source: |List Resource: |Action: )?`azurerm_[^`]+` - .+$"
     example  = "`azurerm_example` - improve validation for the `name` property"
     priority = 3
   }
@@ -100,7 +100,7 @@ kind "bug" {
   }
 
   type "resource-fix" {
-    regex   = "^`(Data Source: |List Resource: |Action: )?azurerm_[^`]+` - .+$"
+    regex   = "^(Data Source: |List Resource: |Action: )?`azurerm_[^`]+` - .+$"
     example = "`azurerm_example` - fix panic when `name` is empty"
     priority = 2
   }
