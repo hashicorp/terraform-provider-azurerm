@@ -57,8 +57,9 @@ func loadBalancerRuleResourceImporter(_ context.Context, d *pluginsdk.ResourceDa
 		return nil, err
 	}
 	lbId := loadbalancers.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroupName, id.LoadBalancerName)
+	d.Set("loadbalancer_id", lbId.ID())
 
-	return []*pluginsdk.ResourceData{lbId}, nil
+	return []*pluginsdk.ResourceData{d}, nil
 }
 
 func resourceArmLoadBalancerRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
