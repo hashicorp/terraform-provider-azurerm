@@ -74,7 +74,7 @@ resource "azurerm_servicebus_topic" "test" {
 
 resource "azurerm_servicebus_subscription" "test" {
   count              = 3
-  name               = "_acctestservicebussubscription-%[1]d-${count.index}_"
+  name               = "_acctestsbsubscription-%[1]d-${count.index}_"
   topic_id           = azurerm_servicebus_topic.test.id
   max_delivery_count = 10
 }
