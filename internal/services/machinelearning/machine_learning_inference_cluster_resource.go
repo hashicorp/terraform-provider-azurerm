@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/machinelearningcomputes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -67,15 +67,11 @@ func resourceAksInferenceCluster() *pluginsdk.Resource {
 			},
 
 			"cluster_purpose": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(machinelearningcomputes.ClusterPurposeFastProd),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(machinelearningcomputes.ClusterPurposeDevTest),
-					string(machinelearningcomputes.ClusterPurposeFastProd),
-					string(machinelearningcomputes.ClusterPurposeDenseProd),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(machinelearningcomputes.ClusterPurposeFastProd),
+				ValidateFunc: validation.StringInSlice(machinelearningcomputes.PossibleValuesForClusterPurpose(), false),
 			},
 
 			"description": {

@@ -6,11 +6,14 @@ package network
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkmanagers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkmanagerconnections"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	managementParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	managementValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
@@ -245,32 +248,16 @@ func (r ManagerManagementGroupConnectionResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
-			}
-
 			// https://github.com/Azure/azure-rest-api-specs/issues/23188
 			// confirm the connection is fully deleted
-			stateChangeConf := &pluginsdk.StateChangeConf{
-				Pending: []string{"Exists"},
-				Target:  []string{"NotFound"},
-				Refresh: func() (result interface{}, state string, err error) {
-					resp, err := client.ManagementGroupNetworkManagerConnectionsGet(ctx, *id)
-					if err != nil {
-						if response.WasNotFound(resp.HttpResponse) {
-							return "NotFound", "NotFound", nil
-						}
-						return "Error", "Error", err
-					}
-					return resp, "Exists", nil
-				},
-				PollInterval:              3 * time.Second,
-				ContinuousTargetOccurence: 3,
-				Timeout:                   time.Until(deadline),
-			}
-
-			if _, err = stateChangeConf.WaitForStateContext(ctx); err != nil {
+			poller := custompollers.NewEventualConsistencyPoller(3, func(pollerCtx context.Context) (*http.Response, error) {
+				resp, err := client.ManagementGroupNetworkManagerConnectionsGet(pollerCtx, *id)
+				return resp.HttpResponse, err
+			}, &custompollers.EventualConsistencyPollerOptions{
+				Interval:         3 * time.Second,
+				TargetStatusCode: pointer.To(http.StatusNotFound),
+			})
+			if err := poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
 			}
 

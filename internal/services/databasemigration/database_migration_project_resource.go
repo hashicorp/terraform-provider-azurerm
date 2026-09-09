@@ -64,30 +64,17 @@ func resourceDatabaseMigrationProject() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"source_platform": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(projectresource.ProjectSourcePlatformMongoDb),
-					string(projectresource.ProjectSourcePlatformMySQL),
-					string(projectresource.ProjectSourcePlatformPostgreSql),
-					string(projectresource.ProjectSourcePlatformSQL),
-					string(projectresource.ProjectSourcePlatformUnknown),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(projectresource.PossibleValuesForProjectSourcePlatform(), false),
 			},
 
 			"target_platform": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(projectresource.ProjectTargetPlatformAzureDbForMySql),
-					string(projectresource.ProjectTargetPlatformAzureDbForPostgreSql),
-					string(projectresource.ProjectTargetPlatformMongoDb),
-					string(projectresource.ProjectTargetPlatformSQLDB),
-					string(projectresource.ProjectTargetPlatformSQLMI),
-					string(projectresource.ProjectTargetPlatformUnknown),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(projectresource.PossibleValuesForProjectTargetPlatform(), false),
 			},
 
 			"tags": commonschema.Tags(),

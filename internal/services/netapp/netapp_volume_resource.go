@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -124,7 +124,8 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			"network_features": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true, // O+C - This is Optional/Computed because the service team is changing network features on the backend to upgrade everyone from Basic to Standard and there is a feature that allows customers to change network features from portal but not the API. This could cause drift that forces data loss that we want to avoid
+				// Note: O+C because the service team is changing network features on the backend to upgrade everyone from Basic to Standard and there is a feature that allows customers to change network features from portal but not the API. This could cause drift that forces data loss that we want to avoid
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(volumes.NetworkFeaturesBasic),
 					string(volumes.NetworkFeaturesStandard),
@@ -134,7 +135,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			"protocols": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 2,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
@@ -172,20 +173,22 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForSecurityStyle(), false),
 			},
 
 			"storage_quota_in_gb": {
-				Type:         pluginsdk.TypeInt,
-				Required:     true,
-				ValidateFunc: validation.IntBetween(50, 1048576),
+				Type:     pluginsdk.TypeInt,
+				Required: true,
+				// The upper bound covers the largest size any volume flavour supports (2,400 TiB, only reachable
+				// with `breakthrough_mode_enabled`), the per-flavour limits are enforced in CustomizeDiff.
+				ValidateFunc: validation.IntBetween(50, 2457600),
 			},
 
 			"throughput_in_mibps": {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.FloatAtLeast(1.0),
 			},
 
@@ -402,7 +405,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForEncryptionKeySource(), false),
 			},
 
@@ -410,7 +413,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: azure.ValidateResourceID,
 				RequiredWith: []string{"encryption_key_source"},
 			},
@@ -434,6 +437,14 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Optional:    true,
 				Default:     false,
 				Description: "Indicates whether the volume is a large volume.",
+			},
+
+			"breakthrough_mode_enabled": {
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				ForceNew:    true,
+				Default:     false,
+				Description: "Indicates whether the large volume runs in Breakthrough Mode, placing it on dedicated capacity that delivers higher throughput and larger capacity.",
 			},
 
 			"cool_access": {
@@ -466,15 +477,34 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
 			// Validate large volume and storage_quota_in_gb based on Azure NetApp Files requirements
 			isLargeVolume := d.Get("large_volume_enabled").(bool)
+			isBreakthroughMode := d.Get("breakthrough_mode_enabled").(bool)
 			storageQuotaInGB := d.Get("storage_quota_in_gb").(int)
+			coolAccessConfig := d.Get("cool_access").([]interface{})
+
+			// Breakthrough Mode places the volume on dedicated capacity and is only supported on large volumes
+			if isBreakthroughMode && !isLargeVolume {
+				return fmt.Errorf("`breakthrough_mode_enabled` can only be used on large volumes; set `large_volume_enabled` to true")
+			}
+
+			// Breakthrough Mode and cool access cannot both be requested when the volume is created, cool access can
+			// however be enabled on a subsequent update of a Breakthrough Mode volume
+			if isBreakthroughMode && len(coolAccessConfig) > 0 && d.Id() == "" {
+				return fmt.Errorf("`cool_access` cannot be configured when `breakthrough_mode_enabled` is true at creation time; enable `cool_access` in a subsequent update instead")
+			}
 
 			switch {
-			case isLargeVolume && storageQuotaInGB < 51200:
+			case isBreakthroughMode && storageQuotaInGB < 2400:
+				// Breakthrough Mode volumes must be at least 2,400 GiB
+				return fmt.Errorf("when `breakthrough_mode_enabled` is true, `storage_quota_in_gb` must be at least 2,400 GB (2,400 GiB)")
+			case isBreakthroughMode && storageQuotaInGB > 2457600:
+				// Breakthrough Mode volumes can grow up to 2,400 TiB (2,457,600 GB)
+				return fmt.Errorf("when `breakthrough_mode_enabled` is true, `storage_quota_in_gb` must not exceed 2,457,600 GB (2,400 TiB)")
+			case !isBreakthroughMode && isLargeVolume && storageQuotaInGB < 51200:
 				// Large volumes must be at least 50 TiB (51,200 GB)
 				return fmt.Errorf("when `large_volume_enabled` is true, `storage_quota_in_gb` must be at least 51,200 GB (50 TiB)")
-			case isLargeVolume && storageQuotaInGB > 1048576:
+			case !isBreakthroughMode && isLargeVolume && storageQuotaInGB > 1048576:
 				// Validate against the maximum (1 PiB / 1,048,576 GB)
-				return fmt.Errorf("`storage_quota_in_gb` must not exceed 1,048,576 GB (1 PiB); larger sizes require requesting special quota")
+				return fmt.Errorf("`storage_quota_in_gb` must not exceed 1,048,576 GB (1 PiB); larger sizes require requesting special quota or setting `breakthrough_mode_enabled` to true")
 			case !isLargeVolume && storageQuotaInGB > 102400:
 				// Non-large volumes cannot be larger than 100 TiB (102,400 GB)
 				return fmt.Errorf("when `large_volume_enabled` is false, `storage_quota_in_gb` must not exceed 102,400 GB (100 TiB); set `large_volume_enabled` to true for larger volumes")
@@ -501,7 +531,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			}
 
 			// Validate that short-term clones are not supported with cool access
-			coolAccessConfig := d.Get("cool_access").([]interface{})
 			if acceptGrowCapacityPool != "" && len(coolAccessConfig) > 0 {
 				return fmt.Errorf("short-term clones are not supported on volumes enabled for cool access; `accept_grow_capacity_pool_for_short_term_clone_split` cannot be used when `cool_access` is configured")
 			}
@@ -784,6 +813,12 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		parameters.Properties.AcceptGrowCapacityPoolForShortTermCloneSplit = pointer.ToEnum[volumes.AcceptGrowCapacityPoolForShortTermCloneSplit](acceptGrowCapacityPool)
 	}
 
+	// Breakthrough Mode is only sent when requested, omitting it keeps the volume on the standard configuration
+	// and avoids sending an unsupported property to subscriptions that are not onboarded to the feature
+	if d.Get("breakthrough_mode_enabled").(bool) {
+		parameters.Properties.BreakthroughMode = pointer.To(volumes.BreakthroughModeEnabled)
+	}
+
 	if throughputMibps, ok := d.GetOk("throughput_in_mibps"); ok {
 		parameters.Properties.ThroughputMibps = pointer.To(throughputMibps.(float64))
 	}
@@ -905,10 +940,9 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		dataProtectionSnapshotPolicyRaw := d.Get("data_protection_snapshot_policy").([]interface{})
-		dataProtectionSnapshotPolicy := expandNetAppVolumeDataProtectionSnapshotPolicyPatch(dataProtectionSnapshotPolicyRaw)
 
 		update.Properties.DataProtection = &volumes.VolumePatchPropertiesDataProtection{}
-		update.Properties.DataProtection.Snapshot = dataProtectionSnapshotPolicy
+		update.Properties.DataProtection.Snapshot = expandNetAppVolumeDataProtectionSnapshotPolicyPatch(dataProtectionSnapshotPolicyRaw)
 	}
 
 	if d.HasChange("data_protection_backup_policy") {
@@ -921,22 +955,20 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		dataProtectionBackupPolicyRaw := d.Get("data_protection_backup_policy").([]interface{})
-		dataProtectionBackupPolicy := expandNetAppVolumeDataProtectionBackupPolicyPatch(dataProtectionBackupPolicyRaw)
 
 		if update.Properties.DataProtection == nil {
 			update.Properties.DataProtection = &volumes.VolumePatchPropertiesDataProtection{}
 		}
-		update.Properties.DataProtection.Backup = dataProtectionBackupPolicy
+		update.Properties.DataProtection.Backup = expandNetAppVolumeDataProtectionBackupPolicyPatch(dataProtectionBackupPolicyRaw)
 	}
 
 	if d.HasChange("data_protection_advanced_ransomware") {
 		dataProtectionARPRaw := d.Get("data_protection_advanced_ransomware").([]interface{})
-		dataProtectionARP := expandNetAppVolumeDataProtectionAdvancedRansomwareProtectionPatch(dataProtectionARPRaw)
 
 		if update.Properties.DataProtection == nil {
 			update.Properties.DataProtection = &volumes.VolumePatchPropertiesDataProtection{}
 		}
-		update.Properties.DataProtection.RansomwareProtection = dataProtectionARP
+		update.Properties.DataProtection.RansomwareProtection = expandNetAppVolumeDataProtectionAdvancedRansomwareProtectionPatch(dataProtectionARPRaw)
 	}
 
 	if d.HasChange("throughput_in_mibps") {
@@ -945,20 +977,16 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("smb_non_browsable_enabled") {
-		smbNonBrowsable := volumes.SmbNonBrowsableDisabled
-		update.Properties.SmbNonBrowsable = &smbNonBrowsable
+		update.Properties.SmbNonBrowsable = pointer.To(volumes.SmbNonBrowsableDisabled)
 		if d.Get("smb_non_browsable_enabled").(bool) {
-			smbNonBrowsable := volumes.SmbNonBrowsableEnabled
-			update.Properties.SmbNonBrowsable = &smbNonBrowsable
+			update.Properties.SmbNonBrowsable = pointer.To(volumes.SmbNonBrowsableEnabled)
 		}
 	}
 
 	if d.HasChange("smb_access_based_enumeration_enabled") {
-		smbAccessBasedEnumeration := volumes.SmbAccessBasedEnumerationDisabled
-		update.Properties.SmbAccessBasedEnumeration = &smbAccessBasedEnumeration
+		update.Properties.SmbAccessBasedEnumeration = pointer.To(volumes.SmbAccessBasedEnumerationDisabled)
 		if d.Get("smb_access_based_enumeration_enabled").(bool) {
-			smbAccessBasedEnumeration := volumes.SmbAccessBasedEnumerationEnabled
-			update.Properties.SmbAccessBasedEnumeration = &smbAccessBasedEnumeration
+			update.Properties.SmbAccessBasedEnumeration = pointer.To(volumes.SmbAccessBasedEnumerationEnabled)
 		}
 	}
 
@@ -1076,6 +1104,7 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("encryption_key_source", string(pointer.From(props.EncryptionKeySource)))
 		d.Set("key_vault_private_endpoint_id", props.KeyVaultPrivateEndpointResourceId)
 		d.Set("large_volume_enabled", props.IsLargeVolume)
+		d.Set("breakthrough_mode_enabled", pointer.From(props.BreakthroughMode) == volumes.BreakthroughModeEnabled)
 		d.Set("accept_grow_capacity_pool_for_short_term_clone_split", pointer.FromEnum(props.AcceptGrowCapacityPoolForShortTermCloneSplit))
 
 		if pointer.From(props.CoolAccess) {

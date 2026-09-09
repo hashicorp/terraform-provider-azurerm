@@ -406,8 +406,7 @@ func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface
 				return fmt.Errorf("flattening `private_link_configuration`: %+v", err)
 			}
 
-			flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, sparkRoles)
-			if err := d.Set("roles", flattenedRoles); err != nil {
+			if err := d.Set("roles", flattenHDInsightRoles(d, props.ComputeProfile, sparkRoles)); err != nil {
 				return fmt.Errorf("flattening `roles`: %+v", err)
 			}
 
@@ -415,10 +414,8 @@ func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface
 				return fmt.Errorf("failed setting `compute_isolation`: %+v", err)
 			}
 
-			httpEndpoint := findHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
-			d.Set("https_endpoint", httpEndpoint)
-			sshEndpoint := findHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
-			d.Set("ssh_endpoint", sshEndpoint)
+			d.Set("https_endpoint", findHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints))
+			d.Set("ssh_endpoint", findHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints))
 
 			d.Set("monitor", flattenHDInsightMonitoring(monitor.Model))
 

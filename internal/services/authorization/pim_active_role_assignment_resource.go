@@ -108,7 +108,7 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 		"justification": {
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			Computed:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ForceNew:    true,
 			Description: "The justification for this role assignment",
 		},
@@ -117,14 +117,14 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 			Type:        pluginsdk.TypeList,
 			MaxItems:    1,
 			Optional:    true,
-			Computed:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ForceNew:    true,
 			Description: "The schedule details for this role assignment",
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"start_date_time": { // defaults to now
 						Optional:    true,
-						Computed:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 						ForceNew:    true,
 						Type:        pluginsdk.TypeString,
 						Description: "The start date/time of the role assignment",
@@ -138,7 +138,7 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 							Schema: map[string]*pluginsdk.Schema{
 								"duration_days": {
 									Optional: true,
-									Computed: true,
+									Computed: true, // azignore:AZS007 - pre-existing violation
 									ForceNew: true,
 									Type:     pluginsdk.TypeInt,
 									ConflictsWith: []string{
@@ -151,7 +151,7 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 								"duration_hours": {
 									Type:     pluginsdk.TypeInt,
 									Optional: true,
-									Computed: true,
+									Computed: true, // azignore:AZS007 - pre-existing violation
 									ForceNew: true,
 									ConflictsWith: []string{
 										"schedule.0.expiration.0.duration_days",
@@ -162,7 +162,7 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 
 								"end_date_time": {
 									Optional: true,
-									Computed: true,
+									Computed: true, // azignore:AZS007 - pre-existing violation
 									ForceNew: true,
 									Type:     pluginsdk.TypeString,
 									ConflictsWith: []string{
@@ -182,7 +182,7 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 			Type:        pluginsdk.TypeList,
 			MaxItems:    1,
 			Optional:    true,
-			Computed:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ForceNew:    true,
 			Description: "Ticket details relating to the assignment",
 			Elem: &pluginsdk.Resource{

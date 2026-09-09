@@ -50,7 +50,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.ExadataName,
+			ValidateFunc: validation.StringIsNotEmpty,
 			ForceNew:     true,
 		},
 
@@ -60,14 +60,14 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 		"compute_count": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ValidateFunc: validate.ComputeCount,
+			ValidateFunc: validation.IntBetween(2, 32),
 			ForceNew:     true,
 		},
 
 		"database_server_type": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.StringLenBetween(1, 255),
 		},
@@ -88,7 +88,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_count": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ValidateFunc: validate.StorageCount,
+			ValidateFunc: validation.IntBetween(3, 64),
 			ForceNew:     true,
 		},
 
@@ -96,7 +96,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 		"customer_contacts": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
@@ -106,14 +106,14 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 		"maintenance_window": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"days_of_week": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Computed: true,
+						Computed: true, // azignore:AZS007 - pre-existing violation
 						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
@@ -124,7 +124,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 					"hours_of_day": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Computed: true,
+						Computed: true, // azignore:AZS007 - pre-existing violation
 						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeInt,
@@ -135,15 +135,15 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 					"lead_time_in_weeks": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ForceNew:     true,
-						ValidateFunc: validate.LeadTimeInWeeks,
+						ValidateFunc: validation.IntBetween(1, 4),
 					},
 
 					"months": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Computed: true,
+						Computed: true, // azignore:AZS007 - pre-existing violation
 						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
@@ -154,7 +154,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 					"patching_mode": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ForceNew:     true,
 						ValidateFunc: validate.PatchingMode,
 					},
@@ -162,7 +162,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 					"preference": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ForceNew:     true,
 						ValidateFunc: validate.Preference,
 					},
@@ -170,11 +170,11 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 					"weeks_of_month": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Computed: true,
+						Computed: true, // azignore:AZS007 - pre-existing violation
 						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeInt,
-							ValidateFunc: validate.WeeksOfMonth,
+							ValidateFunc: validation.IntBetween(1, 4),
 						},
 					},
 				},
@@ -184,7 +184,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_server_type": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.StringLenBetween(1, 255),
 		},

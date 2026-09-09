@@ -235,13 +235,11 @@ func resourceVirtualMachinePacketCaptureRead(d *pluginsdk.ResourceData, meta int
 			d.Set("maximum_bytes_per_session", int(*props.TotalBytesPerSession))
 			d.Set("maximum_capture_duration_in_seconds", int(*props.TimeLimitInSeconds))
 
-			location := flattenVirtualMachinePacketCaptureStorageLocation(props.StorageLocation)
-			if err := d.Set("storage_location", location); err != nil {
+			if err := d.Set("storage_location", flattenVirtualMachinePacketCaptureStorageLocation(props.StorageLocation)); err != nil {
 				return fmt.Errorf("setting `storage_location`: %+v", err)
 			}
 
-			filters := flattenVirtualMachinePacketCaptureFilters(props.Filters)
-			if err := d.Set("filter", filters); err != nil {
+			if err := d.Set("filter", flattenVirtualMachinePacketCaptureFilters(props.Filters)); err != nil {
 				return fmt.Errorf("setting `filter`: %+v", err)
 			}
 		}

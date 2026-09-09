@@ -352,7 +352,7 @@ func (r ContainerRegistryTokenPasswordResource) expandContainerRegistryTokenPass
 
 func (r ContainerRegistryTokenPasswordResource) flattenContainerRegistryTokenPassword(input *[]tokens.TokenPassword) (password1, password2 []ContainerRegistryTokenPassword) {
 	if input == nil {
-		return nil, nil
+		return []ContainerRegistryTokenPassword{}, []ContainerRegistryTokenPassword{}
 	}
 
 	for _, e := range *input {

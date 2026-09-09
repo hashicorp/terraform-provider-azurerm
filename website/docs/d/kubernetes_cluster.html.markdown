@@ -287,6 +287,8 @@ An `oms_agent` block exports the following:
 
 * `msi_auth_for_monitoring_enabled` - Is managed identity authentication for monitoring enabled?
 
+* `retina_flow_logs_enabled` - Is Retina Flow Logs collection enabled? Defaults to `false`.
+
 * `oms_agent_identity` - An `oms_agent_identity` block as defined below.
 
 ---
@@ -420,4 +422,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.ContainerService` - 2026-04-01
+* `Microsoft.ContainerService` - 2026-05-01

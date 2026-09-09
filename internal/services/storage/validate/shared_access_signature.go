@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+// lintignore:V013 // false positive - this validates an IP or IP range; the string comparison checks the range bounds are not identical
 func SharedAccessSignatureIP(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 

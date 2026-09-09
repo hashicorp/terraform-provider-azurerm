@@ -89,12 +89,9 @@ func (r ContainerAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"template": helpers.ContainerTemplateSchema(),
 
 		"revision_mode": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(containerapps.ActiveRevisionsModeSingle),
-				string(containerapps.ActiveRevisionsModeMultiple),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForActiveRevisionsMode(), false),
 		},
 
 		"ingress": helpers.ContainerAppIngressSchema(),

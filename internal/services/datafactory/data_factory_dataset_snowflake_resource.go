@@ -8,6 +8,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -16,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
@@ -190,12 +191,12 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, 
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return tf.ImportAsExistsError("azurerm_data_factory_dataset_snowflake", id.ID())
 			}
 		}
@@ -207,10 +208,9 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	linkedServiceName := d.Get("linked_service_name").(string)
-	linkedServiceType := "LinkedServiceReference"
 	linkedService := &datafactory.LinkedServiceReference{
 		ReferenceName: &linkedServiceName,
-		Type:          &linkedServiceType,
+		Type:          pointer.To("LinkedServiceReference"),
 	}
 
 	description := d.Get("description").(string)
@@ -222,9 +222,8 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
-		name := v.(string)
 		snowflakeTableset.Folder = &datafactory.DatasetFolder{
-			Name: &name,
+			Name: pointer.To(v.(string)),
 		}
 	}
 
@@ -243,10 +242,9 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, 
 		snowflakeTableset.Schema = expandDataFactoryDatasetSnowflakeSchema(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeBasicDatasetTypeSnowflakeTable)
 	dataset := datafactory.DatasetResource{
 		Properties: &snowflakeTableset,
-		Type:       &datasetType,
+		Type:       pointer.To(string(datafactory.TypeBasicDatasetTypeSnowflakeTable)),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, dataset, ""); err != nil {
@@ -274,7 +272,7 @@ func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta int
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -296,13 +294,11 @@ func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta int
 		d.Set("description", snowflakeTable.Description)
 	}
 
-	parameters := flattenDataSetParameters(snowflakeTable.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenDataSetParameters(snowflakeTable.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
-	annotations := flattenDataFactoryAnnotations(snowflakeTable.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(snowflakeTable.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
@@ -333,8 +329,7 @@ func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	schemaColumns := flattenDataFactorySnowflakeSchemaColumns(snowflakeTable.Schema)
-	if err := d.Set("schema_column", schemaColumns); err != nil {
+	if err := d.Set("schema_column", flattenDataFactorySnowflakeSchemaColumns(snowflakeTable.Schema)); err != nil {
 		return fmt.Errorf("setting `schema_column`: %+v", err)
 	}
 
@@ -351,9 +346,9 @@ func resourceDataFactoryDatasetSnowflakeDelete(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(response) {
+		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}

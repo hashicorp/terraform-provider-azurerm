@@ -792,6 +792,8 @@ An `oms_agent` block supports the following:
 
 * `msi_auth_for_monitoring_enabled` - (Optional) Is managed identity authentication for monitoring enabled?
 
+* `retina_flow_logs_enabled` - (Optional) Is Retina Flow Logs collection enabled?
+
 ---
 
 An `ingress_application_gateway` block supports the following:
@@ -1234,4 +1236,4 @@ terraform import azurerm_kubernetes_cluster.cluster1 /subscriptions/00000000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerService` - 2026-04-01
+* `Microsoft.ContainerService` - 2026-05-01

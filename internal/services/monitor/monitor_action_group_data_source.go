@@ -330,7 +330,7 @@ func dataSourceMonitorActionGroup() *pluginsdk.Resource {
 						"tenant_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.IsUUID,
 						},
 						"use_common_alert_schema": {
@@ -340,7 +340,7 @@ func dataSourceMonitorActionGroup() *pluginsdk.Resource {
 						"subscription_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.IsUUID,
 						},
 					},

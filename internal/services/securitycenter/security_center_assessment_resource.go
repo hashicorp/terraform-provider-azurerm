@@ -10,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2021-06-01/assessmentsmetadata"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -19,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSecurityCenterAssessment() *pluginsdk.Resource {
@@ -63,13 +63,9 @@ func resourceSecurityCenterAssessment() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"code": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(security.Healthy),
-								string(security.NotApplicable),
-								string(security.Unhealthy),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInEnumSlice(security.PossibleAssessmentStatusCodeValues(), false),
 						},
 
 						"cause": {
@@ -116,12 +112,12 @@ func resourceSecurityCenterAssessmentCreateUpdate(d *pluginsdk.ResourceData, met
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, id.TargetResourceID, id.Name, "")
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("checking for present of existing Security Center Assessments %q : %+v", id.ID(), err)
 				}
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return tf.ImportAsExistsError("azurerm_security_center_assessment", id.ID())
 			}
 		}
@@ -159,7 +155,7 @@ func resourceSecurityCenterAssessmentRead(d *pluginsdk.ResourceData, meta interf
 
 	resp, err := client.Get(ctx, id.TargetResourceID, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] security Center Assessment %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil

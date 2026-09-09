@@ -128,13 +128,10 @@ func (MaintenanceDynamicScopeResource) Arguments() map[string]*pluginsdk.Schema 
 					},
 
 					"tag_filter": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  configurationassignments.TagOperatorsAny,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(configurationassignments.TagOperatorsAny),
-							string(configurationassignments.TagOperatorsAll),
-						}, true),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      configurationassignments.TagOperatorsAny,
+						ValidateFunc: validation.StringInSlice(configurationassignments.PossibleValuesForTagOperators(), true),
 						RequiredWith: []string{
 							"filter.0.tags",
 						},

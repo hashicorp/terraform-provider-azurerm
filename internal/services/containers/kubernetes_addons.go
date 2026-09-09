@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-04-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/applicationgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
@@ -121,6 +121,11 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 					"msi_auth_for_monitoring_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
+					},
+					"retina_flow_logs_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
 					},
 					"oms_agent_identity": {
 						Type:     pluginsdk.TypeList,
@@ -327,6 +332,10 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 			config["useAADAuth"] = fmt.Sprintf("%t", useAADAuth)
 		}
 
+		if retinaFlowLogsEnabled, ok := value["retina_flow_logs_enabled"].(bool); ok {
+			config["enableRetinaNetworkFlags"] = fmt.Sprintf("%t", retinaFlowLogsEnabled)
+		}
+
 		addonProfiles[omsAgentKey] = managedclusters.ManagedClusterAddonProfile{
 			Enabled: true,
 			Config:  &config,
@@ -496,6 +505,7 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 	if enabled := omsAgent.Enabled; enabled {
 		workspaceID := ""
 		useAADAuth := false
+		retinaFlowLogsEnabled := false
 
 		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != "" {
 			if lawid, err := workspaces.ParseWorkspaceIDInsensitively(v); err == nil {
@@ -507,11 +517,16 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 			useAADAuth = true
 		}
 
+		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "enableRetinaNetworkFlags"); v == "true" {
+			retinaFlowLogsEnabled = true
+		}
+
 		omsAgentIdentity := flattenKubernetesClusterAddOnIdentityProfile(omsAgent.Identity)
 
 		omsAgents = append(omsAgents, map[string]interface{}{
 			"log_analytics_workspace_id":      workspaceID,
 			"msi_auth_for_monitoring_enabled": useAADAuth,
+			"retina_flow_logs_enabled":        retinaFlowLogsEnabled,
 			"oms_agent_identity":              omsAgentIdentity,
 		})
 	}

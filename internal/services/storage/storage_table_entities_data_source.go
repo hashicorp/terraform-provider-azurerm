@@ -146,8 +146,6 @@ func (k storageTableEntitiesDataSource) Read() sdk.ResourceFunc {
 				input.PropertyNamesToSelect = &model.Select
 			}
 
-			id := parse.NewStorageTableEntitiesId(accountName, storageClient.StorageDomainSuffix, tableName, model.Filter)
-
 			result, err := client.Query(ctx, tableName, input)
 			if err != nil {
 				return fmt.Errorf("retrieving Entities (Filter %q) (Table %q in %s): %+v", model.Filter, tableName, account.StorageAccountId, err)
@@ -163,7 +161,7 @@ func (k storageTableEntitiesDataSource) Read() sdk.ResourceFunc {
 				flattenedEntities = append(flattenedEntities, flattenedEntity)
 			}
 			model.Items = flattenedEntities
-			metadata.SetID(id)
+			metadata.SetID(parse.NewStorageTableEntitiesId(accountName, storageClient.StorageDomainSuffix, tableName, model.Filter))
 
 			return metadata.Encode(&model)
 		},
