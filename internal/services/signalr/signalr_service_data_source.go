@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -334,15 +335,8 @@ func dataSourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}
 
 			if props.ResourceLogConfiguration != nil && props.ResourceLogConfiguration.Categories != nil {
 				for _, item := range *props.ResourceLogConfiguration.Categories {
-					name := ""
-					if item.Name != nil {
-						name = *item.Name
-					}
-
-					enabled := ""
-					if item.Enabled != nil {
-						enabled = *item.Enabled
-					}
+					name := pointer.From(item.Name)
+					enabled := pointer.From(item.Enabled)
 
 					switch name {
 					case "MessagingLogs":
