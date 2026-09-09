@@ -486,7 +486,7 @@ func (r StaticWebAppResource) Update() sdk.ResourceFunc {
 				} else {
 					authProps.Properties = &staticsites.StaticSiteBasicAuthPropertiesARMResourceProperties{
 						ApplicableEnvironmentsMode: "SpecifiedEnvironments",
-						SecretState: 				pointer.To(""),
+						SecretState:                pointer.To(""),
 					}
 				}
 
