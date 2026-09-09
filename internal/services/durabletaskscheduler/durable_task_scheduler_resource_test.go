@@ -124,7 +124,7 @@ func TestAccDurableTaskScheduler_dedicatedWithoutCapacityFails(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config:      r.dedicatedWithoutCapacity(data),
-			ExpectError: regexp.MustCompile("`capacity` must be configured when `sku_name` is set to `Dedicated`"),
+			ExpectError: regexp.MustCompile("`sku.0.capacity` must be configured when `sku.0.name` is set to `Dedicated`"),
 		},
 	})
 }
@@ -136,7 +136,7 @@ func TestAccDurableTaskScheduler_consumptionWithCapacityFails(t *testing.T) {
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.consumptionWithCapacity(data),
-			ExpectError: regexp.MustCompile("`capacity` can only be configured when `sku_name` is set to `Dedicated`"),
+			ExpectError: regexp.MustCompile("`sku.0.capacity` can only be configured when `sku.0.name` is set to `Dedicated`"),
 		},
 	})
 }
@@ -176,7 +176,10 @@ resource "azurerm_durable_task_scheduler" "test" {
   name                = "acctestdts%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku_name            = "Consumption"
+
+  sku {
+    name = "Consumption"
+  }
 }
 `, r.template(data), data.RandomString)
 }
@@ -189,8 +192,12 @@ resource "azurerm_durable_task_scheduler" "import" {
   name                = azurerm_durable_task_scheduler.test.name
   resource_group_name = azurerm_durable_task_scheduler.test.resource_group_name
   location            = azurerm_durable_task_scheduler.test.location
-  sku_name            = azurerm_durable_task_scheduler.test.sku_name
-  ip_allowlist        = azurerm_durable_task_scheduler.test.ip_allowlist
+
+  sku {
+    name = azurerm_durable_task_scheduler.test.sku[0].name
+  }
+
+  ip_allowlist = azurerm_durable_task_scheduler.test.ip_allowlist
 }
 `, r.basic(data))
 }
@@ -203,8 +210,12 @@ resource "azurerm_durable_task_scheduler" "test" {
   name                = "acctestdts%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku_name            = "Consumption"
-  ip_allowlist        = ["10.0.0.0/8", "192.168.0.0/16"]
+
+  sku {
+    name = "Consumption"
+  }
+
+  ip_allowlist = ["10.0.0.0/8", "192.168.0.0/16"]
 
   tags = {
     environment = "staging"
@@ -221,9 +232,13 @@ resource "azurerm_durable_task_scheduler" "test" {
   name                = "acctestdts%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku_name            = "Dedicated"
-  ip_allowlist        = ["10.0.0.0/8", "192.168.0.0/16"]
-  capacity            = 2
+
+  sku {
+    name     = "Dedicated"
+    capacity = 2
+  }
+
+  ip_allowlist = ["10.0.0.0/8", "192.168.0.0/16"]
 
   tags = {
     environment = "test"
@@ -241,9 +256,13 @@ resource "azurerm_durable_task_scheduler" "test" {
   name                = "acctestdts%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku_name            = "Dedicated"
-  ip_allowlist        = ["0.0.0.0/0"]
-  capacity            = 2
+
+  sku {
+    name     = "Dedicated"
+    capacity = 2
+  }
+
+  ip_allowlist = ["0.0.0.0/0"]
 }
 `, r.template(data), data.RandomString)
 }
@@ -256,8 +275,12 @@ resource "azurerm_durable_task_scheduler" "test" {
   name                = "acctestdts%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku_name            = "Dedicated"
-  ip_allowlist        = ["0.0.0.0/0"]
+
+  sku {
+    name = "Dedicated"
+  }
+
+  ip_allowlist = ["0.0.0.0/0"]
 }
 `, r.template(data), data.RandomString)
 }
@@ -270,9 +293,13 @@ resource "azurerm_durable_task_scheduler" "test" {
   name                = "acctestdts%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku_name            = "Consumption"
-  ip_allowlist        = ["0.0.0.0/0"]
-  capacity            = 1
+
+  sku {
+    name     = "Consumption"
+    capacity = 1
+  }
+
+  ip_allowlist = ["0.0.0.0/0"]
 }
 `, r.template(data), data.RandomString)
 }

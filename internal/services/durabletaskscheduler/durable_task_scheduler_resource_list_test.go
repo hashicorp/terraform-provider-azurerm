@@ -66,24 +66,36 @@ resource "azurerm_durable_task_scheduler" "test" {
   name                = "acctestdts%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku_name            = "Consumption"
-  ip_allowlist        = ["0.0.0.0/0"]
+
+  sku {
+    name = "Consumption"
+  }
+
+  ip_allowlist = ["0.0.0.0/0"]
 }
 
 resource "azurerm_durable_task_scheduler" "test2" {
   name                = "acctestdts%s2"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku_name            = "Consumption"
-  ip_allowlist        = ["0.0.0.0/0"]
+
+  sku {
+    name = "Consumption"
+  }
+
+  ip_allowlist = ["0.0.0.0/0"]
 }
 
 resource "azurerm_durable_task_scheduler" "other" {
   name                = "acctestdts%s3"
   resource_group_name = azurerm_resource_group.other.name
   location            = azurerm_resource_group.other.location
-  sku_name            = "Consumption"
-  ip_allowlist        = ["0.0.0.0/0"]
+
+  sku {
+    name = "Consumption"
+  }
+
+  ip_allowlist = ["0.0.0.0/0"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
 }

@@ -22,8 +22,12 @@ resource "azurerm_durable_task_scheduler" "example" {
   name                = "example-durable-task-scheduler"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  sku_name            = "Consumption"
-  ip_allowlist        = ["0.0.0.0/0"]
+
+  sku {
+    name = "Consumption"
+  }
+
+  ip_allowlist = ["0.0.0.0/0"]
 }
 ```
 
@@ -39,13 +43,21 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Durable Task Scheduler should exist. Changing this forces a new resource to be created.
 
-* `ip_allowlist` - (Optional) A list of IP addresses or CIDR ranges that are allowed to access the Durable Task Scheduler. Defaults to `["0.0.0.0/0"]`.
+* `sku` - (Required) A `sku` block as defined below.
 
-* `sku_name` - (Required) The SKU of the Durable Task Scheduler. Possible values are `Consumption` and `Dedicated`. Changing this forces a new resource to be created.
+---
+
+An `sku` block supports the following:
+
+* `name` - (Required) The SKU of the Durable Task Scheduler. Possible values are `Consumption` and `Dedicated`. Changing this forces a new resource to be created.
 
 * `capacity` - (Optional) The capacity of the Durable Task Scheduler. Possible values range between `1` and `3`.
 
-~> **Note:** The `capacity` argument must be configured when `sku_name` is set to `Dedicated` and must not be specified when `sku_name` is set to `Consumption`.
+~> **Note:** `capacity` must be configured when `name` is set to `Dedicated` and must not be specified when `name` is set to `Consumption`.
+
+---
+
+* `ip_allowlist` - (Optional) A list of IP addresses or CIDR ranges that are allowed to access the Durable Task Scheduler. Defaults to `["0.0.0.0/0"]`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Durable Task Scheduler.
 

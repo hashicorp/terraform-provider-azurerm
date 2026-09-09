@@ -24,14 +24,18 @@ import (
 )
 
 type SchedulerResourceModel struct {
-	Name              string            `tfschema:"name"`
-	ResourceGroupName string            `tfschema:"resource_group_name"`
-	Location          string            `tfschema:"location"`
-	IpAllowList       []string          `tfschema:"ip_allowlist"`
-	SkuName           string            `tfschema:"sku_name"`
-	Capacity          int64             `tfschema:"capacity"`
-	Tags              map[string]string `tfschema:"tags"`
-	Endpoint          string            `tfschema:"endpoint"`
+	Name              string              `tfschema:"name"`
+	ResourceGroupName string              `tfschema:"resource_group_name"`
+	Location          string              `tfschema:"location"`
+	Sku               []SchedulerSkuModel `tfschema:"sku"`
+	IpAllowList       []string            `tfschema:"ip_allowlist"`
+	Tags              map[string]string   `tfschema:"tags"`
+	Endpoint          string              `tfschema:"endpoint"`
+}
+
+type SchedulerSkuModel struct {
+	Name     string `tfschema:"name"`
+	Capacity int64  `tfschema:"capacity"`
 }
 
 type SchedulerResource struct{}
@@ -72,6 +76,29 @@ func (r SchedulerResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
+		"sku": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringInSlice(schedulers.PossibleValuesForSchedulerSkuName(), false),
+					},
+					"capacity": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						// The Dedicated scheduler capacity bounds are taken from the Azure portal UX
+						// because the current Durable Task SDK model does not surface the limit.
+						ValidateFunc: validation.IntBetween(1, 3),
+					},
+				},
+			},
+		},
+
 		"ip_allowlist": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -83,21 +110,6 @@ func (r SchedulerResource) Arguments() map[string]*pluginsdk.Schema {
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.Any(validation.IsIPAddress, validation.IsCIDR),
 			},
-		},
-
-		"sku_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(schedulers.PossibleValuesForSchedulerSkuName(), false),
-		},
-
-		"capacity": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			// The Dedicated scheduler capacity bounds are taken from the Azure portal UX
-			// because the current Durable Task SDK model does not surface the limit.
-			ValidateFunc: validation.IntBetween(1, 3),
 		},
 
 		"tags": commonschema.Tags(),
@@ -121,16 +133,32 @@ func (r SchedulerResource) CustomizeDiff() sdk.ResourceFunc {
 				return nil
 			}
 
-			rawConfig := metadata.ResourceDiff.GetRawConfig().AsValueMap()
-			rawCapacity := rawConfig["capacity"]
-			skuName := metadata.ResourceDiff.Get("sku_name").(string)
-
-			if skuName == string(schedulers.SchedulerSkuNameDedicated) && rawCapacity.IsNull() {
-				return errors.New("`capacity` must be configured when `sku_name` is set to `Dedicated`")
+			rawSku := metadata.ResourceDiff.GetRawConfig().AsValueMap()["sku"]
+			if rawSku.IsNull() || !rawSku.IsKnown() {
+				return nil
 			}
 
-			if !rawCapacity.IsNull() && skuName != string(schedulers.SchedulerSkuNameDedicated) {
-				return errors.New("`capacity` can only be configured when `sku_name` is set to `Dedicated`")
+			sku := rawSku.AsValueSlice()
+			if len(sku) != 1 || !sku[0].IsKnown() {
+				return nil
+			}
+
+			skuDetails := sku[0].AsValueMap()
+			rawName := skuDetails["name"]
+			rawCapacity := skuDetails["capacity"]
+			if rawName.IsNull() || !rawName.IsKnown() || !rawCapacity.IsKnown() {
+				return nil
+			}
+
+			skuName := rawName.AsString()
+			hasCapacity := !rawCapacity.IsNull()
+
+			if skuName == string(schedulers.SchedulerSkuNameDedicated) && !hasCapacity {
+				return errors.New("`sku.0.capacity` must be configured when `sku.0.name` is set to `Dedicated`")
+			}
+
+			if hasCapacity && skuName != string(schedulers.SchedulerSkuNameDedicated) {
+				return errors.New("`sku.0.capacity` can only be configured when `sku.0.name` is set to `Dedicated`")
 			}
 
 			return nil
@@ -148,6 +176,9 @@ func (r SchedulerResource) Create() sdk.ResourceFunc {
 			var model SchedulerResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
+			}
+			if len(model.Sku) != 1 {
+				return errors.New("decoding: expected one `sku` block")
 			}
 
 			id := schedulers.NewSchedulerID(subscriptionId, model.ResourceGroupName, model.Name)
@@ -167,13 +198,14 @@ func (r SchedulerResource) Create() sdk.ResourceFunc {
 			if len(ipAllowList) == 0 {
 				ipAllowList = []string{"0.0.0.0/0"}
 			}
+			sku := model.Sku[0]
 
 			properties := schedulers.Scheduler{
 				Location: location.Normalize(model.Location),
 				Properties: &schedulers.SchedulerProperties{
 					Sku: schedulers.SchedulerSku{
-						Name:     schedulers.SchedulerSkuName(model.SkuName),
-						Capacity: pointer.ToOrNil(model.Capacity),
+						Name:     schedulers.SchedulerSkuName(sku.Name),
+						Capacity: pointer.ToOrNil(sku.Capacity),
 					},
 					IPAllowlist: ipAllowList,
 				},
@@ -232,8 +264,10 @@ func flattenScheduler(id schedulers.SchedulerId, model *schedulers.Scheduler) Sc
 		state.Tags = pointer.From(model.Tags)
 
 		if props := model.Properties; props != nil {
-			state.SkuName = string(props.Sku.Name)
-			state.Capacity = pointer.From(props.Sku.Capacity)
+			state.Sku = []SchedulerSkuModel{{
+				Name:     string(props.Sku.Name),
+				Capacity: pointer.From(props.Sku.Capacity),
+			}}
 			state.IpAllowList = props.IPAllowlist
 			state.Endpoint = pointer.From(props.Endpoint)
 		}
@@ -257,6 +291,9 @@ func (r SchedulerResource) Update() sdk.ResourceFunc {
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
+			if len(model.Sku) != 1 {
+				return errors.New("decoding: expected one `sku` block")
+			}
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
@@ -270,9 +307,10 @@ func (r SchedulerResource) Update() sdk.ResourceFunc {
 			}
 
 			payload := *existing.Model
+			sku := model.Sku[0]
 
 			payload.Properties.IPAllowlist = model.IpAllowList
-			payload.Properties.Sku.Capacity = pointer.ToOrNil(model.Capacity)
+			payload.Properties.Sku.Capacity = pointer.ToOrNil(sku.Capacity)
 			payload.Tags = &model.Tags
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
