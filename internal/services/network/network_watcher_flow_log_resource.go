@@ -31,7 +31,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -parent-id network_watcher_id
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "network_watcher_name:network_watcher_id,resource_group_name:network_watcher_id"
 
 const azureNetworkWatcherFlowLogResourceName = "azurerm_network_watcher_flow_log"
 

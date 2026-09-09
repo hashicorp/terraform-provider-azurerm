@@ -2,6 +2,7 @@ package network_test
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strconv"
 	"testing"
@@ -25,11 +26,11 @@ func TestAccNetworkWatcherFlowLog_listByNetworkWatcherID(t *testing.T) {
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		Steps: []resource.TestStep{
 			{
-				Config: r.basic(data),
+				Config: r.basicList(data),
 			},
 			{
 				Query:  true,
-				Config: r.basicQuery(data),
+				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLengthAtLeast("azurerm_network_watcher_flow_log.list", 1),
 					querycheck.ExpectIdentity(
@@ -47,7 +48,33 @@ func TestAccNetworkWatcherFlowLog_listByNetworkWatcherID(t *testing.T) {
 	})
 }
 
-func (r NetworkWatcherFlowLogResource) basicQuery(data acceptance.TestData) string {
+func (r NetworkWatcherFlowLogResource) basicList(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_network_watcher_flow_log" "test" {
+  count = 3
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  name                 = "flowlog-%[2]d${count.index}"
+
+  target_resource_id = azurerm_virtual_network.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = true
+
+  retention_policy {
+    enabled = false
+    days    = 0
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r NetworkWatcherFlowLogResource) basicQuery() string {
 	return `
 list "azurerm_network_watcher_flow_log" "list" {
   provider = azurerm

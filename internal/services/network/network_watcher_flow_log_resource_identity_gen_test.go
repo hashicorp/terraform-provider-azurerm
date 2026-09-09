@@ -6,6 +6,7 @@ package network_test
 import (
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -17,10 +18,10 @@ func TestAccNetworkWatcherFlowLog_resourceIdentity(t *testing.T) {
 	r := NetworkWatcherFlowLogResource{}
 
 	checkedFields := map[string]struct{}{
+		"subscription_id":      {},
 		"name":                 {},
 		"network_watcher_name": {},
 		"resource_group_name":  {},
-		"subscription_id":      {},
 	}
 
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
@@ -28,10 +29,10 @@ func TestAccNetworkWatcherFlowLog_resourceIdentity(t *testing.T) {
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_network_watcher_flow_log.test", checkedFields),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_network_watcher_flow_log.test", tfjsonpath.New("name"), tfjsonpath.New("id")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_network_watcher_flow_log.test", tfjsonpath.New("network_watcher_name"), tfjsonpath.New("id")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_network_watcher_flow_log.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("id")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_network_watcher_flow_log.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("id")),
+				statecheck.ExpectIdentityValue("azurerm_network_watcher_flow_log.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_network_watcher_flow_log.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_network_watcher_flow_log.test", tfjsonpath.New("network_watcher_name"), tfjsonpath.New("network_watcher_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_network_watcher_flow_log.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("network_watcher_id")),
 			},
 		},
 		data.ImportBlockWithResourceIdentityStep(false),
