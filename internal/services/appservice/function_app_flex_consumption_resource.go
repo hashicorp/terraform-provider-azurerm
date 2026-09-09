@@ -997,9 +997,8 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("site_update_strategy") {
-				siteUpdateType := webapps.SiteUpdateStrategyType(state.SiteUpdateStrategy)
 				model.Properties.FunctionAppConfig.SiteUpdateStrategy = &webapps.FunctionsSiteUpdateStrategy{
-					Type: &siteUpdateType,
+					Type: pointer.ToEnum[webapps.SiteUpdateStrategyType](state.SiteUpdateStrategy),
 				}
 			}
 
