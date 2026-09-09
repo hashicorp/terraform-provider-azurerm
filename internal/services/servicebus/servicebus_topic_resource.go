@@ -34,10 +34,10 @@ func resourceServiceBusTopic() *pluginsdk.Resource {
 		Delete: resourceServiceBusTopicDelete,
 
 		Identity: &schema.ResourceIdentity{
-			SchemaFunc: pluginsdk.GenerateIdentitySchema(&topics.TopicId{}, pluginsdk.ResourceTypeForIdentityVirtual),
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&topics.TopicId{}),
 		},
 
-		Importer: pluginsdk.ImporterValidatingIdentity(&topics.TopicId{}, pluginsdk.ResourceTypeForIdentityVirtual),
+		Importer: pluginsdk.ImporterValidatingIdentity(&topics.TopicId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -243,7 +243,7 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	if d.IsNewResource() {
 		d.SetId(id.ID())
-		if err := pluginsdk.SetResourceIdentityData(d, &id, pluginsdk.ResourceTypeForIdentityVirtual); err != nil {
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
 			return err
 		}
 	}
@@ -326,7 +326,7 @@ func resourceServiceBusTopicFlatten(ctx context.Context, d *pluginsdk.ResourceDa
 		}
 	}
 
-	return pluginsdk.SetResourceIdentityData(d, id, pluginsdk.ResourceTypeForIdentityVirtual)
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceServiceBusTopicDelete(d *pluginsdk.ResourceData, meta interface{}) error {

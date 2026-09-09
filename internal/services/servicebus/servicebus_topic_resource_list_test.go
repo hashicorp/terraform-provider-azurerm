@@ -68,7 +68,7 @@ resource "azurerm_servicebus_namespace" "test" {
 
 resource "azurerm_servicebus_topic" "test" {
   count        = 3
-  name         = "acctestservicebustopic${count.index}-%[1]d"
+  name         = "acctestsbtopic${count.index}-%[1]d"
   namespace_id = azurerm_servicebus_namespace.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
