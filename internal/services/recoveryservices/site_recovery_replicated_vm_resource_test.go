@@ -399,7 +399,7 @@ resource "azurerm_network_interface" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
-    name                          = "vm-%[1]d"
+
     subnet_id                     = azurerm_subnet.test1.id
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.test-source.id
@@ -966,7 +966,6 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   network_interface {
     source_network_interface_id = azurerm_network_interface.test.id
     ip_configuration {
-      name                               = azurerm_network_interface.test.name
       recovery_public_ip_address_id      = azurerm_public_ip.test-recovery.id
       target_subnet_name                 = azurerm_subnet.test2.name
       failover_test_subnet_name          = azurerm_subnet.tfo.name
@@ -1274,7 +1273,7 @@ resource "azurerm_public_ip" "test-recovery" {
 }
 
 resource "azurerm_key_vault" "test2" {
-  name                        = "acctestkv%[1]d2"
+  name                        = "acctestkv%[4]s2"
   location                    = azurerm_resource_group.test2.location
   resource_group_name         = azurerm_resource_group.test2.name
   rbac_authorization_enabled  = false
@@ -1439,7 +1438,7 @@ resource "azurerm_site_recovery_protection_container" "test2" {
   resource_group_name  = azurerm_resource_group.test2.name
   recovery_vault_name  = azurerm_recovery_services_vault.test.name
   recovery_fabric_name = azurerm_site_recovery_fabric.test1.name
-  name                 = "acctest-protection-cont2-t-%[1]d"
+  name                 = "acctest-protection-cont2-%[1]d"
 }
 
 resource "azurerm_site_recovery_replication_policy" "test" {
@@ -1743,14 +1742,14 @@ resource "azurerm_site_recovery_fabric" "test" {
 }
 
 resource "azurerm_site_recovery_protection_container" "test1" {
-  name                 = "acctest-protection-container-%[1]d-1"
+  name                 = "acctest-protection-cont1-%[1]d"
   resource_group_name  = azurerm_resource_group.test2.name
   recovery_vault_name  = azurerm_recovery_services_vault.test.name
   recovery_fabric_name = azurerm_site_recovery_fabric.test.name
 }
 
 resource "azurerm_site_recovery_protection_container" "test2" {
-  name                 = "acctest-protection-container-%[1]d-2"
+  name                 = "acctest-protection-cont2-%[1]d"
   resource_group_name  = azurerm_resource_group.test2.name
   recovery_vault_name  = azurerm_recovery_services_vault.test.name
   recovery_fabric_name = azurerm_site_recovery_fabric.test.name
@@ -1840,7 +1839,7 @@ resource "azurerm_resource_group" "test2" {
 }
 
 resource "azurerm_key_vault" "test1" {
-  name                        = "acctest-%[4]s"
+  name                        = "acctest%[4]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   rbac_authorization_enabled  = false
@@ -1916,7 +1915,7 @@ resource "azurerm_site_recovery_protection_container" "test2" {
   resource_group_name  = azurerm_resource_group.test2.name
   recovery_vault_name  = azurerm_recovery_services_vault.test.name
   recovery_fabric_name = azurerm_site_recovery_fabric.test1.name
-  name                 = "acctest-protection-cont2-t-%[1]d"
+  name                 = "acctest-protection-cont2-%[1]d"
 }
 
 resource "azurerm_site_recovery_replication_policy" "test" {
@@ -1964,6 +1963,7 @@ resource "azurerm_network_interface" "test" {
 
 resource "azurerm_windows_virtual_machine" "vm" {
   name                = "acctest-vm-%[4]s"
+  computer_name       = "vm-%[4]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   size                = "Standard_D2s_v3"
