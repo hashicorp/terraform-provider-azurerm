@@ -26,11 +26,11 @@ func TestAccLbRule_listByLoadBalancerID(t *testing.T) {
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		Steps: []resource.TestStep{
 			{
-				Config: r.basic(data),
+				Config: r.basicList(data),
 			},
 			{
 				Query:  true,
-				Config: r.basicQuery(data),
+				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLengthAtLeast("azurerm_lb_rule.list", 3),
 					querycheck.ExpectIdentity(
@@ -64,7 +64,7 @@ resource "azurerm_lb_rule" "test" {
 `, r.template(data), data.RandomInteger%100000000)
 }
 
-func (r LbRuleResource) basicQuery(data acceptance.TestData) string {
+func (r LbRuleResource) basicQuery() string {
 	return `
 list "azurerm_lb_rule" "list" {
   provider = azurerm
