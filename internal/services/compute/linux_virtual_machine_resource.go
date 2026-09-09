@@ -375,6 +375,8 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"size_properties": virtualMachineSizePropertiesSchema(),
+
 			"source_image_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -828,6 +830,10 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
+	if v, ok := d.GetOk("size_properties"); ok {
+		params.Properties.HardwareProfile.VMSizeProperties = expandVirtualMachineSizeProperties(v.([]interface{}))
+	}
+
 	if v, ok := d.GetOk("virtual_machine_scale_set_id"); ok {
 		params.Properties.VirtualMachineScaleSet = &virtualmachines.SubResource{
 			Id: pointer.To(v.(string)),
@@ -953,6 +959,7 @@ func resourceLinuxVirtualMachineFlatten(ctx context.Context, clientsClient *clie
 			d.Set("eviction_policy", pointer.From(props.EvictionPolicy))
 			if profile := props.HardwareProfile; profile != nil {
 				d.Set("size", pointer.From(profile.VMSize))
+				d.Set("size_properties", flattenVirtualMachineSizeProperties(profile.VMSizeProperties))
 			}
 
 			extensionsTimeBudget := "PT1H30M"
@@ -1607,6 +1614,14 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		update.Properties.SecurityProfile = &virtualmachines.SecurityProfile{
 			EncryptionAtHost: pointer.To(d.Get("encryption_at_host_enabled").(bool)),
 		}
+	}
+
+	if d.HasChange("size_properties") {
+		shouldUpdate = true
+		if update.Properties.HardwareProfile == nil {
+			update.Properties.HardwareProfile = &virtualmachines.HardwareProfile{}
+		}
+		update.Properties.HardwareProfile.VMSizeProperties = expandVirtualMachineSizeProperties(d.Get("size_properties").([]interface{}))
 	}
 
 	if d.HasChange("user_data") {

@@ -382,6 +382,8 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"size_properties": virtualMachineSizePropertiesSchema(),
+
 			"source_image_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -833,6 +835,10 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+	if v, ok := d.GetOk("size_properties"); ok {
+		params.Properties.HardwareProfile.VMSizeProperties = expandVirtualMachineSizeProperties(v.([]interface{}))
+	}
+
 	if v, ok := d.GetOk("virtual_machine_scale_set_id"); ok {
 		params.Properties.VirtualMachineScaleSet = &virtualmachines.SubResource{
 			Id: pointer.To(v.(string)),
@@ -958,6 +964,7 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 			d.Set("eviction_policy", pointer.From(props.EvictionPolicy))
 			if profile := props.HardwareProfile; profile != nil {
 				d.Set("size", pointer.From(profile.VMSize))
+				d.Set("size_properties", flattenVirtualMachineSizeProperties(profile.VMSizeProperties))
 			}
 			d.Set("license_type", props.LicenseType)
 
@@ -1558,6 +1565,14 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		update.Properties.HardwareProfile = &virtualmachines.HardwareProfile{
 			VMSize: pointer.ToEnum[virtualmachines.VirtualMachineSizeTypes](vmSize),
 		}
+	}
+
+	if d.HasChange("size_properties") {
+		shouldUpdate = true
+		if update.Properties.HardwareProfile == nil {
+			update.Properties.HardwareProfile = &virtualmachines.HardwareProfile{}
+		}
+		update.Properties.HardwareProfile.VMSizeProperties = expandVirtualMachineSizeProperties(d.Get("size_properties").([]interface{}))
 	}
 
 	if d.HasChange("tags") {

@@ -1185,6 +1185,42 @@ func TestAccWindowsVirtualMachine_otherRebootSetting(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachine_otherSizeProperties(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherSizeProperties(data, 0, 0),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherSizeProperties(data, 0, 2),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherSizeProperties(data, 1, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherSizeProperties(data, 0, 0),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func (r WindowsVirtualMachineResource) otherHotpatching(data acceptance.TestData, hotPatch bool) string {
 	return fmt.Sprintf(`
 %s
@@ -3491,4 +3527,54 @@ resource "azurerm_windows_virtual_machine" "test" {
   patch_mode = "AutomaticByOS"
 }
 `, r.template(data))
+}
+
+func (r WindowsVirtualMachineResource) otherSizeProperties(data acceptance.TestData, available, percore int) string {
+	text, vCpuAvailable, vCPUsPerCore := "", "", ""
+
+	if available > 0 || percore > 0 {
+		if available > 0 {
+			vCpuAvailable = fmt.Sprintf(`vcpu_available = %[1]d`, available)
+		}
+		if percore > 0 {
+			vCPUsPerCore = fmt.Sprintf(`vcpu_per_core = %[1]d`, percore)
+		}
+
+		text = fmt.Sprintf(`
+  size_properties {
+    %[1]s
+    %[2]s
+  }`, vCpuAvailable, vCPUsPerCore)
+	}
+
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_D2s_v3"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+
+  %[2]s
+
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+}
+`, r.template(data), text)
 }

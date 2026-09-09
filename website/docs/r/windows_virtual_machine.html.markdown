@@ -199,6 +199,8 @@ The following arguments are supported:
 
 * `secure_boot_enabled` - (Optional) Specifies if Secure Boot and Trusted Launch is enabled for the Virtual Machine. Changing this forces a new resource to be created.
 
+* `size_properties` - (Optional) A `size_properties` block as defined below.
+
 * `source_image_id` - (Optional) The ID of the Image which this Virtual Machine should be created from. Changing this forces a new resource to be created. Possible Image ID types include `Image ID`s, `Shared Image ID`s, `Shared Image Version ID`s, `Community Gallery Image ID`s, `Community Gallery Image Version ID`s, `Shared Gallery Image ID`s and `Shared Gallery Image Version ID`s.
 
 -> **Note:** One of either `source_image_id` or `source_image_reference` must be set.
@@ -363,6 +365,14 @@ A `secret` block supports the following:
 * `certificate` - (Required) One or more `certificate` blocks as defined above.
 
 * `key_vault_id` - (Required) The ID of the Key Vault from which all Secrets should be sourced.
+
+---
+
+A `size_properties` block supports the following:
+
+* `vcpu_available` - (Optional) The number of vCPUs available for this Virtual Machine.
+
+* `vcpu_per_core` - (Optional) The number of vCPUs per physical core for this Virtual Machine.
 
 ---
 
