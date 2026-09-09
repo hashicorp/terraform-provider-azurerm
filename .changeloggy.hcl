@@ -1,4 +1,3 @@
-archive_entries = true
 changelog_file            = "CHANGELOG.md"
 default_version_increment = "minor"
 
