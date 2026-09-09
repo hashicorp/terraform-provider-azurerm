@@ -9,7 +9,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -19,7 +19,7 @@ var _ pluginsdk.StateUpgrade = ApiV0ToV1{}
 type ApiV0ToV1 struct{}
 
 func (ApiV0ToV1) Schema() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": schemaz.SchemaApiManagementApiName(),
 
 		"api_management_name": schemaz.SchemaApiManagementName(),
@@ -263,18 +263,16 @@ func (ApiV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 	}
-
-	return schema
 }
 
 func (ApiV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		apiId := fmt.Sprintf("%s;rev=%s", rawState["name"].(string), rawState["revision"].(string))
-		oldId, err := parse.ApiID(rawState["id"].(string))
+		oldId, err := api.ParseApiIDInsensitively(rawState["id"].(string))
 		if err != nil {
 			return rawState, err
 		}
-		newId := parse.NewApiID(oldId.SubscriptionId, oldId.ResourceGroup, oldId.ServiceName, apiId).ID()
+		newId := api.NewApiID(oldId.SubscriptionId, oldId.ResourceGroupName, oldId.ServiceName, apiId).ID()
 		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
 		rawState["id"] = newId
 		return rawState, nil

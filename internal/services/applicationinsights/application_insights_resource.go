@@ -296,7 +296,7 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 	// Instead, we'll opt to disable them here
 	if meta.(*clients.Client).Features.ApplicationInsights.DisableGeneratedRule {
 		// TODO: replace this with a StateWait func
-		err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+		if err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 			time.Sleep(30 * time.Second)
 			ruleName := fmt.Sprintf("Failure Anomalies - %s", id.ComponentName)
 			ruleId := smartdetectoralertrules.NewSmartDetectorAlertRuleID(id.SubscriptionId, id.ResourceGroupName, ruleName)
@@ -321,8 +321,7 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 			}
 
 			return nil
-		})
-		if err != nil {
+		}); err != nil {
 			return err
 		}
 	}

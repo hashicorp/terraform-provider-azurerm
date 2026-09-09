@@ -491,7 +491,7 @@ func expandWorkspaceTableMicrosoftColumns(columns []Column) *[]tables.Column {
 
 func flattenWorkspaceTableMicrosoftColumns(columns *[]tables.Column) []Column {
 	if columns == nil {
-		return nil
+		return []Column{}
 	}
 	result := make([]Column, 0, len(*columns))
 	for _, column := range *columns {

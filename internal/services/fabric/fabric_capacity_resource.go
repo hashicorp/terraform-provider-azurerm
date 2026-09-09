@@ -89,11 +89,9 @@ func (r FabricCapacityResource) Arguments() map[string]*pluginsdk.Schema {
 						}, false),
 					},
 					"tier": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(fabriccapacities.RpSkuTierFabric),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(fabriccapacities.PossibleValuesForRpSkuTier(), false),
 					},
 				},
 			},

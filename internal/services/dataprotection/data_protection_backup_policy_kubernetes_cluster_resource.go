@@ -81,7 +81,7 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) IDValidationFunc() 
 }
 
 func (r DataProtectionBackupPolicyKubernatesClusterResource) Arguments() map[string]*pluginsdk.Schema {
-	arguments := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -265,7 +265,6 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Arguments() map[str
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
-	return arguments
 }
 
 func (r DataProtectionBackupPolicyKubernatesClusterResource) Attributes() map[string]*pluginsdk.Schema {

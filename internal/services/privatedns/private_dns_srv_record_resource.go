@@ -250,14 +250,12 @@ func expandAzureRmPrivateDnsSrvRecords(d *pluginsdk.ResourceData) *[]privatedns.
 	for i, v := range recordStrings {
 		record := v.(map[string]interface{})
 
-		srvRecord := privatedns.SrvRecord{
+		records[i] = privatedns.SrvRecord{
 			Priority: pointer.To(int64(record["priority"].(int))),
 			Weight:   pointer.To(int64(record["weight"].(int))),
 			Port:     pointer.To(int64(record["port"].(int))),
 			Target:   pointer.To(record["target"].(string)),
 		}
-
-		records[i] = srvRecord
 	}
 
 	return &records

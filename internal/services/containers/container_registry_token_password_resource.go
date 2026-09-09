@@ -316,7 +316,7 @@ func (r ContainerRegistryTokenPasswordResource) expandContainerRegistryTokenPass
 		if len(password) == 1 {
 			password := password[0]
 			ret := &tokens.TokenPassword{
-				Name:  pointer.To(tokens.TokenPasswordName(name)),
+				Name:  pointer.ToEnum[tokens.TokenPasswordName](name),
 				Value: pointer.To(password.Value),
 			}
 			if v := password.Expiry; v != "" {
@@ -352,7 +352,7 @@ func (r ContainerRegistryTokenPasswordResource) expandContainerRegistryTokenPass
 
 func (r ContainerRegistryTokenPasswordResource) flattenContainerRegistryTokenPassword(input *[]tokens.TokenPassword) (password1, password2 []ContainerRegistryTokenPassword) {
 	if input == nil {
-		return nil, nil
+		return []ContainerRegistryTokenPassword{}, []ContainerRegistryTokenPassword{}
 	}
 
 	for _, e := range *input {

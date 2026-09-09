@@ -422,7 +422,8 @@ func flattenCdnFrontDoorBatchRuleSetRouteConfigurationOverrideOriginGroup(input 
 	}
 
 	if input.OriginGroup != nil && input.OriginGroup.Id != nil {
-		originGroupID, err := afdorigins.ParseOriginGroupID(*input.OriginGroup.Id)
+		// Azure can return IDs with inconsistently cased static segments; normalize them to avoid state drift and refresh failures (#32953).
+		originGroupID, err := afdorigins.ParseOriginGroupIDInsensitively(*input.OriginGroup.Id)
 		if err != nil {
 			return result, err
 		}

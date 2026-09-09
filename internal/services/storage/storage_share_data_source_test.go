@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type dataSourceStorageShare struct{}
@@ -33,52 +32,6 @@ func TestAccStorageShareDataSource_basic(t *testing.T) {
 }
 
 func (d dataSourceStorageShare) basic(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "sharedstest-%s"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                = "acctestsadsc%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  location                 = "${azurerm_resource_group.test.location}"
-  account_kind             = "FileStorage"
-  account_tier             = "Premium"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_share" "test" {
-  name                 = "sharedstest-%s"
-  storage_account_name = "${azurerm_storage_account.test.name}"
-  quota                = 120
-  acl {
-    id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
-
-    access_policy {
-      permissions = "rwdl"
-      start       = "2019-07-02T09:38:21.0000000Z"
-      expiry      = "2019-07-02T10:38:21.0000000Z"
-    }
-  }
-  metadata = {
-    k1 = "v1"
-    k2 = "v2"
-  }
-}
-
-data "azurerm_storage_share" "test" {
-  name                 = azurerm_storage_share.test.name
-  storage_account_name = azurerm_storage_share.test.storage_account_name
-}
-	`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
-	}
 	return fmt.Sprintf(`
 %s
 

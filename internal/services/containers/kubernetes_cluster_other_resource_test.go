@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccKubernetesCluster_sameSizeVMSSConfig(t *testing.T) {
@@ -138,27 +137,6 @@ func TestAccKubernetesCluster_kubeletAndLinuxOSConfigPartial(t *testing.T) {
 			Config: r.kubeletAndLinuxOSConfigPartial(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
-	})
-}
-
-func TestAccKubernetesCluster_kubeletAndLinuxOSConfigDeprecated(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("this test is only valid in versions prior to 5.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.kubeletAndLinuxOSConfigDeprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.kubelet_config.0.container_log_max_line").HasValue("100000"),
-				check.That(data.ResourceName).Key("default_node_pool.0.kubelet_config.0.container_log_max_size_mb").HasValue("100"),
 			),
 		},
 		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
@@ -1713,106 +1691,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (KubernetesClusterResource) kubeletAndLinuxOSConfigDeprecated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name                        = "default"
-    node_count                  = 1
-    vm_size                     = "Standard_DS2_v2"
-    temporary_name_for_rotation = "temp"
-    upgrade_settings {
-      max_surge = "10%%%%"
-    }
-    kubelet_config {
-      cpu_manager_policy        = "static"
-      cpu_cfs_quota_enabled     = true
-      cpu_cfs_quota_period      = "10ms"
-      container_log_max_size_mb = 100
-      container_log_max_line    = 100000
-    }
-  }
-
-  node_provisioning_profile {
-    mode               = "Manual"
-    default_node_pools = "Auto"
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
 func (KubernetesClusterResource) kubeletAndLinuxOSConfigPartial(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name                        = "default"
-    node_count                  = 1
-    vm_size                     = "Standard_DS2_v2"
-    temporary_name_for_rotation = "temp"
-    upgrade_settings {
-      max_surge = "10%%"
-    }
-    kubelet_config {
-      cpu_manager_policy    = "static"
-      cpu_cfs_quota_enabled = true
-      cpu_cfs_quota_period  = "10ms"
-    }
-
-    linux_os_config {
-      transparent_huge_page_enabled = "always" # This property is deprecated and is removed in v5.0 of the provider
-
-      sysctl_config {
-        fs_aio_max_nr               = 65536
-        fs_file_max                 = 100000
-        fs_inotify_max_user_watches = 1000000
-      }
-    }
-  }
-
-  node_provisioning_profile {
-    mode               = "Manual"
-    default_node_pools = "Auto"
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

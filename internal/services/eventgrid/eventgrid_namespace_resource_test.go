@@ -33,7 +33,7 @@ func TestAccEventGridNamespaceResource_basic(t *testing.T) {
 	})
 }
 
-func TestAccEventHubNamespace_requiresImport(t *testing.T) {
+func TestAccEventGridNamespaceResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_namespace", "test")
 	r := EventGridNamespaceResource{}
 

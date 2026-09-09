@@ -267,7 +267,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   admin_password      = "P@ssword1234!"
   health_probe_id     = azurerm_lb_probe.test.id
   upgrade_mode        = "Automatic"
-
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
@@ -304,6 +303,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     max_unhealthy_upgraded_instance_percent = 100
     pause_time_between_batches              = "PT30S"
   }
+
+  automatic_updates_enabled = false
 
   depends_on = ["azurerm_lb_rule.test"]
 }

@@ -65,25 +65,17 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"datastore_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(backupvaultresources.StorageSettingStoreTypesArchiveStore),
-					string(backupvaultresources.StorageSettingStoreTypesOperationalStore),
-					string(backupvaultresources.StorageSettingStoreTypesVaultStore),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(backupvaultresources.PossibleValuesForStorageSettingStoreTypes(), false),
 			},
 
 			"redundancy": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(backupvaultresources.StorageSettingTypesGeoRedundant),
-					string(backupvaultresources.StorageSettingTypesLocallyRedundant),
-					string(backupvaultresources.StorageSettingTypesZoneRedundant),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(backupvaultresources.PossibleValuesForStorageSettingTypes(), false),
 			},
 
 			"cross_region_restore_enabled": {
@@ -181,16 +173,16 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		Properties: backupvaultresources.BackupVault{
 			StorageSettings: []backupvaultresources.StorageSetting{
 				{
-					DatastoreType: pointer.To(backupvaultresources.StorageSettingStoreTypes(d.Get("datastore_type").(string))),
-					Type:          pointer.To(backupvaultresources.StorageSettingTypes(d.Get("redundancy").(string))),
+					DatastoreType: pointer.ToEnum[backupvaultresources.StorageSettingStoreTypes](d.Get("datastore_type").(string)),
+					Type:          pointer.ToEnum[backupvaultresources.StorageSettingTypes](d.Get("redundancy").(string)),
 				},
 			},
 			SecuritySettings: &backupvaultresources.SecuritySettings{
 				SoftDeleteSettings: &backupvaultresources.SoftDeleteSettings{
-					State: pointer.To(backupvaultresources.SoftDeleteState(d.Get("soft_delete").(string))),
+					State: pointer.ToEnum[backupvaultresources.SoftDeleteState](d.Get("soft_delete").(string)),
 				},
 				ImmutabilitySettings: &backupvaultresources.ImmutabilitySettings{
-					State: pointer.To(backupvaultresources.ImmutabilityState(d.Get("immutability").(string))),
+					State: pointer.ToEnum[backupvaultresources.ImmutabilityState](d.Get("immutability").(string)),
 				},
 			},
 		},

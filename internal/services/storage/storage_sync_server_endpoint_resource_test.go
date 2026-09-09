@@ -18,7 +18,7 @@ import (
 
 type StorageSyncServerEndpointResource struct{}
 
-func TestAccStorageSyncServerEndpointSequential(t *testing.T) {
+func TestAccStorageSyncServerEndpoint_sequential(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"storageSyncServerEndpoint": {
 			"basic":            testAccStorageSyncServerEndpoint_basic,

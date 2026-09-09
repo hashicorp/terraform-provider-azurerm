@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/clusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/privateclouds"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -19,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVmwareCluster() *pluginsdk.Resource {
@@ -165,7 +165,7 @@ func resourceVmwareClusterRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	if model := resp.Model; model != nil {
 		d.Set("cluster_node_count", model.Properties.ClusterSize)
 		d.Set("cluster_number", model.Properties.ClusterId)
-		d.Set("hosts", utils.FlattenStringSlice(model.Properties.Hosts))
+		d.Set("hosts", helpers.FlattenStringSlice(model.Properties.Hosts))
 		d.Set("sku_name", model.Sku.Name)
 	}
 

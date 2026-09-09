@@ -101,17 +101,10 @@ func IntInSlice(valid []int) func(interface{}, string) ([]string, []error) {
 	return validation.IntInSlice(valid)
 }
 
-func IntPositive(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(int)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be int", i))
-		return
-	}
-	if v <= 0 {
-		errors = append(errors, fmt.Errorf("expected %s to be positive, got %d", k, v))
-		return
-	}
-	return
+// IntPositive is a SchemaValidateFunc which tests if the provided value
+// is of type int and is positive
+func IntPositive(i interface{}, k string) ([]string, []error) {
+	return validation.IntAtLeast(1)(i, k)
 }
 
 // IsCIDR is a SchemaValidateFunc which tests if the provided value is of type string and a valid CIDR
@@ -189,6 +182,7 @@ func IsURLWithScheme(validSchemes []string) func(interface{}, string) ([]string,
 }
 
 // IsURLWithPath is a SchemaValidateFunc that tests if the provided value is of type string and a valid URL with a path
+// lintignore:V013 // false positive - this validates a URL; the string comparisons check for empty values
 func IsURLWithPath(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
@@ -249,6 +243,13 @@ func StringDoesNotContainAny(chars string) func(interface{}, string) ([]string, 
 	return validation.StringDoesNotContainAny(chars)
 }
 
+// StringDoesNotMatch returns a SchemaValidateFunc which tests if the provided value
+// does not match a given regexp. Optionally an error message can be provided to
+// return something friendlier than "must not match some globby regexp".
+func StringDoesNotMatch(r *regexp.Regexp, message string) func(interface{}, string) ([]string, []error) {
+	return validation.StringDoesNotMatch(r, message)
+}
+
 // StringInSlice returns a SchemaValidateFunc which tests if the provided value
 // is of type string and matches the value of an element in the valid slice
 // will test with in lower case if ignoreCase is true
@@ -256,6 +257,18 @@ func StringInSlice(valid []string, ignoreCase bool) func(interface{}, string) ([
 	return func(i interface{}, k string) ([]string, []error) {
 		return validation.StringInSlice(valid, ignoreCase)(i, k)
 	}
+}
+
+// StringInEnumSlice returns a SchemaValidateFunc which tests if the provided value
+// is of type string and matches a value in the valid slice of string-backed enum
+// values, as returned by a track-1 SDK's Possible<Enum>Values() helper
+// will test with in lower case if ignoreCase is true
+func StringInEnumSlice[T ~string](valid []T, ignoreCase bool) func(interface{}, string) ([]string, []error) {
+	values := make([]string, len(valid))
+	for i, v := range valid {
+		values[i] = string(v)
+	}
+	return StringInSlice(values, ignoreCase)
 }
 
 // StringIsBase64 is a ValidateFunc that ensures a string can be parsed as Base64

@@ -169,7 +169,7 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) Create() sdk.ResourceF
 
 			expandedDisk := virtualmachines.DataDisk{
 				Name:         pointer.To(config.Name),
-				Caching:      pointer.To(virtualmachines.CachingTypes(caching)),
+				Caching:      pointer.ToEnum[virtualmachines.CachingTypes](caching),
 				CreateOption: virtualmachines.DiskCreateOptionTypes(config.CreateOption),
 				DiskSizeGB:   pointer.To(config.DiskSizeGb),
 				Lun:          config.Lun,
@@ -213,8 +213,7 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) Create() sdk.ResourceF
 					model.Resources = nil
 
 					// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
-					err = client.CreateOrUpdateThenPoll(ctx, *virtualMachineId, *model, virtualmachines.DefaultCreateOrUpdateOperationOptions())
-					if err != nil {
+					if err = client.CreateOrUpdateThenPoll(ctx, *virtualMachineId, *model, virtualmachines.DefaultCreateOrUpdateOperationOptions()); err != nil {
 						return fmt.Errorf("creating %s: %+v", id, err)
 					}
 				}
@@ -331,8 +330,7 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) Delete() sdk.ResourceF
 						// fixes #1600
 						model.Resources = nil
 
-						err = client.CreateOrUpdateThenPoll(ctx, virtualMachineId, *model, virtualmachines.DefaultCreateOrUpdateOperationOptions())
-						if err != nil {
+						if err = client.CreateOrUpdateThenPoll(ctx, virtualMachineId, *model, virtualmachines.DefaultCreateOrUpdateOperationOptions()); err != nil {
 							return fmt.Errorf("deleting %s: %+v", id, err)
 						}
 
@@ -345,8 +343,7 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) Delete() sdk.ResourceF
 								return err
 							}
 
-							err = diskClient.DeleteThenPoll(ctx, *diskId)
-							if err != nil {
+							if err = diskClient.DeleteThenPoll(ctx, *diskId); err != nil {
 								return fmt.Errorf("deleting Managed Disk %s: %+v", *diskId, err)
 							}
 						}
@@ -409,7 +406,7 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) Update() sdk.ResourceF
 									caching = config.Caching
 								}
 
-								expandedDisk.Caching = pointer.To(virtualmachines.CachingTypes(caching))
+								expandedDisk.Caching = pointer.ToEnum[virtualmachines.CachingTypes](caching)
 								needToUpdate = true
 							}
 
@@ -427,16 +424,14 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) Update() sdk.ResourceF
 								// fixes #1600
 								model.Resources = nil
 
-								err = client.CreateOrUpdateThenPoll(ctx, virtualMachineId, *model, virtualmachines.DefaultCreateOrUpdateOperationOptions())
-								if err != nil {
+								if err = client.CreateOrUpdateThenPoll(ctx, virtualMachineId, *model, virtualmachines.DefaultCreateOrUpdateOperationOptions()); err != nil {
 									return fmt.Errorf("updating %s: %+v", id, err)
 								}
 							}
 
 							// VirtualMachineClient does not support expanding implicit data disk size, need to use DisksClient
 							if metadata.ResourceData.HasChange("disk_size_gb") {
-								err = resizeImplicitDataDisk(ctx, metadata, id)
-								if err != nil {
+								if err = resizeImplicitDataDisk(ctx, metadata, id); err != nil {
 									return err
 								}
 							}
@@ -542,13 +537,11 @@ func resizeImplicitDataDisk(ctx context.Context, metadata sdk.ResourceMetaData, 
 			return err
 		}
 
-		err = resourceManagedDiskUpdateWithVmShutDown(ctx, metadata.Client, pointer.To(commonids.NewManagedDiskID(id.SubscriptionId, id.ResourceGroup, id.Name)), virtualMachineId, diskUpdate, shouldDetach)
-		if err != nil {
+		if err = resourceManagedDiskUpdateWithVmShutDown(ctx, metadata.Client, pointer.To(commonids.NewManagedDiskID(id.SubscriptionId, id.ResourceGroup, id.Name)), virtualMachineId, diskUpdate, shouldDetach); err != nil {
 			return err
 		}
 	} else { // otherwise, just update it
-		err := diskClient.UpdateThenPoll(ctx, managedDiskId, diskUpdate)
-		if err != nil {
+		if err := diskClient.UpdateThenPoll(ctx, managedDiskId, diskUpdate); err != nil {
 			return fmt.Errorf("updating %s: %+v", managedDiskId, err)
 		}
 	}

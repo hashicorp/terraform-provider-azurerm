@@ -7,7 +7,7 @@ name: PR Label Type
 permissions:
   pull-requests: write
 
-on: 
+on:
   pull_request_target:
     types: [opened, edited]
 
@@ -15,9 +15,9 @@ jobs:
   pr_triage_label_type:
     runs-on: ubuntu-latest
     steps:
-    - uses: github/issue-labeler@99b4c5dda477c65f4ef08486b73c5787e1e33601 # v2
-      continue-on-error: true
-      with:
-        repo-token: "${{ secrets.GITHUB_TOKEN }}"
-        configuration-path: .github/labeler-pull-request-triage-type.yml
-        enable-versioned-regex: 0
+      - uses: github/issue-labeler@ccca1e16fcb66762200e616fc29b57b940c1cb67 # v3.5
+        continue-on-error: true
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          configuration-path: .github/labeler-pull-request-triage-type.yml
+          enable-versioned-regex: 0
