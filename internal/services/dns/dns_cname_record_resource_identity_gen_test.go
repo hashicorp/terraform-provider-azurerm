@@ -19,9 +19,9 @@ func TestAccDnsCnameRecord_resourceIdentity(t *testing.T) {
 
 	checkedFields := map[string]struct{}{
 		"subscription_id":     {},
-		"name":                {},
-		"dns_zone_name":       {},
 		"record_type":         {},
+		"dns_zone_name":       {},
+		"name":                {},
 		"resource_group_name": {},
 	}
 
@@ -31,10 +31,10 @@ func TestAccDnsCnameRecord_resourceIdentity(t *testing.T) {
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_dns_cname_record.test", checkedFields),
 				statecheck.ExpectIdentityValue("azurerm_dns_cname_record.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
+				statecheck.ExpectIdentityValue("azurerm_dns_cname_record.test", tfjsonpath.New("record_type"), knownvalue.StringExact("CNAME")),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_dns_cname_record.test", tfjsonpath.New("dns_zone_name"), tfjsonpath.New("zone_name")),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_dns_cname_record.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dns_cname_record.test", tfjsonpath.New("dns_zone_name"), tfjsonpath.New("dns_zone_id")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dns_cname_record.test", tfjsonpath.New("record_type"), tfjsonpath.New("dns_zone_id")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dns_cname_record.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("dns_zone_id")),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_dns_cname_record.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
 			},
 		},
 		data.ImportBlockWithResourceIdentityStep(false),
