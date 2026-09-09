@@ -21,7 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -parent-id server_id -test-params "backslash_quote,on"
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "flexible_server_name:server_id,resource_group_name:server_id" -test-params "backslash_quote,on"
 
 const azurePostgresqlFlexibleServerConfigurationResourceName = "azurerm_postgresql_flexible_server_configuration"
 
