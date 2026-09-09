@@ -500,13 +500,12 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			siteUpdateType := webapps.SiteUpdateStrategyType(functionAppFlexConsumption.SiteUpdateStrategy)
 			flexFunctionAppConfig := &webapps.FunctionAppConfig{
 				Deployment:          storageDeployment,
 				Runtime:             &runtime,
 				ScaleAndConcurrency: &scaleAndConcurrencyConfig,
 				SiteUpdateStrategy: &webapps.FunctionsSiteUpdateStrategy{
-					Type: &siteUpdateType,
+					Type: pointer.ToEnum[webapps.SiteUpdateStrategyType](functionAppFlexConsumption.SiteUpdateStrategy),
 				},
 			}
 
