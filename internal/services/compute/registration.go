@@ -126,6 +126,7 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
 		AvailabilitySetListResource{},
 		DedicatedHostGroupListResource{},
-		WindowsVirtualMachineListResource{},
+		LinuxVirtualMachineListResource{},
+    WindowsVirtualMachineListResource{},
 	}
 }
