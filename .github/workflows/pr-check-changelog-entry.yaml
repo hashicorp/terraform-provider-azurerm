@@ -50,7 +50,7 @@ jobs:
             Available types:
 
             ${types}
-            
+
             ---
 
             If this PR does not need a changelog entry, ask a maintainer to apply the \`no-changelog-needed\` label.`;
