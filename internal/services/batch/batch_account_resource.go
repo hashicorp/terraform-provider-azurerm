@@ -377,10 +377,11 @@ func resourceBatchAccountFlatten(ctx context.Context, client *batchaccount.Batch
 						d.Set("secondary_access_key", keysModel.Secondary)
 					}
 				}
-				if err := tags.FlattenAndSet(d, model.Tags); err != nil {
-					return err
-				}
 			}
+			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+				return err
+			}
+			
 		}
 	}
 	return pluginsdk.SetResourceIdentityData(d, id)
