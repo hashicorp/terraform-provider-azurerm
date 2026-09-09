@@ -40,7 +40,7 @@ func TestAccDataSourceKubernetesAutomaticCluster_serviceMesh(t *testing.T) {
 		{
 			Config: r.serviceMesh(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("service_mesh.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh.#").HasValue("1"),
 				check.That(data.ResourceName).Key("service_mesh.0.internal_ingress_gateway_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("service_mesh.0.external_ingress_gateway_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("service_mesh.0.revisions.0").HasValue("asm-1-28"),
@@ -57,7 +57,8 @@ func TestAccDataSourceKubernetesAutomaticCluster_apiServerAuthorizedIPRanges(t *
 		{
 			Config: r.apiServerAuthorizedIPRanges(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("api_server_authorized_ip_ranges.#").HasValue("2"),
+				check.That(data.ResourceName).Key("api_server_access.#").HasValue("1"),
+				check.That(data.ResourceName).Key("api_server_access.0.authorized_ip_ranges.#").HasValue("2"),
 			),
 		},
 	})
