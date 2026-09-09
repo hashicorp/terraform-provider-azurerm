@@ -26,7 +26,7 @@ func TestAccLbRule_listByLoadBalancerID(t *testing.T) {
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		Steps: []resource.TestStep{
 			{
-				Config: r.basicList(data),
+				Config: r.basic(data),
 			},
 			{
 				Query:  true,
@@ -36,7 +36,7 @@ func TestAccLbRule_listByLoadBalancerID(t *testing.T) {
 					querycheck.ExpectIdentity(
 						"azurerm_lb_rule.list",
 						map[string]knownvalue.Check{
-							"name":                knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"name":                knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger % 100000000))),
 							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"load_balancer_name":  knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
