@@ -933,6 +933,7 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *webapps.
 		}
 	}
 
+	// DotNetIsolated, NodeVersion, and CustomHandler will be set later from app settings
 	result.ApplicationStack = []ApplicationStackWindowsFunctionApp{{
 		DotNetVersion:         pointer.From(functionAppSlotSiteConfig.NetFrameworkVersion),
 		JavaVersion:           pointer.From(functionAppSlotSiteConfig.JavaVersion),

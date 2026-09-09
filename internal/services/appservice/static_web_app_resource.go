@@ -486,7 +486,6 @@ func (r StaticWebAppResource) Update() sdk.ResourceFunc {
 				} else {
 					authProps.Properties = &staticsites.StaticSiteBasicAuthPropertiesARMResourceProperties{
 						ApplicableEnvironmentsMode: "SpecifiedEnvironments",
-						// To remove a password the backend validation requires 'secretState' to be in JSON, so we send an empty string
 						SecretState: pointer.To(""),
 					}
 				}

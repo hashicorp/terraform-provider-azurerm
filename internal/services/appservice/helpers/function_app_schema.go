@@ -2655,6 +2655,7 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *webapps.SiteConf
 		}
 	}
 
+	// isolated, version, and custom handler will be set later from app settings
 	result.ApplicationStack = []ApplicationStackWindowsFunctionApp{{
 		DotNetVersion:         pointer.From(functionAppSiteConfig.NetFrameworkVersion),
 		JavaVersion:           pointer.From(functionAppSiteConfig.JavaVersion),
