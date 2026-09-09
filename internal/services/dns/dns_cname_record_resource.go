@@ -24,7 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -parent-id dns_zone_id
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "dns_zone_name:dns_zone_id,record_type:dns_zone_id,resource_group_name:dns_zone_id"
 
 const azureDnsCNameRecordResourceName = "azurerm_dns_cname_record"
 
