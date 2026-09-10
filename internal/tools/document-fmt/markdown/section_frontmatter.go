@@ -29,8 +29,7 @@ func (s *FrontMatterSection) GetContent() []string {
 
 func (s *FrontMatterSection) SetHeading(line string) {
 	s.heading = Heading{
-		Level: 0,
-		Text:  line,
+		Text: line,
 	}
 }
 

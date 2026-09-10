@@ -161,8 +161,7 @@ func resourceDataFactoryLinkedServiceAzureSearchCreateUpdate(d *pluginsdk.Resour
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		searchLinkedService.Annotations = &annotations
+		searchLinkedService.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{

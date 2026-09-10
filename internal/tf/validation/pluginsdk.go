@@ -8,6 +8,7 @@ import (
 	"net/mail"
 	"net/url"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -54,10 +55,8 @@ func FloatInSlice(valid []float64) func(interface{}, string) ([]string, []error)
 			return warnings, errors
 		}
 
-		for _, validFloat := range valid {
-			if v == validFloat {
-				return warnings, errors
-			}
+		if slices.Contains(valid, v) {
+			return warnings, errors
 		}
 
 		errors = append(errors, fmt.Errorf("expected %s to be one of %v, got %f", k, valid, v))
