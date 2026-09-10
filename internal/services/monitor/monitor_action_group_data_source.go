@@ -334,7 +334,7 @@ func dataSourceMonitorActionGroup() *pluginsdk.Resource {
 						},
 						"subscription_id": {
 							Type:     pluginsdk.TypeString,
-							Computed: true, // azignore:AZS007 - pre-existing violation
+							Computed: true,
 						},
 					},
 				},
