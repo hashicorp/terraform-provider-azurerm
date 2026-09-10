@@ -473,7 +473,7 @@ func TestVirtualNetworkResource_tagCount(t *testing.T) {
 	})
 }
 
-func TestAccVirtualNetworkResource_overlappedSummarizedGatewayPrefixesError(t *testing.T) {
+func TestAccVirtualNetwork_overlappedSummarizedGatewayPrefixesError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 	r := VirtualNetworkResource{}
 

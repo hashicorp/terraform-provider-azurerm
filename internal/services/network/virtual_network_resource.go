@@ -1366,6 +1366,7 @@ func checkPrefixOverlap(prefixes []netip.Prefix) error {
 
 func virtualNetworkCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
 	if rawSummarizedGatewayPrefixes, ok := d.GetOk("summarized_gateway_prefixes"); ok {
+		// Check if `summarized_gateway_prefixes` list of prefixes overlap with each other according to portal
 		summarizedGatewayPrefixes := rawSummarizedGatewayPrefixes.([]interface{})
 		ipv4Prefixes := make([]netip.Prefix, 0)
 		ipv6Prefixes := make([]netip.Prefix, 0)
