@@ -95,23 +95,11 @@ An `azure_devops_repo` block exports the following:
 
 A `customer_managed_key` block exports the following:
 
-* `key_versionless_id` - The Azure Key Vault Key Versionless ID used as the Customer Managed Key.
-
 * `key_name` - The identifier for the key.
 
+* `key_versionless_id` - The Azure Key Vault Key Versionless ID used as the Customer Managed Key.
+
 * `user_assigned_identity_id` - The User Assigned Identity ID used for accessing the Customer Managed Key.
-
----
-
-The `identity` block exports the following:
-
-* `type` - The Identity Type for the Service Principal associated with the Managed Service Identity of this Synapse Workspace.
-
-* `identity_ids` - The IDs of the User Assigned Identities associated with the Managed Service Identity of this Synapse Workspace.
-
-* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Synapse Workspace.
-
-* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this Synapse Workspace.
 
 ---
 
@@ -128,6 +116,18 @@ A `github_repo` block exports the following:
 * `repository_name` - The name of the Git repository.
 
 * `root_folder` - The root folder within the repository.
+
+---
+
+The `identity` block exports the following:
+
+* `type` - The Identity Type for the Service Principal associated with the Managed Service Identity of this Synapse Workspace.
+
+* `identity_ids` - The IDs of the User Assigned Identities associated with the Managed Service Identity of this Synapse Workspace.
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Synapse Workspace.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this Synapse Workspace.
 
 ## Timeouts
 
