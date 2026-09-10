@@ -53,7 +53,7 @@ func (r VirtualNetworkListResource) ListResourceConfigSchema(_ context.Context, 
 }
 
 func (r VirtualNetworkListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.Network.VirtualNetworks
+	client := metadata.Client.Network.VirtualNetworksClient
 
 	var data VirtualNetworkListModel
 
