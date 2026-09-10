@@ -22,7 +22,7 @@ We recommend using a service principal or a managed identity when running Terraf
 
 ## What is AKS Workload Identity?
 
-[AKS Workload Identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview) can be used to authenticate to services that support Azure Active Directory (Azure AD) authentication when running in Azure Kubernetes Service clusters.
+[AKS Workload Identity](https://learn.microsoft.com/azure/aks/workload-identity-overview) can be used to authenticate to services that support Azure Active Directory (Azure AD) authentication when running in Azure Kubernetes Service clusters.
 
 When a service account and pod are configured to use AKS Workload Identity, a federated identity token is injected into the pod at run-time, along with environment variables to use that identity.
 

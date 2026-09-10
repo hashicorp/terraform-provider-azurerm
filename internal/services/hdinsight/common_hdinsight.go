@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"maps"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -325,21 +326,15 @@ func expandHDInsightsMetastore(input []interface{}) map[string]interface{} {
 	config := map[string]interface{}{}
 
 	if hiveRaw, ok := v["hive"]; ok {
-		for k, val := range ExpandHDInsightsHiveMetastore(hiveRaw.([]interface{})) {
-			config[k] = val
-		}
+		maps.Copy(config, ExpandHDInsightsHiveMetastore(hiveRaw.([]interface{})))
 	}
 
 	if oozieRaw, ok := v["oozie"]; ok {
-		for k, val := range ExpandHDInsightsOozieMetastore(oozieRaw.([]interface{})) {
-			config[k] = val
-		}
+		maps.Copy(config, ExpandHDInsightsOozieMetastore(oozieRaw.([]interface{})))
 	}
 
 	if ambariRaw, ok := v["ambari"]; ok {
-		for k, val := range ExpandHDInsightsAmbariMetastore(ambariRaw.([]interface{})) {
-			config[k] = val
-		}
+		maps.Copy(config, ExpandHDInsightsAmbariMetastore(ambariRaw.([]interface{})))
 	}
 
 	return config

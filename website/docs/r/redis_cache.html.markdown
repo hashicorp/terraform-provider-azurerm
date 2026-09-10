@@ -95,7 +95,7 @@ The following arguments are supported:
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Redis Cache should be located. Changing this forces a new Redis Cache to be created.
 
--> **Note:** Availability Zone support is [only available in certain regions](https://learn.microsoft.com/en-us/azure/reliability/availability-zones-region-support).
+-> **Note:** Availability Zone support is [only available in certain regions](https://learn.microsoft.com/azure/reliability/availability-zones-region-support).
 
 ---
 

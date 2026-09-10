@@ -158,8 +158,8 @@ func extractFieldFromLine(line string) (field *model.Field) {
 
 func extractBlockNames(line string) (res []string) {
 	if blockHeadReg.MatchString(line) {
-		idx := strings.Index(line, "block")
-		names := codeReg.FindAllString(line[:idx], -1)
+		before, _, _ := strings.Cut(line, "block")
+		names := codeReg.FindAllString(before, -1)
 		for idx, val := range names {
 			names[idx] = strings.Trim(val, "`'")
 		}
