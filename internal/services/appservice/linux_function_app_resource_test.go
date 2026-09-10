@@ -1447,6 +1447,38 @@ func TestAccLinuxFunctionApp_appStackDocker(t *testing.T) {
 	})
 }
 
+func TestAccLinuxFunctionApp_containerAppEnvironment(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.containerAppEnvironment(data, "first"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("container_app_environment_id").MatchesOtherKey(
+					check.That("azurerm_container_app_environment.test").Key("id"),
+				),
+				check.That(data.ResourceName).Key("kind").MatchesRegex(regexp.MustCompile(`(^|,)azurecontainerapps(,|$)`)),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("first"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.containerAppEnvironment(data, "second"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("container_app_environment_id").MatchesOtherKey(
+					check.That("azurerm_container_app_environment.test").Key("id"),
+				),
+				check.That(data.ResourceName).Key("kind").MatchesRegex(regexp.MustCompile(`(^|,)azurecontainerapps(,|$)`)),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("second"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccLinuxFunctionApp_appStackDockerManagedServiceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
@@ -3177,6 +3209,57 @@ resource "azurerm_linux_function_app" "test" {
   }
 }
 `, r.template(data, planSku), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppResource) containerAppEnvironment(data acceptance.TestData, environmentTag string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-LFA-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_container_app_environment" "test" {
+  name                = "acctest-CAEnv%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_linux_function_app" "test" {
+  name                         = "acctest-LFA-CA-%[1]d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    application_stack {
+      docker {
+        registry_url = "https://mcr.microsoft.com"
+        image_name   = "azure-functions/dotnet"
+        image_tag    = "4-dotnet8"
+      }
+    }
+  }
+
+  tags = {
+    environment = %q
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, environmentTag)
 }
 
 func (r LinuxFunctionAppResource) appStackDockerUseMSI(data acceptance.TestData, planSku string) string {

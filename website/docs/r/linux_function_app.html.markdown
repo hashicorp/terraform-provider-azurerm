@@ -53,6 +53,49 @@ resource "azurerm_linux_function_app" "example" {
 }
 ```
 
+### Container Apps Environment
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_storage_account" "example" {
+  name                     = "linuxfunctionappsa"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_container_app_environment" "example" {
+  name                = "example-container-app-environment"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+}
+
+resource "azurerm_linux_function_app" "example" {
+  name                         = "example-linux-function-app"
+  resource_group_name          = azurerm_resource_group.example.name
+  location                     = azurerm_resource_group.example.location
+  container_app_environment_id = azurerm_container_app_environment.example.id
+
+  storage_account_name       = azurerm_storage_account.example.name
+  storage_account_access_key = azurerm_storage_account.example.primary_access_key
+
+  site_config {
+    application_stack {
+      docker {
+        registry_url = "https://mcr.microsoft.com"
+        image_name   = "azure-functions/dotnet"
+        image_tag    = "4-dotnet8"
+      }
+    }
+  }
+}
+```
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -63,7 +106,15 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Linux Function App should exist. Changing this forces a new Linux Function App to be created.
 
-* `service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App.
+* `container_app_environment_id` - (Optional) The ID of the Container App Environment within which to create this Function App. Changing this forces a new Linux Function App to be created.
+
+-> **Note:** A `docker` block must be specified in `site_config.application_stack` when `container_app_environment_id` is specified.
+
+-> **Note:** `public_network_access_enabled` cannot be configured when `container_app_environment_id` is specified. Public network access must be configured on the Container App Environment.
+
+* `service_plan_id` - (Optional) The ID of the App Service Plan within which to create this Function App.
+
+-> **Note:** Exactly one of `container_app_environment_id` or `service_plan_id` must be specified.
 
 * `site_config` - (Required) A `site_config` block as defined below.
 
