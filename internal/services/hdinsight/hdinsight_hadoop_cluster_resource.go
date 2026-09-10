@@ -6,6 +6,7 @@ package hdinsight
 import (
 	"fmt"
 	"log"
+	"maps"
 	"strings"
 	"time"
 
@@ -223,9 +224,7 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta interf
 
 	metastoresRaw := d.Get("metastores").([]interface{})
 	metastores := expandHDInsightsMetastore(metastoresRaw)
-	for k, v := range metastores {
-		configurations[k] = v
-	}
+	maps.Copy(configurations, metastores)
 
 	networkPropertiesRaw := d.Get("network").([]interface{})
 	networkProperties := ExpandHDInsightsNetwork(networkPropertiesRaw)

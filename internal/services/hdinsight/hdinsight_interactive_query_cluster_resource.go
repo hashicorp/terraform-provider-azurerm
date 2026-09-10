@@ -6,6 +6,7 @@ package hdinsight
 import (
 	"fmt"
 	"log"
+	"maps"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -172,9 +173,7 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 
 	metastoresRaw := d.Get("metastores").([]interface{})
 	metastores := expandHDInsightsMetastore(metastoresRaw)
-	for k, v := range metastores {
-		configurations[k] = v
-	}
+	maps.Copy(configurations, metastores)
 
 	networkPropertiesRaw := d.Get("network").([]interface{})
 	networkProperties := ExpandHDInsightsNetwork(networkPropertiesRaw)

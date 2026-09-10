@@ -34,6 +34,7 @@ linters:
     - makezero                  # finds slices created with non-zero length that are later appended to (leaving zero-value elements)
     - mirror                    # reports mismatched bytes/strings function pairs causing needless conversions
     - misspell                  # finds commonly misspelled English words
+    - modernize                 # suggests modern Go idioms (range-over-int, slices/maps/strings helpers), autofixable - see settings below
     - nilerr                    # finds code that returns nil after it checks that the error is not nil
     - nilnesserr                # finds code that checks one error but mistakenly returns a different nil error
     - noctx                     # finds http requests and exec commands made without a context.Context
@@ -79,6 +80,10 @@ linters:
       ignore-rules:
         - hdinsight
         - exportfs
+    modernize:
+      disable:
+        - any # interface{} -> any: ~15k findings across ~2500 files, to be flipped on in a dedicated mechanical pr
+        - newexpr # flags pointer.To(x) -> new(x), azurerm standardises on pointer.To (see AZG002 below)
     predeclared:
       ignore: # widely used as ordinary variable/parameter names across the provider (old/new in diffs, min/max in validation)
         - new
