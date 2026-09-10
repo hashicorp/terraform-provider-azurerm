@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 FEATURES:
+* **New List Resource**: `azurerm_cdn_frontdoor_origin_group` [GH-33334]
 * **New List Resource**: `azurerm_batch_account` [GH-33252]
 
 BUG FIXES:
