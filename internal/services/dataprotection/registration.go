@@ -13,7 +13,9 @@ import (
 type Registration struct{}
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		DataProtectionBackupInstanceElasticSanVolumeGroupListResource{},
+	}
 }
 
 func (r Registration) Actions() []func() action.Action {
@@ -84,10 +86,12 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		DataProtectionBackupInstanceDataLakeStorageResource{},
+		DataProtectionBackupInstanceElasticSanVolumeGroupResource{},
 		DataProtectionBackupInstanceKubernatesClusterResource{},
 		DataProtectionBackupInstanceMySQLFlexibleServerResource{},
 		DataProtectionBackupInstancePostgreSQLFlexibleServerResource{},
 		DataProtectionBackupPolicyDataLakeStorageResource{},
+		DataProtectionBackupPolicyElasticSanVolumeGroupResource{},
 		DataProtectionBackupPolicyKubernatesClusterResource{},
 		DataProtectionBackupPolicyMySQLFlexibleServerResource{},
 		DataProtectionBackupPolicyPostgreSQLFlexibleServerResource{},

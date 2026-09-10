@@ -1,0 +1,50 @@
+package backupvaultresources
+
+import (
+	"encoding/json"
+	"fmt"
+)
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+var _ BackupDatasourceParameters = GenericBackupDatasourceParameters{}
+
+type GenericBackupDatasourceParameters struct {
+	ResourceSelectors []string `json:"resourceSelectors"`
+
+	// Fields inherited from BackupDatasourceParameters
+
+	ObjectType string `json:"objectType"`
+}
+
+func (s GenericBackupDatasourceParameters) BackupDatasourceParameters() BaseBackupDatasourceParametersImpl {
+	return BaseBackupDatasourceParametersImpl{
+		ObjectType: s.ObjectType,
+	}
+}
+
+var _ json.Marshaler = GenericBackupDatasourceParameters{}
+
+func (s GenericBackupDatasourceParameters) MarshalJSON() ([]byte, error) {
+	type wrapper GenericBackupDatasourceParameters
+	wrapped := wrapper(s)
+	encoded, err := json.Marshal(wrapped)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling GenericBackupDatasourceParameters: %+v", err)
+	}
+
+	var decoded map[string]interface{}
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
+		return nil, fmt.Errorf("unmarshaling GenericBackupDatasourceParameters: %+v", err)
+	}
+
+	decoded["objectType"] = "GenericBackupDatasourceParameters"
+
+	encoded, err = json.Marshal(decoded)
+	if err != nil {
+		return nil, fmt.Errorf("re-marshaling GenericBackupDatasourceParameters: %+v", err)
+	}
+
+	return encoded, nil
+}
