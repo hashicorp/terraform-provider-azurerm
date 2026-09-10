@@ -867,6 +867,7 @@ func validateMongoClusterCosmosDBNetworkBypassEnabled(metadata sdk.ResourceMetaD
 	return nil
 }
 
+// updateMongoClusterCosmosDBNetworkBypassEnabled updates the `networkBypassMode` of a MongoDB cluster to enable or disable the Cosmos DB network bypass feature. This field can only be modified via a separate PATCH request after the cluster is created.
 func updateMongoClusterCosmosDBNetworkBypassEnabled(ctx context.Context, client *mongoclusters.MongoClustersClient, id mongoclusters.MongoClusterId, enabled bool) error {
 	mode := mongoclusters.NetworkBypassModeNone
 	if enabled {
