@@ -35,23 +35,23 @@ output "location" {
 
 * `identity` - An `identity` block as defined below.
 
-* `sku` - The Tier used for the ServiceBus Namespace.
-
 * `capacity` - The capacity of the ServiceBus Namespace.
-
-* `premium_messaging_partitions` - The messaging partitions of the ServiceBus Namespace.
 
 * `customer_managed_key` - A `customer_managed_key` block as defined below.
 
-* `local_auth_enabled` - Whether or not SAS authentication is enabled for the Service Bus Namespace.
+* `endpoint` - The URL to access the ServiceBus Namespace.
 
-* `public_network_access_enabled` - Whether public network access is enabled for the Service Bus Namespace.
+* `local_auth_enabled` - Whether or not SAS authentication is enabled for the Service Bus Namespace.
 
 * `minimum_tls_version` - The minimum supported TLS version for this Service Bus Namespace.
 
-* `endpoint` - The URL to access the ServiceBus Namespace.
-
 * `network_rule_set` - A `network_rule_set` block as defined below.
+
+* `premium_messaging_partitions` - The messaging partitions of the ServiceBus Namespace.
+
+* `public_network_access_enabled` - Whether public network access is enabled for the Service Bus Namespace.
+
+* `sku` - The Tier used for the ServiceBus Namespace.
 
 * `tags` - A mapping of tags assigned to the resource.
 

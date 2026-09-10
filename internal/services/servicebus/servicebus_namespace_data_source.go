@@ -232,9 +232,7 @@ func dataSourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface
 			}
 			d.Set("public_network_access_enabled", publicNetworkAccess)
 
-			if props.MinimumTlsVersion != nil {
-				d.Set("minimum_tls_version", string(pointer.From(props.MinimumTlsVersion)))
-			}
+			d.Set("minimum_tls_version", pointer.FromEnum(props.MinimumTlsVersion))
 
 			d.Set("endpoint", props.ServiceBusEndpoint)
 		}
