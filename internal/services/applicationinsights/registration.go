@@ -44,9 +44,9 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_application_insights_api_key":              resourceApplicationInsightsAPIKey(),
 		"azurerm_application_insights":                      resourceApplicationInsights(),
 		"azurerm_application_insights_analytics_item":       resourceApplicationInsightsAnalyticsItem(),
+		"azurerm_application_insights_api_key":              resourceApplicationInsightsAPIKey(),
 		"azurerm_application_insights_smart_detection_rule": resourceApplicationInsightsSmartDetectionRule(),
 		"azurerm_application_insights_web_test":             resourceApplicationInsightsWebTests(),
 	}
@@ -60,9 +60,9 @@ func (r Registration) DataSources() []sdk.DataSource {
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		ApplicationInsightsStandardWebTestResource{},
 		ApplicationInsightsWorkbookResource{},
 		ApplicationInsightsWorkbookTemplateResource{},
-		ApplicationInsightsStandardWebTestResource{},
 	}
 }
 

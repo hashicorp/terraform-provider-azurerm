@@ -16,29 +16,38 @@ issues:
 linters:
   default: none
   enable:
-    - asasalint
-    - asciicheck
-    - azproviderlint
-    - bidichk
-    - decorder
-    - dupword
-    - durationcheck
-    - errcheck
-    - gocritic
-    - govet
-    - ineffassign
-    - misspell
-    - nilerr
-    - predeclared
-    - reassign
-    - staticcheck
-    - tagalign
-    - tfproviderlint
-    - unconvert
-    - unparam
-    - unused
-    - wastedassign
-    - whitespace
+    - asasalint                 # check for pass []any as any in variadic func(...any)
+    - asciicheck                # ensure code does not contain non-ASCII identifiers
+    - azproviderlint            # custom azurerm provider checks (AZR/AZS/AZT), module plugin - see scripts/.custom-gcl.yml
+    - bidichk                   # checks for dangerous unicode character sequences
+    - copyloopvar               # detects redundant x := x copies of loop variables (unnecessary since Go 1.22)
+    - decorder                  # check declaration order and count of types, constants, variables and functions
+    - dupword                   # check for duplicated words in comments
+    - durationcheck             # check for common mistakes when working with time.Duration
+    - errcheck                  # checking for unchecked errors
+    - errname                   # checks sentinel errors are named ErrFoo and error types FooError
+    - fatcontext                # detects nested contexts accidentally rebuilt in loops and function literals
+    - gocheckcompilerdirectives # checks //go: compiler directive comments are valid
+    - gocritic                  # linter for Go source code that specializes in simplifying code
+    - govet                     # reports suspicious constructs, roughly the same as 'go vet'
+    - ineffassign               # detects when assignments to existing variables are not used
+    - makezero                  # finds slices created with non-zero length that are later appended to (leaving zero-value elements)
+    - mirror                    # reports mismatched bytes/strings function pairs causing needless conversions
+    - misspell                  # finds commonly misspelled English words
+    - nilerr                    # finds code that returns nil after it checks that the error is not nil
+    - nilnesserr                # finds code that checks one error but mistakenly returns a different nil error
+    - noctx                     # finds http requests and exec commands made without a context.Context
+    - nosprintfhostport         # checks for misuse of Sprintf to construct host:port in a URL
+    - predeclared               # find code that shadows one of Go's predeclared identifiers
+    - reassign                  # checks that package variables are not reassigned
+    - staticcheck               # checks rules from staticcheck (not the same thing as the staticcheck binary)
+    - tagalign                  # checks struct tags are aligned and sorted (json/tfschema/computed first, per settings below)
+    - tfproviderlint            # terraform provider checks (AT/R/S/V + extended X*), module plugin - see scripts/.custom-gcl.yml
+    - unconvert                 # checks for unnecessary type conversions
+    - unparam                   # reports unused function parameters
+    - unused                    # checks Go code for unused constants, variables, functions and types
+    - wastedassign              # finds wasted assignment statements
+    - whitespace                # checks for unnecessary newlines at the start and end of functions, if, for, etc.
 
   exclusions:
     generated: lax
@@ -57,7 +66,7 @@ linters:
 
   settings:
     errcheck:
-      exclude-functions:
+      exclude-functions: # d.Set/SetNew/ForceNew only error on schema-key typos (caught by tests)
         - (*github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.ResourceDiff).ForceNew
         - (*github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.ResourceDiff).SetNew
         - (*github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.ResourceDiff).SetNewComputed
@@ -65,20 +74,18 @@ linters:
         - io.Close
     govet:
       enable:
-        - nilness
+        - nilness # reports impossible/redundant nil comparisons and nil pointer dereferences
     misspell:
       ignore-rules:
         - hdinsight
         - exportfs
-    nakedret:
-      max-func-lines: 30
     predeclared:
-      ignore:
+      ignore: # widely used as ordinary variable/parameter names across the provider (old/new in diffs, min/max in validation)
         - new
         - min
         - max
     tagalign:
-      sort: true
+      sort: true # fixed order below first, any remaining tags alphabetically after
       order:
         - json
         - tfschema
@@ -97,6 +104,8 @@ linters:
             - AZS003 # TypeList blocks where every property is optional with no default allow empty blocks - 290 findings to fix later
             - AZS005 # resources with no corresponding data source - 768 findings, to determine if to be fixed later
             - AZS006 # data sources missing properties that exist on the resource - 185 findings, todo later
+          AZG002:
+            use: pointer.To # rather than the go1.26 new(<expr>) builtin
           AZG006:
             # only inline temporaries into calls whose other arguments are all basic literals
             # (e.g. d.Set("key", x)) - among identifier/expression siblings the name adds context
@@ -110,13 +119,7 @@ linters:
             exclude-packages: "migration"
       tfproviderlint:
         type: module
-        settings:
-          # All checks (including the tfproviderlintx X* checks, via extended) run except
-          # those disabled below: permanent azurerm convention conflicts, and checks with
-          # pre-existing findings (counts from 2026-08) disabled until the findings are
-          # cleaned up — to enable one, remove it from this list and fix what
-          # 'make tfproviderlint' then reports. The upstream-removed no-op stubs
-          # (R008, S034, V002-V008) are not worth listing.
+        settings: # all checks run (including the tfproviderlintx X* checks, via extended) except those disabled below
           extended: true
           disable:
             - AT002 # flags ImportState tests as extraneous, but azurerm intentionally has separate _requiresImport acceptance tests
@@ -124,14 +127,14 @@ linters:
             - R009 # avoid panic() — 27 findings, mostly intentional panics in internal/tools generators and the internal/acceptance test framework
             - R018 # prefer retry/wait helpers over time.Sleep() — 28 findings, many deliberate PreConfig waits in acceptance tests
             - XR005 # resources should configure Description — azurerm does not use schema descriptions (docs are hand-written)
-            - XR007 # avoid os/exec.Command() — 9 findings, all intentional uses in the internal/tools generators
+            - XR008 # avoid os/exec.CommandContext() — intentional uses in the internal/tools generators, and noctx requires CommandContext over Command
             - XS001 # schema attributes should configure Description — azurerm does not use schema descriptions (docs are hand-written)
             - XS002 # schema attributes should be listed alphabetically — azurerm orders schemas required/optional/computed by convention
           flags:
-            - check: AT001
+            - check: AT001 # TestCases should define CheckDestroy, check only ignores the data_source_ prefix by default and azurerm suffixes their tests
               flag: ignored-filename-suffixes
               value: _data_source_test.go
-            - check: R006
+            - check: R006 # RetryFunc bodies should contain a RetryableError - teach the check azurerm's pluginsdk alias for helper/resource
               flag: package-aliases
               value: pluginsdk
 
@@ -142,11 +145,7 @@ formatters:
     - gofumpt
     - goimports
   settings:
-    # gci merges blank-line-separated import groups into canonical sections
-    # (stdlib, side-effect imports, then everything else) - goimports alone preserves
-    # existing groups. Side-effect (`_`) imports get their own section as they carry
-    # explanatory comments, which goimports requires a blank line in front of.
-    gci:
+    gci: # gci enforces canonical import sections (goimports alone preserves existing groups)
       sections:
         - standard
         - blank

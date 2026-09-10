@@ -1361,13 +1361,11 @@ func ExpandOrchestratedVirtualMachineScaleSetScheduledEventsProfile(input []inte
 	}
 
 	raw := input[0].(map[string]interface{})
-	enabled := raw["enabled"].(bool)
-	timeout := raw["timeout"].(string)
 
 	return &virtualmachinescalesets.ScheduledEventsProfile{
 		TerminateNotificationProfile: &virtualmachinescalesets.TerminateNotificationProfile{
-			Enable:           &enabled,
-			NotBeforeTimeout: &timeout,
+			Enable:           pointer.To(raw["enabled"].(bool)),
+			NotBeforeTimeout: pointer.To(raw["timeout"].(string)),
 		},
 	}
 }

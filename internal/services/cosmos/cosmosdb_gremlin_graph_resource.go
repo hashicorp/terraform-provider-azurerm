@@ -228,10 +228,9 @@ func resourceCosmosDbGremlinGraphCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if partitionkeypaths != "" {
-		partitionKindHash := cosmosdb.PartitionKindHash
 		db.Properties.Resource.PartitionKey = &cosmosdb.ContainerPartitionKey{
 			Paths: &[]string{partitionkeypaths},
-			Kind:  &partitionKindHash,
+			Kind:  pointer.To(cosmosdb.PartitionKindHash),
 		}
 		if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
 			db.Properties.Resource.PartitionKey.Version = pointer.To(int64(partitionKeyVersion.(int)))
@@ -296,10 +295,9 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if partitionkeypaths != "" {
-		partitionKindHash := cosmosdb.PartitionKindHash
 		db.Properties.Resource.PartitionKey = &cosmosdb.ContainerPartitionKey{
 			Paths: &[]string{partitionkeypaths},
-			Kind:  &partitionKindHash,
+			Kind:  pointer.To(cosmosdb.PartitionKindHash),
 		}
 
 		if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {

@@ -498,13 +498,11 @@ func expandKafkaRestProxyProperty(input []interface{}) *clusters.KafkaRestProper
 	}
 
 	raw := input[0].(map[string]interface{})
-	groupId := raw["security_group_id"].(string)
-	groupName := raw["security_group_name"].(string)
 
 	return &clusters.KafkaRestProperties{
 		ClientGroupInfo: &clusters.ClientGroupInfo{
-			GroupId:   &groupId,
-			GroupName: &groupName,
+			GroupId:   pointer.To(raw["security_group_id"].(string)),
+			GroupName: pointer.To(raw["security_group_name"].(string)),
 		},
 	}
 }

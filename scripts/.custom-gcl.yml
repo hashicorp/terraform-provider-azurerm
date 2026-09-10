@@ -5,7 +5,7 @@ name: golangci-with-modules
 plugins:
   - module: "github.com/katbyte/azproviderlint"
     import: "github.com/katbyte/azproviderlint/plugin"
-    version: v0.5.1
+    version: v0.6.0
   - module: "github.com/katbyte/tfproviderlint-golangci"
     import: "github.com/katbyte/tfproviderlint-golangci/plugin"
     version: v0.31.0
