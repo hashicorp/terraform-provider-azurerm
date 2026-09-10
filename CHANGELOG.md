@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New List Resource**: `azurerm_analysis_services_server` ([#33250](https://github.com/hashicorp/terraform-provider-azurerm/issues/33250))
+* **New List Resource**: `azurerm_application_insights_workbook` ([#33244](https://github.com/hashicorp/terraform-provider-azurerm/issues/33244))
 * **New List Resource**: `azurerm_attestation_provider` ([#33251](https://github.com/hashicorp/terraform-provider-azurerm/issues/33251))
 * **New List Resource**: `azurerm_cdn_frontdoor_origin` ([#33307](https://github.com/hashicorp/terraform-provider-azurerm/issues/33307))
 * **New List Resource**: `azurerm_eventhub_consumer_group` ([#33335](https://github.com/hashicorp/terraform-provider-azurerm/issues/33335))
@@ -12,7 +13,6 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: `go-azure-sdk` - update to `v0.20260901.1173158` ([#33274](https://github.com/hashicorp/terraform-provider-azurerm/issues/33274))
-* **New List Resource**: `azurerm_application_insights_workbook` ([#33244](https://github.com/hashicorp/terraform-provider-azurerm/issues/33244))
 * `azurerm_private_endpoint` - lock on private service connection resource ids ([#33298](https://github.com/hashicorp/terraform-provider-azurerm/issues/33298))
 * `azurerm_storage_account` - add support for the `public_network_access` property ([#33292](https://github.com/hashicorp/terraform-provider-azurerm/issues/33292))
 
