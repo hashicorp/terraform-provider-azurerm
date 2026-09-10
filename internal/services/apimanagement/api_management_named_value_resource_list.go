@@ -20,7 +20,7 @@ import (
 type ApiManagementNamedValueListResource struct{}
 
 type ApiManagementNamedValueListModel struct {
-	ServiceId types.String `tfsdk:"service_id"`
+	ApiManagementId types.String `tfsdk:"api_management_id"`
 }
 
 var _ sdk.FrameworkListWrappedResource = new(ApiManagementNamedValueListResource)
@@ -36,7 +36,7 @@ func (ApiManagementNamedValueListResource) ResourceFunc() *pluginsdk.Resource {
 func (ApiManagementNamedValueListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"service_id": schema.StringAttribute{
+			"api_management_id": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{Func: namedvalue.ValidateServiceID},
@@ -56,7 +56,7 @@ func (ApiManagementNamedValueListResource) List(ctx context.Context, request lis
 		return
 	}
 
-	parentID, err := namedvalue.ParseServiceID(data.ServiceId.ValueString())
+	parentID, err := namedvalue.ParseServiceID(data.ApiManagementId.ValueString())
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing Api Management Service ID for `%s`", azureApiManagementNamedValueResourceName), err)
 		return

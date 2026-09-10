@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccApiManagementNamedValue_listByServiceID(t *testing.T) {
+func TestAccApiManagementNamedValue_listByApiManagementID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_named_value", "testlist1")
 	r := ApiManagementNamedValueResource{}
 
@@ -69,7 +69,7 @@ func (r ApiManagementNamedValueResource) basicQuery() string {
 list "azurerm_api_management_named_value" "list" {
   provider = azurerm
   config {
-    service_id = azurerm_api_management.test.id
+    api_management_id = azurerm_api_management.test.id
   }
 }
 `
