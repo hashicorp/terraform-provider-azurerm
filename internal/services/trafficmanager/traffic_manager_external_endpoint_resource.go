@@ -117,7 +117,7 @@ func resourceExternalEndpoint() *pluginsdk.Resource {
 			"endpoint_location": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				StateFunc:        location.StateFunc,
 				DiffSuppressFunc: location.DiffSuppressFunc,
 			},

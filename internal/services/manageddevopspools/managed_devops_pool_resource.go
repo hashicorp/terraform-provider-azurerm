@@ -117,14 +117,10 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"kind": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ForceNew: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(pools.AzureDevOpsPermissionTypeCreatorOnly),
-										string(pools.AzureDevOpsPermissionTypeInherit),
-										string(pools.AzureDevOpsPermissionTypeSpecificAccounts),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForAzureDevOpsPermissionType(), false),
 								},
 
 								"administrator_account": {

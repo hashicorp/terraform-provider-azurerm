@@ -72,13 +72,10 @@ func (r MonitorsResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"marketplace_subscription": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(monitors.MarketplaceSubscriptionStatusActive),
-				string(monitors.MarketplaceSubscriptionStatusSuspended),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(monitors.PossibleValuesForMarketplaceSubscriptionStatus(), false),
 		},
 
 		"identity": commonschema.SystemAssignedIdentityRequired(),

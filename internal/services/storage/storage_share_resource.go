@@ -132,7 +132,7 @@ func resourceStorageShare() *pluginsdk.Resource {
 
 			"access_tier": {
 				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Optional: true,
 				ValidateFunc: validation.StringInSlice(
 					[]string{

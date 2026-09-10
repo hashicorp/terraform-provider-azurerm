@@ -113,8 +113,7 @@ func dataSourceLocalNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 		if lnas := props.LocalNetworkAddressSpace; lnas != nil {
 			d.Set("address_space", lnas.AddressPrefixes)
 		}
-		flattenedSettings := flattenLocalNetworkGatewayDataSourceBGPSettings(props.BgpSettings)
-		if err := d.Set("bgp_settings", flattenedSettings); err != nil {
+		if err := d.Set("bgp_settings", flattenLocalNetworkGatewayDataSourceBGPSettings(props.BgpSettings)); err != nil {
 			return err
 		}
 

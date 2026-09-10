@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -19,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -117,12 +117,12 @@ func (r KeyVaultCertificateContactsResource) Create() sdk.ResourceFunc {
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.GetCertificateContacts(ctx, *keyVaultBaseUri)
 				if err != nil {
-					if !utils.ResponseWasNotFound(existing.Response) {
+					if !response.WasNotFound(existing.Response.Response) {
 						return fmt.Errorf("checking for presence of existing Certificate Contacts (Key Vault %q): %s", *keyVaultBaseUri, err)
 					}
 				}
 
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					if existing.ContactList != nil && len(*existing.ContactList) != 0 {
 						return tf.ImportAsExistsError(r.ResourceType(), id.ID())
 					}
@@ -172,7 +172,7 @@ func (r KeyVaultCertificateContactsResource) Read() sdk.ResourceFunc {
 
 			existing, err := client.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+				if response.WasNotFound(existing.Response.Response) {
 					metadata.Logger.Infof("No Certificate Contacts could be found at %s - removing from state!", id.KeyVaultBaseUrl)
 					return metadata.MarkAsGone(id)
 				}
@@ -243,7 +243,7 @@ func (r KeyVaultCertificateContactsResource) Delete() sdk.ResourceFunc {
 			// check if any contacts exist in vault, if they do not then nothing to delete
 			resp, err := client.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.Response.Response) {
 					log.Printf("[DEBUG] Key Vault Certificate Contact %q was not found in Key Vault at URI %q - removing from state", id.ID(), id.KeyVaultBaseUrl)
 					return nil
 				}

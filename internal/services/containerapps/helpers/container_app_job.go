@@ -499,8 +499,7 @@ func expandContainerAppJobVolumes(input []ContainerVolume) *[]jobs.Volume {
 			volume.StorageName = pointer.To(v.StorageName)
 		}
 		if v.StorageType != "" {
-			storageType := jobs.StorageType(v.StorageType)
-			volume.StorageType = &storageType
+			volume.StorageType = pointer.ToEnum[jobs.StorageType](v.StorageType)
 		}
 		if v.MountOptions != "" {
 			volume.MountOptions = pointer.To(v.MountOptions)
@@ -546,9 +545,8 @@ func expandContainerJobVolumeMounts(input []ContainerVolumeMount) *[]jobs.Volume
 }
 
 func expandContainerAppJobLivenessProbe(input ContainerAppLivenessProbe) jobs.ContainerAppProbe {
-	probeType := jobs.TypeLiveness
 	result := jobs.ContainerAppProbe{
-		Type:                &probeType,
+		Type:                pointer.To(jobs.TypeLiveness),
 		InitialDelaySeconds: pointer.To(input.InitialDelay),
 		PeriodSeconds:       pointer.To(input.Interval),
 		TimeoutSeconds:      pointer.To(input.Timeout),
@@ -557,12 +555,11 @@ func expandContainerAppJobLivenessProbe(input ContainerAppLivenessProbe) jobs.Co
 
 	switch p := strings.ToUpper(input.Transport); p {
 	case "HTTP", "HTTPS":
-		scheme := jobs.Scheme(p)
 		result.HTTPGet = &jobs.ContainerAppProbeHTTPGet{
 			Host:   pointer.To(input.Host),
 			Path:   pointer.To(input.Path),
 			Port:   input.Port,
-			Scheme: &scheme,
+			Scheme: pointer.ToEnum[jobs.Scheme](p),
 		}
 		if input.Headers != nil {
 			headers := make([]jobs.ContainerAppProbeHTTPGetHTTPHeadersInlined, 0)
@@ -587,9 +584,8 @@ func expandContainerAppJobLivenessProbe(input ContainerAppLivenessProbe) jobs.Co
 }
 
 func expandContainerAppJobReadinessProbe(input ContainerAppReadinessProbe) jobs.ContainerAppProbe {
-	probeType := jobs.TypeReadiness
 	result := jobs.ContainerAppProbe{
-		Type:                &probeType,
+		Type:                pointer.To(jobs.TypeReadiness),
 		InitialDelaySeconds: pointer.To(input.InitialDelay),
 		PeriodSeconds:       pointer.To(input.Interval),
 		TimeoutSeconds:      pointer.To(input.Timeout),
@@ -599,12 +595,11 @@ func expandContainerAppJobReadinessProbe(input ContainerAppReadinessProbe) jobs.
 
 	switch p := strings.ToUpper(input.Transport); p {
 	case "HTTP", "HTTPS":
-		scheme := jobs.Scheme(p)
 		result.HTTPGet = &jobs.ContainerAppProbeHTTPGet{
 			Host:   pointer.To(input.Host),
 			Path:   pointer.To(input.Path),
 			Port:   input.Port,
-			Scheme: &scheme,
+			Scheme: pointer.ToEnum[jobs.Scheme](p),
 		}
 		if input.Headers != nil {
 			headers := make([]jobs.ContainerAppProbeHTTPGetHTTPHeadersInlined, 0)
@@ -629,9 +624,8 @@ func expandContainerAppJobReadinessProbe(input ContainerAppReadinessProbe) jobs.
 }
 
 func expandContainerAppJobStartupProbe(input ContainerAppStartupProbe) jobs.ContainerAppProbe {
-	probeType := jobs.TypeStartup
 	result := jobs.ContainerAppProbe{
-		Type:                &probeType,
+		Type:                pointer.To(jobs.TypeStartup),
 		InitialDelaySeconds: pointer.To(input.InitialDelay),
 		PeriodSeconds:       pointer.To(input.Interval),
 		TimeoutSeconds:      pointer.To(input.Timeout),
@@ -640,12 +634,11 @@ func expandContainerAppJobStartupProbe(input ContainerAppStartupProbe) jobs.Cont
 
 	switch p := strings.ToUpper(input.Transport); p {
 	case "HTTP", "HTTPS":
-		scheme := jobs.Scheme(p)
 		result.HTTPGet = &jobs.ContainerAppProbeHTTPGet{
 			Host:   pointer.To(input.Host),
 			Path:   pointer.To(input.Path),
 			Port:   input.Port,
-			Scheme: &scheme,
+			Scheme: pointer.ToEnum[jobs.Scheme](p),
 		}
 		if input.Headers != nil {
 			headers := make([]jobs.ContainerAppProbeHTTPGetHTTPHeadersInlined, 0)

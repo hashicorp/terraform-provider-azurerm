@@ -20,8 +20,7 @@ func ByID(id string) {
 
 // handle the case of using the same name for different kinds of resources
 func ByName(name string, resourceType string) {
-	updatedName := resourceType + "." + name
-	armMutexKV.Lock(updatedName)
+	armMutexKV.Lock(resourceType + "." + name)
 }
 
 func MultipleByID(ids *[]string) {
@@ -49,8 +48,7 @@ func UnlockByID(id string) {
 }
 
 func UnlockByName(name string, resourceType string) {
-	updatedName := resourceType + "." + name
-	armMutexKV.Unlock(updatedName)
+	armMutexKV.Unlock(resourceType + "." + name)
 }
 
 func UnlockMultipleByID(ids *[]string) {

@@ -248,5 +248,6 @@ fun Triggers.RunNightly(nightlyTestsEnabled: Boolean, startHour: Int, daysOfWeek
             dayOfWeek = daysOfWeek
             dayOfMonth = daysOfMonth
         }
+        withPendingChangesOnly = false
     }
 }

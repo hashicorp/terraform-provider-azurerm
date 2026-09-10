@@ -88,14 +88,10 @@ func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
 			},
 
 			"compute_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(integrationruntimes.DataFlowComputeTypeGeneral),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(integrationruntimes.DataFlowComputeTypeGeneral),
-					string(integrationruntimes.DataFlowComputeTypeComputeOptimized),
-					string(integrationruntimes.DataFlowComputeTypeMemoryOptimized),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(integrationruntimes.DataFlowComputeTypeGeneral),
+				ValidateFunc: validation.StringInSlice(integrationruntimes.PossibleValuesForDataFlowComputeType(), false),
 			},
 
 			"core_count": {
