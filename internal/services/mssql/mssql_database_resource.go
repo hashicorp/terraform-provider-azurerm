@@ -341,12 +341,18 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			HighAvailabilityReplicaCount:     pointer.To(int64(d.Get("read_replica_count").(int))),
 			SampleName:                       pointer.ToEnum[databases.SampleName](d.Get("sample_name").(string)),
 			RequestedBackupStorageRedundancy: pointer.ToEnum[databases.BackupStorageRedundancy](d.Get("storage_account_type").(string)),
-			ZoneRedundant:                    pointer.To(d.Get("zone_redundant").(bool)),
 			IsLedgerOn:                       pointer.To(ledgerEnabled),
 			SecondaryType:                    pointer.ToEnum[databases.SecondaryType](d.Get("secondary_type").(string)),
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	// NOTE: 'zone_redundant' is only sent when it is explicitly set in the configuration - when omitted
+	// the service derives it, e.g. a database created in a zone redundant elastic pool must also be zone
+	// redundant, and explicitly sending 'false' in that case is rejected by the API...
+	if !d.GetRawConfig().AsValueMap()["zone_redundant"].IsNull() {
+		input.Properties.ZoneRedundant = pointer.To(d.Get("zone_redundant").(bool))
 	}
 
 	// NOTE: The 'PreferredEnclaveType' field cannot be passed to the APIs Create if the 'sku_name' is a DW or DC-series SKU...
