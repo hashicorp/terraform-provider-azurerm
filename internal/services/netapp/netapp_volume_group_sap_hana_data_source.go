@@ -134,7 +134,7 @@ func (r NetAppVolumeGroupSAPHanaDataSource) Attributes() map[string]*pluginsdk.S
 
 					"throughput_in_mibps": {
 						Type:     pluginsdk.TypeFloat,
-						Required: true,
+						Computed: true,
 					},
 
 					"export_policy_rule": {

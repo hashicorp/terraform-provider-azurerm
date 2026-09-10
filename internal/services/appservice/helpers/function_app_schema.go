@@ -431,10 +431,8 @@ func SiteConfigSchemaLinuxFunctionAppComputed() *pluginsdk.Schema {
 				"scm_ip_restriction": IpRestrictionSchemaComputed(),
 
 				"scm_ip_restriction_default_action": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Default:      webapps.DefaultActionAllow,
-					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForDefaultAction(), false),
+					Type:     pluginsdk.TypeString,
+					Computed: true,
 				},
 
 				"load_balancing_mode": {
@@ -1938,8 +1936,8 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_PASSWORD", dockerConfig.RegistryPassword, false)
 			dockerUrl := dockerConfig.RegistryURL
 			for _, prefix := range urlSchemes {
-				if strings.HasPrefix(dockerConfig.RegistryURL, prefix) {
-					dockerUrl = strings.TrimPrefix(dockerConfig.RegistryURL, prefix)
+				if after, ok := strings.CutPrefix(dockerConfig.RegistryURL, prefix); ok {
+					dockerUrl = after
 					continue
 				}
 			}
@@ -2655,13 +2653,11 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *webapps.SiteConf
 		}
 	}
 
+	// isolated, version, and custom handler will be set later from app settings
 	result.ApplicationStack = []ApplicationStackWindowsFunctionApp{{
 		DotNetVersion:         pointer.From(functionAppSiteConfig.NetFrameworkVersion),
-		DotNetIsolated:        false, // set this later from app_settings
-		NodeVersion:           "",    // Need to get this from app_settings later
 		JavaVersion:           pointer.From(functionAppSiteConfig.JavaVersion),
 		PowerShellCoreVersion: powershellVersion,
-		CustomHandler:         false, // set this later from app_settings
 	}}
 
 	return result, nil
@@ -2672,8 +2668,8 @@ func ParseWebJobsStorageString(input string) (name, key string) {
 		return
 	}
 
-	parts := strings.Split(input, ";")
-	for _, part := range parts {
+	parts := strings.SplitSeq(input, ";")
+	for part := range parts {
 		if strings.HasPrefix(part, "AccountName") {
 			name = strings.TrimPrefix(part, "AccountName=")
 		}

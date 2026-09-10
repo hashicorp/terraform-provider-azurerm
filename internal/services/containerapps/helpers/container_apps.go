@@ -406,11 +406,9 @@ func ExpandContainerAppIngress(input []Ingress, appName string) *containerapps.I
 		IPSecurityRestrictions: expandIpSecurityRestrictions(ingress.IpSecurityRestrictions),
 		CorsPolicy:             expandCorsPolicy(ingress.Cors),
 	}
-	transport := containerapps.IngressTransportMethod(ingress.Transport)
-	result.Transport = &transport
+	result.Transport = pointer.ToEnum[containerapps.IngressTransportMethod](ingress.Transport)
 	if ingress.ClientCertificateMode != "" {
-		clientCertificateMode := containerapps.IngressClientCertificateMode(ingress.ClientCertificateMode)
-		result.ClientCertificateMode = &clientCertificateMode
+		result.ClientCertificateMode = pointer.ToEnum[containerapps.IngressClientCertificateMode](ingress.ClientCertificateMode)
 	}
 
 	return result
@@ -536,8 +534,7 @@ func expandContainerAppIngressCustomDomain(input []CustomDomain) *[]containerapp
 			Name:          v.Name,
 			CertificateId: pointer.To(v.CertificateId),
 		}
-		bindingType := containerapps.BindingType(v.CertBinding)
-		customDomain.BindingType = &bindingType
+		customDomain.BindingType = pointer.ToEnum[containerapps.BindingType](v.CertBinding)
 
 		result = append(result, customDomain)
 	}
@@ -887,12 +884,10 @@ func ExpandContainerAppDapr(input []Dapr) *containerapps.Dapr {
 		}
 	}
 
-	appProtocol := containerapps.AppProtocol(dapr.AppProtocol)
-
 	return &containerapps.Dapr{
 		AppId:       pointer.To(dapr.AppId),
 		AppPort:     pointer.To(dapr.AppPort),
-		AppProtocol: &appProtocol,
+		AppProtocol: pointer.ToEnum[containerapps.AppProtocol](dapr.AppProtocol),
 		Enabled:     pointer.To(true),
 	}
 }
@@ -1699,8 +1694,7 @@ func expandContainerAppVolumes(input []ContainerVolume) *[]containerapps.Volume 
 			volume.StorageName = pointer.To(v.StorageName)
 		}
 		if v.StorageType != "" {
-			storageType := containerapps.StorageType(v.StorageType)
-			volume.StorageType = &storageType
+			volume.StorageType = pointer.ToEnum[containerapps.StorageType](v.StorageType)
 		}
 		if v.MountOptions != "" {
 			volume.MountOptions = pointer.To(v.MountOptions)
@@ -2162,9 +2156,8 @@ func ContainerAppReadinessProbeSchemaComputed() *pluginsdk.Schema {
 }
 
 func expandContainerAppReadinessProbe(input ContainerAppReadinessProbe) containerapps.ContainerAppProbe {
-	probeType := containerapps.TypeReadiness
 	result := containerapps.ContainerAppProbe{
-		Type:                &probeType,
+		Type:                pointer.To(containerapps.TypeReadiness),
 		InitialDelaySeconds: pointer.To(input.InitialDelay),
 		PeriodSeconds:       pointer.To(input.Interval),
 		TimeoutSeconds:      pointer.To(input.Timeout),
@@ -2174,12 +2167,11 @@ func expandContainerAppReadinessProbe(input ContainerAppReadinessProbe) containe
 
 	switch p := strings.ToUpper(input.Transport); p {
 	case "HTTP", "HTTPS":
-		scheme := containerapps.Scheme(p)
 		result.HTTPGet = &containerapps.ContainerAppProbeHTTPGet{
 			Host:   pointer.To(input.Host),
 			Path:   pointer.To(input.Path),
 			Port:   input.Port,
-			Scheme: &scheme,
+			Scheme: pointer.ToEnum[containerapps.Scheme](p),
 		}
 		if input.Headers != nil {
 			headers := make([]containerapps.ContainerAppProbeHTTPGetHTTPHeadersInlined, 0)
@@ -2431,9 +2423,8 @@ func ContainerAppLivenessProbeSchemaComputed() *pluginsdk.Schema {
 }
 
 func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containerapps.ContainerAppProbe {
-	probeType := containerapps.TypeLiveness
 	result := containerapps.ContainerAppProbe{
-		Type:                &probeType,
+		Type:                pointer.To(containerapps.TypeLiveness),
 		InitialDelaySeconds: pointer.To(input.InitialDelay),
 		PeriodSeconds:       pointer.To(input.Interval),
 		TimeoutSeconds:      pointer.To(input.Timeout),
@@ -2442,12 +2433,11 @@ func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containera
 
 	switch p := strings.ToUpper(input.Transport); p {
 	case "HTTP", "HTTPS":
-		scheme := containerapps.Scheme(p)
 		result.HTTPGet = &containerapps.ContainerAppProbeHTTPGet{
 			Host:   pointer.To(input.Host),
 			Path:   pointer.To(input.Path),
 			Port:   input.Port,
-			Scheme: &scheme,
+			Scheme: pointer.ToEnum[containerapps.Scheme](p),
 		}
 		if input.Headers != nil {
 			headers := make([]containerapps.ContainerAppProbeHTTPGetHTTPHeadersInlined, 0)
@@ -2693,9 +2683,8 @@ func ContainerAppStartupProbeSchemaComputed() *pluginsdk.Schema {
 }
 
 func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapps.ContainerAppProbe {
-	probeType := containerapps.TypeStartup
 	result := containerapps.ContainerAppProbe{
-		Type:                &probeType,
+		Type:                pointer.To(containerapps.TypeStartup),
 		InitialDelaySeconds: pointer.To(input.InitialDelay),
 		PeriodSeconds:       pointer.To(input.Interval),
 		TimeoutSeconds:      pointer.To(input.Timeout),
@@ -2704,12 +2693,11 @@ func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapp
 
 	switch p := strings.ToUpper(input.Transport); p {
 	case "HTTP", "HTTPS":
-		scheme := containerapps.Scheme(p)
 		result.HTTPGet = &containerapps.ContainerAppProbeHTTPGet{
 			Host:   pointer.To(input.Host),
 			Path:   pointer.To(input.Path),
 			Port:   input.Port,
-			Scheme: &scheme,
+			Scheme: pointer.ToEnum[containerapps.Scheme](p),
 		}
 		if input.Headers != nil {
 			headers := make([]containerapps.ContainerAppProbeHTTPGetHTTPHeadersInlined, 0)

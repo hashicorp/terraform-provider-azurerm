@@ -107,7 +107,7 @@ func (a RoleDefinitionDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 					"data_actions": {
 						Type:     pluginsdk.TypeSet,
-						Optional: true,
+						Computed: true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -116,7 +116,7 @@ func (a RoleDefinitionDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 					"not_data_actions": {
 						Type:     pluginsdk.TypeSet,
-						Optional: true,
+						Computed: true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},

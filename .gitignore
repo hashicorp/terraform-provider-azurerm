@@ -69,3 +69,6 @@ AGENTS.md
 
 # golangci-lint custom binary with plugins, built by make golangci-with-modules
 scripts/golangci-with-modules
+
+# lychee link-checker cache (make linkcheck-external)
+.lycheecache

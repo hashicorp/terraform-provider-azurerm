@@ -89,7 +89,7 @@ The following arguments are supported:
 
 * `parameters` - (Optional) A JSON mapping of any Parameters for this Policy.
 
-* `overrides` - (Optional) One or more `overrides` blocks as defined below. More detail about `overrides` and `resource_selectors` see [policy assignment structure](https://learn.microsoft.com/en-us/azure/governance/policy/concepts/assignment-structure)
+* `overrides` - (Optional) One or more `overrides` blocks as defined below. More detail about `overrides` and `resource_selectors` see [policy assignment structure](https://learn.microsoft.com/azure/governance/policy/concepts/assignment-structure)
 
 * `resource_selectors` - (Optional) One or more `resource_selectors` blocks as defined below to filter polices by resource properties.
 
@@ -115,7 +115,7 @@ A `non_compliance_message` block supports the following:
 
 A `overrides` block supports the following:
 
-* `value` - (Required) Specifies the value to override the policy property. Possible values for `policyEffect` override listed [policy effects](https://learn.microsoft.com/en-us/azure/governance/policy/concepts/effects).
+* `value` - (Required) Specifies the value to override the policy property. Possible values for `policyEffect` override listed [policy effects](https://learn.microsoft.com/azure/governance/policy/concepts/effects).
 
 * `selectors` - (Optional) One or more `override_selector` block as defined below.
 

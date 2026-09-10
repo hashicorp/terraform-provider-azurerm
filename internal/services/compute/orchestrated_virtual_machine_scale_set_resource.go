@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -338,13 +339,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				newZones := zones.ExpandUntyped(new.(*schema.Set).List())
 
 				for _, ov := range oldZones {
-					found := false
-					for _, nv := range newZones {
-						if ov == nv {
-							found = true
-							break
-						}
-					}
+					found := slices.Contains(newZones, ov)
 
 					if !found {
 						return true
@@ -1327,14 +1322,10 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 	// AutomaticOSUpgradeIsEnabled currently is not supported in orchestrated VMSS flex
 	metaData := virtualMachineScaleSetUpdateMetaData{
-		AutomaticOSUpgradeIsEnabled:  false,
-		CanReimageOnManualUpgrade:    false,
-		CanRollInstancesWhenRequired: false,
-		UpdateInstances:              false,
-		Client:                       meta.(*clients.Client).Compute,
-		Existing:                     pointer.From(existing.Model),
-		ID:                           id,
-		OSType:                       osType,
+		Client:   meta.(*clients.Client).Compute,
+		Existing: pointer.From(existing.Model),
+		ID:       id,
+		OSType:   osType,
 	}
 
 	if err := metaData.performUpdate(ctx, update); err != nil {
@@ -1501,8 +1492,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				if nwProfile := profile.NetworkProfile; nwProfile != nil {
 					d.Set("network_api_version", pointer.From(nwProfile.NetworkApiVersion))
 
-					flattenedNics := FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
-					if err := d.Set("network_interface", flattenedNics); err != nil {
+					if err := d.Set("network_interface", FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)); err != nil {
 						return fmt.Errorf("setting `network_interface`: %w", err)
 					}
 				}
@@ -1534,8 +1524,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 
 				if policy := props.UpgradePolicy; policy != nil {
 					upgradeMode = string(pointer.From(policy.Mode))
-					flattenedRolling := FlattenVirtualMachineScaleSetRollingUpgradePolicy(policy.RollingUpgradePolicy)
-					if err := d.Set("rolling_upgrade_policy", flattenedRolling); err != nil {
+					if err := d.Set("rolling_upgrade_policy", FlattenVirtualMachineScaleSetRollingUpgradePolicy(policy.RollingUpgradePolicy)); err != nil {
 						return fmt.Errorf("setting `rolling_upgrade_policy`: %w", err)
 					}
 				}

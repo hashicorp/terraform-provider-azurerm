@@ -44,8 +44,7 @@ func (c *Client) AddToCache(keyVaultId commonids.KeyVaultId, dataPlaneUri string
 }
 
 func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId commonids.KeyVaultId) (*string, error) {
-	cacheKey := c.cacheKeyForKeyVault(keyVaultId.VaultName)
-	if v, ok := getCachedKeyVaule(cacheKey); ok {
+	if v, ok := getCachedKeyVaule(c.cacheKeyForKeyVault(keyVaultId.VaultName)); ok {
 		return &v.dataPlaneBaseUri, nil
 	}
 
@@ -72,9 +71,7 @@ func (c *Client) BaseUriForKeyVault(ctx context.Context, keyVaultId commonids.Ke
 }
 
 func (c *Client) Exists(ctx context.Context, keyVaultId commonids.KeyVaultId) (bool, error) {
-	cacheKey := c.cacheKeyForKeyVault(keyVaultId.VaultName)
-
-	if _, ok := getCachedKeyVaule(cacheKey); ok {
+	if _, ok := getCachedKeyVaule(c.cacheKeyForKeyVault(keyVaultId.VaultName)); ok {
 		return true, nil
 	}
 

@@ -36,5 +36,5 @@ data "azurerm_cdn_frontdoor_origin_group" "test" {
   profile_name        = azurerm_cdn_frontdoor_profile.test.name
   resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
 }
-`, CdnFrontDoorOriginGroupResource{}.complete(data))
+`, CdnFrontdoorOriginGroupResource{}.complete(data))
 }

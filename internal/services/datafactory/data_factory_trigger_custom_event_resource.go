@@ -183,8 +183,7 @@ func resourceDataFactoryTriggerCustomEventCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		trigger.Annotations = &annotations
+		trigger.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("subject_begins_with"); ok {

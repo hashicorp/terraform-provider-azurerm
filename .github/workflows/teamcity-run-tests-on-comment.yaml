@@ -156,8 +156,8 @@ jobs:
           PR_SHA="${{ steps.get-pr-sha.outputs.sha }}"
 
           # Parse flags from comment
-          # Extract everything after /test
-          FLAGS_STRING=$(echo "$COMMENT_BODY" | sed 's|^/test[[:space:]]*||')
+          # Extract everything after /test (read -ra below ignores the leading whitespace)
+          FLAGS_STRING="${COMMENT_BODY#/test}"
 
           # Initialize default values
           beta=false
@@ -172,7 +172,7 @@ jobs:
           # getopts only handles single-char flags, so map the long spellings to -f
           for i in "${!FLAGS[@]}"; do
             case "${FLAGS[$i]}" in
-              -force|--force) FLAGS[$i]="-f" ;;
+              -force|--force) FLAGS[i]="-f" ;;
             esac
           done
 

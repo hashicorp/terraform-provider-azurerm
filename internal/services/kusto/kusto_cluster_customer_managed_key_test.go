@@ -462,7 +462,7 @@ resource "azurerm_key_vault_certificate" "cert" {
 }
 
 // Purge Protection must be enabled to configure Managed HSM Key
-// https://learn.microsoft.com/en-us/azure/data-explorer/security#store-customer-managed-keys-in-azure-key-vault
+// https://learn.microsoft.com/azure/data-explorer/security#store-customer-managed-keys-in-azure-key-vault
 resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   name                       = "kvHsm%[3]d"
   resource_group_name        = azurerm_resource_group.test.name

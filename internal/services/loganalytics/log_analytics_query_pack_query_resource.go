@@ -586,7 +586,7 @@ func expandLogAnalyticsQueryPackQueryTags(input map[string]string) *map[string][
 
 func flattenLogAnalyticsQueryPackQueryTags(input map[string][]string) map[string]string {
 	if input == nil {
-		return nil
+		return map[string]string{}
 	}
 
 	results := make(map[string]string)

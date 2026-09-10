@@ -6,6 +6,7 @@ package monitor
 import (
 	"fmt"
 	"log"
+	"maps"
 	"strconv"
 	"time"
 
@@ -516,8 +517,7 @@ func resourceMonitorAutoScaleSettingRead(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("setting `predictive_scale_mode` of %s: %+v", *id, err)
 		}
 
-		notifications := flattenAzureRmMonitorAutoScaleSettingNotification(props.Notifications)
-		if err = d.Set("notification", notifications); err != nil {
+		if err = d.Set("notification", flattenAzureRmMonitorAutoScaleSettingNotification(props.Notifications)); err != nil {
 			return fmt.Errorf("setting `notification` of %s: %+v", *id, err)
 		}
 
@@ -1039,9 +1039,7 @@ func flattenAzureRmMonitorAutoScaleSettingNotification(notifications *[]autoscal
 
 				props := make(map[string]string)
 				if webHookProps := v.Properties; webHookProps != nil {
-					for key, value := range *v.Properties {
-						props[key] = value
-					}
+					maps.Copy(props, *v.Properties)
 					hook["properties"] = props
 					webhooks = append(webhooks, hook)
 				}
@@ -1073,7 +1071,7 @@ func flattenAzureRmMonitorAutoScaleSettingRulesDimensions(dimensions *[]autoscal
 }
 
 func validateAutoScaleSettingsTimeZone() pluginsdk.SchemaValidateFunc {
-	// from https://docs.microsoft.com/en-us/rest/api/monitor/autoscalesettings/createorupdate#timewindow
+	// from https://docs.microsoft.com/rest/api/monitor/autoscalesettings/createorupdate#timewindow
 	timeZones := []string{
 		"Dateline Standard Time",
 		"UTC-11",

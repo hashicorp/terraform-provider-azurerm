@@ -362,7 +362,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if model.Identity != nil && !validateIdentityUpdate(*existing.Model.Identity, *expandedIdentity) {
-		return fmt.Errorf("`Once `identity` specified, the managed identity must not be disabled (even temporarily). Disabling the managed identity may lead to inconsistent behavior. Details could be found on https://learn.microsoft.com/en-us/azure/backup/encryption-at-rest-with-cmk?tabs=portal#enable-system-assigned-managed-identity-for-the-vault")
+		return fmt.Errorf("`Once `identity` specified, the managed identity must not be disabled (even temporarily). Disabling the managed identity may lead to inconsistent behavior. Details could be found on https://learn.microsoft.com/azure/backup/encryption-at-rest-with-cmk?tabs=portal#enable-system-assigned-managed-identity-for-the-vault")
 	}
 
 	storageMode := d.Get("storage_mode_type").(string)
@@ -698,10 +698,9 @@ func expandRecoveryServicesVaultSecuritySettings(input interface{}) *vaults.Secu
 	if input == nil || len(input.(string)) == 0 {
 		return nil
 	}
-	immutabilityState := vaults.ImmutabilityState(input.(string))
 	return &vaults.SecuritySettings{
 		ImmutabilitySettings: &vaults.ImmutabilitySettings{
-			State: &immutabilityState,
+			State: pointer.ToEnum[vaults.ImmutabilityState](input.(string)),
 		},
 	}
 }

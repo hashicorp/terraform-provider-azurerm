@@ -130,7 +130,7 @@ The following arguments are supported:
 
 -> **Note:** `quota_target ` must be used when `quota_type` is `IndividualGroupQuota` or `IndividualUserQuota`
 
-~> **Note:** more information about this resource can be found at [Understand default and individual user and group quotas](https://learn.microsoft.com/en-us/azure/azure-netapp-files/default-individual-user-group-quotas-introduction)
+~> **Note:** more information about this resource can be found at [Understand default and individual user and group quotas](https://learn.microsoft.com/azure/azure-netapp-files/default-individual-user-group-quotas-introduction)
 
 ## Attributes Reference
 
