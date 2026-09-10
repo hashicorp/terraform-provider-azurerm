@@ -18,7 +18,7 @@ Lists API Management API resources.
 list "azurerm_api_management_api" "example" {
   provider = azurerm
   config {
-    service_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.ApiManagement/service/example-apim"
+    api_management_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.ApiManagement/service/example-apim"
   }
 }
 ```
@@ -27,4 +27,4 @@ list "azurerm_api_management_api" "example" {
 
 This list resource supports the following arguments:
 
-* `service_id` - (Required) The ID of the API Management Service to query.
+* `api_management_id` - (Required) The ID of the API Management Service to query.
