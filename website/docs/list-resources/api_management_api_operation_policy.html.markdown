@@ -18,7 +18,7 @@ Lists API Management API Operation Policy resources.
 list "azurerm_api_management_api_operation_policy" "example" {
   provider = azurerm
   config {
-    operation_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.ApiManagement/service/example-apim/apis/example-api/operations/example-operation"
+    api_management_api_operation_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.ApiManagement/service/example-apim/apis/example-api/operations/example-operation"
   }
 }
 ```
@@ -27,4 +27,4 @@ list "azurerm_api_management_api_operation_policy" "example" {
 
 This list resource supports the following arguments:
 
-* `operation_id` - (Required) The ID of the API Management API Operation to query.
+* `api_management_api_operation_id` - (Required) The ID of the API Management API Operation to query.

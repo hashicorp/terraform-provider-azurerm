@@ -21,7 +21,7 @@ import (
 type ApiManagementApiOperationPolicyListResource struct{}
 
 type ApiManagementApiOperationPolicyListModel struct {
-	OperationId types.String `tfsdk:"operation_id"`
+	OperationId types.String `tfsdk:"api_management_api_operation_id"`
 }
 
 var _ sdk.FrameworkListWrappedResource = new(ApiManagementApiOperationPolicyListResource)
@@ -37,7 +37,7 @@ func (ApiManagementApiOperationPolicyListResource) ResourceFunc() *pluginsdk.Res
 func (ApiManagementApiOperationPolicyListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"operation_id": schema.StringAttribute{
+			"api_management_api_operation_id": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{Func: apioperationpolicy.ValidateOperationID},
