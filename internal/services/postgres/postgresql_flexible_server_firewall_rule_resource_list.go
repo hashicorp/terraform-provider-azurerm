@@ -20,7 +20,7 @@ import (
 type PostgresqlFlexibleServerFirewallRuleListResource struct{}
 
 type PostgresqlFlexibleServerFirewallRuleListModel struct {
-	FlexibleServerId types.String `tfsdk:"server_id"`
+	FlexibleServerId types.String `tfsdk:"postgresql_flexible_server_id"`
 }
 
 var _ sdk.FrameworkListWrappedResource = new(PostgresqlFlexibleServerFirewallRuleListResource)
@@ -36,7 +36,7 @@ func (PostgresqlFlexibleServerFirewallRuleListResource) ResourceFunc() *pluginsd
 func (PostgresqlFlexibleServerFirewallRuleListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"server_id": schema.StringAttribute{
+			"postgresql_flexible_server_id": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{Func: firewallrules.ValidateFlexibleServerID},
