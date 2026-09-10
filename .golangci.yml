@@ -110,6 +110,9 @@ linters:
             - AZS003 # TypeList blocks where every property is optional with no default allow empty blocks - 290 findings to fix later
             - AZS005 # resources with no corresponding data source - 768 findings, to determine if to be fixed later
             - AZS006 # data sources missing properties that exist on the resource - 185 findings, todo later
+            - AZR009 # lifecycle logging (log.Printf("[DEBUG] Creating %s", id)) in CRUD functions - 27 findings, new in v0.8.0, to fix later
+            - AZR010 # callers nil-checking before flatten* functions that already handle nil - 244 findings, new in v0.8.0, to fix later
+            - AZS009 # computed-only fields setting input-only attributes (Optional/Default/ValidateFunc) - 35 findings, new in v0.8.0, to fix later
           AZG002:
             use: pointer.To # rather than the go1.26 new(<expr>) builtin
           AZG006:
