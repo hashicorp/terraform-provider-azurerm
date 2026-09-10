@@ -65,7 +65,7 @@ func TestSemaphoreKV(t *testing.T) {
 				var mu sync.Mutex
 				wg := sync.WaitGroup{}
 
-				for i := 0; i < 20; i++ {
+				for i := range 20 {
 					wg.Add(1)
 					go func(worker int) {
 						defer wg.Done()
