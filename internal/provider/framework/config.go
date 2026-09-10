@@ -413,6 +413,11 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 			if !feature[0].DataPlaneAvailable.IsNull() && !feature[0].DataPlaneAvailable.IsUnknown() {
 				f.Storage.DataPlaneAvailable = feature[0].DataPlaneAvailable.ValueBool()
 			}
+
+			f.Storage.SkipStoringAccessKeys = false
+			if !feature[0].SkipStoringAccessKeys.IsNull() && !feature[0].SkipStoringAccessKeys.IsUnknown() {
+				f.Storage.SkipStoringAccessKeys = feature[0].SkipStoringAccessKeys.ValueBool()
+			}
 		}
 
 		if !features.Subscription.IsNull() && !features.Subscription.IsUnknown() {

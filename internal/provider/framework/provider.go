@@ -486,6 +486,9 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 									"data_plane_available": schema.BoolAttribute{
 										Optional: true,
 									},
+									"skip_storing_access_keys": schema.BoolAttribute{
+										Optional: true,
+									},
 								},
 							},
 						},

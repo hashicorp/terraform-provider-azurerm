@@ -365,6 +365,12 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Optional: true,
 						Default:  true,
 					},
+
+					"skip_storing_access_keys": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
 				},
 			},
 		},
@@ -721,6 +727,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			storageRaw := items[0].(map[string]interface{})
 			if v, ok := storageRaw["data_plane_available"]; ok {
 				featuresMap.Storage.DataPlaneAvailable = v.(bool)
+			}
+			if v, ok := storageRaw["skip_storing_access_keys"]; ok {
+				featuresMap.Storage.SkipStoringAccessKeys = v.(bool)
 			}
 		}
 	}
