@@ -271,6 +271,7 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	d.SetId(id.ID())
 
+	localAuthenticationDisabled := false
 	if model := resp.Model; model != nil {
 		d.Set("name", model.Name)
 		d.Set("resource_group_name", id.ResourceGroupName)
@@ -279,6 +280,7 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("kind", string(pointer.From(model.Kind)))
 
 		if props := model.Properties; props != nil {
+			localAuthenticationDisabled = pointer.From(props.DisableLocalAuth)
 			d.Set("offer_type", string(pointer.From(props.DatabaseAccountOfferType)))
 			d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilter(props.IPRules))
 			d.Set("endpoint", props.DocumentEndpoint)
@@ -364,6 +366,10 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}
+	}
+
+	if localAuthenticationDisabled {
+		return clearCosmosDbAccountCredentials(d)
 	}
 
 	keys, err := client.DatabaseAccountsListKeys(ctx, id)
