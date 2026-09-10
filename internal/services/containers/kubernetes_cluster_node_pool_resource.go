@@ -40,7 +40,7 @@ import (
 
 const azureKubernetesClusterNodePoolResourceName = "azurerm_kubernetes_cluster_node_pool"
 
-//go:generate go run ../../tools/generator-tests resourceidentity -parent-id "kubernetes_cluster_id" -test-name "manualScaleConfig"
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "managed_cluster_name:kubernetes_cluster_id,resource_group_name:kubernetes_cluster_id,subscription_id:kubernetes_cluster_id" -test-name "manualScaleConfig"
 
 func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 	return &pluginsdk.Resource{

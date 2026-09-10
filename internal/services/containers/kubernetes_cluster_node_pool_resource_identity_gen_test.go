@@ -17,8 +17,8 @@ func TestAccKubernetesClusterNodePool_resourceIdentity(t *testing.T) {
 	r := KubernetesClusterNodePoolResource{}
 
 	checkedFields := map[string]struct{}{
-		"managed_cluster_name": {},
 		"name":                 {},
+		"managed_cluster_name": {},
 		"resource_group_name":  {},
 		"subscription_id":      {},
 	}
@@ -28,8 +28,8 @@ func TestAccKubernetesClusterNodePool_resourceIdentity(t *testing.T) {
 			Config: r.manualScaleConfig(data),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_kubernetes_cluster_node_pool.test", checkedFields),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_kubernetes_cluster_node_pool.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_kubernetes_cluster_node_pool.test", tfjsonpath.New("managed_cluster_name"), tfjsonpath.New("kubernetes_cluster_id")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_kubernetes_cluster_node_pool.test", tfjsonpath.New("name"), tfjsonpath.New("kubernetes_cluster_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_kubernetes_cluster_node_pool.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("kubernetes_cluster_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_kubernetes_cluster_node_pool.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("kubernetes_cluster_id")),
 			},
