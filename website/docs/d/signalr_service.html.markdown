@@ -39,8 +39,6 @@ The following attributes are exported:
 
 * `location` - Specifies the supported Azure location where the SignalR service exists.
 
-* `sku` - A `sku` block as documented below.
-
 * `public_port` - The publicly accessible port of the SignalR service which is designed for browser/client use.
 
 * `server_port` - The publicly accessible port of the SignalR service which is designed for customer server side use.
@@ -61,6 +59,8 @@ The following attributes are exported:
 
 * `secondary_connection_string` - The secondary connection string of the SignalR service.
 
+* `sku` - A `sku` block as documented below.
+
 * `public_network_access_enabled` - Is public network access enabled for this SignalR service?
 
 * `local_auth_enabled` - Is local auth enable for this SignalR serviced?
@@ -71,7 +71,7 @@ The following attributes are exported:
 
 * `serverless_connection_timeout_in_seconds` - The serverless connection timeout of this SignalR service.
 
-* `service_mode` - Specifies the service mode. Possible values are `Classic`, `Default` and `Serverless`.
+* `service_mode` - Specifies the service mode.
 
 * `upstream_endpoint` - One or more `upstream_endpoint` blocks as documented below.
 
