@@ -53,7 +53,7 @@ func (r ApiManagementApiOperationResource) basicQuery() string {
 list "azurerm_api_management_api_operation" "list" {
   provider = azurerm
   config {
-    api_id = azurerm_api_management_api.test.id
+    api_management_api_id = azurerm_api_management_api.test.id
   }
 }
 `
