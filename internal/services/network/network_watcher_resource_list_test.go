@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccNetworkWatcher_listBySubscriptionAndRG(t *testing.T) {
+func testAccNetworkWatcher_listBySubscriptionAndRG(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "testlist1")
 	r := NetworkWatcherResource{}
 

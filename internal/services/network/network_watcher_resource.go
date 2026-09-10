@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -test-name basicConfig
+//go:generate go run ../../tools/generator-tests resourceidentity -test-name basicConfig -test-sequential true
 
 var azureNetworkWatcherResourceName = "azurerm_network_watcher"
 
