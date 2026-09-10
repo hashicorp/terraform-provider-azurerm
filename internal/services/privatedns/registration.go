@@ -1,13 +1,43 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package privatedns
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/action"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
+
+func (r Registration) Actions() []func() action.Action {
+	return []func() action.Action{}
+}
+
+func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
+	return []sdk.FrameworkListWrappedResource{
+		PrivateDnsARecordListResource{},
+		PrivateDnsCNameRecordListResource{},
+		PrivateDnsZoneListResource{},
+		PrivateDnsZoneVirtualNetworkLinkListResource{},
+	}
+}
+
+func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource {
+	return []func() ephemeral.EphemeralResource{}
+}
+
+func (r Registration) FrameworkDataSources() []sdk.FrameworkWrappedDataSource {
+	return []sdk.FrameworkWrappedDataSource{}
+}
+
+func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
+	return []sdk.FrameworkWrappedResource{}
+}
+
+var _ sdk.FrameworkServiceRegistration = Registration{}
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/dns"
@@ -28,7 +58,6 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_private_dns_zone":                      dataSourcePrivateDnsZone(),
 		"azurerm_private_dns_a_record":                  dataSourcePrivateDnsARecord(),
 		"azurerm_private_dns_aaaa_record":               dataSourcePrivateDnsAaaaRecord(),
 		"azurerm_private_dns_cname_record":              dataSourcePrivateDnsCNameRecord(),
@@ -37,6 +66,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_private_dns_soa_record":                dataSourcePrivateDnsSoaRecord(),
 		"azurerm_private_dns_srv_record":                dataSourcePrivateDnsSrvRecord(),
 		"azurerm_private_dns_txt_record":                dataSourcePrivateDnsTxtRecord(),
+		"azurerm_private_dns_zone":                      dataSourcePrivateDnsZone(),
 		"azurerm_private_dns_zone_virtual_network_link": dataSourcePrivateDnsZoneVirtualNetworkLink(),
 	}
 }
@@ -44,7 +74,6 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_private_dns_zone":                      resourcePrivateDnsZone(),
 		"azurerm_private_dns_a_record":                  resourcePrivateDnsARecord(),
 		"azurerm_private_dns_aaaa_record":               resourcePrivateDnsAaaaRecord(),
 		"azurerm_private_dns_cname_record":              resourcePrivateDnsCNameRecord(),
@@ -52,6 +81,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_private_dns_ptr_record":                resourcePrivateDnsPtrRecord(),
 		"azurerm_private_dns_srv_record":                resourcePrivateDnsSrvRecord(),
 		"azurerm_private_dns_txt_record":                resourcePrivateDnsTxtRecord(),
+		"azurerm_private_dns_zone":                      resourcePrivateDnsZone(),
 		"azurerm_private_dns_zone_virtual_network_link": resourcePrivateDnsZoneVirtualNetworkLink(),
 	}
 }

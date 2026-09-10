@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -15,12 +15,6 @@ var _ resourceids.Id = EnrollmentId{}
 
 type EnrollmentId struct {
 	EnrollmentAccountName string
-}
-
-func NewEnrollmentID(enrollmentAccountName string) EnrollmentId {
-	return EnrollmentId{
-		EnrollmentAccountName: enrollmentAccountName,
-	}
 }
 
 func (id EnrollmentId) String() string {

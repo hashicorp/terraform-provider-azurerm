@@ -64,9 +64,20 @@ func (c AppPlatformClient) ServicesCreateOrUpdate(ctx context.Context, id common
 
 // ServicesCreateOrUpdateThenPoll performs ServicesCreateOrUpdate then polls until it's completed
 func (c AppPlatformClient) ServicesCreateOrUpdateThenPoll(ctx context.Context, id commonids.SpringCloudServiceId, input ServiceResource) error {
+	return c.ServicesCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ServicesCreateOrUpdateCallbackThenPoll performs ServicesCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) ServicesCreateOrUpdateCallbackThenPoll(ctx context.Context, id commonids.SpringCloudServiceId, input ServiceResource, callback func() error) error {
 	result, err := c.ServicesCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ServicesCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

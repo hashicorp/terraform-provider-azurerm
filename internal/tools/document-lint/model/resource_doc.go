@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package model
 
 import (
 	"log"
+	"maps"
 	"strconv"
 	"strings"
 
@@ -290,9 +291,7 @@ func (r *ResourceDoc) SetTimeout(lineNum int, line string) {
 
 func (r *ResourceDoc) AllProp() Properties {
 	res := Properties{}
-	for k, v := range r.Args {
-		res[k] = v
-	}
+	maps.Copy(res, r.Args)
 	for k, v := range r.Attr {
 		// merge back to args if exists in both arg and attr
 		if arg, ok := res[k]; ok {

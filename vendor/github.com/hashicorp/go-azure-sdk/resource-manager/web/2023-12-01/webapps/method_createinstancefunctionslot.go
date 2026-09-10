@@ -61,9 +61,20 @@ func (c WebAppsClient) CreateInstanceFunctionSlot(ctx context.Context, id SlotFu
 
 // CreateInstanceFunctionSlotThenPoll performs CreateInstanceFunctionSlot then polls until it's completed
 func (c WebAppsClient) CreateInstanceFunctionSlotThenPoll(ctx context.Context, id SlotFunctionId, input FunctionEnvelope) error {
+	return c.CreateInstanceFunctionSlotCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateInstanceFunctionSlotCallbackThenPoll performs CreateInstanceFunctionSlot, runs the optional callback function, then polls until it's completed
+func (c WebAppsClient) CreateInstanceFunctionSlotCallbackThenPoll(ctx context.Context, id SlotFunctionId, input FunctionEnvelope, callback func() error) error {
 	result, err := c.CreateInstanceFunctionSlot(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateInstanceFunctionSlot: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

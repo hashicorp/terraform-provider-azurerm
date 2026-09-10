@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package systemcentervirtualmachinemanager_test
@@ -9,17 +9,17 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/virtualmachinetemplates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SystemCenterVirtualMachineManagerVirtualMachineTemplateResource struct{}
 
-func TestAccSystemCenterVirtualMachineManagerVirtualMachineTemplateSequential(t *testing.T) {
+func TestAccSystemCenterVirtualMachineManagerVirtualMachineTemplate_sequential(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests because only one System Center Virtual Machine Manager Server can be onboarded at a time on a given Custom Location
 
 	if os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID") == "" || os.Getenv("ARM_TEST_FQDN") == "" || os.Getenv("ARM_TEST_USERNAME") == "" || os.Getenv("ARM_TEST_PASSWORD") == "" {
@@ -28,10 +28,11 @@ func TestAccSystemCenterVirtualMachineManagerVirtualMachineTemplateSequential(t 
 
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"scvmmVirtualMachineTemplate": {
-			"basic":          testAccSystemCenterVirtualMachineManagerVirtualMachineTemplate_basic,
-			"requiresImport": testAccSystemCenterVirtualMachineManagerVirtualMachineTemplate_requiresImport,
-			"complete":       testAccSystemCenterVirtualMachineManagerVirtualMachineTemplate_complete,
-			"update":         testAccSystemCenterVirtualMachineManagerVirtualMachineTemplate_update,
+			"basic":            testAccSystemCenterVirtualMachineManagerVirtualMachineTemplate_basic,
+			"requiresImport":   testAccSystemCenterVirtualMachineManagerVirtualMachineTemplate_requiresImport,
+			"complete":         testAccSystemCenterVirtualMachineManagerVirtualMachineTemplate_complete,
+			"update":           testAccSystemCenterVirtualMachineManagerVirtualMachineTemplate_update,
+			"resourceIdentity": testAccSystemCenterVirtualMachineManagerVirtualMachineTemplate_resourceIdentity,
 		},
 	})
 }
@@ -128,7 +129,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineTemplateResource) Exists(
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r SystemCenterVirtualMachineManagerVirtualMachineTemplateResource) basic(data acceptance.TestData) string {

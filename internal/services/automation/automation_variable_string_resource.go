@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -6,16 +6,16 @@ package automation
 import (
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/variable"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/variable"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func resourceAutomationVariableString() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationVariableStringCreateUpdate,
+		Create: resourceAutomationVariableStringCreate,
 		Read:   resourceAutomationVariableStringRead,
-		Update: resourceAutomationVariableStringCreateUpdate,
+		Update: resourceAutomationVariableStringUpdate,
 		Delete: resourceAutomationVariableStringDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -34,8 +34,12 @@ func resourceAutomationVariableString() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationVariableStringCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	return resourceAutomationVariableCreateUpdate(d, meta, "String")
+func resourceAutomationVariableStringCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	return resourceAutomationVariableCreate(d, meta, "String")
+}
+
+func resourceAutomationVariableStringUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	return resourceAutomationVariableUpdate(d, meta, "String")
 }
 
 func resourceAutomationVariableStringRead(d *pluginsdk.ResourceData, meta interface{}) error {

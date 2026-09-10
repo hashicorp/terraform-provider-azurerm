@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicefabric
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -16,12 +17,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	serviceFabricValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabric/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceServiceFabricCluster() *pluginsdk.Resource {
@@ -55,48 +56,33 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"reliability_level": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cluster.ReliabilityLevelNone),
-					string(cluster.ReliabilityLevelBronze),
-					string(cluster.ReliabilityLevelSilver),
-					string(cluster.ReliabilityLevelGold),
-					string(cluster.ReliabilityLevelPlatinum),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(cluster.PossibleValuesForReliabilityLevel(), false),
 			},
 
 			"upgrade_mode": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cluster.UpgradeModeAutomatic),
-					string(cluster.UpgradeModeManual),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(cluster.PossibleValuesForUpgradeMode(), false),
 			},
 
 			"service_fabric_zonal_upgrade_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cluster.SfZonalUpgradeModeHierarchical),
-					string(cluster.SfZonalUpgradeModeParallel),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(cluster.PossibleValuesForSfZonalUpgradeMode(), false),
 			},
 
 			"vmss_zonal_upgrade_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cluster.VMSSZonalUpgradeModeHierarchical),
-					string(cluster.VMSSZonalUpgradeModeParallel),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(cluster.PossibleValuesForVMSSZonalUpgradeMode(), false),
 			},
 
 			"cluster_code_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"management_endpoint": {
@@ -502,20 +488,16 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 							ValidateFunc: validate.PortNumber,
 						},
 						"durability_level": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(cluster.DurabilityLevelBronze),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cluster.DurabilityLevelBronze),
-								string(cluster.DurabilityLevelSilver),
-								string(cluster.DurabilityLevelGold),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(cluster.DurabilityLevelBronze),
+							ValidateFunc: validation.StringInSlice(cluster.PossibleValuesForDurabilityLevel(), false),
 						},
 
 						"application_ports": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -534,7 +516,7 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 						"ephemeral_ports": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -571,15 +553,17 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	id := cluster.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_service_fabric_cluster", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_service_fabric_cluster", id.ID())
+			}
 		}
 	}
 
@@ -624,49 +608,48 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta in
 			ReliabilityLevel:                   &reliabilityLevel,
 			UpgradeDescription:                 upgradePolicy,
 			UpgradeMode:                        &upgradeMode,
-			VmImage:                            utils.String(vmImage),
+			VmImage:                            pointer.To(vmImage),
 		},
 	}
 
 	if sfZonalUpgradeMode, ok := d.GetOk("service_fabric_zonal_upgrade_mode"); ok {
-		mode := cluster.SfZonalUpgradeMode(sfZonalUpgradeMode.(string))
-		clusterModel.Properties.SfZonalUpgradeMode = &mode
+		clusterModel.Properties.SfZonalUpgradeMode = pointer.ToEnum[cluster.SfZonalUpgradeMode](sfZonalUpgradeMode.(string))
 	}
 
 	if vmssZonalUpgradeMode, ok := d.GetOk("vmss_zonal_upgrade_mode"); ok {
-		mode := cluster.VMSSZonalUpgradeMode(vmssZonalUpgradeMode.(string))
-		clusterModel.Properties.VMSSZonalUpgradeMode = &mode
+		clusterModel.Properties.VMSSZonalUpgradeMode = pointer.ToEnum[cluster.VMSSZonalUpgradeMode](vmssZonalUpgradeMode.(string))
 	}
 
 	if certificateRaw, ok := d.GetOk("certificate"); ok {
-		certificate := expandServiceFabricClusterCertificate(certificateRaw.([]interface{}))
-		clusterModel.Properties.Certificate = certificate
+		clusterModel.Properties.Certificate = expandServiceFabricClusterCertificate(certificateRaw.([]interface{}))
 	}
 
 	if reverseProxyCertificateRaw, ok := d.GetOk("reverse_proxy_certificate"); ok {
-		reverseProxyCertificate := expandServiceFabricClusterReverseProxyCertificate(reverseProxyCertificateRaw.([]interface{}))
-		clusterModel.Properties.ReverseProxyCertificate = reverseProxyCertificate
+		clusterModel.Properties.ReverseProxyCertificate = expandServiceFabricClusterReverseProxyCertificate(reverseProxyCertificateRaw.([]interface{}))
 	}
 
 	if clientCertificateThumbprintRaw, ok := d.GetOk("client_certificate_thumbprint"); ok {
-		clientCertificateThumbprints := expandServiceFabricClusterClientCertificateThumbprints(clientCertificateThumbprintRaw.([]interface{}))
-		clusterModel.Properties.ClientCertificateThumbprints = clientCertificateThumbprints
+		clusterModel.Properties.ClientCertificateThumbprints = expandServiceFabricClusterClientCertificateThumbprints(clientCertificateThumbprintRaw.([]interface{}))
 	}
 
 	if clientCertificateCommonNamesRaw, ok := d.GetOk("client_certificate_common_name"); ok {
-		clientCertificateCommonNames := expandServiceFabricClusterClientCertificateCommonNames(clientCertificateCommonNamesRaw.([]interface{}))
-		clusterModel.Properties.ClientCertificateCommonNames = clientCertificateCommonNames
+		clusterModel.Properties.ClientCertificateCommonNames = expandServiceFabricClusterClientCertificateCommonNames(clientCertificateCommonNamesRaw.([]interface{}))
 	}
 
 	if clusterCodeVersion != "" {
-		clusterModel.Properties.ClusterCodeVersion = utils.String(clusterCodeVersion)
+		clusterModel.Properties.ClusterCodeVersion = pointer.To(clusterCodeVersion)
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, clusterModel); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, clusterModel, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, clusterModel); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
-
-	d.SetId(id.ID())
 	return resourceServiceFabricClusterRead(d, meta)
 }
 
@@ -732,63 +715,54 @@ func resourceServiceFabricClusterRead(d *pluginsdk.ResourceData, meta interface{
 				return fmt.Errorf("setting `add_on_features`: %+v", err)
 			}
 
-			azureActiveDirectory := flattenServiceFabricClusterAzureActiveDirectory(props.AzureActiveDirectory)
-			if err := d.Set("azure_active_directory", azureActiveDirectory); err != nil {
+			if err := d.Set("azure_active_directory", flattenServiceFabricClusterAzureActiveDirectory(props.AzureActiveDirectory)); err != nil {
 				return fmt.Errorf("setting `azure_active_directory`: %+v", err)
 			}
 
-			certificate := flattenServiceFabricClusterCertificate(props.Certificate)
-			if err := d.Set("certificate", certificate); err != nil {
+			if err := d.Set("certificate", flattenServiceFabricClusterCertificate(props.Certificate)); err != nil {
 				return fmt.Errorf("setting `certificate`: %+v", err)
 			}
 
-			certificateCommonNames := flattenServiceFabricClusterCertificateCommonNames(props.CertificateCommonNames)
-			if err := d.Set("certificate_common_names", certificateCommonNames); err != nil {
+			if err := d.Set("certificate_common_names", flattenServiceFabricClusterCertificateCommonNames(props.CertificateCommonNames)); err != nil {
 				return fmt.Errorf("setting `certificate_common_names`: %+v", err)
 			}
 
-			reverseProxyCertificate := flattenServiceFabricClusterReverseProxyCertificate(props.ReverseProxyCertificate)
-			if err := d.Set("reverse_proxy_certificate", reverseProxyCertificate); err != nil {
+			if err := d.Set("reverse_proxy_certificate", flattenServiceFabricClusterReverseProxyCertificate(props.ReverseProxyCertificate)); err != nil {
 				return fmt.Errorf("setting `reverse_proxy_certificate`: %+v", err)
 			}
 
-			reverseProxyCertificateCommonNames := flattenServiceFabricClusterCertificateCommonNames(props.ReverseProxyCertificateCommonNames)
-			if err := d.Set("reverse_proxy_certificate_common_names", reverseProxyCertificateCommonNames); err != nil {
+			if err := d.Set("reverse_proxy_certificate_common_names", flattenServiceFabricClusterCertificateCommonNames(props.ReverseProxyCertificateCommonNames)); err != nil {
 				return fmt.Errorf("setting `reverse_proxy_certificate_common_names`: %+v", err)
 			}
 
-			clientCertificateThumbprints := flattenServiceFabricClusterClientCertificateThumbprints(props.ClientCertificateThumbprints)
-			if err := d.Set("client_certificate_thumbprint", clientCertificateThumbprints); err != nil {
+			if err := d.Set("client_certificate_thumbprint", flattenServiceFabricClusterClientCertificateThumbprints(props.ClientCertificateThumbprints)); err != nil {
 				return fmt.Errorf("setting `client_certificate_thumbprint`: %+v", err)
 			}
 
-			clientCertificateCommonNames := flattenServiceFabricClusterClientCertificateCommonNames(props.ClientCertificateCommonNames)
-			if err := d.Set("client_certificate_common_name", clientCertificateCommonNames); err != nil {
+			if err := d.Set("client_certificate_common_name", flattenServiceFabricClusterClientCertificateCommonNames(props.ClientCertificateCommonNames)); err != nil {
 				return fmt.Errorf("setting `client_certificate_common_name`: %+v", err)
 			}
 
-			diagnostics := flattenServiceFabricClusterDiagnosticsConfig(props.DiagnosticsStorageAccountConfig)
-			if err := d.Set("diagnostics_config", diagnostics); err != nil {
+			if err := d.Set("diagnostics_config", flattenServiceFabricClusterDiagnosticsConfig(props.DiagnosticsStorageAccountConfig)); err != nil {
 				return fmt.Errorf("setting `diagnostics_config`: %+v", err)
 			}
 
-			upgradePolicy := flattenServiceFabricClusterUpgradePolicy(props.UpgradeDescription)
-			if err := d.Set("upgrade_policy", upgradePolicy); err != nil {
+			if err := d.Set("upgrade_policy", flattenServiceFabricClusterUpgradePolicy(props.UpgradeDescription)); err != nil {
 				return fmt.Errorf("setting `upgrade_policy`: %+v", err)
 			}
 
-			fabricSettings := flattenServiceFabricClusterFabricSettings(props.FabricSettings)
-			if err := d.Set("fabric_settings", fabricSettings); err != nil {
+			if err := d.Set("fabric_settings", flattenServiceFabricClusterFabricSettings(props.FabricSettings)); err != nil {
 				return fmt.Errorf("setting `fabric_settings`: %+v", err)
 			}
 
-			nodeTypes := flattenServiceFabricClusterNodeTypes(props.NodeTypes)
-			if err := d.Set("node_type", nodeTypes); err != nil {
+			if err := d.Set("node_type", flattenServiceFabricClusterNodeTypes(props.NodeTypes)); err != nil {
 				return fmt.Errorf("setting `node_type`: %+v", err)
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -803,8 +777,6 @@ func resourceServiceFabricClusterDelete(d *pluginsdk.ResourceData, meta interfac
 	if err != nil {
 		return err
 	}
-
-	log.Printf("[DEBUG] Deleting %s", id.ID())
 
 	resp, err := client.Delete(ctx, *id)
 	if err != nil {
@@ -838,9 +810,9 @@ func expandServiceFabricClusterAzureActiveDirectory(input []interface{}) *cluste
 	clientApplication := v["client_application_id"].(string)
 
 	config := cluster.AzureActiveDirectory{
-		TenantId:           utils.String(tenantId),
-		ClusterApplication: utils.String(clusterApplication),
-		ClientApplication:  utils.String(clientApplication),
+		TenantId:           pointer.To(tenantId),
+		ClusterApplication: pointer.To(clusterApplication),
+		ClientApplication:  pointer.To(clientApplication),
 	}
 	return &config
 }
@@ -889,15 +861,14 @@ func expandServiceFabricClusterCertificate(input []interface{}) *cluster.Certifi
 	v := input[0].(map[string]interface{})
 
 	thumbprint := v["thumbprint"].(string)
-	x509StoreName := cluster.X509StoreName(v["x509_store_name"].(string))
 
 	result := cluster.CertificateDescription{
 		Thumbprint:    thumbprint,
-		X509StoreName: &x509StoreName,
+		X509StoreName: pointer.ToEnum[cluster.X509StoreName](v["x509_store_name"].(string)),
 	}
 
 	if thumb, ok := v["thumbprint_secondary"]; ok {
-		result.ThumbprintSecondary = utils.String(thumb.(string))
+		result.ThumbprintSecondary = pointer.To(thumb.(string))
 	}
 
 	return &result
@@ -943,11 +914,9 @@ func expandServiceFabricClusterCertificateCommonNames(d *pluginsdk.ResourceData)
 		commonNames = append(commonNames, commonName)
 	}
 
-	x509StoreName := cluster.X509StoreName(input["x509_store_name"].(string))
-
 	output := cluster.ServerCertificateCommonNames{
 		CommonNames:   &commonNames,
-		X509StoreName: &x509StoreName,
+		X509StoreName: pointer.ToEnum[cluster.X509StoreName](input["x509_store_name"].(string)),
 	}
 
 	return &output
@@ -974,11 +943,9 @@ func expandServiceFabricClusterReverseProxyCertificateCommonNames(d *pluginsdk.R
 		commonNames = append(commonNames, commonName)
 	}
 
-	x509StoreName := cluster.X509StoreName(input["x509_store_name"].(string))
-
 	output := cluster.ServerCertificateCommonNames{
 		CommonNames:   &commonNames,
-		X509StoreName: &x509StoreName,
+		X509StoreName: pointer.ToEnum[cluster.X509StoreName](input["x509_store_name"].(string)),
 	}
 
 	return &output
@@ -1017,15 +984,13 @@ func expandServiceFabricClusterReverseProxyCertificate(input []interface{}) *clu
 
 	v := input[0].(map[string]interface{})
 
-	x509StoreName := cluster.X509StoreName(v["x509_store_name"].(string))
-
 	result := cluster.CertificateDescription{
 		Thumbprint:    v["thumbprint"].(string),
-		X509StoreName: &x509StoreName,
+		X509StoreName: pointer.ToEnum[cluster.X509StoreName](v["x509_store_name"].(string)),
 	}
 
 	if thumb, ok := v["thumbprint_secondary"]; ok {
-		result.ThumbprintSecondary = utils.String(thumb.(string))
+		result.ThumbprintSecondary = pointer.To(thumb.(string))
 	}
 
 	return &result
@@ -1182,8 +1147,8 @@ func expandServiceFabricClusterUpgradePolicyHealthPolicy(input []interface{}) cl
 	}
 
 	v := input[0].(map[string]interface{})
-	healthPolicy.MaxPercentUnhealthyApplications = utils.Int64(int64(v["max_unhealthy_applications_percent"].(int)))
-	healthPolicy.MaxPercentUnhealthyNodes = utils.Int64(int64(v["max_unhealthy_nodes_percent"].(int)))
+	healthPolicy.MaxPercentUnhealthyApplications = pointer.To(int64(v["max_unhealthy_applications_percent"].(int)))
+	healthPolicy.MaxPercentUnhealthyNodes = pointer.To(int64(v["max_unhealthy_nodes_percent"].(int)))
 
 	return healthPolicy
 }
@@ -1196,7 +1161,7 @@ func expandServiceFabricClusterUpgradePolicy(input []interface{}) *cluster.Clust
 	policy := &cluster.ClusterUpgradePolicy{}
 	v := input[0].(map[string]interface{})
 
-	policy.ForceRestart = utils.Bool(v["force_restart_enabled"].(bool))
+	policy.ForceRestart = pointer.To(v["force_restart_enabled"].(bool))
 	policy.HealthCheckStableDuration = v["health_check_stable_duration"].(string)
 	policy.UpgradeDomainTimeout = v["upgrade_domain_timeout"].(string)
 	policy.UpgradeReplicaSetCheckTimeout = v["upgrade_replica_set_check_timeout"].(string)
@@ -1324,23 +1289,21 @@ func expandServiceFabricClusterNodeTypes(input []interface{}) []cluster.NodeType
 	for _, v := range input {
 		node := v.(map[string]interface{})
 
-		durabilityLevel := cluster.DurabilityLevel(node["durability_level"].(string))
-
 		result := cluster.NodeTypeDescription{
 			Name:                         node["name"].(string),
 			VMInstanceCount:              int64(node["instance_count"].(int)),
 			IsPrimary:                    node["is_primary"].(bool),
 			ClientConnectionEndpointPort: int64(node["client_endpoint_port"].(int)),
 			HTTPGatewayEndpointPort:      int64(node["http_endpoint_port"].(int)),
-			DurabilityLevel:              &durabilityLevel,
+			DurabilityLevel:              pointer.ToEnum[cluster.DurabilityLevel](node["durability_level"].(string)),
 		}
 
 		if isStateless, ok := node["is_stateless"]; ok {
-			result.IsStateless = utils.Bool(isStateless.(bool))
+			result.IsStateless = pointer.To(isStateless.(bool))
 		}
 
 		if multipleAvailabilityZones, ok := node["multiple_availability_zones"]; ok {
-			result.MultipleAvailabilityZones = utils.Bool(multipleAvailabilityZones.(bool))
+			result.MultipleAvailabilityZones = pointer.To(multipleAvailabilityZones.(bool))
 		}
 
 		if props, ok := node["placement_properties"]; ok {
@@ -1362,7 +1325,7 @@ func expandServiceFabricClusterNodeTypes(input []interface{}) []cluster.NodeType
 		}
 
 		if v := int64(node["reverse_proxy_endpoint_port"].(int)); v != 0 {
-			result.ReverseProxyEndpointPort = utils.Int64(v)
+			result.ReverseProxyEndpointPort = pointer.To(v)
 		}
 
 		applicationPortsRaw := node["application_ports"].([]interface{})

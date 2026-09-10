@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy_test
@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -16,12 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type PolicyDefinitionResource struct{}
 
-func TestAccAzureRMPolicyDefinition_basic(t *testing.T) {
+func TestAccPolicyDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
 
@@ -36,7 +37,7 @@ func TestAccAzureRMPolicyDefinition_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPolicyDefinition_basicWithDetail(t *testing.T) {
+func TestAccPolicyDefinition_basicWithDetail(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
 
@@ -52,7 +53,7 @@ func TestAccAzureRMPolicyDefinition_basicWithDetail(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPolicyDefinition_requiresImport(t *testing.T) {
+func TestAccPolicyDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
 
@@ -67,7 +68,7 @@ func TestAccAzureRMPolicyDefinition_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPolicyDefinition_computedMetadata(t *testing.T) {
+func TestAccPolicyDefinition_computedMetadata(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
 
@@ -82,7 +83,7 @@ func TestAccAzureRMPolicyDefinition_computedMetadata(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPolicyDefinitionAtMgmtGroup_basic(t *testing.T) {
+func TestAccPolicyDefinition_atMgmtGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
 
@@ -97,7 +98,7 @@ func TestAccAzureRMPolicyDefinitionAtMgmtGroup_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPolicyDefinition_metadata(t *testing.T) {
+func TestAccPolicyDefinition_metadata(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
 
@@ -112,7 +113,7 @@ func TestAccAzureRMPolicyDefinition_metadata(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPolicyDefinition_modeUpdate(t *testing.T) {
+func TestAccPolicyDefinition_modeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
 
@@ -141,7 +142,7 @@ func TestAccAzureRMPolicyDefinition_modeUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPolicyDefinition_removeParameter(t *testing.T) {
+func TestAccPolicyDefinition_removeParameter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
 
@@ -192,13 +193,13 @@ func (r PolicyDefinitionResource) Exists(ctx context.Context, client *clients.Cl
 		return nil, fmt.Errorf("unexpected scope type: %+v", scope)
 	}
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+		if response.WasNotFound(resp.Response.Response) {
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Policy Definition %q: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.DefinitionProperties != nil), nil
+	return pointer.To(resp.DefinitionProperties != nil), nil
 }
 
 func (r PolicyDefinitionResource) basic(data acceptance.TestData) string {

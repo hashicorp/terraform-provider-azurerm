@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package fwserver
@@ -167,6 +167,17 @@ func (s *Server) CreateResource(ctx context.Context, req *CreateResourceRequest,
 		)
 
 		return
+	}
+
+	if req.IdentitySchema != nil {
+		if resp.NewIdentity.Raw.IsFullyNull() {
+			resp.Diagnostics.AddError(
+				"Missing Resource Identity After Create",
+				"The Terraform Provider unexpectedly returned no resource identity data after having no errors in the resource create. "+
+					"This is always an issue in the Terraform Provider and should be reported to the provider developers.",
+			)
+			return
+		}
 	}
 
 	semanticEqualityReq := SchemaSemanticEqualityRequest{

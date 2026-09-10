@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package redis
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/rediscacheaccesspolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -78,33 +79,33 @@ func (r RedisCacheAccessPolicyResource) Create() sdk.ResourceFunc {
 			}
 			id := rediscacheaccesspolicies.NewAccessPolicyID(subscriptionId, redisId.ResourceGroupName, redisId.RedisName, model.Name)
 
-			existing, err := client.AccessPolicyGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.AccessPolicyGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
-
-			policyTypeCustom := rediscacheaccesspolicies.AccessPolicyTypeCustom
 
 			createInput := rediscacheaccesspolicies.RedisCacheAccessPolicy{
 				Name: &model.Name,
 				Properties: &rediscacheaccesspolicies.RedisCacheAccessPolicyProperties{
 					Permissions: model.Permissions,
-					Type:        &policyTypeCustom,
+					Type:        pointer.To(rediscacheaccesspolicies.AccessPolicyTypeCustom),
 				},
 			}
 
 			locks.ByID(model.RedisCacheID)
 			defer locks.UnlockByID(model.RedisCacheID)
 
-			if err := client.AccessPolicyCreateUpdateThenPoll(ctx, id, createInput); err != nil {
-				return fmt.Errorf("failed to create Redis Cache Access Policy %s in Redis Cache %s in resource group %s: %s", model.Name, redisId.RedisName, redisId.ResourceGroupName, err)
+			if err := client.AccessPolicyCreateUpdateCallbackThenPoll(ctx, id, createInput, metadata.SetIDCallback(&id)); err != nil {
+				return fmt.Errorf("creating %s: %s", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}

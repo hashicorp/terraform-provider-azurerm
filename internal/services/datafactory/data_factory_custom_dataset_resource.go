@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -6,9 +6,13 @@ package datafactory
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -16,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
@@ -86,7 +89,7 @@ func resourceDataFactoryCustomDataset() *pluginsdk.Resource {
 			"type_properties_json": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
-				StateFunc:        utils.NormalizeJson,
+				StateFunc:        helpers.NormalizeJson,
 				DiffSuppressFunc: suppressJsonOrderingDifference,
 			},
 
@@ -129,7 +132,7 @@ func resourceDataFactoryCustomDataset() *pluginsdk.Resource {
 			"schema_json": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				StateFunc:        utils.NormalizeJson,
+				StateFunc:        helpers.NormalizeJson,
 				DiffSuppressFunc: suppressJsonOrderingDifference,
 			},
 		},
@@ -149,14 +152,16 @@ func resourceDataFactoryCustomDatasetCreateUpdate(d *pluginsdk.ResourceData, met
 
 	id := parse.NewDataSetID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+			if err != nil {
+				if !response.WasNotFound(existing.Response.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_data_factory_custom_dataset", id.ID())
+			if !response.WasNotFound(existing.Response.Response) {
+				return tf.ImportAsExistsError("azurerm_data_factory_custom_dataset", id.ID())
+			}
 		}
 	}
 
@@ -171,9 +176,7 @@ func resourceDataFactoryCustomDatasetCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	additionalProperties := d.Get("additional_properties").(map[string]interface{})
-	for k, v := range additionalProperties {
-		props[k] = v
-	}
+	maps.Copy(props, additionalProperties)
 
 	if v, ok := d.GetOk("annotations"); ok {
 		props["annotations"] = v.([]interface{})
@@ -185,7 +188,7 @@ func resourceDataFactoryCustomDatasetCreateUpdate(d *pluginsdk.ResourceData, met
 
 	if v, ok := d.GetOk("folder"); ok {
 		props["folder"] = &datafactory.DatasetFolder{
-			Name: utils.String(v.(string)),
+			Name: pointer.To(v.(string)),
 		}
 	}
 
@@ -216,7 +219,9 @@ func resourceDataFactoryCustomDatasetCreateUpdate(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	return resourceDataFactoryCustomDatasetRead(d, meta)
 }
@@ -234,7 +239,7 @@ func resourceDataFactoryCustomDatasetRead(d *pluginsdk.ResourceData, meta interf
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -382,8 +387,8 @@ func expandDataFactoryLinkedService(input []interface{}) *datafactory.LinkedServ
 
 	v := input[0].(map[string]interface{})
 	return &datafactory.LinkedServiceReference{
-		ReferenceName: utils.String(v["name"].(string)),
-		Type:          utils.String("LinkedServiceReference"),
+		ReferenceName: pointer.To(v["name"].(string)),
+		Type:          pointer.To("LinkedServiceReference"),
 		Parameters:    v["parameters"].(map[string]interface{}),
 	}
 }
@@ -393,14 +398,9 @@ func flattenDataFactoryLinkedService(input *datafactory.LinkedServiceReference) 
 		return []interface{}{}
 	}
 
-	name := ""
-	if input.ReferenceName != nil {
-		name = *input.ReferenceName
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"name":       name,
+			"name":       pointer.From(input.ReferenceName),
 			"parameters": input.Parameters,
 		},
 	}

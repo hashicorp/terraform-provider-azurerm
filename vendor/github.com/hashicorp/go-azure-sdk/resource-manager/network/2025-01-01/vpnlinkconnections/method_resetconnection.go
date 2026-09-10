@@ -56,9 +56,20 @@ func (c VpnLinkConnectionsClient) ResetConnection(ctx context.Context, id VpnLin
 
 // ResetConnectionThenPoll performs ResetConnection then polls until it's completed
 func (c VpnLinkConnectionsClient) ResetConnectionThenPoll(ctx context.Context, id VpnLinkConnectionId) error {
+	return c.ResetConnectionCallbackThenPoll(ctx, id, nil)
+}
+
+// ResetConnectionCallbackThenPoll performs ResetConnection, runs the optional callback function, then polls until it's completed
+func (c VpnLinkConnectionsClient) ResetConnectionCallbackThenPoll(ctx context.Context, id VpnLinkConnectionId, callback func() error) error {
 	result, err := c.ResetConnection(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ResetConnection: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

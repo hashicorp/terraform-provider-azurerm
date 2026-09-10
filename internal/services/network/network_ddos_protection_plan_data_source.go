@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -74,8 +74,7 @@ func dataSourceNetworkDDoSProtectionPlanRead(d *pluginsdk.ResourceData, meta int
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
-			vNetIDs := flattenNetworkDDoSProtectionPlanVirtualNetworkIDs(props.VirtualNetworks)
-			if err := d.Set("virtual_network_ids", vNetIDs); err != nil {
+			if err := d.Set("virtual_network_ids", flattenNetworkDDoSProtectionPlanVirtualNetworkIDs(props.VirtualNetworks)); err != nil {
 				return fmt.Errorf("setting `virtual_network_ids`: %+v", err)
 			}
 		}

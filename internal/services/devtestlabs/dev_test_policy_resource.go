@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package devtestlabs
@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmDevTestPolicy() *pluginsdk.Resource {
@@ -88,13 +87,10 @@ func resourceArmDevTestPolicy() *pluginsdk.Resource {
 			},
 
 			"evaluator_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(policies.PolicyEvaluatorTypeAllowedValuesPolicy),
-					string(policies.PolicyEvaluatorTypeMaxValuePolicy),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(policies.PossibleValuesForPolicyEvaluatorType(), false),
 			},
 
 			"description": {
@@ -118,20 +114,20 @@ func resourceArmDevTestPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for DevTest Policy creation")
-
 	id := policies.NewPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("lab_name").(string), d.Get("policy_set_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, policies.GetOperationOptions{})
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id, policies.GetOperationOptions{})
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_dev_test_policy", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_dev_test_policy", id.ID())
+			}
 		}
 	}
 
@@ -140,16 +136,15 @@ func resourceArmDevTestPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	evaluatorType := policies.PolicyEvaluatorType(d.Get("evaluator_type").(string))
 
 	description := d.Get("description").(string)
-	factName := policies.PolicyFactName(id.PolicyName)
 
 	parameters := policies.Policy{
 		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 		Properties: policies.PolicyProperties{
-			FactName:      &factName,
-			FactData:      utils.String(factData),
-			Description:   utils.String(description),
+			FactName:      pointer.ToEnum[policies.PolicyFactName](id.PolicyName),
+			FactData:      pointer.To(factData),
+			Description:   pointer.To(description),
 			EvaluatorType: &evaluatorType,
-			Threshold:     utils.String(threshold),
+			Threshold:     pointer.To(threshold),
 		},
 	}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -34,12 +34,12 @@ func (KeyResourceV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			fixedId = fixedId[:index2]
 		}
 
-		if strings.HasSuffix(fixedId, "/Label/\000") {
-			fixedId = strings.TrimSuffix(fixedId, "/Label/\000") + "/Label/%00"
+		if before, ok := strings.CutSuffix(fixedId, "/Label/\000"); ok {
+			fixedId = before + "/Label/%00"
 		}
 
-		if strings.HasSuffix(fixedId, "/Label/") {
-			fixedId = strings.TrimSuffix(fixedId, "/Label/") + "/Label/%00"
+		if before, ok := strings.CutSuffix(fixedId, "/Label/"); ok {
+			fixedId = before + "/Label/%00"
 		}
 
 		parsedOldId, err := parse.KeyId(fixedId)

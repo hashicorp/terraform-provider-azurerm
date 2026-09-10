@@ -58,9 +58,20 @@ func (c ContainerAppsClient) Start(ctx context.Context, id ContainerAppId) (resu
 
 // StartThenPoll performs Start then polls until it's completed
 func (c ContainerAppsClient) StartThenPoll(ctx context.Context, id ContainerAppId) error {
+	return c.StartCallbackThenPoll(ctx, id, nil)
+}
+
+// StartCallbackThenPoll performs Start, runs the optional callback function, then polls until it's completed
+func (c ContainerAppsClient) StartCallbackThenPoll(ctx context.Context, id ContainerAppId, callback func() error) error {
 	result, err := c.Start(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Start: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

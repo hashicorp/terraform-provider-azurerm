@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -90,12 +90,14 @@ func (r ClusterResource) Create() sdk.ResourceFunc {
 
 			id := clusters.NewClusterID(subscriptionId, model.ResourceGroup, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			props := clusters.Cluster{
@@ -109,10 +111,9 @@ func (r ClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			var opts clusters.CreateOrUpdateOperationOptions
-			if err := client.CreateOrUpdateThenPoll(ctx, id, props, opts); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, props, opts, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
 
 			return nil
@@ -148,11 +149,7 @@ func (r ClusterResource) Read() sdk.ResourceFunc {
 				state.Location = *model.Location
 				state.Tags = tags.Flatten(model.Tags)
 
-				var capacity int64
-				if v := model.Sku.Capacity; v != nil {
-					capacity = *v
-				}
-				state.StreamingCapacity = capacity
+				state.StreamingCapacity = pointer.From(model.Sku.Capacity)
 			}
 
 			return metadata.Encode(&state)
@@ -169,8 +166,6 @@ func (r ClusterResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			metadata.Logger.Infof("deleting %s", *id)
 
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
@@ -197,7 +192,7 @@ func (r ClusterResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			if metadata.ResourceData.HasChange("streaming_capacity") || metadata.ResourceData.HasChange("tags") {
+			if metadata.ResourceData.HasChanges("streaming_capacity", "tags") {
 				props := clusters.Cluster{
 					Sku: &clusters.ClusterSku{
 						Capacity: pointer.To(state.StreamingCapacity),

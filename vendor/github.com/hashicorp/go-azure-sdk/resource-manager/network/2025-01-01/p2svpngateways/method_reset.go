@@ -59,9 +59,20 @@ func (c P2sVpnGatewaysClient) Reset(ctx context.Context, id commonids.VirtualWAN
 
 // ResetThenPoll performs Reset then polls until it's completed
 func (c P2sVpnGatewaysClient) ResetThenPoll(ctx context.Context, id commonids.VirtualWANP2SVPNGatewayId) error {
+	return c.ResetCallbackThenPoll(ctx, id, nil)
+}
+
+// ResetCallbackThenPoll performs Reset, runs the optional callback function, then polls until it's completed
+func (c P2sVpnGatewaysClient) ResetCallbackThenPoll(ctx context.Context, id commonids.VirtualWANP2SVPNGatewayId, callback func() error) error {
 	result, err := c.Reset(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Reset: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

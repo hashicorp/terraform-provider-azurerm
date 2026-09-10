@@ -62,9 +62,20 @@ func (c NetworkWatchersClient) VerifyIPFlow(ctx context.Context, id NetworkWatch
 
 // VerifyIPFlowThenPoll performs VerifyIPFlow then polls until it's completed
 func (c NetworkWatchersClient) VerifyIPFlowThenPoll(ctx context.Context, id NetworkWatcherId, input VerificationIPFlowParameters) error {
+	return c.VerifyIPFlowCallbackThenPoll(ctx, id, input, nil)
+}
+
+// VerifyIPFlowCallbackThenPoll performs VerifyIPFlow, runs the optional callback function, then polls until it's completed
+func (c NetworkWatchersClient) VerifyIPFlowCallbackThenPoll(ctx context.Context, id NetworkWatcherId, input VerificationIPFlowParameters, callback func() error) error {
 	result, err := c.VerifyIPFlow(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing VerifyIPFlow: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

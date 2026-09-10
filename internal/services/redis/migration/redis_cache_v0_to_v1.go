@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -74,7 +74,6 @@ func (RedisCacheV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
 		"enable_non_ssl_port": {
 			Type:     pluginsdk.TypeBool,
 			Default:  false,

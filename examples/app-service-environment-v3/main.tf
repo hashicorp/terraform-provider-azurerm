@@ -1,10 +1,10 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 terraform {
   required_providers {
     azurerm = {
-      version = ">=2.76.0"
+      version = "~>5.0"
     }
     random = {
       version = "3.1.0"

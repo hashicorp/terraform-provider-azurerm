@@ -57,9 +57,20 @@ func (c GlobalSchedulesClient) Execute(ctx context.Context, id ScheduleId) (resu
 
 // ExecuteThenPoll performs Execute then polls until it's completed
 func (c GlobalSchedulesClient) ExecuteThenPoll(ctx context.Context, id ScheduleId) error {
+	return c.ExecuteCallbackThenPoll(ctx, id, nil)
+}
+
+// ExecuteCallbackThenPoll performs Execute, runs the optional callback function, then polls until it's completed
+func (c GlobalSchedulesClient) ExecuteCallbackThenPoll(ctx context.Context, id ScheduleId, callback func() error) error {
 	result, err := c.Execute(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Execute: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

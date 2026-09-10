@@ -62,9 +62,20 @@ func (c VirtualWANsClient) NatRulesCreateOrUpdate(ctx context.Context, id NatRul
 
 // NatRulesCreateOrUpdateThenPoll performs NatRulesCreateOrUpdate then polls until it's completed
 func (c VirtualWANsClient) NatRulesCreateOrUpdateThenPoll(ctx context.Context, id NatRuleId, input VpnGatewayNatRule) error {
+	return c.NatRulesCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// NatRulesCreateOrUpdateCallbackThenPoll performs NatRulesCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c VirtualWANsClient) NatRulesCreateOrUpdateCallbackThenPoll(ctx context.Context, id NatRuleId, input VpnGatewayNatRule, callback func() error) error {
 	result, err := c.NatRulesCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing NatRulesCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mysql_test
@@ -53,7 +53,7 @@ data "azurerm_mysql_flexible_server" "test" {
   name                = azurerm_mysql_flexible_server.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, MySqlFlexibleServerResource{}.basic(data))
+`, MysqlFlexibleServerResource{}.basic(data))
 }
 
 func (MySQLFlexibleServerDataSource) complete(data acceptance.TestData) string {
@@ -64,5 +64,5 @@ data "azurerm_mysql_flexible_server" "test" {
   name                = azurerm_mysql_flexible_server.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, MySqlFlexibleServerResource{}.complete(data))
+`, MysqlFlexibleServerResource{}.complete(data))
 }

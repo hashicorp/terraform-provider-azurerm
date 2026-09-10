@@ -46,6 +46,7 @@ The following attributes are exported:
 * `principal_id` - The Service Principal ID of the User Assigned Identity.
 * `client_id` - The Client ID of the User Assigned Identity.
 * `tenant_id` - The Tenant ID of the User Assigned Identity.
+* `isolation_scope` - The isolation scope for the User Assigned Identity.
 * `tags` - A mapping of tags assigned to the User Assigned Identity.
 
 ## Timeouts
@@ -58,4 +59,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.ManagedIdentity` - 2023-01-31
+* `Microsoft.ManagedIdentity` - 2024-11-30

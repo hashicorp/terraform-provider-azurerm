@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -46,13 +47,7 @@ func ParseRepositoryNotification(v string) (*RepositoryNotification, error) {
 		return nil, fmt.Errorf("parsing artifact %q: %w", v[:idx], err)
 	}
 	action := RepositoryNotificationAction(v[idx+1:])
-	isAllowedAction := false
-	for _, a := range allowedRepositoryNotificationActions {
-		if a == action {
-			isAllowedAction = true
-			break
-		}
-	}
+	isAllowedAction := slices.Contains(allowedRepositoryNotificationActions, action)
 	if !isAllowedAction {
 		return nil, fmt.Errorf("invalid action %q found", action)
 	}

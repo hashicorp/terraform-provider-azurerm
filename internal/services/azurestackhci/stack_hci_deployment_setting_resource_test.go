@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package azurestackhci_test
@@ -751,7 +751,7 @@ resource "azurerm_key_vault" "DeploymentKeyVault" {
   enabled_for_disk_encryption     = true
   tenant_id                       = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days      = 30
-  enable_rbac_authorization       = true
+  rbac_authorization_enabled      = true
   public_network_access_enabled   = true
   sku_name                        = "standard"
 }

@@ -61,19 +61,19 @@ The following arguments are supported:
 
 * `azure_function_endpoint` - (Optional) An `azure_function_endpoint` block as defined below.
 
-* `eventhub_endpoint_id` - (Optional) Specifies the id where the Event Hub is located.
+* `eventhub_id` - (Optional) Specifies the id where the Event Hub is located.
 
-* `hybrid_connection_endpoint_id` - (Optional) Specifies the id where the Hybrid Connection is located.
+* `hybrid_connection_id` - (Optional) Specifies the id where the Hybrid Connection is located.
 
-* `service_bus_queue_endpoint_id` - (Optional) Specifies the id where the Service Bus Queue is located.
+* `service_bus_queue_id` - (Optional) Specifies the id where the Service Bus Queue is located.
 
-* `service_bus_topic_endpoint_id` - (Optional) Specifies the id where the Service Bus Topic is located.
+* `service_bus_topic_id` - (Optional) Specifies the id where the Service Bus Topic is located.
 
 * `storage_queue_endpoint` - (Optional) A `storage_queue_endpoint` block as defined below.
 
 * `webhook_endpoint` - (Optional) A `webhook_endpoint` block as defined below.
 
-~> **Note:** One of `eventhub_endpoint_id`, `hybrid_connection_endpoint_id`, `service_bus_queue_endpoint_id`, `service_bus_topic_endpoint_id`, `storage_queue_endpoint`, `webhook_endpoint` or `azure_function_endpoint` must be specified.
+~> **Note:** One of `eventhub_id`, `hybrid_connection_id`, `service_bus_queue_id`, `service_bus_topic_id`, `storage_queue_endpoint`, `webhook_endpoint` or `azure_function_endpoint` must be specified.
 
 * `included_event_types` - (Optional) A list of applicable event types that need to be part of the event subscription.
 

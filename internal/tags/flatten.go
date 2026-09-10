@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package tags
@@ -25,8 +25,7 @@ func Flatten(tagMap map[string]*string) map[string]interface{} {
 }
 
 func FlattenAndSet(d *pluginsdk.ResourceData, tagMap map[string]*string) error {
-	flattened := Flatten(tagMap)
-	if err := d.Set("tags", flattened); err != nil {
+	if err := d.Set("tags", Flatten(tagMap)); err != nil {
 		return fmt.Errorf("setting `tags`: %s", err)
 	}
 

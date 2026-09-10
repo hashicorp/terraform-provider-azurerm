@@ -52,9 +52,9 @@ The following arguments are supported:
 
 ---
 
-* An `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity assigned to this Arc Machine. At this time the only possible value is `SystemAssigned`. Changing this forces a new resource to be created.
+* `type` - (Required) Specifies the type of Managed Service Identity assigned to this Arc Machine. At this time the only possible value is `SystemAssigned`.
 
 ## Attributes Reference
 

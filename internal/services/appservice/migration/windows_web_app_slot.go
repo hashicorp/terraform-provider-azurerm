@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -1817,8 +1817,7 @@ func (w WindowsWebAppSlotV0toV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		if err != nil {
 			return nil, err
 		}
-		newId := parsedId.ID()
-		rawState["service_plan_id"] = newId
+		rawState["service_plan_id"] = parsedId.ID()
 		return rawState, nil
 	}
 }

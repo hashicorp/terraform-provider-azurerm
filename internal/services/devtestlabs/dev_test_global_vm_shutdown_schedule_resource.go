@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package devtestlabs
@@ -8,11 +8,12 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/globalschedules"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -121,26 +122,27 @@ func resourceDevTestGlobalVMShutdownScheduleCreateUpdate(d *pluginsdk.ResourceDa
 	id := globalschedules.NewScheduleID(vmId.SubscriptionId, vmId.ResourceGroupName, name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, globalschedules.GetOperationOptions{})
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id, globalschedules.GetOperationOptions{})
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_dev_test_global_vm_shutdown_schedule", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_dev_test_global_vm_shutdown_schedule", id.ID())
+			}
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	taskType := "ComputeVmShutdownTask"
+	location := location.Normalize(d.Get("location").(string))
 
 	schedule := globalschedules.Schedule{
 		Location: &location,
 		Properties: globalschedules.ScheduleProperties{
 			TargetResourceId: &vmID,
-			TaskType:         &taskType,
+			TaskType:         pointer.To("ComputeVmShutdownTask"),
 		},
 		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 	}
@@ -156,13 +158,11 @@ func resourceDevTestGlobalVMShutdownScheduleCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	if v, ok := d.GetOk("daily_recurrence_time"); ok {
-		dailyRecurrence := expandDevTestGlobalVMShutdownScheduleRecurrenceDaily(v)
-		schedule.Properties.DailyRecurrence = dailyRecurrence
+		schedule.Properties.DailyRecurrence = expandDevTestGlobalVMShutdownScheduleRecurrenceDaily(v)
 	}
 
 	if _, ok := d.GetOk("notification_settings"); ok {
-		notificationSettings := expandDevTestGlobalVMShutdownScheduleNotificationSettings(d)
-		schedule.Properties.NotificationSettings = notificationSettings
+		schedule.Properties.NotificationSettings = expandDevTestGlobalVMShutdownScheduleNotificationSettings(d)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, schedule); err != nil {
@@ -194,8 +194,8 @@ func resourceDevTestGlobalVMShutdownScheduleRead(d *pluginsdk.ResourceData, meta
 	}
 
 	if model := resp.Model; model != nil {
-		if location := resp.Model.Location; location != nil {
-			d.Set("location", azure.NormalizeLocation(*location))
+		if loc := resp.Model.Location; loc != nil {
+			d.Set("location", location.Normalize(*loc))
 		}
 
 		props := resp.Model.Properties
@@ -235,9 +235,8 @@ func resourceDevTestGlobalVMShutdownScheduleDelete(d *pluginsdk.ResourceData, me
 }
 
 func expandDevTestGlobalVMShutdownScheduleRecurrenceDaily(dailyTime interface{}) *globalschedules.DayDetails {
-	time := dailyTime.(string)
 	return &globalschedules.DayDetails{
-		Time: &time,
+		Time: pointer.To(dailyTime.(string)),
 	}
 }
 
@@ -246,20 +245,12 @@ func flattenDevTestGlobalVMShutdownScheduleRecurrenceDaily(dailyRecurrence *glob
 		return nil
 	}
 
-	var result string
-	if dailyRecurrence.Time != nil {
-		result = *dailyRecurrence.Time
-	}
-
-	return result
+	return pointer.From(dailyRecurrence.Time)
 }
 
 func expandDevTestGlobalVMShutdownScheduleNotificationSettings(d *pluginsdk.ResourceData) *globalschedules.NotificationSettings {
 	notificationSettingsConfigs := d.Get("notification_settings").([]interface{})
 	notificationSettingsConfig := notificationSettingsConfigs[0].(map[string]interface{})
-	webhookURL := notificationSettingsConfig["webhook_url"].(string)
-	timeInMinutes := int64(notificationSettingsConfig["time_in_minutes"].(int))
-	email := notificationSettingsConfig["email"].(string)
 
 	var notificationStatus globalschedules.EnableStatus
 	if notificationSettingsConfig["enabled"].(bool) {
@@ -269,10 +260,10 @@ func expandDevTestGlobalVMShutdownScheduleNotificationSettings(d *pluginsdk.Reso
 	}
 
 	return &globalschedules.NotificationSettings{
-		WebhookURL:     &webhookURL,
-		TimeInMinutes:  &timeInMinutes,
+		WebhookURL:     pointer.To(notificationSettingsConfig["webhook_url"].(string)),
+		TimeInMinutes:  pointer.To(int64(notificationSettingsConfig["time_in_minutes"].(int))),
 		Status:         &notificationStatus,
-		EmailRecipient: &email,
+		EmailRecipient: pointer.To(notificationSettingsConfig["email"].(string)),
 	}
 }
 

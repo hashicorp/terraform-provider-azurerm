@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package hdinsight
@@ -6,6 +6,7 @@ package hdinsight
 import (
 	"fmt"
 	"log"
+	"maps"
 	"strings"
 	"time"
 
@@ -21,21 +22,19 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // NOTE: this isn't a recommended way of building resources in Terraform
 // this pattern is used to work around a generic but pedantic API endpoint
 var hdInsightHadoopClusterHeadNodeDefinition = HDInsightNodeDefinition{
-	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         2,
 	MaxInstanceCount:         pointer.To(2),
-	CanSpecifyDisks:          false,
 	FixedMinInstanceCount:    pointer.To(int64(1)),
 	FixedTargetInstanceCount: pointer.To(int64(2)),
 }
@@ -43,16 +42,13 @@ var hdInsightHadoopClusterHeadNodeDefinition = HDInsightNodeDefinition{
 var hdInsightHadoopClusterWorkerNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
-	CanSpecifyDisks:         false,
 	CanAutoScaleByCapacity:  true,
 	CanAutoScaleOnSchedule:  true,
 }
 
 var hdInsightHadoopClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
-	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
 	MaxInstanceCount:         pointer.To(3),
-	CanSpecifyDisks:          false,
 	FixedMinInstanceCount:    pointer.To(int64(1)),
 	FixedTargetInstanceCount: pointer.To(int64(3)),
 }
@@ -228,9 +224,7 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta interf
 
 	metastoresRaw := d.Get("metastores").([]interface{})
 	metastores := expandHDInsightsMetastore(metastoresRaw)
-	for k, v := range metastores {
-		configurations[k] = v
-	}
+	maps.Copy(configurations, metastores)
 
 	networkPropertiesRaw := d.Get("network").([]interface{})
 	networkProperties := ExpandHDInsightsNetwork(networkPropertiesRaw)
@@ -258,25 +252,27 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("expanding `roles`: %+v", err)
 	}
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing Hadoop %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing Hadoop %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_hdinsight_hadoop_cluster", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_hdinsight_hadoop_cluster", id.ID())
+		}
 	}
 
 	var configurationsRaw interface{} = configurations
 	payload := clusters.ClusterCreateParametersExtended{
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Properties: &clusters.ClusterCreateProperties{
 			Tier:                      pointer.To(tier),
 			OsType:                    pointer.To(clusters.OSTypeLinux),
-			ClusterVersion:            utils.String(clusterVersion),
-			MinSupportedTlsVersion:    utils.String(tls),
+			ClusterVersion:            pointer.To(clusterVersion),
+			MinSupportedTlsVersion:    pointer.To(tls),
 			NetworkProperties:         networkProperties,
 			PrivateLinkConfigurations: privateLinkConfigurations,
 			ClusterDefinition: &clusters.ClusterDefinition{
@@ -319,7 +315,7 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	if err := client.CreateThenPoll(ctx, id, payload); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating Hadoop %s: %+v", id, err)
 	}
 	d.SetId(id.ID())
@@ -331,8 +327,7 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta interf
 		edgeNodeConfig := edgeNodeRaw[0].(map[string]interface{})
 		applicationId := applications.NewApplicationID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName, id.ClusterName) // 2 id.ClusterName's are intentional
 
-		err := createHDInsightEdgeNodes(ctx, applicationsClient, applicationId, edgeNodeConfig)
-		if err != nil {
+		if err := createHDInsightEdgeNodes(ctx, applicationsClient, applicationId, edgeNodeConfig); err != nil {
 			return err
 		}
 
@@ -476,10 +471,8 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interfac
 				return fmt.Errorf("flattening `roles`: %+v", err)
 			}
 
-			httpEndpoint := findHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
-			d.Set("https_endpoint", httpEndpoint)
-			sshEndpoint := findHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
-			d.Set("ssh_endpoint", sshEndpoint)
+			d.Set("https_endpoint", findHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints))
+			d.Set("ssh_endpoint", findHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints))
 
 			if err := d.Set("security_profile", flattenHDInsightSecurityProfile(props.SecurityProfile, d)); err != nil {
 				return fmt.Errorf("setting `security_profile`: %+v", err)
@@ -609,7 +602,7 @@ func expandHDInsightApplicationEdgeNodeInstallScriptActions(input []interface{})
 			Name: name,
 			Uri:  uri,
 			// The only role available for edge nodes is edgenode
-			Parameters: utils.String(parameters),
+			Parameters: pointer.To(parameters),
 			Roles:      []string{"edgenode"},
 		}
 
@@ -628,18 +621,17 @@ func expandHDInsightApplicationEdgeNodeHttpsEndpoints(input []interface{}) *[]ap
 	for _, v := range input {
 		val := v.(map[string]interface{})
 
-		accessModes := val["access_modes"].([]string)
 		destinationPort := val["destination_port"].(int64)
 		disableGatewayAuth := val["disable_gateway_auth"].(bool)
 		privateIpAddress := val["private_ip_address"].(string)
 		subDomainSuffix := val["sub_domain_suffix"].(string)
 
 		endPoint := applications.ApplicationGetHTTPSEndpoint{
-			AccessModes:        &accessModes,
+			AccessModes:        pointer.To(val["access_modes"].([]string)),
 			DestinationPort:    pointer.To(destinationPort),
-			PrivateIPAddress:   utils.String(privateIpAddress),
-			SubDomainSuffix:    utils.String(subDomainSuffix),
-			DisableGatewayAuth: utils.Bool(disableGatewayAuth),
+			PrivateIPAddress:   pointer.To(privateIpAddress),
+			SubDomainSuffix:    pointer.To(subDomainSuffix),
+			DisableGatewayAuth: pointer.To(disableGatewayAuth),
 		}
 
 		endpoints = append(endpoints, endPoint)
@@ -664,7 +656,7 @@ func expandHDInsightApplicationEdgeNodeUninstallScriptActions(input []interface{
 		action := applications.RuntimeScriptAction{
 			Name:       name,
 			Uri:        uri,
-			Parameters: utils.String(parameters),
+			Parameters: pointer.To(parameters),
 			Roles:      []string{"edgenode"},
 		}
 

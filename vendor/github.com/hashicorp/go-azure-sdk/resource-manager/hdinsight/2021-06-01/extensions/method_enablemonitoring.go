@@ -62,9 +62,20 @@ func (c ExtensionsClient) EnableMonitoring(ctx context.Context, id commonids.HDI
 
 // EnableMonitoringThenPoll performs EnableMonitoring then polls until it's completed
 func (c ExtensionsClient) EnableMonitoringThenPoll(ctx context.Context, id commonids.HDInsightClusterId, input ClusterMonitoringRequest) error {
+	return c.EnableMonitoringCallbackThenPoll(ctx, id, input, nil)
+}
+
+// EnableMonitoringCallbackThenPoll performs EnableMonitoring, runs the optional callback function, then polls until it's completed
+func (c ExtensionsClient) EnableMonitoringCallbackThenPoll(ctx context.Context, id commonids.HDInsightClusterId, input ClusterMonitoringRequest, callback func() error) error {
 	result, err := c.EnableMonitoring(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing EnableMonitoring: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -8,17 +8,17 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkwatchers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type NetworkWatcherResource struct{}
 
-func TestAccNetworkWatcher(t *testing.T) {
+func TestAccNetworkWatcher_sequential(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// Azure only being happy about provisioning one per region at once
 	// (which our test suite can't easily workaround)
@@ -54,13 +54,6 @@ func TestAccNetworkWatcher(t *testing.T) {
 			"bothAddressAndVirtualMachineId": testAccNetworkConnectionMonitor_withAddressAndVirtualMachineId,
 			"updateEndpoint":                 testAccNetworkConnectionMonitor_updateEndpointIPAddressAndCoverageLevel,
 		},
-		"PacketCapture": {
-			"localDisk":                  testAccNetworkPacketCapture_localDisk,
-			"storageAccount":             testAccNetworkPacketCapture_storageAccount,
-			"storageAccountAndLocalDisk": testAccNetworkPacketCapture_storageAccountAndLocalDisk,
-			"withFilters":                testAccNetworkPacketCapture_withFilters,
-			"requiresImport":             testAccNetworkPacketCapture_requiresImport,
-		},
 		"VMPacketCapture": {
 			"localDisk":                  testAccVirtualMachinePacketCapture_localDisk,
 			"storageAccount":             testAccVirtualMachinePacketCapture_storageAccount,
@@ -95,10 +88,8 @@ func TestAccNetworkWatcher(t *testing.T) {
 	}
 
 	for group, m := range testCases {
-		m := m
 		t.Run(group, func(t *testing.T) {
 			for name, tc := range m {
-				tc := tc
 				t.Run(name, func(t *testing.T) {
 					tc(t)
 				})
@@ -196,7 +187,7 @@ func (t NetworkWatcherResource) Exists(ctx context.Context, clients *clients.Cli
 		return nil, fmt.Errorf("reading %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (NetworkWatcherResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -209,7 +200,7 @@ func (NetworkWatcherResource) Destroy(ctx context.Context, client *clients.Clien
 		return nil, fmt.Errorf("deleting Network Watcher %q: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (NetworkWatcherResource) basicConfig(data acceptance.TestData) string {

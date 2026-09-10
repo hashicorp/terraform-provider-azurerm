@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -31,8 +31,7 @@ func ListPublishingCredentials(ctx context.Context, client *webapps.WebAppsClien
 	}
 
 	if siteCredentials.HttpResponse != nil {
-		err = UnmarshalCredentialsResponse(siteCredentials.HttpResponse.Body, userModel)
-		if err != nil {
+		if err = UnmarshalCredentialsResponse(siteCredentials.HttpResponse.Body, userModel); err != nil {
 			return nil, fmt.Errorf("could not decode Publishing Credential information for %s: %+v", id, err)
 		}
 	}
@@ -57,8 +56,7 @@ func ListPublishingCredentialsSlot(ctx context.Context, client *webapps.WebAppsC
 	}
 
 	if siteCredentials.HttpResponse != nil {
-		err = UnmarshalCredentialsResponse(siteCredentials.HttpResponse.Body, userModel)
-		if err != nil {
+		if err = UnmarshalCredentialsResponse(siteCredentials.HttpResponse.Body, userModel); err != nil {
 			return nil, fmt.Errorf("could not decode Publishing Credential information for %s: %+v", id, err)
 		}
 	}

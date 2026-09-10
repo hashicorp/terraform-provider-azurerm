@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -32,4 +32,14 @@ const (
 	// type Config field includes a provider source, such as the terraform
 	// configuration block required_providers attribute.
 	EnvTfAccProviderNamespace = "TF_ACC_PROVIDER_NAMESPACE"
+
+	// This is an undocumented compatibility flag. When this is set, a
+	// `Config`-mode test step will invoke a refresh before successful
+	// completion.
+	//
+	// This is a compatibility measure for test cases that have different --
+	// but semantically-equal -- state representations in their test steps.
+	// When comparing two states, the testing framework is not aware of
+	// semantic equality or set equality.
+	EnvTfAccRefreshAfterApply = "TF_ACC_REFRESH_AFTER_APPLY"
 )

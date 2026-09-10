@@ -98,7 +98,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "example" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -120,7 +120,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "example" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -143,7 +143,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "example" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -483,7 +483,7 @@ A `virtual_machine` block supports the following:
 
 A `data_disk` block supports the following:
 
-* `volume_name` - (Required) The name of the Volume. Changing this forces a new resource to be created.
+* `volume_name` - (Required) The name of the Volume. Possible values are `default`, `hanaData`, `hanaLog`, `hanaShared` and `usrSap`. Changing this forces a new resource to be created.
 
 ~> **Note:** Possible value for Application Server and Central Server is `default`.
 

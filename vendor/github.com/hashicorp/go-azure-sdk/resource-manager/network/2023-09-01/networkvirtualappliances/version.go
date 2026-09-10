@@ -8,3 +8,7 @@ const defaultApiVersion = "2023-09-01"
 func userAgent() string {
 	return "hashicorp/go-azure-sdk/networkvirtualappliances/2023-09-01"
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}

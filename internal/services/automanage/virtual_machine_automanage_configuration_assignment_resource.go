@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automanage
@@ -75,13 +75,16 @@ func (v VirtualMachineConfigurationAssignment) Create() sdk.ResourceFunc {
 
 			// Currently, the configuration profile assignment name has to be hardcoded to "default" by API requirement.
 			id := configurationprofileassignments.NewVirtualMachineProviders2ConfigurationProfileAssignmentID(subscriptionId, vmId.ResourceGroupName, vmId.VirtualMachineName, "default")
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(v.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(v.ResourceType(), id)
+				}
 			}
 
 			properties := configurationprofileassignments.ConfigurationProfileAssignment{

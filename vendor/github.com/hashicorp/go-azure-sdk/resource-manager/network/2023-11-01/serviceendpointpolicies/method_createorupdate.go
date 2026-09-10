@@ -62,9 +62,20 @@ func (c ServiceEndpointPoliciesClient) CreateOrUpdate(ctx context.Context, id Se
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
 func (c ServiceEndpointPoliciesClient) CreateOrUpdateThenPoll(ctx context.Context, id ServiceEndpointPolicyId, input ServiceEndpointPolicy) error {
+	return c.CreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateOrUpdateCallbackThenPoll performs CreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c ServiceEndpointPoliciesClient) CreateOrUpdateCallbackThenPoll(ctx context.Context, id ServiceEndpointPolicyId, input ServiceEndpointPolicy, callback func() error) error {
 	result, err := c.CreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -17,14 +17,6 @@ type CommunityGalleryImageVersionId struct {
 	GalleryName string
 	ImageName   string
 	Version     string
-}
-
-func NewCommunityGalleryImageVersionID(galleryName, imageName, version string) CommunityGalleryImageVersionId {
-	return CommunityGalleryImageVersionId{
-		GalleryName: galleryName,
-		ImageName:   imageName,
-		Version:     version,
-	}
 }
 
 func (id CommunityGalleryImageVersionId) String() string {

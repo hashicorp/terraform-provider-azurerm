@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package suppress
@@ -40,12 +40,14 @@ func NormalizeSSHKey(input string) (*string, error) {
 	}
 
 	output := input
-	output = strings.ReplaceAll(output, "<<~EOT", "")
-	output = strings.ReplaceAll(output, "EOT", "")
+	if strings.HasPrefix(output, "<<~EOT") && strings.HasSuffix(output, "EOT") {
+		output = strings.TrimPrefix(output, "<<~EOT")
+		output = strings.TrimSuffix(output, "EOT")
+	}
 	output = strings.ReplaceAll(output, "\r", "")
 
 	lines := make([]string, 0)
-	for _, line := range strings.Split(output, "\n") {
+	for line := range strings.SplitSeq(output, "\n") {
 		lines = append(lines, strings.TrimSpace(line))
 	}
 

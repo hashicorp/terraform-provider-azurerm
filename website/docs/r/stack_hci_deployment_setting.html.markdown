@@ -127,7 +127,7 @@ resource "azurerm_key_vault" "DeploymentKeyVault" {
   enabled_for_disk_encryption     = true
   tenant_id                       = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days      = 30
-  enable_rbac_authorization       = true
+  rbac_authorization_enabled      = true
   public_network_access_enabled   = true
   sku_name                        = "standard"
 }
@@ -516,8 +516,6 @@ A `scale_unit` block supports the following:
 * `physical_node` - (Required) One or more `physical_node` blocks as defined above. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 * `secrets_location` - (Required) The URI to the Key Vault or secret store. Changing this forces a new Stack HCI Deployment Setting to be created.
-
-* `security_setting` - (Required) A `security_setting` block as defined below. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 * `storage` - (Required) A `storage` block as defined below. Changing this forces a new Stack HCI Deployment Setting to be created.
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -119,7 +119,7 @@ func randString() string {
 	charSet := "abcdefghijklmnopqrstuvwxyz"
 	strlen := 5
 	result := make([]byte, strlen)
-	for i := 0; i < strlen; i++ {
+	for i := range strlen {
 		result[i] = charSet[rand.Intn(len(charSet))]
 	}
 	return string(result)

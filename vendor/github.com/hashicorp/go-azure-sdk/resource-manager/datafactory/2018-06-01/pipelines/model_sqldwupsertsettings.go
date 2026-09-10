@@ -5,5 +5,5 @@ package pipelines
 
 type SqlDWUpsertSettings struct {
 	InterimSchemaName *interface{} `json:"interimSchemaName,omitempty"`
-	Keys              *[]string    `json:"keys,omitempty"`
+	Keys              *interface{} `json:"keys,omitempty"`
 }

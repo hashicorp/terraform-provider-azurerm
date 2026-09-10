@@ -8,3 +8,7 @@ const defaultApiVersion = "2020-02-02"
 func userAgent() string {
 	return "hashicorp/go-azure-sdk/componentsapis/2020-02-02"
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}

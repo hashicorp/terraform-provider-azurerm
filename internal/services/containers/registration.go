@@ -1,9 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/action"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -13,8 +15,9 @@ type Registration struct {
 }
 
 var (
-	_ sdk.TypedServiceRegistration   = Registration{}
-	_ sdk.UntypedServiceRegistration = Registration{}
+	_ sdk.FrameworkServiceRegistration = Registration{}
+	_ sdk.TypedServiceRegistration     = Registration{}
+	_ sdk.UntypedServiceRegistration   = Registration{}
 )
 
 // Name is the name of this Service
@@ -34,13 +37,13 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_kubernetes_service_versions":  dataSourceKubernetesServiceVersions(),
 		"azurerm_container_group":              dataSourceContainerGroup(),
 		"azurerm_container_registry":           dataSourceContainerRegistry(),
-		"azurerm_container_registry_token":     dataSourceContainerRegistryToken(),
 		"azurerm_container_registry_scope_map": dataSourceContainerRegistryScopeMap(),
+		"azurerm_container_registry_token":     dataSourceContainerRegistryToken(),
 		"azurerm_kubernetes_cluster":           dataSourceKubernetesCluster(),
 		"azurerm_kubernetes_cluster_node_pool": dataSourceKubernetesClusterNodePool(),
+		"azurerm_kubernetes_service_versions":  dataSourceKubernetesServiceVersions(),
 	}
 }
 
@@ -48,11 +51,11 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_container_group":               resourceContainerGroup(),
-		"azurerm_container_registry_agent_pool": resourceContainerRegistryAgentPool(),
-		"azurerm_container_registry_webhook":    resourceContainerRegistryWebhook(),
 		"azurerm_container_registry":            resourceContainerRegistry(),
-		"azurerm_container_registry_token":      resourceContainerRegistryToken(),
+		"azurerm_container_registry_agent_pool": resourceContainerRegistryAgentPool(),
 		"azurerm_container_registry_scope_map":  resourceContainerRegistryScopeMap(),
+		"azurerm_container_registry_token":      resourceContainerRegistryToken(),
+		"azurerm_container_registry_webhook":    resourceContainerRegistryWebhook(),
 		"azurerm_kubernetes_cluster":            resourceKubernetesCluster(),
 		"azurerm_kubernetes_cluster_node_pool":  resourceKubernetesClusterNodePool(),
 	}
@@ -61,6 +64,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 func (r Registration) DataSources() []sdk.DataSource {
 	dataSources := []sdk.DataSource{
 		ContainerRegistryCacheRuleDataSource{},
+		KubernetesAutomaticClusterDataSource{},
 		KubernetesFleetManagerDataSource{},
 		KubernetesNodePoolSnapshotDataSource{},
 	}
@@ -72,10 +76,12 @@ func (r Registration) Resources() []sdk.Resource {
 	resources := []sdk.Resource{
 		ContainerConnectedRegistryResource{},
 		ContainerRegistryCacheRule{},
-		ContainerRegistryTaskResource{},
 		ContainerRegistryCredentialSetResource{},
+		ContainerRegistryTaskResource{},
 		ContainerRegistryTaskScheduleResource{},
 		ContainerRegistryTokenPasswordResource{},
+		KubernetesAutomaticClusterResource{},
+		KubernetesClusterDeploymentSafeguardResource{},
 		KubernetesClusterExtensionResource{},
 		KubernetesFleetManagerResource{},
 		KubernetesFleetUpdateRunResource{},
@@ -84,4 +90,26 @@ func (r Registration) Resources() []sdk.Resource {
 	}
 	resources = append(resources, r.autoRegistration.Resources()...)
 	return resources
+}
+
+func (r Registration) Actions() []func() action.Action {
+	return []func() action.Action{}
+}
+
+func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
+	return []sdk.FrameworkWrappedResource{}
+}
+
+func (r Registration) FrameworkDataSources() []sdk.FrameworkWrappedDataSource {
+	return []sdk.FrameworkWrappedDataSource{}
+}
+
+func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource {
+	return []func() ephemeral.EphemeralResource{}
+}
+
+func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
+	return []sdk.FrameworkListWrappedResource{
+		KubernetesAutomaticClusterListResource{},
+	}
 }

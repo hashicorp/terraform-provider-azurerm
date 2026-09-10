@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -10,16 +10,6 @@ import (
 
 type SubscriptionAliasId struct {
 	Name string
-}
-
-func NewSubscriptionAliasId(name string) SubscriptionAliasId {
-	return SubscriptionAliasId{
-		Name: name,
-	}
-}
-
-func (id SubscriptionAliasId) ID() string {
-	return fmt.Sprintf("/providers/Microsoft.Subscription/aliases/%s", id.Name)
 }
 
 func SubscriptionAliasID(input string) (*SubscriptionAliasId, error) {

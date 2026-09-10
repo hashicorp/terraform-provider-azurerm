@@ -1,10 +1,9 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package signalr
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -21,13 +20,17 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity
+
+const webPubSubResourceType = "azurerm_web_pubsub"
 
 func resourceWebPubSub() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -48,10 +51,11 @@ func resourceWebPubSub() *pluginsdk.Resource {
 		}),
 		SchemaVersion: 1,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := webpubsub.ParseWebPubSubID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&webpubsub.WebPubSubId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&webpubsub.WebPubSubId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -213,14 +217,16 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	liveTraceConfig := d.Get("live_trace").([]interface{})
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %q: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %q: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_web_pubsub", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError(webPubSubResourceType, id.ID())
+			}
 		}
 	}
 
@@ -239,11 +245,11 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Identity: identity,
 		Properties: &webpubsub.WebPubSubProperties{
 			LiveTraceConfiguration: expandLiveTraceConfig(liveTraceConfig),
-			PublicNetworkAccess:    utils.String(publicNetworkAcc),
-			DisableAadAuth:         utils.Bool(!d.Get("aad_auth_enabled").(bool)),
-			DisableLocalAuth:       utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			PublicNetworkAccess:    pointer.To(publicNetworkAcc),
+			DisableAadAuth:         pointer.To(!d.Get("aad_auth_enabled").(bool)),
+			DisableLocalAuth:       pointer.To(!d.Get("local_auth_enabled").(bool)),
 			Tls: &webpubsub.WebPubSubTlsSettings{
-				ClientCertEnabled: utils.Bool(d.Get("tls_client_cert_enabled").(bool)),
+				ClientCertEnabled: pointer.To(d.Get("tls_client_cert_enabled").(bool)),
 			},
 		},
 		Sku: &webpubsub.ResourceSku{
@@ -253,33 +259,20 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating/updating %q: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
-	}
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{
-			string(webpubsub.ProvisioningStateUpdating),
-			string(webpubsub.ProvisioningStateCreating),
-			string(webpubsub.ProvisioningStateMoving),
-			string(webpubsub.ProvisioningStateRunning),
-		},
-		Target:                    []string{string(webpubsub.ProvisioningStateSucceeded)},
-		Refresh:                   webPubsubProvisioningStateRefreshFunc(ctx, client, id),
-		Timeout:                   time.Until(deadline),
-		PollInterval:              10 * time.Second,
-		ContinuousTargetOccurence: 5,
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return err
-	}
-
-	d.SetId(id.ID())
 	return resourceWebPubSubRead(d, meta)
 }
 
@@ -308,10 +301,123 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("listing keys for %s: %+v", *id, err)
 	}
 
+	return resourceWebPubSubFlatten(d, id, resp.Model, keys.Model)
+}
+
+func resourceWebPubSubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := webpubsub.ParseWebPubSubID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %q: %+v", id, err)
+	}
+
+	return nil
+}
+
+func expandLiveTraceConfig(input []interface{}) *webpubsub.LiveTraceConfiguration {
+	resourceCategories := make([]webpubsub.LiveTraceCategory, 0)
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	enabled := "false"
+	if v["enabled"].(bool) {
+		enabled = "true"
+	}
+
+	messageLogEnabled := "false"
+	if v["messaging_logs_enabled"].(bool) {
+		messageLogEnabled = "true"
+	}
+	resourceCategories = append(resourceCategories, webpubsub.LiveTraceCategory{
+		Name:    pointer.To("MessagingLogs"),
+		Enabled: pointer.To(messageLogEnabled),
+	})
+
+	connectivityLogEnabled := "false"
+	if v["connectivity_logs_enabled"].(bool) {
+		connectivityLogEnabled = "true"
+	}
+	resourceCategories = append(resourceCategories, webpubsub.LiveTraceCategory{
+		Name:    pointer.To("ConnectivityLogs"),
+		Enabled: pointer.To(connectivityLogEnabled),
+	})
+
+	httpLogEnabled := "false"
+	if v["http_request_logs_enabled"].(bool) {
+		httpLogEnabled = "true"
+	}
+	resourceCategories = append(resourceCategories, webpubsub.LiveTraceCategory{
+		Name:    pointer.To("HttpRequestLogs"),
+		Enabled: pointer.To(httpLogEnabled),
+	})
+
+	return &webpubsub.LiveTraceConfiguration{
+		Enabled:    &enabled,
+		Categories: &resourceCategories,
+	}
+}
+
+func flattenLiveTraceConfig(input *webpubsub.LiveTraceConfiguration) []interface{} {
+	result := make([]interface{}, 0)
+	if input == nil {
+		return result
+	}
+
+	var enabled bool
+	if input.Enabled != nil {
+		enabled = strings.EqualFold(*input.Enabled, "true")
+	}
+
+	var (
+		messagingLogEnabled    bool
+		connectivityLogEnabled bool
+		httpLogsEnabled        bool
+	)
+
+	if input.Categories != nil {
+		for _, item := range *input.Categories {
+			name := pointer.From(item.Name)
+
+			cateEnabled := pointer.From(item.Enabled)
+
+			switch name {
+			case "MessagingLogs":
+				messagingLogEnabled = strings.EqualFold(cateEnabled, "true")
+			case "ConnectivityLogs":
+				connectivityLogEnabled = strings.EqualFold(cateEnabled, "true")
+			case "HttpRequestLogs":
+				httpLogsEnabled = strings.EqualFold(cateEnabled, "true")
+			default:
+				continue
+			}
+		}
+	}
+	return []interface{}{map[string]interface{}{
+		"enabled":                   enabled,
+		"messaging_logs_enabled":    messagingLogEnabled,
+		"connectivity_logs_enabled": connectivityLogEnabled,
+		"http_request_logs_enabled": httpLogsEnabled,
+	}}
+}
+
+func resourceWebPubSubFlatten(d *pluginsdk.ResourceData, id *webpubsub.WebPubSubId, model *webpubsub.WebPubSubResource, keyModel *webpubsub.WebPubSubKeys) error {
 	d.Set("name", id.WebPubSubName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
 		skuName := ""
@@ -358,11 +464,11 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				return fmt.Errorf("setting `live_trace`:%+v", err)
 			}
 
-			identity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
+			identityValue, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
 			}
-			if err := d.Set("identity", identity); err != nil {
+			if err := d.Set("identity", identityValue); err != nil {
 				return fmt.Errorf("setting `identity`: %+v", err)
 			}
 
@@ -372,147 +478,12 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if model := keys.Model; model != nil {
-		d.Set("primary_access_key", model.PrimaryKey)
-		d.Set("primary_connection_string", model.PrimaryConnectionString)
-		d.Set("secondary_access_key", model.SecondaryKey)
-		d.Set("secondary_connection_string", model.SecondaryConnectionString)
+	if keyModel != nil {
+		d.Set("primary_access_key", keyModel.PrimaryKey)
+		d.Set("primary_connection_string", keyModel.PrimaryConnectionString)
+		d.Set("secondary_access_key", keyModel.SecondaryKey)
+		d.Set("secondary_connection_string", keyModel.SecondaryConnectionString)
 	}
 
-	return nil
-}
-
-func resourceWebPubSubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := webpubsub.ParseWebPubSubID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	locks.ByID(id.ID())
-	defer locks.UnlockByID(id.ID())
-
-	if err := client.DeleteThenPoll(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %q: %+v", id, err)
-	}
-
-	return nil
-}
-
-func expandLiveTraceConfig(input []interface{}) *webpubsub.LiveTraceConfiguration {
-	resourceCategories := make([]webpubsub.LiveTraceCategory, 0)
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	v := input[0].(map[string]interface{})
-
-	enabled := "false"
-	if v["enabled"].(bool) {
-		enabled = "true"
-	}
-
-	messageLogEnabled := "false"
-	if v["messaging_logs_enabled"].(bool) {
-		messageLogEnabled = "true"
-	}
-	resourceCategories = append(resourceCategories, webpubsub.LiveTraceCategory{
-		Name:    utils.String("MessagingLogs"),
-		Enabled: utils.String(messageLogEnabled),
-	})
-
-	connectivityLogEnabled := "false"
-	if v["connectivity_logs_enabled"].(bool) {
-		connectivityLogEnabled = "true"
-	}
-	resourceCategories = append(resourceCategories, webpubsub.LiveTraceCategory{
-		Name:    utils.String("ConnectivityLogs"),
-		Enabled: utils.String(connectivityLogEnabled),
-	})
-
-	httpLogEnabled := "false"
-	if v["http_request_logs_enabled"].(bool) {
-		httpLogEnabled = "true"
-	}
-	resourceCategories = append(resourceCategories, webpubsub.LiveTraceCategory{
-		Name:    utils.String("HttpRequestLogs"),
-		Enabled: utils.String(httpLogEnabled),
-	})
-
-	return &webpubsub.LiveTraceConfiguration{
-		Enabled:    &enabled,
-		Categories: &resourceCategories,
-	}
-}
-
-func flattenLiveTraceConfig(input *webpubsub.LiveTraceConfiguration) []interface{} {
-	result := make([]interface{}, 0)
-	if input == nil {
-		return result
-	}
-
-	var enabled bool
-	if input.Enabled != nil {
-		enabled = strings.EqualFold(*input.Enabled, "true")
-	}
-
-	var (
-		messagingLogEnabled    bool
-		connectivityLogEnabled bool
-		httpLogsEnabled        bool
-	)
-
-	if input.Categories != nil {
-		for _, item := range *input.Categories {
-			name := ""
-			if item.Name != nil {
-				name = *item.Name
-			}
-
-			var cateEnabled string
-			if item.Enabled != nil {
-				cateEnabled = *item.Enabled
-			}
-
-			switch name {
-			case "MessagingLogs":
-				messagingLogEnabled = strings.EqualFold(cateEnabled, "true")
-			case "ConnectivityLogs":
-				connectivityLogEnabled = strings.EqualFold(cateEnabled, "true")
-			case "HttpRequestLogs":
-				httpLogsEnabled = strings.EqualFold(cateEnabled, "true")
-			default:
-				continue
-			}
-		}
-	}
-	return []interface{}{map[string]interface{}{
-		"enabled":                   enabled,
-		"messaging_logs_enabled":    messagingLogEnabled,
-		"connectivity_logs_enabled": connectivityLogEnabled,
-		"http_request_logs_enabled": httpLogsEnabled,
-	}}
-}
-
-func webPubsubProvisioningStateRefreshFunc(ctx context.Context, client *webpubsub.WebPubSubClient, id webpubsub.WebPubSubId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
-
-		provisioningState := "Pending"
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return res, provisioningState, nil
-			}
-			return nil, "Error", fmt.Errorf("polling for the provisioning state of %s: %+v", id, err)
-		}
-
-		if res.Model != nil && res.Model.Properties.ProvisioningState != nil {
-			provisioningState = string(*res.Model.Properties.ProvisioningState)
-		}
-
-		return res, provisioningState, nil
-	}
+	return pluginsdk.SetResourceIdentityData(d, id)
 }

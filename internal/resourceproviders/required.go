@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resourceproviders
 
 import (
 	"fmt"
+	"maps"
 	"strings"
 )
 
@@ -36,9 +37,7 @@ func (r ResourceProviders) Add(providers ...string) {
 }
 
 func (r ResourceProviders) Merge(a ResourceProviders) ResourceProviders {
-	for k, v := range a {
-		r[k] = v
-	}
+	maps.Copy(r, a)
 	return r
 }
 

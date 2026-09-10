@@ -62,9 +62,20 @@ func (c CollectorPoliciesClient) CreateOrUpdate(ctx context.Context, id Collecto
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
 func (c CollectorPoliciesClient) CreateOrUpdateThenPoll(ctx context.Context, id CollectorPolicyId, input CollectorPolicy) error {
+	return c.CreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateOrUpdateCallbackThenPoll performs CreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c CollectorPoliciesClient) CreateOrUpdateCallbackThenPoll(ctx context.Context, id CollectorPolicyId, input CollectorPolicy, callback func() error) error {
 	result, err := c.CreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

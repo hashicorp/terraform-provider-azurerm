@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package custompollers
@@ -25,7 +25,6 @@ var (
 		Status:       pollers.PollingStatusSucceeded,
 	}
 	pollingInProgress = pollers.PollResult{
-		HttpResponse: nil,
 		PollInterval: 5 * time.Second,
 		Status:       pollers.PollingStatusInProgress,
 	}

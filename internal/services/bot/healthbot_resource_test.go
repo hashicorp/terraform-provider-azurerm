@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package bot_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2022-08-08/healthbots"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2025-05-25/healthbots"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type HealthbotResource struct{}
@@ -23,7 +23,7 @@ func TestAccBotHealthbot_basic(t *testing.T) {
 	r := HealthbotResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, string(healthbots.SkuNameFZero)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -37,7 +37,7 @@ func TestAccBotHealthbot_requiresImport(t *testing.T) {
 	r := HealthbotResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, string(healthbots.SkuNameFZero)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -65,7 +65,7 @@ func TestAccBotHealthbot_update(t *testing.T) {
 	r := HealthbotResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, string(healthbots.SkuNameFZero)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -79,7 +79,7 @@ func TestAccBotHealthbot_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, string(healthbots.SkuNameCOne)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -94,12 +94,12 @@ func (r HealthbotResource) Exists(ctx context.Context, client *clients.Client, s
 		return nil, err
 	}
 
-	resp, err := client.Bot.HealthBotClient.Healthbots.BotsGet(ctx, *id)
+	resp, err := client.Bot.HealthBotClient.HealthBots.BotsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r HealthbotResource) template(data acceptance.TestData) string {
@@ -115,8 +115,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r HealthbotResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
+func (r HealthbotResource) basic(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -124,13 +123,12 @@ resource "azurerm_healthbot" "test" {
   name                = "acctest-hb-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku_name            = "F0"
+  sku_name            = "%[3]s"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger, sku)
 }
 
 func (r HealthbotResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -140,11 +138,10 @@ resource "azurerm_healthbot" "import" {
   location            = azurerm_healthbot.test.location
   sku_name            = azurerm_healthbot.test.sku_name
 }
-`, config)
+`, r.basic(data, string(healthbots.SkuNameFZero)))
 }
 
 func (r HealthbotResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -152,11 +149,11 @@ resource "azurerm_healthbot" "test" {
   name                = "acctest-hb-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku_name            = "S1"
+  sku_name            = "C1"
 
   tags = {
     ENV = "Test"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }

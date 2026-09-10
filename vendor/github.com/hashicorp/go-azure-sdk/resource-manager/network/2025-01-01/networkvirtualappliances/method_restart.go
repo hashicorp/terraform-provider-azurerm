@@ -62,9 +62,20 @@ func (c NetworkVirtualAppliancesClient) Restart(ctx context.Context, id NetworkV
 
 // RestartThenPoll performs Restart then polls until it's completed
 func (c NetworkVirtualAppliancesClient) RestartThenPoll(ctx context.Context, id NetworkVirtualApplianceId, input NetworkVirtualApplianceInstanceIds) error {
+	return c.RestartCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RestartCallbackThenPoll performs Restart, runs the optional callback function, then polls until it's completed
+func (c NetworkVirtualAppliancesClient) RestartCallbackThenPoll(ctx context.Context, id NetworkVirtualApplianceId, input NetworkVirtualApplianceInstanceIds, callback func() error) error {
 	result, err := c.Restart(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Restart: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

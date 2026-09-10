@@ -82,13 +82,13 @@ The following arguments are supported:
 
 * `server_local_path` - (Required) The path on the Windows Server to be synced to the Azure file share. Changing this forces a new Storage Sync Server Endpoint to be created.
 
-* `cloud_tiering_enabled` - (Optional)  Is Cloud Tiering Enabled? Defaults to `false`.
+* `cloud_tiering_enabled` - (Optional) Is Cloud Tiering Enabled? Defaults to `false`.
 
 * `volume_free_space_percent` - (Optional) What percentage of free space on the volume should be preserved? Defaults to `20`.
 
 * `tier_files_older_than_days` - (Optional) Files older than the specified age will be tiered to the cloud.
 
-* `initial_download_policy` - (Optional)  Specifies how the server initially downloads the Azure file share data. Valid Values includes `NamespaceThenModifiedFiles`, `NamespaceOnly`, and `AvoidTieredFiles`. Defaults to `NamespaceThenModifiedFiles`.
+* `initial_download_policy` - (Optional) Specifies how the server initially downloads the Azure file share data. Valid Values includes `NamespaceThenModifiedFiles`, `NamespaceOnly`, and `AvoidTieredFiles`. Defaults to `NamespaceThenModifiedFiles`. Changing this forces a new resource to be created.
 
 * `local_cache_mode` - (Optional) Specifies how to handle the local cache. Valid Values include `UpdateLocallyCachedFiles` and `DownloadNewAndModifiedFiles`. Defaults to `UpdateLocallyCachedFiles`.
 

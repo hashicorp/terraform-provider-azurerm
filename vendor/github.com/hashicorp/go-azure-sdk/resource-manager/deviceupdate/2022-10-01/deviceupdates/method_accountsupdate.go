@@ -62,9 +62,20 @@ func (c DeviceupdatesClient) AccountsUpdate(ctx context.Context, id AccountId, i
 
 // AccountsUpdateThenPoll performs AccountsUpdate then polls until it's completed
 func (c DeviceupdatesClient) AccountsUpdateThenPoll(ctx context.Context, id AccountId, input AccountUpdate) error {
+	return c.AccountsUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// AccountsUpdateCallbackThenPoll performs AccountsUpdate, runs the optional callback function, then polls until it's completed
+func (c DeviceupdatesClient) AccountsUpdateCallbackThenPoll(ctx context.Context, id AccountId, input AccountUpdate, callback func() error) error {
 	result, err := c.AccountsUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing AccountsUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

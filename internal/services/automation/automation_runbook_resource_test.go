@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/runbook"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runbook"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AutomationRunbookResource struct{}
@@ -25,6 +25,21 @@ func TestAccAutomationRunbook_PSWorkflow(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.PSWorkflow(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("publish_content_link"),
+	})
+}
+
+func TestAccAutomationRunbook_RuntimeEnvironment(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
+	r := AutomationRunbookResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.RuntimeEnvironment(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -158,7 +173,7 @@ func (t AutomationRunbookResource) Exists(ctx context.Context, clients *clients.
 		return nil, fmt.Errorf("retrieving Automation Runbook '%s' (resource group: '%s') does not exist", id.RunbookName, id.ResourceGroupName)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (AutomationRunbookResource) PS72(data acceptance.TestData) string {
@@ -189,6 +204,64 @@ resource "azurerm_automation_runbook" "test" {
   log_progress = "true"
   description  = "This is a test runbook for terraform acceptance test"
   runbook_type = "PowerShell72"
+
+  content = <<CONTENT
+# Some test content
+# for Terraform acceptance test
+CONTENT
+  tags = {
+    ENV = "runbook_test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (AutomationRunbookResource) RuntimeEnvironment(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-auto-%d"
+  location = "%s"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%[3]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+}
+
+resource "azurerm_automation_runtime_environment" "test" {
+  name                  = "acctestruntimeenv-%[3]d"
+  automation_account_id = azurerm_automation_account.test.id
+
+  runtime_language = "PowerShell"
+  runtime_version  = "7.2"
+
+  location    = azurerm_resource_group.test.location
+  description = "acctest description"
+
+  runtime_default_packages = {
+    "az"        = "11.2.0"
+    "azure cli" = "2.56.0"
+  }
+}
+
+resource "azurerm_automation_runbook" "test" {
+  name                    = "acctestrunbook-%[3]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+
+  log_verbose  = "true"
+  log_progress = "true"
+  description  = "This is a test runbook for terraform acceptance test"
+  runbook_type = "PowerShell"
+
+  runtime_environment_name = azurerm_automation_runtime_environment.test.name
 
   content = <<CONTENT
 # Some test content

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"slices"
 	"strings"
 	"time"
 
@@ -163,15 +164,17 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 
 			id := customipprefixes.NewCustomIPPrefixID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := r.client.Get(ctx, id, customipprefixes.DefaultGetOperationOptions())
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := r.client.Get(ctx, id, customipprefixes.DefaultGetOperationOptions())
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			_, cidr, err := net.ParseCIDR(model.CIDR)
@@ -200,10 +203,9 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 			}
 
 			payload := customipprefixes.CustomIPPrefix{
-				Name:             &model.Name,
-				Location:         pointer.To(location.Normalize(model.Location)),
-				Tags:             tags.Expand(model.Tags),
-				ExtendedLocation: nil,
+				Name:     &model.Name,
+				Location: pointer.To(location.Normalize(model.Location)),
+				Tags:     tags.Expand(model.Tags),
 				Properties: &customipprefixes.CustomIPPrefixPropertiesFormat{
 					Cidr:              &model.CIDR,
 					CommissionedState: pointer.To(customipprefixes.CommissionedStateProvisioning),
@@ -233,9 +235,10 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 				payload.Zones = &model.Zones
 			}
 
-			if err := r.client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := r.client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+			metadata.SetID(id)
 
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:    []string{string(customipprefixes.ProvisioningStateUpdating)},
@@ -266,7 +269,6 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 			}
 
 			log.Printf("[DEBUG] Final CommissionedState is %q for %s..", *commissionedState, id)
-			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -284,7 +286,6 @@ func (r CustomIpPrefixResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Info("Decoding state...")
 			var state CustomIpPrefixModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -404,12 +405,7 @@ func (r CustomIpPrefixResource) Delete() sdk.ResourceFunc {
 type commissionedStates []customipprefixes.CommissionedState
 
 func (t commissionedStates) contains(i customipprefixes.CommissionedState) bool {
-	for _, s := range t {
-		if i == s {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(t, i)
 }
 
 func (t commissionedStates) strings() (out []string) {
@@ -434,8 +430,6 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 	}
 
 	initialState := existing.Model.Properties.CommissionedState
-
-	log.Printf("[DEBUG] Updating CommissionedState for %s from current value %q to desired value %q..", id, *initialState, desiredState)
 
 	// stateTree is a map of desired state, to a map of current state, to the list of transition states needed to get there
 	stateTree := map[customipprefixes.CommissionedState]map[customipprefixes.CommissionedState][]customipprefixes.CommissionedState{
@@ -582,7 +576,6 @@ func (r CustomIpPrefixResource) setCommissionedState(ctx context.Context, id cus
 	existing.Model.Properties.CommissionedState = pointer.To(desiredState)
 	existing.Model.Properties.NoInternetAdvertise = noInternetAdvertise
 
-	log.Printf("[DEBUG] Updating the CommissionedState field to %q for %s..", desiredState, id)
 	if err := r.client.CreateOrUpdateThenPoll(ctx, id, *existing.Model); err != nil {
 		return fmt.Errorf("updating CommissionedState to %q for %s: %+v", desiredState, id, err)
 	}

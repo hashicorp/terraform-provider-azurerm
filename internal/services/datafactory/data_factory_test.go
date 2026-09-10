@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -30,6 +30,11 @@ func TestDataFactoryLinkedServiceConnectionStringDiff(t *testing.T) {
 			Old:    "Integrated Security=False;Data Source=test2;Initial Catalog=test;User ID=test",
 			New:    "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test",
 			NoDiff: false,
+		},
+		{
+			Old:    "server=myserver.database.windows.net;database=mydatabase;user id=myuser",
+			New:    "Server=myserver.database.windows.net;Database=mydatabase;User ID=myuser;Password=mypassword;",
+			NoDiff: true,
 		},
 	}
 

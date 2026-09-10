@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package main
@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/dave/jennifer/jen"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 )
@@ -31,22 +32,21 @@ func main() {
 	f := jen.NewFile("main")
 	modelStmts := modelForSchemaMap(snake2Camel(strings.TrimPrefix(rt, "azurerm_"))+"Model", resource.Schema)
 	for _, stmt := range modelStmts {
-		stmt := stmt
-		f.Add(&stmt)
+		f.Add(pointer.To(stmt))
 	}
 	fmt.Printf("%#v", f)
 }
 
 func snake2Camel(input string) string {
 	segs := strings.Split(input, "_")
-	var out string
+	var out strings.Builder
 	for _, seg := range segs {
 		if seg == "" {
 			continue
 		}
-		out += strings.ToUpper(string(seg[0])) + seg[1:]
+		out.WriteString(strings.ToUpper(string(seg[0])) + seg[1:])
 	}
-	return out
+	return out.String()
 }
 
 func modelForSchemaMap(name string, sm map[string]*schema.Schema) []jen.Statement {

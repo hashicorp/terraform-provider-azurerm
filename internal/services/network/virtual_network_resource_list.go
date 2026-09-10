@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -79,7 +79,7 @@ func (r VirtualNetworkListResource) List(ctx context.Context, request list.ListR
 
 			id, err := commonids.ParseVirtualNetworkID(*vnet.Id)
 			if err != nil {
-				sdk.SetResponseErrorDiagnostic(stream, "parsing Virtual Network ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Virtual Network ID", err)
 				return
 			}
 
@@ -89,31 +89,30 @@ func (r VirtualNetworkListResource) List(ctx context.Context, request list.ListR
 
 			rd.SetId(id.ID())
 
-			err = resourceVirtualNetworkFlatten(rd, *id, &vnet)
-			if err != nil {
-				sdk.SetResponseErrorDiagnostic(stream, "encoding resource data", err)
+			if err = resourceVirtualNetworkFlatten(rd, *id, &vnet); err != nil {
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "encoding Resource data", err)
 				return
 			}
 
 			tfTypeIdentity, err := rd.TfTypeIdentityState()
 			if err != nil {
-				sdk.SetResponseErrorDiagnostic(stream, "converting Identity State", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "converting Identity State", err)
 				return
 			}
 
 			if err := result.Identity.Set(ctx, *tfTypeIdentity); err != nil {
-				sdk.SetResponseErrorDiagnostic(stream, "setting identity data", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "setting Identity data", err)
 				return
 			}
 
 			tfTypeResource, err := rd.TfTypeResourceState()
 			if err != nil {
-				sdk.SetResponseErrorDiagnostic(stream, "converting Resource State data", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "converting Resource State data", err)
 				return
 			}
 
 			if err := result.Resource.Set(ctx, *tfTypeResource); err != nil {
-				sdk.SetResponseErrorDiagnostic(stream, "setting resource data", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "setting Resource data", err)
 				return
 			}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package subscription
@@ -27,6 +27,7 @@ func dataSourceSubscription() *pluginsdk.Resource {
 			"subscription_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				// Note: O+C because if this is not set, the provider's configured subscription ID is used
 				Computed: true,
 			},
 

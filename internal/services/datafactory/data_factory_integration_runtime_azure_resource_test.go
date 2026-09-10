@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory_test
@@ -6,6 +6,7 @@ package datafactory_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -90,12 +91,45 @@ func TestAccDataFactoryIntegrationRuntimeAzure_virtualNetwork(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.virtualNetwork(data),
+			Config: r.virtualNetwork(data, "null", true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.virtualNetwork(data, "10", true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.virtualNetwork(data, "60", true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.virtualNetwork(data, "null", true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDataFactoryIntegrationRuntimeAzure_interactiveAuthoringWithoutVirtualNetwork(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure", "test")
+	r := IntegrationRuntimeAzureResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.virtualNetwork(data, "10", false),
+			ExpectError: regexp.MustCompile("when `interactive_authoring_time_to_live_in_minutes` is set, `virtual_network_enabled` must be set to `true`"),
+		},
 	})
 }
 
@@ -141,8 +175,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdfirm%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_integration_runtime_azure" "test" {
@@ -166,8 +200,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdfirm%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_integration_runtime_azure" "test" {
@@ -192,8 +226,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdfirm%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_integration_runtime_azure" "test" {
@@ -218,8 +252,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdfirm%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_integration_runtime_azure" "test" {
@@ -244,8 +278,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdfirm%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_integration_runtime_azure" "test" {
@@ -257,31 +291,32 @@ resource "azurerm_data_factory_integration_runtime_azure" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
 }
 
-func (IntegrationRuntimeAzureResource) virtualNetwork(data acceptance.TestData) string {
+func (IntegrationRuntimeAzureResource) virtualNetwork(data acceptance.TestData, iaTTL string, vnetEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
+  name     = "acctestRG-df-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_data_factory" "test" {
-  name                            = "acctestdf%d"
+  name                            = "acctestdf%[1]d"
   location                        = azurerm_resource_group.test.location
   resource_group_name             = azurerm_resource_group.test.name
   managed_virtual_network_enabled = true
 }
 
 resource "azurerm_data_factory_integration_runtime_azure" "test" {
-  name                    = "azure-integration-runtime"
-  data_factory_id         = azurerm_data_factory.test.id
-  location                = "AutoResolve"
-  virtual_network_enabled = true
+  name                                          = "azure-integration-runtime"
+  data_factory_id                               = azurerm_data_factory.test.id
+  location                                      = "AutoResolve"
+  interactive_authoring_time_to_live_in_minutes = %[3]s
+  virtual_network_enabled                       = %t
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, iaTTL, vnetEnabled)
 }
 
 func (t IntegrationRuntimeAzureResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {

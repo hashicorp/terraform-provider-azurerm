@@ -62,9 +62,20 @@ func (c ClustersClient) ExecuteScriptActions(ctx context.Context, id commonids.H
 
 // ExecuteScriptActionsThenPoll performs ExecuteScriptActions then polls until it's completed
 func (c ClustersClient) ExecuteScriptActionsThenPoll(ctx context.Context, id commonids.HDInsightClusterId, input ExecuteScriptActionParameters) error {
+	return c.ExecuteScriptActionsCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ExecuteScriptActionsCallbackThenPoll performs ExecuteScriptActions, runs the optional callback function, then polls until it's completed
+func (c ClustersClient) ExecuteScriptActionsCallbackThenPoll(ctx context.Context, id commonids.HDInsightClusterId, input ExecuteScriptActionParameters, callback func() error) error {
 	result, err := c.ExecuteScriptActions(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ExecuteScriptActions: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

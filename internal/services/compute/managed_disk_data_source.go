@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -204,11 +204,7 @@ func dataSourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("source_uri", creationData.SourceUri)
 			d.Set("storage_account_id", creationData.StorageAccountId)
 
-			diskAccessId := ""
-			if props.DiskAccessId != nil {
-				diskAccessId = *props.DiskAccessId
-			}
-			d.Set("disk_access_id", diskAccessId)
+			d.Set("disk_access_id", pointer.From(props.DiskAccessId))
 
 			d.Set("network_access_policy", string(*props.NetworkAccessPolicy))
 			d.Set("disk_size_gb", props.DiskSizeGB)

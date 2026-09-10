@@ -87,9 +87,20 @@ func (c VirtualNetworkGatewaysClient) StartExpressRouteSiteFailoverSimulation(ct
 
 // StartExpressRouteSiteFailoverSimulationThenPoll performs StartExpressRouteSiteFailoverSimulation then polls until it's completed
 func (c VirtualNetworkGatewaysClient) StartExpressRouteSiteFailoverSimulationThenPoll(ctx context.Context, id VirtualNetworkGatewayId, options StartExpressRouteSiteFailoverSimulationOperationOptions) error {
+	return c.StartExpressRouteSiteFailoverSimulationCallbackThenPoll(ctx, id, options, nil)
+}
+
+// StartExpressRouteSiteFailoverSimulationCallbackThenPoll performs StartExpressRouteSiteFailoverSimulation, runs the optional callback function, then polls until it's completed
+func (c VirtualNetworkGatewaysClient) StartExpressRouteSiteFailoverSimulationCallbackThenPoll(ctx context.Context, id VirtualNetworkGatewayId, options StartExpressRouteSiteFailoverSimulationOperationOptions, callback func() error) error {
 	result, err := c.StartExpressRouteSiteFailoverSimulation(ctx, id, options)
 	if err != nil {
 		return fmt.Errorf("performing StartExpressRouteSiteFailoverSimulation: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

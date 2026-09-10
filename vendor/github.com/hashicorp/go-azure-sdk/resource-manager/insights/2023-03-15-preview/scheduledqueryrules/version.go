@@ -8,3 +8,7 @@ const defaultApiVersion = "2023-03-15-preview"
 func userAgent() string {
 	return "hashicorp/go-azure-sdk/scheduledqueryrules/2023-03-15-preview"
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}

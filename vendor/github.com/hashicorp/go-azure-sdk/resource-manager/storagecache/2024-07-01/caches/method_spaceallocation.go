@@ -60,9 +60,20 @@ func (c CachesClient) SpaceAllocation(ctx context.Context, id CacheId, input []S
 
 // SpaceAllocationThenPoll performs SpaceAllocation then polls until it's completed
 func (c CachesClient) SpaceAllocationThenPoll(ctx context.Context, id CacheId, input []StorageTargetSpaceAllocation) error {
+	return c.SpaceAllocationCallbackThenPoll(ctx, id, input, nil)
+}
+
+// SpaceAllocationCallbackThenPoll performs SpaceAllocation, runs the optional callback function, then polls until it's completed
+func (c CachesClient) SpaceAllocationCallbackThenPoll(ctx context.Context, id CacheId, input []StorageTargetSpaceAllocation, callback func() error) error {
 	result, err := c.SpaceAllocation(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing SpaceAllocation: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

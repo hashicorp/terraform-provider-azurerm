@@ -61,9 +61,20 @@ func (c WebAppsClient) SwapSlotSlot(ctx context.Context, id SlotId, input CsmSlo
 
 // SwapSlotSlotThenPoll performs SwapSlotSlot then polls until it's completed
 func (c WebAppsClient) SwapSlotSlotThenPoll(ctx context.Context, id SlotId, input CsmSlotEntity) error {
+	return c.SwapSlotSlotCallbackThenPoll(ctx, id, input, nil)
+}
+
+// SwapSlotSlotCallbackThenPoll performs SwapSlotSlot, runs the optional callback function, then polls until it's completed
+func (c WebAppsClient) SwapSlotSlotCallbackThenPoll(ctx context.Context, id SlotId, input CsmSlotEntity, callback func() error) error {
 	result, err := c.SwapSlotSlot(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing SwapSlotSlot: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

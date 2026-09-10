@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault
@@ -8,6 +8,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -17,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -125,25 +126,27 @@ func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *pluginsdk.ResourceData, 
 
 	id := parse.NewIssuerID(*keyVaultBaseUri, name)
 	if d.IsNewResource() {
-		existing, err := client.GetCertificateIssuer(ctx, *keyVaultBaseUri, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("failed to check for presence of existing Certificate Issuer %q (Key Vault %q): %s", name, *keyVaultBaseUri, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.GetCertificateIssuer(ctx, *keyVaultBaseUri, name)
+			if err != nil {
+				if !response.WasNotFound(existing.Response.Response) {
+					return fmt.Errorf("failed to check for presence of existing Certificate Issuer %q (Key Vault %q): %s", name, *keyVaultBaseUri, err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_key_vault_certificate_issuer", id.ID())
+			if !response.WasNotFound(existing.Response.Response) {
+				return tf.ImportAsExistsError("azurerm_key_vault_certificate_issuer", id.ID())
+			}
 		}
 	}
 
 	parameter := keyvault.CertificateIssuerSetParameters{
-		Provider:            utils.String(d.Get("provider_name").(string)),
+		Provider:            pointer.To(d.Get("provider_name").(string)),
 		OrganizationDetails: &keyvault.OrganizationDetails{},
 	}
 
 	if orgIdRaw, ok := d.GetOk("org_id"); ok {
-		parameter.OrganizationDetails.ID = utils.String(orgIdRaw.(string))
+		parameter.OrganizationDetails.ID = pointer.To(orgIdRaw.(string))
 	}
 
 	if adminsRaw, ok := d.GetOk("admin"); ok {
@@ -155,8 +158,8 @@ func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *pluginsdk.ResourceData, 
 
 	if gotAccountId && gotPassword {
 		parameter.Credentials = &keyvault.IssuerCredentials{
-			AccountID: utils.String(accountId.(string)),
-			Password:  utils.String(password.(string)),
+			AccountID: pointer.To(accountId.(string)),
+			Password:  pointer.To(password.(string)),
 		}
 	}
 
@@ -208,7 +211,7 @@ func resourceKeyVaultCertificateIssuerRead(d *pluginsdk.ResourceData, meta inter
 
 	resp, err := client.GetCertificateIssuer(ctx, id.KeyVaultBaseUrl, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[DEBUG] KeyVault Certificate Issuer %q (KeyVault URI %q) does not exist - removing from state", id.Name, id.KeyVaultBaseUrl)
 			d.SetId("")
 			return nil
@@ -264,9 +267,18 @@ func resourceKeyVaultCertificateIssuerDelete(d *pluginsdk.ResourceData, meta int
 	}
 
 	if !ok {
-		log.Printf("[DEBUG] Issuer %q (Key Vault %q) was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
-		d.SetId("")
+		// parent key vault does not exist, nothing to delete
 		return nil
+	}
+
+	resp, err := client.GetCertificateIssuer(ctx, id.KeyVaultBaseUrl, id.Name)
+	if err != nil {
+		if response.WasNotFound(resp.Response.Response) {
+			log.Printf("[DEBUG] Certificate Issuer %q was not found in Key Vault at URI %q - removing from state", id.Name, id.KeyVaultBaseUrl)
+			return nil
+		}
+
+		return fmt.Errorf("checking if Issuer %q in key vault %q at url %q exists: %v", id.Name, *keyVaultId, id.KeyVaultBaseUrl, err)
 	}
 
 	_, err = client.DeleteCertificateIssuer(ctx, id.KeyVaultBaseUrl, id.Name)
@@ -280,16 +292,16 @@ func expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(vs []interfa
 		administratorDetails := keyvault.AdministratorDetails{}
 		args := v.(map[string]interface{})
 		if firstName, ok := args["first_name"]; ok {
-			administratorDetails.FirstName = utils.String(firstName.(string))
+			administratorDetails.FirstName = pointer.To(firstName.(string))
 		}
 		if lastName, ok := args["last_name"]; ok {
-			administratorDetails.LastName = utils.String(lastName.(string))
+			administratorDetails.LastName = pointer.To(lastName.(string))
 		}
 		if emailAddress, ok := args["email_address"]; ok {
-			administratorDetails.EmailAddress = utils.String(emailAddress.(string))
+			administratorDetails.EmailAddress = pointer.To(emailAddress.(string))
 		}
 		if phone, ok := args["phone"]; ok {
-			administratorDetails.Phone = utils.String(phone.(string))
+			administratorDetails.Phone = pointer.To(phone.(string))
 		}
 		results = append(results, administratorDetails)
 	}
@@ -304,31 +316,11 @@ func flattenKeyVaultCertificateIssuerAdmins(input *[]keyvault.AdministratorDetai
 	}
 
 	for _, admin := range *input {
-		emailAddress := ""
-		if admin.EmailAddress != nil {
-			emailAddress = *admin.EmailAddress
-		}
-
-		firstName := ""
-		if admin.FirstName != nil {
-			firstName = *admin.FirstName
-		}
-
-		lastName := ""
-		if admin.LastName != nil {
-			lastName = *admin.LastName
-		}
-
-		phone := ""
-		if admin.Phone != nil {
-			phone = *admin.Phone
-		}
-
 		results = append(results, map[string]interface{}{
-			"email_address": emailAddress,
-			"first_name":    firstName,
-			"last_name":     lastName,
-			"phone":         phone,
+			"email_address": pointer.From(admin.EmailAddress),
+			"first_name":    pointer.From(admin.FirstName),
+			"last_name":     pointer.From(admin.LastName),
+			"phone":         pointer.From(admin.Phone),
 		})
 	}
 

@@ -12,17 +12,17 @@ var _ CopySink = SalesforceSink{}
 
 type SalesforceSink struct {
 	ExternalIdFieldName *interface{}                 `json:"externalIdFieldName,omitempty"`
-	IgnoreNullValues    *bool                        `json:"ignoreNullValues,omitempty"`
+	IgnoreNullValues    *interface{}                 `json:"ignoreNullValues,omitempty"`
 	WriteBehavior       *SalesforceSinkWriteBehavior `json:"writeBehavior,omitempty"`
 
 	// Fields inherited from CopySink
 
-	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
-	SinkRetryCount           *int64       `json:"sinkRetryCount,omitempty"`
+	DisableMetricsCollection *interface{} `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *interface{} `json:"maxConcurrentConnections,omitempty"`
+	SinkRetryCount           *interface{} `json:"sinkRetryCount,omitempty"`
 	SinkRetryWait            *interface{} `json:"sinkRetryWait,omitempty"`
 	Type                     string       `json:"type"`
-	WriteBatchSize           *int64       `json:"writeBatchSize,omitempty"`
+	WriteBatchSize           *interface{} `json:"writeBatchSize,omitempty"`
 	WriteBatchTimeout        *interface{} `json:"writeBatchTimeout,omitempty"`
 }
 

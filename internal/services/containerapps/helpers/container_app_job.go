@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -44,10 +44,11 @@ type ScaleModel struct {
 }
 
 type ScaleRule struct {
-	Auth     []ScaleRuleAuth        `tfschema:"authentication"`
-	Metadata map[string]interface{} `tfschema:"metadata"`
-	Name     string                 `tfschema:"name"`
-	Type     string                 `tfschema:"custom_rule_type"`
+	Auth       []ScaleRuleAuth        `tfschema:"authentication"`
+	IdentityID string                 `tfschema:"identity_id"`
+	Metadata   map[string]interface{} `tfschema:"metadata"`
+	Name       string                 `tfschema:"name"`
+	Type       string                 `tfschema:"custom_rule_type"`
 }
 
 type ScaleRuleAuth struct {
@@ -252,6 +253,10 @@ func ExpandContainerAppJobScaleRules(input []ScaleRule) *[]jobs.JobScaleRule {
 			rule.Type = pointer.To(v.Type)
 		}
 
+		if v.IdentityID != "" {
+			rule.Identity = pointer.To(v.IdentityID)
+		}
+
 		rules = append(rules, rule)
 	}
 
@@ -285,13 +290,11 @@ func ExpandContainerAppJobTemplate(input []JobTemplateModel) *jobs.JobTemplate {
 		return nil
 	}
 	v := input[0]
-	template := &jobs.JobTemplate{
+	return &jobs.JobTemplate{
 		Containers:     expandContainerAppJobContainers(v.Containers),
 		InitContainers: expandInitContainerAppJobContainers(v.InitContainers),
 		Volumes:        expandContainerAppJobVolumes(v.Volumes),
 	}
-
-	return template
 }
 
 func FlattenContainerAppJobTemplate(input *jobs.JobTemplate) []JobTemplateModel {
@@ -496,8 +499,7 @@ func expandContainerAppJobVolumes(input []ContainerVolume) *[]jobs.Volume {
 			volume.StorageName = pointer.To(v.StorageName)
 		}
 		if v.StorageType != "" {
-			storageType := jobs.StorageType(v.StorageType)
-			volume.StorageType = &storageType
+			volume.StorageType = pointer.ToEnum[jobs.StorageType](v.StorageType)
 		}
 		if v.MountOptions != "" {
 			volume.MountOptions = pointer.To(v.MountOptions)
@@ -543,9 +545,8 @@ func expandContainerJobVolumeMounts(input []ContainerVolumeMount) *[]jobs.Volume
 }
 
 func expandContainerAppJobLivenessProbe(input ContainerAppLivenessProbe) jobs.ContainerAppProbe {
-	probeType := jobs.TypeLiveness
 	result := jobs.ContainerAppProbe{
-		Type:                &probeType,
+		Type:                pointer.To(jobs.TypeLiveness),
 		InitialDelaySeconds: pointer.To(input.InitialDelay),
 		PeriodSeconds:       pointer.To(input.Interval),
 		TimeoutSeconds:      pointer.To(input.Timeout),
@@ -554,12 +555,11 @@ func expandContainerAppJobLivenessProbe(input ContainerAppLivenessProbe) jobs.Co
 
 	switch p := strings.ToUpper(input.Transport); p {
 	case "HTTP", "HTTPS":
-		scheme := jobs.Scheme(p)
 		result.HTTPGet = &jobs.ContainerAppProbeHTTPGet{
 			Host:   pointer.To(input.Host),
 			Path:   pointer.To(input.Path),
 			Port:   input.Port,
-			Scheme: &scheme,
+			Scheme: pointer.ToEnum[jobs.Scheme](p),
 		}
 		if input.Headers != nil {
 			headers := make([]jobs.ContainerAppProbeHTTPGetHTTPHeadersInlined, 0)
@@ -584,23 +584,22 @@ func expandContainerAppJobLivenessProbe(input ContainerAppLivenessProbe) jobs.Co
 }
 
 func expandContainerAppJobReadinessProbe(input ContainerAppReadinessProbe) jobs.ContainerAppProbe {
-	probeType := jobs.TypeReadiness
 	result := jobs.ContainerAppProbe{
-		Type:             &probeType,
-		PeriodSeconds:    pointer.To(input.Interval),
-		TimeoutSeconds:   pointer.To(input.Timeout),
-		FailureThreshold: pointer.To(input.FailureThreshold),
-		SuccessThreshold: pointer.To(input.SuccessThreshold),
+		Type:                pointer.To(jobs.TypeReadiness),
+		InitialDelaySeconds: pointer.To(input.InitialDelay),
+		PeriodSeconds:       pointer.To(input.Interval),
+		TimeoutSeconds:      pointer.To(input.Timeout),
+		FailureThreshold:    pointer.To(input.FailureThreshold),
+		SuccessThreshold:    pointer.To(input.SuccessThreshold),
 	}
 
 	switch p := strings.ToUpper(input.Transport); p {
 	case "HTTP", "HTTPS":
-		scheme := jobs.Scheme(p)
 		result.HTTPGet = &jobs.ContainerAppProbeHTTPGet{
 			Host:   pointer.To(input.Host),
 			Path:   pointer.To(input.Path),
 			Port:   input.Port,
-			Scheme: &scheme,
+			Scheme: pointer.ToEnum[jobs.Scheme](p),
 		}
 		if input.Headers != nil {
 			headers := make([]jobs.ContainerAppProbeHTTPGetHTTPHeadersInlined, 0)
@@ -625,22 +624,21 @@ func expandContainerAppJobReadinessProbe(input ContainerAppReadinessProbe) jobs.
 }
 
 func expandContainerAppJobStartupProbe(input ContainerAppStartupProbe) jobs.ContainerAppProbe {
-	probeType := jobs.TypeStartup
 	result := jobs.ContainerAppProbe{
-		Type:             &probeType,
-		PeriodSeconds:    pointer.To(input.Interval),
-		TimeoutSeconds:   pointer.To(input.Timeout),
-		FailureThreshold: pointer.To(input.FailureThreshold),
+		Type:                pointer.To(jobs.TypeStartup),
+		InitialDelaySeconds: pointer.To(input.InitialDelay),
+		PeriodSeconds:       pointer.To(input.Interval),
+		TimeoutSeconds:      pointer.To(input.Timeout),
+		FailureThreshold:    pointer.To(input.FailureThreshold),
 	}
 
 	switch p := strings.ToUpper(input.Transport); p {
 	case "HTTP", "HTTPS":
-		scheme := jobs.Scheme(p)
 		result.HTTPGet = &jobs.ContainerAppProbeHTTPGet{
 			Host:   pointer.To(input.Host),
 			Path:   pointer.To(input.Path),
 			Port:   input.Port,
-			Scheme: &scheme,
+			Scheme: pointer.ToEnum[jobs.Scheme](p),
 		}
 		if input.Headers != nil {
 			headers := make([]jobs.ContainerAppProbeHTTPGetHTTPHeadersInlined, 0)
@@ -713,11 +711,10 @@ func flattenContainerJobVolumeMounts(input *[]jobs.VolumeMount) []ContainerVolum
 func flattenContainerAppJobLivenessProbe(input jobs.ContainerAppProbe) []ContainerAppLivenessProbe {
 	result := make([]ContainerAppLivenessProbe, 0)
 	probe := ContainerAppLivenessProbe{
-		InitialDelay:           pointer.From(input.InitialDelaySeconds),
-		Interval:               pointer.From(input.PeriodSeconds),
-		Timeout:                pointer.From(input.TimeoutSeconds),
-		FailureThreshold:       pointer.From(input.FailureThreshold),
-		TerminationGracePeriod: pointer.From(input.TerminationGracePeriodSeconds),
+		InitialDelay:     pointer.From(input.InitialDelaySeconds),
+		Interval:         pointer.From(input.PeriodSeconds),
+		Timeout:          pointer.From(input.TimeoutSeconds),
+		FailureThreshold: pointer.From(input.FailureThreshold),
 	}
 	if httpGet := input.HTTPGet; httpGet != nil {
 		if httpGet.Scheme != nil {
@@ -753,6 +750,7 @@ func flattenContainerAppJobLivenessProbe(input jobs.ContainerAppProbe) []Contain
 func flattenContainerAppJobReadinessProbe(input jobs.ContainerAppProbe) []ContainerAppReadinessProbe {
 	result := make([]ContainerAppReadinessProbe, 0)
 	probe := ContainerAppReadinessProbe{
+		InitialDelay:     pointer.From(input.InitialDelaySeconds),
 		Interval:         pointer.From(input.PeriodSeconds),
 		Timeout:          pointer.From(input.TimeoutSeconds),
 		FailureThreshold: pointer.From(input.FailureThreshold),
@@ -793,10 +791,10 @@ func flattenContainerAppJobReadinessProbe(input jobs.ContainerAppProbe) []Contai
 func flattenContainerAppJobStartupProbe(input jobs.ContainerAppProbe) []ContainerAppStartupProbe {
 	result := make([]ContainerAppStartupProbe, 0)
 	probe := ContainerAppStartupProbe{
-		Interval:               pointer.From(input.PeriodSeconds),
-		Timeout:                pointer.From(input.TimeoutSeconds),
-		FailureThreshold:       pointer.From(input.FailureThreshold),
-		TerminationGracePeriod: pointer.From(input.TerminationGracePeriodSeconds),
+		InitialDelay:     pointer.From(input.InitialDelaySeconds),
+		Interval:         pointer.From(input.PeriodSeconds),
+		Timeout:          pointer.From(input.TimeoutSeconds),
+		FailureThreshold: pointer.From(input.FailureThreshold),
 	}
 
 	if httpGet := input.HTTPGet; httpGet != nil {
@@ -886,8 +884,7 @@ func FlattenContainerAppJobConfigurationEventTriggerConfig(input *jobs.JobConfig
 	}
 
 	if input.Scale != nil {
-		scale := flattenContainerAppJobScale(input.Scale)
-		eventTriggerConfig.Scale = scale
+		eventTriggerConfig.Scale = flattenContainerAppJobScale(input.Scale)
 	}
 
 	result = append(result, eventTriggerConfig)
@@ -947,8 +944,7 @@ func flattenContainerAppJobScale(input *jobs.JobScale) []ScaleModel {
 	}
 
 	if input.Rules != nil {
-		rules := flattenContainerAppJobScaleRules(input.Rules)
-		scale.Rules = rules
+		scale.Rules = flattenContainerAppJobScaleRules(input.Rules)
 	}
 
 	result = append(result, scale)
@@ -965,8 +961,9 @@ func flattenContainerAppJobScaleRules(input *[]jobs.JobScaleRule) []ScaleRule {
 
 	for _, v := range *input {
 		rule := ScaleRule{
-			Name: pointer.From(v.Name),
-			Type: pointer.From(v.Type),
+			IdentityID: pointer.From(v.Identity),
+			Name:       pointer.From(v.Name),
+			Type:       pointer.From(v.Type),
 		}
 
 		if v.Metadata != nil {
@@ -977,8 +974,7 @@ func flattenContainerAppJobScaleRules(input *[]jobs.JobScaleRule) []ScaleRule {
 		}
 
 		if v.Auth != nil {
-			auth := flattenContainerAppJobScaleRulesAuth(v.Auth)
-			rule.Auth = auth
+			rule.Auth = flattenContainerAppJobScaleRulesAuth(v.Auth)
 		}
 
 		result = append(result, rule)
