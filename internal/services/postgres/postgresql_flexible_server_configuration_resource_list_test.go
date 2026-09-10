@@ -52,7 +52,7 @@ func (r PostgresqlFlexibleServerConfigurationResource) basicQuery() string {
 list "azurerm_postgresql_flexible_server_configuration" "list" {
   provider = azurerm
   config {
-    server_id = azurerm_postgresql_flexible_server.test.id
+    postgresql_flexible_server_id = azurerm_postgresql_flexible_server.test.id
   }
 }
 `

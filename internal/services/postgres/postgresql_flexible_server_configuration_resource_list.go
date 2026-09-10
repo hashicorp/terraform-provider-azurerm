@@ -21,7 +21,7 @@ import (
 type PostgresqlFlexibleServerConfigurationListResource struct{}
 
 type PostgresqlFlexibleServerConfigurationListModel struct {
-	FlexibleServerId types.String `tfsdk:"server_id"`
+	FlexibleServerId types.String `tfsdk:"postgresql_flexible_server_id"`
 }
 
 var _ sdk.FrameworkListWrappedResource = new(PostgresqlFlexibleServerConfigurationListResource)
@@ -37,7 +37,7 @@ func (PostgresqlFlexibleServerConfigurationListResource) ResourceFunc() *plugins
 func (PostgresqlFlexibleServerConfigurationListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"server_id": schema.StringAttribute{
+			"postgresql_flexible_server_id": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{Func: servers.ValidateFlexibleServerID},

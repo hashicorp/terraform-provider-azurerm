@@ -18,7 +18,7 @@ Lists Postgresql Flexible Server Configuration resources.
 list "azurerm_postgresql_flexible_server_configuration" "example" {
   provider = azurerm
   config {
-    server_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.DBforPostgreSQL/flexibleServers/example-server"
+    postgresql_flexible_server_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.DBforPostgreSQL/flexibleServers/example-server"
   }
 }
 ```
@@ -27,4 +27,4 @@ list "azurerm_postgresql_flexible_server_configuration" "example" {
 
 This list resource supports the following arguments:
 
-* `server_id` - (Required) The ID of the PostgreSQL Flexible Server to query.
+* `postgresql_flexible_server_id` - (Required) The ID of the PostgreSQL Flexible Server to query.
