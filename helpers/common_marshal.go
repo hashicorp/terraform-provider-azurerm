@@ -193,8 +193,8 @@ func ExpandIntSliceWithDelimiter(input []interface{}, delimiter string) *string 
 func FlattenStringSliceWithDelimiter(input *string, delimiter string) []interface{} {
 	result := make([]interface{}, 0)
 	if input != nil {
-		inputStrings := strings.Split(*input, delimiter)
-		for _, item := range inputStrings {
+		inputStrings := strings.SplitSeq(*input, delimiter)
+		for item := range inputStrings {
 			result = append(result, item)
 		}
 	}

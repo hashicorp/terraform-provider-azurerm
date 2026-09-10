@@ -137,8 +137,7 @@ func resourceDataFactoryFlowletDataFlowCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		flowLet.Annotations = &annotations
+		flowLet.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("folder"); ok {

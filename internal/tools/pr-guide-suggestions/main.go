@@ -167,7 +167,7 @@ func splitSet(s string) map[string]bool {
 		return nil
 	}
 	out := map[string]bool{}
-	for _, part := range strings.Split(s, ",") {
+	for part := range strings.SplitSeq(s, ",") {
 		if p := strings.ToUpper(strings.TrimSpace(part)); p != "" {
 			out[p] = true
 		}

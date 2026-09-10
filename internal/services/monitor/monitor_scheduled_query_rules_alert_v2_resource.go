@@ -439,9 +439,8 @@ func (r ScheduledQueryRulesAlertV2Resource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			kind := scheduledqueryrules.KindLogAlert
 			properties := &scheduledqueryrules.ScheduledQueryRuleResource{
-				Kind:     &kind,
+				Kind:     pointer.To(scheduledqueryrules.KindLogAlert),
 				Location: location.Normalize(model.Location),
 				Properties: scheduledqueryrules.ScheduledQueryRuleProperties{
 					AutoMitigate:                          &model.AutoMitigate,
@@ -740,8 +739,7 @@ func expandScheduledQueryRulesAlertV2ActionsModel(inputList []ScheduledQueryRule
 		}
 		output.ActionProperties = &m
 	} else {
-		m := map[string]string{}
-		output.ActionProperties = &m
+		output.ActionProperties = pointer.To(map[string]string{})
 	}
 
 	return &output

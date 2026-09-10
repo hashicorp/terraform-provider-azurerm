@@ -436,16 +436,14 @@ func expandAfdDomainTlsParameters(d *pluginsdk.ResourceData, input []interface{}
 	}
 
 	if minTlsVersion != "" {
-		tlsVer := afddomains.AfdMinimumTlsVersion(minTlsVersion)
-		tls.MinimumTlsVersion = &tlsVer
+		tls.MinimumTlsVersion = pointer.ToEnum[afddomains.AfdMinimumTlsVersion](minTlsVersion)
 	}
 
 	if len(cipherSuiteRaw) > 0 && cipherSuiteRaw[0] != nil {
 		cipherSuite := cipherSuiteRaw[0].(map[string]interface{})
 
 		if cipherSuiteType := cipherSuite["type"].(string); cipherSuiteType != "" {
-			cipherType := afddomains.AfdCipherSuiteSetType(cipherSuiteType)
-			tls.CipherSuiteSetType = &cipherType
+			tls.CipherSuiteSetType = pointer.ToEnum[afddomains.AfdCipherSuiteSetType](cipherSuiteType)
 		}
 
 		if customCiphersRaw := cipherSuite["custom_ciphers"].([]interface{}); len(customCiphersRaw) > 0 {

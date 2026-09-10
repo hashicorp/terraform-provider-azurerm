@@ -406,7 +406,6 @@ func (r AlertRuleAnomalyBuiltInResource) Delete() sdk.ResourceFunc {
 					IsDefaultSettings:        props.IsDefaultSettings,
 					AnomalySettingsVersion:   props.AnomalySettingsVersion,
 					SettingsDefinitionId:     props.SettingsDefinitionId,
-					Enabled:                  false,
 					SettingsStatus:           props.SettingsStatus,
 					CustomizableObservations: props.CustomizableObservations,
 				},

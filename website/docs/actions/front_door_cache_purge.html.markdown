@@ -73,7 +73,6 @@ action "azurerm_cdn_front_door_cache_purge" "example" {
 }
 ```
 
-
 ## Argument Reference
 
 This action supports the following arguments:

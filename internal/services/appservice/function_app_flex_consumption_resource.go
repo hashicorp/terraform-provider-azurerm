@@ -417,25 +417,21 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
-			blobContainerType := webapps.FunctionsDeploymentStorageType(functionAppFlexConsumption.StorageContainerType)
 			storageDeployment := &webapps.FunctionsDeployment{
 				Storage: &webapps.FunctionsDeploymentStorage{
-					Type:  &blobContainerType,
+					Type:  pointer.ToEnum[webapps.FunctionsDeploymentStorageType](functionAppFlexConsumption.StorageContainerType),
 					Value: &functionAppFlexConsumption.StorageContainerEndpoint,
 				},
 			}
-			storageAuthType := webapps.AuthenticationType(functionAppFlexConsumption.StorageAuthType)
 			storageConnStringForFCApp := "DEPLOYMENT_STORAGE_CONNECTION_STRING"
-			endpoint := strings.TrimPrefix(functionAppFlexConsumption.StorageContainerEndpoint, "https://")
 			var storageString string
-			if storageNameIndex := strings.Index(endpoint, "."); storageNameIndex != -1 {
-				storageName := endpoint[:storageNameIndex]
+			if storageName, _, ok := strings.Cut(strings.TrimPrefix(functionAppFlexConsumption.StorageContainerEndpoint, "https://"), "."); ok {
 				storageString = fmt.Sprintf(StorageStringFmt, storageName, functionAppFlexConsumption.StorageAccessKey, *storageDomainSuffix)
 			} else {
 				return fmt.Errorf("retrieving storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", functionAppFlexConsumption.StorageContainerEndpoint)
 			}
 			storageAuth := webapps.FunctionsDeploymentStorageAuthentication{
-				Type: &storageAuthType,
+				Type: pointer.ToEnum[webapps.AuthenticationType](functionAppFlexConsumption.StorageAuthType),
 			}
 
 			if functionAppFlexConsumption.StorageAuthType == string(webapps.AuthenticationTypeStorageAccountConnectionString) {
@@ -454,9 +450,8 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 
 			storageAuth.StorageAccountConnectionStringName = &storageConnStringForFCApp
 			storageDeployment.Storage.Authentication = &storageAuth
-			runtimeName := webapps.RuntimeName(functionAppFlexConsumption.RuntimeName)
 			runtime := webapps.FunctionsRuntime{
-				Name:    &runtimeName,
+				Name:    pointer.ToEnum[webapps.RuntimeName](functionAppFlexConsumption.RuntimeName),
 				Version: &functionAppFlexConsumption.RuntimeVersion,
 			}
 
@@ -534,9 +529,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 
 			if !functionAppFlexConsumption.PublishingDeployBasicAuthEnabled {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{},
 				}
 				if _, err := client.UpdateScmAllowed(ctx, id, sitePolicy); err != nil {
 					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
@@ -855,10 +848,8 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 
 			var storageString string
 			if state.StorageContainerEndpoint != "" || metadata.ResourceData.HasChange("storage_container_endpoint") {
-				endpoint := strings.TrimPrefix(state.StorageContainerEndpoint, "https://")
 				model.Properties.FunctionAppConfig.Deployment.Storage.Value = pointer.To(state.StorageContainerEndpoint)
-				if storageNameIndex := strings.Index(endpoint, "."); storageNameIndex != -1 {
-					storageName := endpoint[:storageNameIndex]
+				if storageName, _, ok := strings.Cut(strings.TrimPrefix(state.StorageContainerEndpoint, "https://"), "."); ok {
 					storageString = fmt.Sprintf(StorageStringFmt, storageName, state.StorageAccessKey, *storageDomainSuffix)
 				} else {
 					return fmt.Errorf("retrieving storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", state.StorageContainerEndpoint)
@@ -867,9 +858,8 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 
 			storageConnStringForFCApp := "DEPLOYMENT_STORAGE_CONNECTION_STRING"
 			if metadata.ResourceData.HasChange("storage_authentication_type") {
-				storageAuthType := webapps.AuthenticationType(state.StorageAuthType)
 				storageAuth := webapps.FunctionsDeploymentStorageAuthentication{
-					Type: &storageAuthType,
+					Type: pointer.ToEnum[webapps.AuthenticationType](state.StorageAuthType),
 				}
 				if state.StorageAuthType == string(webapps.AuthenticationTypeStorageAccountConnectionString) {
 					if state.StorageAccessKey == "" {
@@ -930,9 +920,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 						},
 					}
 				} else {
-					model.Properties.FunctionAppConfig.ScaleAndConcurrency.Triggers = &webapps.FunctionsScaleAndConcurrencyTriggers{
-						HTTP: nil,
-					}
+					model.Properties.FunctionAppConfig.ScaleAndConcurrency.Triggers = &webapps.FunctionsScaleAndConcurrencyTriggers{}
 				}
 			}
 

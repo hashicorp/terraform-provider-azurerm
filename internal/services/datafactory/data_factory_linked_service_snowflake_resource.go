@@ -177,8 +177,7 @@ func resourceDataFactoryLinkedServiceSnowflakeCreateUpdate(d *pluginsdk.Resource
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		snowflakeLinkedService.Annotations = &annotations
+		snowflakeLinkedService.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{

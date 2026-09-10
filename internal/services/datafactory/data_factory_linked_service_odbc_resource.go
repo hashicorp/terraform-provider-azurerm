@@ -189,8 +189,7 @@ func resourceDataFactoryLinkedServiceOdbcCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		odbcLinkedService.Annotations = &annotations
+		odbcLinkedService.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{

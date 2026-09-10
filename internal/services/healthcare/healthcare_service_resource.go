@@ -404,15 +404,13 @@ func expandCorsConfiguration(d *pluginsdk.ResourceData) *service.ServiceCorsConf
 	allowedOrigins := *helpers.ExpandStringSlice(corsConfigAttr["allowed_origins"].(*pluginsdk.Set).List())
 	allowedHeaders := *helpers.ExpandStringSlice(corsConfigAttr["allowed_headers"].(*pluginsdk.Set).List())
 	allowedMethods := *helpers.ExpandStringSlice(corsConfigAttr["allowed_methods"].([]interface{}))
-	maxAgeInSeconds := int64(corsConfigAttr["max_age_in_seconds"].(int))
-	allowCredentials := corsConfigAttr["allow_credentials"].(bool)
 
 	return &service.ServiceCorsConfigurationInfo{
 		Origins:          &allowedOrigins,
 		Headers:          &allowedHeaders,
 		Methods:          &allowedMethods,
-		MaxAge:           &maxAgeInSeconds,
-		AllowCredentials: &allowCredentials,
+		MaxAge:           pointer.To(int64(corsConfigAttr["max_age_in_seconds"].(int))),
+		AllowCredentials: pointer.To(corsConfigAttr["allow_credentials"].(bool)),
 	}
 }
 
@@ -424,14 +422,11 @@ func expandAuthentication(d *pluginsdk.ResourceData) *service.ServiceAuthenticat
 	}
 
 	authConfigAttr := authConfigRaw[0].(map[string]interface{})
-	authority := authConfigAttr["authority"].(string)
-	audience := authConfigAttr["audience"].(string)
-	smartProxyEnabled := authConfigAttr["smart_proxy_enabled"].(bool)
 
 	return &service.ServiceAuthenticationConfigurationInfo{
-		Authority:         &authority,
-		Audience:          &audience,
-		SmartProxyEnabled: &smartProxyEnabled,
+		Authority:         pointer.To(authConfigAttr["authority"].(string)),
+		Audience:          pointer.To(authConfigAttr["audience"].(string)),
+		SmartProxyEnabled: pointer.To(authConfigAttr["smart_proxy_enabled"].(bool)),
 	}
 }
 

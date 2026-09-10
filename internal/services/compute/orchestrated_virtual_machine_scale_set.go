@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"slices"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -829,11 +830,9 @@ func validatePasswordComplexity(input interface{}, key string, min int, max int)
 		"abc@123", "P@$$w0rd", "P@ssw0rd", "P@ssword123", "Pa$$word", "pass@word1", "Password!", "Password1", "Password22", "iloveyou!",
 	}
 
-	for _, str := range disallowedValues {
-		if password == str {
-			errors = append(errors, fmt.Errorf("%q can not be one of %s, got %q", key, azure.QuotedStringSlice(disallowedValues), password))
-			return warnings, errors
-		}
+	if slices.Contains(disallowedValues, password) {
+		errors = append(errors, fmt.Errorf("%q can not be one of %s, got %q", key, azure.QuotedStringSlice(disallowedValues), password))
+		return warnings, errors
 	}
 
 	return warnings, errors
@@ -1361,13 +1360,11 @@ func ExpandOrchestratedVirtualMachineScaleSetScheduledEventsProfile(input []inte
 	}
 
 	raw := input[0].(map[string]interface{})
-	enabled := raw["enabled"].(bool)
-	timeout := raw["timeout"].(string)
 
 	return &virtualmachinescalesets.ScheduledEventsProfile{
 		TerminateNotificationProfile: &virtualmachinescalesets.TerminateNotificationProfile{
-			Enable:           &enabled,
-			NotBeforeTimeout: &timeout,
+			Enable:           pointer.To(raw["enabled"].(bool)),
+			NotBeforeTimeout: pointer.To(raw["timeout"].(string)),
 		},
 	}
 }

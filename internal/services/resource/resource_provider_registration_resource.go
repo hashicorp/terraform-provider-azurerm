@@ -283,7 +283,7 @@ func (r ResourceProviderRegistrationResource) Read() sdk.ResourceFunc {
 					case Registering, Registered:
 						features = append(features, ResourceProviderRegistrationFeatureModel{Name: featureName, Registered: true})
 					case Unregistering, Unregistered:
-						features = append(features, ResourceProviderRegistrationFeatureModel{Name: featureName, Registered: false})
+						features = append(features, ResourceProviderRegistrationFeatureModel{Name: featureName})
 					}
 				}
 			}

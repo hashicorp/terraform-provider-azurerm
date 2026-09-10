@@ -1047,9 +1047,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if d.HasChange("min_api_version") {
-		props.ApiVersionConstraint = &apimanagementservice.ApiVersionConstraint{
-			MinApiVersion: nil,
-		}
+		props.ApiVersionConstraint = &apimanagementservice.ApiVersionConstraint{}
 
 		if v, ok := d.GetOk("min_api_version"); ok {
 			props.ApiVersionConstraint.MinApiVersion = pointer.To(v.(string))

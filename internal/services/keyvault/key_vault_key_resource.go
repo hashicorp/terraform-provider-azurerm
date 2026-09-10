@@ -430,7 +430,7 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 					stateConf := &pluginsdk.StateChangeConf{
 						Pending:                   []string{"pending"},
 						Target:                    []string{"available"},
-						Refresh:                   keyVaultChildItemRefreshFunc(*kid),
+						Refresh:                   keyVaultChildItemRefreshFunc(ctx, *kid),
 						Delay:                     30 * time.Second,
 						PollInterval:              10 * time.Second,
 						ContinuousTargetOccurence: 10,
@@ -856,13 +856,11 @@ func expandKeyVaultKeyRotationPolicy(v []interface{}) keys.KeyRotationPolicy {
 		autoRotationRaw := autoRotationList[0].(map[string]interface{})
 
 		if v := autoRotationRaw["time_after_creation"]; v != nil && v.(string) != "" {
-			timeAfterCreate := v.(string)
-			lifetimeActionRotate.Trigger.TimeAfterCreate = &timeAfterCreate
+			lifetimeActionRotate.Trigger.TimeAfterCreate = pointer.To(v.(string))
 		}
 
 		if v := autoRotationRaw["time_before_expiry"]; v != nil && v.(string) != "" {
-			timeBeforeExpiry := v.(string)
-			lifetimeActionRotate.Trigger.TimeBeforeExpiry = &timeBeforeExpiry
+			lifetimeActionRotate.Trigger.TimeBeforeExpiry = pointer.To(v.(string))
 		}
 
 		lifetimeActions = append(lifetimeActions, lifetimeActionRotate)
