@@ -63,6 +63,11 @@ func TestAccDataSourceSynapseWorkspace_azureDevOps(t *testing.T) {
 			Config: SynapseWorkspaceDataSource{}.azureDevOps(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("azure_devops_repo.#").HasValue("1"),
+				check.That(data.ResourceName).Key("azure_devops_repo.0.account_name").HasValue("myorg"),
+				check.That(data.ResourceName).Key("azure_devops_repo.0.project_name").HasValue("myproj"),
+				check.That(data.ResourceName).Key("azure_devops_repo.0.repository_name").HasValue("myrepo"),
+				check.That(data.ResourceName).Key("azure_devops_repo.0.branch_name").HasValue("dev"),
+				check.That(data.ResourceName).Key("azure_devops_repo.0.root_folder").HasValue("/"),
 			),
 		},
 	})
@@ -76,6 +81,11 @@ func TestAccDataSourceSynapseWorkspace_github(t *testing.T) {
 			Config: SynapseWorkspaceDataSource{}.github(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("github_repo.#").HasValue("1"),
+				check.That(data.ResourceName).Key("github_repo.0.account_name").HasValue("myuser"),
+				check.That(data.ResourceName).Key("github_repo.0.git_url").HasValue("https://github.mydomain.com"),
+				check.That(data.ResourceName).Key("github_repo.0.repository_name").HasValue("myrepo"),
+				check.That(data.ResourceName).Key("github_repo.0.branch_name").HasValue("dev"),
+				check.That(data.ResourceName).Key("github_repo.0.root_folder").HasValue("/"),
 			),
 		},
 	})
@@ -89,6 +99,12 @@ func TestAccDataSourceSynapseWorkspace_customerManagedKeyAndAzureAdOnlyAuthentic
 			Config: SynapseWorkspaceDataSource{}.customerManagedKeyAndAzureAdOnlyAuthentication(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("customer_managed_key.#").HasValue("1"),
+				check.That(data.ResourceName).Key("customer_managed_key.0.key_versionless_id").MatchesOtherKey(
+					check.That("azurerm_key_vault_key.test").Key("versionless_id"),
+				),
+				check.That(data.ResourceName).Key("customer_managed_key.0.user_assigned_identity_id").MatchesOtherKey(
+					check.That("azurerm_user_assigned_identity.test").Key("id"),
+				),
 				check.That(data.ResourceName).Key("azuread_authentication_only").HasValue("true"),
 			),
 		},

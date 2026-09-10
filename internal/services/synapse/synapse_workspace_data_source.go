@@ -83,16 +83,29 @@ func dataSourceSynapseWorkspace() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"compute_subnet_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"connectivity_endpoints": {
+				Type:     pluginsdk.TypeMap,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
 			"customer_managed_key": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"key_versionless_id": {
+						"key_name": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
-						"key_name": {
+						"key_versionless_id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
@@ -102,6 +115,11 @@ func dataSourceSynapseWorkspace() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"data_exfiltration_protection_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
 			},
 
 			"github_repo": {
@@ -137,6 +155,26 @@ func dataSourceSynapseWorkspace() *pluginsdk.Resource {
 				},
 			},
 
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
+
+			"linking_allowed_for_aad_tenant_ids": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"managed_resource_group_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"managed_virtual_network_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
@@ -147,55 +185,17 @@ func dataSourceSynapseWorkspace() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"sql_administrator_login": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"sql_identity_control_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
-			"linking_allowed_for_aad_tenant_ids": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
-			"compute_subnet_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"data_exfiltration_protection_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
-			},
-
-			"managed_virtual_network_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
-			},
-
-			"connectivity_endpoints": {
-				Type:     pluginsdk.TypeMap,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
-			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
-
-			"managed_resource_group_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
 			"storage_data_lake_gen2_filesystem_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"sql_administrator_login": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},

@@ -39,9 +39,9 @@ the following Attributes are exported:
 
 * `location` - The Azure location where the Synapse Workspace exists.
 
-* `azuread_authentication_only` - Whether Azure AD authentication is the only way to authenticate with resources inside this Synapse Workspace.
-
 * `azure_devops_repo` - An `azure_devops_repo` block as documented below.
+
+* `azuread_authentication_only` - Whether Azure AD authentication is the only way to authenticate with resources inside this Synapse Workspace.
 
 * `compute_subnet_id` - The ID of the Subnet used for computes in this Synapse Workspace.
 
@@ -103,6 +103,18 @@ A `customer_managed_key` block exports the following:
 
 ---
 
+The `identity` block exports the following:
+
+* `type` - The Identity Type for the Service Principal associated with the Managed Service Identity of this Synapse Workspace.
+
+* `identity_ids` - The IDs of the User Assigned Identities associated with the Managed Service Identity of this Synapse Workspace.
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Synapse Workspace.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this Synapse Workspace.
+
+---
+
 A `github_repo` block exports the following:
 
 * `account_name` - The GitHub account name.
@@ -116,18 +128,6 @@ A `github_repo` block exports the following:
 * `repository_name` - The name of the Git repository.
 
 * `root_folder` - The root folder within the repository.
-
----
-
-The `identity` block exports the following:
-
-* `type` - The Identity Type for the Service Principal associated with the Managed Service Identity of this Synapse Workspace.
-
-* `identity_ids` - The IDs of the User Assigned Identities associated with the Managed Service Identity of this Synapse Workspace.
-
-* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Synapse Workspace.
-
-* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this Synapse Workspace.
 
 ## Timeouts
 
