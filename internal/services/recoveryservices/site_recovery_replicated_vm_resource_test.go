@@ -399,7 +399,7 @@ resource "azurerm_network_interface" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
-
+    name                          = "vm-%[1]d"
     subnet_id                     = azurerm_subnet.test1.id
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.test-source.id
@@ -1859,6 +1859,7 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
     "Create",
     "Delete",
     "Get",
+    "Purge",
     "Update",
     "GetRotationPolicy",
   ]
