@@ -55,7 +55,7 @@ func (r ApiManagementWorkspaceGroupResource) Arguments() map[string]*pluginsdk.S
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.StringLenBetween(1, 300),
 		},
 
 		"description": {
@@ -259,7 +259,7 @@ func (r ApiManagementWorkspaceGroupResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			rd := metadata.ResourceDiff
-			groupType := rd.Get("type")
+			groupType := rd.Get("type").(string)
 			isExternalIdUnset := rd.GetRawConfig().AsValueMap()["external_id"].IsNull()
 
 			if groupType == string(group.GroupTypeExternal) && isExternalIdUnset {
@@ -270,6 +270,6 @@ func (r ApiManagementWorkspaceGroupResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 			return nil
 		},
-		Timeout: 30 * time.Minute,
+		Timeout: 5 * time.Minute,
 	}
 }

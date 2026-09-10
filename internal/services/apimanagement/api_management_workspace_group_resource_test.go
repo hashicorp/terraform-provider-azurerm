@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -15,10 +16,51 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type ApiManagementWorkspaceGroupTestResource struct{}
+
+func TestApiManagementWorkspaceGroup_schemaValidation(t *testing.T) {
+	schema := apimanagement.ApiManagementWorkspaceGroupResource{}.Arguments()
+	testCases := map[string]struct {
+		field       string
+		value       string
+		expectError bool
+	}{
+		"name accepts 80 characters": {
+			field: "name",
+			value: strings.Repeat("a", 80),
+		},
+		"name rejects 81 characters": {
+			field:       "name",
+			value:       strings.Repeat("a", 81),
+			expectError: true,
+		},
+		"display_name accepts 300 characters": {
+			field: "display_name",
+			value: strings.Repeat("a", 300),
+		},
+		"display_name rejects 301 characters": {
+			field:       "display_name",
+			value:       strings.Repeat("a", 301),
+			expectError: true,
+		},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			_, errors := schema[testCase.field].ValidateFunc(testCase.value, testCase.field)
+			if testCase.expectError && len(errors) == 0 {
+				t.Fatalf("expected validation error for %q", testCase.value)
+			}
+			if !testCase.expectError && len(errors) != 0 {
+				t.Fatalf("unexpected validation errors for %q: %+v", testCase.value, errors)
+			}
+		})
+	}
+}
 
 func TestAccApiManagementWorkspaceGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_group", "test")
