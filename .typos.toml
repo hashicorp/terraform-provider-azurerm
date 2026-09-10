@@ -54,7 +54,31 @@ abd = "abd"
 usera = "usera"
 copywrite = "copywrite" # .copywrite.hcl, the tool's own name
 
+# corrections typos' dictionary lacks but codespell caught in this repo: contractions written without
+# the apostrophe, run-together words and a few plain misspellings
+doesnt = "doesn't"
+dont = "don't"
+isnt = "isn't"
+cant = "can't"
+wont = "won't"
+couldt = "couldn't"
+theres = "there's"
+everytime = "every time"
+forthe = "for the"
+loner = "longer"
+manged = "managed"
+manger = "manager"
+followings = "following"
+implementor = "implementer"
+scrips = "scripts"
+dependant = "dependent"
+existant = "existent"
+tthe = "the"
+
 [default.extend-identifiers]
 # misspelled names in the plugin SDK and go-azure-sdk that the provider has to use as-is
 ContinuousTargetOccurence = "ContinuousTargetOccurence"
 NegationConditon = "NegationConditon"
+# identifiers cannot hold apostrophes, so the contraction corrections above must not apply to them
+doesntHavePermissions = "doesntHavePermissions"
+ValidateVolumeSpecCantRepeat = "ValidateVolumeSpecCantRepeat"
