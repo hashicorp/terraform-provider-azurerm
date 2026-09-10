@@ -39,7 +39,6 @@ func (Client) DataPlaneOperationSupportingAnyAuthMethod() DataPlaneOperation {
 
 func (Client) DataPlaneOperationSupportingOnlySharedKeyAuth() DataPlaneOperation {
 	return DataPlaneOperation{
-		SupportsAadAuthentication:       false,
 		SupportsSharedKeyAuthentication: true,
 	}
 }

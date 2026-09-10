@@ -386,8 +386,7 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		result, err := client.CreateOrUpdate(ctx, id, parameters)
 		if err != nil {
 			return &pluginsdk.RetryError{
-				Err:       fmt.Errorf("creating %s: %+v", id, err),
-				Retryable: false,
+				Err: fmt.Errorf("creating %s: %+v", id, err),
 			}
 		}
 
@@ -403,8 +402,7 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 				var lroError lroErrorType
 				if err := lroFailError.HttpResponse.Unmarshal(&lroError); err != nil {
 					return &pluginsdk.RetryError{
-						Err:       fmt.Errorf("unmarshaling lro error response: %v", err),
-						Retryable: false,
+						Err: fmt.Errorf("unmarshaling lro error response: %v", err),
 					}
 				}
 
@@ -417,8 +415,7 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 				}
 			}
 			return &pluginsdk.RetryError{
-				Err:       fmt.Errorf("waiting for the creation of %s: %+v", id, err),
-				Retryable: false,
+				Err: fmt.Errorf("waiting for the creation of %s: %+v", id, err),
 			}
 		}
 
@@ -564,8 +561,7 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			case strings.EqualFold(err.Error(), "is missing required parameter 'group Id'"):
 				{
 					return &pluginsdk.RetryError{
-						Err:       fmt.Errorf("updating %s due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", id, err),
-						Retryable: false,
+						Err: fmt.Errorf("updating %s due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", id, err),
 					}
 				}
 			case strings.Contains(err.Error(), "PrivateLinkServiceId Invalid private link service id"):
