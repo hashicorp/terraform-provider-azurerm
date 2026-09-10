@@ -17,7 +17,7 @@ func TestAccCdnFrontdoorOriginGroup_resourceIdentity(t *testing.T) {
 	r := CdnFrontdoorOriginGroupResource{}
 
 	checkedFields := map[string]struct{}{
-		"origin_group_name":   {},
+		"name":                {},
 		"profile_name":        {},
 		"resource_group_name": {},
 		"subscription_id":     {},
@@ -28,7 +28,7 @@ func TestAccCdnFrontdoorOriginGroup_resourceIdentity(t *testing.T) {
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_cdn_frontdoor_origin_group.test", checkedFields),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_cdn_frontdoor_origin_group.test", tfjsonpath.New("origin_group_name"), tfjsonpath.New("name")),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_cdn_frontdoor_origin_group.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_cdn_frontdoor_origin_group.test", tfjsonpath.New("profile_name"), tfjsonpath.New("cdn_frontdoor_profile_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_cdn_frontdoor_origin_group.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("cdn_frontdoor_profile_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_cdn_frontdoor_origin_group.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("cdn_frontdoor_profile_id")),

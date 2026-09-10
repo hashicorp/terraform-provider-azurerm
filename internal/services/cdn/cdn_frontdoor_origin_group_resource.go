@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -compare-values "origin_group_name:name,subscription_id:cdn_frontdoor_profile_id,resource_group_name:cdn_frontdoor_profile_id,profile_name:cdn_frontdoor_profile_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "subscription_id:cdn_frontdoor_profile_id,resource_group_name:cdn_frontdoor_profile_id,profile_name:cdn_frontdoor_profile_id"
 
 const azureCdnFrontDoorOriginGroupResourceName = "azurerm_cdn_frontdoor_origin_group"
 
@@ -39,10 +39,10 @@ func resourceCdnFrontDoorOriginGroup() *pluginsdk.Resource {
 		},
 
 		Identity: &schema.ResourceIdentity{
-			SchemaFunc: pluginsdk.GenerateIdentitySchema(&afdorigingroups.OriginGroupId{}, pluginsdk.ResourceTypeForIdentityVirtual),
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&afdorigingroups.OriginGroupId{}),
 		},
 
-		Importer: pluginsdk.ImporterValidatingIdentity(&afdorigingroups.OriginGroupId{}, pluginsdk.ResourceTypeForIdentityVirtual),
+		Importer: pluginsdk.ImporterValidatingIdentity(&afdorigingroups.OriginGroupId{}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -193,6 +193,10 @@ func resourceCdnFrontDoorOriginGroupCreate(d *pluginsdk.ResourceData, meta inter
 
 	d.SetId(id.ID())
 
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceCdnFrontDoorOriginGroupRead(d, meta)
 }
 
@@ -238,7 +242,7 @@ func resourceCdnFrontDoorOriginGroupFlatten(d *pluginsdk.ResourceData, id *afdor
 		}
 	}
 
-	return pluginsdk.SetResourceIdentityData(d, id, pluginsdk.ResourceTypeForIdentityVirtual)
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceCdnFrontDoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

@@ -39,7 +39,7 @@ func TestAccCdnFrontDoorOriginGroup_listByProfileID(t *testing.T) {
 					querycheck.ExpectIdentity(
 						"azurerm_cdn_frontdoor_origin_group.list",
 						map[string]knownvalue.Check{
-							"origin_group_name":   knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"name":                knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"profile_name":        knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
