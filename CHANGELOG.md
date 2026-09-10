@@ -1,12 +1,12 @@
 ## 5.5.0 (Unreleased)
 
 ENHANCEMENTS:
-* **New List Resource**: `azurerm_cdn_frontdoor_origin` [GH-33307]
-- `azurerm_private_endpoint` - lock on private service connection resource ids [GH-33298]
+* `azurerm_private_endpoint` - lock on private service connection resource ids [GH-33298]
 * `azurerm_storage_account` - add support for the `public_network_access` property [GH-33292]
 * dependencies: `go-azure-sdk` - update to `v0.20260901.1173158` [GH-33274]
 
 FEATURES:
+* **New List Resource**: `azurerm_cdn_frontdoor_origin` [GH-33307]
 * **New List Resource**: `azurerm_attestation_provider` [GH-33251]
 * **New List Resource**: `azurerm_linux_virtual_machine` [GH-33333]
 * **New List Resource**: `azurerm_analysis_services_server` [GH-33250]
