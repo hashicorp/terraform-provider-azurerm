@@ -10,7 +10,7 @@ GOLANGCI_LINT_VERSION := $(shell sed -n 's/^version: *//p' scripts/.custom-gcl.y
 # The single source of truth for the actionlint version is the go install pin
 # in .github/workflows/workflow-actionlint.yml.
 ACTIONLINT_VERSION := $(shell sed -n 's/.*actionlint\/cmd\/actionlint@//p' .github/workflows/workflow-actionlint.yml)
-CODESPELL_VERSION := 2.4.3
+TYPOS_VERSION := v1.50.1
 
 
 .EXPORT_ALL_VARIABLES:
@@ -136,15 +136,15 @@ shellcheck: ## Check shell scripts with shellcheck
 	@shellcheck scripts/*.sh scripts/checks/*.sh scripts/automation/*.sh || \
 		(echo; echo "ShellCheck found issues in shell scripts."; echo "Review the errors above and fix them. See https://www.shellcheck.net/ for detailed explanations of each rule."; exit 1)
 
-codespell: ## Check spelling in code, docs and examples with codespell (config in .codespellrc)
-	@command -v codespell >/dev/null || (echo "codespell not installed. Install via: brew install codespell (macOS) or pipx install codespell==$(CODESPELL_VERSION)" && exit 1)
-	@echo "==> Checking spelling with codespell..."
-	@codespell || \
-		(echo; echo "Spelling errors found. Fix them with 'make codespell-fix', or add false positives (Azure names, enum values) to ignore-words-list in .codespellrc."; exit 1)
+typos: ## Check spelling in code, docs and examples with typos (config in .typos.toml)
+	@command -v typos >/dev/null || (echo "typos not installed. Install via: brew install typos-cli (macOS) or see https://github.com/crate-ci/typos/releases/tag/$(TYPOS_VERSION)" && exit 1)
+	@echo "==> Checking spelling with typos..."
+	@typos || \
+		(echo; echo "Spelling errors found. Fix them with 'make typos-fix', or add false positives (Azure names, enum values) to .typos.toml."; exit 1)
 
-codespell-fix: ## Fix spelling errors found by codespell
-	@command -v codespell >/dev/null || (echo "codespell not installed. Install via: brew install codespell (macOS) or pipx install codespell==$(CODESPELL_VERSION)" && exit 1)
-	@codespell -w
+typos-fix: ## Fix spelling errors found by typos
+	@command -v typos >/dev/null || (echo "typos not installed. Install via: brew install typos-cli (macOS) or see https://github.com/crate-ci/typos/releases/tag/$(TYPOS_VERSION)" && exit 1)
+	@typos --write-changes
 
 depscheck: ## Check that go.mod/go.sum and vendor/ are in sync
 	@echo "==> Checking dependencies.."
@@ -233,4 +233,4 @@ resource-counts: ## Print the number of resources and data sources in the provid
 
 pr-check: generate build test lint website-lint ## Run the same set of checks CI runs against a PR
 
-.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint actionlint yamllint markdownlint shellcheck codespell codespell-fix depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check
+.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint actionlint yamllint markdownlint shellcheck typos typos-fix depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check

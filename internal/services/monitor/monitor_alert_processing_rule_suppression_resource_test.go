@@ -117,7 +117,7 @@ func (r MonitorAlertProcessingRuleSuppressionResource) basic(data acceptance.Tes
 %s
 
 resource "azurerm_monitor_alert_processing_rule_suppression" "test" {
-  name                = "acctest-moniter-%d"
+  name                = "acctest-monitor-%d"
   resource_group_name = azurerm_resource_group.test.name
   scopes              = [azurerm_resource_group.test.id]
 }
@@ -141,7 +141,7 @@ func (r MonitorAlertProcessingRuleSuppressionResource) update(data acceptance.Te
 %s
 
 resource "azurerm_monitor_alert_processing_rule_suppression" "test" {
-  name                = "acctest-moniter-%d"
+  name                = "acctest-monitor-%d"
   resource_group_name = azurerm_resource_group.test.name
   scopes              = [azurerm_resource_group.test.id]
   enabled             = false
@@ -177,7 +177,7 @@ func (r MonitorAlertProcessingRuleSuppressionResource) complete(data acceptance.
 %s
 
 resource "azurerm_monitor_alert_processing_rule_suppression" "test" {
-  name                = "acctest-moniter-%d"
+  name                = "acctest-monitor-%d"
   resource_group_name = azurerm_resource_group.test.name
   description         = "alertprocessingrule-test"
   scopes              = [azurerm_resource_group.test.id]
@@ -226,7 +226,7 @@ resource "azurerm_monitor_alert_processing_rule_suppression" "test" {
 
     target_resource {
       operator = "Contains"
-      values   = ["resourseId1", "resourceId2"]
+      values   = ["resourceId1", "resourceId2"]
     }
 
     target_resource_group {

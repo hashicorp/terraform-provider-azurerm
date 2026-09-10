@@ -133,14 +133,16 @@ jobs:
       - name: Run ShellCheck
         run: make shellcheck
 
-  codespell:
+  typos:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
-      - name: Install codespell
-        run: pipx install "codespell==$(sed -n 's/^CODESPELL_VERSION := //p' GNUmakefile)"
-      - name: Run codespell
-        run: make codespell
+      - name: Install typos
+        run: |
+          v="$(sed -n 's/^TYPOS_VERSION := //p' GNUmakefile)"
+          curl -sSfL "https://github.com/crate-ci/typos/releases/download/${v}/typos-${v}-x86_64-unknown-linux-musl.tar.gz" | tar -xz -C /usr/local/bin ./typos
+      - name: Run typos
+        run: make typos
 
   website-lint:
     runs-on: ubuntu-latest

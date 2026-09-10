@@ -892,7 +892,7 @@ func (gen documentationGenerator) uniqueBlockNamesForAttribute(fields map[string
 	for _, fieldName := range gen.sortFields(fields) {
 		field := fields[fieldName]
 
-		// fields which are setable but aren't computed-only can be skipped
+		// fields which are settable but aren't computed-only can be skipped
 		if (field.Optional || field.Required) && !field.Computed {
 			continue
 		}

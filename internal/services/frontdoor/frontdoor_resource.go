@@ -1471,8 +1471,8 @@ func flattenFrontDoorRoutingRule(input *[]frontdoors.RoutingRule, oldBlocks inte
 
 	if len(explicitOrder) > 0 {
 		orderedRule := explicitOrder[0].(map[string]interface{})
-		orderedRountingRuleIds := orderedRule["routing_rule_ids"].([]interface{})
-		combinedRoutingRules, err := combineRoutingRules(*input, oldBlocks, orderedRountingRuleIds, frontDoorId)
+		orderedRoutingRuleIds := orderedRule["routing_rule_ids"].([]interface{})
+		combinedRoutingRules, err := combineRoutingRules(*input, oldBlocks, orderedRoutingRuleIds, frontDoorId)
 		if err != nil {
 			return nil, err
 		}

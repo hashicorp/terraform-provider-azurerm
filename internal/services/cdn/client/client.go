@@ -50,7 +50,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	afdEndpointsClient, err := afdendpoints.NewAFDEndpointsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building Azure Front Door Endpoints CLient: %+v", err)
+		return nil, fmt.Errorf("building Azure Front Door Endpoints Client: %+v", err)
 	}
 	o.Configure(afdEndpointsClient.Client, o.Authorizers.ResourceManager)
 

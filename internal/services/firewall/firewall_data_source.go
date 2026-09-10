@@ -198,8 +198,8 @@ func firewallDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 			d.Set("threat_intel_mode", string(pointer.From(props.ThreatIntelMode)))
 
-			dnsProxyEnabeld, dnsServers := flattenFirewallAdditionalProperty(props.AdditionalProperties)
-			if err := d.Set("dns_proxy_enabled", dnsProxyEnabeld); err != nil {
+			dnsProxyEnabled, dnsServers := flattenFirewallAdditionalProperty(props.AdditionalProperties)
+			if err := d.Set("dns_proxy_enabled", dnsProxyEnabled); err != nil {
 				return fmt.Errorf("setting `dns_proxy_enabled`: %+v", err)
 			}
 			if err := d.Set("dns_servers", dnsServers); err != nil {

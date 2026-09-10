@@ -117,7 +117,7 @@ func (r MonitorAlertProcessingRuleActionGroupResource) basic(data acceptance.Tes
 %s
 
 resource "azurerm_monitor_alert_processing_rule_action_group" "test" {
-  name                 = "acctest-moniter-%d"
+  name                 = "acctest-monitor-%d"
   resource_group_name  = azurerm_resource_group.test.name
   add_action_group_ids = [azurerm_monitor_action_group.test.id]
   scopes               = [azurerm_resource_group.test.id]
@@ -143,7 +143,7 @@ func (r MonitorAlertProcessingRuleActionGroupResource) update(data acceptance.Te
 %s
 
 resource "azurerm_monitor_alert_processing_rule_action_group" "test" {
-  name                 = "acctest-moniter-%d"
+  name                 = "acctest-monitor-%d"
   resource_group_name  = azurerm_resource_group.test.name
   add_action_group_ids = [azurerm_monitor_action_group.test.id]
   scopes               = [azurerm_resource_group.test.id]
@@ -178,7 +178,7 @@ func (r MonitorAlertProcessingRuleActionGroupResource) complete(data acceptance.
 %s
 
 resource "azurerm_monitor_alert_processing_rule_action_group" "test" {
-  name                 = "acctest-moniter-%d"
+  name                 = "acctest-monitor-%d"
   resource_group_name  = azurerm_resource_group.test.name
   description          = "alertprocessingrule-test"
   add_action_group_ids = [azurerm_monitor_action_group.test.id]
@@ -228,7 +228,7 @@ resource "azurerm_monitor_alert_processing_rule_action_group" "test" {
 
     target_resource {
       operator = "Contains"
-      values   = ["resourseId1", "resourceId2"]
+      values   = ["resourceId1", "resourceId2"]
     }
 
     target_resource_group {

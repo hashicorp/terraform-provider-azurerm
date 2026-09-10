@@ -1630,7 +1630,7 @@ resource "azurerm_batch_pool" "test" {
     }
 
     user_identity {
-      user_name = "testUserIndentity"
+      user_name = "testUserIdentity"
     }
 
     resource_file {

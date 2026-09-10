@@ -422,12 +422,12 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	flattenIdenties, err := flattenIdentity(resp.Identity)
+	flattenIdentities, err := flattenIdentity(resp.Identity)
 	if err != nil {
 		return err
 	}
 
-	if err := d.Set("identity", flattenIdenties); err != nil {
+	if err := d.Set("identity", flattenIdentities); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 	if props := resp.WorkspaceProperties; props != nil {

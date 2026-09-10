@@ -1,0 +1,60 @@
+# Configuration for typos (https://github.com/crate-ci/typos), run by `make typos` and the typos job in
+# .github/workflows/pr-checks-combined.yaml. It checks every file type and splits identifiers, so
+# misspelled function and variable names are caught as well as prose. It stays on the default locale
+# because UK and US spellings both appear in the provider.
+
+[files]
+ignore-hidden = false # the default skips dotfiles, which would leave .github/ workflows unchecked
+extend-exclude = [
+  ".git/",
+  ".idea/",
+  "**/vendor/",
+  "**/go.sum",
+  "internal/services/postgres/validate/postgresql_flexible_server_database_collation.go", # locale codes
+  "internal/services/paloalto/validate/country_code.go", # ISO country codes
+]
+
+[default]
+extend-ignore-re = [
+  '[A-Za-z0-9+/=_-]{30,}', # base64 blobs, certificates, storage ids
+  '`[A-Z]{2}`',            # ISO country / region codes listed in docs
+  '(acctest|testacc)[A-Za-z]*-[a-z]{3,5}-', # acceptance test resource name prefixes (acctest-agrc-, acctestRG-mapp-)
+  'CUSTOMERx|Val1ue',   # deliberately odd tag values in tests
+]
+
+[default.extend-words]
+# Azure products and abbreviations typos would otherwise "correct"
+aks = "aks"
+aci = "aci"
+anf = "anf"
+hdinsight = "hdinsight"
+snet = "snet"
+hashi = "hashi"
+vertica = "vertica"   # database product
+prefixe = "prefixe"   # CustomIPPrefixeName in the API
+decorder = "decorder" # golangci linter name
+exportfs = "exportfs" # misspell ignore entry in .golangci.yml
+passin = "passin"     # openssl flag
+# short identifiers, enum values and test literals
+fle = "fle"
+fo = "fo"
+ot = "ot"
+nd = "nd"
+mis = "mis"
+hel = "hel"
+ba = "ba"
+ede = "ede"
+iy = "iy"
+iz = "iz"
+noit = "noit"
+secur = "secur"
+ure = "ure"
+adge = "adge"
+abd = "abd"
+usera = "usera"
+copywrite = "copywrite" # .copywrite.hcl, the tool's own name
+
+[default.extend-identifiers]
+# misspelled names in the plugin SDK and go-azure-sdk that the provider has to use as-is
+ContinuousTargetOccurence = "ContinuousTargetOccurence"
+NegationConditon = "NegationConditon"

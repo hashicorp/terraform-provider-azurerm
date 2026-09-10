@@ -18,7 +18,7 @@ import (
 var (
 	docRDir             string
 	resourceFilePathMap map[string]string
-	file2Reosurce       = map[string]string{}
+	file2Resource       = map[string]string{}
 	once                sync.Once
 )
 
@@ -47,8 +47,8 @@ func getMappingPath(resourceName string) (res string) {
 				fullPath := path.Join(ResourceDir(), en.Name())
 				name := fileResource(fullPath)
 				tmpMap[name] = fullPath
-				if _, ok := file2Reosurce[fullPath]; !ok {
-					file2Reosurce[fullPath] = name
+				if _, ok := file2Resource[fullPath]; !ok {
+					file2Resource[fullPath] = name
 				}
 			}
 			resourceFilePathMap = tmpMap

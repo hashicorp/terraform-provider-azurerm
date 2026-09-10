@@ -201,41 +201,43 @@ jobs:
 
   # ------------------------------------------
 
-  codespell:
+  typos:
     needs: paths-filter
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
-      - name: Install codespell
-        run: pipx install "codespell==$(sed -n 's/^CODESPELL_VERSION := //p' GNUmakefile)"
-      - name: Run codespell
-        run: make codespell
+      - name: Install typos
+        run: |
+          v="$(sed -n 's/^TYPOS_VERSION := //p' GNUmakefile)"
+          curl -sSfL "https://github.com/crate-ci/typos/releases/download/${v}/typos-${v}-x86_64-unknown-linux-musl.tar.gz" | tar -xz -C /usr/local/bin ./typos
+      - name: Run typos
+        run: make typos
       - name: Guidance on failure
         if: failure()
         run: |
-          echo "::error::codespell found spelling errors."
+          echo "::error::typos found spelling errors."
           echo ""
-          echo "Run 'make codespell' locally to reproduce and 'make codespell-fix' to fix them."
-          echo "False positives (Azure names, API enum values) go in ignore-words-list in .codespellrc."
+          echo "Run 'make typos' locally to reproduce and 'make typos-fix' to fix them."
+          echo "False positives (Azure names, API enum values) go in .typos.toml."
 
-  codespell-save-artifacts:
-    needs: codespell
-    if: always() && needs.codespell.result == 'failure'
+  typos-save-artifacts:
+    needs: typos
+    if: always() && needs.typos.result == 'failure'
     uses: ./.github/workflows/pr-save-artifacts.yaml
 
-  codespell-on-fail:
-    needs: codespell
-    if: always() && needs.codespell.result == 'failure'
+  typos-on-fail:
+    needs: typos
+    if: always() && needs.typos.result == 'failure'
     uses: ./.github/workflows/pr-comment-failure.yaml
     with:
-      check_name: "Codespell"
+      check_name: "Typos"
 
-  codespell-on-success:
-    needs: codespell
-    if: always() && needs.codespell.result == 'success'
+  typos-on-success:
+    needs: typos
+    if: always() && needs.typos.result == 'success'
     uses: ./.github/workflows/pr-comment-failure-outdated.yaml
     with:
-      check_name: "Codespell"
+      check_name: "Typos"
 
   # ------------------------------------------
 

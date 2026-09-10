@@ -229,7 +229,7 @@ func (r StackHCIExtensionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			// protected_settingss is not returned in the response, so we read it from the state
+			// protected_settings is not returned in the response, so we read it from the state
 			var extension, config StackHCIExtensionResourceModel
 
 			if err := metadata.Decode(&config); err != nil {
@@ -253,7 +253,7 @@ func (r StackHCIExtensionResource) Read() sdk.ResourceFunc {
 					if param.Settings != nil {
 						setting, err = pluginsdk.FlattenJsonToString((*param.Settings).(map[string]interface{}))
 						if err != nil {
-							return fmt.Errorf("flatenning `settings`: %+v", err)
+							return fmt.Errorf("flattening `settings`: %+v", err)
 						}
 					}
 					extension.Settings = setting
