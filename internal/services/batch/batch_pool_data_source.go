@@ -220,7 +220,7 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"azure_blob_file_system": {
 							Type:     pluginsdk.TypeList,
-							Optional: true,
+							Computed: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"account_name": {
@@ -256,7 +256,7 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 						},
 						"azure_file_share": {
 							Type:     pluginsdk.TypeList,
-							Optional: true,
+							Computed: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"account_name": {

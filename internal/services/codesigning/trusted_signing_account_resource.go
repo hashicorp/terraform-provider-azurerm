@@ -213,8 +213,6 @@ func (m TrustedSigningAccountResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			meta.Logger.Infof("deleting %s", id)
-
 			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
 			}
