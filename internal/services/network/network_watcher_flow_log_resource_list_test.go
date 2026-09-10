@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccNetworkWatcherFlowLog_listByNetworkWatcherID(t *testing.T) {
+func testAccNetworkWatcherFlowLog_listByNetworkWatcherID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "testlist1")
 	r := NetworkWatcherFlowLogResource{}
 
