@@ -18,7 +18,7 @@ import (
 //
 // Note that resource providers are case-sensitive.
 //
-// Official Docs: https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/azure-services-resource-providers
+// Official Docs: https://learn.microsoft.com/azure/azure-resource-manager/management/azure-services-resource-providers
 
 type ResourceProviders map[string]struct{}
 

@@ -71,7 +71,7 @@ func resourceDatabaseMigrationService() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					// No const defined in go sdk, the literal listed below is derived from the response of listskus endpoint.
-					// See: https://docs.microsoft.com/en-us/rest/api/datamigration/resourceskus/listskus
+					// See: https://docs.microsoft.com/rest/api/datamigration/resourceskus/listskus
 					"Premium_4vCores",
 					"Standard_1vCores",
 					"Standard_2vCores",

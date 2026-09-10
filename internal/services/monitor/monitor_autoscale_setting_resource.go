@@ -1071,7 +1071,7 @@ func flattenAzureRmMonitorAutoScaleSettingRulesDimensions(dimensions *[]autoscal
 }
 
 func validateAutoScaleSettingsTimeZone() pluginsdk.SchemaValidateFunc {
-	// from https://docs.microsoft.com/en-us/rest/api/monitor/autoscalesettings/createorupdate#timewindow
+	// from https://docs.microsoft.com/rest/api/monitor/autoscalesettings/createorupdate#timewindow
 	timeZones := []string{
 		"Dateline Standard Time",
 		"UTC-11",
