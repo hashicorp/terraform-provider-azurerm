@@ -18,8 +18,8 @@ import (
 )
 
 // The logic on this file is based on:
-// Linux: https://learn.microsoft.com/en-us/azure/virtual-machines/linux/expand-disks?tabs=azure-cli%2Cubuntu#expand-without-downtime
-// Windows: https://learn.microsoft.com/en-us/azure/virtual-machines/windows/expand-os-disk#expand-without-downtime
+// Linux: https://learn.microsoft.com/azure/virtual-machines/linux/expand-disks?tabs=azure-cli%2Cubuntu#expand-without-downtime
+// Windows: https://learn.microsoft.com/azure/virtual-machines/windows/expand-os-disk#expand-without-downtime
 // NOTE: whilst the Windows URI says "expand OS disk" it's not supported on OS disks, this is an old document that's not been renamed
 
 // @tombuildsstuff: this is intentionally split out into it's own file since this'll need to be reused
