@@ -18,7 +18,7 @@ Lists Private DNS Resolver Forwarding Rule resources.
 list "azurerm_private_dns_resolver_forwarding_rule" "example" {
   provider = azurerm
   config {
-    dns_forwarding_ruleset_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/dnsForwardingRulesets/example-ruleset"
+    private_dns_resolver_dns_forwarding_ruleset_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/dnsForwardingRulesets/example-ruleset"
   }
 }
 ```
@@ -27,4 +27,4 @@ list "azurerm_private_dns_resolver_forwarding_rule" "example" {
 
 This list resource supports the following arguments:
 
-* `dns_forwarding_ruleset_id` - (Required) The ID of the Private DNS Resolver DNS Forwarding Ruleset to query.
+* `private_dns_resolver_dns_forwarding_ruleset_id` - (Required) The ID of the Private DNS Resolver DNS Forwarding Ruleset to query.

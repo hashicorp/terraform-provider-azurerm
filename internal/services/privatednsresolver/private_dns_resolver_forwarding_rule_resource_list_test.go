@@ -73,7 +73,7 @@ func (r PrivateDnsResolverForwardingRuleResource) basicQuery(data acceptance.Tes
 list "azurerm_private_dns_resolver_forwarding_rule" "list" {
   provider = azurerm
   config {
-    dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
+    private_dns_resolver_dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
   }
 }
 `

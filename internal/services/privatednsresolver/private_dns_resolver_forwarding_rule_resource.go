@@ -252,11 +252,6 @@ func (r PrivateDNSResolverForwardingRuleResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
 			return r.flatten(metadata, id, resp.Model)
 		},
 	}
@@ -268,19 +263,21 @@ func (r PrivateDNSResolverForwardingRuleResource) flatten(metadata sdk.ResourceM
 		DnsForwardingRulesetId: dnsforwardingrulesets.NewDnsForwardingRulesetID(id.SubscriptionId, id.ResourceGroupName, id.DnsForwardingRulesetName).ID(),
 	}
 
-	properties := &model.Properties
-	state.DomainName = properties.DomainName
+	if model != nil {
+		properties := &model.Properties
+		state.DomainName = properties.DomainName
 
-	state.Enabled = false
-	if properties.ForwardingRuleState != nil && *properties.ForwardingRuleState == forwardingrules.ForwardingRuleStateEnabled {
-		state.Enabled = true
+		state.Enabled = false
+		if properties.ForwardingRuleState != nil && *properties.ForwardingRuleState == forwardingrules.ForwardingRuleStateEnabled {
+			state.Enabled = true
+		}
+
+		if properties.Metadata != nil {
+			state.Metadata = *properties.Metadata
+		}
+
+		state.TargetDnsServers = flattenTargetDnsServerModel(&properties.TargetDnsServers)
 	}
-
-	if properties.Metadata != nil {
-		state.Metadata = *properties.Metadata
-	}
-
-	state.TargetDnsServers = flattenTargetDnsServerModel(&properties.TargetDnsServers)
 
 	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
 		return err
