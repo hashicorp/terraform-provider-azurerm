@@ -6,22 +6,21 @@ package validate
 import (
 	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ElasticSanName(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected %q to be a string but it wasn't", k))
-		return
-	}
+func ElasticSanName(i interface{}, k string) ([]string, []error) {
+	return elasticSanResourceName(24)(i, k)
+}
 
-	if matched := regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{1,22}[a-z0-9]$`).Match([]byte(v)); !matched {
-		errors = append(errors, fmt.Errorf("%q must be between 3 and 24 characters. It can contain only lowercase letters, numbers, underscores (_) and hyphens (-). It must start and end with a lowercase letter or number", k))
-	}
-
-	if matched := regexp.MustCompile(`[_-][_-]`).Match([]byte(v)); matched {
-		errors = append(errors, fmt.Errorf("%q must have hyphens and underscores be surrounded by alphanumeric character", k))
-	}
-
-	return warnings, errors
+// all elastic san resource names must be 3 to maxLength characters
+func elasticSanResourceName(maxLength int) func(interface{}, string) ([]string, []error) {
+	return validation.All(
+		validation.StringMatch(
+			regexp.MustCompile(fmt.Sprintf(`^[a-z0-9][a-z0-9_-]{1,%d}[a-z0-9]$`, maxLength-2)),
+			fmt.Sprintf("must be between 3 and %d characters. It can contain only lowercase letters, numbers, underscores (_) and hyphens (-). It must start and end with a lowercase letter or number", maxLength),
+		),
+		validation.StringDoesNotMatch(regexp.MustCompile(`[_-][_-]`), "must have hyphens and underscores be surrounded by alphanumeric character"),
+	)
 }

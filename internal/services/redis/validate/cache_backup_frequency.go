@@ -3,22 +3,10 @@
 
 package validate
 
-import "fmt"
+import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+)
 
-func CacheBackupFrequency(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(int)
-	families := map[int]bool{
-		15:   true,
-		30:   true,
-		60:   true,
-		360:  true,
-		720:  true,
-		1440: true,
-	}
-
-	if !families[value] {
-		errors = append(errors, fmt.Errorf("%s can only be '15', '30', '60', '360', '720' or '1440'", k))
-	}
-
-	return warnings, errors
+func CacheBackupFrequency(v interface{}, k string) ([]string, []error) {
+	return validation.IntInSlice([]int{15, 30, 60, 360, 720, 1440})(v, k)
 }
