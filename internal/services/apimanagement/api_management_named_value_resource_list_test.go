@@ -53,7 +53,7 @@ func (r ApiManagementNamedValueResource) basicList(data acceptance.TestData) str
 %s
 
 resource "azurerm_api_management_named_value" "test" {
-  count = 3 
+  count               = 3
   name                = "acctestAMProperty-%d-${count.index}"
   resource_group_name = azurerm_api_management.test.resource_group_name
   api_management_name = azurerm_api_management.test.name
