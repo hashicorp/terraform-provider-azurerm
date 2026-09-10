@@ -197,6 +197,9 @@ website-lint: ## Check website documentation for issues
 		echo "All documentation files must use the .html.markdown extension."; \
 		exit 1; \
 	fi
+	@echo "==> Checking for locale-specific Microsoft Learn links..."
+	@! grep -rnE '(learn|docs)\.microsoft\.com/[a-z]{2}-[a-z]{2}/' website/ || \
+		(echo; echo "Remove the locale segment (e.g. /en-us/) from Microsoft Learn links so readers are served their own language."; exit 1)
 	@echo "==> Checking documentation for errors..."
 	@tfproviderdocs check -provider-name=azurerm -require-resource-subcategory \
 		-allowed-resource-subcategories-file website/allowed-subcategories || \

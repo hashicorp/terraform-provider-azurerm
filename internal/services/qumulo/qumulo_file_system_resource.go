@@ -158,7 +158,7 @@ func (r FileSystemResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			// check the subnet is valid: https://learn.microsoft.com/en-us/azure/partner-solutions/qumulo/qumulo-troubleshoot#you-cant-create-a-resource
+			// check the subnet is valid: https://learn.microsoft.com/azure/partner-solutions/qumulo/qumulo-troubleshoot#you-cant-create-a-resource
 			if err := checkSubnet(ctx, config.SubnetId, metadata); err != nil {
 				return err
 			}

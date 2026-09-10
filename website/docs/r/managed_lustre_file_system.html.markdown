@@ -99,7 +99,7 @@ A `hsm_setting` block supports the following:
 
 * `import_prefix` - (Optional) The import prefix for the Azure Managed Lustre File System. Only blobs in the non-logging container that start with this path/prefix get hydrated into the cluster namespace. Changing this forces a new resource to be created.
 
--> **Note:** The roles `Contributor` and `Storage Blob Data Contributor` must be added to the Service Principal `HPC Cache Resource Provider` for the Storage Account. See [official docs]( https://learn.microsoft.com/en-us/azure/azure-managed-lustre/amlfs-prerequisites#access-roles-for-blob-integration) for more information.
+-> **Note:** The roles `Contributor` and `Storage Blob Data Contributor` must be added to the Service Principal `HPC Cache Resource Provider` for the Storage Account. See [official docs]( https://learn.microsoft.com/azure/azure-managed-lustre/amlfs-prerequisites#access-roles-for-blob-integration) for more information.
 
 ---
 

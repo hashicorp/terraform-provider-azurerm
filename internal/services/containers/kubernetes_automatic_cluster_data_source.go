@@ -581,9 +581,6 @@ func flattenKubernetesAutomaticClusterDataSourceKubeConfigAAD(config kubernetes.
 	return []KubeConfigModel{{
 		Host:                 cluster.Server,
 		Username:             name,
-		Password:             "",
-		ClientCertificate:    "",
-		ClientKey:            "",
 		ClusterCACertificate: cluster.ClusterAuthorityData,
 	}}
 }

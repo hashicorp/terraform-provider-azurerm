@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -285,10 +286,8 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				geoReplicationLocations = append(geoReplicationLocations, location.Normalize(v["location"].(string)))
 			}
 			location := location.Normalize(d.Get("location").(string))
-			for _, loc := range geoReplicationLocations {
-				if loc == location {
-					return errors.New("the `georeplications` list cannot contain the location where the Container Registry exists")
-				}
+			if slices.Contains(geoReplicationLocations, location) {
+				return errors.New("the `georeplications` list cannot contain the location where the Container Registry exists")
 			}
 
 			quarantinePolicyEnabled := d.Get("quarantine_policy_enabled").(bool)

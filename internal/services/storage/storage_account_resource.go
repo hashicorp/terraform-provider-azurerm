@@ -129,7 +129,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				ForceNew: true,
 				Optional: true,
 				// There are two billing model in Azure Storage (at least for File): Provisioned (V1 or V2) and PAYG.
-				// (https://learn.microsoft.com/en-us/azure/storage/files/understanding-billing)
+				// (https://learn.microsoft.com/azure/storage/files/understanding-billing)
 				// The version only applies to Provisioned model. When reflecting to the API payload, Provisioned V1 and PAYG
 				// look the same, i.e. the `sku.name` will be no suffix for it's first part (e.g. "Standard" in "Standard_LRS").
 				// Only for Provisioned V2, there will be a "V2" suffix added, e.g. "StandardV2" in "StandardV2_LRS".
@@ -1373,7 +1373,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	// NFSv3 is supported for standard general-purpose v2 storage accounts and for premium block blob storage accounts.
-	// (https://docs.microsoft.com/en-us/azure/storage/blobs/network-file-system-protocol-support-how-to#step-5-create-and-configure-a-storage-account)
+	// (https://docs.microsoft.com/azure/storage/blobs/network-file-system-protocol-support-how-to#step-5-create-and-configure-a-storage-account)
 	if nfsV3Enabled {
 		if !isHnsEnabled {
 			return fmt.Errorf("`nfsv3_enabled` can only be used when `is_hns_enabled` is `true`")
@@ -1412,7 +1412,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	// By default (by leaving empty), the table and queue encryption key type is set to "Service". While users can change it to "Account" so that
 	// they can further use CMK to encrypt table/queue data. Only the StorageV2 account kind supports the Account key type.
 	// Also noted that the blob and file are always using the "Account" key type.
-	// See: https://docs.microsoft.com/en-gb/azure/storage/common/account-encryption-key-create?tabs=portal
+	// See: https://docs.microsoft.com/azure/storage/common/account-encryption-key-create?tabs=portal
 	queueEncryptionKeyType := storageaccounts.KeyType(d.Get("queue_encryption_key_type").(string))
 	tableEncryptionKeyType := storageaccounts.KeyType(d.Get("table_encryption_key_type").(string))
 	encryptionRaw := d.Get("customer_managed_key").([]interface{})
@@ -1466,7 +1466,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return err
 		}
 
-		// See: https://learn.microsoft.com/en-us/azure/storage/blobs/versioning-overview#:~:text=Storage%20accounts%20with%20a%20hierarchical%20namespace%20enabled%20for%20use%20with%20Azure%20Data%20Lake%20Storage%20Gen2%20are%20not%20currently%20supported.
+		// See: https://learn.microsoft.com/azure/storage/blobs/versioning-overview#:~:text=Storage%20accounts%20with%20a%20hierarchical%20namespace%20enabled%20for%20use%20with%20Azure%20Data%20Lake%20Storage%20Gen2%20are%20not%20currently%20supported.
 		isVersioningEnabled := pointer.From(blobProperties.Properties.IsVersioningEnabled)
 		if isVersioningEnabled && isHnsEnabled {
 			return fmt.Errorf("`versioning_enabled` can't be true when `is_hns_enabled` is true")
@@ -1488,7 +1488,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 			if immutableStorageWithVersioningEnabled {
 				// Otherwise, API returns: "Conflicting feature 'Account level WORM' is enabled. Please disable it and retry."
-				// See: https://learn.microsoft.com/en-us/azure/storage/blobs/immutable-policy-configure-version-scope?tabs=azure-portal#prerequisites
+				// See: https://learn.microsoft.com/azure/storage/blobs/immutable-policy-configure-version-scope?tabs=azure-portal#prerequisites
 				return fmt.Errorf("`immutability_policy` can't be set when `versioning_enabled` is false")
 			}
 		}
@@ -1947,12 +1947,7 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 	listKeysOpts := storageaccounts.DefaultListKeysOperationOptions()
 	listKeysOpts.Expand = pointer.To(storageaccounts.ExpandKerb)
 
-	supportLevel := storageAccountServiceSupportLevel{
-		supportBlob:          false,
-		supportQueue:         false,
-		supportShare:         false,
-		supportStaticWebsite: false,
-	}
+	supportLevel := storageAccountServiceSupportLevel{}
 
 	var accountKind storageaccounts.Kind
 	var primaryEndpoints *storageaccounts.Endpoints
@@ -2229,9 +2224,7 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 func expandAccountCustomDomain(input []interface{}) *storageaccounts.CustomDomain {
 	if len(input) == 0 {
-		return &storageaccounts.CustomDomain{
-			Name: "",
-		}
+		return &storageaccounts.CustomDomain{}
 	}
 
 	domain := input[0].(map[string]interface{})
@@ -2546,13 +2539,11 @@ func expandAccountBlobServiceProperties(kind storageaccounts.Kind, input []inter
 
 	// `Storage` (v1) kind doesn't support:
 	// - LastAccessTimeTrackingPolicy: Confirmed by SRP.
-	// - ChangeFeed: See https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blob-change-feed?tabs=azure-portal#enable-and-disable-the-change-feed.
-	// - Versioning: See https://learn.microsoft.com/en-us/azure/storage/blobs/versioning-overview#how-blob-versioning-works
-	// - Restore Policy: See https://learn.microsoft.com/en-us/azure/storage/blobs/point-in-time-restore-overview#prerequisites-for-point-in-time-restore
+	// - ChangeFeed: See https://learn.microsoft.com/azure/storage/blobs/storage-blob-change-feed?tabs=azure-portal#enable-and-disable-the-change-feed.
+	// - Versioning: See https://learn.microsoft.com/azure/storage/blobs/versioning-overview#how-blob-versioning-works
+	// - Restore Policy: See https://learn.microsoft.com/azure/storage/blobs/point-in-time-restore-overview#prerequisites-for-point-in-time-restore
 	if kind != storageaccounts.KindStorage {
-		props.LastAccessTimeTrackingPolicy = &blobservices.LastAccessTimeTrackingPolicy{
-			Enable: false,
-		}
+		props.LastAccessTimeTrackingPolicy = &blobservices.LastAccessTimeTrackingPolicy{}
 		props.ChangeFeed = &blobservices.ChangeFeed{
 			Enabled: pointer.To(false),
 		}
@@ -2618,7 +2609,7 @@ func expandAccountBlobServiceProperties(kind storageaccounts.Kind, input []inter
 		}
 
 		// Sanity check for the prerequisites of restore_policy
-		// Ref: https://learn.microsoft.com/en-us/azure/storage/blobs/point-in-time-restore-overview#prerequisites-for-point-in-time-restore
+		// Ref: https://learn.microsoft.com/azure/storage/blobs/point-in-time-restore-overview#prerequisites-for-point-in-time-restore
 		if p := props.RestorePolicy; p != nil && p.Enabled {
 			if props.ChangeFeed == nil || props.ChangeFeed.Enabled == nil || !*props.ChangeFeed.Enabled {
 				return nil, fmt.Errorf("`change_feed_enabled` must be `true` when `restore_policy` is set")
@@ -2772,11 +2763,8 @@ func flattenAccountBlobContainerDeleteRetentionPolicy(input *blobservices.Delete
 }
 
 func expandAccountBlobPropertiesRestorePolicy(input []interface{}) *blobservices.RestorePolicyProperties {
-	result := blobservices.RestorePolicyProperties{
-		Enabled: false,
-	}
 	if len(input) == 0 || input[0] == nil {
-		return &result
+		return pointer.To(blobservices.RestorePolicyProperties{})
 	}
 
 	policy := input[0].(map[string]interface{})
@@ -2983,7 +2971,6 @@ func expandAccountSharePropertiesSMB(input []interface{}) *fileservices.SmbSetti
 			ChannelEncryption:        pointer.To(""),
 			KerberosTicketEncryption: pointer.To(""),
 			Versions:                 pointer.To(""),
-			Multichannel:             nil,
 		}
 	}
 

@@ -103,7 +103,7 @@ func ISO8601RepeatingTime(i interface{}, k string) (warnings []string, errors []
 
 func AzureTimeZoneString() func(interface{}, string) ([]string, []error) {
 	// List collected from https://support.microsoft.com/en-gb/help/973627/microsoft-time-zone-index-values
-	// TODO look into programmatic retrieval https://docs.microsoft.com/en-us/rest/api/maps/timezone/gettimezoneenumwindows
+	// TODO look into programmatic retrieval https://docs.microsoft.com/rest/api/maps/timezone/gettimezoneenumwindows
 	validTimeZones := []string{
 		"Africa/Abidjan",
 		"Africa/Accra",
