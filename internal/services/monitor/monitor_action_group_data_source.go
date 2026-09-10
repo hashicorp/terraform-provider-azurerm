@@ -326,7 +326,7 @@ func dataSourceMonitorActionGroup() *pluginsdk.Resource {
 						},
 						"tenant_id": {
 							Type:     pluginsdk.TypeString,
-							Computed: true, // azignore:AZS007 - pre-existing violation
+							Computed: true,
 						},
 						"use_common_alert_schema": {
 							Type:     pluginsdk.TypeBool,
