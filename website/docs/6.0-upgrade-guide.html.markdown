@@ -90,6 +90,11 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `key_vault_id` property has been removed.
 
+### `azurerm_network_interface`
+
+* The `auxiliary_mode` no longer accepts the `None` value.
+* The `auxiliary_sku` no longer accepts the `None` value.
+
 ### `azurerm_storage_account`
 
 * The deprecated `public_network_access_enabled` property has been removed.
