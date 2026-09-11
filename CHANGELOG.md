@@ -1,3 +1,15 @@
+## 5.6.0 (Unreleased)
+
+ENHANCEMENTS:
+* `azurerm_mongo_cluster` - Support new property `network_bypass_mode` [GH-33168]
+* dependencies: `go-azure-sdk` - update to `v0.20260910.1141000` [GH-33413]
+
+FEATURES:
+* **New List Resource**: `azurerm_cdn_frontdoor_origin_group` [GH-33334]
+* **New List Resource**: `azurerm_batch_account` [GH-33252]
+
+BUG FIXES:
+
 ## 5.5.0 (September 10, 2026)
 
 FEATURES:
