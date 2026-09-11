@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ElasticsearchName(i interface{}, k string) ([]string, []error) {
+func ElasticName(i interface{}, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9_-]{2,32}$`), "must be between 2 and 32 characters in length, can only contain alphanumeric characters, underscore and hyphen symbols")(i, k)
 }
