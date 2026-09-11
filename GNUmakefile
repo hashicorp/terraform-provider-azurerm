@@ -49,23 +49,24 @@ $(GOLANGCI_LINT_MODULES): .tools/.custom-gcl.yml $(GOLANGCI_LINT)
 	@echo "==> Building golangci-lint with plugins (versions pinned in .tools/.custom-gcl.yml)..."
 	@cd .tools && bin/golangci-lint custom
 
-$(SHELLCHECK): GNUmakefile
-	@echo "==> Downloading shellcheck $(SHELLCHECK_VERSION)..."
-	@mkdir -p $(TOOLS_BIN)
-	@os=$$(uname | tr 'A-Z' 'a-z'); arch=$$(uname -m); [ "$$arch" = "arm64" ] && arch=aarch64; \
-		curl -sSfL "https://github.com/koalaman/shellcheck/releases/download/$(SHELLCHECK_VERSION)/shellcheck-$(SHELLCHECK_VERSION).$$os.$$arch.tar.xz" \
-		| tar -xJ -O shellcheck-$(SHELLCHECK_VERSION)/shellcheck > $@ && chmod +x $@
+HOST_OS=$(shell uname | tr A-Z a-z)
+HOST_ARCH=$(shell uname -m | sed 's/arm64/aarch64/')
 
-$(YAMLLINT): GNUmakefile
+$(TOOLS_BIN):
+	@mkdir -p $@
+
+$(SHELLCHECK): GNUmakefile | $(TOOLS_BIN)
+	@echo "==> Downloading shellcheck $(SHELLCHECK_VERSION)..."
+	@curl -sSfL https://github.com/koalaman/shellcheck/releases/download/$(SHELLCHECK_VERSION)/shellcheck-$(SHELLCHECK_VERSION).$(HOST_OS).$(HOST_ARCH).tar.xz | tar -xJO shellcheck-$(SHELLCHECK_VERSION)/shellcheck > $@ && chmod +x $@
+
+$(YAMLLINT): GNUmakefile | $(TOOLS_BIN)
 	@command -v python3 >/dev/null || (echo "python3 is required to install yamllint (macOS: xcode CLT; Debian/Ubuntu: apt install python3-venv)" && exit 1)
 	@echo "==> Installing yamllint $(YAMLLINT_VERSION) into .tools/venv..."
-	@mkdir -p $(TOOLS_BIN)
 	@python3 -m venv .tools/venv && .tools/venv/bin/pip install -q yamllint==$(YAMLLINT_VERSION) && ln -sf ../venv/bin/yamllint $@
 
-$(MARKDOWNLINT): GNUmakefile
+$(MARKDOWNLINT): GNUmakefile | $(TOOLS_BIN)
 	@command -v npm >/dev/null || (echo "npm is required to install markdownlint-cli2 (macOS: brew install node; Debian/Ubuntu: apt install npm)" && exit 1)
 	@echo "==> Installing markdownlint-cli2 $(MARKDOWNLINT_CLI2_VERSION) into .tools/npm..."
-	@mkdir -p $(TOOLS_BIN) .tools/npm
 	@npm install --silent --no-audit --no-fund --prefix .tools/npm markdownlint-cli2@$(MARKDOWNLINT_CLI2_VERSION) && ln -sf ../npm/node_modules/.bin/markdownlint-cli2 $@
 
 default: build
