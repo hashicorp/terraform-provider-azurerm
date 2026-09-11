@@ -3,6 +3,8 @@ package pluginsdk
 import (
 	"context"
 	"fmt"
+	"slices"
+	"strings"
 
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -13,18 +15,18 @@ import (
 // if their identity hash matches.
 //
 // Removals from the set are treated natively (i.e. as an in-place update to the Set).
-func CustomDiffComputedSet(setKey string, hashFunc schema.SchemaSetFunc, forceNewProps []string, inPlaceProps []string) CustomizeDiffFunc {
-	return customDiffComputedSet(setKey, false, hashFunc, forceNewProps, inPlaceProps)
+func CustomDiffComputedSet(setKey string, hashFunc schema.SchemaSetFunc, forceNewProps []string, inPlaceProps []string, caseInsensitiveProps []string) CustomizeDiffFunc {
+	return customDiffComputedSet(setKey, false, hashFunc, forceNewProps, inPlaceProps, caseInsensitiveProps)
 }
 
 // CustomDiffComputedSetCannotRemove is identical to CustomDiffComputedSet, but
 // explicitly forces a replacement of the entire resource if an element is removed
 // from the Set.
-func CustomDiffComputedSetCannotRemove(setKey string, hashFunc schema.SchemaSetFunc, forceNewProps []string, inPlaceProps []string) CustomizeDiffFunc {
-	return customDiffComputedSet(setKey, true, hashFunc, forceNewProps, inPlaceProps)
+func CustomDiffComputedSetCannotRemove(setKey string, hashFunc schema.SchemaSetFunc, forceNewProps []string, inPlaceProps []string, caseInsensitiveProps []string) CustomizeDiffFunc {
+	return customDiffComputedSet(setKey, true, hashFunc, forceNewProps, inPlaceProps, caseInsensitiveProps)
 }
 
-func customDiffComputedSet(setKey string, forceNewOnRemoval bool, hashFunc schema.SchemaSetFunc, forceNewProps []string, inPlaceProps []string) CustomizeDiffFunc {
+func customDiffComputedSet(setKey string, forceNewOnRemoval bool, hashFunc schema.SchemaSetFunc, forceNewProps []string, inPlaceProps []string, caseInsensitiveProps []string) CustomizeDiffFunc {
 	return func(ctx context.Context, diff *ResourceDiff, meta interface{}) error {
 		oldRaw, _ := diff.GetChange(setKey)
 		var oldSet *schema.Set
@@ -103,7 +105,14 @@ func customDiffComputedSet(setKey string, forceNewOnRemoval bool, hashFunc schem
 					oldPropStr = fmt.Sprintf("%v", oldVal)
 				}
 
-				if newPropStr != oldPropStr {
+				var propsAreDifferent bool
+				if slices.Contains(caseInsensitiveProps, prop) {
+					propsAreDifferent = !strings.EqualFold(newPropStr, oldPropStr)
+				} else {
+					propsAreDifferent = newPropStr != oldPropStr
+				}
+
+				if propsAreDifferent {
 					if triggersForceNew {
 						forceNew = true
 					} else {

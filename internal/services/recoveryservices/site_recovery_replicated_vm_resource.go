@@ -343,6 +343,7 @@ func resourceSiteRecoveryReplicatedVMCustomizeDiff(ctx context.Context, diff *pl
 			resourceSiteRecoveryReplicatedVMDiskHash,
 			[]string{"staging_storage_account_id", "target_resource_group_id", "target_disk_encryption_set_id"},
 			[]string{"target_disk_type", "target_replica_disk_type"},
+			[]string{"staging_storage_account_id", "target_resource_group_id", "target_disk_encryption_set_id"},
 		)
 		if err := managedDiskCustomDiff(ctx, diff, v); err != nil {
 			return err
