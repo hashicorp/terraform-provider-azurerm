@@ -60,7 +60,7 @@ jobs:
               types,
               "```",
               "",
-              "If this PR does not require a changelog entry, add the `no-changelog-needed` label."
+              "If this PR does not require a changelog entry, add the `no-changelog-needed` label or check the box in the PR description."
             ].join("\n")
 
             const { data: comments } = await github.rest.issues.listComments({
