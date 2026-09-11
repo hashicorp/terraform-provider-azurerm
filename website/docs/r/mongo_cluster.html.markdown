@@ -83,7 +83,11 @@ The following arguments are supported:
 
 * `storage_size_in_gb` - (Optional) The size of the data disk space for the MongoDB Cluster.
 
-* `storage_type` - (Optional) The storage type for the MongoDB Cluster. Possible values are `PremiumSSD` and `PremiumSSDv2`. Defaults to `PremiumSSD`. Changing this forces a new resource to be created.
+* `storage_type` - (Optional) Possible values are `PremiumSSD` and `PremiumSSDv2` for the MongoDB Cluster storage type. Changing this forces a new resource to be created.
+
+-> **Note:** When `storage_type` is omitted, the server will return its default value.
+
+~> **Note:** Set `storage_type` explicitly before intentionally replacing an existing MongoDB Cluster. The provider rejects replacements it can detect while `storage_type` is omitted, but replacement mechanisms outside provider diff customization, such as `terraform apply -replace`, may not be detected.
 
 * `version` - (Optional) The version for the MongoDB Cluster. Possibles values are `5.0`, `6.0`, `7.0` and `8.0`.
 
