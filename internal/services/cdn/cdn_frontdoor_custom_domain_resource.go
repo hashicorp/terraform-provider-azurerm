@@ -489,28 +489,29 @@ func expandAfdResourceReference(id string) *afddomains.ResourceReference {
 }
 
 func resourceCdnFrontDoorCustomDomainCipherSuiteConfigured(d *pluginsdk.ResourceData) bool {
-	raw := d.GetRawConfig()
-	if raw.IsNull() {
+	// The raw configuration is not available during a refresh: Terraform sends only
+	// prior state to a ReadResource request, so `d.GetRawConfig()` is null and the
+	// helper would wrongly report the block as unconfigured. That caused a configured
+	// default `TLS12_2022` cipher suite to be dropped from state on every refresh and
+	// re-added on the following plan. Read the value from state instead, which reflects
+	// the incoming configuration during create/update and the last applied value during
+	// a refresh.
+	tls := d.Get("tls").([]interface{})
+	if len(tls) == 0 || tls[0] == nil {
 		return false
 	}
 
-	tlsConfig := raw.GetAttr("tls")
-	if tlsConfig.IsNull() || tlsConfig.LengthInt() == 0 {
+	tlsBlock, ok := tls[0].(map[string]interface{})
+	if !ok {
 		return false
 	}
 
-	tlsBlock := tlsConfig.AsValueSlice()[0]
-	if tlsBlock.IsNull() {
+	cipherSuiteRaw, ok := tlsBlock["cipher_suite"].([]interface{})
+	if !ok || len(cipherSuiteRaw) == 0 || cipherSuiteRaw[0] == nil {
 		return false
 	}
 
-	cipherConfig := tlsBlock.GetAttr("cipher_suite")
-	if cipherConfig.IsNull() || cipherConfig.LengthInt() == 0 {
-		return false
-	}
-
-	cipherBlock := cipherConfig.AsValueSlice()[0]
-	return !cipherBlock.IsNull()
+	return true
 }
 
 func flattenAfdDomainHttpsParameters(input *afddomains.AFDDomainHTTPSParameters, includeDefaultCipherSuite bool) []interface{} {
