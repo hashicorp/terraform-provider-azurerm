@@ -57,11 +57,15 @@ The following attributes are exported:
 
 * `os_disk_placement` - Specifies the ephemeral disk placement for operating system disk for all VMs in the pool.
 
+* `security_profile` - A `security_profile` block that describes the security settings for the Batch pool as defined below.
+
 * `storage_image_reference` - The reference of the storage image used by the nodes in the Batch pool.
 
 * `start_task` - A `start_task` block that describes the start task settings for the Batch pool.
 
 * `task_scheduling_policy` - A `task_scheduling_policy` block that describes how tasks are distributed across compute nodes in a pool.
+
+* `target_node_communication_mode` - The desired node communication mode for the pool.
 
 * `user_accounts` - A `user_accounts` block that describes the list of user accounts to be created on each node in the pool.
 
@@ -72,6 +76,14 @@ The following attributes are exported:
 * `mount` - A `mount` block that describes mount configuration.
 
 * `container_configuration` - The container configuration used in the pool's VMs.
+
+---
+
+An `identity` block exports the following:
+
+* `type` - Specifies the type of Managed Service Identity that should be configured on this Batch Account.
+
+* `identity_ids` - Specifies a list of User Assigned Managed Identity IDs to be assigned to this Batch Account.
 
 ---
 
@@ -122,6 +134,8 @@ An `extensions` block exports the following:
 * `type_handler_version` - The version of script handler.
 
 * `auto_upgrade_minor_version` - Indicates whether the extension should use a newer minor version if one is available at deployment time. Once deployed, however, the extension will not upgrade minor versions unless redeployed, even with this property set to true.
+
+* `automatic_upgrade_enabled` - Indicates whether the extension should be automatically upgraded by the platform if there is a newer version available.
 
 * `settings_json` - JSON formatted public settings for the extension.
 
@@ -336,6 +350,19 @@ A `network_security_group_rules` block exports the following:
 A `task_scheduling_policy` block exports the following:
 
 * `node_fill_type` - Supported values are `Pack` and `Spread`. `Pack` means as many tasks as possible (taskSlotsPerNode) should be assigned to each node in the pool before any tasks are assigned to the next node in the pool. `Spread` means that tasks should be assigned evenly across all nodes in the pool.
+
+---
+
+A `security_profile` block supports the following:
+
+* `host_encryption_enabled` - Whether to enable host encryption for the Virtual Machine or Virtual Machine Scale Set. 
+
+* `security_type` - The security type of the Virtual Machine.
+
+* `secure_boot_enabled` - Whether to enable secure boot for the Virtual Machine or Virtual Machine Scale Set.
+
+* `vtpm_enabled` - Whether to enable virtual trusted platform module (vTPM) for the Virtual Machine or Virtual Machine Scale Set
+
 
 ---
 
