@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_managed_redis
 
-Manages a [Managed Redis](https://learn.microsoft.com/azure/redis/overview). This resource supersedes [azurerm_redis_enterprise_cluster](redis_enterprise_cluster.html) and [azurerm_redis_enterprise_database](redis_enterprise_database.html) resources. Please refer to the migration guide for more information on migrating from Redis Enterprise to Managed Redis: [Migrating from Redis Enterprise to Managed Redis](https://learn.microsoft.com/azure/redis/migrate/migrate-overview).
+Manages a [Managed Redis](https://learn.microsoft.com/azure/redis/overview). This resource supersedes the removed `azurerm_redis_enterprise_cluster` and `azurerm_redis_enterprise_database` resources. Please refer to the migration guide for more information on migrating from Redis Enterprise to Managed Redis: [Migrating from Redis Enterprise to Managed Redis](https://learn.microsoft.com/azure/redis/migrate/migrate-overview).
 
 ## Example Usage
 

@@ -1,0 +1,43 @@
+# Configuration for lychee link checking. `make linkcheck-local` (offline, internal links)
+# runs on PRs via pr-check-links-local.yaml; `make linkcheck` (internal + external, what
+# devs should run) runs on pushes to main via main-check-links.yaml. The .html ->
+# .html.markdown path remaps live in the make targets as they embed the checkout path.
+
+# fragment (anchor) checking is enabled per-target in the make targets: on for the offline
+# internal check, off for external sites that render anchors client-side (registry, MS docs)
+
+# Reuse results across runs (.lycheecache, persisted in CI via actions/cache). The workflow
+# skews the seeded cache timestamps across the full 30d window, so each PR run rechecks only
+# the ~1/30 slice that has expired - a rolling recheck instead of a monthly stampede.
+cache = true
+max_cache_age = "30d"
+
+# never cache failures - broken links get rechecked on every run until fixed
+# (429 is carved out: it is accepted as alive above, so cache it like a success)
+cache_exclude_status = "400..=428, 430.."
+
+# learn.microsoft.com rate-limits aggressively; a dead link returns 404, not 429
+accept = ["200..=206", "429"]
+
+exclude = [
+  # issue/pull/label links in our own and Azure's repos are volatile and rate-limited, and
+  # effectively never die; links into other repos stay checked (they break when repos move)
+  "^https://github\\.com/(hashicorp/terraform-provider-azurerm|Azure/[^/]+)/(issues|labels|pull)",
+
+  # example URLs containing {placeholder} segments are not real links
+  "%7B|\\{",
+
+  # example endpoints shown in docs prose, not real destinations
+  "^https://example\\.",
+  "\\.blob\\.core\\.windows\\.net",
+  "azurehealthcareapis",
+  "^https://sts\\.windows\\.net",
+
+  # requires an authenticated session; always 403s for anonymous checkers
+  "^https://portal\\.azure\\.com",
+
+  # block non-browser clients (the links work in a browser)
+  "^https://dev\\.mysql\\.com",
+  "^https://azuremarketplace\\.microsoft\\.com",
+  "slack\\.com",
+]

@@ -51,7 +51,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `compute_count` - The compute amount (CPUs) available to the database.
 
-* `cpu_core_count` - The number of CPU cores to be made available to the database. When the ECPU is selected, the value for cpuCoreCount is 0. For Autonomous Database on Dedicated Exadata infrastructure, the maximum number of cores is determined by the infrastructure shape. See [Characteristics of Infrastructure Shapes](https://www.oracle.com/pls/topic/lookup?ctx=en/cloud/paas/autonomous-database&id=ATPFG-GUID-B0F033C1-CC5A-42F0-B2E7-3CECFEDA1FD1) for shape details.
+* `cpu_core_count` - The number of CPU cores to be made available to the database. When the ECPU is selected, the value for cpuCoreCount is 0. For Autonomous Database on Dedicated Exadata infrastructure, the maximum number of cores is determined by the infrastructure shape. See [Characteristics of Infrastructure Shapes](https://docs.oracle.com/en-us/iaas/autonomous-database/doc/infrastructure-shapes.html) for shape details.
 
 * `data_storage_size_in_gbs` - The quantity of data in the database, in gigabytes.
 
