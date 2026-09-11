@@ -107,7 +107,7 @@ resource "azurerm_oracle_cloud_vm_cluster" "test" {
   db_node_storage_size_in_gbs     = 120
   db_servers                      = [for obj in data.azurerm_oracle_db_servers.test.db_servers : obj.ocid]
   display_name                    = "OFakeVmacctest%[2]d"
-  gi_version                      = "23.0.0.0"
+  gi_version                      = "26.0.0.0"
   license_model                   = "BringYourOwnLicense"
   memory_size_in_gbs              = 60
   hostname                        = "hostname"
@@ -135,7 +135,7 @@ resource "azurerm_oracle_cloud_vm_cluster" "test" {
   db_node_storage_size_in_gbs = 120
   db_servers                  = [for obj in data.azurerm_oracle_db_servers.test.db_servers : obj.ocid]
   display_name                = "OFakeVmacctest%[2]d"
-  gi_version                  = "23.0.0.0"
+  gi_version                  = "26.0.0.0"
   local_backup_enabled        = true
   sparse_diskgroup_enabled    = true
   license_model               = "BringYourOwnLicense"
@@ -145,7 +145,7 @@ resource "azurerm_oracle_cloud_vm_cluster" "test" {
   subnet_id                   = azurerm_subnet.virtual_network_subnet.id
   scan_listener_port_tcp      = 1521
   scan_listener_port_tcp_ssl  = 2484
-  system_version              = "23.1.23.0.0.250207"
+  system_version              = "25.1.8.0.0.250828"
   tags = {
     test = "testTag1"
   }
@@ -203,7 +203,7 @@ resource "azurerm_oracle_cloud_vm_cluster" "test" {
   db_node_storage_size_in_gbs     = 120
   db_servers                      = [for obj in data.azurerm_oracle_db_servers.test.db_servers : obj.ocid]
   display_name                    = "OFakeVmacctest%[2]d"
-  gi_version                      = "23.0.0.0"
+  gi_version                      = "26.0.0.0"
   license_model                   = "BringYourOwnLicense"
   memory_size_in_gbs              = 60
   hostname                        = "hostname"
@@ -288,7 +288,7 @@ resource "azurerm_oracle_exadata_infrastructure" "test" {
   display_name        = "OFakeacctest%[1]d"
   shape               = "Exadata.X9M"
   storage_count       = "3"
-  zones               = ["2"]
+  zones               = ["1"]
 }
 
 data "azurerm_oracle_db_servers" "test" {
