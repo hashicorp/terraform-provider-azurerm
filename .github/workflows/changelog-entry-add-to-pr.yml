@@ -53,7 +53,7 @@ jobs:
           key: changeloggy-${{ runner.os }}-v0.1.0
 
       - name: Install changeloggy
-        if: steps.cache-tctest.outputs.cache-hit != 'true'
+        if: steps.cache-changeloggy.outputs.cache-hit != 'true'
         run: go install github.com/sreallymatt/changeloggy@v0.1.0
 
       - name: Checkout PR branch
