@@ -173,6 +173,18 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"data_disk": OrchestratedVirtualMachineScaleSetDataDiskSchema(),
 
+			"disk_controller_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// NOTE: O+C Azure may return a default value for some SKUs, so we need to mark this as computed to avoid diffs in that scenario
+				Computed: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(virtualmachinescalesets.DiskControllerTypesNVMe),
+					string(virtualmachinescalesets.DiskControllerTypesSCSI),
+				}, false),
+			},
+
 			// Optional
 			"additional_capabilities": OrchestratedVirtualMachineScaleSetAdditionalCapabilitiesSchema(),
 
@@ -756,6 +768,10 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			return fmt.Errorf("expanding `data_disk`: %w", err)
 		}
 		virtualMachineProfile.StorageProfile.DataDisks = dataDisks
+	}
+
+	if diskControllerType, ok := d.GetOk("disk_controller_type"); ok {
+		virtualMachineProfile.StorageProfile.DiskControllerType = pointer.To(virtualmachinescalesets.DiskControllerTypes(diskControllerType.(string)))
 	}
 
 	if v, ok := d.GetOk("network_interface"); ok {
@@ -1463,6 +1479,8 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				d.Set("priority", priority)
 
 				if storageProfile := profile.StorageProfile; storageProfile != nil {
+					d.Set("disk_controller_type", string(pointer.From(storageProfile.DiskControllerType)))
+
 					if err := d.Set("os_disk", FlattenOrchestratedVirtualMachineScaleSetOSDisk(storageProfile.OsDisk)); err != nil {
 						return fmt.Errorf("setting `os_disk`: %w", err)
 					}
