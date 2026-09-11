@@ -125,6 +125,23 @@ func TestAccMongoCluster_geoReplica(t *testing.T) {
 	})
 }
 
+func TestAccMongoCluster_geoReplicaPremiumSSDv2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "geo_replica")
+	r := MongoClusterResource{}
+	sourceResourceName := "azurerm_mongo_cluster.test"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.geoReplicaWithStorageType(data, r.sourceWithStorageType(data, "PremiumSSD"), "PremiumSSDv2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(sourceResourceName).Key("storage_type").HasValue("PremiumSSD"),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode", "source_location", "connection_strings.0.value", "connection_strings.1.value"),
+	})
+}
+
 func TestAccMongoCluster_pointInTimeRestore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
 	r := MongoClusterResource{}
@@ -284,6 +301,26 @@ resource "azurerm_mongo_cluster" "test" {
 `, r.template(data, data.Locations.Primary), data.RandomInteger)
 }
 
+func (r MongoClusterResource) sourceWithStorageType(data acceptance.TestData, storageType string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mongo_cluster" "test" {
+  name                   = "acctest-mc%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_username = "adminTerraform"
+  administrator_password = "QAZwsx123update"
+  high_availability_mode = "Disabled"
+  shard_count            = "1"
+  compute_tier           = "M30"
+  storage_size_in_gb     = "64"
+  storage_type           = "%s"
+  version                = "8.0"
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger, storageType)
+}
+
 func (r MongoClusterResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -340,6 +377,27 @@ resource "azurerm_mongo_cluster" "geo_replica" {
   }
 }
 `, source, data.RandomInteger, data.Locations.Secondary)
+}
+
+func (r MongoClusterResource) geoReplicaWithStorageType(data acceptance.TestData, source, storageType string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mongo_cluster" "geo_replica" {
+  name                = "acctest-mc-replica%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%s"
+  source_server_id    = azurerm_mongo_cluster.test.id
+  source_location     = azurerm_mongo_cluster.test.location
+  create_mode         = "GeoReplica"
+  storage_size_in_gb  = "64"
+  storage_type        = "%s"
+
+  lifecycle {
+    ignore_changes = ["administrator_username", "high_availability_mode", "preview_features", "shard_count", "storage_size_in_gb", "compute_tier", "version"]
+  }
+}
+`, source, data.RandomInteger, data.Locations.Secondary, storageType)
 }
 
 func (r MongoClusterResource) pointInTimeRestore(data acceptance.TestData) string {
