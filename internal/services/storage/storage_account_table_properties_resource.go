@@ -23,7 +23,7 @@ import (
 	"github.com/jackofallops/giovanni/storage/2023-11-03/table/tables"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_account_table_properties -service-package-name storage -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id" -test-name "corsOnly"
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id "storage_account_id" -test-name "corsOnly"
 
 type AccountTablePropertiesResource struct{}
 
@@ -73,29 +73,18 @@ var defaultTableCorsProperties = tables.Cors{
 }
 
 var defaultTableHourMetricsProperties = tables.MetricsConfig{
-	Version: "1.0",
-	Enabled: false,
-	RetentionPolicy: tables.RetentionPolicy{
-		Enabled: false,
-	},
+	Version:         "1.0",
+	RetentionPolicy: tables.RetentionPolicy{},
 }
 
 var defaultTableMinuteMetricsProperties = tables.MetricsConfig{
-	Version: "1.0",
-	Enabled: false,
-	RetentionPolicy: tables.RetentionPolicy{
-		Enabled: false,
-	},
+	Version:         "1.0",
+	RetentionPolicy: tables.RetentionPolicy{},
 }
 
 var defaultTableLoggingProperties = tables.LoggingConfig{
-	Version: "1.0",
-	Delete:  false,
-	Read:    false,
-	Write:   false,
-	RetentionPolicy: tables.RetentionPolicy{
-		Enabled: false,
-	},
+	Version:         "1.0",
+	RetentionPolicy: tables.RetentionPolicy{},
 }
 
 func (s AccountTablePropertiesResource) Arguments() map[string]*pluginsdk.Schema {
@@ -170,7 +159,7 @@ func (s AccountTablePropertiesResource) Arguments() map[string]*pluginsdk.Schema
 		"hour_metrics": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -196,7 +185,7 @@ func (s AccountTablePropertiesResource) Arguments() map[string]*pluginsdk.Schema
 		"logging": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -229,7 +218,7 @@ func (s AccountTablePropertiesResource) Arguments() map[string]*pluginsdk.Schema
 		"minute_metrics": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -696,27 +685,16 @@ func pollForTableProperties(ctx context.Context, client shim.StorageTableWrapper
 func DefaultValueForAccountTableProperties() tables.StorageServiceProperties {
 	return tables.StorageServiceProperties{
 		Logging: &tables.LoggingConfig{
-			Version: "1.0",
-			Delete:  false,
-			Read:    false,
-			Write:   false,
-			RetentionPolicy: tables.RetentionPolicy{
-				Enabled: false,
-			},
+			Version:         "1.0",
+			RetentionPolicy: tables.RetentionPolicy{},
 		},
 		HourMetrics: &tables.MetricsConfig{
-			Version: "1.0",
-			Enabled: false,
-			RetentionPolicy: tables.RetentionPolicy{
-				Enabled: false,
-			},
+			Version:         "1.0",
+			RetentionPolicy: tables.RetentionPolicy{},
 		},
 		MinuteMetrics: &tables.MetricsConfig{
-			Version: "1.0",
-			Enabled: false,
-			RetentionPolicy: tables.RetentionPolicy{
-				Enabled: false,
-			},
+			Version:         "1.0",
+			RetentionPolicy: tables.RetentionPolicy{},
 		},
 		Cors: &tables.Cors{
 			CorsRule: []tables.CorsRule{},

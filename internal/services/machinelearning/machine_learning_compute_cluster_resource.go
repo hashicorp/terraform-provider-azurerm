@@ -68,7 +68,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{string(machinelearningcomputes.VMPriorityDedicated), string(machinelearningcomputes.VMPriorityLowPriority)}, false),
+				ValidateFunc: validation.StringInSlice(machinelearningcomputes.PossibleValuesForVMPriority(), false),
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -152,9 +152,9 @@ func resourceComputeCluster() *pluginsdk.Resource {
 			},
 
 			"subnet_resource_id": {
-				Type: pluginsdk.TypeString,
-				// NOTE: O+C as you don't have to specify it for Azure to assign one to the cluster
+				Type:     pluginsdk.TypeString,
 				Optional: true,
+				// NOTE: O+C as you don't have to specify it for Azure to assign one to the cluster
 				Computed: true,
 				ForceNew: true,
 			},
@@ -249,7 +249,7 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 		Sku: &machinelearningcomputes.Sku{
 			Name: workspaceModel.Sku.Name,
-			Tier: pointer.To(machinelearningcomputes.SkuTier(*workspaceModel.Sku.Tier)),
+			Tier: pointer.ToEnum[machinelearningcomputes.SkuTier](string(*workspaceModel.Sku.Tier)),
 		},
 	}
 
@@ -406,13 +406,11 @@ func expandScaleSettings(input []interface{}) *machinelearningcomputes.ScaleSett
 	v := input[0].(map[string]interface{})
 
 	maxNodeCount := int64(v["max_node_count"].(int))
-	minNodeCount := int64(v["min_node_count"].(int))
-	scaleDownNodes := v["scale_down_nodes_after_idle_duration"].(string)
 
 	return &machinelearningcomputes.ScaleSettings{
 		MaxNodeCount:                maxNodeCount,
-		MinNodeCount:                &minNodeCount,
-		NodeIdleTimeBeforeScaleDown: &scaleDownNodes,
+		MinNodeCount:                pointer.To(int64(v["min_node_count"].(int))),
+		NodeIdleTimeBeforeScaleDown: pointer.To(v["scale_down_nodes_after_idle_duration"].(string)),
 	}
 }
 
@@ -452,21 +450,11 @@ func flattenUserAccountCredentials(credentials *machinelearningcomputes.UserAcco
 		username = credentials.AdminUserName
 	}
 
-	var adminPassword string
-	if credentials.AdminUserPassword != nil {
-		adminPassword = *credentials.AdminUserPassword
-	}
-
-	var sshPublicKey string
-	if credentials.AdminUserSshPublicKey != nil {
-		sshPublicKey = *credentials.AdminUserSshPublicKey
-	}
-
 	return []interface{}{
 		map[string]interface{}{
 			"admin_username": username,
-			"admin_password": adminPassword,
-			"key_value":      sshPublicKey,
+			"admin_password": pointer.From(credentials.AdminUserPassword),
+			"key_value":      pointer.From(credentials.AdminUserSshPublicKey),
 		},
 	}
 }

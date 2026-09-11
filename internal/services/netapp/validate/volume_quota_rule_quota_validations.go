@@ -9,8 +9,8 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumequotarules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumequotarules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 )
@@ -68,7 +68,7 @@ func ValidateNetAppVolumeQuotaRule(ctx context.Context, volumeID volumes.VolumeI
 	}
 
 	// Quota types and targets validations
-	errors = append(errors, ValidateNetAppVolumeQuotaRuleQuotaType(pointer.To(volumequotarules.QuotaType(rule.QuotaType)), pointer.To(rule.QuotaTarget))...)
+	errors = append(errors, ValidateNetAppVolumeQuotaRuleQuotaType(pointer.ToEnum[volumequotarules.QuotaType](rule.QuotaType), pointer.To(rule.QuotaTarget))...)
 
 	return errors
 }

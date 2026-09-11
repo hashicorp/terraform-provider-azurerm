@@ -42,6 +42,10 @@ resource "azurerm_kubernetes_cluster" "example" {
     vm_size    = "Standard_DS2_v2"
   }
 
+  node_provisioning_profile {
+    mode = "Manual"
+  }
+
   identity {
     type = "SystemAssigned"
   }

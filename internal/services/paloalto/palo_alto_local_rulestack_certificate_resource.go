@@ -14,7 +14,6 @@ import (
 	certificateobjectlocalrulestack "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/certificateobjectlocalrulestackresources"
 	localrulestacks "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
@@ -43,7 +42,7 @@ func (r LocalRuleStackCertificate) ResourceType() string {
 }
 
 func (r LocalRuleStackCertificate) Arguments() map[string]*schema.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -83,12 +82,6 @@ func (r LocalRuleStackCertificate) Arguments() map[string]*schema.Schema {
 			ExactlyOneOf: []string{"key_vault_certificate_id", "self_signed"},
 		},
 	}
-
-	if !features.FivePointOh() {
-		args["key_vault_certificate_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeAny)
-	}
-
-	return args
 }
 
 func (r LocalRuleStackCertificate) Attributes() map[string]*schema.Schema {

@@ -7,7 +7,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -991,7 +991,35 @@ func (CdnEndpointV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		// summary:
 		// resourcegroups -> resourceGroups
 		oldId := rawState["id"].(string)
-		id, err := parse.EndpointIDInsensitively(oldId)
+		id, err := endpoints.ParseEndpointIDInsensitively(oldId)
+		if err != nil {
+			return rawState, err
+		}
+
+		newId := id.ID()
+		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
+		rawState["id"] = newId
+
+		return rawState, nil
+	}
+}
+
+var _ pluginsdk.StateUpgrade = CdnEndpointV1ToV2{}
+
+type CdnEndpointV1ToV2 struct{}
+
+// Schema is unchanged from V0 - the V0->V1 migration only rewrote the `id`
+func (CdnEndpointV1ToV2) Schema() map[string]*pluginsdk.Schema {
+	return CdnEndpointV0ToV1{}.Schema()
+}
+
+func (CdnEndpointV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
+	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+		// IDs imported while this resource parsed them with the legacy resourceids.ParseAzureResourceID
+		// can contain non-canonically cased static segments (e.g. `resourcegroups`, `microsoft.cdn`),
+		// which the case-sensitive SDK parser rejects - normalise them to the canonical casing
+		oldId := rawState["id"].(string)
+		id, err := endpoints.ParseEndpointIDInsensitively(oldId)
 		if err != nil {
 			return rawState, err
 		}

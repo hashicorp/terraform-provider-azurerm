@@ -257,7 +257,7 @@ func (r MsSqlDatabaseExtendedAuditingPolicyResource) basic(data acceptance.TestD
 
 resource "azurerm_mssql_database_extended_auditing_policy" "test" {
   database_id                = azurerm_mssql_database.test.id
-  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+  blob_storage_endpoint      = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 `, r.template(data))
@@ -294,7 +294,7 @@ resource "azurerm_mssql_database" "secondary" {
 
 resource "azurerm_mssql_database_extended_auditing_policy" "test" {
   database_id                = azurerm_mssql_database.test.id
-  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+  blob_storage_endpoint      = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   depends_on = [azurerm_mssql_database.secondary]
@@ -308,7 +308,7 @@ func (r MsSqlDatabaseExtendedAuditingPolicyResource) requiresImport(data accepta
 
 resource "azurerm_mssql_database_extended_auditing_policy" "import" {
   database_id                = azurerm_mssql_database.test.id
-  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+  blob_storage_endpoint      = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 `, r.template(data))
@@ -320,7 +320,7 @@ func (r MsSqlDatabaseExtendedAuditingPolicyResource) complete(data acceptance.Te
 
 resource "azurerm_mssql_database_extended_auditing_policy" "test" {
   database_id                             = azurerm_mssql_database.test.id
-  storage_endpoint                        = azurerm_storage_account.test.primary_blob_endpoint
+  blob_storage_endpoint                   = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key              = azurerm_storage_account.test.primary_access_key
   storage_account_access_key_is_secondary = false
   retention_in_days                       = 6
@@ -386,7 +386,7 @@ resource "azurerm_storage_account" "test2" {
 
 resource "azurerm_mssql_database_extended_auditing_policy" "test" {
   database_id                             = azurerm_mssql_database.test.id
-  storage_endpoint                        = azurerm_storage_account.test2.primary_blob_endpoint
+  blob_storage_endpoint                   = azurerm_storage_account.test2.primary_blob_endpoint
   storage_account_access_key              = azurerm_storage_account.test2.primary_access_key
   storage_account_access_key_is_secondary = true
   retention_in_days                       = 3
@@ -430,11 +430,17 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                              = "acctestsubnet%[1]d"
-  resource_group_name               = azurerm_resource_group.test.name
-  virtual_network_name              = azurerm_virtual_network.test.name
-  address_prefixes                  = ["10.0.2.0/24"]
-  service_endpoints                 = ["Microsoft.Storage", "Microsoft.Sql"]
+  name                 = "acctestsubnet%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
+
+  service_endpoint {
+    service = "Microsoft.Sql"
+  }
   private_endpoint_network_policies = "Disabled"
 }
 
@@ -474,8 +480,8 @@ resource "azurerm_mssql_firewall_rule" "test" {
 
 
 resource "azurerm_mssql_database_extended_auditing_policy" "test" {
-  database_id      = azurerm_mssql_database.test.id
-  storage_endpoint = azurerm_storage_account.test.primary_blob_endpoint
+  database_id           = azurerm_mssql_database.test.id
+  blob_storage_endpoint = azurerm_storage_account.test.primary_blob_endpoint
 
   depends_on = [
     azurerm_role_assignment.test,
@@ -492,7 +498,7 @@ resource "azurerm_role_assignment" "test" {
 }
 
 resource "azurerm_mssql_server_extended_auditing_policy" "test" {
-  storage_endpoint       = azurerm_storage_account.test.primary_blob_endpoint
+  blob_storage_endpoint  = azurerm_storage_account.test.primary_blob_endpoint
   server_id              = azurerm_mssql_server.test.id
   retention_in_days      = 6
   log_monitoring_enabled = false
@@ -504,8 +510,6 @@ resource "azurerm_mssql_server_extended_auditing_policy" "test" {
     azurerm_storage_account.test,
   ]
 }
-
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Client().SubscriptionID)
 }
 
@@ -606,7 +610,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
 resource "azurerm_mssql_database_extended_auditing_policy" "test" {
   database_id                = azurerm_mssql_database.test.id
-  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+  blob_storage_endpoint      = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   log_monitoring_enabled     = true
 }
@@ -672,7 +676,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
 resource "azurerm_mssql_database_extended_auditing_policy" "test" {
   database_id                = azurerm_mssql_database.test.id
-  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+  blob_storage_endpoint      = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   log_monitoring_enabled     = true
 }

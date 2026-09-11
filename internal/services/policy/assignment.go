@@ -6,12 +6,12 @@ package policy
 import (
 	"context"
 	"fmt"
-	"strconv"
+	"net/http"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 )
 
 func convertEnforcementMode(mode bool) *assignments.EnforcementMode {
@@ -23,42 +23,23 @@ func convertEnforcementMode(mode bool) *assignments.EnforcementMode {
 }
 
 func waitForPolicyAssignmentToStabilize(ctx context.Context, client *assignments.PolicyAssignmentsClient, id assignments.ScopedPolicyAssignmentId, shouldExist bool) error {
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("context was missing a deadline")
+	pollerOpts := &custompollers.EventualConsistencyPollerOptions{
+		Interval:              time.Second * 5,
+		TargetStatusCode:      pointer.To(http.StatusOK),
+		RetryErrorStatusCodes: []int{http.StatusNotFound},
 	}
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{"404"},
-		Target:  []string{"200"},
-		Refresh: func() (interface{}, string, error) {
-			resp, err := client.Get(ctx, id)
-			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
-					return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil
-				}
 
-				// The `HttpResponse` might be nil, reported on https://github.com/hashicorp/terraform-provider-azurerm/issues/27693
-				if resp.HttpResponse != nil {
-					return nil, strconv.Itoa(resp.HttpResponse.StatusCode), fmt.Errorf("polling for %s: %+v", id, err)
-				}
-
-				return nil, "0", fmt.Errorf("polling for %s: %+v", id, err)
-			}
-
-			return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil
-		},
-		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 20,
-		PollInterval:              5 * time.Second,
-		Timeout:                   time.Until(deadline),
-	}
 	if !shouldExist {
-		stateConf.Pending = []string{"200"}
-		stateConf.Target = []string{"404"}
+		pollerOpts.TargetStatusCode = pointer.To(http.StatusNotFound)
+		pollerOpts.RetryErrorStatusCodes = nil
 	}
 
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return err
+	poller := custompollers.NewEventualConsistencyPoller(20, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, id)
+		return resp.HttpResponse, err
+	}, pollerOpts)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("polling for %s: %+v", id, err)
 	}
 
 	return nil

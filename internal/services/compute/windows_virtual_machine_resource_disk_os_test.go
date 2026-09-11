@@ -1216,6 +1216,8 @@ resource "azurerm_windows_virtual_machine" "test" {
   size                = "Standard_DC2as_v5"
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
+  patch_mode          = "AutomaticByPlatform"
+
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -1256,12 +1258,15 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_DC2as_v5"
-  admin_username      = "adminuser"
-  admin_password      = "P@$$w0rd1234!"
+  name                       = local.vm_name
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  size                       = "Standard_DC2as_v5"
+  admin_username             = "adminuser"
+  admin_password             = "P@$$w0rd1234!"
+  patch_mode                 = "AutomaticByPlatform"
+  encryption_at_host_enabled = true
+
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]

@@ -24,7 +24,7 @@ import (
 )
 
 func resourceApiConnection() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceApiConnectionCreate,
 		Read:   resourceApiConnectionRead,
 		Update: resourceApiConnectionUpdate,
@@ -81,8 +81,6 @@ func resourceApiConnection() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	return resource
 }
 
 func resourceApiConnectionCreate(d *schema.ResourceData, meta interface{}) error {

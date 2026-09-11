@@ -5,7 +5,7 @@ package acceptance
 
 import "testing"
 
-func TestAccRandTimeInt(t *testing.T) {
+func TestRandTimeInt(t *testing.T) {
 	t.Run("Rand Date int", func(t *testing.T) {
 		ri := RandTimeInt()
 

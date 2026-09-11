@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -110,25 +109,6 @@ func TestAccDedicatedHost_licenseType(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.noLicenceType(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccDedicatedHost_licenseTypeNone(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("`license_type` no longer accepts `None` as a value in 5.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_dedicated_host", "test")
-	r := DedicatedHostResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.licenceType(data, "None"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

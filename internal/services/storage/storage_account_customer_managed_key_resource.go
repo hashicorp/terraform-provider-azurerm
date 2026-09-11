@@ -4,7 +4,6 @@
 package storage
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -17,19 +16,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_account_customer_managed_key -service-package-name storage -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id "storage_account_id"
 
 var storageAccountCustomerManagedKeyResourceName = "azurerm_storage_account_customer_managed_key"
 
 func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceStorageAccountCustomerManagedKeyCreateUpdate,
 		Read:   resourceStorageAccountCustomerManagedKeyRead,
 		Update: resourceStorageAccountCustomerManagedKeyCreateUpdate,
@@ -76,67 +74,10 @@ func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["key_vault_key_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ExactlyOneOf: []string{"managed_hsm_key_id", "key_vault_id", "key_vault_uri", "key_vault_key_id"},
-			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
-		}
-
-		resource.Schema["key_vault_uri"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.IsURLWithHTTPS,
-			ExactlyOneOf: []string{"managed_hsm_key_id", "key_vault_id", "key_vault_uri", "key_vault_key_id"},
-			Deprecated:   "`key_vault_uri` has been deprecated in favour of `key_vault_key_id` and will be removed in v5.0 of the AzureRM provider",
-		}
-
-		resource.Schema["key_name"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-			Deprecated:   "`key_name` has been deprecated in favour of `key_vault_key_id` and will be removed in v5.0 of the AzureRM provider",
-		}
-
-		resource.Schema["key_version"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-			Deprecated:   "`key_version` has been deprecated in favour of `key_vault_key_id` and will be removed in v5.0 of the AzureRM provider",
-		}
-
-		resource.Schema["managed_hsm_key_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
-			ExactlyOneOf: []string{"managed_hsm_key_id", "key_vault_id", "key_vault_uri", "key_vault_key_id"},
-			Deprecated:   "`managed_hsm_key_id` has been deprecated in favour of `key_vault_key_id` and will be removed in v5.0 of the AzureRM provider",
-		}
-
-		resource.Schema["key_vault_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: commonids.ValidateKeyVaultID,
-			ExactlyOneOf: []string{"managed_hsm_key_id", "key_vault_id", "key_vault_uri", "key_vault_key_id"},
-			Deprecated:   "`key_vault_id` has been deprecated in favour of `key_vault_key_id` and will be removed in v5.0 of the AzureRM provider",
-		}
-	}
-
-	return resource
 }
 
 func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
-	keyVaultsClient := meta.(*clients.Client).KeyVault
-	vaultsClient := keyVaultsClient.VaultsClient
 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -170,139 +111,41 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 		}
 	}
 
-	if features.FivePointOh() {
-		keyID, err := keyvault.ParseNestedItemID(d.Get("key_vault_key_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
-		if err != nil {
-			return err
-		}
+	keyID, err := keyvault.ParseNestedItemID(d.Get("key_vault_key_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
+	if err != nil {
+		return err
+	}
 
-		payload := storageaccounts.StorageAccountUpdateParameters{
-			Properties: &storageaccounts.StorageAccountPropertiesUpdateParameters{
-				Encryption: &storageaccounts.Encryption{
-					Services: &storageaccounts.EncryptionServices{
-						Blob: &storageaccounts.EncryptionService{
-							Enabled: pointer.To(true),
-						},
-						File: &storageaccounts.EncryptionService{
-							Enabled: pointer.To(true),
-						},
+	payload := storageaccounts.StorageAccountUpdateParameters{
+		Properties: &storageaccounts.StorageAccountPropertiesUpdateParameters{
+			Encryption: &storageaccounts.Encryption{
+				Services: &storageaccounts.EncryptionServices{
+					Blob: &storageaccounts.EncryptionService{
+						Enabled: pointer.To(true),
 					},
-					Identity: &storageaccounts.EncryptionIdentity{
-						UserAssignedIdentity: pointer.To(d.Get("user_assigned_identity_id").(string)),
-					},
-					KeySource: pointer.To(storageaccounts.KeySourceMicrosoftPointKeyvault),
-					Keyvaultproperties: &storageaccounts.KeyVaultProperties{
-						Keyname:     pointer.To(keyID.Name),
-						Keyversion:  pointer.To(keyID.Version),
-						Keyvaulturi: pointer.To(keyID.KeyVaultBaseURL),
+					File: &storageaccounts.EncryptionService{
+						Enabled: pointer.To(true),
 					},
 				},
-			},
-		}
-
-		if fID := d.Get("federated_identity_client_id").(string); fID != "" {
-			payload.Properties.Encryption.Identity.FederatedIdentityClientId = pointer.To(fID)
-		}
-
-		if _, err = storageClient.Update(ctx, *id, payload); err != nil {
-			return fmt.Errorf("updating Customer Managed Key for %s: %+v", id, err)
-		}
-	} else {
-		keyName := ""
-		keyVersion := ""
-		keyVaultURI := ""
-		switch {
-		case !pluginsdk.IsExplicitlyNullInConfig(d, "key_vault_uri"):
-			keyName = d.Get("key_name").(string)
-			keyVersion = d.Get("key_version").(string)
-			keyVaultURI = d.Get("key_vault_uri").(string)
-		case !pluginsdk.IsExplicitlyNullInConfig(d, "key_vault_id"):
-			keyVaultID, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
-			if err != nil {
-				return err
-			}
-
-			keyVault, err := vaultsClient.Get(ctx, *keyVaultID)
-			if err != nil {
-				return fmt.Errorf("retrieving Key Vault %q (Resource Group %q): %+v", keyVaultID.VaultName, keyVaultID.ResourceGroupName, err)
-			}
-
-			softDeleteEnabled := false
-			purgeProtectionEnabled := false
-			if model := keyVault.Model; model != nil {
-				if esd := model.Properties.EnableSoftDelete; esd != nil {
-					softDeleteEnabled = *esd
-				}
-				if epp := model.Properties.EnablePurgeProtection; epp != nil {
-					purgeProtectionEnabled = *epp
-				}
-			}
-			if !softDeleteEnabled || !purgeProtectionEnabled {
-				return fmt.Errorf("%s must be configured for both Purge Protection and Soft Delete", keyVaultID)
-			}
-
-			keyVaultBaseURL, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultID)
-			if err != nil {
-				return fmt.Errorf("looking up Key Vault URI from %s: %+v", *keyVaultID, err)
-			}
-
-			keyName = d.Get("key_name").(string)
-			keyVersion = d.Get("key_version").(string)
-			keyVaultURI = *keyVaultBaseURL
-		case !pluginsdk.IsExplicitlyNullInConfig(d, "managed_hsm_key_id"):
-			keyID, err := keyvault.ParseNestedItemID(d.Get("managed_hsm_key_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
-			if err != nil {
-				return err
-			}
-
-			keyName = keyID.Name
-			keyVersion = keyID.Version
-			keyVaultURI = keyID.KeyVaultBaseURL
-		case !pluginsdk.IsExplicitlyNullInConfig(d, "key_vault_key_id"):
-			keyID, err := keyvault.ParseNestedItemID(d.Get("key_vault_key_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
-			if err != nil {
-				return err
-			}
-
-			keyName = keyID.Name
-			keyVersion = keyID.Version
-			keyVaultURI = keyID.KeyVaultBaseURL
-		}
-
-		userAssignedIdentity := d.Get("user_assigned_identity_id").(string)
-		federatedIdentityClientID := d.Get("federated_identity_client_id").(string)
-
-		payload := storageaccounts.StorageAccountUpdateParameters{
-			Properties: &storageaccounts.StorageAccountPropertiesUpdateParameters{
-				Encryption: &storageaccounts.Encryption{
-					Services: &storageaccounts.EncryptionServices{
-						Blob: &storageaccounts.EncryptionService{
-							Enabled: pointer.To(true),
-						},
-						File: &storageaccounts.EncryptionService{
-							Enabled: pointer.To(true),
-						},
-					},
-					Identity: &storageaccounts.EncryptionIdentity{
-						UserAssignedIdentity: pointer.To(userAssignedIdentity),
-					},
-					KeySource: pointer.To(storageaccounts.KeySourceMicrosoftPointKeyvault),
-					Keyvaultproperties: &storageaccounts.KeyVaultProperties{
-						Keyname:     pointer.To(keyName),
-						Keyversion:  pointer.To(keyVersion),
-						Keyvaulturi: pointer.To(keyVaultURI),
-					},
+				Identity: &storageaccounts.EncryptionIdentity{
+					UserAssignedIdentity: pointer.To(d.Get("user_assigned_identity_id").(string)),
+				},
+				KeySource: pointer.To(storageaccounts.KeySourceMicrosoftPointKeyvault),
+				Keyvaultproperties: &storageaccounts.KeyVaultProperties{
+					Keyname:     pointer.To(keyID.Name),
+					Keyversion:  pointer.To(keyID.Version),
+					Keyvaulturi: pointer.To(keyID.KeyVaultBaseURL),
 				},
 			},
-		}
+		},
+	}
 
-		if federatedIdentityClientID != "" {
-			payload.Properties.Encryption.Identity.FederatedIdentityClientId = pointer.To(federatedIdentityClientID)
-		}
+	if fID := d.Get("federated_identity_client_id").(string); fID != "" {
+		payload.Properties.Encryption.Identity.FederatedIdentityClientId = pointer.To(fID)
+	}
 
-		if _, err = storageClient.Update(ctx, *id, payload); err != nil {
-			return fmt.Errorf("updating Customer Managed Key for %s: %+v", id, err)
-		}
+	if _, err = storageClient.Update(ctx, *id, payload); err != nil {
+		return fmt.Errorf("updating Customer Managed Key for %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -334,10 +177,10 @@ func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return resourceStorageAccountCustomerManagedKeyFlatten(ctx, meta.(*clients.Client), d, id, resp.Model, true)
+	return resourceStorageAccountCustomerManagedKeyFlatten(d, id, resp.Model)
 }
 
-func resourceStorageAccountCustomerManagedKeyFlatten(ctx context.Context, metaClient *clients.Client, d *pluginsdk.ResourceData, id *commonids.StorageAccountId, storageAccount *storageaccounts.StorageAccount, fetchCompleteData bool) error {
+func resourceStorageAccountCustomerManagedKeyFlatten(d *pluginsdk.ResourceData, id *commonids.StorageAccountId, storageAccount *storageaccounts.StorageAccount) error {
 	d.Set("storage_account_id", id.ID())
 
 	enabled := false
@@ -346,63 +189,17 @@ func resourceStorageAccountCustomerManagedKeyFlatten(ctx context.Context, metaCl
 			if encryption := props.Encryption; encryption != nil && pointer.From(encryption.KeySource) == storageaccounts.KeySourceMicrosoftPointKeyvault {
 				enabled = true
 
-				if features.FivePointOh() {
-					if kvProps := encryption.Keyvaultproperties; kvProps != nil {
-						keyID, err := keyvault.NewNestedItemID(pointer.From(kvProps.Keyvaulturi), keyvault.NestedItemTypeKey, pointer.From(kvProps.Keyname), pointer.From(kvProps.Keyversion))
-						if err != nil {
-							return err
-						}
-						d.Set("key_vault_key_id", keyID.ID())
+				if kvProps := encryption.Keyvaultproperties; kvProps != nil {
+					keyID, err := keyvault.NewNestedItemID(pointer.From(kvProps.Keyvaulturi), keyvault.NestedItemTypeKey, pointer.From(kvProps.Keyname), pointer.From(kvProps.Keyversion))
+					if err != nil {
+						return err
 					}
+					d.Set("key_vault_key_id", keyID.ID())
+				}
 
-					if identityProps := encryption.Identity; identityProps != nil {
-						d.Set("user_assigned_identity_id", identityProps.UserAssignedIdentity)
-						d.Set("federated_identity_client_id", identityProps.FederatedIdentityClientId)
-					}
-				} else {
-					var keyID *keyvault.NestedItemID
-					if kvProps := encryption.Keyvaultproperties; kvProps != nil {
-						keyId, err := keyvault.NewNestedItemID(pointer.From(kvProps.Keyvaulturi), keyvault.NestedItemTypeKey, pointer.From(kvProps.Keyname), pointer.From(kvProps.Keyversion))
-						if err != nil {
-							return err
-						}
-
-						d.Set("key_vault_key_id", keyId.ID())
-						d.Set("key_name", kvProps.Keyname)
-						d.Set("key_version", kvProps.Keyversion)
-						d.Set("key_vault_uri", kvProps.Keyvaulturi)
-
-						if keyId.IsManagedHSM() {
-							d.Set("managed_hsm_key_id", keyId.ID())
-						}
-
-						keyID = keyId
-					}
-
-					if fetchCompleteData {
-						keyVaultsClient := metaClient.KeyVault
-
-						federatedIdentityClientID := ""
-						userAssignedIdentity := ""
-						if identityProps := encryption.Identity; identityProps != nil {
-							federatedIdentityClientID = pointer.From(identityProps.FederatedIdentityClientId)
-							userAssignedIdentity = pointer.From(identityProps.UserAssignedIdentity)
-						}
-						// now we have the key vault uri we can look up the ID
-						// we can't look up the ID when using federated identity as the key will be under different tenant
-						keyVaultID := ""
-						if federatedIdentityClientID == "" && keyID != nil && !keyID.IsManagedHSM() {
-							subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
-							tmpKeyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyID.KeyVaultBaseURL)
-							if err != nil {
-								return fmt.Errorf("retrieving Key Vault ID from the Base URI %q: %+v", keyID.KeyVaultBaseURL, err)
-							}
-							keyVaultID = pointer.From(tmpKeyVaultID)
-						}
-						d.Set("key_vault_id", keyVaultID)
-						d.Set("user_assigned_identity_id", userAssignedIdentity)
-						d.Set("federated_identity_client_id", federatedIdentityClientID)
-					}
+				if identityProps := encryption.Identity; identityProps != nil {
+					d.Set("user_assigned_identity_id", identityProps.UserAssignedIdentity)
+					d.Set("federated_identity_client_id", identityProps.FederatedIdentityClientId)
 				}
 			}
 		}
