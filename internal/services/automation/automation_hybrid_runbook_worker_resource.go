@@ -201,7 +201,6 @@ func (m HybridRunbookWorkerResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			meta.Logger.Infof("deleting %s", id)
 			client := meta.Client.Automation.HybridRunbookWorker
 			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)

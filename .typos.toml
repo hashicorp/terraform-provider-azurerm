@@ -8,6 +8,9 @@ ignore-hidden = false # the default skips dotfiles, which would leave .github/ w
 extend-exclude = [
   ".git/",
   ".idea/",
+  ".tools/bin/", # gitignored tool installs (make tools)
+  ".tools/npm/",
+  ".tools/venv/",
   "**/vendor/",
   "**/go.sum",
   "internal/services/postgres/validate/postgresql_flexible_server_database_collation.go", # locale codes

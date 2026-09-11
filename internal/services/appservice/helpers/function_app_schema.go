@@ -431,10 +431,8 @@ func SiteConfigSchemaLinuxFunctionAppComputed() *pluginsdk.Schema {
 				"scm_ip_restriction": IpRestrictionSchemaComputed(),
 
 				"scm_ip_restriction_default_action": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Default:      webapps.DefaultActionAllow,
-					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForDefaultAction(), false),
+					Type:     pluginsdk.TypeString,
+					Computed: true,
 				},
 
 				"load_balancing_mode": {
