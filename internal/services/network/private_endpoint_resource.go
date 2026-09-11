@@ -313,7 +313,8 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 					return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute must not be empty`, name)
 				}
 			}
-			return nil
+
+			return validatePrivateEndpointSubResourceNames(privateServiceConnections)
 		},
 	}
 }
@@ -442,6 +443,23 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	return resourcePrivateEndpointRead(d, meta)
+}
+
+func validatePrivateEndpointSubResourceNames(privateServiceConnections []interface{}) error {
+	for _, psc := range privateServiceConnections {
+		privateServiceConnection := psc.(map[string]interface{})
+
+		subResourceNames := privateServiceConnection["subresource_names"].([]interface{})
+		if len(subResourceNames) < 2 {
+			continue
+		}
+
+		names := pointer.From(helpers.ExpandStringSlice(subResourceNames))
+
+		return fmt.Errorf(`"private_service_connection":%q is invalid, at most one "subresource_names" entry is permitted, got %d (%s) - connecting to additional subresources requires additional "azurerm_private_endpoint" resources`, privateServiceConnection["name"].(string), len(names), strings.Join(names, ", "))
+	}
+
+	return nil
 }
 
 func validatePrivateLinkServiceId(endpoints []privateendpoints.PrivateLinkServiceConnection) error {
