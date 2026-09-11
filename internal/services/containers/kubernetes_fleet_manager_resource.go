@@ -56,7 +56,7 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"hub_profile": {
-			Deprecated: "The service team has indicated this field is now deprecated and not to be used, as such we are marking it as such and no longer sending it to the API, please see url: https://learn.microsoft.com/en-us/azure/kubernetes-fleet/architectural-overview",
+			Deprecated: "The service team has indicated this field is now deprecated and not to be used, as such we are marking it as such and no longer sending it to the API, please see url: https://learn.microsoft.com/azure/kubernetes-fleet/architectural-overview",
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"dns_prefix": {

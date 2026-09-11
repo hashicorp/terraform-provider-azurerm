@@ -28,11 +28,6 @@ type DataConnectorMicrosoftThreatIntelligenceModel struct {
 	MicrosoftEmergingThreatFeedLookBackDate string `tfschema:"microsoft_emerging_threat_feed_lookback_date"`
 }
 
-type DataConnectorMicrosoftThreatIntelligenceDataType struct {
-	Enabled      bool   `tfschema:"enabled"`
-	LookbackDate string `tfschema:"lookback_date"`
-}
-
 func (s DataConnectorMicrosoftThreatIntelligenceResource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
@@ -211,8 +206,7 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) IDValidationFunc() plu
 func expandSentinelDataConnectorMicrosoftThreatIntelligenceMicrosoftEmergingThreatFeed(input DataConnectorMicrosoftThreatIntelligenceModel) dataconnectors.MSTIDataConnectorDataTypesMicrosoftEmergingThreatFeed {
 	if input.MicrosoftEmergingThreatFeedLookBackDate == "" {
 		return dataconnectors.MSTIDataConnectorDataTypesMicrosoftEmergingThreatFeed{
-			LookbackPeriod: "",
-			State:          pointer.To(dataconnectors.DataTypeStateDisabled),
+			State: pointer.To(dataconnectors.DataTypeStateDisabled),
 		}
 	}
 

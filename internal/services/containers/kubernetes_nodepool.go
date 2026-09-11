@@ -5,6 +5,7 @@ package containers
 
 import (
 	"fmt"
+	"maps"
 	"regexp"
 	"strconv"
 	"strings"
@@ -1225,9 +1226,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	var nodeLabels map[string]string
 	if agentPool.NodeLabels != nil {
 		nodeLabels = make(map[string]string)
-		for k, v := range *agentPool.NodeLabels {
-			nodeLabels[k] = v
-		}
+		maps.Copy(nodeLabels, *agentPool.NodeLabels)
 	}
 
 	nodePublicIPPrefixID := pointer.From(agentPool.NodePublicIPPrefixID)

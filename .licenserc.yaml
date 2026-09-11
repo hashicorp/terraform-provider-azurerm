@@ -32,6 +32,9 @@ header:
     - '.idea/**'
     - '.release/**'
     - '.teamcity/**'
+    - '.tools/bin/**' # gitignored tool installs (make tools)
+    - '.tools/npm/**'
+    - '.tools/venv/**'
     - 'vendor/**'
     - '**/*_gen.go' # pandora generated files
     - '.goreleaser.yml'

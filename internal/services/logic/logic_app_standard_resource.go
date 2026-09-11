@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"maps"
 	"strconv"
 	"strings"
 	"time"
@@ -1305,17 +1306,13 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]inte
 		addOrUpdate[k] = v
 	}
 
-	for k, v := range cMap {
-		addOrUpdate[k] = v
-	}
+	maps.Copy(addOrUpdate, cMap)
 
 	for k := range remove {
 		delete(eMap, k)
 	}
 
-	for k, v := range addOrUpdate {
-		eMap[k] = v
-	}
+	maps.Copy(eMap, addOrUpdate)
 
 	return pointer.To(expandAppSettings(eMap))
 }

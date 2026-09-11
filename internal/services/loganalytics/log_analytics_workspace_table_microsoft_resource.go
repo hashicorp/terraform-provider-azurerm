@@ -6,7 +6,6 @@ package loganalytics
 import (
 	"context"
 	"fmt"
-	"log"
 	"regexp"
 	"time"
 
@@ -248,7 +247,6 @@ func (r WorkspaceTableMicrosoftResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.LogAnalytics.TablesClient
 
 			tableName := model.Name
-			log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Workspace Table %s create", tableName)
 
 			workspaceId, err := workspaces.ParseWorkspaceID(model.WorkspaceId)
 			if err != nil {

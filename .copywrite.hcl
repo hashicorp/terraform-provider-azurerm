@@ -11,6 +11,9 @@ project {
     ".ci/**",
     ".github/**",
     ".teamcity/**",
+    ".tools/bin/**", # gitignored tool installs (make tools)
+    ".tools/npm/**",
+    ".tools/venv/**",
     ".release/**",
     "vendor/**",
     "internal/**/**_gen.go", # Pandora generated files

@@ -183,7 +183,7 @@ func resourceArmCdnEndpointCustomDomainCreate(d *pluginsdk.ResourceData, meta in
 	var params cdn.BasicCustomDomainHTTPSParameters
 	if v, ok := d.GetOk("user_managed_https"); ok {
 		// User managed certificate is only available for Azure CDN from Microsoft and Azure CDN from Verizon profiles.
-		// https://docs.microsoft.com/en-us/azure/cdn/cdn-custom-ssl?tabs=option-2-enable-https-with-your-own-certificate#tlsssl-certificates
+		// https://docs.microsoft.com/azure/cdn/cdn-custom-ssl?tabs=option-2-enable-https-with-your-own-certificate#tlsssl-certificates
 		pfClient := meta.(*clients.Client).Cdn.ProfilesClient
 		cdnEndpointResp, err := pfClient.Get(ctx, id.ResourceGroup, id.ProfileName)
 		if err != nil {

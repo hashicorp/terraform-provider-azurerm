@@ -80,10 +80,6 @@ func GetAuthConfig(t *testing.T) *auth.Credentials {
 
 		EnableAuthenticatingUsingClientCertificate: true,
 		EnableAuthenticatingUsingClientSecret:      true,
-		EnableAuthenticatingUsingAzureCLI:          false,
-		EnableAuthenticatingUsingManagedIdentity:   false,
-		EnableAuthenticationUsingOIDC:              false,
-		EnableAuthenticationUsingGitHubOIDC:        false,
 	}
 }
 
