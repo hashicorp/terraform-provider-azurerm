@@ -1,0 +1,24 @@
+name: changelog-check
+
+on:
+  pull_request:
+    types:
+      - "opened"
+      - "synchronize"
+      - "labeled"
+      - "unlabeled"
+    branches:
+      - "main"
+
+permissions: {}
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      # - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+
+      - name: test
+        run: echo "this is a test"
