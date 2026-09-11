@@ -2,7 +2,7 @@
 # tfproviderlint module plugins compiled in (make builds it as .tools/bin/golangci-with-modules;
 # used by make lint). The version here must match the golangci-lint pin in go.mod - depscheck
 # enforces this.
-version: v2.12.2
+version: v2.13.2
 name: golangci-with-modules
 destination: ./bin
 plugins:

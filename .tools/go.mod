@@ -270,3 +270,9 @@ require (
 	honnef.co/go/tools v0.8.1 // indirect
 	mvdan.cc/unparam v0.0.0-20260823230713-2fa3d841b0c8 // indirect
 )
+
+// golangci-lint v2.13+ (via gosec) needs go.yaml.in/yaml/v4 rc.6, whose API changes break the build of
+// actionlint v1.7.12, which is written against rc.3. Everything here still compiles against rc.3, so
+// pin it. Remove once https://github.com/rhysd/actionlint/pull/735 is merged and actionlint is bumped to
+// a release containing it.
+replace go.yaml.in/yaml/v4 => go.yaml.in/yaml/v4 v4.0.0-rc.3
