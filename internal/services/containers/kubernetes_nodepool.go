@@ -208,6 +208,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						// NOTE: O+C - Preserve the API value when omitted to avoid replacing existing pools.
 						Computed:     true,
 						ForceNew:     true,
+						RequiredWith: []string{"default_node_pool.0.pod_subnet_id"},
 						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForPodIPAllocationMode(), false),
 					},
 					"pod_subnet_id": {

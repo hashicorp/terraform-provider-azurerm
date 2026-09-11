@@ -321,6 +321,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			// NOTE: O+C - Preserve the API value when omitted to avoid replacing existing pools.
 			Computed:     true,
 			ForceNew:     true,
+			RequiredWith: []string{"pod_subnet_id"},
 			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForPodIPAllocationMode(), false),
 		},
 
@@ -853,10 +854,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	if d.HasChange("pod_subnet_id") {
 		props.PodSubnetID = pointer.To(d.Get("pod_subnet_id").(string))
-	}
-
-	if d.HasChange("pod_ip_allocation_mode") {
-		props.PodIPAllocationMode = pointer.ToEnum[agentpools.PodIPAllocationMode](d.Get("pod_ip_allocation_mode").(string))
 	}
 
 	if d.HasChange("ultra_ssd_enabled") {
