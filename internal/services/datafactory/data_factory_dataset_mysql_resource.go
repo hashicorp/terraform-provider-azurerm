@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -178,10 +179,9 @@ func resourceDataFactoryDatasetMySQLCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	linkedServiceName := d.Get("linked_service_name").(string)
-	linkedServiceType := "LinkedServiceReference"
 	linkedService := &datafactory.LinkedServiceReference{
 		ReferenceName: &linkedServiceName,
-		Type:          &linkedServiceType,
+		Type:          pointer.To("LinkedServiceReference"),
 	}
 
 	description := d.Get("description").(string)
@@ -192,9 +192,8 @@ func resourceDataFactoryDatasetMySQLCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
-		name := v.(string)
 		mysqlTableset.Folder = &datafactory.DatasetFolder{
-			Name: &name,
+			Name: pointer.To(v.(string)),
 		}
 	}
 
@@ -203,8 +202,7 @@ func resourceDataFactoryDatasetMySQLCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		mysqlTableset.Annotations = &annotations
+		mysqlTableset.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
@@ -215,10 +213,9 @@ func resourceDataFactoryDatasetMySQLCreateUpdate(d *pluginsdk.ResourceData, meta
 		mysqlTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeBasicDatasetTypeMySQLTable)
 	dataset := datafactory.DatasetResource{
 		Properties: &mysqlTableset,
-		Type:       &datasetType,
+		Type:       pointer.To(string(datafactory.TypeBasicDatasetTypeMySQLTable)),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, dataset, ""); err != nil {

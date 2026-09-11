@@ -88,8 +88,6 @@ type Auth struct {
 	ExpireInSec  int64  `tfschema:"expire_in_seconds"`
 }
 
-type SourceSetting struct{}
-
 type SourceTrigger struct {
 	Name          string   `tfschema:"name"`
 	Enabled       bool     `tfschema:"enabled"`

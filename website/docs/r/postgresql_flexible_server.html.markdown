@@ -162,7 +162,7 @@ The following arguments are supported:
 
 * `storage_type` - (Optional) The type of storage used for the PostgreSQL Flexible Server. Possible values are `Premium_LRS` and `PremiumV2_LRS`. Defaults to `Premium_LRS`. Changing this forces a new resource to be created.
 
-~> **Note:** When `storage_type` is set to `PremiumV2_LRS`, the following constraints apply: PostgreSQL versions `11`, `12` and `13` are not supported; `geo_redundant_backup_enabled` with `customer_managed_key` is not supported. Please refer to [Azure Documentation](https://learn.microsoft.com/en-us/azure/postgresql/compute-storage/concepts-storage-premium-ssd-v2#limitations-and-considerations) for more details.
+~> **Note:** When `storage_type` is set to `PremiumV2_LRS`, the following constraints apply: PostgreSQL versions `11`, `12` and `13` are not supported; `geo_redundant_backup_enabled` with `customer_managed_key` is not supported. Please refer to [Azure Documentation](https://learn.microsoft.com/azure/postgresql/compute-storage/concepts-storage-premium-ssd-v2#limitations-and-considerations) for more details.
 
 ~> **Note:** When `storage_type` is `Premium_LRS`, servers created with a `create_mode` other than `Default` (such as a `Replica` or a restored server) are provisioned with `storage_tier` set to the basic tier for the corresponding `storage_mb`. Setting `storage_tier` to the required value must be performed in a separate update after creation.
 
@@ -184,7 +184,7 @@ The following arguments are supported:
 
 -> **Note:** Major version upgrades are not supported when `cluster` is specified.
 
--> **Note:** Versions 11, 12, 13 are in Extended Support. Upgrade to a supported version before August 1, 2026 to avoid Extended Support billing. see [Eligible PostgreSQL versions](https://learn.microsoft.com/en-us/azure/postgresql/configure-maintain/extended-support#eligible-postgresql-versions)
+-> **Note:** Versions 11, 12, 13 are in Extended Support. Upgrade to a supported version before August 1, 2026 to avoid Extended Support billing. see [Eligible PostgreSQL versions](https://learn.microsoft.com/azure/postgresql/configure-maintain/extended-support#eligible-postgresql-versions)
 
 * `zone` - (Optional) Specifies the Availability Zone in which the PostgreSQL Flexible Server should be located.
 
@@ -202,7 +202,7 @@ An `authentication` block supports the following:
 
 * `tenant_id` - (Optional) The Tenant ID of the Azure Active Directory which is used by the Active Directory authentication. `active_directory_auth_enabled` must be set to `true`.
 
--> **Note:** Setting `active_directory_auth_enabled` to `true` requires a Service Principal for the Postgres Flexible Server. For more details see [this document](https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/how-to-configure-sign-in-azure-ad-authentication).
+-> **Note:** Setting `active_directory_auth_enabled` to `true` requires a Service Principal for the Postgres Flexible Server. For more details see [this document](https://learn.microsoft.com/azure/postgresql/flexible-server/how-to-configure-sign-in-azure-ad-authentication).
 
 -> **Note:** `tenant_id` is required when `active_directory_auth_enabled` is set to `true`. And it should not be specified when `active_directory_auth_enabled` is set to `false`
 
@@ -246,7 +246,7 @@ A `maintenance_window` block supports the following:
 
 * `start_minute` - (Optional) The start minute for maintenance window. Defaults to `0`.
 
--> **Note:** The specified `maintenance_window` is always defined in UTC time. When unspecified, the maintenance window falls back to the default [system-managed](https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/how-to-maintenance-portal#specify-maintenance-schedule-options).
+-> **Note:** The specified `maintenance_window` is always defined in UTC time. When unspecified, the maintenance window falls back to the default [system-managed](https://learn.microsoft.com/azure/postgresql/flexible-server/how-to-maintenance-portal#specify-maintenance-schedule-options).
 
 ---
 

@@ -540,7 +540,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				poolNameChange := d.HasChange("pool_name")
 
 				// `service_level` and `pool_name` must be updated together or we ForceNew the resource
-				// https://learn.microsoft.com/en-us/azure/azure-netapp-files/dynamic-change-volume-service-level
+				// https://learn.microsoft.com/azure/azure-netapp-files/dynamic-change-volume-service-level
 				if serviceLevelChange && !poolNameChange {
 					return d.ForceNew("service_level")
 				}
@@ -977,20 +977,16 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("smb_non_browsable_enabled") {
-		smbNonBrowsable := volumes.SmbNonBrowsableDisabled
-		update.Properties.SmbNonBrowsable = &smbNonBrowsable
+		update.Properties.SmbNonBrowsable = pointer.To(volumes.SmbNonBrowsableDisabled)
 		if d.Get("smb_non_browsable_enabled").(bool) {
-			smbNonBrowsable := volumes.SmbNonBrowsableEnabled
-			update.Properties.SmbNonBrowsable = &smbNonBrowsable
+			update.Properties.SmbNonBrowsable = pointer.To(volumes.SmbNonBrowsableEnabled)
 		}
 	}
 
 	if d.HasChange("smb_access_based_enumeration_enabled") {
-		smbAccessBasedEnumeration := volumes.SmbAccessBasedEnumerationDisabled
-		update.Properties.SmbAccessBasedEnumeration = &smbAccessBasedEnumeration
+		update.Properties.SmbAccessBasedEnumeration = pointer.To(volumes.SmbAccessBasedEnumerationDisabled)
 		if d.Get("smb_access_based_enumeration_enabled").(bool) {
-			smbAccessBasedEnumeration := volumes.SmbAccessBasedEnumerationEnabled
-			update.Properties.SmbAccessBasedEnumeration = &smbAccessBasedEnumeration
+			update.Properties.SmbAccessBasedEnumeration = pointer.To(volumes.SmbAccessBasedEnumerationEnabled)
 		}
 	}
 

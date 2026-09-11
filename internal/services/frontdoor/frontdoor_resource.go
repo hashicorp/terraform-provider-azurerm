@@ -579,7 +579,6 @@ func expandFrontDoorHealthProbeSettingsModel(input []interface{}, frontDoorId fr
 	for _, hps := range input {
 		v := hps.(map[string]interface{})
 		path := v["path"].(string)
-		protocol := frontdoors.FrontDoorProtocol(v["protocol"].(string))
 		intervalInSeconds := int64(v["interval_in_seconds"].(int))
 		name := v["name"].(string)
 		enabled := v["enabled"].(bool)
@@ -590,16 +589,14 @@ func expandFrontDoorHealthProbeSettingsModel(input []interface{}, frontDoorId fr
 		}
 		healthProbeId := parse.NewHealthProbeID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroupName, frontDoorId.FrontDoorName, name).ID()
 
-		probeMethod := frontdoors.FrontDoorHealthProbeMethod(v["probe_method"].(string))
-
 		result := frontdoors.HealthProbeSettingsModel{
 			Id:   pointer.To(healthProbeId),
 			Name: pointer.To(name),
 			Properties: &frontdoors.HealthProbeSettingsProperties{
 				IntervalInSeconds: pointer.To(intervalInSeconds),
 				Path:              pointer.To(path),
-				Protocol:          &protocol,
-				HealthProbeMethod: &probeMethod,
+				Protocol:          pointer.ToEnum[frontdoors.FrontDoorProtocol](v["protocol"].(string)),
+				HealthProbeMethod: pointer.ToEnum[frontdoors.FrontDoorHealthProbeMethod](v["probe_method"].(string)),
 				EnabledState:      &healthProbeEnabled,
 			},
 		}
@@ -743,8 +740,6 @@ func expandFrontDoorRedirectConfiguration(input []interface{}) frontdoors.Redire
 	}
 
 	v := input[0].(map[string]interface{})
-	redirectType := frontdoors.FrontDoorRedirectType(v["redirect_type"].(string))
-	redirectProtocol := frontdoors.FrontDoorRedirectProtocol(v["redirect_protocol"].(string))
 	customHost := v["custom_host"].(string)
 	customPath := v["custom_path"].(string)
 	customFragment := v["custom_fragment"].(string)
@@ -752,8 +747,8 @@ func expandFrontDoorRedirectConfiguration(input []interface{}) frontdoors.Redire
 
 	redirectConfiguration := frontdoors.RedirectConfiguration{
 		CustomHost:       pointer.To(customHost),
-		RedirectType:     &redirectType,
-		RedirectProtocol: &redirectProtocol,
+		RedirectType:     pointer.ToEnum[frontdoors.FrontDoorRedirectType](v["redirect_type"].(string)),
+		RedirectProtocol: pointer.ToEnum[frontdoors.FrontDoorRedirectProtocol](v["redirect_protocol"].(string)),
 	}
 	// The way the API works is if you don't include the attribute in the structure
 	// it is treated as Preserve instead of Replace...
@@ -779,7 +774,6 @@ func expandFrontDoorForwardingConfiguration(input []interface{}, frontDoorId fro
 
 	v := input[0].(map[string]interface{})
 	customForwardingPath := v["custom_forwarding_path"].(string)
-	forwardingProtocol := frontdoors.FrontDoorForwardingProtocol(v["forwarding_protocol"].(string))
 	backendPoolName := v["backend_pool_name"].(string)
 	cacheUseDynamicCompression := v["cache_use_dynamic_compression"].(bool)
 	cacheQueryParameterStripDirective := frontdoors.FrontDoorQuery(v["cache_query_parameter_strip_directive"].(string))
@@ -800,7 +794,7 @@ func expandFrontDoorForwardingConfiguration(input []interface{}, frontDoorId fro
 	}
 
 	forwardingConfiguration := frontdoors.ForwardingConfiguration{
-		ForwardingProtocol: &forwardingProtocol,
+		ForwardingProtocol: pointer.ToEnum[frontdoors.FrontDoorForwardingProtocol](v["forwarding_protocol"].(string)),
 		BackendPool:        backend,
 	}
 	// Per the portal, if you enable the cache the cache_query_parameter_strip_directive
