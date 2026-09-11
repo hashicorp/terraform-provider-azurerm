@@ -74,7 +74,7 @@ type WindowsFunctionAppSlotModel struct {
 	VirtualNetworkBackupRestoreEnabled bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
 	VirtualNetworkSubnetID             string                                     `tfschema:"virtual_network_subnet_id"`
 	VnetImagePullEnabled               bool                                       `tfschema:"vnet_image_pull_enabled"`
-	E2eEncryptionEnabled               bool                                       `tfschema:"e2e_encryption_enabled"`
+	EndToEndTLSEncryptionEnabled       bool                                       `tfschema:"end_to_end_tls_encryption_enabled"`
 }
 
 var _ sdk.ResourceWithUpdate = WindowsFunctionAppSlotResource{}
@@ -243,7 +243,7 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 			Description: "Can the Function App Slot only be accessed via HTTPS?",
 		},
 
-		"e2e_encryption_enabled": {
+		"end_to_end_tls_encryption_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
@@ -560,7 +560,7 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 					VnetBackupRestoreEnabled:  pointer.To(functionAppSlot.VirtualNetworkBackupRestoreEnabled),
 					VnetImagePullEnabled:      pointer.To(functionAppSlot.VnetImagePullEnabled),
 					VnetRouteAllEnabled:       siteConfig.VnetRouteAllEnabled,
-					EndToEndEncryptionEnabled: pointer.To(functionAppSlot.E2eEncryptionEnabled),
+					EndToEndEncryptionEnabled: pointer.To(functionAppSlot.EndToEndTLSEncryptionEnabled),
 				},
 			}
 			if differentServicePlanToParent {
@@ -780,7 +780,7 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
 					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
-					state.E2eEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
+					state.EndToEndTLSEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						state.HostingEnvId = pointer.From(hostingEnv.Id)
@@ -977,8 +977,8 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				model.Properties.VnetImagePullEnabled = pointer.To(state.VnetImagePullEnabled)
 			}
 
-			if metadata.ResourceData.HasChange("e2e_encryption_enabled") {
-				model.Properties.EndToEndEncryptionEnabled = pointer.To(state.E2eEncryptionEnabled)
+			if metadata.ResourceData.HasChange("end_to_end_tls_encryption_enabled") {
+				model.Properties.EndToEndEncryptionEnabled = pointer.To(state.EndToEndTLSEncryptionEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("storage_account") {

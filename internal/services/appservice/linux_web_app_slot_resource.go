@@ -66,7 +66,7 @@ type LinuxWebAppSlotModel struct {
 	VirtualNetworkBackupRestoreEnabled bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
 	VirtualNetworkSubnetID             string                                     `tfschema:"virtual_network_subnet_id"`
 	VnetImagePullEnabled               bool                                       `tfschema:"vnet_image_pull_enabled"`
-	E2eEncryptionEnabled               bool                                       `tfschema:"e2e_encryption_enabled"`
+	EndToEndTLSEncryptionEnabled       bool                                       `tfschema:"end_to_end_tls_encryption_enabled"`
 }
 
 var _ sdk.ResourceWithUpdate = LinuxWebAppSlotResource{}
@@ -221,7 +221,7 @@ func (r LinuxWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The local path and filename of the Zip packaged application to deploy to this Windows Web App. **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` on the App in `app_settings`.",
 		},
 
-		"e2e_encryption_enabled": {
+		"end_to_end_tls_encryption_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
@@ -376,7 +376,7 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 					VnetBackupRestoreEnabled:  pointer.To(webAppSlot.VirtualNetworkBackupRestoreEnabled),
 					VnetRouteAllEnabled:       siteConfig.VnetRouteAllEnabled,
 					VnetImagePullEnabled:      pointer.To(webAppSlot.VnetImagePullEnabled),
-					EndToEndEncryptionEnabled: pointer.To(webAppSlot.E2eEncryptionEnabled),
+					EndToEndEncryptionEnabled: pointer.To(webAppSlot.EndToEndTLSEncryptionEnabled),
 				},
 			}
 
@@ -625,7 +625,7 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
 					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
-					state.E2eEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
+					state.EndToEndTLSEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						state.HostingEnvId = pointer.From(hostingEnv.Id)
 					}
@@ -844,8 +844,8 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("e2e_encryption_enabled") {
-				model.Properties.EndToEndEncryptionEnabled = pointer.To(state.E2eEncryptionEnabled)
+			if metadata.ResourceData.HasChange("end_to_end_tls_encryption_enabled") {
+				model.Properties.EndToEndEncryptionEnabled = pointer.To(state.EndToEndTLSEncryptionEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") {

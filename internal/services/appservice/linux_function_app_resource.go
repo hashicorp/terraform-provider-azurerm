@@ -72,7 +72,7 @@ type LinuxFunctionAppModel struct {
 	PublishingFTPBasicAuthEnabled      bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
 	Identity                           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	VnetImagePullEnabled               bool                                       `tfschema:"vnet_image_pull_enabled"`
-	E2eEncryptionEnabled               bool                                       `tfschema:"e2e_encryption_enabled"`
+	EndToEndTLSEncryptionEnabled       bool                                       `tfschema:"end_to_end_tls_encryption_enabled"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -313,7 +313,7 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
 		},
 
-		"e2e_encryption_enabled": {
+		"end_to_end_tls_encryption_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
@@ -553,7 +553,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 					VnetBackupRestoreEnabled:  pointer.To(functionApp.VirtualNetworkBackupRestoreEnabled),
 					VnetImagePullEnabled:      pointer.To(functionApp.VnetImagePullEnabled),
 					VnetRouteAllEnabled:       siteConfig.VnetRouteAllEnabled,
-					EndToEndEncryptionEnabled: pointer.To(functionApp.E2eEncryptionEnabled),
+					EndToEndEncryptionEnabled: pointer.To(functionApp.EndToEndTLSEncryptionEnabled),
 				},
 			}
 
@@ -793,7 +793,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
 					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
-					state.E2eEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
+					state.EndToEndTLSEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
 
 					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmId)
 					if err != nil {
@@ -990,8 +990,8 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				model.Properties.KeyVaultReferenceIdentity = pointer.To(state.KeyVaultReferenceIdentityID)
 			}
 
-			if metadata.ResourceData.HasChange("e2e_encryption_enabled") {
-				model.Properties.EndToEndEncryptionEnabled = pointer.To(state.E2eEncryptionEnabled)
+			if metadata.ResourceData.HasChange("end_to_end_tls_encryption_enabled") {
+				model.Properties.EndToEndEncryptionEnabled = pointer.To(state.EndToEndTLSEncryptionEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {

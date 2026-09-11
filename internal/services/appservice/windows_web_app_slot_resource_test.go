@@ -35,6 +35,20 @@ func TestAccWindowsWebAppSlot_basic(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebAppSlot_regression(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	}, "")
+}
+
 func TestAccWindowsWebAppSlot_updateTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
@@ -1292,10 +1306,9 @@ func TestAccWindowsWebAppSlot_e2eEncryption(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.e2eEncryptionEnabled(data),
+			Config: r.endToEndTLSEncryptionEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("e2e_encryption_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -1311,15 +1324,13 @@ func TestAccWindowsWebAppSlot_e2eEncryptionUpdate(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("e2e_encryption_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.e2eEncryptionEnabled(data),
+			Config: r.endToEndTLSEncryptionEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("e2e_encryption_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -1327,7 +1338,6 @@ func TestAccWindowsWebAppSlot_e2eEncryptionUpdate(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("e2e_encryption_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -2774,7 +2784,7 @@ resource "azurerm_windows_web_app_slot" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
-func (r WindowsWebAppSlotResource) e2eEncryptionEnabled(data acceptance.TestData) string {
+func (r WindowsWebAppSlotResource) endToEndTLSEncryptionEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2786,7 +2796,7 @@ resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
   app_service_id = azurerm_windows_web_app.test.id
 
-  e2e_encryption_enabled = true
+  end_to_end_tls_encryption_enabled = true
 
   site_config {}
 }

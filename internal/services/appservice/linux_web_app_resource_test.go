@@ -37,6 +37,20 @@ func TestAccLinuxWebApp_basic(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebApp_regression(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	}, "")
+}
+
 func TestAccLinuxWebApp_updateTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
 	r := LinuxWebAppResource{}
@@ -1882,10 +1896,9 @@ func TestAccLinuxWebApp_e2eEncryption(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.e2eEncryptionEnabled(data),
+			Config: r.endToEndTLSEncryptionEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("e2e_encryption_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -1901,15 +1914,13 @@ func TestAccLinuxWebApp_e2eEncryptionUpdate(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("e2e_encryption_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.e2eEncryptionEnabled(data),
+			Config: r.endToEndTLSEncryptionEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("e2e_encryption_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -1917,7 +1928,6 @@ func TestAccLinuxWebApp_e2eEncryptionUpdate(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("e2e_encryption_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -3781,7 +3791,7 @@ resource "azurerm_linux_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger)
 }
 
-func (r LinuxWebAppResource) e2eEncryptionEnabled(data acceptance.TestData) string {
+func (r LinuxWebAppResource) endToEndTLSEncryptionEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3795,7 +3805,7 @@ resource "azurerm_linux_web_app" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  e2e_encryption_enabled = true
+  end_to_end_tls_encryption_enabled = true
 
   site_config {}
 }

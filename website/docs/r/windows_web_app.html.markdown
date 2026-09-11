@@ -78,6 +78,8 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Should the Windows Web App be enabled? Defaults to `true`.
 
+* `end_to_end_tls_encryption_enabled` - (Optional) Whether to enable end-to-end TLS encryption. Defaults to `false`.
+
 * `ftp_publish_basic_authentication_enabled` - (Optional) Should the default FTP Basic Authentication publishing profile be enabled. Defaults to `true`.
 
 * `https_only` - (Optional) Should the Windows Web App require HTTPS connections. Defaults to `false`.
@@ -117,8 +119,6 @@ The following arguments are supported:
 * `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Windows Web App.
 			
 ~> **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`. Refer to the Azure docs on [running the Web App directly from the Zip package](https://learn.microsoft.com/azure/app-service/deploy-run-package), or [automating the build for Zip deploy](https://learn.microsoft.com/azure/app-service/deploy-zip#enable-build-automation-for-zip-deploy) for further details.
-
-* `e2e_encryption_enabled` - (Optional) Should the end-to-end encryption enabled. Defaults to `false`.
 
 ---
 

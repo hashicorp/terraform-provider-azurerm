@@ -68,7 +68,7 @@ type WindowsFunctionAppModel struct {
 	PublishingDeployBasicAuthEnabled   bool                                   `tfschema:"webdeploy_publish_basic_authentication_enabled"`
 	PublishingFTPBasicAuthEnabled      bool                                   `tfschema:"ftp_publish_basic_authentication_enabled"`
 	VnetImagePullEnabled               bool                                   `tfschema:"vnet_image_pull_enabled"`
-	E2eEncryptionEnabled               bool                                   `tfschema:"e2e_encryption_enabled"`
+	EndToEndTLSEncryptionEnabled       bool                                   `tfschema:"end_to_end_tls_encryption_enabled"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -250,7 +250,7 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "Can the Function App only be accessed via HTTPS?",
 		},
 
-		"e2e_encryption_enabled": {
+		"end_to_end_tls_encryption_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
@@ -547,7 +547,7 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 					VnetBackupRestoreEnabled:  pointer.To(functionApp.VirtualNetworkBackupRestoreEnabled),
 					VnetImagePullEnabled:      pointer.To(functionApp.VnetImagePullEnabled),
 					VnetRouteAllEnabled:       siteConfig.VnetRouteAllEnabled,
-					EndToEndEncryptionEnabled: pointer.To(functionApp.E2eEncryptionEnabled),
+					EndToEndEncryptionEnabled: pointer.To(functionApp.EndToEndTLSEncryptionEnabled),
 				},
 			}
 
@@ -770,7 +770,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
 					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
-					state.E2eEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
+					state.EndToEndTLSEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
 
 					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmId))
 					if err != nil {
@@ -1003,8 +1003,8 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("e2e_encryption_enabled") {
-				model.Properties.EndToEndEncryptionEnabled = pointer.To(state.E2eEncryptionEnabled)
+			if metadata.ResourceData.HasChange("end_to_end_tls_encryption_enabled") {
+				model.Properties.EndToEndEncryptionEnabled = pointer.To(state.EndToEndTLSEncryptionEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("storage_account") {

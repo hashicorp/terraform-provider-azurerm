@@ -39,6 +39,20 @@ func TestAccWindowsFunctionApp_basicBasicPlan(t *testing.T) {
 	})
 }
 
+func TestAccWindowsFunctionApp_regression(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	}, "")
+}
+
 func TestAccWindowsFunctionApp_basicRuntimeCheck(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
 	r := WindowsFunctionAppResource{}
@@ -1758,10 +1772,9 @@ func TestAccWindowsFunctionApp_e2eEncryption(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.e2eEncryptionEnabled(data, SkuStandardPlan),
+			Config: r.endToEndTLSEncryptionEnabled(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("e2e_encryption_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -1777,15 +1790,13 @@ func TestAccWindowsFunctionApp_e2eEncryptionUpdate(t *testing.T) {
 			Config: r.basic(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("e2e_encryption_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.e2eEncryptionEnabled(data, SkuStandardPlan),
+			Config: r.endToEndTLSEncryptionEnabled(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("e2e_encryption_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -1793,7 +1804,6 @@ func TestAccWindowsFunctionApp_e2eEncryptionUpdate(t *testing.T) {
 			Config: r.basic(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("e2e_encryption_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -4385,7 +4395,7 @@ resource "azurerm_windows_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
-func (r WindowsFunctionAppResource) e2eEncryptionEnabled(data acceptance.TestData, planSku string) string {
+func (r WindowsFunctionAppResource) endToEndTLSEncryptionEnabled(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4399,7 +4409,7 @@ resource "azurerm_windows_function_app" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  e2e_encryption_enabled = true
+  end_to_end_tls_encryption_enabled = true
 
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key

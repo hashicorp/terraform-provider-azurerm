@@ -84,6 +84,8 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Should the Linux Web App be enabled? Defaults to `true`.
 
+* `end_to_end_tls_encryption_enabled` - (Optional) Whether to enable end-to-end TLS encryption. Defaults to `false`.
+
 * `ftp_publish_basic_authentication_enabled` - (Optional) Should the default FTP Basic Authentication publishing profile be enabled. Defaults to `true`.
 
 * `https_only` - (Optional) Should the Linux Web App require HTTPS connections. Defaults to `false`.
@@ -121,8 +123,6 @@ The following arguments are supported:
 * `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Linux Web App.
 
 ~> **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` to be set on the App in `app_settings`. Refer to the [Azure docs](https://docs.microsoft.com/azure/app-service/deploy-run-package) for further details.
-
-* `e2e_encryption_enabled` - (Optional) Should the end-to-end encryption enabled. Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags that should be assigned to the Linux Web App.
 
