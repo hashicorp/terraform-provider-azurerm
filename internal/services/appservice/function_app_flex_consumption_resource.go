@@ -573,7 +573,10 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 					},
 				}
 				endpoint, _ := url.Parse(functionAppFlexConsumption.StorageContainerEndpoint)
-				deploymentStorageName := strings.Split(endpoint.Host, ".")[0]
+				deploymentStorageName, _, ok := strings.Cut(endpoint.Hostname(), ".")
+				if !ok {
+					return fmt.Errorf("extracting storage account name from endpoint `%s`", functionAppFlexConsumption.StorageContainerEndpoint)
+				}
 
 				if webapps.AuthenticationType(functionAppFlexConsumption.StorageAuthType) == webapps.AuthenticationTypeStorageAccountConnectionString {
 					deploymentStorage.Authentication.StorageAccountConnectionStringName = pointer.To(DeploymentStorageConnStr)
@@ -1026,7 +1029,11 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("parsing storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", state.StorageContainerEndpoint)
 				}
-				deploymentStorageName := strings.Split(endpoint.Host, ".")[0]
+
+				deploymentStorageName, _, ok := strings.Cut(endpoint.Hostname(), ".")
+				if !ok {
+					return fmt.Errorf("extracting storage account name from endpoint `%s`", state.StorageContainerEndpoint)
+				}
 
 				if metadata.ResourceData.HasChange("storage_container_endpoint") {
 					deploymentStorage.Value = &state.StorageContainerEndpoint
@@ -1338,7 +1345,7 @@ func expandDeploymentStorage(input []DeploymentStorage, connectionStrName string
 		result.Authentication.Type = pointer.To(webapps.AuthenticationTypeStorageAccountConnectionString)
 		result.Authentication.StorageAccountConnectionStringName = pointer.To(connectionStrName)
 		endpoint, _ := url.Parse(input[0].ContainerEndPoint)
-		deploymentSaName := strings.Split(endpoint.Host, ".")[0]
+		deploymentSaName, _, _ := strings.Cut(endpoint.Hostname(), ".")
 		saStr = fmt.Sprintf(StorageStringFmt, deploymentSaName, input[0].AccessKey, *storageDomainSuffix)
 	} else if input[0].UserAssignedIdentityId != "" {
 		result.Authentication.Type = pointer.To(webapps.AuthenticationTypeUserAssignedIdentity)
