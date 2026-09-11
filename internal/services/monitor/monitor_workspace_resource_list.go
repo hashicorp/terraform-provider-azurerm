@@ -16,19 +16,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type WorkspaceListResource struct{}
+type MonitorWorkspaceListResource struct{}
 
-var _ sdk.FrameworkListWrappedResource = new(WorkspaceListResource)
+var _ sdk.FrameworkListWrappedResource = new(MonitorWorkspaceListResource)
 
-func (WorkspaceListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+func (MonitorWorkspaceListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
 	response.TypeName = WorkspaceResource{}.ResourceType()
 }
 
-func (WorkspaceListResource) ResourceFunc() *pluginsdk.Resource {
+func (MonitorWorkspaceListResource) ResourceFunc() *pluginsdk.Resource {
 	return sdk.WrappedResource(WorkspaceResource{})
 }
 
-func (WorkspaceListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (MonitorWorkspaceListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.Monitor.WorkspacesClient
 
 	var data sdk.DefaultListModel
