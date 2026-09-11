@@ -353,6 +353,19 @@ A `task_scheduling_policy` block exports the following:
 
 ---
 
+A `security_profile` block supports the following:
+
+* `host_encryption_enabled` - Whether to enable host encryption for the Virtual Machine or Virtual Machine Scale Set. 
+
+* `security_type` - The security type of the Virtual Machine.
+
+* `secure_boot_enabled` - Whether to enable secure boot for the Virtual Machine or Virtual Machine Scale Set.
+
+* `vtpm_enabled` - Whether to enable virtual trusted platform module (vTPM) for the Virtual Machine or Virtual Machine Scale Set
+
+
+---
+
 A `user_accounts` block exports the following:
 
 * `name` - The name of the user account.
