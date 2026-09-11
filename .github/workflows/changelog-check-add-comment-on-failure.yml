@@ -40,7 +40,7 @@ jobs:
             const marker = '<!-- changelog-comment -->'
             const body = [
               marker,
-              "This PR is missing a changelog entry. Please add one by commenting:",
+              "This PR is missing a changelog entry, or contains an invalid one. Please add one by commenting:",
               "",
               "````",
               "/changelog",
