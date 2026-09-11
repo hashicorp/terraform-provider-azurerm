@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
 	search "github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -34,7 +35,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity
@@ -216,12 +216,9 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"default_action": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cognitiveservicesaccounts.NetworkRuleActionAllow),
-								string(cognitiveservicesaccounts.NetworkRuleActionDeny),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(cognitiveservicesaccounts.PossibleValuesForNetworkRuleAction(), false),
 						},
 
 						"ip_rules": {
@@ -491,7 +488,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 			ApiProperties:                 apiProps,
 			NetworkAcls:                   networkAcls,
 			CustomSubDomainName:           pointer.To(d.Get("custom_subdomain_name").(string)),
-			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
+			AllowedFqdnList:               helpers.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
 			RestrictOutboundNetworkAccess: pointer.To(d.Get("outbound_network_access_restricted").(bool)),
@@ -565,7 +562,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 			ApiProperties:                 apiProps,
 			NetworkAcls:                   networkAcls,
 			CustomSubDomainName:           pointer.To(d.Get("custom_subdomain_name").(string)),
-			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
+			AllowedFqdnList:               helpers.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
 			RestrictOutboundNetworkAccess: pointer.To(d.Get("outbound_network_access_restricted").(bool)),
@@ -688,12 +685,8 @@ func resourceCognitiveAccountFlatten(ctx context.Context, client *cognitiveservi
 			if err := d.Set("storage", flattenCognitiveAccountStorage(props.UserOwnedStorage)); err != nil {
 				return fmt.Errorf("setting `storages` for Cognitive Account %q: %+v", id, err)
 			}
-			outboundNetworkAccessRestricted := false
-			if props.RestrictOutboundNetworkAccess != nil {
-				outboundNetworkAccessRestricted = *props.RestrictOutboundNetworkAccess
-			}
 			// lintignore:R001
-			d.Set("outbound_network_access_restricted", outboundNetworkAccessRestricted)
+			d.Set("outbound_network_access_restricted", pointer.From(props.RestrictOutboundNetworkAccess))
 
 			localAuthEnabled := !pointer.From(props.DisableLocalAuth)
 			d.Set("local_auth_enabled", localAuthEnabled)
@@ -836,8 +829,6 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 
 	v := input[0].(map[string]interface{})
 
-	defaultAction := cognitiveservicesaccounts.NetworkRuleAction(v["default_action"].(string))
-
 	ipRulesRaw := v["ip_rules"].(*pluginsdk.Set)
 	ipRules := make([]cognitiveservicesaccounts.IPRule, 0)
 
@@ -862,14 +853,13 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 	}
 
 	ruleSet := cognitiveservicesaccounts.NetworkRuleSet{
-		DefaultAction:       &defaultAction,
+		DefaultAction:       pointer.ToEnum[cognitiveservicesaccounts.NetworkRuleAction](v["default_action"].(string)),
 		IPRules:             &ipRules,
 		VirtualNetworkRules: &networkRules,
 	}
 
 	if b, ok := d.GetOk("network_acls.0.bypass"); ok && b != "" {
-		bypass := cognitiveservicesaccounts.ByPassSelection(v["bypass"].(string))
-		ruleSet.Bypass = &bypass
+		ruleSet.Bypass = pointer.ToEnum[cognitiveservicesaccounts.ByPassSelection](v["bypass"].(string))
 	}
 
 	return &ruleSet, subnetIds
@@ -1011,15 +1001,13 @@ func expandCognitiveAccountCustomerManagedKey(input []interface{}) *cognitiveser
 		return nil
 	}
 
-	keySource := cognitiveservicesaccounts.KeySourceMicrosoftPointKeyVault
-
 	var identity string
 	if value := v["identity_client_id"]; value != nil && value != "" {
 		identity = value.(string)
 	}
 
 	return &cognitiveservicesaccounts.Encryption{
-		KeySource: &keySource,
+		KeySource: pointer.To(cognitiveservicesaccounts.KeySourceMicrosoftPointKeyVault),
 		KeyVaultProperties: &cognitiveservicesaccounts.KeyVaultProperties{
 			KeyName:          pointer.To(keyId.Name),
 			KeyVersion:       pointer.To(keyId.Version),
@@ -1064,15 +1052,13 @@ func expandCognitiveAccountNetworkInjection(input []interface{}) *[]cognitiveser
 	for _, v := range input {
 		m := v.(map[string]interface{})
 
-		scenario := cognitiveservicesaccounts.ScenarioType(m["scenario"].(string))
-
 		var subnetId *string
 		if m["subnet_id"] != nil && m["subnet_id"] != "" {
 			subnetId = pointer.To(m["subnet_id"].(string))
 		}
 
 		results = append(results, cognitiveservicesaccounts.NetworkInjection{
-			Scenario:    &scenario,
+			Scenario:    pointer.ToEnum[cognitiveservicesaccounts.ScenarioType](m["scenario"].(string)),
 			SubnetArmId: subnetId,
 		})
 	}

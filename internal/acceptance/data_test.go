@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestAccAzureRMTestDataRandomIntOfLength(t *testing.T) {
+func TestRandomIntOfLength(t *testing.T) {
 	td := TestData{
 		RandomInteger: 112233445566779999,
 	}

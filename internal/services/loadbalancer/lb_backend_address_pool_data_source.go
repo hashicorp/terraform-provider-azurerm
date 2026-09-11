@@ -214,10 +214,7 @@ func flattenArmLoadBalancerBackendAddresses(input *[]loadbalancers.LoadBalancerB
 	output := make([]interface{}, 0)
 
 	for _, e := range *input {
-		var name string
-		if e.Name != nil {
-			name = *e.Name
-		}
+		name := pointer.From(e.Name)
 
 		var (
 			ipAddress string

@@ -19,17 +19,23 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privatelinkservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationgateways"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "subscription_id:cdn_frontdoor_origin_group_id,resource_group_name:cdn_frontdoor_origin_group_id,profile_name:cdn_frontdoor_origin_group_id,origin_group_name:cdn_frontdoor_origin_group_id"
+
+const azureCdnFrontDoorOriginResourceName = "azurerm_cdn_frontdoor_origin"
+
 func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceCdnFrontDoorOriginCreate,
 		Read:   resourceCdnFrontDoorOriginRead,
 		Update: resourceCdnFrontDoorOriginUpdate,
@@ -42,9 +48,15 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := afdorigins.ParseOriginGroupOriginID(id)
-			return err
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&afdorigins.OriginGroupOriginId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&afdorigins.OriginGroupOriginId{}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.CdnFrontDoorOriginV0ToV1{},
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -159,8 +171,6 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
 func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -186,7 +196,7 @@ func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 		}
 
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_origin", id.ID())
+			return tf.ImportAsExistsError(azureCdnFrontDoorOriginResourceName, id.ID())
 		}
 	}
 
@@ -231,11 +241,15 @@ func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 		},
 	}
 
-	if err := client.CreateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, payload, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceCdnFrontDoorOriginRead(d, meta)
 }
 
@@ -259,10 +273,14 @@ func resourceCdnFrontDoorOriginRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceCdnFrontDoorOriginFlatten(d, id, resp.Model)
+}
+
+func resourceCdnFrontDoorOriginFlatten(d *pluginsdk.ResourceData, id *afdorigins.OriginGroupOriginId, model *afdorigins.AFDOrigin) error {
 	d.Set("name", id.OriginName)
 	d.Set("cdn_frontdoor_origin_group_id", afdorigins.NewOriginGroupID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.OriginGroupName).ID())
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			if err := d.Set("private_link", flattenCdnFrontDoorOriginPrivateLinkSettings(props.SharedPrivateLinkResource)); err != nil {
 				return fmt.Errorf("setting `private_link`: %+v", err)
@@ -279,7 +297,7 @@ func resourceCdnFrontDoorOriginRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

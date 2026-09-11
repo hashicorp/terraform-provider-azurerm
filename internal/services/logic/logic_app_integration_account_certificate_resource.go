@@ -228,21 +228,11 @@ func flattenIntegrationAccountCertificateKeyVaultKey(input *integrationaccountce
 		return make([]interface{}, 0)
 	}
 
-	var keyVaultId string
-	if input.KeyVault.Id != nil {
-		keyVaultId = *input.KeyVault.Id
-	}
-
-	var keyVersion string
-	if input.KeyVersion != nil {
-		keyVersion = *input.KeyVersion
-	}
-
 	return []interface{}{
 		map[string]interface{}{
 			"key_name":     input.KeyName,
-			"key_vault_id": keyVaultId,
-			"key_version":  keyVersion,
+			"key_vault_id": pointer.From(input.KeyVault.Id),
+			"key_version":  pointer.From(input.KeyVersion),
 		},
 	}
 }

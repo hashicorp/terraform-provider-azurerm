@@ -55,14 +55,11 @@ func (r IotHubDeviceUpdateAccountResource) Arguments() map[string]*pluginsdk.Sch
 		},
 
 		"sku": {
-			Type:     pluginsdk.TypeString,
-			ForceNew: true,
-			Optional: true,
-			Default:  deviceupdates.SKUStandard,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(deviceupdates.SKUFree),
-				string(deviceupdates.SKUStandard),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			ForceNew:     true,
+			Optional:     true,
+			Default:      deviceupdates.SKUStandard,
+			ValidateFunc: validation.StringInSlice(deviceupdates.PossibleValuesForSKU(), false),
 		},
 
 		"tags": commonschema.Tags(),

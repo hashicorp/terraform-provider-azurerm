@@ -523,7 +523,7 @@ func TestAccHDInsightInteractiveQueryCluster_updateAzureMonitor(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHDInsightInteractiveQueryCluster_autoscale(t *testing.T) {
+func TestAccHDInsightInteractiveQueryCluster_autoscale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
 	r := HDInsightInteractiveQueryClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

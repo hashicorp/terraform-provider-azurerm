@@ -1375,7 +1375,7 @@ func TestAccLinuxFunctionAppSlot_vNetIntegrationUpdateWithVnetProperties(t *test
 	})
 }
 
-func TestAccLinuxFunctionAppSlotASEv3_basicWithVnetProperties(t *testing.T) {
+func TestAccLinuxFunctionAppSlot_ASEv3BasicWithVnetProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
 

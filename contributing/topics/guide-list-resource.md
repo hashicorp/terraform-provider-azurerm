@@ -16,6 +16,7 @@ Before adding a List Resource, the resource must have Resource Identity implemen
 1. In the resource, refactor the Read function to have a separate flatten function containing only the logic to set the attributes into state. This will be used by both the Read function and later in the List Resource.<br><br>
 
     For untyped resources:
+
     ```go
     func resourceNetworkProfileFlatten(d *pluginsdk.ResourceData, id *networkprofiles.NetworkProfileId, profile *networkprofiles.NetworkProfile) error {
         d.Set("name", id.NetworkProfileName)
@@ -43,6 +44,7 @@ Before adding a List Resource, the resource must have Resource Identity implemen
     ```
 
     For typed resources:
+
     ```go
     func (ExampleResource) flatten(metadata sdk.ResourceMetaData, id *example.ExampleId, model *example.ExampleModel) error {
         // Instantiate state, set any fields with known values (e.g. ones we can derive from the ID)
@@ -71,6 +73,7 @@ Before adding a List Resource, the resource must have Resource Identity implemen
 2. Create a new file for the List Resource (for example, `network_profile_resource_list.go`) and scaffold the empty resource:<br><br>
 
     For untyped resources:
+
     ```go
     type NetworkProfileListResource struct{}
     
@@ -87,6 +90,7 @@ Before adding a List Resource, the resource must have Resource Identity implemen
     ```
 
     For typed resources:
+
     ```go
     type ExampleListResource struct{}
 
@@ -221,8 +225,9 @@ Before adding a List Resource, the resource must have Resource Identity implemen
         }
     }
     ```
-   
+
     For typed resources:
+
     ```go
     func (ExampleListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
         client := metadata.Client.Example.ExampleResourceClient
@@ -475,6 +480,19 @@ Before adding a List Resource, the resource must have Resource Identity implemen
     
     * `subscription_id` - (Optional) The Subscription ID to query. Defaults to the value specified in the Provider Configuration.
     ````
+
+## Handling List for Sub-resources
+
+Some resources can be listed only beneath a parent resource, rather than at the subscription or resource group scope.
+
+For these sub-resources:
+
+* Do not expose `subscription_id` or `resource_group_name`.
+* Accept the immediate parent resource ID as a required argument.
+* Parse that parent ID and call the API that lists directly beneath that parent.
+* Apply the same rule to deeper hierarchies by taking the ID of the immediate parent resource at each level.
+
+Example: see [mysql_flexible_database_resource_list.go](../../internal/services/mysql/mysql_flexible_database_resource_list.go) and [mysql_flexible_database.html.markdown](../../website/docs/list-resources/mysql_flexible_database.html.markdown).
 
 ## Known Issues and Considerations
 

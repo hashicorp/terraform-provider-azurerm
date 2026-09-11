@@ -84,7 +84,7 @@ func resourcePrivateDnsZone() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				MaxItems: 1,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -338,10 +338,7 @@ func flattenPrivateDNSZoneSOARecord(input *privatedns.RecordSet) []interface{} {
 		metaData = tags.Flatten(input.Properties.Metadata)
 	}
 
-	fqdn := ""
-	if input.Properties.Fqdn != nil {
-		fqdn = *input.Properties.Fqdn
-	}
+	fqdn := pointer.From(input.Properties.Fqdn)
 
 	email := ""
 	hostName := ""

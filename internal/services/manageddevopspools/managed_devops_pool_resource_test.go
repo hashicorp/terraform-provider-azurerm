@@ -154,6 +154,23 @@ func TestAccManagedDevOpsPool_CompleteWithPermission(t *testing.T) {
 	})
 }
 
+func TestAccManagedDevOpsPool_creatorOnlyPermission(t *testing.T) {
+	requiresBasicEnvVars(t)
+
+	data := acceptance.BuildTestData(t, "azurerm_managed_devops_pool", "test")
+	r := ManagedDevOpsPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.creatorOnlyPermission(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ManagedDevOpsPoolResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := pools.ParsePoolID(state.ID)
 	if err != nil {
@@ -337,6 +354,45 @@ resource "azurerm_managed_devops_pool" "test" {
     organization {
       parallelism = 1
       url         = "%s"
+    }
+  }
+
+  stateless_agent {}
+
+  virtual_machine_scale_set_fabric {
+    image {
+      well_known_image_name = "ubuntu-24.04/latest"
+    }
+    sku_name = "Standard_B1s"
+  }
+}
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_MANAGED_DEVOPS_ORG_URL"))
+}
+
+func (r ManagedDevOpsPoolResource) creatorOnlyPermission(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_managed_devops_pool" "test" {
+  name                = "acctest-pool-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  maximum_concurrency   = 1
+  dev_center_project_id = azurerm_dev_center_project.test.id
+
+  azure_devops_organization {
+    organization {
+      parallelism = 1
+      url         = "%s"
+    }
+
+    permission {
+      kind = "CreatorOnly"
     }
   }
 

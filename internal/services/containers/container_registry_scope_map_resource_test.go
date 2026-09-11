@@ -70,7 +70,7 @@ func TestAccContainerRegistryScopeMap_complete(t *testing.T) {
 	})
 }
 
-func TestAccontainerRegistryScopeMap_update(t *testing.T) {
+func TestAccContainerRegistryScopeMap_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_scope_map", "test")
 	r := ContainerRegistryScopeMapResource{}
 

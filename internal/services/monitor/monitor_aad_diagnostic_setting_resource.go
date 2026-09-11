@@ -352,7 +352,7 @@ func expandMonitorAADDiagnosticsSettingsEnabledLogs(input []interface{}) []diagn
 		v := raw.(map[string]interface{})
 
 		logSettings := diagnosticsettings.LogSettings{
-			Category: pointer.To(diagnosticsettings.Category(v["category"].(string))),
+			Category: pointer.ToEnum[diagnosticsettings.Category](v["category"].(string)),
 			Enabled:  true,
 		}
 

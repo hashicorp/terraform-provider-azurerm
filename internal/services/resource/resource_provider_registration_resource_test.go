@@ -26,6 +26,24 @@ import (
 
 type ResourceProviderRegistrationResource struct{}
 
+func TestAccResourceProviderRegistration_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_provider_registration", "test")
+	r := ResourceProviderRegistrationResource{}
+	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
+		{
+			PreConfig: func() {
+				// Last error may cause resource provider still in `Registered` status.Need to unregister it before a new test.
+				// Microsoft.PowerPlatform is deliberately not shared with the other tests in this file so that
+				// this test cannot collide with them over the same subscription-level singleton.
+				if err := r.unRegisterProviders(data.Subscriptions.Primary, "Microsoft.PowerPlatform"); err != nil {
+					t.Fatalf("Failed to reset feature registration with error: %+v", err)
+				}
+			},
+			Config: r.basic("Microsoft.PowerPlatform"),
+		},
+	}, "")
+}
+
 func TestAccResourceProviderRegistration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_provider_registration", "test")
 	r := ResourceProviderRegistrationResource{}

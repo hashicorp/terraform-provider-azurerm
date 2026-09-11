@@ -53,10 +53,10 @@ func (r Registration) Resources() []sdk.Resource {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_eventgrid_topic":        dataSourceEventGridTopic(),
 		"azurerm_eventgrid_domain":       dataSourceEventGridDomain(),
 		"azurerm_eventgrid_domain_topic": dataSourceEventGridDomainTopic(),
 		"azurerm_eventgrid_system_topic": dataSourceEventGridSystemTopic(),
+		"azurerm_eventgrid_topic":        dataSourceEventGridTopic(),
 	}
 }
 
@@ -66,9 +66,9 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_eventgrid_domain":                          resourceEventGridDomain(),
 		"azurerm_eventgrid_domain_topic":                    resourceEventGridDomainTopic(),
 		"azurerm_eventgrid_event_subscription":              resourceEventGridEventSubscription(),
-		"azurerm_eventgrid_topic":                           resourceEventGridTopic(),
 		"azurerm_eventgrid_system_topic":                    resourceEventGridSystemTopic(),
 		"azurerm_eventgrid_system_topic_event_subscription": resourceEventGridSystemTopicEventSubscription(),
+		"azurerm_eventgrid_topic":                           resourceEventGridTopic(),
 	}
 }
 
