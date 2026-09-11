@@ -1331,6 +1331,8 @@ func TestAccCosmosDBAccount_localAuthenticationDisabled(t *testing.T) {
 			Config: r.basic(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelEventual, 1),
+				checkAccCosmosDBAccount_sql(data),
 				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("true"),
 			),
 		},
@@ -1340,6 +1342,7 @@ func TestAccCosmosDBAccount_localAuthenticationDisabled(t *testing.T) {
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("false"),
+				checkAccCosmosDBAccount_credentialsEmpty(data),
 			),
 		},
 		data.ImportStep(),
@@ -2647,6 +2650,23 @@ func checkAccCosmosDBAccount_sql(data acceptance.TestData) acceptance.TestCheckF
 		check.That(data.ResourceName).Key("secondary_sql_connection_string").Exists(),
 		check.That(data.ResourceName).Key("primary_readonly_sql_connection_string").Exists(),
 		check.That(data.ResourceName).Key("secondary_readonly_sql_connection_string").Exists(),
+	)
+}
+
+func checkAccCosmosDBAccount_credentialsEmpty(data acceptance.TestData) acceptance.TestCheckFunc {
+	return acceptance.ComposeTestCheckFunc(
+		check.That(data.ResourceName).Key("primary_key").IsEmpty(),
+		check.That(data.ResourceName).Key("secondary_key").IsEmpty(),
+		check.That(data.ResourceName).Key("primary_readonly_key").IsEmpty(),
+		check.That(data.ResourceName).Key("secondary_readonly_key").IsEmpty(),
+		check.That(data.ResourceName).Key("primary_sql_connection_string").IsEmpty(),
+		check.That(data.ResourceName).Key("secondary_sql_connection_string").IsEmpty(),
+		check.That(data.ResourceName).Key("primary_readonly_sql_connection_string").IsEmpty(),
+		check.That(data.ResourceName).Key("secondary_readonly_sql_connection_string").IsEmpty(),
+		check.That(data.ResourceName).Key("primary_mongodb_connection_string").IsEmpty(),
+		check.That(data.ResourceName).Key("secondary_mongodb_connection_string").IsEmpty(),
+		check.That(data.ResourceName).Key("primary_readonly_mongodb_connection_string").IsEmpty(),
+		check.That(data.ResourceName).Key("secondary_readonly_mongodb_connection_string").IsEmpty(),
 	)
 }
 
