@@ -111,7 +111,6 @@ The following arguments are supported:
 
 ~> **Note:** For health check related settings, please use `health_check_eviction_time_in_min`, terraform will assign the value to the key `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` in app setting.
 
-~> **Note:** For those app settings that are deprecated or replaced by another properties for flex consumption Function App, please check https://learn.microsoft.com/en-us/azure/azure-functions/functions-app-settings.
 ~> **Note:** For those app settings that are deprecated or replaced by another properties for flex consumption function app, please check https://learn.microsoft.com/azure/azure-functions/functions-app-settings.
 
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
@@ -135,7 +134,6 @@ The following arguments are supported:
 * `identity` - (Optional) A `identity` block as defined below.
 
 * `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity). Defaults to `SystemAssigned`.
-
 
 * `sticky_settings` - (Optional) A `sticky_settings` block as defined below.
 
@@ -163,7 +161,7 @@ The following arguments are supported:
 
 * `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Linux Function App.
 
-~> **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`. Refer to the [Azure docs](https://learn.microsoft.com/en-us/azure/azure-functions/functions-deployment-technologies) for further details.
+~> **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`. Refer to the [Azure docs](https://learn.microsoft.com/azure/azure-functions/functions-deployment-technologies) for further details.
 
 ---
 
