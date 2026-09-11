@@ -264,7 +264,7 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{})
 
 		d.Set("auxiliary_mode", pointer.FromEnum(props.AuxiliaryMode))
 
-		d.Set("auxiliary_mode", pointer.FromEnum(props.AuxiliarySku))
+		d.Set("auxiliary_sku", pointer.FromEnum(props.AuxiliarySku))
 
 		var appliedDNSServers []string
 		var dnsServers []string
