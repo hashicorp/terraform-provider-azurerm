@@ -38,6 +38,7 @@ func (r Registration) Resources() []sdk.Resource {
 		DataCollectionEndpointResource{},
 		DataCollectionRuleAssociationResource{},
 		DataCollectionRuleResource{},
+		MonitorPipelineResource{},
 		ScheduledQueryRulesAlertV2Resource{},
 		WorkspaceResource{},
 	}
@@ -103,6 +104,7 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 		MonitorActionGroupListResource{},
 		MonitorActivityLogAlertListResource{},
 		MonitorMetricAlertListResource{},
+		MonitorPipelineListResource{},
 		MonitorScheduledQueryRulesAlertListResource{},
 		ScheduledQueryRulesAlertV2ListResource{},
 	}

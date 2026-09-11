@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-15-preview/scheduledqueryrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/monitor/2023-04-03/azuremonitorworkspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/monitor/2026-04-01/pipelinegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -50,6 +51,7 @@ type Client struct {
 	DiagnosticSettingsClient             *diagnosticSettingClient.DiagnosticSettingsClient
 	DiagnosticSettingsCategoryClient     *diagnosticCategoryClient.DiagnosticSettingsCategoriesClient
 	MetricAlertsClient                   *metricalerts.MetricAlertsClient
+	PipelineGroupsClient                 *pipelinegroups.PipelineGroupsClient
 	PrivateLinkScopesClient              *privatelinkscopesapis.PrivateLinkScopesAPIsClient
 	PrivateLinkScopedResourcesClient     *privatelinkscopedresources.PrivateLinkScopedResourcesClient
 	ScheduledQueryRulesClient            *scheduledqueryrules2018.ScheduledQueryRulesClient
@@ -142,6 +144,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(MetricAlertsClient.Client, o.Authorizers.ResourceManager)
 
+	PipelineGroupsClient, err := pipelinegroups.NewPipelineGroupsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Pipeline Groups client: %+v", err)
+	}
+	o.Configure(PipelineGroupsClient.Client, o.Authorizers.ResourceManager)
+
 	PrivateLinkScopesClient, err := privatelinkscopesapis.NewPrivateLinkScopesAPIsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Private Link Scopes client: %+v", err)
@@ -187,6 +195,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		DiagnosticSettingsClient:             DiagnosticSettingsClient,
 		DiagnosticSettingsCategoryClient:     DiagnosticSettingsCategoryClient,
 		MetricAlertsClient:                   MetricAlertsClient,
+		PipelineGroupsClient:                 PipelineGroupsClient,
 		PrivateLinkScopesClient:              PrivateLinkScopesClient,
 		PrivateLinkScopedResourcesClient:     PrivateLinkScopedResourcesClient,
 		ScheduledQueryRulesClient:            ScheduledQueryRulesClient,
