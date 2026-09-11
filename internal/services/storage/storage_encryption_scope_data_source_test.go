@@ -38,6 +38,20 @@ func TestAccDataSourceStorageEncryptionScope_microsoftManagedKey(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceStorageEncryptionScope_microsoftManagedKeyRequireInfrastructureEncryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_encryption_scope", "test")
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: StorageEncryptionScopeDataSource{}.microsoftManagedKeyRequireInfrastructureEncryption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("source").HasValue("Microsoft.Storage"),
+				check.That(data.ResourceName).Key("infrastructure_encryption_required").HasValue("true"),
+				check.That(data.ResourceName).Key("key_vault_key_id").IsEmpty(),
+			),
+		},
+	})
+}
+
 func (StorageEncryptionScopeDataSource) keyVaultKey(data acceptance.TestData) string {
 	basic := StorageEncryptionScopeResource{}.keyVaultKey(data)
 	return fmt.Sprintf(`
@@ -52,6 +66,18 @@ data "azurerm_storage_encryption_scope" "test" {
 
 func (StorageEncryptionScopeDataSource) microsoftManagedKey(data acceptance.TestData) string {
 	basic := StorageEncryptionScopeResource{}.microsoftManagedKey(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_storage_encryption_scope" "test" {
+  name               = azurerm_storage_encryption_scope.test.name
+  storage_account_id = azurerm_storage_encryption_scope.test.storage_account_id
+}
+`, basic)
+}
+
+func (StorageEncryptionScopeDataSource) microsoftManagedKeyRequireInfrastructureEncryption(data acceptance.TestData) string {
+	basic := StorageEncryptionScopeResource{}.microsoftManagedKeyRequireInfrastructureEncryption(data)
 	return fmt.Sprintf(`
 %s
 
