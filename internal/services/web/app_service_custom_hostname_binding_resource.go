@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -20,6 +21,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name:hostname,site_name:app_service_name,resource_group_name" -test-name basicConfig -test-env-vars ARM_TEST_DNS_ZONE,ARM_TEST_DATA_RESOURCE_GROUP
+
 const appServiceCustomHostnameBindingResourceName = "azurerm_app_service_custom_hostname_binding"
 
 func resourceAppServiceCustomHostnameBinding() *pluginsdk.Resource {
@@ -27,10 +30,11 @@ func resourceAppServiceCustomHostnameBinding() *pluginsdk.Resource {
 		Create: resourceAppServiceCustomHostnameBindingCreate,
 		Read:   resourceAppServiceCustomHostnameBindingRead,
 		Delete: resourceAppServiceCustomHostnameBindingDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := webapps.ParseHostNameBindingID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&webapps.HostNameBindingId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&webapps.HostNameBindingId{}),
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -135,6 +139,9 @@ func resourceAppServiceCustomHostnameBindingCreate(d *pluginsdk.ResourceData, me
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceAppServiceCustomHostnameBindingRead(d, meta)
 }
@@ -159,11 +166,15 @@ func resourceAppServiceCustomHostnameBindingRead(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourceAppServiceCustomHostnameBindingFlatten(d, id, resp.Model)
+}
+
+func resourceAppServiceCustomHostnameBindingFlatten(d *pluginsdk.ResourceData, id *webapps.HostNameBindingId, model *webapps.HostNameBinding) error {
 	d.Set("hostname", id.HostNameBindingName)
 	d.Set("app_service_name", id.SiteName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("ssl_state", pointer.FromEnum(props.SslState))
 			d.Set("thumbprint", props.Thumbprint)
@@ -171,7 +182,7 @@ func resourceAppServiceCustomHostnameBindingRead(d *pluginsdk.ResourceData, meta
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceAppServiceCustomHostnameBindingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
