@@ -32,6 +32,8 @@ jobs:
     env:
       AUTHORIZED_TEAM: terraform-azure
     steps:
+      - name: test
+        run: echo "this is a test"
       - name: Check team membership
         id: check-membership
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
