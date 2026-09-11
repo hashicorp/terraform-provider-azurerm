@@ -984,6 +984,19 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		_, adminLoginSet := d.GetOk("administrator_login")
 		_, adminPwdSet := d.GetOk("administrator_password")
 
+		// d.GetOk returns false for fields in lifecycle.ignore_changes, because
+		// Terraform strips ignored fields from the resource data before passing
+		// it to the provider. Fall back to the raw config to detect whether the
+		// field is actually declared.
+		if !adminPwdSet {
+			rawCfg := d.GetRawConfig()
+			if !rawCfg.IsNull() {
+				if v := rawCfg.GetAttr("administrator_password"); !v.IsNull() && v.IsKnown() {
+					adminPwdSet = true
+				}
+			}
+		}
+
 		pwdEnabled := true // it defaults to true
 		if authRaw, authExist := d.GetOk("authentication"); authExist {
 			authConfig := expandFlexibleServerAuthConfig(authRaw.([]interface{}))
