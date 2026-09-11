@@ -18,6 +18,16 @@ import (
 
 type EmailCommunicationServiceDomainSenderUsernameResource struct{}
 
+func TestAccEmailServiceDomainSenderUsername_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_email_communication_service_domain_sender_username", "test")
+	r := EmailCommunicationServiceDomainSenderUsernameResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccEmailServiceDomainSenderUsername_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_email_communication_service_domain_sender_username", "test")
 	r := EmailCommunicationServiceDomainSenderUsernameResource{}

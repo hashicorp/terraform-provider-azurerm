@@ -18,6 +18,16 @@ import (
 
 type ChaosStudioExperimentTestResource struct{}
 
+func TestAccChaosStudioExperiment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_chaos_studio_experiment", "test")
+	r := ChaosStudioExperimentTestResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccChaosStudioExperiment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_chaos_studio_experiment", "test")
 	r := ChaosStudioExperimentTestResource{}

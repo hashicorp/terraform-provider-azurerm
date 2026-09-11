@@ -21,6 +21,16 @@ import (
 
 type CdnProfileResource struct{}
 
+func TestAccCdnProfile_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
+	r := CdnProfileResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccCdnProfile_basic(t *testing.T) {
 	if cdn.IsCdnDeprecatedForCreation() {
 		t.Skip(cdn.CreateDeprecationMessage)

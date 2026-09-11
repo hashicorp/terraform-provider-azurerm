@@ -20,6 +20,16 @@ import (
 
 type CognitiveAccountConnectionAccountKeyResource struct{}
 
+func TestAccCognitiveAccountConnectionAccountKey_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_account_key", "test")
+	r := CognitiveAccountConnectionAccountKeyResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccCognitiveAccountConnectionAccountKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_account_key", "test")
 	r := CognitiveAccountConnectionAccountKeyResource{}
