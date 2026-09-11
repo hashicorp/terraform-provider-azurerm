@@ -5,6 +5,7 @@ package hdinsight
 
 import (
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -166,14 +167,10 @@ func dataSourceHDInsightClusterRead(d *pluginsdk.ResourceData, meta interface{})
 				return fmt.Errorf("flattening `gateway`: %+v", err)
 			}
 
-			edgeNodeSshEndpoint := findHDInsightConnectivityEndpoint("EDGESSH", props.ConnectivityEndpoints)
-			d.Set("edge_ssh_endpoint", edgeNodeSshEndpoint)
-			httpEndpoint := findHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
-			d.Set("https_endpoint", httpEndpoint)
-			sshEndpoint := findHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
-			d.Set("ssh_endpoint", sshEndpoint)
-			kafkaRestProxyEndpoint := findHDInsightConnectivityEndpoint("KafkaRestProxyPublicEndpoint", props.ConnectivityEndpoints)
-			d.Set("kafka_rest_proxy_endpoint", kafkaRestProxyEndpoint)
+			d.Set("edge_ssh_endpoint", findHDInsightConnectivityEndpoint("EDGESSH", props.ConnectivityEndpoints))
+			d.Set("https_endpoint", findHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints))
+			d.Set("ssh_endpoint", findHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints))
+			d.Set("kafka_rest_proxy_endpoint", findHDInsightConnectivityEndpoint("KafkaRestProxyPublicEndpoint", props.ConnectivityEndpoints))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -188,9 +185,7 @@ func flattenHDInsightsDataSourceComponentVersions(input *map[string]string) map[
 	output := make(map[string]string)
 
 	if input != nil {
-		for k, v := range *input {
-			output[k] = v
-		}
+		maps.Copy(output, *input)
 	}
 
 	return output

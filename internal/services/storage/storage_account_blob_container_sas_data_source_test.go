@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage"
 )
 
@@ -113,67 +112,6 @@ func TestAccDataSourceStorageAccountBlobContainerSas_noPermissions(t *testing.T)
 }
 
 func (d StorageAccountBlobContainerSASDataSource) basic(data acceptance.TestData, startDate string, endDate string) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "rg" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "storage" {
-  name                = "acctestsads%s"
-  resource_group_name = azurerm_resource_group.rg.name
-
-  location                 = azurerm_resource_group.rg.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "container" {
-  name                  = "sas-test"
-  storage_account_name  = azurerm_storage_account.storage.name
-  container_access_type = "private"
-}
-
-data "azurerm_storage_account_blob_container_sas" "test" {
-  connection_string = azurerm_storage_account.storage.primary_connection_string
-  container_name    = azurerm_storage_container.container.name
-  https_only        = true
-
-  ip_address = "168.1.5.65"
-
-  start  = "%s"
-  expiry = "%s"
-
-  permissions {
-    read                    = true
-    add                     = true
-    create                  = false
-    write                   = false
-    delete                  = true
-    delete_version          = true
-    list                    = true
-    tags                    = true
-    find                    = true
-    move                    = false
-    execute                 = false
-    ownership               = true
-    permissions             = true
-    set_immutability_policy = true
-  }
-
-  cache_control       = "max-age=5"
-  content_disposition = "inline"
-  content_encoding    = "deflate"
-  content_language    = "en-US"
-  content_type        = "application/json"
-}
-		`, data.RandomInteger, data.Locations.Primary, data.RandomString, startDate, endDate)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -236,59 +174,6 @@ data "azurerm_storage_account_blob_container_sas" "test" {
 }
 
 func (d StorageAccountBlobContainerSASDataSource) partial(data acceptance.TestData, startDate string, endDate string) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "rg" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "storage" {
-  name                = "acctestsads%s"
-  resource_group_name = azurerm_resource_group.rg.name
-
-  location                 = azurerm_resource_group.rg.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "container" {
-  name                  = "sas-test"
-  storage_account_name  = azurerm_storage_account.storage.name
-  container_access_type = "private"
-}
-
-data "azurerm_storage_account_blob_container_sas" "test" {
-  connection_string = azurerm_storage_account.storage.primary_connection_string
-  container_name    = azurerm_storage_container.container.name
-  https_only        = true
-
-  ip_address = "168.1.5.65"
-
-  start  = "%s"
-  expiry = "%s"
-
-  permissions {
-    read   = true
-    add    = true
-    create = false
-    write  = false
-    delete = true
-    list   = true
-  }
-
-  cache_control       = "max-age=5"
-  content_disposition = "inline"
-  content_encoding    = "deflate"
-  content_language    = "en-US"
-  content_type        = "application/json"
-}
-		`, data.RandomInteger, data.Locations.Primary, data.RandomString, startDate, endDate)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -343,50 +228,6 @@ data "azurerm_storage_account_blob_container_sas" "test" {
 }
 
 func (d StorageAccountBlobContainerSASDataSource) noPermissions(data acceptance.TestData, startDate string, endDate string) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "rg" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "storage" {
-  name                = "acctestsads%s"
-  resource_group_name = azurerm_resource_group.rg.name
-
-  location                 = azurerm_resource_group.rg.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "container" {
-  name                  = "sas-test"
-  storage_account_name  = azurerm_storage_account.storage.name
-  container_access_type = "private"
-}
-
-data "azurerm_storage_account_blob_container_sas" "test" {
-  connection_string = azurerm_storage_account.storage.primary_connection_string
-  container_name    = azurerm_storage_container.container.name
-  https_only        = true
-
-  ip_address = "168.1.5.65"
-
-  start  = "%s"
-  expiry = "%s"
-
-  cache_control       = "max-age=5"
-  content_disposition = "inline"
-  content_encoding    = "deflate"
-  content_language    = "en-US"
-  content_type        = "application/json"
-}
-		`, data.RandomInteger, data.Locations.Primary, data.RandomString, startDate, endDate)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

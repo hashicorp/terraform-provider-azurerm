@@ -29,14 +29,16 @@ resource "azurerm_container_registry" "acr" {
   sku                 = "Premium"
   admin_enabled       = false
   georeplications {
-    location                = "East US"
-    zone_redundancy_enabled = true
-    tags                    = {}
+    location                        = "East US"
+    global_endpoint_routing_enabled = true
+    zone_redundancy_enabled         = true
+    tags                            = {}
   }
   georeplications {
-    location                = "North Europe"
-    zone_redundancy_enabled = true
-    tags                    = {}
+    location                        = "North Europe"
+    global_endpoint_routing_enabled = true
+    zone_redundancy_enabled         = true
+    tags                            = {}
   }
 }
 ```
@@ -162,15 +164,13 @@ The following arguments are supported:
 
 * `retention_policy_in_days` - (Optional) The number of days to retain and untagged manifest after which it gets purged.
 
-* `trust_policy_enabled` - (Optional) Boolean value that indicated whether trust policy is enabled. Defaults to `false`.
-
 * `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this Container Registry? Changing this forces a new resource to be created. Defaults to `false`.
 
 * `export_policy_enabled` - (Optional) Boolean value that indicates whether export policy is enabled. Defaults to `true`. In order to set it to `false`, make sure the `public_network_access_enabled` is also set to `false`.
 
 * `azuread_authentication_as_arm_policy_enabled` - (Optional) Whether to use Azure Resource Manager audience token for this Container Registry? Defaults to `true`.
 
-~> **Note:** `quarantine_policy_enabled`, `retention_policy_in_days`, `trust_policy_enabled`, `export_policy_enabled` and `zone_redundancy_enabled` are only supported on resources with the `Premium` SKU.
+~> **Note:** `quarantine_policy_enabled`, `retention_policy_in_days`, `export_policy_enabled` and `zone_redundancy_enabled` are only supported on resources with the `Premium` SKU.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -192,7 +192,7 @@ The `georeplications` block supports the following:
 
 * `location` - (Required) A location where the container registry should be geo-replicated.
 
-* `regional_endpoint_enabled` - (Optional) Whether regional endpoint is enabled for this Container Registry?
+* `global_endpoint_routing_enabled` - (Required) Whether this geo-replicated location participates in global endpoint routing for the Container Registry's geo-replicated login server.
 
 * `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this replication location? Defaults to `false`.
 

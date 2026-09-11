@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/devcenters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/projects"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -177,9 +178,15 @@ func (r DevCenterProjectResource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					schema.Description = pointer.From(props.Description)
-					schema.DevCenterId = pointer.From(props.DevCenterId)
 					schema.DevCenterUri = pointer.From(props.DevCenterUri)
 					schema.MaximumDevBoxesPerUser = pointer.From(props.MaxDevBoxesPerUser)
+					if devCenterId := pointer.From(props.DevCenterId); devCenterId != "" {
+						parsedDevCenterId, err := devcenters.ParseDevCenterIDInsensitively(devCenterId)
+						if err != nil {
+							return err
+						}
+						schema.DevCenterId = parsedDevCenterId.ID()
+					}
 				}
 			}
 

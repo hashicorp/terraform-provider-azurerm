@@ -656,9 +656,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                          = "TestNetworkProfile-%[1]d"
-    primary                       = true
-    enable_accelerated_networking = %[4]t
+    name                           = "TestNetworkProfile-%[1]d"
+    primary                        = true
+    accelerated_networking_enabled = %[4]t
 
     ip_configuration {
       name      = "TestIPConfiguration"
@@ -723,9 +723,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                          = "TestNetworkProfile-%[1]d"
-    primary                       = true
-    enable_accelerated_networking = true
+    name                           = "TestNetworkProfile-%[1]d"
+    primary                        = true
+    accelerated_networking_enabled = true
 
     ip_configuration {
       name      = "TestIPConfiguration"
@@ -792,10 +792,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                          = "TestNetworkProfile-%[1]d"
-    primary                       = true
-    enable_accelerated_networking = true
-    auxiliary_sku                 = "A1"
+    name                           = "TestNetworkProfile-%[1]d"
+    primary                        = true
+    accelerated_networking_enabled = true
+    auxiliary_sku                  = "A1"
 
     ip_configuration {
       name      = "TestIPConfiguration"
@@ -862,10 +862,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                          = "TestNetworkProfile-%[1]d"
-    primary                       = true
-    enable_accelerated_networking = true
-    auxiliary_mode                = "AcceleratedConnections"
+    name                           = "TestNetworkProfile-%[1]d"
+    primary                        = true
+    accelerated_networking_enabled = true
+    auxiliary_mode                 = "AcceleratedConnections"
 
     ip_configuration {
       name      = "TestIPConfiguration"
@@ -932,11 +932,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                          = "TestNetworkProfile-%[1]d"
-    primary                       = true
-    enable_accelerated_networking = true
-    auxiliary_mode                = "AcceleratedConnections"
-    auxiliary_sku                 = "A1"
+    name                           = "TestNetworkProfile-%[1]d"
+    primary                        = true
+    accelerated_networking_enabled = true
+    auxiliary_mode                 = "AcceleratedConnections"
+    auxiliary_sku                  = "A1"
 
     ip_configuration {
       name      = "TestIPConfiguration"
@@ -1216,9 +1216,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                 = "TestNetworkProfile-%[1]d"
-    primary              = true
-    enable_ip_forwarding = true
+    name                  = "TestNetworkProfile-%[1]d"
+    primary               = true
+    ip_forwarding_enabled = true
 
     ip_configuration {
       name      = "TestIPConfiguration"
@@ -1419,9 +1419,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                 = "TestNetworkProfile-%[1]d"
-    primary              = true
-    enable_ip_forwarding = true
+    name                  = "TestNetworkProfile-%[1]d"
+    primary               = true
+    ip_forwarding_enabled = true
 
     ip_configuration {
       name      = "TestIPConfiguration"

@@ -26,7 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name shared_image_gallery -service-package-name compute -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceSharedImageGallery() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -72,14 +72,10 @@ func resourceSharedImageGallery() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"permission": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(galleries.GallerySharingPermissionTypesCommunity),
-								string(galleries.GallerySharingPermissionTypesGroups),
-								string(galleries.GallerySharingPermissionTypesPrivate),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(galleries.PossibleValuesForGallerySharingPermissionTypes(), false),
 						},
 
 						"community_gallery": {

@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
@@ -387,8 +387,7 @@ func (r BackendAddressPoolAddressResource) Delete() sdk.ResourceFunc {
 
 			pool.Model.Properties.LoadBalancerBackendAddresses = &newAddresses
 
-			err = lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, poolId, *pool.Model)
-			if err != nil {
+			if err = lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, poolId, *pool.Model); err != nil {
 				return fmt.Errorf("removing %s: %+v", *id, err)
 			}
 
@@ -494,8 +493,7 @@ func (r BackendAddressPoolAddressResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for parent resource loadbalancer status to be ready error: %+v", err)
 			}
 
-			err = lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, poolId, *pool.Model)
-			if err != nil {
+			if err = lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, poolId, *pool.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 			return nil

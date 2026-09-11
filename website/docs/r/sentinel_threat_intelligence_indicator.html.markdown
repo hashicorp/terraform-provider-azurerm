@@ -37,7 +37,7 @@ resource "azurerm_sentinel_log_analytics_workspace_onboarding" "example" {
 resource "azurerm_sentinel_threat_intelligence_indicator" "example" {
   workspace_id      = azurerm_sentinel_log_analytics_workspace_onboarding.example.workspace_id
   pattern_type      = "domain-name"
-  pattern           = "http://example.com"
+  pattern           = "example.com"
   source            = "Microsoft Sentinel"
   validate_from_utc = "2022-12-14T16:00:00Z"
   display_name      = "example-indicator"
@@ -48,7 +48,7 @@ resource "azurerm_sentinel_threat_intelligence_indicator" "example" {
 
 The following arguments are supported:
 
-* `display_name` - (Required) The display name of the Threat Intelligence Indicator.
+* `display_name` - (Required) The display name of the Threat Intelligence Indicator. Changing this forces a new resource to be created.
 
 * `pattern_type` - (Required) The type of pattern used by the Threat Intelligence Indicator. Possible values are `domain-name`, `file`, `ipv4-addr`, `ipv6-addr` and `url`.
 
@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `source` - (Required) Source of the Threat Intelligence Indicator. Changing this forces a new resource to be created.
 
-* `validate_from_utc` - (Required) The start of validate date in RFC3339.
+* `validate_from_utc` - (Required) The start of validate date in RFC3339. Changing this forces a new resource to be created.
 
 * `workspace_id` - (Required) The ID of the Log Analytics Workspace. Changing this forces a new Sentinel Threat Intelligence Indicator to be created.
 
@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `created_by` - (Optional) The creator of the Threat Intelligence Indicator.
 
-* `description` - (Optional) The description of the Threat Intelligence Indicator.
+* `description` - (Optional) The description of the Threat Intelligence Indicator. Changing this forces a new resource to be created.
 
 * `extension` - (Optional) The extension config of the Threat Intelligence Indicator in JSON format.
 

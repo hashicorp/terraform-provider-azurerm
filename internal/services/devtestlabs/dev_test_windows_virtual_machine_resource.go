@@ -273,8 +273,7 @@ func resourceArmDevTestWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta
 		d.Set("storage_type", props.StorageType)
 		d.Set("username", props.UserName)
 
-		flattenedImage := flattenDevTestVirtualMachineGalleryImage(props.GalleryImageReference)
-		if err := d.Set("gallery_image_reference", flattenedImage); err != nil {
+		if err := d.Set("gallery_image_reference", flattenDevTestVirtualMachineGalleryImage(props.GalleryImageReference)); err != nil {
 			return fmt.Errorf("setting `gallery_image_reference`: %+v", err)
 		}
 
@@ -310,8 +309,7 @@ func resourceArmDevTestWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

@@ -106,7 +106,7 @@ func resourceLogAnalyticsClusterCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 	// Error: updating Customer Managed Key for Cluster
 	//		performing CreateOrUpdate: unexpected status 400 (400 Bad Request) with error:
 	//		InvalidParameter: 'properties.associatedWorkspaces' is a read only property and cannot be set.
-	//		Please refer to https://docs.microsoft.com/en-us/azure/azure-monitor/log-query/logs-dedicated-clusters#link-a-workspace-to-the-cluster for more information on how to associate a workspace to the cluster.
+	//		Please refer to https://docs.microsoft.com/azure/azure-monitor/log-query/logs-dedicated-clusters#link-a-workspace-to-the-cluster for more information on how to associate a workspace to the cluster.
 	props.AssociatedWorkspaces = nil
 
 	keyId, err := keyvault.ParseNestedItemID(d.Get("key_vault_key_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)

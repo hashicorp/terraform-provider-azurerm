@@ -25,7 +25,7 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_storage_container" "example" {
   name                  = "${var.prefix}storagecontainer"
-  storage_account_name  = azurerm_storage_account.example.name
+  storage_account_id    = azurerm_storage_account.example.id
   container_access_type = "blob"
 }
 
@@ -44,6 +44,6 @@ resource "azurerm_storage_account" "example2" {
 
 resource "azurerm_storage_container" "example2" {
   name                  = "${var.prefix}storagecontainer2"
-  storage_account_name  = azurerm_storage_account.example2.name
+  storage_account_id    = azurerm_storage_account.example2.id
   container_access_type = "blob"
 }

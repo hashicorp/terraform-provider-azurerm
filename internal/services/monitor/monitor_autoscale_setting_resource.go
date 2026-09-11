@@ -6,6 +6,7 @@ package monitor
 import (
 	"fmt"
 	"log"
+	"maps"
 	"strconv"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-10-01/autoscalesettings"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -24,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
@@ -181,28 +182,14 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 													ValidateFunc: validate.ISO8601Duration,
 												},
 												"time_aggregation": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(autoscalesettings.TimeAggregationTypeAverage),
-														string(autoscalesettings.TimeAggregationTypeCount),
-														string(autoscalesettings.TimeAggregationTypeMaximum),
-														string(autoscalesettings.TimeAggregationTypeMinimum),
-														string(autoscalesettings.TimeAggregationTypeTotal),
-														string(autoscalesettings.TimeAggregationTypeLast),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(autoscalesettings.PossibleValuesForTimeAggregationType(), false),
 												},
 												"operator": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(autoscalesettings.ComparisonOperationTypeEquals),
-														string(autoscalesettings.ComparisonOperationTypeGreaterThan),
-														string(autoscalesettings.ComparisonOperationTypeGreaterThanOrEqual),
-														string(autoscalesettings.ComparisonOperationTypeLessThan),
-														string(autoscalesettings.ComparisonOperationTypeLessThanOrEqual),
-														string(autoscalesettings.ComparisonOperationTypeNotEquals),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(autoscalesettings.PossibleValuesForComparisonOperationType(), false),
 												},
 												"threshold": {
 													Type:     pluginsdk.TypeFloat,
@@ -232,12 +219,9 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 															},
 
 															"operator": {
-																Type:     pluginsdk.TypeString,
-																Required: true,
-																ValidateFunc: validation.StringInSlice([]string{
-																	string(autoscalesettings.ScaleRuleMetricDimensionOperationTypeEquals),
-																	string(autoscalesettings.ScaleRuleMetricDimensionOperationTypeNotEquals),
-																}, false),
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringInSlice(autoscalesettings.PossibleValuesForScaleRuleMetricDimensionOperationType(), false),
 															},
 
 															"values": {
@@ -269,14 +253,9 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 													}, false),
 												},
 												"type": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(autoscalesettings.ScaleTypeChangeCount),
-														string(autoscalesettings.ScaleTypeExactCount),
-														string(autoscalesettings.ScaleTypePercentChangeCount),
-														string(autoscalesettings.ScaleTypeServiceAllowedNextValue),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(autoscalesettings.PossibleValuesForScaleType(), false),
 												},
 												"value": {
 													Type:         pluginsdk.TypeInt,
@@ -483,7 +462,7 @@ func resourceMonitorAutoScaleSettingCreateUpdate(d *pluginsdk.ResourceData, meta
 			Notifications:             notifications,
 			TargetResourceUri:         &targetResourceId,
 		},
-		Tags: utils.ExpandPtrMapStringString(t),
+		Tags: helpers.ExpandPtrMapStringString(t),
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -538,15 +517,14 @@ func resourceMonitorAutoScaleSettingRead(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("setting `predictive_scale_mode` of %s: %+v", *id, err)
 		}
 
-		notifications := flattenAzureRmMonitorAutoScaleSettingNotification(props.Notifications)
-		if err = d.Set("notification", notifications); err != nil {
+		if err = d.Set("notification", flattenAzureRmMonitorAutoScaleSettingNotification(props.Notifications)); err != nil {
 			return fmt.Errorf("setting `notification` of %s: %+v", *id, err)
 		}
 
 		// Return a new tag map filtered by the specified tag names.
 		tagMap := tags.Filter(model.Tags, "$type")
 
-		if err = d.Set("tags", utils.FlattenPtrMapStringString(tagMap)); err != nil {
+		if err = d.Set("tags", helpers.FlattenPtrMapStringString(tagMap)); err != nil {
 			return err
 		}
 	}
@@ -1061,9 +1039,7 @@ func flattenAzureRmMonitorAutoScaleSettingNotification(notifications *[]autoscal
 
 				props := make(map[string]string)
 				if webHookProps := v.Properties; webHookProps != nil {
-					for key, value := range *v.Properties {
-						props[key] = value
-					}
+					maps.Copy(props, *v.Properties)
 					hook["properties"] = props
 					webhooks = append(webhooks, hook)
 				}
@@ -1095,7 +1071,7 @@ func flattenAzureRmMonitorAutoScaleSettingRulesDimensions(dimensions *[]autoscal
 }
 
 func validateAutoScaleSettingsTimeZone() pluginsdk.SchemaValidateFunc {
-	// from https://docs.microsoft.com/en-us/rest/api/monitor/autoscalesettings/createorupdate#timewindow
+	// from https://docs.microsoft.com/rest/api/monitor/autoscalesettings/createorupdate#timewindow
 	timeZones := []string{
 		"Dateline Standard Time",
 		"UTC-11",

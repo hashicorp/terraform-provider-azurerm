@@ -97,11 +97,11 @@ A `network_interface` block exports the following:
 
 * `ip_configuration` - An `ip_configuration` block as defined below.
 
-* `enable_accelerated_networking` - Whether accelerated networking is enabled.
+* `accelerated_networking_enabled` - Whether accelerated networking is enabled.
 
 * `dns_servers` - An array of the DNS servers in use.
 
-* `enable_ip_forwarding` - Whether IP forwarding is enabled on this NIC.
+* `ip_forwarding_enabled` - Whether IP forwarding is enabled on this NIC.
 
 * `network_security_group_id` - The identifier for the network security group.
 

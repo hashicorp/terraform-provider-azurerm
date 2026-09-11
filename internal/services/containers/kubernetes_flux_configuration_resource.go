@@ -586,14 +586,11 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"scope": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(fluxconfiguration.ScopeTypeNamespace),
-				string(fluxconfiguration.ScopeTypeCluster),
-			}, false),
-			Default: string(fluxconfiguration.ScopeTypeNamespace),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(fluxconfiguration.PossibleValuesForScopeType(), false),
+			Default:      string(fluxconfiguration.ScopeTypeNamespace),
 		},
 
 		"continuous_reconciliation_enabled": {
@@ -644,7 +641,7 @@ func (r KubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 			properties := &fluxconfiguration.FluxConfiguration{
 				Properties: &fluxconfiguration.FluxConfigurationProperties{
 					Kustomizations: expandKustomizationDefinitionModel(model.Kustomizations),
-					Scope:          pointer.To(fluxconfiguration.ScopeType(model.Scope)),
+					Scope:          pointer.ToEnum[fluxconfiguration.ScopeType](model.Scope),
 					Suspend:        pointer.To(!model.ContinuousReconciliationEnabled),
 				},
 			}
@@ -1091,7 +1088,7 @@ func expandGitRepositoryDefinitionModel(inputList []GitRepositoryDefinitionModel
 	}
 
 	if input.Provider != "" {
-		output.Provider = pointer.To(fluxconfiguration.ProviderType(input.Provider))
+		output.Provider = pointer.ToEnum[fluxconfiguration.ProviderType](input.Provider)
 	}
 
 	configSettings := make(map[string]string)

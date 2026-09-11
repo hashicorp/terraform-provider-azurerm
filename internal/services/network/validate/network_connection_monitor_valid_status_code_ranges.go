@@ -10,6 +10,7 @@ import (
 	"strings"
 )
 
+// lintignore:V001 // the regex checks are combined with numeric range comparisons
 func NetworkConnectionMonitorValidStatusCodeRanges(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 

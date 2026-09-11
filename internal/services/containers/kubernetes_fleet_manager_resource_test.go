@@ -57,9 +57,14 @@ func TestAccKubernetesFleetManager_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("hub_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("hub_profile.0.dns_prefix").HasValue(fmt.Sprintf("val-%s", data.RandomString)),
+				check.That(data.ResourceName).Key("hub_profile.0.fqdn").Exists(),
+				check.That(data.ResourceName).Key("hub_profile.0.kubernetes_version").Exists(),
+				check.That(data.ResourceName).Key("hub_profile.0.portal_fqdn").Exists(),
 			),
 		},
-		data.ImportStep("hub_profile.#", "hub_profile.0.%", "hub_profile.0.dns_prefix", "hub_profile.0.fqdn", "hub_profile.0.kubernetes_version", "hub_profile.0.portal_fqdn"),
+		data.ImportStep(),
 	})
 }
 

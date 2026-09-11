@@ -12,18 +12,24 @@ import (
 
 var _ pollers.PollerType = &ResourceProviderFeatureRegistrationPoller{}
 
+// NewResourceProviderFeatureRegistrationPoller - Polls for an expected registration state, accounting for
+// AFEC API replica inconsistency by requiring n continuous occurrences of the target state, in the same
+// way as ResourceProviderRegistrationPoller.
 func NewResourceProviderFeatureRegistrationPoller(client *features.FeaturesClient, id features.FeatureId, target string) *ResourceProviderFeatureRegistrationPoller {
 	return &ResourceProviderFeatureRegistrationPoller{
-		client:      client,
-		id:          id,
-		targetState: target,
+		client:                     client,
+		id:                         id,
+		targetState:                target,
+		continuousTargetOccurrence: 10,
 	}
 }
 
 type ResourceProviderFeatureRegistrationPoller struct {
-	client      *features.FeaturesClient
-	id          features.FeatureId
-	targetState string
+	client                     *features.FeaturesClient
+	id                         features.FeatureId
+	targetState                string
+	continuousTargetOccurrence int
+	currentOccurrenceCount     int
 }
 
 func (p *ResourceProviderFeatureRegistrationPoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
@@ -37,10 +43,15 @@ func (p *ResourceProviderFeatureRegistrationPoller) Poll(ctx context.Context) (*
 	}
 
 	if strings.EqualFold(*resp.Model.Properties.State, p.targetState) {
-		return &pollers.PollResult{
-			Status:       pollers.PollingStatusSucceeded,
-			PollInterval: 10 * time.Second,
-		}, nil
+		if p.currentOccurrenceCount >= p.continuousTargetOccurrence {
+			return &pollers.PollResult{
+				Status:       pollers.PollingStatusSucceeded,
+				PollInterval: 10 * time.Second,
+			}, nil
+		}
+		p.currentOccurrenceCount++
+	} else {
+		p.currentOccurrenceCount = 0
 	}
 
 	return &pollers.PollResult{
