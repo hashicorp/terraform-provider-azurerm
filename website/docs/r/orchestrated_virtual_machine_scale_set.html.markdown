@@ -66,6 +66,8 @@ The following arguments are supported:
 
 * `data_disk` - (Optional) One or more `data_disk` blocks as defined below.
 
+* `disk_controller_type` - (Optional) Specifies the Disk Controller Type used for the Virtual Machines in this Scale Set. Possible values are `SCSI` and `NVMe`. Changing this forces a new resource to be created.
+
 * `encryption_at_host_enabled` - (Optional) Should disks attached to this Virtual Machine Scale Set be encrypted by enabling Encryption at Host?
 
 * `eviction_policy` - (Optional) The Policy which should be used by Spot Virtual Machines that are Evicted from the Scale Set. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
