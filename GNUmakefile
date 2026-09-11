@@ -252,6 +252,17 @@ document-lint: ## Check website documentation with document-lint
 scaffold-website: ## Scaffold website documentation for a new resource or data source
 	@./scripts/website-scaffold.sh
 
+##@ Changelog
+
+changelog: tools ## Add a changelog entry (TYPE=<type> BODY='<body>' [PR=<number>])
+	@test -n "$(TYPE)" || (echo "Error: TYPE is required (e.g. TYPE=new-resource)"; exit 1)
+	@test -n '$(value BODY)' || (echo "Error: BODY is required (e.g. BODY='**New Resource**: \`azurerm_example\`')"; exit 1)
+	@CHANGELOG_TYPE='$(TYPE)' CHANGELOG_PR='$(or $(PR),0)' CHANGELOG_BODY='$(value BODY)' \
+		sh -c 'changeloggy add --pr "$$CHANGELOG_PR" --type "$$CHANGELOG_TYPE" "$$CHANGELOG_BODY"'
+
+changelog-types: tools ## Lists accepted changelog entry types
+	@changeloggy types
+
 ##@ Other
 teamcity-test: ## Test the TeamCity configuration
 	@$(MAKE) -C .teamcity tools
