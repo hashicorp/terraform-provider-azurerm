@@ -93,17 +93,28 @@ set_testing_label() {
   fi
 }
 
-# Fetch test results for this build from the TeamCity REST API
+# Fetch test results for this build from the TeamCity REST API.
+#
+# This step runs immediately after the test step, while the build is still running, and
+# TeamCity indexes test service messages asynchronously - a short test step can finish a
+# second before this runs and the API will briefly return no occurrences at all. Poll until
+# at least one result is visible (bounded), so small runs are not reported as "Total: 0".
 TEAMCITY_ERROR=""
-RAW_TEST_RESULTS_JSON=$(curl -sS -f \
-  -H "Authorization: Bearer $TEAMCITY_TOKEN" \
-  -H "Accept: application/json" \
-  "$TEAMCITY_SERVER_URL/app/rest/testOccurrences?locator=build:(id:$BUILD_ID),count:100000&fields=testOccurrence(name,status,duration,newFailure,test(id),firstFailed(build(id,number,branchName)))")
+TEST_RESULTS=""
+RESULTS_ATTEMPTS=12
+RESULTS_DELAY_S=5
+for attempt in $(seq 1 "$RESULTS_ATTEMPTS"); do
+  RAW_TEST_RESULTS_JSON=$(curl -sS -f \
+    -H "Authorization: Bearer $TEAMCITY_TOKEN" \
+    -H "Accept: application/json" \
+    "$TEAMCITY_SERVER_URL/app/rest/testOccurrences?locator=build:(id:$BUILD_ID),count:100000&fields=testOccurrence(name,status,duration,newFailure,test(id),firstFailed(build(id,number,branchName)))")
 
-if [ $? -ne 0 ] || [ -z "$RAW_TEST_RESULTS_JSON" ]; then
-  TEAMCITY_ERROR="Failed to fetch test results from TeamCity for build $BUILD_ID."
-  TEST_RESULTS=""
-else
+  if [ $? -ne 0 ] || [ -z "$RAW_TEST_RESULTS_JSON" ]; then
+    TEAMCITY_ERROR="Failed to fetch test results from TeamCity for build $BUILD_ID."
+    TEST_RESULTS=""
+    break
+  fi
+
   TEST_RESULTS=$(echo "$RAW_TEST_RESULTS_JSON" | jq -r '(.testOccurrence // [])[]
       | select(.status == "SUCCESS" or .status == "FAILURE")
       | "\(.name)|\(if .status == "SUCCESS" then "PASS" else "FAIL" end)|\((.duration // 0) / 1000)|"')
@@ -111,8 +122,16 @@ else
   if [ $? -ne 0 ]; then
     TEAMCITY_ERROR="Failed to parse TeamCity test results for build $BUILD_ID."
     TEST_RESULTS=""
+    break
   fi
-fi
+
+  if [ -n "$TEST_RESULTS" ]; then
+    break
+  fi
+
+  echo "No test results visible yet for build $BUILD_ID (attempt $attempt/$RESULTS_ATTEMPTS), retrying in ${RESULTS_DELAY_S}s..."
+  sleep "$RESULTS_DELAY_S"
+done
 
 PASS_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' 'BEGIN{c=0} $1!="" && $2=="PASS"{c++} END{print c}')
 FAIL_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' 'BEGIN{c=0} $1!="" && $2=="FAIL"{c++} END{print c}')
@@ -273,6 +292,12 @@ if [ -z "$TEAMCITY_ERROR" ]; then
   done <<< "$ALL_TEST_NAMES"
 fi
 
+NO_RESULTS_NOTE=""
+if [ -z "$TEAMCITY_ERROR" ] && [ "$TOTAL" -eq 0 ]; then
+  NO_RESULTS_NOTE="
+> TeamCity reported no test results for this build after waiting $((RESULTS_ATTEMPTS * RESULTS_DELAY_S))s. Check the build log: the test filter may have matched nothing, or the build may have failed before the tests ran."
+fi
+
 if [ -n "$TEAMCITY_ERROR" ]; then
   COMMENT="Build: [$BUILD_ID]($TEAMCITY_SERVER_URL/viewLog.html?buildId=$BUILD_ID)
 PR: #$PR_NUMBER
@@ -341,6 +366,7 @@ PR: #$PR_NUMBER
 **Passed:** $PASS_COUNT
 **Failed:** $FAIL_COUNT
 **Test Duration:** ${BUILD_HOURS}h ${BUILD_MINUTES}m ${BUILD_SECONDS}s
+${NO_RESULTS_NOTE}
 
 <details>
 <summary>Test Details</summary>
