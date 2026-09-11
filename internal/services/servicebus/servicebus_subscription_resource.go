@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/rules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/subscriptions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topics"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/migration"
@@ -21,6 +22,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "subscription_id:topic_id,resource_group_name:topic_id,namespace_name:topic_id,topic_name:topic_id"
+
+var serviceBusSubscriptionResourceName = "azurerm_servicebus_subscription"
 
 func resourceServiceBusSubscription() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -34,10 +39,11 @@ func resourceServiceBusSubscription() *pluginsdk.Resource {
 			0: migration.ServiceBusSubscriptionV0ToV1{},
 		}),
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := subscriptions.ParseSubscriptions2ID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&subscriptions.Subscriptions2Id{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&subscriptions.Subscriptions2Id{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -207,7 +213,7 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_servicebus_subscription", id.ID())
+				return tf.ImportAsExistsError(serviceBusSubscriptionResourceName, id.ID())
 			}
 		}
 	}
@@ -259,6 +265,9 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 	if d.IsNewResource() {
 		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
 	}
 
 	if d.IsNewResource() && meta.(*clients.Client).Features.ServiceBus.AutoDeleteSubscriptionDefaultRule {
@@ -294,13 +303,17 @@ func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourceServiceBusSubscriptionFlatten(d, id, resp.Model)
+}
+
+func resourceServiceBusSubscriptionFlatten(d *pluginsdk.ResourceData, id *subscriptions.Subscriptions2Id, model *subscriptions.SBSubscription) error {
 	d.Set("topic_id", subscriptions.NewTopicID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.TopicName).ID())
 
 	clientScopedEnabled := false
 	userAssignedName := id.SubscriptionName
 	clientId := ""
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)
 			d.Set("default_message_ttl", props.DefaultMessageTimeToLive)
@@ -318,7 +331,7 @@ func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interfac
 				d.Set("max_delivery_count", int(*count))
 			}
 			if props.IsClientAffine != nil && *props.IsClientAffine {
-				if props.ClientAffineProperties.ClientId != nil {
+				if props.ClientAffineProperties != nil && props.ClientAffineProperties.ClientId != nil {
 					clientId = *props.ClientAffineProperties.ClientId
 				}
 				clientScopedEnabled = true
@@ -333,7 +346,7 @@ func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interfac
 	}
 	d.Set("name", userAssignedName)
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceServiceBusSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
