@@ -18,7 +18,7 @@ require (
 	github.com/YakDriver/tfproviderdocs v0.26.0
 	github.com/client9/misspell v0.3.4
 	github.com/golangci/golangci-lint/v2 v2.12.2
-	github.com/katbyte/tctest v1.3.1
+	github.com/katbyte/tctest v1.3.3
 	github.com/katbyte/terrafmt v1.0.1
 	github.com/rhysd/actionlint v1.7.12
 	golang.org/x/tools v0.50.0
