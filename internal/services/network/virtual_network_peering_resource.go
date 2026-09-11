@@ -4,6 +4,7 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -25,12 +26,40 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity
 
+// subnetNamesChangePeeringKind reports whether a change to one of the subnet name lists
+// switches the peering between a complete virtual network peering and a subnet peering.
+// Going from empty to populated, or populated to empty, is that switch. Editing the
+// contents of an already-populated list is not.
+func subnetNamesChangePeeringKind(old, new interface{}) bool {
+	wasSubnetPeering := len(old.([]interface{})) > 0
+	isSubnetPeering := len(new.([]interface{})) > 0
+	return wasSubnetPeering != isSubnetPeering
+}
+
 func resourceVirtualNetworkPeering() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceVirtualNetworkPeeringCreate,
 		Read:   resourceVirtualNetworkPeeringRead,
 		Update: resourceVirtualNetworkPeeringUpdate,
 		Delete: resourceVirtualNetworkPeeringDelete,
+
+		// A peering is either a complete virtual network peering or a subnet peering, and
+		// Azure fixes that at creation. `peer_complete_virtual_networks_enabled` and
+		// `only_ipv6_peering_enabled` are already ForceNew for that reason, but adding or
+		// removing subnet names switches the same setting implicitly: the update returns
+		// 200, the service ignores it, and every subsequent plan shows the change again.
+		// Recreate when the peering changes kind. Editing the list of an existing subnet
+		// peering is left as an in-place update.
+		// Issue: https://github.com/hashicorp/terraform-provider-azurerm/issues/31992
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("local_subnet_names", func(ctx context.Context, old, new, meta interface{}) bool {
+				return subnetNamesChangePeeringKind(old, new)
+			}),
+
+			pluginsdk.ForceNewIfChange("remote_subnet_names", func(ctx context.Context, old, new, meta interface{}) bool {
+				return subnetNamesChangePeeringKind(old, new)
+			}),
+		),
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&virtualnetworkpeerings.VirtualNetworkPeeringId{}),
 
