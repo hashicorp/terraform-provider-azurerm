@@ -235,7 +235,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  //name     = "acctestRG-%d"
   location = "%s"
 }
 `, featureFlagEnabled, data.RandomInteger, data.Locations.Primary)
@@ -248,7 +248,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  //name     = "acctestRG-%d"
   location = "%s"
 
   tags = {
@@ -266,7 +266,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  //name     = "acctestRG-%d"
   location = "%s"
 
   tags = {
@@ -283,7 +283,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  //name     = "acctestRG-%d"
   location = "%s"
 
   managed_by = "test"

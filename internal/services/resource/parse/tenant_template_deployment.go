@@ -33,7 +33,7 @@ func (id TenantTemplateDeploymentId) String() string {
 }
 
 func (id TenantTemplateDeploymentId) ID() string {
-	fmtString := "/providers/Microsoft.Resources/deployments/%s"
+	fmtString := "/providers/Microsoft.resources/deployments/%s"
 	return fmt.Sprintf(fmtString, id.DeploymentName)
 }
 
