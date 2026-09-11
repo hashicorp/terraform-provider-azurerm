@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ServiceCustomHostnameBindingResource struct{}
+type AppServiceCustomHostnameBindingResource struct{}
 
 func TestAccAppServiceCustomHostnameBinding_basic(t *testing.T) {
 	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
@@ -26,7 +26,7 @@ func TestAccAppServiceCustomHostnameBinding_basic(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service_custom_hostname_binding", "test")
-	r := ServiceCustomHostnameBindingResource{}
+	r := AppServiceCustomHostnameBindingResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestAccAppServiceCustomHostnameBinding_requiresImport(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service_custom_hostname_binding", "test")
-	r := ServiceCustomHostnameBindingResource{}
+	r := AppServiceCustomHostnameBindingResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -66,7 +66,7 @@ func TestAccAppServiceCustomHostnameBinding_multiple(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service_custom_hostname_binding", "test")
-	r := ServiceCustomHostnameBindingResource{}
+	r := AppServiceCustomHostnameBindingResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -85,7 +85,7 @@ func TestAccAppServiceCustomHostnameBinding_ssl(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service_custom_hostname_binding", "test")
-	r := ServiceCustomHostnameBindingResource{}
+	r := AppServiceCustomHostnameBindingResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -98,7 +98,7 @@ func TestAccAppServiceCustomHostnameBinding_ssl(t *testing.T) {
 	})
 }
 
-func (r ServiceCustomHostnameBindingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r AppServiceCustomHostnameBindingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := webapps.ParseHostNameBindingID(state.ID)
 	if err != nil {
 		return nil, err
@@ -112,7 +112,7 @@ func (r ServiceCustomHostnameBindingResource) Exists(ctx context.Context, client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ServiceCustomHostnameBindingResource) basicConfig(data acceptance.TestData) string {
+func (r AppServiceCustomHostnameBindingResource) basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -128,7 +128,7 @@ resource "azurerm_app_service_custom_hostname_binding" "test" {
 `, r.template(data))
 }
 
-func (r ServiceCustomHostnameBindingResource) requiresImport(data acceptance.TestData) string {
+func (r AppServiceCustomHostnameBindingResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -140,7 +140,7 @@ resource "azurerm_app_service_custom_hostname_binding" "import" {
 `, r.basicConfig(data))
 }
 
-func (r ServiceCustomHostnameBindingResource) multipleConfig(data acceptance.TestData) string {
+func (r AppServiceCustomHostnameBindingResource) multipleConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -171,7 +171,7 @@ resource "azurerm_app_service_custom_hostname_binding" "test2" {
 `, r.basicConfig(data), data.RandomStringOfLength(7))
 }
 
-func (r ServiceCustomHostnameBindingResource) sslConfig(data acceptance.TestData) string {
+func (r AppServiceCustomHostnameBindingResource) sslConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -253,7 +253,7 @@ resource "azurerm_app_service_custom_hostname_binding" "test" {
 `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
-func (r ServiceCustomHostnameBindingResource) template(data acceptance.TestData) string {
+func (r AppServiceCustomHostnameBindingResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
