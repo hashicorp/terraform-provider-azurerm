@@ -67,6 +67,8 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 				ValidateFunc: customipprefixes.ValidateCustomIPPrefixID,
 			},
 
+			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+
 			"sku": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -143,7 +145,8 @@ func resourcePublicIpPrefixCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	publicIpPrefix := publicipprefixes.PublicIPPrefix{
-		Location: pointer.To(location.Normalize(d.Get("location").(string))),
+		Location:         pointer.To(location.Normalize(d.Get("location").(string))),
+		ExtendedLocation: expandEdgeZoneModel(d.Get("edge_zone").(string)),
 		Sku: &publicipprefixes.PublicIPPrefixSku{
 			Name: pointer.ToEnum[publicipprefixes.PublicIPPrefixSkuName](d.Get("sku").(string)),
 			Tier: pointer.ToEnum[publicipprefixes.PublicIPPrefixSkuTier](d.Get("sku_tier").(string)),
@@ -226,6 +229,7 @@ func resourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("edge_zone", flattenEdgeZoneModel(model.ExtendedLocation))
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 		if sku := model.Sku; sku != nil {
 			d.Set("sku", string(pointer.From(sku.Name)))
