@@ -279,7 +279,7 @@ func TestAccRoleAssignment_resourceScoped(t *testing.T) {
 
 func TestAccRoleAssignment_subscriptionScoped(t *testing.T) {
 	// Only user account is able to run the test, the user account needs to be elevated.
-	// See: https://docs.microsoft.com/en-us/answers/questions/604740/user-does-not-have-access-microsoftsubscriptionali.html
+	// See: https://docs.microsoft.com/answers/questions/604740/user-does-not-have-access-microsoftsubscriptionali.html
 	t.Skip("Skipping this test as only elevated user account is able to run the test (i.e. via CLI auth)")
 
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")

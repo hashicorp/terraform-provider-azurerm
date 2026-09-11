@@ -209,7 +209,7 @@ A `certificate_authority` block supports the following:
 
 * `key_object_name` - (Required) The intermediate certificate private key object name in Azure Key Vault.
 
--> **Note:** For more information on [Istio-based service mesh add-on with plug-in CA certificates and how to generate these certificates](https://learn.microsoft.com/en-us/azure/aks/istio-plugin-ca),
+-> **Note:** For more information on [Istio-based service mesh add-on with plug-in CA certificates and how to generate these certificates](https://learn.microsoft.com/azure/aks/istio-plugin-ca),
 
 ---
 

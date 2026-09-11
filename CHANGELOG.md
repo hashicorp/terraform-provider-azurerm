@@ -1,3 +1,26 @@
+## 5.5.0 (September 10, 2026)
+
+FEATURES:
+
+* **New List Resource**: `azurerm_analysis_services_server` ([#33250](https://github.com/hashicorp/terraform-provider-azurerm/issues/33250))
+* **New List Resource**: `azurerm_application_insights_workbook` ([#33244](https://github.com/hashicorp/terraform-provider-azurerm/issues/33244))
+* **New List Resource**: `azurerm_attestation_provider` ([#33251](https://github.com/hashicorp/terraform-provider-azurerm/issues/33251))
+* **New List Resource**: `azurerm_cdn_frontdoor_origin` ([#33307](https://github.com/hashicorp/terraform-provider-azurerm/issues/33307))
+* **New List Resource**: `azurerm_eventhub_consumer_group` ([#33335](https://github.com/hashicorp/terraform-provider-azurerm/issues/33335))
+* **New List Resource**: `azurerm_linux_virtual_machine` ([#33333](https://github.com/hashicorp/terraform-provider-azurerm/issues/33333))
+* **New List Resource**: `azurerm_virtual_hub_connection` ([#33311](https://github.com/hashicorp/terraform-provider-azurerm/issues/33311))
+
+ENHANCEMENTS:
+
+* dependencies: `go-azure-sdk` - update to `v0.20260901.1173158` ([#33274](https://github.com/hashicorp/terraform-provider-azurerm/issues/33274))
+* `azurerm_private_endpoint` - lock on private service connection resource ids ([#33298](https://github.com/hashicorp/terraform-provider-azurerm/issues/33298))
+* `azurerm_storage_account` - add support for the `public_network_access` property ([#33292](https://github.com/hashicorp/terraform-provider-azurerm/issues/33292))
+
+BUG FIXES:
+
+* `azurerm_resource_group` - the `managed_by` property now forces recreation when changed as the API does not support changing this value ([#33339](https://github.com/hashicorp/terraform-provider-azurerm/issues/33339))
+* `go-azure-sdk` - `Delete` operations now poll on asynchronous operation URLs if returned by the API instead of only checking for a `404` on the resource URL, ensuring deletion errors are reported to the user ([#33274](https://github.com/hashicorp/terraform-provider-azurerm/issues/33274))
+
 ## 5.4.0 (September 03, 2026)
 
 FEATURES:

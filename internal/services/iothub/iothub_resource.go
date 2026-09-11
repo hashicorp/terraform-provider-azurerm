@@ -370,7 +370,7 @@ func resourceIotHub() *pluginsdk.Resource {
 						},
 						"condition": {
 							// The condition is a string value representing device-to-cloud message routes query expression
-							// https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
+							// https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Default:  "true",
@@ -446,7 +446,7 @@ func resourceIotHub() *pluginsdk.Resource {
 						},
 						"condition": {
 							// The condition is a string value representing device-to-cloud message routes query expression
-							// https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
+							// https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Default:  "true",
@@ -1907,8 +1907,8 @@ func IothubConnectionStringSuppress(k, old, new string, d *pluginsdk.ResourceDat
 
 func connectionStringToMap(connectionStr string) map[string]string {
 	m := make(map[string]string)
-	split := strings.Split(connectionStr, ";")
-	for _, v := range split {
+	split := strings.SplitSeq(connectionStr, ";")
+	for v := range split {
 		// The connection string might contain `=`
 		kv := strings.SplitN(v, "=", 2)
 		if len(kv) != 2 {
