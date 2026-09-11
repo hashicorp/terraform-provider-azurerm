@@ -287,6 +287,7 @@ A `long_term_retention_policy` block supports the following:
 * `monthly_retention` - (Optional) The monthly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 120 months. e.g. `P1Y`, `P1M`, `P4W` or `P30D`. Defaults to `PT0S`.
 * `yearly_retention` - (Optional) The yearly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 10 years. e.g. `P1Y`, `P12M`, `P52W` or `P365D`. Defaults to `PT0S`.
 * `week_of_year` - (Optional) The week of year to take the yearly backup. Value has to be between `1` and `52`.
+* `immutability_mode` - (Optional) The immutability mode for LTR backups. Possible values are `Locked` and `Unlocked`. Setting this field enables immutability; omitting it disables it. Changing this value from `Locked` to any other value forces the creation of a new resource, as the `Locked` state is permanent and cannot be reverted.
 
 ---
 
