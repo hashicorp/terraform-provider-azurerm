@@ -50,6 +50,22 @@ func TestAccContainerAppJob_basic(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppJob_workloadProfileDefault(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
+	r := ContainerAppJobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.workloadProfileDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("workload_profile_name").HasValue("Consumption"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccContainerAppJob_withWorkloadProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
 	r := ContainerAppJobResource{}
@@ -1519,6 +1535,35 @@ resource "azurerm_container_app_job" "test" {
   }
 }
 `, r.templateWorkloadProfile(data), data.RandomInteger)
+}
+
+func (r ContainerAppJobResource) workloadProfileDefault(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app_job" "test" {
+  name                         = "acctest-cajob%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  container_app_environment_id = azurerm_container_app_environment.test.id
+
+  replica_timeout_in_seconds = 10
+  replica_retry_limit        = 10
+  manual_trigger_config {
+    parallelism              = 4
+    replica_completion_count = 1
+  }
+
+  template {
+    container {
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      name   = "testcontainerappsjob0"
+      cpu    = 0.5
+      memory = "1Gi"
+    }
+  }
+}
+`, ContainerAppEnvironmentResource{}.consumptionWorkloadProfile(data), data.RandomInteger)
 }
 
 func (r ContainerAppJobResource) complete(data acceptance.TestData) string {
