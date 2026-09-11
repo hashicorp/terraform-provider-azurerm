@@ -157,10 +157,7 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 	d.Set("content_md5", contentMD5)
 	d.Set("encryption_scope", props.EncryptionScope)
-
-	if props.CopySource != "" {
-		d.Set("source_uri", props.CopySource)
-	}
+	d.Set("source_uri", props.CopySource)
 
 	d.Set("type", strings.TrimSuffix(string(props.BlobType), "Blob"))
 
