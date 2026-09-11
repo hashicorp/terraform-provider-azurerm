@@ -3,7 +3,7 @@
 
 # NOTE: this config enables the azproviderlint and tfproviderlint module plugins, which only
 # exist in the custom-built binary produced by 'make golangci-with-modules' (see
-# scripts/.custom-gcl.yml) — run lints via 'make lint' / './scripts/golangci-with-modules run',
+# .tools/.custom-gcl.yml) — run lints via 'make lint' / '.tools/bin/golangci-with-modules run',
 # not stock golangci-lint.
 version: "2"
 run:
@@ -18,7 +18,7 @@ linters:
   enable:
     - asasalint                 # check for pass []any as any in variadic func(...any)
     - asciicheck                # ensure code does not contain non-ASCII identifiers
-    - azproviderlint            # custom azurerm provider checks (AZR/AZS/AZT), module plugin - see scripts/.custom-gcl.yml
+    - azproviderlint            # custom azurerm provider checks (AZR/AZS/AZT), module plugin - see .tools/.custom-gcl.yml
     - bidichk                   # checks for dangerous unicode character sequences
     - copyloopvar               # detects redundant x := x copies of loop variables (unnecessary since Go 1.22)
     - decorder                  # check declaration order and count of types, constants, variables and functions
@@ -43,7 +43,7 @@ linters:
     - reassign                  # checks that package variables are not reassigned
     - staticcheck               # checks rules from staticcheck (not the same thing as the staticcheck binary)
     - tagalign                  # checks struct tags are aligned and sorted (json/tfschema/computed first, per settings below)
-    - tfproviderlint            # terraform provider checks (AT/R/S/V + extended X*), module plugin - see scripts/.custom-gcl.yml
+    - tfproviderlint            # terraform provider checks (AT/R/S/V + extended X*), module plugin - see .tools/.custom-gcl.yml
     - unconvert                 # checks for unnecessary type conversions
     - unparam                   # reports unused function parameters
     - unused                    # checks Go code for unused constants, variables, functions and types
@@ -64,6 +64,12 @@ linters:
       - third_party$
       - builtin$
       - examples$
+    rules:
+      # staticcheck 0.8 (golangci-lint v2.13) started reporting deprecated struct fields set in composite literals,
+      # which flags the legacy Create/Read/Update/Delete funcs on every untyped resource (~2900 sites). Migrating
+      # them to the *Context variants is a mechanical pr of its own; until then keep SA1019 quiet for just these.
+      - linters: [staticcheck]
+        text: '/(pluginsdk|schema)\.Resource\)\.(Create|Read|Update|Delete) is deprecated: Use'
 
   settings:
     errcheck:
@@ -110,9 +116,7 @@ linters:
             - AZS003 # TypeList blocks where every property is optional with no default allow empty blocks - 290 findings to fix later
             - AZS005 # resources with no corresponding data source - 768 findings, to determine if to be fixed later
             - AZS006 # data sources missing properties that exist on the resource - 185 findings, todo later
-            - AZR009 # lifecycle logging (log.Printf("[DEBUG] Creating %s", id)) in CRUD functions - 27 findings, new in v0.8.0, to fix later
             - AZR010 # callers nil-checking before flatten* functions that already handle nil - 244 findings, new in v0.8.0, to fix later
-            - AZS009 # computed-only fields setting input-only attributes (Optional/Default/ValidateFunc) - 35 findings, new in v0.8.0, to fix later
           AZG002:
             use: pointer.To # rather than the go1.26 new(<expr>) builtin
           AZG006:
