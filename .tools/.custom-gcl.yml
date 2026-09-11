@@ -1,3 +1,6 @@
+# Copyright IBM Corp. 2014, 2026
+# SPDX-License-Identifier: MPL-2.0
+
 # Config for `golangci-lint custom`, which builds golangci-lint with the azproviderlint and
 # tfproviderlint module plugins compiled in (make builds it as .tools/bin/golangci-with-modules;
 # used by make lint). The version here must match the golangci-lint pin in go.mod - depscheck

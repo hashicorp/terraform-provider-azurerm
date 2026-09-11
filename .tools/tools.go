@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 //go:build tools
 
 // Package tools pins the dev tool dependencies. The tag above means this file never compiles;
@@ -8,6 +11,7 @@ package tools
 import (
 	_ "github.com/YakDriver/tfproviderdocs"
 	_ "github.com/client9/misspell/cmd/misspell"
+	_ "github.com/apache/skywalking-eyes/cmd/license-eye"
 	_ "github.com/golangci/golangci-lint/v2/cmd/golangci-lint"
 	_ "github.com/katbyte/tctest"
 	_ "github.com/katbyte/terrafmt"
