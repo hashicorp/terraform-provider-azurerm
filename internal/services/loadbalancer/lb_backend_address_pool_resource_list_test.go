@@ -29,7 +29,7 @@ func TestAccLbBackendAddressPool_listByLoadBalancerID(t *testing.T) {
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		Steps: []resource.TestStep{
 			{
-				Config: r.basic(data),
+				Config: r.basicList(data),
 			},
 			{
 				Query:  true,
@@ -51,12 +51,28 @@ func TestAccLbBackendAddressPool_listByLoadBalancerID(t *testing.T) {
 	})
 }
 
+func (r LbBackendAddressPoolResource) basicList(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  count           = 3
+  name            = "pool${count.index}"
+  loadbalancer_id = azurerm_lb.test.id
+}
+`, r.template(data))
+}
+
 func (r LbBackendAddressPoolResource) basicQuery(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 list "azurerm_lb_backend_address_pool" "list" {
   provider = azurerm
   config {
-    loadbalancer_id = "/subscriptions/%s/resourceGroups/acctestRG-%[2]d/providers/Microsoft.Network/loadBalancers/acctestlb-%[2]d"
+    loadbalancer_id = azurerm_lb.test.id
   }
 }
 `, data.Subscriptions.Primary, data.RandomInteger)
