@@ -38,11 +38,15 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The Automation Runbook ID.
-
 * `content` - The content of the Runbook.
 
 * `description` - The description of the Runbook.
+
+* `draft` - A `draft` block as defined below.
+
+* `id` - The Automation Runbook ID.
+
+* `job_schedule` - One or more `job_schedule` block as defined below.
 
 * `location` - The Azure Region where the Runbook exists.
 
@@ -52,9 +56,57 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `log_verbose` - The Verbose log option of the Runbook.
 
+* `publish_content_link` -  One `publish_content_link` block as defined below.
+
 * `runbook_type` - The type of Runbook.
 
+* `runtime_environment_name` - The runtime environment name for the runbook.
+
 * `tags` - A mapping of tags assigned to the Runbook.
+
+---
+
+The `publish_content_link` block supports the following:
+
+* `uri` -  The URI of the runbook content.
+
+* `version` -  Specifies the version of the content
+
+* `hash` - A `hash` block as defined below.
+
+The `draft` block supports:
+
+* `edit_mode_enabled` -  Whether the draft in edit mode.
+
+* `content_link` - A `publish_content_link` block as defined above.
+
+* `output_types` - Specifies the output types of the runbook.
+
+* `parameters` - A list of `parameters` block as defined below.
+
+---
+
+The `parameters` block supports:
+
+* `key` -  The name of the parameter.
+
+* `type` -  Specifies the type of this parameter.
+
+* `mandatory` -  Whether this parameter is mandatory.
+
+* `position` -  Specifies the position of the parameter.
+
+* `default_value` -  Specifies the default value of the parameter.
+
+---
+
+The `job_schedule` block supports:
+
+* `schedule_name` -  The name of the Schedule.
+
+* `parameters` -  A map of key/value pairs corresponding to the arguments that can be passed to the Runbook.
+
+* `run_on` - Name of a Hybrid Worker Group the Runbook will be executed on.
 
 ## Timeouts
 
