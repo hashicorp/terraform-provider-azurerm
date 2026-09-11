@@ -12,6 +12,7 @@ import (
 	_ "github.com/katbyte/tctest"
 	_ "github.com/katbyte/terrafmt"
 	_ "github.com/rhysd/actionlint/cmd/actionlint"
+	_ "github.com/sreallymatt/changeloggy"
 	_ "golang.org/x/tools/cmd/goimports"
 	_ "gotest.tools/gotestsum"
 	_ "mvdan.cc/gofumpt"
