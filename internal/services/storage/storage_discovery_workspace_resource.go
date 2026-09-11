@@ -231,14 +231,16 @@ func (r StorageDiscoveryWorkspaceResource) Create() sdk.ResourceFunc {
 
 			id := storagediscoveryworkspaces.NewProviderStorageDiscoveryWorkspaceID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			payload := storagediscoveryworkspaces.StorageDiscoveryWorkspace{
@@ -384,7 +386,7 @@ func expandStorageDiscoveryScopes(input []StorageDiscoveryScopeModel) []storaged
 	for _, scope := range input {
 		apiScope := storagediscoveryworkspaces.StorageDiscoveryScope{
 			DisplayName:   scope.DisplayName,
-			ResourceTypes: expandStorageDiscoveryResourceTypes(scope.ResourceTypes),
+			ResourceTypes: pointer.From(pointer.ToEnumSlice[storagediscoveryworkspaces.StorageDiscoveryResourceType](scope.ResourceTypes)),
 		}
 
 		if len(scope.TagKeysOnly) > 0 {
@@ -401,23 +403,13 @@ func expandStorageDiscoveryScopes(input []StorageDiscoveryScopeModel) []storaged
 	return result
 }
 
-func expandStorageDiscoveryResourceTypes(input []string) []storagediscoveryworkspaces.StorageDiscoveryResourceType {
-	result := make([]storagediscoveryworkspaces.StorageDiscoveryResourceType, 0)
-	for _, item := range input {
-		if item != "" {
-			result = append(result, storagediscoveryworkspaces.StorageDiscoveryResourceType(item))
-		}
-	}
-	return result
-}
-
 func flattenStorageDiscoveryScopes(input []storagediscoveryworkspaces.StorageDiscoveryScope) []StorageDiscoveryScopeModel {
 	result := make([]StorageDiscoveryScopeModel, 0)
 
 	for _, scope := range input {
 		model := StorageDiscoveryScopeModel{
 			DisplayName:   scope.DisplayName,
-			ResourceTypes: flattenStorageDiscoveryResourceTypes(scope.ResourceTypes),
+			ResourceTypes: pointer.FromEnumSlice(&scope.ResourceTypes),
 		}
 
 		model.TagKeysOnly = pointer.From(scope.TagKeysOnly)
@@ -500,12 +492,4 @@ func validateStorageDiscoveryScopes(raw interface{}) error {
 	}
 
 	return nil
-}
-
-func flattenStorageDiscoveryResourceTypes(input []storagediscoveryworkspaces.StorageDiscoveryResourceType) []string {
-	result := make([]string, 0)
-	for _, item := range input {
-		result = append(result, string(item))
-	}
-	return result
 }
