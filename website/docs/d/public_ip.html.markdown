@@ -104,7 +104,7 @@ output "public_ip_address" {
 * `id` - The ID of the Public IP address.
 * `allocation_method` - The allocation method for this IP address. Possible values are `Static` or `Dynamic`.
 * `domain_name_label` - The label for the Domain Name.
-* `domain_name_label_scope` - Scope for the domain name label.`.
+* `domain_name_label_scope` - Scope for the domain name label.
 * `edge_zone` - The Edge Zone within the Azure Region where this Public IP exists.
 * `idle_timeout_in_minutes` - Specifies the timeout for the TCP idle connection.
 * `ddos_protection_mode` - The DDoS protection mode of the public IP.
