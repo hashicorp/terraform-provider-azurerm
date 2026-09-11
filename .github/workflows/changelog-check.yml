@@ -1,0 +1,54 @@
+name: changelog-check
+
+on:
+  pull_request:
+    types:
+      - "opened"
+      - "synchronize"
+      - "labeled"
+      - "unlabeled"
+    branches:
+      - "main"
+
+permissions: {}
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: .go-version
+
+      - name: Cache changeloggy
+        id: cache-changeloggy
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ~/go/bin/changeloggy
+          key: changeloggy-${{ runner.os }}-v0.1.0
+
+      - name: Install changeloggy
+        if: steps.cache-tctest.outputs.cache-hit != 'true'
+        run: go install github.com/sreallymatt/changeloggy@v0.1.0
+
+      - name: Check changelog entry
+        if: "!contains(github.event.pull_request.labels.*.name, 'no-changelog-needed')"
+        id: check
+        run: changeloggy check --pr ${{ github.event.pull_request.number }}
+
+      - name: Save types table on failure
+        if: failure() && steps.check.outcome == 'failure'
+        run: |
+          mkdir -p artifacts
+          echo "${{ github.event.pull_request.number }}" > artifacts/pr-number
+          changeloggy types > artifacts/types-table
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: failure() && steps.check.outcome == 'failure'
+        with:
+          name: changelog-check-failed-${{ github.event.pull_request.number }}-${{ github.run_id }}
+          path: artifacts/

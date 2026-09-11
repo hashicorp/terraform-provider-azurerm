@@ -1,0 +1,111 @@
+name: changelog-entry-add-to-pr
+
+on:
+  workflow_run:
+    workflows:
+      - changelog-entry-read-on-comment
+    types:
+      - completed
+
+permissions: {}
+
+jobs:
+  changelog:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+
+      - name: Download event metadata
+        id: download
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          path: artifacts/
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+          merge-multiple: true
+
+      - name: Validate PR number
+        id: meta
+        run: |
+          IFS= read -r pr_number < artifacts/pr-number
+          if ! [[ "$pr_number" =~ ^[0-9]+$ ]]; then
+            echo "Invalid pr-number" >&2
+            exit 1
+          fi
+          echo "pr-number=$pr_number" >> "$GITHUB_OUTPUT"
+          IFS= read -r replace < artifacts/replace
+          echo "replace=$replace" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: .go-version
+
+      - name: Cache changeloggy
+        id: cache-changeloggy
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ~/go/bin/changeloggy
+          key: changeloggy-${{ runner.os }}-v0.1.0
+
+      - name: Install changeloggy
+        if: steps.cache-tctest.outputs.cache-hit != 'true'
+        run: go install github.com/sreallymatt/changeloggy@v0.1.0
+
+      - name: Checkout PR branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.meta.outputs.pr-number }}
+        run: gh pr checkout "$PR_NUMBER"
+
+      - name: Parse and add changelog entries
+        env:
+          PR_NUMBER: ${{ steps.meta.outputs.pr-number }}
+          REPLACE: ${{ steps.meta.outputs.replace }}
+        run: |
+          replace_flag=""
+          [[ "$REPLACE" == "true" ]] && replace_flag="--replace"
+          count=0
+          while IFS= read -r line; do
+            line="${line%$'\r'}"
+            [[ -z "$line" ]] && continue
+            if [[ "$line" =~ ^\[([^\]]+)\]\ (.+)$ ]]; then
+              type="${BASH_REMATCH[1]}"
+              body="${BASH_REMATCH[2]}"
+              count=$(( count + 1 ))
+              if (( count > 10 )); then
+                echo "Maximum of 10 entries exceeded, ignoring remainder" >&2
+                break
+              fi
+              changeloggy add --pr "$PR_NUMBER" --type "$type" $replace_flag "$body"
+              replace_flag=""
+            fi
+          done < <(tail -n +2 artifacts/comment-body)
+
+      - name: Commit and push changelog entries to PR branch
+        env:
+          PR_NUMBER: ${{ steps.meta.outputs.pr-number }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .changelog/
+          git diff --cached --quiet || git commit -m "changelog: add entries for PR #${PR_NUMBER}"
+          git push
+
+      - name: Comment on failure
+        if: failure() && steps.download.outcome == 'success'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          script: |
+            const prNumber = parseInt(require('fs').readFileSync('artifacts/pr-number', 'utf8').trim())
+            const runUrl = `${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}`
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: `Failed to add changelog entries. [View run](${runUrl})`,
+            })
