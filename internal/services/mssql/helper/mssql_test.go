@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 )
 
-// Your server name can contain only lowercase letters, numbers, and '-', but can't start or end with '-' or have more than 63 characters.
+// Your server name can contain only letters, numbers, and '-', but can't start or end with '-' or have more than 63 characters.
 func TestValidateMsSqlServerName(t *testing.T) {
 	cases := []struct {
 		Value  string
@@ -25,7 +25,7 @@ func TestValidateMsSqlServerName(t *testing.T) {
 		},
 		{
 			Value:  "K",
-			Errors: true,
+			Errors: false,
 		},
 		{
 			Value:  "k-",
@@ -37,7 +37,7 @@ func TestValidateMsSqlServerName(t *testing.T) {
 		},
 		{
 			Value:  "K-T",
-			Errors: true,
+			Errors: false,
 		},
 		{
 			Value:  "validname",
