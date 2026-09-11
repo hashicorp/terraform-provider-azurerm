@@ -77,8 +77,9 @@ The following attributes are exported:
 
 * `container_configuration` - The container configuration used in the pool's VMs.
 
+---
 
-An `identity` - An identity as defined below:
+An `identity` block exports the following:
 
 * `type` - Specifies the type of Managed Service Identity that should be configured on this Batch Account.
 
