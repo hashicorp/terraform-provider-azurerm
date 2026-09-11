@@ -61,7 +61,7 @@ data "azurerm_servicebus_topic_authorization_rule" "test" {
   name     = azurerm_servicebus_topic_authorization_rule.test.name
   topic_id = azurerm_servicebus_topic.test.id
 }
-`, ServiceBusTopicAuthorizationRuleResource{}.base(data, true, true, true))
+`, ServicebusTopicAuthorizationRuleResource{}.base(data, true, true, true))
 }
 
 func (ServiceBusTopicAuthorizationRuleDataSource) topicAliasPolicy(data acceptance.TestData) string {
@@ -72,5 +72,5 @@ data "azurerm_servicebus_topic_authorization_rule" "test" {
   name     = azurerm_servicebus_topic_authorization_rule.test.name
   topic_id = azurerm_servicebus_topic.example.id
 }
-`, ServiceBusTopicAuthorizationRuleResource{}.withAliasConnectionString(data))
+`, ServicebusTopicAuthorizationRuleResource{}.withAliasConnectionString(data))
 }
