@@ -24,7 +24,7 @@ jobs:
     steps:
       - name: Get run url
         run: |
-          echo "gha_url=https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}" >> $GITHUB_ENV
+          echo "gha_url=https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}" >> "$GITHUB_ENV"
       - name: Add failure to unified build comment
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:

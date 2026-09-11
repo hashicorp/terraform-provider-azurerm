@@ -71,23 +71,15 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"tier": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(expressroutecircuits.ExpressRouteCircuitSkuTierBasic),
-								string(expressroutecircuits.ExpressRouteCircuitSkuTierLocal),
-								string(expressroutecircuits.ExpressRouteCircuitSkuTierStandard),
-								string(expressroutecircuits.ExpressRouteCircuitSkuTierPremium),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(expressroutecircuits.PossibleValuesForExpressRouteCircuitSkuTier(), false),
 						},
 
 						"family": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(expressroutecircuits.ExpressRouteCircuitSkuFamilyMeteredData),
-								string(expressroutecircuits.ExpressRouteCircuitSkuFamilyUnlimitedData),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(expressroutecircuits.PossibleValuesForExpressRouteCircuitSkuFamily(), false),
 						},
 					},
 				},
@@ -374,8 +366,7 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
-		sku := flattenExpressRouteCircuitSku(model.Sku)
-		if err := d.Set("sku", sku); err != nil {
+		if err := d.Set("sku", flattenExpressRouteCircuitSku(model.Sku)); err != nil {
 			return fmt.Errorf("setting `sku`: %+v", err)
 		}
 		if props := model.Properties; props != nil {

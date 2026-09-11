@@ -83,6 +83,8 @@ A `network_rulesets` block supports the following:
 
 * `default_action` - (Required) The default action to take when a rule is not matched. Possible values are `Allow` and `Deny`.
 
+~> **Note:** `default_action` can only be set to `Deny` when at least one `ip_rule` or `virtual_network_rule` block is specified, otherwise the Azure API will not honor the setting.
+
 * `public_network_access_enabled` - (Optional) Is public network access enabled for the EventHub Namespace? Defaults to `true`.
 
 ~> **Note:** The public network access setting at the network rule sets level should be the same as it's at the namespace level.

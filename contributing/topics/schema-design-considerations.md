@@ -51,6 +51,7 @@ retention_policy {
 It is commonplace for features to be toggled on and off by an `Enabled` property within an object in the SDK used to interact with the Azure API. See the examples below.
 
 Example A.
+
 ```go
 type ManagedClusterStorageProfileBlobCSIDriver struct {
 	Enabled *bool `json:"enabled,omitempty"`
@@ -58,6 +59,7 @@ type ManagedClusterStorageProfileBlobCSIDriver struct {
 ```
 
 Example B.
+
 ```go
 type ManagedClusterWorkloadAutoScalerProfileVerticalPodAutoscaler struct {
 	ControlledValues ControlledValues `json:"controlledValues"`
@@ -117,6 +119,7 @@ However, when there are multiple fields in addition to the `Enabled` field, and 
 Finally, there are instances where the additional fields/properties for an object/feature are optional or few, as shown below.
 
 Example C.
+
 ```go
 type ManagedClusterStorageProfileDiskCSIDriver struct {
 	Enabled *bool   `json:"enabled,omitempty"`
@@ -148,7 +151,7 @@ A judgement call should be made based off the behaviour of the API and expectati
 
 ## The `None` value or similar
 
-Many Azure APIs and services will accept the values like `None`, `Off`, or `Default` as a default value and expose it as a constant in the API specification. 
+Many Azure APIs and services will accept the values like `None`, `Off`, or `Default` as a default value and expose it as a constant in the API specification.
 
 ```
     "shutdownOnIdleMode": {
@@ -222,10 +225,11 @@ func (r resource) Read() sdk.ResourceFunc {
 
 Because the Azure API implementation for SKU fields tends to vary we can't easily standardise on a single approach, however, we should try to stick to one of the following two implementations:
 
-1. When the SKU can be set using a single argument (e.g. only the SKU name), use a top-level `sku` argument. 
+1. When the SKU can be set using a single argument (e.g. only the SKU name), use a top-level `sku` argument.
 2. When the SKU requires multiple arguments (e.g. `name` and `capacity`), use a `sku` block.
 
 Example of a `sku` argument:
+
 ```go
 "sku": {
 	Type:     pluginsdk.TypeString,
@@ -241,6 +245,7 @@ Example of a `sku` argument:
 ```
 
 Example of a `sku` block:
+
 ```go
 	"sku": {
 		Type:     pluginsdk.TypeList,
@@ -310,6 +315,7 @@ Fields that are in preview should not be supported until they reach General Avai
 When designing schemas, consider flattening properties with `MaxItems: 1` that contain only a single nested property unless the service team has confirmed additional nested properties are imminent. In those cases, add an inline comment explaining why the block is left unflattened so reviewers understand the rationale.
 
 :white_check_mark: **DO**
+
 ```go
 "credential_certificate": {
     Type:     pluginsdk.TypeList,

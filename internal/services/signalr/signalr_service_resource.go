@@ -553,10 +553,8 @@ func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSett
 
 	for _, upstreamSetting := range input {
 		setting := upstreamSetting.(map[string]interface{})
-		authTypeNone := signalr.UpstreamAuthTypeNone
-		authTypeManagedIdentity := signalr.UpstreamAuthTypeManagedIdentity
 		auth := signalr.UpstreamAuthSettings{
-			Type: &authTypeNone,
+			Type: pointer.To(signalr.UpstreamAuthTypeNone),
 		}
 		upstreamTemplate := signalr.UpstreamTemplate{
 			HubPattern:      pointer.To(strings.Join(*helpers.ExpandStringSlice(setting["hub_pattern"].([]interface{})), ",")),
@@ -568,7 +566,7 @@ func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSett
 
 		if setting["user_assigned_identity_id"].(string) != "" {
 			upstreamTemplate.Auth = &signalr.UpstreamAuthSettings{
-				Type: &authTypeManagedIdentity,
+				Type: pointer.To(signalr.UpstreamAuthTypeManagedIdentity),
 				ManagedIdentity: &signalr.ManagedIdentitySettings{
 					Resource: pointer.To(setting["user_assigned_identity_id"].(string)),
 				},
@@ -1006,7 +1004,7 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 		"cors": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"allowed_origins": {

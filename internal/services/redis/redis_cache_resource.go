@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"maps"
 	"slices"
 	"strconv"
 	"strings"
@@ -96,13 +97,9 @@ func resourceRedisCache() *pluginsdk.Resource {
 			},
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(redisresources.SkuNameBasic),
-					string(redisresources.SkuNameStandard),
-					string(redisresources.SkuNamePremium),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(redisresources.PossibleValuesForSkuName(), false),
 			},
 
 			"minimum_tls_version": {
@@ -135,7 +132,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 			"private_static_ip_address": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				// NOTE O+C: in some cases this gets a default value if omitted. This can remain o+c as it is ForceNew and cannot be updated
+				// NOTE: O+C in some cases this gets a default value if omitted. This can remain o+c as it is ForceNew and cannot be updated
 				Computed: true,
 				ForceNew: true,
 			},
@@ -143,7 +140,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 			"redis_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -386,7 +383,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 			}),
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 				// Entra (AD) auth has to be set to disable access keys auth
-				// https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
+				// https://learn.microsoft.com/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
 
 				accessKeysAuthenticationEnabled := diff.Get("access_keys_authentication_enabled").(bool)
 				activeDirectoryAuthenticationEnabled := diff.Get("redis_configuration.0.active_directory_authentication_enabled").(bool)
@@ -1015,9 +1012,7 @@ func flattenTenantSettings(input *map[string]string) map[string]string {
 	output := make(map[string]string)
 
 	if input != nil {
-		for k, v := range *input {
-			output[k] = v
-		}
+		maps.Copy(output, *input)
 	}
 
 	return output

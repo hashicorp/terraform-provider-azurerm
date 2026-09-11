@@ -85,8 +85,6 @@ func resourceExpressRouteGatewayCreate(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Println("[INFO] preparing arguments for ExpressRoute Gateway creation.")
-
 	id := expressroutegateways.NewExpressRouteGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
@@ -144,8 +142,6 @@ func resourceExpressRouteGatewayUpdate(d *pluginsdk.ResourceData, meta interface
 	connectionsClient := meta.(*clients.Client).Network.ExpressRouteConnections
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Println("[INFO] preparing arguments for ExpressRoute Gateway update.")
 
 	id, err := expressroutegateways.ParseExpressRouteGatewayID(d.Id())
 	if err != nil {

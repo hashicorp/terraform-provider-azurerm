@@ -70,27 +70,22 @@ func resourcePolicyVirtualMachineConfigurationAssignmentSchema() map[string]*plu
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"assignment_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(guestconfigurationassignments.AssignmentTypeAudit),
-							string(guestconfigurationassignments.AssignmentTypeDeployAndAutoCorrect),
-							string(guestconfigurationassignments.AssignmentTypeApplyAndAutoCorrect),
-							string(guestconfigurationassignments.AssignmentTypeApplyAndMonitor),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(guestconfigurationassignments.PossibleValuesForAssignmentType(), false),
 					},
 
 					"content_hash": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"content_uri": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 					},
 

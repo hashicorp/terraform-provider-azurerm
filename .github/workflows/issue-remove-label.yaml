@@ -28,22 +28,22 @@ jobs:
           script: |
             const { REMOVE_LABEL } = process.env
             console.log(`Attempting to remove label "${REMOVE_LABEL}"`)
-            
+
             const { data } = await github.rest.issues.listLabelsOnIssue({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
             })
-            
+
             // Return early if there are no labels
             if (data.length == 0){
               console.log(`Issue has no labels; not attempting to remove label "${REMOVE_LABEL}"`)
               return
             }
-            
+
             // Check if REMOVE_LABEL is present
             const filteredData = data.filter(label => label.name == REMOVE_LABEL)
-            
+
             // Return early if filtering didn't identify the label as present
             if (filteredData.length == 0){
               console.log(`Label "${REMOVE_LABEL}" not found on issue; not attempting to remove it.`)

@@ -103,25 +103,18 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 
 			// set `immutability` to Computed, because it will start to return from the service once it has been set.
 			"immutability": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(vaults.ImmutabilityStateLocked),
-					string(vaults.ImmutabilityStateUnlocked),
-					string(vaults.ImmutabilityStateDisabled),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
+				ValidateFunc: validation.StringInSlice(vaults.PossibleValuesForImmutabilityState(), false),
 			},
 
 			"tags": commonschema.Tags(),
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(vaults.SkuNameRSZero),
-					string(vaults.SkuNameStandard),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(vaults.PossibleValuesForSkuName(), false),
 			},
 
 			"storage_mode_type": {
@@ -369,7 +362,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if model.Identity != nil && !validateIdentityUpdate(*existing.Model.Identity, *expandedIdentity) {
-		return fmt.Errorf("`Once `identity` specified, the managed identity must not be disabled (even temporarily). Disabling the managed identity may lead to inconsistent behavior. Details could be found on https://learn.microsoft.com/en-us/azure/backup/encryption-at-rest-with-cmk?tabs=portal#enable-system-assigned-managed-identity-for-the-vault")
+		return fmt.Errorf("`Once `identity` specified, the managed identity must not be disabled (even temporarily). Disabling the managed identity may lead to inconsistent behavior. Details could be found on https://learn.microsoft.com/azure/backup/encryption-at-rest-with-cmk?tabs=portal#enable-system-assigned-managed-identity-for-the-vault")
 	}
 
 	storageMode := d.Get("storage_mode_type").(string)
@@ -705,10 +698,9 @@ func expandRecoveryServicesVaultSecuritySettings(input interface{}) *vaults.Secu
 	if input == nil || len(input.(string)) == 0 {
 		return nil
 	}
-	immutabilityState := vaults.ImmutabilityState(input.(string))
 	return &vaults.SecuritySettings{
 		ImmutabilitySettings: &vaults.ImmutabilitySettings{
-			State: &immutabilityState,
+			State: pointer.ToEnum[vaults.ImmutabilityState](input.(string)),
 		},
 	}
 }

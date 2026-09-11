@@ -8,6 +8,7 @@ import (
 	"net/mail"
 	"net/url"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -54,10 +55,8 @@ func FloatInSlice(valid []float64) func(interface{}, string) ([]string, []error)
 			return warnings, errors
 		}
 
-		for _, validFloat := range valid {
-			if v == validFloat {
-				return warnings, errors
-			}
+		if slices.Contains(valid, v) {
+			return warnings, errors
 		}
 
 		errors = append(errors, fmt.Errorf("expected %s to be one of %v, got %f", k, valid, v))
@@ -257,6 +256,18 @@ func StringInSlice(valid []string, ignoreCase bool) func(interface{}, string) ([
 	return func(i interface{}, k string) ([]string, []error) {
 		return validation.StringInSlice(valid, ignoreCase)(i, k)
 	}
+}
+
+// StringInEnumSlice returns a SchemaValidateFunc which tests if the provided value
+// is of type string and matches a value in the valid slice of string-backed enum
+// values, as returned by a track-1 SDK's Possible<Enum>Values() helper
+// will test with in lower case if ignoreCase is true
+func StringInEnumSlice[T ~string](valid []T, ignoreCase bool) func(interface{}, string) ([]string, []error) {
+	values := make([]string, len(valid))
+	for i, v := range valid {
+		values[i] = string(v)
+	}
+	return StringInSlice(values, ignoreCase)
 }
 
 // StringIsBase64 is a ValidateFunc that ensures a string can be parsed as Base64

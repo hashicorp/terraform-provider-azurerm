@@ -48,16 +48,10 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"data_source_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(linkedstorageaccounts.DataSourceTypeCustomLogs),
-					string(linkedstorageaccounts.DataSourceTypeAzureWatson),
-					string(linkedstorageaccounts.DataSourceTypeQuery),
-					string(linkedstorageaccounts.DataSourceTypeAlerts),
-					string(linkedstorageaccounts.DataSourceTypeIngestion),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(linkedstorageaccounts.PossibleValuesForDataSourceType(), false),
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),

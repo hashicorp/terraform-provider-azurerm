@@ -5,6 +5,7 @@ package containers
 
 import (
 	"fmt"
+	"maps"
 	"regexp"
 	"strconv"
 	"strings"
@@ -23,7 +24,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -63,9 +63,9 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"vm_size": {
-						Type: pluginsdk.TypeString,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
 						// NOTE: O+C AKS RP provides a new feature that will automatically select an available vm size when it's omitted.
-						Optional:     true,
 						Computed:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
@@ -87,16 +87,10 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"gpu_instance": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(managedclusters.GPUInstanceProfileMIGOneg),
-							string(managedclusters.GPUInstanceProfileMIGTwog),
-							string(managedclusters.GPUInstanceProfileMIGThreeg),
-							string(managedclusters.GPUInstanceProfileMIGFourg),
-							string(managedclusters.GPUInstanceProfileMIGSeveng),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForGPUInstanceProfile(), false),
 					},
 
 					"gpu_driver": {
@@ -107,13 +101,10 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"kubelet_disk_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(managedclusters.KubeletDiskTypeOS),
-							string(managedclusters.KubeletDiskTypeTemporary),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
+						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForKubeletDiskType(), false),
 					},
 
 					"max_count": {
@@ -126,7 +117,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"max_pods": {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,
-						Computed: true,
+						Computed: true, // azignore:AZS007 - pre-existing violation
 					},
 
 					"min_count": {
@@ -141,14 +132,14 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"node_count": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.IntBetween(1, 1000),
 					},
 
 					"node_labels": {
 						Type:     pluginsdk.TypeMap,
 						Optional: true,
-						Computed: true,
+						Computed: true, // azignore:AZS007 - pre-existing violation
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -167,24 +158,22 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"os_disk_size_gb": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.IntAtLeast(1),
 					},
 
 					"os_disk_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  agentpools.OSDiskTypeManaged,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(managedclusters.OSDiskTypeEphemeral),
-							string(managedclusters.OSDiskTypeManaged),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      agentpools.OSDiskTypeManaged,
+						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForOSDiskType(), false),
 					},
 
 					"os_sku": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Computed: true, // defaults to Ubuntu if using Linux
+						// Note: O+C because defaults to Ubuntu if using Linux
+						Computed: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(agentpools.OSSKUAzureLinux),
 							string(agentpools.OSSKUAzureLinuxThree),
@@ -210,7 +199,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"orchestrator_version": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"pod_subnet_id": {
@@ -230,13 +219,10 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"scale_down_mode": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(managedclusters.ScaleDownModeDelete),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(managedclusters.ScaleDownModeDeallocate),
-							string(managedclusters.ScaleDownModeDelete),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(managedclusters.ScaleDownModeDelete),
+						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForScaleDownMode(), false),
 					},
 
 					"snapshot_id": {
@@ -249,7 +235,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
-						ValidateFunc: computeValidate.HostGroupID,
+						ValidateFunc: validation.AsGeneratedID(commonids.ParseDedicatedHostGroupIDInsensitively),
 					},
 
 					"upgrade_settings": upgradeSettingsSchemaClusterDefaultNodePool(),
@@ -257,7 +243,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"workload_runtime": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Computed: true,
+						Computed: true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.StringInSlice([]string{
 							string(managedclusters.WorkloadRuntimeKataVMIsolation),
 							string(managedclusters.WorkloadRuntimeOCIContainer),
@@ -613,12 +599,9 @@ func schemaNodePoolNetworkProfile() *pluginsdk.Schema {
 							},
 
 							"protocol": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(agentpools.ProtocolTCP),
-									string(agentpools.ProtocolUDP),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForProtocol(), false),
 							},
 						},
 					},
@@ -708,8 +691,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 	}
 
 	if osDisktypeNodePool := defaultCluster.OsDiskType; osDisktypeNodePool != nil {
-		osDisktype := agentpools.OSDiskType(string(*osDisktypeNodePool))
-		agentpool.Properties.OsDiskType = &osDisktype
+		agentpool.Properties.OsDiskType = pointer.ToEnum[agentpools.OSDiskType](string(*osDisktypeNodePool))
 	}
 	if kubeletConfigNodePool := defaultCluster.KubeletConfig; kubeletConfigNodePool != nil {
 		kubeletConfig := agentpools.KubeletConfig{
@@ -900,8 +882,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.PodSubnetID = pointer.To(podSubnetID)
 	}
 
-	scaleDownModeDelete := managedclusters.ScaleDownModeDelete
-	profile.ScaleDownMode = &scaleDownModeDelete
+	profile.ScaleDownMode = pointer.To(managedclusters.ScaleDownModeDelete)
 	if scaleDownMode := raw["scale_down_mode"].(string); scaleDownMode != "" {
 		profile.ScaleDownMode = pointer.ToEnum[managedclusters.ScaleDownMode](scaleDownMode)
 	}
@@ -1245,9 +1226,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	var nodeLabels map[string]string
 	if agentPool.NodeLabels != nil {
 		nodeLabels = make(map[string]string)
-		for k, v := range *agentPool.NodeLabels {
-			nodeLabels[k] = v
-		}
+		maps.Copy(nodeLabels, *agentPool.NodeLabels)
 	}
 
 	nodePublicIPPrefixID := pointer.From(agentPool.NodePublicIPPrefixID)
