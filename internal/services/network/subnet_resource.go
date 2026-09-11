@@ -355,7 +355,7 @@ func resourceSubnet() *pluginsdk.Resource {
 
 func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.Subnets
-	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
+	vnetClient := meta.(*clients.Client).Network.VirtualNetworksClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -462,7 +462,7 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.Subnets
-	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
+	vnetClient := meta.(*clients.Client).Network.VirtualNetworksClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()

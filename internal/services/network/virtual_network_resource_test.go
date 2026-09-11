@@ -473,6 +473,18 @@ func TestVirtualNetworkResource_tagCount(t *testing.T) {
 	})
 }
 
+func TestAccVirtualNetwork_overlappedSummarizedGatewayPrefixesError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
+	r := VirtualNetworkResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.overlappedSummarizedGatewayPrefixesError(data),
+			ExpectError: regexp.MustCompile("address space of `summarized_gateway_prefixes` property, `10.0.0.0/16` overlaps with `10.0.0.0/24`, address space overlapping is not allowed"),
+		},
+	})
+}
+
 func (r VirtualNetworkResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseVirtualNetworkID(state.ID)
 	if err != nil {
@@ -579,6 +591,7 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name            = azurerm_resource_group.test.name
   dns_servers                    = ["10.7.7.2", "10.7.7.7", "10.7.7.1", ]
   private_endpoint_vnet_policies = "Basic"
+  summarized_gateway_prefixes    = ["10.1.0.0/16", "10.128.0.0/9", "2001:db8:abcd:0012::/64"]
 
   encryption {
     enforcement = "AllowUnencrypted"
@@ -1324,4 +1337,30 @@ resource "azurerm_virtual_network" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (VirtualNetworkResource) overlappedSummarizedGatewayPrefixesError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                        = "acctestvirtnet%d"
+  address_space               = ["10.0.0.0/16"]
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  summarized_gateway_prefixes = ["10.0.0.0/16", "10.0.0.0/24"]
+
+  subnet {
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
