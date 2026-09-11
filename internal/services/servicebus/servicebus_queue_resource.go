@@ -316,7 +316,7 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		if isPremiumNamespacePartitioned && !enablePartitioning {
 			return fmt.Errorf("non-partitioned entities are not allowed in partitioned namespace")
 		} else if !isPremiumNamespacePartitioned && enablePartitioning {
-			return fmt.Errorf("the parent premium namespace is not partitioned and the partitioning for premium namespace is only available at the namepsace creation")
+			return fmt.Errorf("the parent premium namespace is not partitioned and the partitioning for premium namespace is only available at the namespace creation")
 		}
 	}
 

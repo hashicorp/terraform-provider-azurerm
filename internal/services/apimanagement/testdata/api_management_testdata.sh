@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 
-# This script creates nessesary certificates to execute integration
+# This script creates necessary certificates to execute integration
 # tests for Azure API Management
 
 declare -a certs=("api_management_api" "api_management_api2" "api_management_portal" "api_management_developer_portal")

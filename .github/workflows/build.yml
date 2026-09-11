@@ -193,7 +193,7 @@ jobs:
           {
             echo "### What's next?"
             echo "#### For a release branch (see \`.release/ci.hcl\`)"
-            echo "After this \`build\` workflow run completes succesfully, you can expect the CRT \`prepare\` workflow to begin momentarily."
+            echo "After this \`build\` workflow run completes successfully, you can expect the CRT \`prepare\` workflow to begin momentarily."
             echo "To find the \`prepare\` workflow run, [view the checks for this commit]($github_dot_com/$owner_with_name/commits/$ref)"
           } >> "$GITHUB_STEP_SUMMARY"
 

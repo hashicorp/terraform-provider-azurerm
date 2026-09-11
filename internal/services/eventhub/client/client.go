@@ -71,7 +71,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	namespacesClient, err := namespaces.NewNamespacesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building Namspaces Client: %+v", err)
+		return nil, fmt.Errorf("building Namespaces Client: %+v", err)
 	}
 	o.Configure(namespacesClient.Client, o.Authorizers.ResourceManager)
 

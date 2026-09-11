@@ -30,7 +30,7 @@ $ go run main.go -name azurerm_resource_group -brand-name "Resource Group" -type
 
 * `-website-path` - (Required) The path to the `./website` directory in the root of this repository.
 
-* `-example` - (Optional) Wether to generate the Terraform configuration example from AccTest?
+* `-example` - (Optional) Whether to generate the Terraform configuration example from AccTest?
 
 * `-root-dir` - (Optional) The path to the project root. Required when `-example` is set.
 

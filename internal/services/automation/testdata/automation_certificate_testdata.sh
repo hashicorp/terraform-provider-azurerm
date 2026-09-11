@@ -5,7 +5,7 @@
 
 set -e
 
-# This script creates nessesary certificates to execute integration
+# This script creates necessary certificates to execute integration
 # tests for Azure automation account certificates
 
 KEY_FILE="automation_certificate_test.key"

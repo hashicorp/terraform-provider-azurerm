@@ -24,7 +24,7 @@ jobs:
       - name: "open a pull request"
         id: open-pr
         run: |
-          # this runs everytime the PR gets pushed too, whilst you can only create a PR a single time
+          # this runs every time the PR gets pushed too, whilst you can only create a PR a single time
           # so we should be smarter, but piping this to /dev/null is a fine workaround for MVP
           gh pr create --title "$PR_TITLE" --body "$PR_BODY" -B "$PR_TARGET" > /dev/null
 

@@ -178,7 +178,7 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MinItems: 1,
-				// Curently, it allows to define only one dynamic criteria in one metric alert.
+				// Currently, it allows to define only one dynamic criteria in one metric alert.
 				MaxItems:     1,
 				ExactlyOneOf: []string{"criteria", "dynamic_criteria", "application_insights_web_test_location_availability_criteria"},
 				Elem: &pluginsdk.Resource{

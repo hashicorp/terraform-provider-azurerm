@@ -10,7 +10,7 @@ Please note that [Azure Resource Manager][3] is used to provision the environmen
 
 | Category | Software | Version | Notes |
 | --- | --- | --- | --- |
-| Operating System | CentOS | 7.x | Based on CentOS 7.1 but it will be auto upgraded to the lastest point release |
+| Operating System | CentOS | 7.x | Based on CentOS 7.1 but it will be auto upgraded to the latest point release |
 | Java | OpenJDK | 1.8.0 | Installed on all servers |
 | Spark | Spark | 1.6.0 with Hadoop 2.6 | The installation contains libraries needed for Hadoop 2.6 |
 | Cassandra | Cassandra | 3.2 | Installed through DataStax's YUM repository |

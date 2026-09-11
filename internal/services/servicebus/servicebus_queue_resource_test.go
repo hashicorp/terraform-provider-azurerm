@@ -132,7 +132,7 @@ func TestAccServiceBusQueue_nonPartitionedPremiumNamespaceError(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.nonPartitionedPremiumNamespaceError(data),
-			ExpectError: regexp.MustCompile("the parent premium namespace is not partitioned and the partitioning for premium namespace is only available at the namepsace creation"),
+			ExpectError: regexp.MustCompile("the parent premium namespace is not partitioned and the partitioning for premium namespace is only available at the namespace creation"),
 		},
 	})
 }

@@ -429,7 +429,7 @@ func (r ApplicationInsightsStandardWebTestResource) Update() sdk.ResourceFunc {
 			props.Enabled = pointer.To(model.Enabled)
 			props.RetryEnabled = pointer.To(model.Retry)
 
-			// API requires that ths `Locations` property is always set, even if it is an empty list
+			// API requires that the `Locations` property is always set, even if it is an empty list
 			props.Locations = expandApplicationInsightsStandardWebTestGeoLocations(model.GeoLocations)
 
 			if metadata.ResourceData.HasChange("request") {

@@ -1412,7 +1412,7 @@ func flattenKubernetesClusterDataSourceKubeConfig(config kubernetes.KubeConfig) 
 	values["host"] = cluster.Server
 	values["username"] = config.Users[0].Name
 	values["password"] = user.Token
-	values["client_certificate"] = user.ClientCertificteData
+	values["client_certificate"] = user.ClientCertificateData
 	values["client_key"] = user.ClientKeyData
 	values["cluster_ca_certificate"] = cluster.ClusterAuthorityData
 

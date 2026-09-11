@@ -198,6 +198,43 @@ jobs:
 
   # ------------------------------------------
 
+  typos:
+    needs: paths-filter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      # make downloads the typos version pinned in GNUmakefile into .tools
+      - name: Run typos
+        run: make typos
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::typos found spelling errors."
+          echo ""
+          echo "Run 'make typos' locally to reproduce and 'make typos-fix' to fix them."
+          echo "False positives (Azure names, API enum values) go in .typos.toml."
+
+  typos-save-artifacts:
+    needs: typos
+    if: always() && needs.typos.result == 'failure'
+    uses: ./.github/workflows/pr-save-artifacts.yaml
+
+  typos-on-fail:
+    needs: typos
+    if: always() && needs.typos.result == 'failure'
+    uses: ./.github/workflows/pr-comment-failure.yaml
+    with:
+      check_name: "Typos"
+
+  typos-on-success:
+    needs: typos
+    if: always() && needs.typos.result == 'success'
+    uses: ./.github/workflows/pr-comment-failure-outdated.yaml
+    with:
+      check_name: "Typos"
+
+  # ------------------------------------------
+
   website-lint:
     needs: paths-filter
     if: needs.paths-filter.outputs.website == 'true'

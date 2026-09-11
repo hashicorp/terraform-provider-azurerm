@@ -101,7 +101,7 @@ func (p apiManagementAPIPoller) Poll(ctx context.Context) (*pollers.PollResult, 
 		return nil, fmt.Errorf("retrieving %s: %+v", p.id, err)
 	}
 
-	// the response actually doesn't include a provisioningState property, so we only chech the http status code
+	// the response actually doesn't include a provisioningState property, so we only check the http status code
 	switch resp.StatusCode {
 	case http.StatusOK:
 		return &pollingSuccess, nil

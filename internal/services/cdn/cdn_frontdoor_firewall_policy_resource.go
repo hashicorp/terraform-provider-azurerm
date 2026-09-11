@@ -1161,12 +1161,12 @@ func expandCdnFrontDoorFirewallScrubbingRules(input []interface{}) (*[]waf.WebAp
 		v := rule.(map[string]interface{})
 		var item waf.WebApplicationFirewallScrubbingRules
 
-		enalbed := waf.ScrubbingRuleEntryStateDisabled
+		enabled := waf.ScrubbingRuleEntryStateDisabled
 		if value := v["enabled"].(bool); value {
-			enalbed = waf.ScrubbingRuleEntryStateEnabled
+			enabled = waf.ScrubbingRuleEntryStateEnabled
 		}
 
-		item.State = pointer.To(enalbed)
+		item.State = pointer.To(enabled)
 		item.MatchVariable = waf.ScrubbingRuleEntryMatchVariable(v["match_variable"].(string))
 		item.SelectorMatchOperator = waf.ScrubbingRuleEntryMatchOperator(v["operator"].(string))
 

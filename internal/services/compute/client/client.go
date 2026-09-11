@@ -322,7 +322,7 @@ func (c *Client) CancelRollingUpgradesBeforeDeletion(ctx context.Context, id vir
 		}
 	}
 
-	// If lastest rolling upgrade is marked as completed, skip cancellation
+	// If latest rolling upgrade is marked as completed, skip cancellation
 	if upgradeStatus == virtualmachinescalesetrollingupgrades.RollingUpgradeStatusCodeCompleted {
 		return nil
 	}

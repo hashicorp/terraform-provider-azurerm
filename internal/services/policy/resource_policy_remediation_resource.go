@@ -244,7 +244,7 @@ func waitForRemediationToDelete(ctx context.Context,
 		return nil
 	}
 	if mode := prop.ResourceDiscoveryMode; mode != nil && *mode == remediations.ResourceDiscoveryModeReEvaluateCompliance {
-		// Remediation can only be canceld when it is in "Evaluating" or "Accepted" status, otherwise, API might raise error (e.g. canceling a "Completed" remediation returns 400).
+		// Remediation can only be canceled when it is in "Evaluating" or "Accepted" status, otherwise, API might raise error (e.g. canceling a "Completed" remediation returns 400).
 		if state := prop.ProvisioningState; state != nil && (*state == "Evaluating" || *state == "Accepted") {
 			log.Printf("[DEBUG] cancelling the remediation first before deleting it when `resource_discovery_mode` is set to `ReEvaluateCompliance`")
 			if err := cancelFunc(); err != nil {

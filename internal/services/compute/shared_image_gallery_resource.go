@@ -295,7 +295,7 @@ func resourceSharedImageGalleryDelete(d *pluginsdk.ResourceData, meta interface{
 					OperationType: gallerysharingupdate.SharingUpdateOperationTypesReset,
 				}
 				if err = gallerySharingUpdateClient.GallerySharingProfileUpdateThenPoll(ctx, *id, updatePayload); err != nil {
-					return fmt.Errorf("reseting community sharing of %s: %+v", id, err)
+					return fmt.Errorf("resetting community sharing of %s: %+v", id, err)
 				}
 			}
 		}
