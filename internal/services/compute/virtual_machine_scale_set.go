@@ -95,13 +95,11 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 				"auxiliary_sku": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						// None is not exposed
-						string(virtualmachinescalesets.NetworkInterfaceAuxiliarySkuAEight),
-						string(virtualmachinescalesets.NetworkInterfaceAuxiliarySkuAFour),
-						string(virtualmachinescalesets.NetworkInterfaceAuxiliarySkuAOne),
-						string(virtualmachinescalesets.NetworkInterfaceAuxiliarySkuATwo),
-					}, false),
+					// None is not exposed, and other values are validated server-side since the supported list keeps growing
+					ValidateFunc: validation.All(
+						validation.StringIsNotEmpty,
+						validation.StringNotInSlice([]string{string(virtualmachinescalesets.NetworkInterfaceAuxiliarySkuNone)}, true),
+					),
 				},
 
 				"dns_servers": {
