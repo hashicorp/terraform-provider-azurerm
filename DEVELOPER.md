@@ -43,7 +43,7 @@ git clone git@github.com:hashicorp/terraform-provider-azurerm
 cd $GOPATH/src/github.com/hashicorp/terraform-provider-azurerm
 ```
 
-The Go tooling the provider uses (golangci-lint, terrafmt, gofumpt, ...) is pinned in `.tools/go.mod` and built into `.tools/bin` by make as needed, so nothing has to be installed by hand; `make tools` builds all of it up front.
+The tooling the provider uses is pinned (Go tools such as golangci-lint, terrafmt and gofumpt in `.tools/go.mod`; shellcheck, terraform, yamllint and markdownlint-cli2 in the `GNUmakefile`) and installed into `.tools/bin` by make as needed, so nothing has to be installed by hand; `make tools` installs all of it up front. The non-Go tools need `python3`, `npm` and `unzip` on the machine.
 
 At this point you can compile the provider by running `make build`, which will build the provider and put the provider binary in the `$GOPATH/bin` directory.
 

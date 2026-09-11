@@ -67,8 +67,10 @@ tf.zip
 .bob
 AGENTS.md
 
-# dev tool binaries built by make from the pins in .tools/go.mod
+# dev tools installed by make: Go tools from the pins in .tools/go.mod, the rest from the pins in GNUmakefile
 .tools/bin/
+.tools/npm/
+.tools/venv/
 
 # lychee link-checker cache (make linkcheck-external)
 .lycheecache

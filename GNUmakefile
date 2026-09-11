@@ -19,6 +19,19 @@ TERRAFMT=$(TOOLS_BIN)/terrafmt
 TFPROVIDERDOCS=$(TOOLS_BIN)/tfproviderdocs
 PATH := $(CURDIR)/$(TOOLS_BIN):$(PATH)
 
+# non-Go tools also live in .tools/bin at pinned versions, but the pins are here (dependabot
+# cannot bump them): shellcheck and terraform are static binaries downloaded from their releases,
+# yamllint is pip installed into a repo-local venv and markdownlint-cli2 is npm installed into a
+# repo-local prefix. all rebuild when this makefile changes.
+MARKDOWNLINT_CLI2_VERSION=0.23.2
+SHELLCHECK_VERSION=v0.11.0
+TERRAFORM_VERSION=1.16.2
+YAMLLINT_VERSION=1.38.0
+MARKDOWNLINT=$(TOOLS_BIN)/markdownlint-cli2
+SHELLCHECK=$(TOOLS_BIN)/shellcheck
+TERRAFORM=$(TOOLS_BIN)/terraform
+YAMLLINT=$(TOOLS_BIN)/yamllint
+
 # golangci-lint with the azproviderlint/tfproviderlint module plugins compiled in
 # (.tools/.custom-gcl.yml); the lint targets use this binary, the plain one bootstraps
 # `golangci-lint custom` and runs the formatters
@@ -37,6 +50,33 @@ $(TOOLS_BIN)/%: .tools/go.mod .tools/go.sum
 $(GOLANGCI_LINT_MODULES): .tools/.custom-gcl.yml $(GOLANGCI_LINT)
 	@echo "==> Building golangci-lint with plugins (versions pinned in .tools/.custom-gcl.yml)..."
 	@cd .tools && bin/golangci-lint custom
+
+$(SHELLCHECK): GNUmakefile
+	@echo "==> Downloading shellcheck $(SHELLCHECK_VERSION)..."
+	@mkdir -p $(TOOLS_BIN)
+	@os=$$(uname | tr 'A-Z' 'a-z'); arch=$$(uname -m); [ "$$arch" = "arm64" ] && arch=aarch64; \
+		curl -sSfL "https://github.com/koalaman/shellcheck/releases/download/$(SHELLCHECK_VERSION)/shellcheck-$(SHELLCHECK_VERSION).$$os.$$arch.tar.xz" \
+		| tar -xJ -O shellcheck-$(SHELLCHECK_VERSION)/shellcheck > $@ && chmod +x $@
+
+$(TERRAFORM): GNUmakefile
+	@command -v unzip >/dev/null || (echo "unzip is required to install terraform" && exit 1)
+	@echo "==> Downloading terraform $(TERRAFORM_VERSION)..."
+	@mkdir -p $(TOOLS_BIN)
+	@os=$$(uname | tr 'A-Z' 'a-z'); arch=$$(uname -m); case "$$arch" in x86_64) arch=amd64;; aarch64) arch=arm64;; esac; \
+		curl -sSfL "https://releases.hashicorp.com/terraform/$(TERRAFORM_VERSION)/terraform_$(TERRAFORM_VERSION)_$${os}_$${arch}.zip" -o $@.zip \
+		&& unzip -o -q $@.zip terraform -d $(TOOLS_BIN) && rm -f $@.zip && touch $@
+
+$(YAMLLINT): GNUmakefile
+	@command -v python3 >/dev/null || (echo "python3 is required to install yamllint (macOS: xcode CLT; Debian/Ubuntu: apt install python3-venv)" && exit 1)
+	@echo "==> Installing yamllint $(YAMLLINT_VERSION) into .tools/venv..."
+	@mkdir -p $(TOOLS_BIN)
+	@python3 -m venv .tools/venv && .tools/venv/bin/pip install -q yamllint==$(YAMLLINT_VERSION) && ln -sf ../venv/bin/yamllint $@
+
+$(MARKDOWNLINT): GNUmakefile
+	@command -v npm >/dev/null || (echo "npm is required to install markdownlint-cli2 (macOS: brew install node; Debian/Ubuntu: apt install npm)" && exit 1)
+	@echo "==> Installing markdownlint-cli2 $(MARKDOWNLINT_CLI2_VERSION) into .tools/npm..."
+	@mkdir -p $(TOOLS_BIN) .tools/npm
+	@npm install --silent --no-audit --no-fund --prefix .tools/npm markdownlint-cli2@$(MARKDOWNLINT_CLI2_VERSION) && ln -sf ../npm/node_modules/.bin/markdownlint-cli2 $@
 
 default: build
 
@@ -57,7 +97,7 @@ golangci-fix: ## renamed to lint-fix
 	@$(MAKE) lint-fix
 
 ##@ Build & Generate
-tools: $(ACTIONLINT) $(GOFUMPT) $(GOIMPORTS) $(GOLANGCI_LINT) $(GOLANGCI_LINT_MODULES) $(GOTESTSUM) $(MISSPELL) $(TCTEST) $(TERRAFMT) $(TFPROVIDERDOCS) ## Build all pinned dev tools into .tools/bin (targets build what they need on demand)
+tools: $(ACTIONLINT) $(GOFUMPT) $(GOIMPORTS) $(GOLANGCI_LINT) $(GOLANGCI_LINT_MODULES) $(GOTESTSUM) $(MISSPELL) $(TCTEST) $(TERRAFMT) $(TFPROVIDERDOCS) $(MARKDOWNLINT) $(SHELLCHECK) $(TERRAFORM) $(YAMLLINT) ## Install all pinned dev tools into .tools/bin (targets install what they need on demand)
 
 build: quick-checks generate ## Run the quick checks, generate code, and compile the provider
 	go install
@@ -123,19 +163,17 @@ azproviderlint: $(GOLANGCI_LINT_MODULES) ## Check source code with only the azpr
 	@echo "==> Checking source code with azproviderlint (via golangci-lint)..."
 	@$(GOLANGCI_LINT_MODULES) run -v --enable-only azproviderlint ./...
 
-yamllint: ## Check YAML files with yamllint (config in .yamllint.yml)
-	@command -v yamllint >/dev/null || (echo "yamllint not installed. Install via: brew install yamllint (macOS) or pip install yamllint" && exit 1)
+yamllint: $(YAMLLINT) ## Check YAML files with yamllint (config in .yamllint.yml)
 	@echo "==> Checking YAML files with yamllint..."
-	@yamllint -s .
+	@$(YAMLLINT) -s .
 
-actionlint: $(ACTIONLINT) ## Check GitHub workflows with actionlint (incl. shellcheck on run blocks)
+actionlint: $(ACTIONLINT) $(SHELLCHECK) ## Check GitHub workflows with actionlint (incl. shellcheck on run blocks)
 	@echo "==> Checking workflows with actionlint..."
-	@$(ACTIONLINT)
+	@$(ACTIONLINT) -shellcheck=$(SHELLCHECK)
 
-shellcheck: ## Check shell scripts with shellcheck
-	@command -v shellcheck >/dev/null || (echo "shellcheck not installed. Install via: brew install shellcheck (macOS) or apt install shellcheck (Linux)" && exit 1)
+shellcheck: $(SHELLCHECK) ## Check shell scripts with shellcheck
 	@echo "==> Checking shell scripts with shellcheck..."
-	@shellcheck scripts/*.sh scripts/checks/*.sh scripts/automation/*.sh || \
+	@$(SHELLCHECK) scripts/*.sh scripts/checks/*.sh scripts/automation/*.sh || \
 		(echo; echo "ShellCheck found issues in shell scripts."; echo "Review the errors above and fix them. See https://www.shellcheck.net/ for detailed explanations of each rule."; exit 1)
 
 depscheck: ## Check that go.mod/go.sum and vendor/ are in sync
@@ -186,10 +224,9 @@ prepare: ## Remove all generated files ahead of a full regeneration
 # (leading \# ignore glob, \# escapes the hash from make) as they will soon be generated.
 MARKDOWN_INPUTS='website/docs/**/*.markdown' README.md 'contributing/**/*.md' '.github/**/*.md' '\#website/docs/r' '\#website/docs/d'
 
-markdownlint: ## Check repo markdown with markdownlint (config in .markdownlint.yml)
-	@command -v markdownlint-cli2 >/dev/null || (echo "markdownlint-cli2 not installed. Install via: brew install markdownlint-cli2 (macOS) or npm install -g markdownlint-cli2" && exit 1)
+markdownlint: $(MARKDOWNLINT) ## Check repo markdown with markdownlint (config in .markdownlint.yml)
 	@echo "==> Checking markdown with markdownlint..."
-	@markdownlint-cli2 $(MARKDOWN_INPUTS)
+	@$(MARKDOWNLINT) $(MARKDOWN_INPUTS)
 
 website-lint: $(MISSPELL) $(TFPROVIDERDOCS) $(TERRAFMT) ## Check website documentation for issues
 	@echo "==> Checking documentation for .html.markdown extension present"
@@ -228,7 +265,7 @@ teamcity-test: ## Test the TeamCity configuration
 	@$(MAKE) -C .teamcity tools
 	@$(MAKE) -C .teamcity test
 
-validate-examples: build ## Check that the terraform examples are valid
+validate-examples: build $(TERRAFORM) ## Check that the terraform examples are valid (with the pinned terraform)
 	@echo "==> Validating examples..."
 	@./scripts/checks/examples-validate.sh
 
