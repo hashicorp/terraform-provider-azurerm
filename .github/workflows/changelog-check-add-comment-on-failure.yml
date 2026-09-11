@@ -22,7 +22,7 @@ jobs:
         id: download
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          pattern: changelog-check-failed-*
+          pattern: changelog-check-*
           path: artifacts/
           github-token: ${{ github.token }}
           run-id: ${{ github.event.workflow_run.id }}
@@ -86,4 +86,57 @@ jobs:
                 issue_number: prNumber,
                 body,
               })
+            }
+
+            try {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                labels: ['missing-changelog-entry'],
+              })
+            } catch (error) {
+              core.warning(`Failed to add label: ${error.message}`)
+            }
+
+  remove-label:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Download check artifacts
+        id: download
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: changelog-check-*
+          path: artifacts/
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+          merge-multiple: true
+        continue-on-error: true
+
+      - name: Remove missing-changelog-entry label
+        if: steps.download.outcome == 'success'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          script: |
+            const fs = require('fs')
+            const prNumber = parseInt(fs.readFileSync('artifacts/pr-number', 'utf8').trim())
+            
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                name: 'missing-changelog-entry',
+              })
+            } catch (error) {
+              if (error.status === 404) {
+                core.info('Label not present, nothing to remove')
+              } else {
+                core.warning(`Failed to remove label: ${error.message}`)
+              }
             }
