@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperationpolicy"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/migration"
@@ -22,16 +23,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+const azureApiManagementApiOperationPolicyResourceName = "azurerm_api_management_api_operation_policy"
+
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "resource_group_name,service_name:api_management_name,api_id:api_name,operation_id" -test-name rawXml
+
 func resourceApiManagementApiOperationPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceApiManagementAPIOperationPolicyCreateUpdate,
 		Read:   resourceApiManagementAPIOperationPolicyRead,
 		Update: resourceApiManagementAPIOperationPolicyCreateUpdate,
 		Delete: resourceApiManagementAPIOperationPolicyDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := apioperationpolicy.ParseOperationID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&apioperationpolicy.OperationId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&apioperationpolicy.OperationId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -91,7 +97,7 @@ func resourceApiManagementAPIOperationPolicyCreateUpdate(d *pluginsdk.ResourceDa
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_api_management_api_operation_policy", id.ID())
+				return tf.ImportAsExistsError(azureApiManagementApiOperationPolicyResourceName, id.ID())
 			}
 		}
 	}
@@ -124,6 +130,9 @@ func resourceApiManagementAPIOperationPolicyCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceApiManagementAPIOperationPolicyRead(d, meta)
 }
@@ -149,12 +158,16 @@ func resourceApiManagementAPIOperationPolicyRead(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("making Read request for %s: %+v", *id, err)
 	}
 
+	return resourceApiManagementAPIOperationPolicyFlatten(d, id, resp.Model)
+}
+
+func resourceApiManagementAPIOperationPolicyFlatten(d *pluginsdk.ResourceData, id *apioperationpolicy.OperationId, model *apioperationpolicy.PolicyContract) error {
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("api_management_name", id.ServiceName)
 	d.Set("api_name", getApiName(id.ApiId))
 	d.Set("operation_id", id.OperationId)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
 			// as such there is no way to set `xml_link` and we'll let Terraform handle it
@@ -162,7 +175,7 @@ func resourceApiManagementAPIOperationPolicyRead(d *pluginsdk.ResourceData, meta
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceApiManagementAPIOperationPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
