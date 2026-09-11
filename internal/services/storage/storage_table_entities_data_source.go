@@ -146,8 +146,6 @@ func (k storageTableEntitiesDataSource) Read() sdk.ResourceFunc {
 				input.PropertyNamesToSelect = &model.Select
 			}
 
-			id := parse.NewStorageTableEntitiesId(accountName, storageClient.StorageDomainSuffix, tableName, model.Filter)
-
 			result, err := client.Query(ctx, tableName, input)
 			if err != nil {
 				return fmt.Errorf("retrieving Entities (Filter %q) (Table %q in %s): %+v", model.Filter, tableName, account.StorageAccountId, err)
@@ -163,7 +161,7 @@ func (k storageTableEntitiesDataSource) Read() sdk.ResourceFunc {
 				flattenedEntities = append(flattenedEntities, flattenedEntity)
 			}
 			model.Items = flattenedEntities
-			metadata.SetID(id)
+			metadata.SetID(parse.NewStorageTableEntitiesId(accountName, storageClient.StorageDomainSuffix, tableName, model.Filter))
 
 			return metadata.Encode(&model)
 		},
@@ -210,7 +208,7 @@ func flattenEntityWithMetadata(entity map[string]interface{}) TableEntityDataSou
 			properties[k+"@odata.type"] = dtype
 		} else {
 			// special handling for property types that do not require the annotation to be present
-			// https://docs.microsoft.com/en-us/rest/api/storageservices/payload-format-for-table-service-operations#property-types-in-a-json-feed
+			// https://docs.microsoft.com/rest/api/storageservices/payload-format-for-table-service-operations#property-types-in-a-json-feed
 			switch c := v.(type) {
 			case bool:
 				properties[k] = fmt.Sprint(v)

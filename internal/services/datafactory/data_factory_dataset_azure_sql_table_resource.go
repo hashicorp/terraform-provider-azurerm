@@ -209,11 +209,10 @@ func (r DataFactoryDatasetAzureSQLTableResource) Create() sdk.ResourceFunc {
 				ReferenceName: pointer.To(linkedServiceId.Name),
 			}
 
-			description := data.Description
 			azureSqlTableset := datafactory.AzureSQLTableDataset{
 				AzureSQLTableDatasetTypeProperties: &azureSqlDatasetProperties,
 				LinkedServiceName:                  linkedService,
-				Description:                        &description,
+				Description:                        pointer.To(data.Description),
 			}
 
 			if data.Folder != "" {
@@ -242,10 +241,9 @@ func (r DataFactoryDatasetAzureSQLTableResource) Create() sdk.ResourceFunc {
 				azureSqlTableset.Structure = data.SchemaColumn
 			}
 
-			datasetType := string(datafactory.TypeBasicDatasetTypeAzureSQLTable)
 			dataset := datafactory.DatasetResource{
 				Properties: &azureSqlTableset,
-				Type:       &datasetType,
+				Type:       pointer.To(string(datafactory.TypeBasicDatasetTypeAzureSQLTable)),
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, dataset, ""); err != nil {

@@ -177,7 +177,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							ForceNew:     true,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
@@ -192,7 +192,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							ForceNew:     true,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
@@ -236,7 +236,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							ForceNew:     true,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: storageValidate.StorageAccountName,
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
@@ -244,7 +244,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 						"storage_account_sku_name": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 
@@ -252,7 +252,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							ForceNew:     true,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							AtLeastOneOf: workspaceCustomParametersString(),
 						},
 					},
@@ -1106,7 +1106,7 @@ func expandDatabricksWorkspaceEncryption(d *pluginsdk.ResourceData) (*workspaces
 
 func flattenWorkspaceManagedIdentity(input *workspaces.ManagedIdentityConfiguration) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	e := make(map[string]interface{})
@@ -1132,7 +1132,7 @@ func flattenWorkspaceManagedIdentity(input *workspaces.ManagedIdentityConfigurat
 
 func flattenWorkspaceCustomParameters(input *workspaces.WorkspaceCustomParameters, publicSubnetAssociation, privateSubnetAssociation *string) ([]interface{}, string) {
 	if input == nil {
-		return nil, ""
+		return []interface{}{}, ""
 	}
 
 	var backendAddressPoolId, backendName, loadBalancerId string

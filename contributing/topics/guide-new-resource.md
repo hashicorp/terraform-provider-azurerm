@@ -247,7 +247,6 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
 }
 ```
 
-
 Let's implement the Update function:
 
 ```go

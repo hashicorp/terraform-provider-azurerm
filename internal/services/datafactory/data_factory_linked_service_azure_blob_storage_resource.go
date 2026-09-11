@@ -312,8 +312,7 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		blobStorageLinkedService.Annotations = &annotations
+		blobStorageLinkedService.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -402,13 +401,11 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *pluginsdk.ResourceData, 
 	d.Set("additional_properties", blobStorage.AdditionalProperties)
 	d.Set("description", blobStorage.Description)
 
-	annotations := flattenDataFactoryAnnotations(blobStorage.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(blobStorage.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations` for Data Factory Azure Blob Storage %s: %+v", *id, err)
 	}
 
-	parameters := flattenLinkedServiceParameters(blobStorage.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(blobStorage.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 

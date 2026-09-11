@@ -126,8 +126,6 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Print("[INFO] preparing arguments for AzureRM KeyVault Secret creation.")
-
 	name := d.Get("name").(string)
 	keyVaultId, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
 	if err != nil {
@@ -174,14 +172,12 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if v, ok := d.GetOk("not_before_date"); ok {
 		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		notBeforeUnixTime := date.UnixTime(notBeforeDate)
-		parameters.SecretAttributes.NotBefore = &notBeforeUnixTime
+		parameters.SecretAttributes.NotBefore = pointer.To(date.UnixTime(notBeforeDate))
 	}
 
 	if v, ok := d.GetOk("expiration_date"); ok {
 		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		expirationUnixTime := date.UnixTime(expirationDate)
-		parameters.SecretAttributes.Expires = &expirationUnixTime
+		parameters.SecretAttributes.Expires = pointer.To(date.UnixTime(expirationDate))
 	}
 
 	if resp, err := client.SetSecret(ctx, *keyVaultBaseUrl, name, parameters); err != nil {
@@ -198,7 +194,7 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 				stateConf := &pluginsdk.StateChangeConf{
 					Pending:                   []string{"pending"},
 					Target:                    []string{"available"},
-					Refresh:                   keyVaultChildItemRefreshFunc(*secret),
+					Refresh:                   keyVaultChildItemRefreshFunc(ctx, *secret),
 					Delay:                     30 * time.Second,
 					PollInterval:              10 * time.Second,
 					ContinuousTargetOccurence: 10,
@@ -245,7 +241,6 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Print("[INFO] preparing arguments for AzureRM KeyVault Secret update.")
 
 	id, err := keyvault.ParseNestedItemID(d.Id(), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
 	if err != nil {
@@ -277,14 +272,12 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if v, ok := d.GetOk("not_before_date"); ok {
 		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		notBeforeUnixTime := date.UnixTime(notBeforeDate)
-		secretAttributes.NotBefore = &notBeforeUnixTime
+		secretAttributes.NotBefore = pointer.To(date.UnixTime(notBeforeDate))
 	}
 
 	if v, ok := d.GetOk("expiration_date"); ok {
 		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		expirationUnixTime := date.UnixTime(expirationDate)
-		secretAttributes.Expires = &expirationUnixTime
+		secretAttributes.Expires = pointer.To(date.UnixTime(expirationDate))
 	}
 
 	if d.HasChanges("value", "value_wo_version") {

@@ -45,7 +45,7 @@ func (a RoleDefinitionDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ExactlyOneOf: []string{
 				"name",
 				"role_definition_id",
@@ -56,7 +56,7 @@ func (a RoleDefinitionDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"role_definition_id": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ExactlyOneOf: []string{
 				"name",
 				"role_definition_id",
@@ -107,7 +107,7 @@ func (a RoleDefinitionDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 					"data_actions": {
 						Type:     pluginsdk.TypeSet,
-						Optional: true,
+						Computed: true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -116,7 +116,7 @@ func (a RoleDefinitionDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 					"not_data_actions": {
 						Type:     pluginsdk.TypeSet,
-						Optional: true,
+						Computed: true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},

@@ -177,7 +177,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"notification_sender_email": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"additional_location": {
@@ -211,7 +211,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					"capacity": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.IntBetween(0, 50),
 					},
 
@@ -292,7 +292,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"protocols": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -308,7 +308,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"security": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -408,7 +408,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"hostname_configuration": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -459,7 +459,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"sign_in": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -474,7 +474,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"delegation": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -506,7 +506,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"sign_up": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -603,7 +603,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"tenant_access": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -1047,9 +1047,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if d.HasChange("min_api_version") {
-		props.ApiVersionConstraint = &apimanagementservice.ApiVersionConstraint{
-			MinApiVersion: nil,
-		}
+		props.ApiVersionConstraint = &apimanagementservice.ApiVersionConstraint{}
 
 		if v, ok := d.GetOk("min_api_version"); ok {
 			props.ApiVersionConstraint.MinApiVersion = pointer.To(v.(string))
@@ -1214,8 +1212,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("setting `protocols`: %+v", err)
 		}
 
-		hostnameConfigs := flattenApiManagementHostnameConfigurations(model.Properties.HostnameConfigurations, d)
-		if err := d.Set("hostname_configuration", hostnameConfigs); err != nil {
+		if err := d.Set("hostname_configuration", flattenApiManagementHostnameConfigurations(model.Properties.HostnameConfigurations, d)); err != nil {
 			return fmt.Errorf("setting `hostname_configuration`: %+v", err)
 		}
 		additionalLocation, err := flattenApiManagementAdditionalLocations(model.Properties.AdditionalLocations)

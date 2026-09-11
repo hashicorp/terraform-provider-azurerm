@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/deployments"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -46,7 +46,7 @@ func dataSourceSubscriptionTemplateDeploymentRead(d *schema.ResourceData, meta i
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewSubscriptionTemplateDeploymentID(subscriptionId, d.Get("name").(string))
+	id := deployments.NewProviderDeploymentID(subscriptionId, d.Get("name").(string))
 
 	resp, err := client.GetAtSubscriptionScope(ctx, id.DeploymentName)
 	if err != nil {

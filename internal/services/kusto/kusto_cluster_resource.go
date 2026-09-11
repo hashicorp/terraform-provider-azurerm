@@ -84,7 +84,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 						"capacity": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.IntBetween(1, 1000),
 						},
 					},
@@ -112,7 +112,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			"trusted_external_tenants": {
 				Type:       pluginsdk.TypeList,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
@@ -626,7 +626,7 @@ func expandKustoClusterSku(input []interface{}) (*clusters.AzureSku, error) {
 		"Standard":    "Standard",
 	}
 
-	skuNamePrefix := strings.Split(sku["name"].(string), "_")[0]
+	skuNamePrefix, _, _ := strings.Cut(sku["name"].(string), "_")
 	tier, ok := skuNamePrefixToTier[skuNamePrefix]
 	if !ok {
 		return nil, fmt.Errorf("sku name begins with invalid tier, possible are Dev(No SLA) and Standard but is: %q", skuNamePrefix)

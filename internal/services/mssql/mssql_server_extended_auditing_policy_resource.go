@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -45,7 +44,7 @@ func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ServerID,
+				ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlServerIDInsensitively),
 			},
 
 			"enabled": {
@@ -102,7 +101,7 @@ func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
 			"audit_actions_and_groups": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				// audit_actions_and_groups seems to be pre-populated with values ["SUCCESSFUL_DATABASE_AUTHENTICATION_GROUP", "FAILED_DATABASE_AUTHENTICATION_GROUP", "BATCH_COMPLETED_GROUP"],
+				// Note: O+C because `audit_actions_and_groups` seems to be pre-populated with values ["SUCCESSFUL_DATABASE_AUTHENTICATION_GROUP", "FAILED_DATABASE_AUTHENTICATION_GROUP", "BATCH_COMPLETED_GROUP"],
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,

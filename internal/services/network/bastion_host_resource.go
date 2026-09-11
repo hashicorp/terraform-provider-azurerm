@@ -217,8 +217,6 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Println("[INFO] preparing arguments for Azure Bastion Host creation.")
-
 	id := bastionhosts.NewBastionHostID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	scaleUnits := d.Get("scale_units").(int)
@@ -543,14 +541,12 @@ func expandBastionHostIPConfiguration(input []interface{}) (ipConfigs *[]bastion
 	}
 
 	property := input[0].(map[string]interface{})
-	ipConfName := property["name"].(string)
-	subID := property["subnet_id"].(string)
 
 	ipConfig := bastionhosts.BastionHostIPConfiguration{
-		Name: &ipConfName,
+		Name: pointer.To(property["name"].(string)),
 		Properties: &bastionhosts.BastionHostIPConfigurationPropertiesFormat{
 			Subnet: bastionhosts.SubResource{
-				Id: &subID,
+				Id: pointer.To(property["subnet_id"].(string)),
 			},
 		},
 	}

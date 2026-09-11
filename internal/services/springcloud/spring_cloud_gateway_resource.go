@@ -354,7 +354,7 @@ func (s SpringCloudGatewayResource) Arguments() map[string]*pluginsdk.Schema {
 		"quota": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -874,7 +874,7 @@ func flattenGatewaySsoProperties(input *appplatform.SsoProperties, old []Gateway
 
 func flattenGatewayGatewayApmTypes(input *[]appplatform.ApmType) []string {
 	if input == nil {
-		return nil
+		return []string{}
 	}
 	out := make([]string, 0)
 	for _, v := range *input {

@@ -17,25 +17,16 @@ func URLRedirect() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"redirect_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.RedirectTypeFound),
-					string(cdn.RedirectTypeMoved),
-					string(cdn.RedirectTypePermanentRedirect),
-					string(cdn.RedirectTypeTemporaryRedirect),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleRedirectTypeValues(), false),
 			},
 
 			"protocol": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(cdn.DestinationProtocolMatchRequest),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.DestinationProtocolMatchRequest),
-					string(cdn.DestinationProtocolHTTP),
-					string(cdn.DestinationProtocolHTTPS),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(cdn.DestinationProtocolMatchRequest),
+				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleDestinationProtocolValues(), false),
 			},
 
 			"hostname": {

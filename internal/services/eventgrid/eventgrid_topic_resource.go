@@ -341,13 +341,11 @@ func resourceEventGridTopicRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.Set("endpoint", props.Endpoint)
 			d.Set("input_schema", string(pointer.From(props.InputSchema)))
 
-			inputMappingFields := flattenTopicInputMapping(props.InputSchemaMapping)
-			if err := d.Set("input_mapping_fields", inputMappingFields); err != nil {
+			if err := d.Set("input_mapping_fields", flattenTopicInputMapping(props.InputSchemaMapping)); err != nil {
 				return fmt.Errorf("setting `input_schema_mapping_fields`: %+v", err)
 			}
 
-			inputMappingDefaultValues := flattenTopicInputMappingDefaultValues(props.InputSchemaMapping)
-			if err := d.Set("input_mapping_default_values", inputMappingDefaultValues); err != nil {
+			if err := d.Set("input_mapping_default_values", flattenTopicInputMappingDefaultValues(props.InputSchemaMapping)); err != nil {
 				return fmt.Errorf("setting `input_schema_mapping_fields`: %+v", err)
 			}
 
@@ -357,8 +355,7 @@ func resourceEventGridTopicRead(d *pluginsdk.ResourceData, meta interface{}) err
 			}
 			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 
-			inboundIPRules := flattenTopicInboundIPRules(props.InboundIPRules)
-			if err := d.Set("inbound_ip_rule", inboundIPRules); err != nil {
+			if err := d.Set("inbound_ip_rule", flattenTopicInboundIPRules(props.InboundIPRules)); err != nil {
 				return fmt.Errorf("setting `inbound_ip_rule`: %+v", err)
 			}
 

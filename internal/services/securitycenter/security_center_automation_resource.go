@@ -337,17 +337,13 @@ func expandSecurityCenterAutomationSources(sourcesRaw []interface{}) (*[]automat
 			for _, ruleRaw := range rulesRaw {
 				// Parse the rule fields
 				ruleMap := ruleRaw.(map[string]interface{})
-				rulePath := ruleMap["property_path"].(string)
-				ruleType := automations.PropertyType(ruleMap["property_type"].(string))
-				ruleValue := ruleMap["expected_value"].(string)
-				ruleOperator := automations.Operator(ruleMap["operator"].(string))
 
 				// Create AutomationTriggeringRule struct and push into array
 				rule := automations.AutomationTriggeringRule{
-					PropertyJPath: &rulePath,
-					PropertyType:  &ruleType,
-					ExpectedValue: &ruleValue,
-					Operator:      &ruleOperator,
+					PropertyJPath: pointer.To(ruleMap["property_path"].(string)),
+					PropertyType:  pointer.ToEnum[automations.PropertyType](ruleMap["property_type"].(string)),
+					ExpectedValue: pointer.To(ruleMap["expected_value"].(string)),
+					Operator:      pointer.ToEnum[automations.Operator](ruleMap["operator"].(string)),
 				}
 				rules = append(rules, rule)
 			}
@@ -360,9 +356,8 @@ func expandSecurityCenterAutomationSources(sourcesRaw []interface{}) (*[]automat
 		}
 
 		// Finally create AutomationSource struct holding our list of RuleSets
-		eventSource := automations.EventSource(sourceMap["event_source"].(string))
 		source := automations.AutomationSource{
-			EventSource: &eventSource,
+			EventSource: pointer.ToEnum[automations.EventSource](sourceMap["event_source"].(string)),
 			RuleSets:    &ruleSets,
 		}
 

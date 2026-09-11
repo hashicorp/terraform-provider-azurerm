@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -51,7 +52,7 @@ func resourceManagementGroup() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validate.ManagementGroupName,
 			},
@@ -59,7 +60,7 @@ func resourceManagementGroup() *pluginsdk.Resource {
 			"display_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"tenant_scoped_id": {
@@ -70,14 +71,14 @@ func resourceManagementGroup() *pluginsdk.Resource {
 			"parent_management_group_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: commonids.ValidateManagementGroupID,
 			},
 
 			"subscription_ids": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.IsUUID,
@@ -302,12 +303,11 @@ func resourceManagementGroupDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	recurse := true
 	group, err := client.Get(ctx, *id, managementgroups.GetOperationOptions{
 		CacheControl: &managementGroupCacheControl,
 		Filter:       pointer.To("children.childType eq Subscription"),
 		Expand:       pointer.To(managementgroups.ExpandChildren),
-		Recurse:      &recurse,
+		Recurse:      pointer.To(true),
 	})
 	if err != nil {
 		if response.WasNotFound(group.HttpResponse) || response.WasForbidden(group.HttpResponse) {
@@ -414,13 +414,7 @@ func determineManagementGroupSubscriptionsIdsToRemove(existing *[]managementgrou
 			continue
 		}
 
-		found := false
-		for _, subId := range updated {
-			if id.SubscriptionId == subId {
-				found = true
-				break
-			}
-		}
+		found := slices.Contains(updated, id.SubscriptionId)
 
 		if !found {
 			subscriptionIdsToRemove = append(subscriptionIdsToRemove, id.SubscriptionId)

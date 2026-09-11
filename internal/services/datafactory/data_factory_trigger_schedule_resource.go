@@ -144,7 +144,7 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 			"start_time": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				DiffSuppressFunc: suppress.RFC3339Time,
 				ValidateFunc:     validation.IsRFC3339Time, // times in the past just start immediately
 			},
@@ -194,7 +194,7 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 			"pipeline": {
 				Type:          pluginsdk.TypeList,
 				Optional:      true,
-				Computed:      true,
+				Computed:      true, // azignore:AZS007 - pre-existing violation
 				ConflictsWith: []string{"pipeline_parameters"},
 				ExactlyOneOf:  []string{"pipeline", "pipeline_name"},
 				Elem: &pluginsdk.Resource{
@@ -219,7 +219,7 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 			"pipeline_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ExactlyOneOf: []string{"pipeline", "pipeline_name"},
 				ValidateFunc: validate.DataFactoryPipelineAndTriggerName(),
 			},
@@ -227,7 +227,7 @@ func resourceDataFactoryTriggerSchedule() *pluginsdk.Resource {
 			"pipeline_parameters": {
 				Type:          pluginsdk.TypeMap,
 				Optional:      true,
-				Computed:      true,
+				Computed:      true, // azignore:AZS007 - pre-existing violation
 				ConflictsWith: []string{"pipeline"},
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
@@ -314,8 +314,7 @@ func resourceDataFactoryTriggerScheduleCreate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		scheduleProps.Annotations = &annotations
+		scheduleProps.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	trigger := datafactory.TriggerResource{
@@ -408,8 +407,7 @@ func resourceDataFactoryTriggerScheduleUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		scheduleProps.Annotations = &annotations
+		scheduleProps.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	trigger := datafactory.TriggerResource{
@@ -493,8 +491,7 @@ func resourceDataFactoryTriggerScheduleRead(d *pluginsdk.ResourceData, meta inte
 			}
 		}
 
-		annotations := flattenDataFactoryAnnotations(scheduleTriggerProps.Annotations)
-		if err := d.Set("annotations", annotations); err != nil {
+		if err := d.Set("annotations", flattenDataFactoryAnnotations(scheduleTriggerProps.Annotations)); err != nil {
 			return fmt.Errorf("setting `annotations`: %+v", err)
 		}
 
