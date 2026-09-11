@@ -43,7 +43,7 @@ git clone git@github.com:hashicorp/terraform-provider-azurerm
 cd $GOPATH/src/github.com/hashicorp/terraform-provider-azurerm
 ```
 
-Once inside the provider directory, you can run `make tools` to install the dependent tooling required to compile the provider.
+The Go tooling the provider uses (golangci-lint, terrafmt, gofumpt, ...) is pinned in `.tools/go.mod` and built into `.tools/bin` by make as needed, so nothing has to be installed by hand; `make tools` builds all of it up front.
 
 At this point you can compile the provider by running `make build`, which will build the provider and put the provider binary in the `$GOPATH/bin` directory.
 

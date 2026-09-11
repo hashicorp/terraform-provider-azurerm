@@ -67,8 +67,8 @@ tf.zip
 .bob
 AGENTS.md
 
-# golangci-lint custom binary with plugins, built by make golangci-with-modules
-scripts/golangci-with-modules
+# dev tool binaries built by make from the pins in .tools/go.mod
+.tools/bin/
 
 # lychee link-checker cache (make linkcheck-external)
 .lycheecache

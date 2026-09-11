@@ -2,17 +2,41 @@ TEST?=$$(go list ./... |grep -v 'vendor'|grep -v 'examples')
 TESTTIMEOUT=180m
 TF_SCHEMA_PANIC_ON_ERROR=1
 
-# The single source of truth for the golangci-lint version is the 'version:' field in
-# scripts/.custom-gcl.yml (it is required to live there for the plugin build); everything
-# else, including the CI workflows, derives it from that file.
-GOLANGCI_LINT_VERSION := $(shell sed -n 's/^version: *//p' scripts/.custom-gcl.yml)
+# Go dev tools are built into .tools/bin (gitignored) from the versions pinned in .tools/go.mod,
+# the single source of truth for make and CI (dependabot keeps them bumped). Each target lists
+# the tool binaries it needs as prerequisites, so the first run builds them and nothing has to
+# be go installed by hand. .tools/bin is also prepended to PATH so the check scripts and
+# go generate (which shell out to goimports/gofumpt/terrafmt by name) use the pinned builds.
+TOOLS_BIN=.tools/bin
+ACTIONLINT=$(TOOLS_BIN)/actionlint
+GOFUMPT=$(TOOLS_BIN)/gofumpt
+GOIMPORTS=$(TOOLS_BIN)/goimports
+GOLANGCI_LINT=$(TOOLS_BIN)/golangci-lint
+GOTESTSUM=$(TOOLS_BIN)/gotestsum
+MISSPELL=$(TOOLS_BIN)/misspell
+TCTEST=$(TOOLS_BIN)/tctest
+TERRAFMT=$(TOOLS_BIN)/terrafmt
+TFPROVIDERDOCS=$(TOOLS_BIN)/tfproviderdocs
+PATH := $(CURDIR)/$(TOOLS_BIN):$(PATH)
 
-# The single source of truth for the actionlint version is the go install pin
-# in .github/workflows/workflow-actionlint.yml.
-ACTIONLINT_VERSION := $(shell sed -n 's/.*actionlint\/cmd\/actionlint@//p' .github/workflows/workflow-actionlint.yml)
-
+# golangci-lint with the azproviderlint/tfproviderlint module plugins compiled in
+# (.tools/.custom-gcl.yml); the lint targets use this binary, the plain one bootstraps
+# `golangci-lint custom` and runs the formatters
+GOLANGCI_LINT_MODULES=$(TOOLS_BIN)/golangci-with-modules
 
 .EXPORT_ALL_VARIABLES:
+
+# one rule builds any Go tool: the import path comes from the tool directives in .tools/go.mod
+# (via go list tool), so the makefile never repeats it - add a tool there and a variable above
+$(TOOLS_BIN)/%: .tools/go.mod .tools/go.sum
+	@echo "==> Building $* (version pinned in .tools/go.mod)..."
+	@cd .tools && go build -o bin/$* $$(go list tool | grep "/$*$$")
+
+# explicit rules take precedence over the pattern rule above; golangci-lint custom must run from
+# the directory holding .custom-gcl.yml, hence the cd
+$(GOLANGCI_LINT_MODULES): .tools/.custom-gcl.yml $(GOLANGCI_LINT)
+	@echo "==> Building golangci-lint with plugins (versions pinned in .tools/.custom-gcl.yml)..."
+	@cd .tools && bin/golangci-lint custom
 
 default: build
 
@@ -33,21 +57,12 @@ golangci-fix: ## renamed to lint-fix
 	@$(MAKE) lint-fix
 
 ##@ Build & Generate
-tools: ## Install the tools required to develop the provider
-	@echo "==> installing required tooling..."
-	go install github.com/client9/misspell/cmd/misspell@latest
-	go install github.com/YakDriver/tfproviderdocs@latest
-	go install github.com/katbyte/terrafmt@latest
-	go install golang.org/x/tools/cmd/goimports@latest
-	go install mvdan.cc/gofumpt@latest
-	go install github.com/rhysd/actionlint/cmd/actionlint@$(ACTIONLINT_VERSION)
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin $(GOLANGCI_LINT_VERSION)
-	@$(MAKE) golangci-with-modules
+tools: $(ACTIONLINT) $(GOFUMPT) $(GOIMPORTS) $(GOLANGCI_LINT) $(GOLANGCI_LINT_MODULES) $(GOTESTSUM) $(MISSPELL) $(TCTEST) $(TERRAFMT) $(TFPROVIDERDOCS) ## Build all pinned dev tools into .tools/bin (targets build what they need on demand)
 
 build: quick-checks generate ## Run the quick checks, generate code, and compile the provider
 	go install
 
-generate: tools ## Regenerate auto-generated code
+generate: $(GOFUMPT) $(GOIMPORTS) $(TERRAFMT) ## Regenerate auto-generated code
 	go generate ./internal/services/...
 	go generate ./internal/provider/
 
@@ -61,74 +76,61 @@ gencheck: generate ## Check that generated code matches what is committed
 GOPATHS=main.go helpers internal version
 
 # The fixers here (plus goimports below) should match the checks in scripts/checks/fmt-check.sh
-fmt: ## Fix Go formatting (gofmt, gofumpt, whitespace)
+fmt: $(GOFUMPT) $(GOLANGCI_LINT) ## Fix Go formatting (gofmt, gofumpt, whitespace)
 	@echo "==> Fixing source code with gofmt..."
 	@gofmt -s -w $(GOPATHS)
 	@echo "==> Fixing source code with gofumpt..."
-	@gofumpt -w $(GOPATHS)
+	@$(GOFUMPT) -w $(GOPATHS)
 	@echo "==> Fixing source code with whitespace linter..."
-	@golangci-lint run ./... --no-config --enable-only=whitespace --fix
+	@$(GOLANGCI_LINT) run ./... --no-config --enable-only=whitespace --fix
 
 # goimports runs via `golangci-lint fmt` as the standalone binary is single-threaded and far slower
-goimports: ## Fix Go import ordering/grouping (slower than fmt, so kept separate)
+goimports: $(GOLANGCI_LINT) ## Fix Go import ordering/grouping (slower than fmt, so kept separate)
 	@echo "==> Fixing imports with goimports and gci..."
-	@golangci-lint fmt -E goimports,gci
+	@$(GOLANGCI_LINT) fmt -E goimports,gci
 
-quick-checks: ## Run the quick CI checks (formatting)
+quick-checks: $(GOLANGCI_LINT) $(TERRAFMT) ## Run the quick CI checks (formatting)
 	@echo "==> Running the set of quick CI checks (formatting)..."
 	@sh "$(CURDIR)/scripts/checks/fmt-check.sh"
 	@sh "$(CURDIR)/scripts/checks/terrafmt-acctests.sh"
 
-terrafmt: ## Fix terraform blocks in acceptance tests and website docs
+terrafmt: $(TERRAFMT) ## Fix terraform blocks in acceptance tests and website docs
 	@echo "==> Fixing acceptance test terraform blocks code with terrafmt..."
-	@terrafmt fmt -f -p "*_test.go" ./internal
+	@$(TERRAFMT) fmt -f -p "*_test.go" ./internal
 	@echo "==> Fixing website terraform blocks code with terrafmt..."
-	@terrafmt fmt -p "*.html.markdown" .
+	@$(TERRAFMT) fmt -p "*.html.markdown" .
 
 ##@ Linting & Dependencies
-# golangci-lint module plugins (azproviderlint) only exist in a custom-built binary, so lint
-# targets use scripts/golangci-with-modules, rebuilt automatically whenever the config (which
-# pins the golangci-lint version) changes. The pinned version is installed before building so
-# the host binary running 'golangci-lint custom' always matches the pin. The config filename
-# and its living in the build cwd are both fixed by golangci-lint, hence the cd into scripts/.
-scripts/golangci-with-modules: scripts/.custom-gcl.yml
-	@echo "==> Building golangci-lint with plugins (scripts/golangci-with-modules)..."
-	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $$(go env GOPATH)/bin $(GOLANGCI_LINT_VERSION)
-	@cd scripts && $$(go env GOPATH)/bin/golangci-lint custom
+# golangci-lint module plugins (azproviderlint, tfproviderlint) only exist in a custom-built
+# binary, so the lint targets use .tools/bin/golangci-with-modules, rebuilt automatically
+# whenever .tools/.custom-gcl.yml or the golangci-lint pin in .tools/go.mod changes
+golangci-with-modules: $(GOLANGCI_LINT_MODULES) ## Build golangci-lint with plugins into .tools/bin (automatic when the pins change)
 
-golangci-with-modules: ## Build golangci-lint with plugins (automatic when the config or pinned version changes)
-	@if [ -x scripts/golangci-with-modules ] && ! ./scripts/golangci-with-modules version 2>/dev/null | grep -qF -- "$(GOLANGCI_LINT_VERSION:v%=%)"; then \
-		echo "==> scripts/golangci-with-modules is not $(GOLANGCI_LINT_VERSION), rebuilding..."; \
-		rm -f scripts/golangci-with-modules; \
-	fi
-	@$(MAKE) scripts/golangci-with-modules
-
-lint: golangci-with-modules ## Check source code with the golangci linters
+lint: $(GOLANGCI_LINT_MODULES) ## Check source code with the golangci linters
 	@echo "==> Checking source code with golangci-lint..."
-	@./scripts/golangci-with-modules run -v ./...
+	@$(GOLANGCI_LINT_MODULES) run -v ./...
 
-lint-fix: golangci-with-modules ## Fix source code with all golangci linters
+lint-fix: $(GOLANGCI_LINT_MODULES) ## Fix source code with all golangci linters
 	@echo "==> Fixing source code with all golangci linters..."
-	@./scripts/golangci-with-modules run ./... --fix
+	@$(GOLANGCI_LINT_MODULES) run ./... --fix
 
 # tfproviderlint and azproviderlint run as part of lint; these targets run just their checks
-tfproviderlint: golangci-with-modules ## Check terraform schema definitions with only the tfproviderlint checks
+tfproviderlint: $(GOLANGCI_LINT_MODULES) ## Check terraform schema definitions with only the tfproviderlint checks
 	@echo "==> Checking terraform schemas with tfproviderlint (via golangci-lint)..."
-	@./scripts/golangci-with-modules run -v --enable-only tfproviderlint ./...
+	@$(GOLANGCI_LINT_MODULES) run -v --enable-only tfproviderlint ./...
 
-azproviderlint: golangci-with-modules ## Check source code with only the azproviderlint checks
+azproviderlint: $(GOLANGCI_LINT_MODULES) ## Check source code with only the azproviderlint checks
 	@echo "==> Checking source code with azproviderlint (via golangci-lint)..."
-	@./scripts/golangci-with-modules run -v --enable-only azproviderlint ./...
+	@$(GOLANGCI_LINT_MODULES) run -v --enable-only azproviderlint ./...
 
 yamllint: ## Check YAML files with yamllint (config in .yamllint.yml)
 	@command -v yamllint >/dev/null || (echo "yamllint not installed. Install via: brew install yamllint (macOS) or pip install yamllint" && exit 1)
 	@echo "==> Checking YAML files with yamllint..."
 	@yamllint -s .
 
-actionlint: ## Check GitHub workflows with actionlint (incl. shellcheck on run blocks)
-	@command -v actionlint >/dev/null || (echo "actionlint not installed. Install via 'make tools' or: go install github.com/rhysd/actionlint/cmd/actionlint@$(ACTIONLINT_VERSION)" && exit 1)
+actionlint: $(ACTIONLINT) ## Check GitHub workflows with actionlint (incl. shellcheck on run blocks)
 	@echo "==> Checking workflows with actionlint..."
-	@actionlint
+	@$(ACTIONLINT)
 
 shellcheck: ## Check shell scripts with shellcheck
 	@command -v shellcheck >/dev/null || (echo "shellcheck not installed. Install via: brew install shellcheck (macOS) or apt install shellcheck (Linux)" && exit 1)
@@ -147,6 +149,15 @@ depscheck: ## Check that go.mod/go.sum and vendor/ are in sync
 	@go mod vendor
 	@git diff --compact-summary --exit-code -- vendor || \
 		(echo; echo "Unexpected difference in vendor/ directory. Run 'go mod vendor' command or revert any go.mod/go.sum/vendor changes and commit."; echo "Do not modify files in the vendor/ directory directly."; exit 1)
+	@echo "==> Checking .tools/go.mod with go mod tidy..."
+	@cd .tools && go mod tidy
+	@git diff --exit-code -- .tools/go.mod .tools/go.sum || \
+		(echo; echo "Unexpected difference in .tools/go.mod/go.sum. Run 'cd .tools && go mod tidy' and commit."; exit 1)
+	@echo "==> Checking .tools/.custom-gcl.yml golangci-lint version matches .tools/go.mod..."
+	@modv=$$(cd .tools && go list -m -f '{{.Version}}' github.com/golangci/golangci-lint/v2); \
+		gclv=$$(sed -n 's/^version: *//p' .tools/.custom-gcl.yml); \
+		[ "$$modv" = "$$gclv" ] || \
+		(echo; echo "golangci-lint version mismatch: .tools/go.mod has $$modv but .tools/.custom-gcl.yml has $$gclv - update .custom-gcl.yml to match."; exit 1)
 
 ##@ Testing
 test: ## Run the unit tests
@@ -180,7 +191,7 @@ markdownlint: ## Check repo markdown with markdownlint (config in .markdownlint.
 	@echo "==> Checking markdown with markdownlint..."
 	@markdownlint-cli2 $(MARKDOWN_INPUTS)
 
-website-lint: ## Check website documentation for issues
+website-lint: $(MISSPELL) $(TFPROVIDERDOCS) $(TERRAFMT) ## Check website documentation for issues
 	@echo "==> Checking documentation for .html.markdown extension present"
 	@if ! find website/docs -type f -not -name "*.html.markdown" -print -exec false {} +; then \
 		echo "ERROR: file extension should be .html.markdown"; \
@@ -188,13 +199,13 @@ website-lint: ## Check website documentation for issues
 		exit 1; \
 	fi
 	@echo "==> Checking documentation spelling..."
-	@misspell -error -source=text -i hdinsight,exportfs website/ || \
-		(echo; echo "Spelling errors found in documentation. Install misspell: go install github.com/client9/misspell/cmd/misspell@latest"; exit 1)
+	@$(MISSPELL) -error -source=text -i hdinsight,exportfs website/ || \
+		(echo; echo "Spelling errors found in documentation."; exit 1)
 	@echo "==> Checking for locale-specific Microsoft Learn links..."
 	@! grep -rnE '(learn|docs)\.microsoft\.com/[a-z]{2}-[a-z]{2}/' website/ || \
 		(echo; echo "Remove the locale segment (e.g. /en-us/) from Microsoft Learn links so readers are served their own language."; exit 1)
 	@echo "==> Checking documentation for errors..."
-	@tfproviderdocs check -provider-name=azurerm -require-resource-subcategory \
+	@$(TFPROVIDERDOCS) check -provider-name=azurerm -require-resource-subcategory \
 		-allowed-resource-subcategories-file website/allowed-subcategories || \
 		(echo; echo "Documentation validation failed. Check that your docs follow the provider documentation format."; echo "See: contributing/topics/guide-new-resource.md for documentation requirements."; exit 1)
 	@sh -c "'$(CURDIR)/scripts/checks/terrafmt-website.sh'"
