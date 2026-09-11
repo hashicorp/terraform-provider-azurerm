@@ -1,0 +1,142 @@
+name: changelog-check-add-comment-on-failure
+
+on:
+  workflow_run:
+    workflows:
+      - "changelog-check"
+    types:
+      - "completed"
+
+permissions: {}
+
+jobs:
+  comment:
+    if: github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Download check failure artifacts
+        id: download
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: changelog-check-*
+          path: artifacts/
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+          merge-multiple: true
+        continue-on-error: true
+
+      - name: Comment on missing changelog entry
+        if: steps.download.outcome == 'success'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          script: |
+            const fs = require('fs')
+            const prNumber = parseInt(fs.readFileSync('artifacts/pr-number', 'utf8').trim())
+            const types = fs.readFileSync('artifacts/types-table', 'utf8').trim()
+            const marker = '<!-- changelog-comment -->'
+            const body = [
+              marker,
+              "This PR is missing a changelog entry, or contains an invalid one. Please add one by commenting:",
+              "",
+              "````",
+              "/changelog",
+              "[<type>] <body>",
+              "````",
+              "",
+              "Or to replace existing entries:",
+              "",
+              "````",
+              "/changelog replace",
+              "[<type>] <body>",
+              "````",
+              "",
+              "Available types:",
+              "",
+              "```",
+              types,
+              "```",
+              "",
+              "If this PR does not require a changelog entry, add the `no-changelog-needed` label or check the box in the PR description."
+            ].join("\n")
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            })
+
+            const botComments = comments.filter(c => c.user.login === 'github-actions[bot]')
+            const existing = botComments.find(c => c.body.includes(marker))
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              })
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body,
+              })
+            }
+
+            try {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                labels: ['missing-changelog-entry'],
+              })
+            } catch (error) {
+              core.warning(`Failed to add label: ${error.message}`)
+            }
+
+  remove-label:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Download check artifacts
+        id: download
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: changelog-check-*
+          path: artifacts/
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+          merge-multiple: true
+        continue-on-error: true
+
+      - name: Remove missing-changelog-entry label
+        if: steps.download.outcome == 'success'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          script: |
+            const fs = require('fs')
+            const prNumber = parseInt(fs.readFileSync('artifacts/pr-number', 'utf8').trim())
+
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                name: 'missing-changelog-entry',
+              })
+            } catch (error) {
+              if (error.status === 404) {
+                core.info('Label not present, nothing to remove')
+              } else {
+                core.warning(`Failed to remove label: ${error.message}`)
+              }
+            }
