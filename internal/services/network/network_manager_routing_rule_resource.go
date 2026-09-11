@@ -146,9 +146,11 @@ func (r ManagerRoutingRuleResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			if len(model.NextHop) > 0 {
+			nextHopRaw := metadata.ResourceDiff.GetRawConfig().AsValueMap()["next_hop"]
+			if len(model.NextHop) > 0 && !nextHopRaw.IsNull() && nextHopRaw.IsKnown() {
 				v := model.NextHop[0]
-				if strings.EqualFold(v.Type, string(routingrules.RoutingRuleNextHopTypeVirtualAppliance)) && v.Address == "" {
+				addressRaw := nextHopRaw.AsValueSlice()[0].AsValueMap()["address"]
+				if addressRaw.IsKnown() && strings.EqualFold(v.Type, string(routingrules.RoutingRuleNextHopTypeVirtualAppliance)) && v.Address == "" {
 					return fmt.Errorf("expanding `next_hop`: `address` is required when `type` is `VirtualAppliance`")
 				}
 			}

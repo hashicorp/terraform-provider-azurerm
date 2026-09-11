@@ -96,6 +96,21 @@ func TestAccNetworkManagerRoutingRule_complete(t *testing.T) {
 	})
 }
 
+func TestAccNetworkManagerRoutingRule_nextHopAddressKnownAfterApply(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_manager_routing_rule", "test")
+	r := NetworkManagerRoutingRuleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nextHopAddressKnownAfterApply(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r NetworkManagerRoutingRuleResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := routingrules.ParseRuleID(state.ID)
 	if err != nil {
@@ -197,6 +212,57 @@ resource "azurerm_network_manager_routing_rule" "test" {
   next_hop {
     type    = "VirtualAppliance"
     address = "10.0.20.2"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r NetworkManagerRoutingRuleResource) nextHopAddressKnownAfterApply(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-vnet-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctest-nic-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+# the next_hop address is not known until apply time here, which must not fail the plan
+resource "azurerm_network_manager_routing_rule" "test" {
+  name               = "acctest-nmrr-%[2]d"
+  rule_collection_id = azurerm_network_manager_routing_rule_collection.test.id
+  destination {
+    type    = "AddressPrefix"
+    address = "10.0.0.0/24"
+  }
+
+  next_hop {
+    type    = "VirtualAppliance"
+    address = azurerm_network_interface.test.private_ip_address
   }
 }
 `, r.template(data), data.RandomInteger)
