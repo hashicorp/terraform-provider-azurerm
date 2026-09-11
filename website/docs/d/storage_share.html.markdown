@@ -39,6 +39,12 @@ The following arguments are supported:
 
 * `quota` - The quota of the File Share in GB.
 
+* `access_tier` - The access tier of the File Share.
+
+* `enabled_protocol` - The protocol used for the File Share.
+
+* `url` - The URL of the File Share.
+
 * `metadata` - A map of custom file share metadata.
 
 * `acl` - One or more acl blocks as defined below.
