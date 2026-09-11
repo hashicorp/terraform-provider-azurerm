@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -396,37 +395,6 @@ resource "azurerm_application_insights" "import" {
 }
 
 func (ApplicationInsightsResource) complete(data acceptance.TestData, applicationType string) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-appinsights-%d"
-  location = "%s"
-}
-
-resource "azurerm_application_insights" "test" {
-  name                                  = "acctestappinsights-%d"
-  location                              = azurerm_resource_group.test.location
-  resource_group_name                   = azurerm_resource_group.test.name
-  application_type                      = "%s"
-  retention_in_days                     = 120
-  sampling_percentage                   = 50
-  daily_data_cap_in_gb                  = 50
-  daily_data_cap_notifications_disabled = true
-  disable_ip_masking                    = true
-  force_customer_storage_for_profiler   = true
-  local_authentication_disabled         = true
-
-  tags = {
-    Hello = "World"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, applicationType)
-	}
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -458,37 +426,6 @@ resource "azurerm_application_insights" "test" {
 }
 
 func (ApplicationInsightsResource) completeUpdated(data acceptance.TestData, applicationType string) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-appinsights-%d"
-  location = "%s"
-}
-
-resource "azurerm_application_insights" "test" {
-  name                                  = "acctestappinsights-%d"
-  location                              = azurerm_resource_group.test.location
-  resource_group_name                   = azurerm_resource_group.test.name
-  application_type                      = "%s"
-  retention_in_days                     = 60
-  sampling_percentage                   = 60
-  daily_data_cap_in_gb                  = 60
-  daily_data_cap_notifications_disabled = false
-  disable_ip_masking                    = false
-  force_customer_storage_for_profiler   = false
-  local_authentication_disabled         = false
-
-  tags = {
-    Hello = "World"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, applicationType)
-	}
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

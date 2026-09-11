@@ -6,12 +6,14 @@ package sentinel
 import (
 	"context"
 	"fmt"
-	"strconv"
+	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/sentinelonboardingstates"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -99,35 +101,15 @@ func (r LogAnalyticsWorkspaceOnboardResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("context has no deadline")
-			}
-
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending: []string{"404"},
-				Target:  []string{"200"},
-				Refresh: func() (interface{}, string, error) {
-					resp, err := client.Get(ctx, id)
-					statusCode := "dropped connection"
-					if resp.HttpResponse != nil {
-						statusCode = strconv.Itoa(resp.HttpResponse.StatusCode)
-					}
-
-					if err != nil {
-						if response.WasNotFound(resp.HttpResponse) {
-							return resp, statusCode, nil
-						}
-						return resp, "", err
-					}
-
-					return resp, statusCode, nil
-				},
-				Timeout: time.Until(deadline),
-				Delay:   15 * time.Second,
-			}
-
-			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			poller := custompollers.NewEventualConsistencyPoller(1, func(pollerCtx context.Context) (*http.Response, error) {
+				resp, err := client.Get(pollerCtx, id)
+				return resp.HttpResponse, err
+			}, &custompollers.EventualConsistencyPollerOptions{
+				Interval:              10 * time.Second,
+				TargetStatusCode:      pointer.To(http.StatusOK),
+				RetryErrorStatusCodes: []int{http.StatusNotFound},
+			})
+			if err := poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("waiting for %s to be fully onboarded: %+v", id, err)
 			}
 

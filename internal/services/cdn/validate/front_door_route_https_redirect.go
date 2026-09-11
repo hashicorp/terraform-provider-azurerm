@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/endpoints"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 )
 
 func SupportsBothHttpAndHttps(input []interface{}, key string) error {
@@ -22,8 +22,8 @@ func SupportsBothHttpAndHttps(input []interface{}, key string) error {
 		}
 	}
 
-	protocols := utils.ExpandStringSlice(input)
-	if !utils.SliceContainsValue(*protocols, string(endpoints.DestinationProtocolHTTP)) || !utils.SliceContainsValue(*protocols, string(endpoints.DestinationProtocolHTTPS)) {
+	protocols := helpers.ExpandStringSlice(input)
+	if !helpers.SliceContainsValue(*protocols, string(endpoints.DestinationProtocolHTTP)) || !helpers.SliceContainsValue(*protocols, string(endpoints.DestinationProtocolHTTPS)) {
 		return fmt.Errorf("'https_redirect_enabled' and 'supported_protocols' conflict. The 'https_redirect_enabled' field cannot be set to 'true' unless the 'supported_protocols' field contains both 'Http' and 'Https'")
 	}
 

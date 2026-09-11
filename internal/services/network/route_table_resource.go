@@ -24,7 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name route_table -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 var routeTableResourceName = "azurerm_route_table"
 
@@ -64,7 +64,7 @@ func resourceRouteTable() *pluginsdk.Resource {
 				Type:       pluginsdk.TypeSet,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -80,15 +80,9 @@ func resourceRouteTable() *pluginsdk.Resource {
 						},
 
 						"next_hop_type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(routetables.RouteNextHopTypeVirtualNetworkGateway),
-								string(routetables.RouteNextHopTypeVnetLocal),
-								string(routetables.RouteNextHopTypeInternet),
-								string(routetables.RouteNextHopTypeVirtualAppliance),
-								string(routetables.RouteNextHopTypeNone),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(routetables.PossibleValuesForRouteNextHopType(), false),
 						},
 
 						"next_hop_in_ip_address": {

@@ -10,6 +10,8 @@ import (
 	"go/ast"
 	"go/token"
 	"strconv"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 )
 
 // CompositeLitFields returns the keyed fields of a struct composite literal,
@@ -36,11 +38,9 @@ func ExprBoolValue(e ast.Expr) *bool {
 	}
 	switch id.Name {
 	case "true":
-		v := true
-		return &v
+		return pointer.To(true)
 	case "false":
-		v := false
-		return &v
+		return pointer.To(false)
 	}
 	return nil
 }
@@ -58,8 +58,7 @@ func ExprIntValue(e ast.Expr) *int {
 	case *ast.UnaryExpr:
 		if v.Op == token.SUB {
 			if inner := ExprIntValue(v.X); inner != nil {
-				n := -*inner
-				return &n
+				return pointer.To(-*inner)
 			}
 		}
 	}

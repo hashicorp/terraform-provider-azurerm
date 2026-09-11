@@ -19,7 +19,7 @@ import (
 
 type StackHCILogicalNetworkResource struct{}
 
-// https://learn.microsoft.com/en-us/azure-stack/hci/manage/create-logical-networks?tabs=azurecli#prerequisites
+// https://learn.microsoft.com/azure-stack/hci/manage/create-logical-networks?tabs=azurecli#prerequisites
 // The resource can only be created on the customlocation generated after HCI deployment
 const (
 	customLocationIdEnv = "ARM_TEST_STACK_HCI_CUSTOM_LOCATION_ID"

@@ -25,7 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name database_migration_service -service-package-name databasemigration -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceDatabaseMigrationService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -71,7 +71,7 @@ func resourceDatabaseMigrationService() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					// No const defined in go sdk, the literal listed below is derived from the response of listskus endpoint.
-					// See: https://docs.microsoft.com/en-us/rest/api/datamigration/resourceskus/listskus
+					// See: https://docs.microsoft.com/rest/api/datamigration/resourceskus/listskus
 					"Premium_4vCores",
 					"Standard_1vCores",
 					"Standard_2vCores",

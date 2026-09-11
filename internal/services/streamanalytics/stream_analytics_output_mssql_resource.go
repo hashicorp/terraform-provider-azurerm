@@ -153,7 +153,7 @@ func resourceStreamAnalyticsOutputSqlCreateUpdate(d *pluginsdk.ResourceData, met
 		Table:              pointer.To(d.Get("table").(string)),
 		MaxBatchCount:      pointer.To(d.Get("max_batch_count").(float64)),
 		MaxWriterCount:     pointer.To(d.Get("max_writer_count").(float64)),
-		AuthenticationMode: pointer.To(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+		AuthenticationMode: pointer.ToEnum[outputs.AuthenticationMode](d.Get("authentication_mode").(string)),
 	}
 
 	// Add user/password dataSourceProperties only if authentication mode requires them
@@ -218,29 +218,13 @@ func resourceStreamAnalyticsOutputSqlRead(d *pluginsdk.ResourceData, meta interf
 				return fmt.Errorf("converting %s to a SQL Output", *id)
 			}
 
-			server := ""
-			if v := output.Properties.Server; v != nil {
-				server = *v
-			}
-			d.Set("server", server)
+			d.Set("server", pointer.From(output.Properties.Server))
 
-			database := ""
-			if v := output.Properties.Database; v != nil {
-				database = *v
-			}
-			d.Set("database", database)
+			d.Set("database", pointer.From(output.Properties.Database))
 
-			table := ""
-			if v := output.Properties.Table; v != nil {
-				table = *v
-			}
-			d.Set("table", table)
+			d.Set("table", pointer.From(output.Properties.Table))
 
-			user := ""
-			if v := output.Properties.User; v != nil {
-				user = *v
-			}
-			d.Set("user", user)
+			d.Set("user", pointer.From(output.Properties.User))
 
 			authMode := ""
 			if v := output.Properties.AuthenticationMode; v != nil {

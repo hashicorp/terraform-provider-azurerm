@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobexecutions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobexecutions"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/action/schema"

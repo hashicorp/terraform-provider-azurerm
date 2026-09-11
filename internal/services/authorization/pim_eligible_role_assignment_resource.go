@@ -81,7 +81,7 @@ func (PimEligibleRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schem
 			Description: "Scope for this eligible role assignment, should be a valid resource ID",
 			ValidateFunc: validation.Any(
 				// Elevated access for a global admin is needed to assign roles in this scope:
-				// https://docs.microsoft.com/en-us/azure/role-based-access-control/elevate-access-global-admin#azure-cli
+				// https://docs.microsoft.com/azure/role-based-access-control/elevate-access-global-admin#azure-cli
 				// It seems only user account is allowed to be elevated access.
 				validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Subscription.*"), "Subscription scope is invalid"),
 
@@ -111,7 +111,7 @@ func (PimEligibleRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schem
 		"justification": {
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			Computed:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ForceNew:    true,
 			Description: "The justification for this eligible role assignment",
 		},
@@ -138,13 +138,14 @@ func (PimEligibleRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schem
 			Type:        pluginsdk.TypeList,
 			MaxItems:    1,
 			Optional:    true,
-			Computed:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ForceNew:    true,
 			Description: "The schedule details for this eligible role assignment",
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"start_date_time": { // defaults to now
-						Optional:    true,
+					"start_date_time": {
+						Optional: true,
+						// Note: O+C if not set, defaults to current time
 						Computed:    true,
 						ForceNew:    true,
 						Type:        pluginsdk.TypeString,
@@ -160,7 +161,7 @@ func (PimEligibleRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schem
 								"duration_days": {
 									Type:     pluginsdk.TypeInt,
 									Optional: true,
-									Computed: true,
+									Computed: true, // azignore:AZS007 - pre-existing violation
 									ForceNew: true,
 									ConflictsWith: []string{
 										"schedule.0.expiration.0.duration_hours",
@@ -172,7 +173,7 @@ func (PimEligibleRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schem
 								"duration_hours": {
 									Type:     pluginsdk.TypeInt,
 									Optional: true,
-									Computed: true,
+									Computed: true, // azignore:AZS007 - pre-existing violation
 									ForceNew: true,
 									ConflictsWith: []string{
 										"schedule.0.expiration.0.duration_days",
@@ -184,7 +185,7 @@ func (PimEligibleRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schem
 								"end_date_time": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
-									Computed: true,
+									Computed: true, // azignore:AZS007 - pre-existing violation
 									ForceNew: true,
 									ConflictsWith: []string{
 										"schedule.0.expiration.0.duration_days",
@@ -203,7 +204,7 @@ func (PimEligibleRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schem
 			Type:        pluginsdk.TypeList,
 			MaxItems:    1,
 			Optional:    true,
-			Computed:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ForceNew:    true,
 			Description: "Ticket details relating to the eligible assignment",
 			Elem: &pluginsdk.Resource{

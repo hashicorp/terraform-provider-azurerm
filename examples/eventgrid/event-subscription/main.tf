@@ -19,21 +19,20 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_storage_queue" "example" {
-  name                 = "${var.prefix}-sq"
-  storage_account_name = azurerm_storage_account.example.name
+  name               = "${var.prefix}-sq"
+  storage_account_id = azurerm_storage_account.example.id
 }
 
 resource "azurerm_storage_container" "example" {
   name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.example.name
+  storage_account_id    = azurerm_storage_account.example.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_blob" "example" {
   name = "herpderp1.vhd"
 
-  storage_account_name   = azurerm_storage_account.example.name
-  storage_container_name = azurerm_storage_container.example.name
+  storage_container_id = azurerm_storage_container.example.id
 
   type = "Page"
   size = 5120

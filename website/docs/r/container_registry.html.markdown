@@ -29,14 +29,16 @@ resource "azurerm_container_registry" "acr" {
   sku                 = "Premium"
   admin_enabled       = false
   georeplications {
-    location                = "East US"
-    zone_redundancy_enabled = true
-    tags                    = {}
+    location                        = "East US"
+    global_endpoint_routing_enabled = true
+    zone_redundancy_enabled         = true
+    tags                            = {}
   }
   georeplications {
-    location                = "North Europe"
-    zone_redundancy_enabled = true
-    tags                    = {}
+    location                        = "North Europe"
+    global_endpoint_routing_enabled = true
+    zone_redundancy_enabled         = true
+    tags                            = {}
   }
 }
 ```
@@ -190,7 +192,7 @@ The `georeplications` block supports the following:
 
 * `location` - (Required) A location where the container registry should be geo-replicated.
 
-* `regional_endpoint_enabled` - (Optional) Whether regional endpoint is enabled for this Container Registry?
+* `global_endpoint_routing_enabled` - (Required) Whether this geo-replicated location participates in global endpoint routing for the Container Registry's geo-replicated login server.
 
 * `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this replication location? Defaults to `false`.
 

@@ -67,7 +67,7 @@ The following arguments are supported:
 
 ~> **Note:** Either one `action_incident` block or `action_playbook` block has to be specified.
 
-* `condition_json` - (Optional) A JSON array of one or more condition JSON objects as is defined [here](https://learn.microsoft.com/en-us/rest/api/securityinsights/preview/automation-rules/create-or-update?tabs=HTTP#automationruletriggeringlogic).
+* `condition_json` - (Optional) A JSON array of one or more condition JSON objects as is defined [here](https://learn.microsoft.com/rest/api/securityinsights/preview/automation-rules/create-or-update?tabs=HTTP#automationruletriggeringlogic).
 
 * `enabled` - (Optional) Whether this Sentinel Automation Rule is enabled? Defaults to `true`.
 

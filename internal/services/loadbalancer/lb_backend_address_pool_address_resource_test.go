@@ -192,8 +192,7 @@ func (BackendAddressPoolAddressResourceTests) Destroy(ctx context.Context, clien
 
 	pool.Model.Properties.LoadBalancerBackendAddresses = &newAddresses
 
-	err = client.LoadBalancers.LoadBalancersClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, poolId, *pool.Model)
-	if err != nil {
+	if err = client.LoadBalancers.LoadBalancersClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, poolId, *pool.Model); err != nil {
 		return nil, fmt.Errorf("updating %s: %+v", *id, err)
 	}
 

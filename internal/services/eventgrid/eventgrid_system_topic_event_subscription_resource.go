@@ -12,15 +12,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/eventsubscriptions"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func possibleSystemTopicEventSubscriptionEndpointTypes() []string {
@@ -36,7 +34,7 @@ func possibleSystemTopicEventSubscriptionEndpointTypes() []string {
 }
 
 func resourceEventGridSystemTopicEventSubscription() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceEventGridSystemTopicEventSubscriptionCreateUpdate,
 		Read:   resourceEventGridSystemTopicEventSubscriptionRead,
 		Update: resourceEventGridSystemTopicEventSubscriptionCreateUpdate,
@@ -71,49 +69,49 @@ func resourceEventGridSystemTopicEventSubscription() *pluginsdk.Resource {
 			"expiration_time_utc": eventSubscriptionSchemaExpirationTimeUTC(),
 
 			"azure_function_endpoint": eventSubscriptionSchemaAzureFunctionEndpoint(
-				utils.RemoveFromStringArray(
+				helpers.RemoveFromStringArray(
 					possibleSystemTopicEventSubscriptionEndpointTypes(),
 					string(AzureFunctionEndpoint),
 				),
 			),
 
 			"eventhub_id": eventSubscriptionSchemaEventHubEndpointID(
-				utils.RemoveFromStringArray(
+				helpers.RemoveFromStringArray(
 					possibleSystemTopicEventSubscriptionEndpointTypes(),
 					string(EventHubID),
 				),
 			),
 
 			"hybrid_connection_id": eventSubscriptionSchemaHybridConnectionEndpointID(
-				utils.RemoveFromStringArray(
+				helpers.RemoveFromStringArray(
 					possibleSystemTopicEventSubscriptionEndpointTypes(),
 					string(HybridConnectionID),
 				),
 			),
 
 			"service_bus_queue_id": eventSubscriptionSchemaServiceBusQueueEndpointID(
-				utils.RemoveFromStringArray(
+				helpers.RemoveFromStringArray(
 					possibleSystemTopicEventSubscriptionEndpointTypes(),
 					string(ServiceBusQueueID),
 				),
 			),
 
 			"service_bus_topic_id": eventSubscriptionSchemaServiceBusTopicEndpointID(
-				utils.RemoveFromStringArray(
+				helpers.RemoveFromStringArray(
 					possibleSystemTopicEventSubscriptionEndpointTypes(),
 					string(ServiceBusTopicID),
 				),
 			),
 
 			"storage_queue_endpoint": eventSubscriptionSchemaStorageQueueEndpoint(
-				utils.RemoveFromStringArray(
+				helpers.RemoveFromStringArray(
 					possibleSystemTopicEventSubscriptionEndpointTypes(),
 					string(StorageQueueEndpoint),
 				),
 			),
 
 			"webhook_endpoint": eventSubscriptionSchemaWebHookEndpoint(
-				utils.RemoveFromStringArray(
+				helpers.RemoveFromStringArray(
 					possibleSystemTopicEventSubscriptionEndpointTypes(),
 					string(WebHookEndpoint),
 				),
@@ -140,12 +138,6 @@ func resourceEventGridSystemTopicEventSubscription() *pluginsdk.Resource {
 			"delivery_property": eventSubscriptionSchemaDeliveryProperty(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["azure_function_endpoint"].Elem.(*pluginsdk.Resource).Schema["function_id"].ValidateFunc = azure.ValidateResourceID
-	}
-
-	return resource
 }
 
 func resourceEventGridSystemTopicEventSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -185,8 +177,8 @@ func resourceEventGridSystemTopicEventSubscriptionCreateUpdate(d *pluginsdk.Reso
 	eventSubscriptionProperties := eventsubscriptions.EventSubscriptionProperties{
 		Filter:              filter,
 		RetryPolicy:         expandEventSubscriptionRetryPolicy(d),
-		Labels:              utils.ExpandStringSlice(d.Get("labels").([]interface{})),
-		EventDeliverySchema: pointer.To(eventsubscriptions.EventDeliverySchema(d.Get("event_delivery_schema").(string))),
+		Labels:              helpers.ExpandStringSlice(d.Get("labels").([]interface{})),
+		EventDeliverySchema: pointer.ToEnum[eventsubscriptions.EventDeliverySchema](d.Get("event_delivery_schema").(string)),
 		ExpirationTimeUtc:   pointer.To(d.Get("expiration_time_utc").(string)),
 	}
 
@@ -298,8 +290,7 @@ func resourceEventGridSystemTopicEventSubscriptionRead(d *pluginsdk.ResourceData
 			}
 
 			existingMappingsFromState := expandEventSubscriptionDeliveryAttributeMappings(d.Get("delivery_property").([]interface{}))
-			deliveryMappings := flattenEventSubscriptionDeliveryAttributeMappings(destination, existingMappingsFromState)
-			if err := d.Set("delivery_property", deliveryMappings); err != nil {
+			if err := d.Set("delivery_property", flattenEventSubscriptionDeliveryAttributeMappings(destination, existingMappingsFromState)); err != nil {
 				return fmt.Errorf("setting `delivery_property` for %s: %+v", *id, err)
 			}
 
