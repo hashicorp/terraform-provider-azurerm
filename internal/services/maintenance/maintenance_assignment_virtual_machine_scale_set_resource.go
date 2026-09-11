@@ -56,19 +56,20 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSet() *pluginsdk.Resourc
 			"location": commonschema.Location(),
 
 			"maintenance_configuration_id": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				ValidateFunc:     maintenanceconfigurations.ValidateMaintenanceConfigurationID,
-				DiffSuppressFunc: suppress.CaseDifference, // TODO remove in 4.0 with a work around or when https://github.com/Azure/azure-rest-api-specs/issues/8653 is fixed
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: maintenanceconfigurations.ValidateMaintenanceConfigurationID,
+				// this is required because of an API issue https://github.com/Azure/azure-rest-api-specs/issues/8653
+				// it can be removed when the API is fixed. Still an issue as of 2026-07-15.
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"virtual_machine_scale_set_id": {
-				Type:             pluginsdk.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				ValidateFunc:     commonids.ValidateVirtualMachineScaleSetID,
-				DiffSuppressFunc: suppress.CaseDifference, // TODO remove in 4.0
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: commonids.ValidateVirtualMachineScaleSetID,
 			},
 		},
 	}

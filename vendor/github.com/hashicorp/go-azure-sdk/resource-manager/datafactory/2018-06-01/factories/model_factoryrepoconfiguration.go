@@ -31,9 +31,9 @@ func (s BaseFactoryRepoConfigurationImpl) FactoryRepoConfiguration() BaseFactory
 
 var _ FactoryRepoConfiguration = RawFactoryRepoConfigurationImpl{}
 
-// RawFactoryRepoConfigurationImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawFactoryRepoConfigurationImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawFactoryRepoConfigurationImpl struct {
 	factoryRepoConfiguration BaseFactoryRepoConfigurationImpl
 	Type                     string
@@ -42,6 +42,10 @@ type RawFactoryRepoConfigurationImpl struct {
 
 func (s RawFactoryRepoConfigurationImpl) FactoryRepoConfiguration() BaseFactoryRepoConfigurationImpl {
 	return s.factoryRepoConfiguration
+}
+
+func (s RawFactoryRepoConfigurationImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalFactoryRepoConfigurationImplementation(input []byte) (FactoryRepoConfiguration, error) {

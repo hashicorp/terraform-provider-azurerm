@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `log_unmasked_ips_enabled` - (Optional) Should IP addressed be unmasked in the log? Defaults to `false`.
 
-* `recommendations_enabled` - (Optional) A `recommendations_enabled` block of options to enable or disable as defined below.
+* `recommendations` - (Optional) A `recommendations` block as defined below.
 
 * `query_for_resources` - (Optional) An Azure Resource Graph query used to set the resources monitored.
 
@@ -82,7 +82,7 @@ The `additional_workspace` block supports the following:
 
 ---
 
-A `recommendations_enabled` block supports the following:
+A `recommendations` block supports the following:
 
 * `acr_authentication` - (Optional) Is Principal Authentication enabled for the ACR repository? Defaults to `true`.
 

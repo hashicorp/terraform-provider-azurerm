@@ -247,7 +247,6 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
 }
 ```
 
-
 Let's implement the Update function:
 
 ```go
@@ -273,7 +272,7 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
                 return fmt.Errorf("decoding: %+v", err)
             }
             // update the Resource Group
-            // NOTE: for a more complex resource we'd recommend retrieving the existing Resource from the
+            // NOTE: Most resources are more complex than a Resource Group, and we recommend retrieving the existing Resource from the
             // API and then conditionally updating it when fields in the config have been updated, which
             // can be determined by using `metadata.ResourceData.HasChange` - for example:
             //
@@ -314,6 +313,34 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
 }
 ```
 
+If an API supports an LRO (Long Running Operation), use the `{Operation}ThenPoll` variant so the provider waits for the operation to complete before returning.
+
+Prefer the PUT API (`CreateOrUpdateThenPoll` or similar) over PATCH (`UpdateThenPoll` or similar) when both are available and you need to clear values. SDK structs generated from the OpenAPI spec use `omitempty` JSON tags, which means they cannot send explicit `null` values for fields on update.
+
+Consider the following struct:
+
+```go
+type FooProperties struct {
+    SizeGB *int64  `json:"sizeGB,omitempty"`
+    Sku    *string `json:"sku,omitempty"`
+}
+```
+
+To clear `sizeGB`, the following JSON payload must be sent in a PATCH request:
+
+```json
+{
+    "sizeGB": null
+}
+```
+
+However, the following struct instance will not serialize to that JSON because of the `omitempty` tag:
+
+```go
+props := FooProperties{
+    SizeGB: nil, // this will serialize to "{}"!
+}
+```
 
 ---
 
@@ -1031,9 +1058,9 @@ resource "azurerm_resource_group_example" "example" {
 
 The following arguments are supported:
 
-* `location` - (Required) The Azure Region where the Resource Group should exist. Changing this forces a new Resource Group to be created.
+* `location` - (Required) The Azure Region where the Resource Group should exist. Changing this forces a new resource to be created.
 
-* `name` - (Required) The Name which should be used for this Resource Group. Changing this forces a new Resource Group to be created.
+* `name` - (Required) The Name which should be used for this Resource Group. Changing this forces a new resource to be created.
 
 ---
 

@@ -206,10 +206,8 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%[1]d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-
+  name              = "acctesteventhub-%[1]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
   partition_count   = 2
   message_retention = 1
 }
@@ -318,10 +316,8 @@ resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%[1]d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-
+  name              = "acctesteventhub-%[1]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
   partition_count   = 2
   message_retention = 1
 }

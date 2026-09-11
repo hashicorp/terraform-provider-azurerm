@@ -65,17 +65,9 @@ func resourceSearchService() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(services.SkuNameFree),
-					string(services.SkuNameBasic),
-					string(services.SkuNameStandard),
-					string(services.SkuNameStandardTwo),
-					string(services.SkuNameStandardThree),
-					string(services.SkuNameStorageOptimizedLOne),
-					string(services.SkuNameStorageOptimizedLTwo),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(services.PossibleValuesForSkuName(), false),
 			},
 
 			"replica_count": {
@@ -106,23 +98,17 @@ func resourceSearchService() *pluginsdk.Resource {
 			},
 
 			"authentication_failure_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(services.AadAuthFailureModeHTTPFourZeroOneWithBearerChallenge),
-					string(services.AadAuthFailureModeHTTPFourZeroThree),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(services.PossibleValuesForAadAuthFailureMode(), false),
 			},
 
 			"hosting_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(services.HostingModeDefault),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(services.HostingModeDefault),
-					string(services.HostingModeHighDensity),
-				}, true),
+				Type:                  pluginsdk.TypeString,
+				Optional:              true,
+				ForceNew:              true,
+				Default:               string(services.HostingModeDefault),
+				ValidateFunc:          validation.StringInSlice(services.PossibleValuesForHostingMode(), true),
 				DiffSuppressFunc:      suppress.CaseDifference, // Breaking change introduced in https://github.com/Azure/azure-rest-api-specs/pull/37579 that changed the case of the Enum value
 				DiffSuppressOnRefresh: true,
 			},
@@ -202,13 +188,10 @@ func resourceSearchService() *pluginsdk.Resource {
 			},
 
 			"network_rule_bypass_option": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(services.SearchBypassAzureServices),
-					string(services.SearchBypassNone),
-				}, false),
-				Default: string(services.SearchBypassNone),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(services.PossibleValuesForSearchBypass(), false),
+				Default:      string(services.SearchBypassNone),
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -306,7 +289,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		// API & RBAC Mode..
 		authenticationOptions = pointer.To(services.DataPlaneAuthOptions{
 			AadOrApiKey: pointer.To(services.DataPlaneAadOrApiKeyAuthOption{
-				AadAuthFailureMode: pointer.To(services.AadAuthFailureMode(authenticationFailureMode)),
+				AadAuthFailureMode: pointer.ToEnum[services.AadAuthFailureMode](authenticationFailureMode),
 			}),
 		})
 	}
@@ -352,8 +335,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		payload.Identity = expandedIdentity
 	}
 
-	err = client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, services.CreateOrUpdateOperationOptions{}, sdk.SetIDCallback(meta, &id, d))
-	if err != nil {
+	if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, services.CreateOrUpdateOperationOptions{}, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	d.SetId(id.ID())
@@ -735,11 +717,11 @@ func validateSearchServiceSKUUpdate(ctx context.Context, diff *pluginsdk.Resourc
 		// Free and Storage optimized SKUs are not included as they're not part of the Basic->Standard upgrade path
 	}
 
-	oldLevel, oldExists := skuHierarchy[oldSku]
-	newLevel, newExists := skuHierarchy[newSku]
+	_, oldExists := skuHierarchy[oldSku]
+	_, newExists := skuHierarchy[newSku]
 
-	// If it's not a valid upgrade, force recreation instead of blocking the change
-	if !oldExists || !newExists || newLevel <= oldLevel {
+	// If it's not a valid upgrade (upgrades between basic and standard skus), force recreation instead of blocking the change
+	if !oldExists || !newExists {
 		return diff.ForceNew("sku")
 	}
 

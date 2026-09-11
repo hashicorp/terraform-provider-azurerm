@@ -313,8 +313,7 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Delete() s
 				return err
 			}
 
-			err = client.BackupInstancesDeleteThenPoll(ctx, *id, backupinstanceresources.DefaultBackupInstancesDeleteOperationOptions())
-			if err != nil {
+			if err = client.BackupInstancesDeleteThenPoll(ctx, *id, backupinstanceresources.DefaultBackupInstancesDeleteOperationOptions()); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

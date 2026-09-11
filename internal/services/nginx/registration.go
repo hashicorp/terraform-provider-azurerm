@@ -35,20 +35,20 @@ func (r Registration) WebsiteCategories() []string {
 // DataSources ...
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		DeploymentDataSource{},
+		APIKeyDataSource{},
 		CertificateDataSource{},
 		ConfigurationDataSource{},
-		APIKeyDataSource{},
+		DeploymentDataSource{},
 	}
 }
 
 // Resources ...
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		CertificateResource{},
-		DeploymentResource{},
-		ConfigurationResource{},
 		APIKeyResource{},
+		CertificateResource{},
+		ConfigurationResource{},
+		DeploymentResource{},
 	}
 }
 

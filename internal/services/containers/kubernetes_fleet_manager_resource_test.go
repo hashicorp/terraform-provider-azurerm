@@ -150,9 +150,6 @@ resource "azurerm_kubernetes_fleet_manager" "test" {
     environment = "terraform-acctests"
     some_key    = "some-value"
   }
-  hub_profile {
-    dns_prefix = "val-${var.random_string}"
-  }
 }
 `, r.template(data))
 }

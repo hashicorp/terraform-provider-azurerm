@@ -1,0 +1,33 @@
+name: Markdown Lint
+
+# markdownlint over the repo's markdown (website docs, README, contributing, .github).
+# Link checking is separate: pr-check-links-local.yaml (internal, PRs) and
+# main-check-links.yaml (external, pushes to main).
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    types: ['opened', 'synchronize']
+    paths:
+      - 'website/docs/**'
+      - 'README.md'
+      - 'contributing/**'
+      - '.github/**/*.md'
+      - '.markdownlint.yml'
+      - '.github/workflows/pr-check-markdown.yaml'
+      - 'GNUmakefile'
+
+concurrency:
+  group: 'pr-check-markdown-${{ github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  markdownlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - name: Install markdownlint-cli2
+        run: npm install -g markdownlint-cli2@0.23.2
+      - run: make markdownlint

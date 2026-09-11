@@ -56,13 +56,13 @@ func SegmentTypeSupported(segment resourceids.SegmentType) bool {
 func SegmentName(segment resourceids.Segment, idType ResourceTypeForIdentity, numSegments, idx int) (name string) {
 	switch idType {
 	case ResourceTypeForIdentityVirtual:
-		name = toSnakeCase(segment.Name)
+		name = ToSnakeCase(segment.Name)
 	default:
 		// For the last segment, if it's a `*Name` field, we generate it as `name` rather than snake casing the segment's name
 		if (idx+1) == numSegments && strings.HasSuffix(segment.Name, "Name") {
 			return "name"
 		}
-		name = toSnakeCase(segment.Name)
+		name = ToSnakeCase(segment.Name)
 	}
 
 	return normaliseSegmentName(name)
@@ -127,8 +127,7 @@ func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.Resourc
 				return fmt.Errorf("%q cannot be empty", name)
 			}
 
-			err := identity.Set(name, value)
-			if err != nil {
+			if err := identity.Set(name, value); err != nil {
 				return fmt.Errorf("error setting id: %+v", err)
 			}
 
@@ -204,9 +203,9 @@ func normaliseSegmentName(input string) string {
 	return input
 }
 
-// toSnakeCase is a slightly altered version of `strcase.ToSnake()`
+// ToSnakeCase is a slightly altered version of `strcase.ToSnake()`
 // the main difference is that it doesn't split patterns like `v2` to `v_2`
-func toSnakeCase(input string) string {
+func ToSnakeCase(input string) string {
 	delimiter := uint8('_')
 
 	input = strings.TrimSpace(input)

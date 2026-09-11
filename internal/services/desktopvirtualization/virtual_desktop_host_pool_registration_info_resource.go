@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/hostpool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/hostpool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/parse"
@@ -99,12 +99,11 @@ func resourceVirtualDesktopHostPoolRegistrationInfoCreateUpdate(d *pluginsdk.Res
 		return fmt.Errorf("reading %s: %s", hostPoolId, err)
 	}
 
-	tokenOperation := hostpool.RegistrationTokenOperationUpdate
 	payload := hostpool.HostPoolPatch{
 		Properties: &hostpool.HostPoolPatchProperties{
 			RegistrationInfo: &hostpool.RegistrationInfoPatch{
 				ExpirationTime:             pointer.To(d.Get("expiration_date").(string)),
-				RegistrationTokenOperation: &tokenOperation,
+				RegistrationTokenOperation: pointer.To(hostpool.RegistrationTokenOperationUpdate),
 			},
 		},
 	}
@@ -195,11 +194,10 @@ func resourceVirtualDesktopHostPoolRegistrationInfoDelete(d *pluginsdk.ResourceD
 		return nil
 	}
 
-	tokenOperation := hostpool.RegistrationTokenOperationDelete
 	payload := hostpool.HostPoolPatch{
 		Properties: &hostpool.HostPoolPatchProperties{
 			RegistrationInfo: &hostpool.RegistrationInfoPatch{
-				RegistrationTokenOperation: &tokenOperation,
+				RegistrationTokenOperation: pointer.To(hostpool.RegistrationTokenOperationDelete),
 			},
 		},
 	}

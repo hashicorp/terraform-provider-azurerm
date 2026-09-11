@@ -7,40 +7,32 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/securitymlanalyticssettings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type SentinelAlertRuleAnomalyDuplicateResource struct{}
 
 func (r SentinelAlertRuleAnomalyDuplicateResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.MLAnalyticsSettingsID(state.ID)
+	id, err := securitymlanalyticssettings.ParseSecurityMLAnalyticsSettingID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 	client := clients.Sentinel.AnalyticsSettingsClient
-	resp, err := sentinel.AlertRuleAnomalyReadWithPredicate(ctx, client.BaseClient, workspaceId, func(r *azuresdkhacks.AnomalySecurityMLAnalyticsSettings) bool {
-		if r.Name != nil && strings.EqualFold(sentinel.AlertRuleAnomalyIdFromWorkspaceId(workspaceId, *r.Name), id.ID()) {
-			return true
-		}
-		return false
-	})
+
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Sentinel Alert Rule Anomaly Built In %q (Workspace %q / Resource Group %q): %+v", id.SecurityMLAnalyticsSettingName, id.WorkspaceName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return pointer.To(resp != nil), nil
+
+	return pointer.To(resp.Model != nil), nil
 }
 
 func TestAccSentinelAlertRuleAnomalyDuplicate_basic(t *testing.T) {
@@ -71,8 +63,37 @@ func TestAccSentinelAlertRuleAnomalyDuplicate_requiresImport(t *testing.T) {
 		},
 		{
 			Config:      r.requiresImport(data),
-			ExpectError: regexp.MustCompile("only one duplicate rule of the same built-in rule is allowed, there is an existing duplicate rule of .+"),
+			ExpectError: regexp.MustCompile("only one duplicate rule of the same built-in rule is allowed, there is an existing duplicate rule with id .+"),
 		},
+	})
+}
+
+func TestAccSentinelAlertRuleAnomalyDuplicate_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_anomaly_duplicate", "test")
+	r := SentinelAlertRuleAnomalyDuplicateResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithThresholdObservation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithThresholdObservation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -172,7 +193,30 @@ resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "test" {
     name  = "Anomaly score threshold"
     value = "0.6"
   }
+}
+`, SecurityInsightsSentinelOnboardingStateResource{}.basic(data))
+}
 
+func (SentinelAlertRuleAnomalyDuplicateResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_sentinel_alert_rule_anomaly" "test" {
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
+  display_name               = "UEBA Anomalous Sign In"
+}
+
+resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "test" {
+  display_name               = "acctest duplicate rule update"
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
+  built_in_rule_id           = data.azurerm_sentinel_alert_rule_anomaly.test.id
+  enabled                    = false
+  mode                       = "Production"
+
+  threshold_observation {
+    name  = "Anomaly score threshold"
+    value = "0.8"
+  }
 }
 `, SecurityInsightsSentinelOnboardingStateResource{}.basic(data))
 }

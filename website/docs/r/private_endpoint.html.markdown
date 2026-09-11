@@ -183,10 +183,9 @@ resource "azurerm_private_dns_zone" "example" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "example" {
-  name                  = "example-link"
-  resource_group_name   = azurerm_resource_group.example.name
-  private_dns_zone_name = azurerm_private_dns_zone.example.name
-  virtual_network_id    = azurerm_virtual_network.example.id
+  name                = "example-link"
+  private_dns_zone_id = azurerm_private_dns_zone.example.id
+  virtual_network_id  = azurerm_virtual_network.example.id
 }
 ```
 
@@ -199,6 +198,8 @@ The following arguments are supported:
 * `resource_group_name` - (Required) Specifies the Name of the Resource Group within which the Private Endpoint should exist. Changing this forces a new resource to be created.
 
 * `location` - (Required) The supported Azure location where the resource exists. Changing this forces a new resource to be created.
+
+* `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Private Endpoint should exist. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) The ID of the Subnet from which Private IP Addresses will be allocated for this Private Endpoint. Changing this forces a new resource to be created.
 

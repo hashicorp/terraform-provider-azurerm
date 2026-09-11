@@ -113,7 +113,7 @@ func (r StaticWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"basic_auth": helpers.BasicAuthSchema(),
 
-		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 		"repository_url": {
 			Type:         pluginsdk.TypeString,
@@ -196,8 +196,7 @@ func (r StaticWebAppResource) Create() sdk.ResourceFunc {
 			}
 
 			envelope := staticsites.StaticSiteARMResource{
-				Location:   location.Normalize(model.Location),
-				Properties: nil,
+				Location: location.Normalize(model.Location),
 				Sku: &staticsites.SkuDescription{
 					Name: pointer.To(model.SkuSize),
 					Tier: pointer.To(model.SkuTier),
@@ -487,8 +486,7 @@ func (r StaticWebAppResource) Update() sdk.ResourceFunc {
 				} else {
 					authProps.Properties = &staticsites.StaticSiteBasicAuthPropertiesARMResourceProperties{
 						ApplicableEnvironmentsMode: "SpecifiedEnvironments",
-						Password:                   nil,
-						SecretState:                nil,
+						SecretState:                pointer.To(""),
 					}
 				}
 

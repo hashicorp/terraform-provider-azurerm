@@ -23,17 +23,9 @@ data "azurerm_storage_blob" "example" {
 
 The following arguments are supported:
 
-* `name` - The name of the Blob.
+* `name` - (Required) The name of the Blob.
 
-* `storage_account_name` - (Optional) The name of the Storage Account where the Container exists.
-
-~> **Note:** This property is deprecated in favour of `storage_container_id` and will be removed in version 5.0 of the AzureRM Provider.
-
-* `storage_container_name` - (Optional) The name of the Storage Container where the Blob exists.
-
-~> **Note:** This property is deprecated in favour of `storage_container_id` and will be removed in version 5.0 of the AzureRM Provider.
-
-* `storage_container_id` - (Optional) The ID of the Storage Container where the Blob exists.
+* `storage_container_id` - (Required) The ID of the Storage Container where the Blob exists.
 
 ## Attributes Reference
 

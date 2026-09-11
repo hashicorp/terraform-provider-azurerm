@@ -66,13 +66,9 @@ func resourceVPNServerConfigurationPolicyGroup() *pluginsdk.Resource {
 						},
 
 						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(virtualwans.VpnPolicyMemberAttributeTypeAADGroupId),
-								string(virtualwans.VpnPolicyMemberAttributeTypeCertificateGroupId),
-								string(virtualwans.VpnPolicyMemberAttributeTypeRadiusAzureGroupId),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForVpnPolicyMemberAttributeType(), false),
 						},
 
 						"value": {
@@ -260,7 +256,7 @@ func expandVPNServerConfigurationPolicyGroupPolicyMembers(input []interface{}) *
 
 		results = append(results, virtualwans.VpnServerConfigurationPolicyGroupMember{
 			Name:           pointer.To(v["name"].(string)),
-			AttributeType:  pointer.To(virtualwans.VpnPolicyMemberAttributeType(v["type"].(string))),
+			AttributeType:  pointer.ToEnum[virtualwans.VpnPolicyMemberAttributeType](v["type"].(string)),
 			AttributeValue: pointer.To(v["value"].(string)),
 		})
 	}

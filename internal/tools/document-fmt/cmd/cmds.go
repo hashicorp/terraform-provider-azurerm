@@ -164,7 +164,7 @@ func printErrors(rd *data.TerraformNodeData) {
 	b.WriteString(sep)
 
 	for _, v := range rd.Errors {
-		b.WriteString(fmt.Sprintf("-> %s\n", v.Error()))
+		fmt.Fprintf(&b, "-> %s\n", v.Error())
 	}
 
 	b.WriteString("\n")

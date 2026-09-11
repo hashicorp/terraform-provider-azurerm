@@ -5,14 +5,13 @@ package apimanagement
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func apiManagementResourceHostnameSchema() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"host_name": {
 			Type:             pluginsdk.TypeString,
 			Required:         true,
@@ -77,24 +76,6 @@ func apiManagementResourceHostnameSchema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 	}
-
-	if !features.FivePointOh() {
-		s["key_vault_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny),
-			Deprecated:   "`key_vault_id` has been deprecated in favour of `key_vault_certificate_id` and will be removed in v5.0 of the AzureRM provider",
-		}
-		s["key_vault_certificate_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny),
-		}
-	}
-
-	return s
 }
 
 func apiManagementResourceHostnameProxySchema() map[string]*pluginsdk.Schema {
@@ -103,7 +84,8 @@ func apiManagementResourceHostnameProxySchema() map[string]*pluginsdk.Schema {
 	hostnameSchema["default_ssl_binding"] = &pluginsdk.Schema{
 		Type:     pluginsdk.TypeBool,
 		Optional: true,
-		Computed: true, // Azure has certain logic to set this, which we cannot predict
+		// Note: O+C because Azure has certain logic to set the default SSL binding which cannot be predicted
+		Computed: true,
 	}
 
 	return hostnameSchema

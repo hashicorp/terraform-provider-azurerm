@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type ImageDataSource struct{}
@@ -25,7 +24,6 @@ func TestAccDataSourceImage_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("os_disk.#").HasValue("1"),
-				check.That(data.ResourceName).Key("os_disk.0.blob_uri").Exists(),
 				check.That(data.ResourceName).Key("os_disk.0.caching").HasValue("None"),
 				check.That(data.ResourceName).Key("os_disk.0.os_type").HasValue("Linux"),
 				check.That(data.ResourceName).Key("os_disk.0.os_state").HasValue("Generalized"),
@@ -61,20 +59,19 @@ func TestAccDataSourceImage_localFilter(t *testing.T) {
 	})
 }
 
-func (ImageDataSource) basic(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
+func (r ImageDataSource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvn-%d"
+  name                = "acctestvn-%[1]d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -88,16 +85,16 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                = "acctestpip%d"
+  name                = "acctestpip%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
-  domain_name_label   = "acctestpip%d"
+  domain_name_label   = "acctestpip%[1]d"
 }
 
 resource "azurerm_network_interface" "testsource" {
-  name                = "acctestnic-%d"
+  name                = "acctestnic-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -109,55 +106,28 @@ resource "azurerm_network_interface" "testsource" {
   }
 }
 
-resource "azurerm_storage_account" "test" {
-  name                            = "acctestsa%s"
-  resource_group_name             = azurerm_resource_group.test.name
+resource "azurerm_linux_virtual_machine" "testsource" {
+  name                            = "acctestvm-%[1]d"
   location                        = azurerm_resource_group.test.location
-  account_tier                    = "Standard"
-  account_replication_type        = "LRS"
-  allow_nested_items_to_be_public = true
+  resource_group_name             = azurerm_resource_group.test.name
+  network_interface_ids           = [azurerm_network_interface.testsource.id]
+  size                            = "Standard_D1_v2"
+  computer_name                   = "acctest-%[1]d"
+  admin_username                  = "tfuser"
+  admin_password                  = "P@ssW0RD7890"
+  disable_password_authentication = false
 
-  tags = {
-    environment = "Dev"
+  os_disk {
+    name                 = "myosdisk1-%[1]d"
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
   }
-}
 
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "blob"
-}
-
-resource "azurerm_virtual_machine" "testsource" {
-  name                  = "acctestvm-%d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  network_interface_ids = [azurerm_network_interface.testsource.id]
-  vm_size               = "Standard_D1_v2"
-
-  storage_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
     sku       = "22_04-lts"
     version   = "latest"
-  }
-
-  storage_os_disk {
-    name          = "myosdisk1"
-    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-    disk_size_gb  = "30"
-  }
-
-  os_profile {
-    computer_name  = "acctest-%d"
-    admin_username = "tfuser"
-    admin_password = "P@ssW0RD7890"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
   }
 
   tags = {
@@ -166,18 +136,29 @@ resource "azurerm_virtual_machine" "testsource" {
   }
 }
 
+data "azurerm_managed_disk" "testsource" {
+  name                = azurerm_linux_virtual_machine.testsource.os_disk.0.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r ImageDataSource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
 resource "azurerm_image" "test" {
-  name                = "acctest-%d"
+  name                = "acctest-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
   os_disk {
-    os_type      = "Linux"
-    os_state     = "Generalized"
-    blob_uri     = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
-    size_gb      = 30
-    caching      = "None"
-    storage_type = "Standard_LRS"
+    os_type         = "Linux"
+    os_state        = "Generalized"
+    managed_disk_id = data.azurerm_managed_disk.testsource.id
+    size_gb         = 30
+    caching         = "None"
+    storage_type    = "Standard_LRS"
   }
 
   tags = {
@@ -194,255 +175,25 @@ data "azurerm_image" "test" {
 output "location" {
   value = data.azurerm_image.test.location
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-	}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ImageDataSource) localFilter_setup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvn-%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "acctestpip%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
-  domain_name_label   = "acctestpip%d"
-}
-
-resource "azurerm_network_interface" "testsource" {
-  name                = "acctestnic-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  ip_configuration {
-    name                          = "testconfigurationsource"
-    subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.test.id
-  }
-}
-
-resource "azurerm_storage_account" "test" {
-  name                            = "acctestsa%s"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  account_tier                    = "Standard"
-  account_replication_type        = "LRS"
-  allow_nested_items_to_be_public = true
-
-  tags = {
-    environment = "Dev"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_id    = azurerm_storage_account.test.id
-  container_access_type = "blob"
-}
-
-resource "azurerm_virtual_machine" "testsource" {
-  name                  = "acctestvm-%d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  network_interface_ids = [azurerm_network_interface.testsource.id]
-  vm_size               = "Standard_D1_v2"
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-
-  storage_os_disk {
-    name          = "myosdisk1"
-    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-    disk_size_gb  = "30"
-  }
-
-  os_profile {
-    computer_name  = "acctest-%d"
-    admin_username = "tfuser"
-    admin_password = "P@ssW0RD7890"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-
-  tags = {
-    environment = "Dev"
-    cost-center = "Ops"
-  }
-}
-
-resource "azurerm_image" "test" {
-  name                = "acctest-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
-    size_gb  = 30
-    caching  = "None"
-  }
-
-  tags = {
-    environment = "Dev"
-    cost-center = "Ops"
-  }
-}
-
-data "azurerm_image" "test" {
-  name                = azurerm_image.test.name
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-output "location" {
-  value = data.azurerm_image.test.location
-}
-	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func (ImageDataSource) localFilter_setup(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvn-%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "acctestpip%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
-  domain_name_label   = "acctestpip%d"
-}
-
-resource "azurerm_network_interface" "testsource" {
-  name                = "acctestnic-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  ip_configuration {
-    name                          = "testconfigurationsource"
-    subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.test.id
-  }
-}
-
-resource "azurerm_storage_account" "test" {
-  name                            = "acctestsa%s"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  account_tier                    = "Standard"
-  account_replication_type        = "LRS"
-  allow_nested_items_to_be_public = true
-
-  tags = {
-    environment = "Dev"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "blob"
-}
-
-resource "azurerm_virtual_machine" "testsource" {
-  name                  = "acctestvm-%d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  network_interface_ids = [azurerm_network_interface.testsource.id]
-  vm_size               = "Standard_D1_v2"
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-
-  storage_os_disk {
-    name          = "myosdisk1"
-    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-    disk_size_gb  = "30"
-  }
-
-  os_profile {
-    computer_name  = "acctest-%d"
-    admin_username = "tfuser"
-    admin_password = "P@ssW0RD7890"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-
-  tags = {
-    environment = "Dev"
-    cost-center = "Ops"
-  }
-}
+%[1]s
 
 resource "azurerm_image" "abc" {
-  name                = "abc-acctest-%d"
+  name                = "abc-acctest-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
   os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
-    size_gb  = 30
-    caching  = "None"
+    os_type         = "Linux"
+    os_state        = "Generalized"
+    managed_disk_id = data.azurerm_managed_disk.testsource.id
+    size_gb         = 30
+    caching         = "None"
+    storage_type    = "Standard_LRS"
   }
 
   tags = {
@@ -452,16 +203,17 @@ resource "azurerm_image" "abc" {
 }
 
 resource "azurerm_image" "def" {
-  name                = "def-acctest-%d"
+  name                = "def-acctest-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
   os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
-    size_gb  = 30
-    caching  = "None"
+    os_type         = "Linux"
+    os_state        = "Generalized"
+    managed_disk_id = data.azurerm_managed_disk.testsource.id
+    size_gb         = 30
+    caching         = "None"
+    storage_type    = "Standard_LRS"
   }
 
   tags = {
@@ -469,148 +221,7 @@ resource "azurerm_image" "def" {
     cost-center = "Ops"
   }
 }
-		`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-	}
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvn-%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "acctestpip%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
-  domain_name_label   = "acctestpip%d"
-}
-
-resource "azurerm_network_interface" "testsource" {
-  name                = "acctestnic-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  ip_configuration {
-    name                          = "testconfigurationsource"
-    subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.test.id
-  }
-}
-
-resource "azurerm_storage_account" "test" {
-  name                            = "acctestsa%s"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  account_tier                    = "Standard"
-  account_replication_type        = "LRS"
-  allow_nested_items_to_be_public = true
-
-  tags = {
-    environment = "Dev"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_id    = azurerm_storage_account.test.id
-  container_access_type = "blob"
-}
-
-resource "azurerm_virtual_machine" "testsource" {
-  name                  = "acctestvm-%d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  network_interface_ids = [azurerm_network_interface.testsource.id]
-  vm_size               = "Standard_D1_v2"
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-
-  storage_os_disk {
-    name          = "myosdisk1"
-    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-    disk_size_gb  = "30"
-  }
-
-  os_profile {
-    computer_name  = "acctest-%d"
-    admin_username = "tfuser"
-    admin_password = "P@ssW0RD7890"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-
-  tags = {
-    environment = "Dev"
-    cost-center = "Ops"
-  }
-}
-
-resource "azurerm_image" "abc" {
-  name                = "abc-acctest-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
-    size_gb  = 30
-    caching  = "None"
-  }
-
-  tags = {
-    environment = "Dev"
-    cost-center = "Ops"
-  }
-}
-
-resource "azurerm_image" "def" {
-  name                = "def-acctest-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
-    size_gb  = 30
-    caching  = "None"
-  }
-
-  tags = {
-    environment = "Dev"
-    cost-center = "Ops"
-  }
-}
-	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ImageDataSource) localFilter(data acceptance.TestData) string {

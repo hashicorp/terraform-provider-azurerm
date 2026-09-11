@@ -80,7 +80,7 @@ func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) IDValidationFunc(
 }
 
 func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) Arguments() map[string]*pluginsdk.Schema {
-	arguments := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -255,7 +255,6 @@ func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) Arguments() map[s
 			ValidateFunc: validate.BackupPolicyMySQLFlexibleServerTimeZone(),
 		},
 	}
-	return arguments
 }
 
 func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) Attributes() map[string]*pluginsdk.Schema {
@@ -454,7 +453,6 @@ func expandBackupPolicyMySQLFlexibleServerLifeCycle(input []BackupPolicyMySQLFle
 func expandBackupPolicyMySQLFlexibleServerTaggingCriteria(input []BackupPolicyMySQLFlexibleServerRetentionRule) []basebackuppolicyresources.TaggingCriteria {
 	results := []basebackuppolicyresources.TaggingCriteria{
 		{
-			Criteria:        nil,
 			IsDefault:       true,
 			TaggingPriority: 99,
 			TagInfo: basebackuppolicyresources.RetentionTag{
@@ -466,7 +464,6 @@ func expandBackupPolicyMySQLFlexibleServerTaggingCriteria(input []BackupPolicyMy
 
 	for _, item := range input {
 		result := basebackuppolicyresources.TaggingCriteria{
-			IsDefault:       false,
 			Criteria:        expandBackupPolicyMySQLFlexibleServerCriteria(item.Criteria),
 			TaggingPriority: item.Priority,
 			TagInfo: basebackuppolicyresources.RetentionTag{
@@ -525,7 +522,6 @@ func expandBackupPolicyMySQLFlexibleServerCriteria(input []BackupPolicyMySQLFlex
 
 		results = append(results, basebackuppolicyresources.ScheduleBasedBackupCriteria{
 			AbsoluteCriteria: pointer.To(absoluteCriteria),
-			DaysOfMonth:      nil,
 			DaysOfTheWeek:    pointer.To(daysOfWeek),
 			MonthsOfYear:     pointer.To(monthsOfYear),
 			ScheduleTimes:    pointer.To(scheduleTimes),

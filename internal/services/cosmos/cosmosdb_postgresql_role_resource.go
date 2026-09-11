@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type CosmosDbPostgreSQLRoleResourceModel struct {
@@ -58,7 +59,7 @@ func (r CosmosDbPostgreSQLRoleResource) Arguments() map[string]*pluginsdk.Schema
 			Required:     true,
 			ForceNew:     true,
 			Sensitive:    true,
-			ValidateFunc: validate.RolePassword,
+			ValidateFunc: validation.StringLenBetween(8, 256),
 		},
 	}
 }

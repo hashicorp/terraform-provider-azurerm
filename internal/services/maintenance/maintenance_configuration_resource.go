@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/maintenanceconfigurations"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/migration"
@@ -25,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMaintenanceConfiguration() *pluginsdk.Resource {
@@ -346,7 +346,7 @@ func resourceMaintenanceConfigurationUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("visibility") {
-		payload.Properties.Visibility = pointer.To(maintenanceconfigurations.Visibility(d.Get("visibility").(string)))
+		payload.Properties.Visibility = pointer.ToEnum[maintenanceconfigurations.Visibility](d.Get("visibility").(string))
 	}
 
 	if d.HasChange("tags") {
@@ -395,13 +395,11 @@ func resourceMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta interf
 			}
 			d.Set("properties", properties)
 
-			window := flattenMaintenanceConfigurationWindow(props.MaintenanceWindow)
-			if err := d.Set("window", window); err != nil {
+			if err := d.Set("window", flattenMaintenanceConfigurationWindow(props.MaintenanceWindow)); err != nil {
 				return fmt.Errorf("setting `window`: %+v", err)
 			}
 
-			installPatches := flattenMaintenanceConfigurationInstallPatches(props.InstallPatches)
-			if err := d.Set("install_patches", installPatches); err != nil {
+			if err := d.Set("install_patches", flattenMaintenanceConfigurationInstallPatches(props.InstallPatches)); err != nil {
 				return fmt.Errorf("setting `install_patches`: %+v", err)
 			}
 		}
@@ -491,11 +489,10 @@ func expandMaintenanceConfigurationInstallPatches(input []interface{}) *maintena
 	if !ok {
 		return nil
 	}
-	rebootSetting := maintenanceconfigurations.RebootOptions(v["reboot"].(string))
 	installPatches := maintenanceconfigurations.InputPatchConfiguration{
 		WindowsParameters: expandMaintenanceConfigurationInstallPatchesWindows(v["windows"].([]interface{})),
 		LinuxParameters:   expandMaintenanceConfigurationInstallPatchesLinux(v["linux"].([]interface{})),
-		RebootSetting:     &rebootSetting,
+		RebootSetting:     pointer.ToEnum[maintenanceconfigurations.RebootOptions](v["reboot"].(string)),
 	}
 	return &installPatches
 }
@@ -540,13 +537,13 @@ func expandMaintenanceConfigurationInstallPatchesWindows(input []interface{}) *m
 	}
 	windowsInput := maintenanceconfigurations.InputWindowsParameters{}
 	if v, ok := v["classifications_to_include"]; ok {
-		windowsInput.ClassificationsToInclude = utils.ExpandStringSlice(v.([]interface{}))
+		windowsInput.ClassificationsToInclude = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 	if v, ok := v["kb_numbers_to_exclude"]; ok {
-		windowsInput.KbNumbersToExclude = utils.ExpandStringSlice(v.([]interface{}))
+		windowsInput.KbNumbersToExclude = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 	if v, ok := v["kb_numbers_to_include"]; ok {
-		windowsInput.KbNumbersToInclude = utils.ExpandStringSlice(v.([]interface{}))
+		windowsInput.KbNumbersToInclude = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 	return &windowsInput
 }
@@ -558,15 +555,15 @@ func flattenMaintenanceConfigurationInstallPatchesWindows(input *maintenanceconf
 		output := make(map[string]interface{})
 
 		if classificationsToInclude := v.ClassificationsToInclude; classificationsToInclude != nil {
-			output["classifications_to_include"] = utils.FlattenStringSlice(classificationsToInclude)
+			output["classifications_to_include"] = helpers.FlattenStringSlice(classificationsToInclude)
 		}
 
 		if kbNumbersToExclude := v.KbNumbersToExclude; kbNumbersToExclude != nil {
-			output["kb_numbers_to_exclude"] = utils.FlattenStringSlice(kbNumbersToExclude)
+			output["kb_numbers_to_exclude"] = helpers.FlattenStringSlice(kbNumbersToExclude)
 		}
 
 		if kbNumbersToInclude := v.KbNumbersToInclude; kbNumbersToInclude != nil {
-			output["kb_numbers_to_include"] = utils.FlattenStringSlice(kbNumbersToInclude)
+			output["kb_numbers_to_include"] = helpers.FlattenStringSlice(kbNumbersToInclude)
 		}
 
 		results = append(results, output)
@@ -586,13 +583,13 @@ func expandMaintenanceConfigurationInstallPatchesLinux(input []interface{}) *mai
 	}
 	linuxParameters := maintenanceconfigurations.InputLinuxParameters{}
 	if v, ok := v["classifications_to_include"]; ok {
-		linuxParameters.ClassificationsToInclude = utils.ExpandStringSlice(v.([]interface{}))
+		linuxParameters.ClassificationsToInclude = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 	if v, ok := v["package_names_mask_to_exclude"]; ok {
-		linuxParameters.PackageNameMasksToExclude = utils.ExpandStringSlice(v.([]interface{}))
+		linuxParameters.PackageNameMasksToExclude = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 	if v, ok := v["package_names_mask_to_include"]; ok {
-		linuxParameters.PackageNameMasksToInclude = utils.ExpandStringSlice(v.([]interface{}))
+		linuxParameters.PackageNameMasksToInclude = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 	return &linuxParameters
 }
@@ -603,15 +600,15 @@ func flattenMaintenanceConfigurationInstallPatchesLinux(input *maintenanceconfig
 	if input != nil {
 		classificationsToInclude := make([]interface{}, 0)
 		if input.ClassificationsToInclude != nil {
-			classificationsToInclude = utils.FlattenStringSlice(input.ClassificationsToInclude)
+			classificationsToInclude = helpers.FlattenStringSlice(input.ClassificationsToInclude)
 		}
 		packageNamesMaskToExclude := make([]interface{}, 0)
 		if input.PackageNameMasksToExclude != nil {
-			packageNamesMaskToExclude = utils.FlattenStringSlice(input.PackageNameMasksToExclude)
+			packageNamesMaskToExclude = helpers.FlattenStringSlice(input.PackageNameMasksToExclude)
 		}
 		packageNamesMaskToInclude := make([]interface{}, 0)
 		if input.PackageNameMasksToInclude != nil {
-			packageNamesMaskToInclude = utils.FlattenStringSlice(input.PackageNameMasksToInclude)
+			packageNamesMaskToInclude = helpers.FlattenStringSlice(input.PackageNameMasksToInclude)
 		}
 
 		results = append(results, map[string]interface{}{
