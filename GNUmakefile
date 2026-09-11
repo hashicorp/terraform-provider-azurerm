@@ -20,16 +20,14 @@ TFPROVIDERDOCS=$(TOOLS_BIN)/tfproviderdocs
 PATH := $(CURDIR)/$(TOOLS_BIN):$(PATH)
 
 # non-Go tools also live in .tools/bin at pinned versions, but the pins are here (dependabot
-# cannot bump them): shellcheck and terraform are static binaries downloaded from their releases,
-# yamllint is pip installed into a repo-local venv and markdownlint-cli2 is npm installed into a
-# repo-local prefix. all rebuild when this makefile changes.
+# cannot bump them): shellcheck is a static binary downloaded from its github releases, yamllint
+# is pip installed into a repo-local venv and markdownlint-cli2 is npm installed into a repo-local
+# prefix. all rebuild when this makefile changes.
 MARKDOWNLINT_CLI2_VERSION=0.23.2
 SHELLCHECK_VERSION=v0.11.0
-TERRAFORM_VERSION=1.16.2
 YAMLLINT_VERSION=1.38.0
 MARKDOWNLINT=$(TOOLS_BIN)/markdownlint-cli2
 SHELLCHECK=$(TOOLS_BIN)/shellcheck
-TERRAFORM=$(TOOLS_BIN)/terraform
 YAMLLINT=$(TOOLS_BIN)/yamllint
 
 # golangci-lint with the azproviderlint/tfproviderlint module plugins compiled in
@@ -57,14 +55,6 @@ $(SHELLCHECK): GNUmakefile
 	@os=$$(uname | tr 'A-Z' 'a-z'); arch=$$(uname -m); [ "$$arch" = "arm64" ] && arch=aarch64; \
 		curl -sSfL "https://github.com/koalaman/shellcheck/releases/download/$(SHELLCHECK_VERSION)/shellcheck-$(SHELLCHECK_VERSION).$$os.$$arch.tar.xz" \
 		| tar -xJ -O shellcheck-$(SHELLCHECK_VERSION)/shellcheck > $@ && chmod +x $@
-
-$(TERRAFORM): GNUmakefile
-	@command -v unzip >/dev/null || (echo "unzip is required to install terraform" && exit 1)
-	@echo "==> Downloading terraform $(TERRAFORM_VERSION)..."
-	@mkdir -p $(TOOLS_BIN)
-	@os=$$(uname | tr 'A-Z' 'a-z'); arch=$$(uname -m); case "$$arch" in x86_64) arch=amd64;; aarch64) arch=arm64;; esac; \
-		curl -sSfL "https://releases.hashicorp.com/terraform/$(TERRAFORM_VERSION)/terraform_$(TERRAFORM_VERSION)_$${os}_$${arch}.zip" -o $@.zip \
-		&& unzip -o -q $@.zip terraform -d $(TOOLS_BIN) && rm -f $@.zip && touch $@
 
 $(YAMLLINT): GNUmakefile
 	@command -v python3 >/dev/null || (echo "python3 is required to install yamllint (macOS: xcode CLT; Debian/Ubuntu: apt install python3-venv)" && exit 1)
@@ -97,7 +87,7 @@ golangci-fix: ## renamed to lint-fix
 	@$(MAKE) lint-fix
 
 ##@ Build & Generate
-tools: $(ACTIONLINT) $(GOFUMPT) $(GOIMPORTS) $(GOLANGCI_LINT) $(GOLANGCI_LINT_MODULES) $(GOTESTSUM) $(MISSPELL) $(TCTEST) $(TERRAFMT) $(TFPROVIDERDOCS) $(MARKDOWNLINT) $(SHELLCHECK) $(TERRAFORM) $(YAMLLINT) ## Install all pinned dev tools into .tools/bin (targets install what they need on demand)
+tools: $(ACTIONLINT) $(GOFUMPT) $(GOIMPORTS) $(GOLANGCI_LINT) $(GOLANGCI_LINT_MODULES) $(GOTESTSUM) $(MISSPELL) $(TCTEST) $(TERRAFMT) $(TFPROVIDERDOCS) $(MARKDOWNLINT) $(SHELLCHECK) $(YAMLLINT) ## Install all pinned dev tools into .tools/bin (targets install what they need on demand)
 
 build: quick-checks generate ## Run the quick checks, generate code, and compile the provider
 	go install
@@ -265,7 +255,7 @@ teamcity-test: ## Test the TeamCity configuration
 	@$(MAKE) -C .teamcity tools
 	@$(MAKE) -C .teamcity test
 
-validate-examples: build $(TERRAFORM) ## Check that the terraform examples are valid (with the pinned terraform)
+validate-examples: build ## Check that the terraform examples are valid
 	@echo "==> Validating examples..."
 	@./scripts/checks/examples-validate.sh
 
