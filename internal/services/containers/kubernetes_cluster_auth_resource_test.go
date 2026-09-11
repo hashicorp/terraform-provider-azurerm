@@ -14,10 +14,11 @@ import (
 func TestAccKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+	config := r.apiServerAuthorizedIPRangesConfig(data, `["8.8.8.8/32", "8.8.4.4/32", "8.8.2.0/24"]`)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.apiServerAuthorizedIPRangesConfig(data),
+			Config: config,
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kube_config.0.client_key").Exists(),
@@ -34,9 +35,36 @@ func TestAccKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.apiServerAuthorizedIPRangesConfig(data, "[]"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("api_server_access_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("api_server_access_profile.0.authorized_ip_ranges.#").HasValue("0"),
+			),
+		},
+		{
+			Config: config,
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("api_server_access_profile.0.authorized_ip_ranges.#").HasValue("3"),
+			),
+		},
+		{
+			Config: r.apiServerAuthorizedIPRangesConfig(data, "null"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("api_server_access_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("api_server_access_profile.0.authorized_ip_ranges.#").HasValue("0"),
+			),
+		},
+		{
+			Config: config,
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("api_server_access_profile.0.authorized_ip_ranges.#").HasValue("3"),
+			),
+		},
+		{
 			Config: r.apiServerAuthorizedIPRangesRemovedConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("api_server_access_profile.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -432,7 +460,7 @@ func TestAccKubernetesCluster_servicePrincipalToUserAssignedIdentity(t *testing.
 	})
 }
 
-func (KubernetesClusterResource) apiServerAuthorizedIPRangesConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) apiServerAuthorizedIPRangesConfig(data acceptance.TestData, authorizedIPRanges string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -466,7 +494,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 1
-    vm_size        = "Standard_DS2_v2"
+    vm_size        = "Standard_D2s_v3"
     vnet_subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       max_surge = "10%%"
@@ -488,14 +516,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   api_server_access_profile {
-    authorized_ip_ranges = [
-      "8.8.8.8/32",
-      "8.8.4.4/32",
-      "8.8.2.0/24",
-    ]
+    authorized_ip_ranges = %s
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, authorizedIPRanges)
 }
 
 func (KubernetesClusterResource) apiServerAuthorizedIPRangesRemovedConfig(data acceptance.TestData) string {
@@ -532,7 +556,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 1
-    vm_size        = "Standard_DS2_v2"
+    vm_size        = "Standard_D2s_v3"
     vnet_subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       max_surge = "10%%"
