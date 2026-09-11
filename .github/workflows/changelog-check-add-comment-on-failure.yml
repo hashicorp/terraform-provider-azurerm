@@ -3,7 +3,7 @@ name: changelog-check-add-comment-on-failure
 on:
   workflow_run:
     workflows:
-      - "changelog"
+      - "changelog-check"
     types:
       - "completed"
 
