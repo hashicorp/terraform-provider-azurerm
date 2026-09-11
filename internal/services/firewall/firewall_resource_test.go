@@ -374,6 +374,151 @@ func TestAccFirewall_privateRanges(t *testing.T) {
 	})
 }
 
+func TestAccFirewall_autoscaleConfiguration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoscaleConfiguration(data, 2, 5),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("autoscale_configuration.0.min_capacity").HasValue("2"),
+				check.That(data.ResourceName).Key("autoscale_configuration.0.max_capacity").HasValue("5"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.autoscaleConfiguration(data, 3, 10),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("autoscale_configuration.0.min_capacity").HasValue("3"),
+				check.That(data.ResourceName).Key("autoscale_configuration.0.max_capacity").HasValue("10"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccFirewall_autoscaleConfigurationStandard(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoscaleConfigurationWithSkuTier(data, standard, 2, 5),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_tier").HasValue(standard),
+				check.That(data.ResourceName).Key("autoscale_configuration.0.min_capacity").HasValue("2"),
+				check.That(data.ResourceName).Key("autoscale_configuration.0.max_capacity").HasValue("5"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccFirewall_autoscaleConfigurationPremium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoscaleConfigurationWithSkuTier(data, premium, 2, 5),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_tier").HasValue(premium),
+				check.That(data.ResourceName).Key("autoscale_configuration.0.min_capacity").HasValue("2"),
+				check.That(data.ResourceName).Key("autoscale_configuration.0.max_capacity").HasValue("5"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccFirewall_autoscaleConfigurationBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.autoscaleConfigurationBasic(data, 2, 5),
+			ExpectError: regexp.MustCompile("`autoscale_configuration` cannot be configured when `sku_tier` is set to `Basic`"),
+		},
+	})
+}
+
+func TestAccFirewall_autoscaleConfigurationPinned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoscaleConfiguration(data, 3, 3),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("autoscale_configuration.0.min_capacity").HasValue("3"),
+				check.That(data.ResourceName).Key("autoscale_configuration.0.max_capacity").HasValue("3"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.autoscaleConfiguration(data, 4, 4),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("autoscale_configuration.0.min_capacity").HasValue("4"),
+				check.That(data.ResourceName).Key("autoscale_configuration.0.max_capacity").HasValue("4"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccFirewall_autoscaleConfigurationInVirtualHubStandard(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoscaleConfigurationInVirtualHub(data, standard, 2, 5),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("AZFW_Hub"),
+				check.That(data.ResourceName).Key("sku_tier").HasValue(standard),
+				check.That(data.ResourceName).Key("autoscale_configuration.0.min_capacity").HasValue("2"),
+				check.That(data.ResourceName).Key("autoscale_configuration.0.max_capacity").HasValue("5"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccFirewall_autoscaleConfigurationInVirtualHubPremium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoscaleConfigurationInVirtualHub(data, premium, 2, 5),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("AZFW_Hub"),
+				check.That(data.ResourceName).Key("sku_tier").HasValue(premium),
+				check.That(data.ResourceName).Key("autoscale_configuration.0.min_capacity").HasValue("2"),
+				check.That(data.ResourceName).Key("autoscale_configuration.0.max_capacity").HasValue("5"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (FirewallResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azurefirewalls.ParseAzureFirewallID(state.ID)
 	if err != nil {
@@ -1279,4 +1424,241 @@ resource "azurerm_firewall" "test" {
   threat_intel_mode = "Deny"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (FirewallResource) autoscaleConfiguration(data acceptance.TestData, minCapacity int, maxCapacity int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-fw-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "AzureFirewallSubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_firewall" "test" {
+  name                = "acctestfirewall%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
+
+  ip_configuration {
+    name                 = "configuration"
+    subnet_id            = azurerm_subnet.test.id
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+
+  autoscale_configuration {
+    min_capacity = %d
+    max_capacity = %d
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, minCapacity, maxCapacity)
+}
+
+func (FirewallResource) autoscaleConfigurationWithSkuTier(data acceptance.TestData, skuTier string, minCapacity int, maxCapacity int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-fw-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "AzureFirewallSubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_firewall" "test" {
+  name                = "acctestfirewall%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "%[3]s"
+
+  ip_configuration {
+    name                 = "configuration"
+    subnet_id            = azurerm_subnet.test.id
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+
+  autoscale_configuration {
+    min_capacity = %[4]d
+    max_capacity = %[5]d
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, skuTier, minCapacity, maxCapacity)
+}
+
+func (FirewallResource) autoscaleConfigurationBasic(data acceptance.TestData, minCapacity int, maxCapacity int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-fw-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "AzureFirewallSubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_subnet" "test_mgmt" {
+  name                 = "AzureFirewallManagementSubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_public_ip" "test_mgmt" {
+  name                = "acctestmgmtpip%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_firewall" "test" {
+  name                = "acctestfirewall%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Basic"
+
+  ip_configuration {
+    name                 = "configuration"
+    subnet_id            = azurerm_subnet.test.id
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+
+  management_ip_configuration {
+    name                 = "management_configuration"
+    subnet_id            = azurerm_subnet.test_mgmt.id
+    public_ip_address_id = azurerm_public_ip.test_mgmt.id
+  }
+
+  autoscale_configuration {
+    min_capacity = %[3]d
+    max_capacity = %[4]d
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, minCapacity, maxCapacity)
+}
+
+func (FirewallResource) autoscaleConfigurationInVirtualHub(data acceptance.TestData, skuTier string, minCapacity int, maxCapacity int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-fw-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_firewall_policy" "test" {
+  name                = "acctest-firewallpolicy-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "%[3]s"
+}
+
+resource "azurerm_virtual_wan" "test" {
+  name                = "acctest-virtualwan-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_virtual_hub" "test" {
+  name                = "acctest-virtualhub-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  virtual_wan_id      = azurerm_virtual_wan.test.id
+  address_prefix      = "10.0.1.0/24"
+}
+
+resource "azurerm_firewall" "test" {
+  name                = "acctest-firewall-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "AZFW_Hub"
+  sku_tier            = "%[3]s"
+
+  virtual_hub {
+    virtual_hub_id  = azurerm_virtual_hub.test.id
+    public_ip_count = 1
+  }
+
+  firewall_policy_id = azurerm_firewall_policy.test.id
+
+  autoscale_configuration {
+    min_capacity = %[4]d
+    max_capacity = %[5]d
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, skuTier, minCapacity, maxCapacity)
 }
