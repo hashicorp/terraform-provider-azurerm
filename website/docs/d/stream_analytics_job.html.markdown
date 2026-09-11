@@ -36,6 +36,8 @@ output "job_id" {
 
 * `compatibility_level` - The compatibility level for this job.
 
+* `content_storage_policy` - The policy for storing stream analytics content.
+
 * `data_locale` - The Data Locale of the Job.
 
 * `events_late_arrival_max_delay_in_seconds` - The maximum tolerable delay in seconds where events arriving late could be included.
@@ -45,6 +47,8 @@ output "job_id" {
 * `events_out_of_order_policy` - The policy which should be applied to events which arrive out of order in the input event stream.
 
 * `job_id` - The Job ID assigned by the Stream Analytics Job.
+
+* `job_storage_account` - The details of the job storage account. 
 
 * `location` - The Azure location where the Stream Analytics Job exists.
 
@@ -61,6 +65,12 @@ output "job_id" {
 * `sku_name` - The SKU Name to use for the Stream Analytics Job.
 
 * `streaming_units` - The number of streaming units that this Stream Analytics Job uses.
+
+* `stream_analytics_cluster_id` - The ID of an existing Stream Analytics Cluster where the Stream Analytics Job should run.
+
+* `tags` - A mapping of tags assigned to the resource.
+
+* `type` - The type of the Stream Analytics Job. 
 
 * `transformation_query` - The query that will be run in this Stream Analytics Job, [written in Stream Analytics Query Language (SAQL)](https://msdn.microsoft.com/library/azure/dn834998).
 
