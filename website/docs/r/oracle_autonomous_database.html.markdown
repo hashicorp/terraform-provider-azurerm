@@ -91,6 +91,8 @@ The following arguments are supported:
 
 * `customer_contacts` - (Optional) Specifies a list of customer contacts as email addresses. Changing this forces a new Autonomous Database to be created.
 
+* `database_edition` - (Optional) The Oracle Database edition that applies to the Autonomous Database. Possible values are `EnterpriseEdition` and `StandardEdition`. This can only be specified when `license_model` is set to `BringYourOwnLicense`.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Autonomous Database.
 
 * `long_term_backup_schedule` - (Optional) A `long_term_backup_schedule` block as defined below.
