@@ -56,6 +56,32 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the ExpressRoute Circuit Peering.
 
+---
+
+A `microsoft_peering_config` block contains:
+
+* `advertised_public_prefixes` - A list of Advertised Public Prefixes.
+
+* `customer_asn` - The CustomerASN of the peering.
+
+* `routing_registry_name` - he Routing Registry against which the AS number and prefixes are registered.
+
+* `advertised_communities` - The communities of Bgp Peering specified for microsoft peering.
+
+---
+
+A `ipv6` block contains:
+
+* `primary_peer_address_prefix` - A subnet for the primary link.
+
+* `secondary_peer_address_prefix` - A subnet for the secondary link.
+
+* `enabled` - A boolean value indicating whether the IPv6 peering is enabled. Defaults to `true`.
+
+* `microsoft_peering` - A `microsoft_peering` block as defined below. 
+
+* `route_filter_id` - The ID of the Route Filter.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
