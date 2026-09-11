@@ -12,6 +12,7 @@ import platform
 import shutil
 import stat
 import subprocess
+import tempfile
 import time
 import urllib
 from subprocess import PIPE, Popen
@@ -19,7 +20,6 @@ from urllib import request
 
 HELM_VERSION = 'v3.6.3'
 HELM_STORAGE_URL = "https://k8connecthelm.azureedge.net"
-Pre_Onboarding_Helm_Charts_Folder_Name = 'PreOnboardingChecksCharts'
 
 
 def get_helm_registry(config_dp_endpoint):
@@ -75,34 +75,17 @@ def export_helm_chart(registry_path, chart_export_path, kube_config, kube_contex
             chart_name, registry_path) + error_helm_chart_export.decode("ascii"))
 
 
-def get_chart_path(registry_path, kube_config, kube_context, helm_client_location, chart_folder_name='AzureArcCharts', chart_name='azure-arc-k8sagents'):
+def get_chart_path(registry_path, chart_export_path, kube_config, kube_context, helm_client_location, chart_name='azure-arc-k8sagents'):
     # Pulling helm chart from registry
     os.environ['HELM_EXPERIMENTAL_OCI'] = '1'
     pull_helm_chart(registry_path, kube_config, kube_context,
                     helm_client_location, chart_name)
 
-    # Exporting helm chart after cleanup
-    chart_export_path = os.path.join(
-        os.path.expanduser('~'), '.azure', chart_folder_name)
-    try:
-        if os.path.isdir(chart_export_path):
-            shutil.rmtree(chart_export_path)
-    except:
-        logger.warning("Unable to cleanup the {} already present on the machine. In case of failure, please cleanup the directory '{}' and try again.".format(
-            chart_folder_name, chart_export_path))
-
     export_helm_chart(registry_path, chart_export_path, kube_config,
                       kube_context, helm_client_location, chart_name)
 
-    # Returning helm chart path
     helm_chart_path = os.path.join(chart_export_path, chart_name)
-    if chart_folder_name == Pre_Onboarding_Helm_Charts_Folder_Name:
-        chart_path = helm_chart_path
-    else:
-        chart_path = os.getenv('HELMCHART') if os.getenv(
-            'HELMCHART') else helm_chart_path
-
-    return chart_path
+    return os.getenv('HELMCHART') if os.getenv('HELMCHART') else helm_chart_path
 
 
 def install_helm_client(retry_count=3, retry_delay=3):
@@ -246,24 +229,24 @@ def install_agent():
     # Retrieving Helm chart OCI Artifact location
     registry_path = get_helm_registry("https://westeurope.dp.kubernetesconfiguration.azure.com")
 
-    # Get helm chart path
-    chart_path = get_chart_path(
-        registry_path, None, None, helm_client_location)
+    with tempfile.TemporaryDirectory(prefix='AzureArcCharts-') as chart_export_path:
+        chart_path = get_chart_path(
+            registry_path, chart_export_path, None, None, helm_client_location)
 
-    helm_install_release(chart_path,
-                         args.subscriptionId,
-                         "aks",
-                         "azure",
-                         args.resourceGroupName,
-                         args.clusterName,
-                         args.location,
-                         args.tenantId,
-                         privateKey,
-                         False,
-                         "AZUREPUBLICCLOUD",
-                         helm_client_location,
-                         args.kubeConfig,
-                         args.customLocationsOid)
+        helm_install_release(chart_path,
+                             args.subscriptionId,
+                             "aks",
+                             "azure",
+                             args.resourceGroupName,
+                             args.clusterName,
+                             args.location,
+                             args.tenantId,
+                             privateKey,
+                             False,
+                             "AZUREPUBLICCLOUD",
+                             helm_client_location,
+                             args.kubeConfig,
+                             args.customLocationsOid)
 
 
 if __name__ == "__main__":

@@ -514,44 +514,36 @@ resource "azurerm_monitor_pipeline" "test" {
   location            = azurerm_resource_group.test.location
   custom_location_id  = azurerm_extended_location_custom_location.test.id
 
-  exporter {
+  azure_monitor_workspace_log_exporter {
     name = local.workspace_logs_exporter_name
 
-    azure_monitor_workspace_logs {
-      api {
-        data_collection_endpoint_url      = azurerm_monitor_data_collection_endpoint.test.logs_ingestion_endpoint
-        data_collection_rule_immutable_id = azurerm_monitor_data_collection_rule.test.immutable_id
-        stream                            = "Custom-${azurerm_log_analytics_workspace_table_custom_log.test.name}"
+    api {
+      data_collection_endpoint_url      = azurerm_monitor_data_collection_endpoint.test.logs_ingestion_endpoint
+      data_collection_rule_immutable_id = azurerm_monitor_data_collection_rule.test.immutable_id
+      stream                            = "Custom-${azurerm_log_analytics_workspace_table_custom_log.test.name}"
 
-        schema {
-          record_map {
-            from = "body"
-            to   = "Message"
-          }
-          record_map {
-            from = "time_unix_nano"
-            to   = "TimeGenerated"
-          }
+      schema {
+        record_map {
+          from = "body"
+          to   = "Message"
+        }
+        record_map {
+          from = "time_unix_nano"
+          to   = "TimeGenerated"
         }
       }
     }
   }
 
-  receiver {
-    name = local.syslog_receiver_name
-    type = "Syslog"
-
-    syslog {
-      endpoint = "0.0.0.0:514"
-    }
+  syslog_receiver {
+    name     = local.syslog_receiver_name
+    endpoint = "0.0.0.0:514"
   }
 
-  service {
-    pipeline {
-      name      = "acctest-pipeline"
-      exporters = [local.workspace_logs_exporter_name]
-      receivers = [local.syslog_receiver_name]
-    }
+  log_pipeline {
+    name      = "acctest-pipeline"
+    exporters = [local.workspace_logs_exporter_name]
+    receivers = [local.syslog_receiver_name]
   }
 
   depends_on = [
@@ -571,44 +563,36 @@ resource "azurerm_monitor_pipeline" "import" {
   location            = azurerm_monitor_pipeline.test.location
   custom_location_id  = azurerm_monitor_pipeline.test.custom_location_id
 
-  exporter {
-    name = azurerm_monitor_pipeline.test.exporter.0.name
+  azure_monitor_workspace_log_exporter {
+    name = azurerm_monitor_pipeline.test.azure_monitor_workspace_log_exporter.0.name
 
-    azure_monitor_workspace_logs {
-      api {
-        data_collection_endpoint_url      = azurerm_monitor_pipeline.test.exporter.0.azure_monitor_workspace_logs.0.api.0.data_collection_endpoint_url
-        data_collection_rule_immutable_id = azurerm_monitor_pipeline.test.exporter.0.azure_monitor_workspace_logs.0.api.0.data_collection_rule_immutable_id
-        stream                            = azurerm_monitor_pipeline.test.exporter.0.azure_monitor_workspace_logs.0.api.0.stream
+    api {
+      data_collection_endpoint_url      = azurerm_monitor_pipeline.test.azure_monitor_workspace_log_exporter.0.api.0.data_collection_endpoint_url
+      data_collection_rule_immutable_id = azurerm_monitor_pipeline.test.azure_monitor_workspace_log_exporter.0.api.0.data_collection_rule_immutable_id
+      stream                            = azurerm_monitor_pipeline.test.azure_monitor_workspace_log_exporter.0.api.0.stream
 
-        schema {
-          record_map {
-            from = azurerm_monitor_pipeline.test.exporter.0.azure_monitor_workspace_logs.0.api.0.schema.0.record_map.0.from
-            to   = azurerm_monitor_pipeline.test.exporter.0.azure_monitor_workspace_logs.0.api.0.schema.0.record_map.0.to
-          }
-          record_map {
-            from = azurerm_monitor_pipeline.test.exporter.0.azure_monitor_workspace_logs.0.api.0.schema.0.record_map.1.from
-            to   = azurerm_monitor_pipeline.test.exporter.0.azure_monitor_workspace_logs.0.api.0.schema.0.record_map.1.to
-          }
+      schema {
+        record_map {
+          from = azurerm_monitor_pipeline.test.azure_monitor_workspace_log_exporter.0.api.0.schema.0.record_map.0.from
+          to   = azurerm_monitor_pipeline.test.azure_monitor_workspace_log_exporter.0.api.0.schema.0.record_map.0.to
+        }
+        record_map {
+          from = azurerm_monitor_pipeline.test.azure_monitor_workspace_log_exporter.0.api.0.schema.0.record_map.1.from
+          to   = azurerm_monitor_pipeline.test.azure_monitor_workspace_log_exporter.0.api.0.schema.0.record_map.1.to
         }
       }
     }
   }
 
-  receiver {
-    name = azurerm_monitor_pipeline.test.receiver.0.name
-    type = azurerm_monitor_pipeline.test.receiver.0.type
-
-    syslog {
-      endpoint = azurerm_monitor_pipeline.test.receiver.0.syslog.0.endpoint
-    }
+  syslog_receiver {
+    name     = azurerm_monitor_pipeline.test.syslog_receiver.0.name
+    endpoint = azurerm_monitor_pipeline.test.syslog_receiver.0.endpoint
   }
 
-  service {
-    pipeline {
-      name      = azurerm_monitor_pipeline.test.service.0.pipeline.0.name
-      exporters = azurerm_monitor_pipeline.test.service.0.pipeline.0.exporters
-      receivers = azurerm_monitor_pipeline.test.service.0.pipeline.0.receivers
-    }
+  log_pipeline {
+    name      = azurerm_monitor_pipeline.test.log_pipeline.0.name
+    exporters = azurerm_monitor_pipeline.test.log_pipeline.0.exporters
+    receivers = azurerm_monitor_pipeline.test.log_pipeline.0.receivers
   }
 }
 `, r.basic(data))
@@ -632,11 +616,12 @@ locals {
 }
 
 resource "azurerm_monitor_pipeline" "test" {
-  name                = "acctest-mp-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  custom_location_id  = azurerm_extended_location_custom_location.test.id
-  replicas            = 1
+  name                   = "acctest-mp-%[2]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  custom_location_id     = azurerm_extended_location_custom_location.test.id
+  persistent_volume_name = "acctest-pipeline-pv"
+  replicas               = 1
 
   execution_placement_constraint {
     capability = "gpu-enabled"
@@ -648,86 +633,67 @@ resource "azurerm_monitor_pipeline" "test" {
     values     = ["high-cpu", "dedicated"]
   }
 
-  exporter {
+  azure_monitor_workspace_log_exporter {
     name = local.workspace_logs_exporter_name
 
-    azure_monitor_workspace_logs {
-      api {
-        data_collection_endpoint_url      = azurerm_monitor_data_collection_endpoint.test.logs_ingestion_endpoint
-        data_collection_rule_immutable_id = azurerm_monitor_data_collection_rule.test.immutable_id
-        stream                            = "Custom-${azurerm_log_analytics_workspace_table_custom_log.test.name}"
+    api {
+      data_collection_endpoint_url      = azurerm_monitor_data_collection_endpoint.test.logs_ingestion_endpoint
+      data_collection_rule_immutable_id = azurerm_monitor_data_collection_rule.test.immutable_id
+      stream                            = "Custom-${azurerm_log_analytics_workspace_table_custom_log.test.name}"
 
-        schema {
-          record_map {
-            from = "body"
-            to   = "Message"
-          }
-          record_map {
-            from = "time_unix_nano"
-            to   = "TimeGenerated"
-          }
-          resource_map {
-            from = "ResourceColumn"
-            to   = "ResourceColumnUpd"
-          }
-          scope_map {
-            from = "ScopeColumn"
-            to   = "ScopeColumnUpd"
-          }
+      schema {
+        record_map {
+          from = "body"
+          to   = "Message"
+        }
+        record_map {
+          from = "time_unix_nano"
+          to   = "TimeGenerated"
+        }
+        resource_map {
+          from = "ResourceColumn"
+          to   = "ResourceColumnUpd"
+        }
+        scope_map {
+          from = "ScopeColumn"
+          to   = "ScopeColumnUpd"
         }
       }
-
-      persistence {
-        maximum_storage_usage_in_gb = 100
-        retention_period_in_minutes = 10
-      }
     }
+
+    persistence_maximum_storage_usage_in_gb = 100
+    persistence_retention_period_in_minutes = 10
   }
 
-  processor {
+  batch_processor {
     name = local.batch_processor_name
-    type = "Batch"
-
-    batch {
-      batch_size              = 8192
-      timeout_in_milliseconds = 300000
-    }
   }
 
-  processor {
-    name = local.transform_processor_name
-    type = "TransformLanguage"
-
+  transform_language_processor {
+    name                = local.transform_processor_name
     transform_statement = "source | extend FooColumn = 'bar'"
   }
 
-  processor {
+  microsoft_common_security_log_processor {
     name = local.cef_processor_name
-    type = "MicrosoftCommonSecurityLog"
   }
 
-  processor {
+  microsoft_syslog_processor {
     name = local.syslog_processor_name
-    type = "MicrosoftSyslog"
   }
 
-  receiver {
-    name                   = local.syslog_receiver_name
-    type                   = "Syslog"
-    tls_configuration_name = local.tls_configuration_name
-
-    syslog {
-      allow_skip_priority_header = true
-      endpoint                   = "0.0.0.0:514"
-      allowed_formats            = ["syslogRfc5424", "syslogRfc3164"]
-    }
+  syslog_receiver {
+    name                       = local.syslog_receiver_name
+    allow_skip_priority_header = true
+    endpoint                   = "0.0.0.0:514"
+    allowed_formats            = ["syslogRfc5424", "syslogRfc3164"]
+    tls_configuration_name     = local.tls_configuration_name
   }
 
-  receiver {
+  otlp_receiver {
     name                   = local.otlp_receiver_name
-    type                   = "OTLP"
     tls_configuration_name = local.mtls_configuration_name
-    otlp_endpoint          = "0.0.0.0:4317"
+    endpoint               = "0.0.0.0:4317"
   }
 
   tls_configuration {
@@ -775,22 +741,18 @@ resource "azurerm_monitor_pipeline" "test" {
     }
   }
 
-  service {
-    persistent_volume_name = "acctest-pipeline-pv"
+  log_pipeline {
+    name       = "acctest-pipeline"
+    exporters  = [local.workspace_logs_exporter_name]
+    receivers  = [local.syslog_receiver_name]
+    processors = [local.batch_processor_name, local.cef_processor_name, local.syslog_processor_name]
+  }
 
-    pipeline {
-      name       = "acctest-pipeline"
-      exporters  = [local.workspace_logs_exporter_name]
-      receivers  = [local.syslog_receiver_name]
-      processors = [local.batch_processor_name, local.cef_processor_name, local.syslog_processor_name]
-    }
-
-    pipeline {
-      name       = "acctest-otlp-pipeline"
-      exporters  = [local.workspace_logs_exporter_name]
-      receivers  = [local.otlp_receiver_name]
-      processors = [local.transform_processor_name]
-    }
+  log_pipeline {
+    name       = "acctest-otlp-pipeline"
+    exporters  = [local.workspace_logs_exporter_name]
+    receivers  = [local.otlp_receiver_name]
+    processors = [local.transform_processor_name]
   }
 
   tags = {
@@ -827,125 +789,103 @@ locals {
 }
 
 resource "azurerm_monitor_pipeline" "test" {
-  name                = "acctest-mp-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  custom_location_id  = azurerm_extended_location_custom_location.test.id
-  replicas            = 2
+  name                   = "acctest-mp-%[2]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  custom_location_id     = azurerm_extended_location_custom_location.test.id
+  persistent_volume_name = "acctest-pipeline-pv"
+  replicas               = 2
 
-  exporter {
+  azure_monitor_workspace_log_exporter {
     name = local.workspace_logs_exporter_name
 
-    azure_monitor_workspace_logs {
-      api {
-        data_collection_endpoint_url      = azurerm_monitor_data_collection_endpoint.updated.logs_ingestion_endpoint
-        data_collection_rule_immutable_id = azurerm_monitor_data_collection_rule.updated.immutable_id
-        stream                            = "Custom-${azurerm_log_analytics_workspace_table_custom_log.updated.name}"
+    api {
+      data_collection_endpoint_url      = azurerm_monitor_data_collection_endpoint.updated.logs_ingestion_endpoint
+      data_collection_rule_immutable_id = azurerm_monitor_data_collection_rule.updated.immutable_id
+      stream                            = "Custom-${azurerm_log_analytics_workspace_table_custom_log.updated.name}"
 
-        schema {
-          record_map {
-            from = "body"
-            to   = "MessageUpdated"
-          }
-          record_map {
-            from = "time_unix_nano"
-            to   = "TimeGenerated"
-          }
-          resource_map {
-            from = "ResourceColumn"
-            to   = "ResourceColumnUpdV2"
-          }
-          scope_map {
-            from = "ScopeColumn"
-            to   = "ScopeColumnUpdV2"
-          }
+      schema {
+        record_map {
+          from = "body"
+          to   = "MessageUpdated"
+        }
+        record_map {
+          from = "time_unix_nano"
+          to   = "TimeGenerated"
+        }
+        resource_map {
+          from = "ResourceColumn"
+          to   = "ResourceColumnUpdV2"
+        }
+        scope_map {
+          from = "ScopeColumn"
+          to   = "ScopeColumnUpdV2"
         }
       }
-
-      persistence {
-        maximum_storage_usage_in_gb = 200
-        retention_period_in_minutes = 20
-      }
     }
+
+    persistence_maximum_storage_usage_in_gb = 200
+    persistence_retention_period_in_minutes = 20
   }
 
-  exporter {
+  azure_monitor_workspace_log_exporter {
     name = local.workspace_logs_exporter_secondary_name
 
-    azure_monitor_workspace_logs {
-      api {
-        data_collection_endpoint_url      = azurerm_monitor_data_collection_endpoint.test.logs_ingestion_endpoint
-        data_collection_rule_immutable_id = azurerm_monitor_data_collection_rule.test.immutable_id
-        stream                            = "Custom-${azurerm_log_analytics_workspace_table_custom_log.test.name}"
+    api {
+      data_collection_endpoint_url      = azurerm_monitor_data_collection_endpoint.test.logs_ingestion_endpoint
+      data_collection_rule_immutable_id = azurerm_monitor_data_collection_rule.test.immutable_id
+      stream                            = "Custom-${azurerm_log_analytics_workspace_table_custom_log.test.name}"
 
-        schema {
-          record_map {
-            from = "body"
-            to   = "Message"
-          }
-          record_map {
-            from = "time_unix_nano"
-            to   = "TimeGenerated"
-          }
+      schema {
+        record_map {
+          from = "body"
+          to   = "Message"
+        }
+        record_map {
+          from = "time_unix_nano"
+          to   = "TimeGenerated"
         }
       }
     }
   }
 
-  processor {
-    name = local.batch_processor_name
-    type = "Batch"
-
-    batch {
-      batch_size              = 4096
-      timeout_in_milliseconds = 150000
-    }
+  batch_processor {
+    name                    = local.batch_processor_name
+    batch_size              = 4096
+    timeout_in_milliseconds = 150000
   }
 
-  processor {
-    name = local.transform_processor_name
-    type = "TransformLanguage"
-
+  transform_language_processor {
+    name                = local.transform_processor_name
     transform_statement = "source | extend FooColumn = 'baz'"
   }
 
-  processor {
+  microsoft_common_security_log_processor {
     name = local.cef_processor_name
-    type = "MicrosoftCommonSecurityLog"
   }
 
-  processor {
+  microsoft_syslog_processor {
     name = local.syslog_processor_name
-    type = "MicrosoftSyslog"
   }
 
-  receiver {
-    name = local.syslog_receiver_name
-    type = "Syslog"
-
-    syslog {
-      allow_skip_priority_header = false
-      endpoint                   = "0.0.0.0:1514"
-      allowed_formats            = ["syslogRfc3164"]
-      transport_protocol         = "udp"
-    }
+  syslog_receiver {
+    name                       = local.syslog_receiver_name
+    allow_skip_priority_header = false
+    endpoint                   = "0.0.0.0:1514"
+    allowed_formats            = ["syslogRfc3164"]
+    transport_protocol         = "udp"
   }
 
-  receiver {
+  otlp_receiver {
     name                   = local.otlp_receiver_name
-    type                   = "OTLP"
     tls_configuration_name = local.mtls_configuration_name
-    otlp_endpoint          = "0.0.0.0:4318"
+    endpoint               = "0.0.0.0:4318"
   }
 
-  receiver {
-    name = local.syslog_receiver_secondary_name
-    type = "Syslog"
-
-    syslog {
-      endpoint        = "0.0.0.0:6514"
-      allowed_formats = ["all"]
-    }
+  syslog_receiver {
+    name            = local.syslog_receiver_secondary_name
+    endpoint        = "0.0.0.0:6514"
+    allowed_formats = ["all"]
   }
 
   tls_configuration {
@@ -999,29 +939,25 @@ resource "azurerm_monitor_pipeline" "test" {
     mode = "disabled"
   }
 
-  service {
-    persistent_volume_name = "acctest-pipeline-pv"
+  log_pipeline {
+    name       = "acctest-pipeline"
+    exporters  = [local.workspace_logs_exporter_name, local.workspace_logs_exporter_secondary_name]
+    receivers  = [local.syslog_receiver_name, local.syslog_receiver_secondary_name]
+    processors = [local.batch_processor_name, local.syslog_processor_name]
+  }
 
-    pipeline {
-      name       = "acctest-pipeline"
-      exporters  = [local.workspace_logs_exporter_name, local.workspace_logs_exporter_secondary_name]
-      receivers  = [local.syslog_receiver_name, local.syslog_receiver_secondary_name]
-      processors = [local.batch_processor_name, local.syslog_processor_name]
-    }
+  log_pipeline {
+    name       = "acctest-otlp-pipeline"
+    exporters  = [local.workspace_logs_exporter_name]
+    receivers  = [local.otlp_receiver_name]
+    processors = [local.transform_processor_name]
+  }
 
-    pipeline {
-      name       = "acctest-otlp-pipeline"
-      exporters  = [local.workspace_logs_exporter_name]
-      receivers  = [local.otlp_receiver_name]
-      processors = [local.transform_processor_name]
-    }
-
-    pipeline {
-      name       = "acctest-secondary-pipeline"
-      exporters  = [local.workspace_logs_exporter_secondary_name]
-      receivers  = [local.syslog_receiver_secondary_name]
-      processors = [local.batch_processor_name]
-    }
+  log_pipeline {
+    name       = "acctest-secondary-pipeline"
+    exporters  = [local.workspace_logs_exporter_secondary_name]
+    receivers  = [local.syslog_receiver_secondary_name]
+    processors = [local.batch_processor_name]
   }
 
   tags = {

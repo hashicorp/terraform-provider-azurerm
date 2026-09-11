@@ -303,11 +303,12 @@ resource "azurerm_monitor_data_collection_rule" "example" {
 }
 
 resource "azurerm_monitor_pipeline" "example" {
-  name                = "${var.prefix}-monitor-pipeline"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  custom_location_id  = azurerm_extended_location_custom_location.example.id
-  replicas            = 1
+  name                   = "${var.prefix}-monitor-pipeline"
+  resource_group_name    = azurerm_resource_group.example.name
+  location               = azurerm_resource_group.example.location
+  custom_location_id     = azurerm_extended_location_custom_location.example.id
+  persistent_volume_name = "example-monitor-pipeline-pv"
+  replicas               = 1
 
   execution_placement_constraint {
     capability = "gpu-enabled"
@@ -320,85 +321,69 @@ resource "azurerm_monitor_pipeline" "example" {
     values     = ["high-cpu", "dedicated"]
   }
 
-  exporter {
+  azure_monitor_workspace_log_exporter {
     name = "example-exporter"
 
-    azure_monitor_workspace_logs {
-      api {
-        data_collection_endpoint_url      = azurerm_monitor_data_collection_endpoint.example.logs_ingestion_endpoint
-        data_collection_rule_immutable_id = azurerm_monitor_data_collection_rule.example.immutable_id
-        stream                            = "Custom-${azurerm_log_analytics_workspace_table_custom_log.example.name}"
+    api {
+      data_collection_endpoint_url      = azurerm_monitor_data_collection_endpoint.example.logs_ingestion_endpoint
+      data_collection_rule_immutable_id = azurerm_monitor_data_collection_rule.example.immutable_id
+      stream                            = "Custom-${azurerm_log_analytics_workspace_table_custom_log.example.name}"
 
-        schema {
-          record_map {
-            from = "body"
-            to   = "Message"
-          }
-          record_map {
-            from = "time_unix_nano"
-            to   = "TimeGenerated"
-          }
-          resource_map {
-            from = "ResourceColumn"
-            to   = "ResourceColumnUpd"
-          }
-          scope_map {
-            from = "ScopeColumn"
-            to   = "ScopeColumnUpd"
-          }
+      schema {
+        record_map {
+          from = "body"
+          to   = "Message"
+        }
+        record_map {
+          from = "time_unix_nano"
+          to   = "TimeGenerated"
+        }
+        resource_map {
+          from = "ResourceColumn"
+          to   = "ResourceColumnUpd"
+        }
+        scope_map {
+          from = "ScopeColumn"
+          to   = "ScopeColumnUpd"
         }
       }
-
-      persistence {
-        maximum_storage_usage_in_gb = 100
-        retention_period_in_minutes = 10
-      }
     }
+
+    persistence_maximum_storage_usage_in_gb = 100
+    persistence_retention_period_in_minutes = 10
   }
 
-  processor {
-    name = "example-batch-processor"
-    type = "Batch"
-
-    batch {
-      batch_size              = 8192
-      timeout_in_milliseconds = 300000
-    }
+  batch_processor {
+    name                    = "example-batch-processor"
+    batch_size              = 8192
+    timeout_in_milliseconds = 300000
   }
 
-  processor {
+  transform_language_processor {
     name                = "example-transform-processor"
-    type                = "TransformLanguage"
     transform_statement = "source | extend FooColumn = 'bar'"
   }
 
-  processor {
+  microsoft_common_security_log_processor {
     name = "example-cef-processor"
-    type = "MicrosoftCommonSecurityLog"
   }
 
-  processor {
+  microsoft_syslog_processor {
     name = "example-syslog-processor"
-    type = "MicrosoftSyslog"
   }
 
-  receiver {
-    name                   = "example-syslog-receiver"
-    type                   = "Syslog"
-    tls_configuration_name = "example-disabled-tls"
-
-    syslog {
-      allow_skip_priority_header = true
-      endpoint                   = "0.0.0.0:514"
-      allowed_formats            = ["syslogRfc5424", "syslogRfc3164"]
-    }
+  syslog_receiver {
+    name                       = "example-syslog-receiver"
+    allow_skip_priority_header = true
+    endpoint                   = "0.0.0.0:514"
+    allowed_formats            = ["syslogRfc5424", "syslogRfc3164"]
+    tls_configuration_name     = "example-disabled-tls"
   }
 
-  receiver {
+  otlp_receiver {
     name                   = "example-otlp-receiver"
-    type                   = "OTLP"
     tls_configuration_name = "example-mutual-tls"
-    otlp_endpoint          = "0.0.0.0:4317"
+    endpoint               = "0.0.0.0:4317"
   }
 
   tls_configuration {
@@ -446,22 +431,18 @@ resource "azurerm_monitor_pipeline" "example" {
     }
   }
 
-  service {
-    persistent_volume_name = "example-monitor-pipeline-pv"
+  log_pipeline {
+    name       = "example-syslog-pipeline"
+    exporters  = ["example-exporter"]
+    receivers  = ["example-syslog-receiver"]
+    processors = ["example-batch-processor", "example-cef-processor", "example-syslog-processor"]
+  }
 
-    pipeline {
-      name       = "example-syslog-pipeline"
-      exporters  = ["example-exporter"]
-      receivers  = ["example-syslog-receiver"]
-      processors = ["example-batch-processor", "example-cef-processor", "example-syslog-processor"]
-    }
-
-    pipeline {
-      name       = "example-otlp-pipeline"
-      exporters  = ["example-exporter"]
-      receivers  = ["example-otlp-receiver"]
-      processors = ["example-transform-processor"]
-    }
+  log_pipeline {
+    name       = "example-otlp-pipeline"
+    exporters  = ["example-exporter"]
+    receivers  = ["example-otlp-receiver"]
+    processors = ["example-transform-processor"]
   }
 
   tags = {
