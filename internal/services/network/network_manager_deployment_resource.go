@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkmanagers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -118,7 +118,7 @@ func (r ManagerDeploymentResource) Create() sdk.ResourceFunc {
 				Regions:         &[]string{normalizedLocation},
 				DeploymentTypes: &[]networkmanagers.ConfigurationType{networkmanagers.ConfigurationType(state.ScopeAccess)},
 			}
-			resp, err := client.NetworkManagerDeploymentStatusList(ctx, *networkManagerId, listParam)
+			resp, err := client.NetworkManagerDeploymentStatusList(ctx, *networkManagerId, listParam, networkmanagers.DefaultNetworkManagerDeploymentStatusListOperationOptions())
 
 			if err != nil && !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", *id, err)
@@ -177,7 +177,7 @@ func (r ManagerDeploymentResource) Read() sdk.ResourceFunc {
 
 			networkManagerId := networkmanagers.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroup, id.NetworkManagerName)
 
-			resp, err := client.NetworkManagerDeploymentStatusList(ctx, networkManagerId, listParam)
+			resp, err := client.NetworkManagerDeploymentStatusList(ctx, networkManagerId, listParam, networkmanagers.DefaultNetworkManagerDeploymentStatusListOperationOptions())
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -229,7 +229,7 @@ func (r ManagerDeploymentResource) Update() sdk.ResourceFunc {
 
 			networkManagerId := networkmanagers.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroup, id.NetworkManagerName)
 
-			resp, err := client.NetworkManagerDeploymentStatusList(ctx, networkManagerId, listParam)
+			resp, err := client.NetworkManagerDeploymentStatusList(ctx, networkManagerId, listParam, networkmanagers.DefaultNetworkManagerDeploymentStatusListOperationOptions())
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -380,7 +380,7 @@ func resourceManagerDeploymentResultRefreshFunc(ctx context.Context, client *net
 
 		networkManagerId := networkmanagers.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroup, id.NetworkManagerName)
 
-		resp, err := client.NetworkManagerDeploymentStatusList(ctx, networkManagerId, listParam)
+		resp, err := client.NetworkManagerDeploymentStatusList(ctx, networkManagerId, listParam, networkmanagers.DefaultNetworkManagerDeploymentStatusListOperationOptions())
 		if err != nil {
 			if response.WasNotFound(resp.HttpResponse) {
 				return resp, "NotFound", nil
