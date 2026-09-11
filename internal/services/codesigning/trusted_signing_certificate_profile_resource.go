@@ -151,7 +151,7 @@ func (r TrustedSigningCertificateProfileResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if err := client.CreateThenPoll(ctx, id, expandTrustedSigningCertificateProfileResource(model), metadata.SetIDAndIdentityCallback(&id)); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, expandTrustedSigningCertificateProfileResource(model), metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
