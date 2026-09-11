@@ -68,6 +68,10 @@ The following arguments are supported:
 
 * `idle_timeout_in_minutes` - (Optional) Specifies the timeout for the TCP idle connection. The value can be set between 4 and 30 minutes.
 
+* `ip_address` - (Optional) The IP address associated with the public IP address resource. `public_ip_prefix_id` must be specified when setting this property. Changing this forces a new resource to be created.
+
+~> **Note:** `Dynamic` Public IP Addresses aren't allocated until they're attached to a device (e.g. a Virtual Machine/Load Balancer). Instead you can obtain the IP Address once the Public IP has been assigned via the [`azurerm_public_ip` Data Source](../d/public_ip.html).
+
 * `ip_tags` - (Optional) A mapping of IP tags to assign to the public IP. Changing this forces a new resource to be created.
 
 -> **Note:** IP Tag `RoutingPreference` requires multiple `zones` and `Standard` SKU to be set.
@@ -97,10 +101,6 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of this Public IP.
-
-* `ip_address` - The IP address value that was allocated.
-
-~> **Note:** `Dynamic` Public IP Addresses aren't allocated until they're attached to a device (e.g. a Virtual Machine/Load Balancer). Instead you can obtain the IP Address once the Public IP has been assigned via the [`azurerm_public_ip` Data Source](../d/public_ip.html).
 
 * `fqdn` - Fully qualified domain name of the A DNS record associated with the public IP. `domain_name_label` must be specified to get the `fqdn`. This is the concatenation of the `domain_name_label` and the regionalized DNS zone
 
