@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/natgateways"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -90,7 +90,7 @@ func resourceNATGatewayPublicIpAssociationCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("retrieving %s: `properties` was nil", natGatewayId)
 	}
 
-	publicIPAddress, err := meta.(*clients.Client).Network.PublicIPAddresses.Get(ctx, *publicIpAddressId, publicipaddresses.DefaultGetOperationOptions())
+	publicIPAddress, err := meta.(*clients.Client).Network.PublicIPAddressesClient.Get(ctx, *publicIpAddressId, publicipaddresses.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(publicIPAddress.HttpResponse) {
 			return fmt.Errorf("%s was not found", publicIpAddressId)

@@ -892,7 +892,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 func resourceLinuxVirtualMachineFlatten(ctx context.Context, clientsClient *clients.Client, d *pluginsdk.ResourceData, id *virtualmachines.VirtualMachineId, model *virtualmachines.VirtualMachine, includeResource bool) error {
 	disksClient := clientsClient.Compute.DisksClient
 	networkInterfacesClient := clientsClient.Network.NetworkInterfacesClient
-	publicIPAddressesClient := clientsClient.Network.PublicIPAddresses
+	publicIPAddressesClient := clientsClient.Network.PublicIPAddressesClient
 
 	d.Set("name", id.VirtualMachineName)
 	d.Set("resource_group_name", id.ResourceGroupName)
