@@ -158,7 +158,7 @@ func (r StreamInputEventHubV2Resource) Create() sdk.ResourceFunc {
 				ServiceBusNamespace: pointer.To(model.ServiceBusNamespace),
 				EventHubName:        pointer.To(model.EventHubName),
 				ConsumerGroupName:   pointer.To(model.EventHubConsumerGroupName),
-				AuthenticationMode:  pointer.To(inputs.AuthenticationMode(model.AuthenticationMode)),
+				AuthenticationMode:  pointer.ToEnum[inputs.AuthenticationMode](model.AuthenticationMode),
 			}
 
 			if v := model.SharedAccessPolicyKey; v != "" {
@@ -219,7 +219,7 @@ func (r StreamInputEventHubV2Resource) Update() sdk.ResourceFunc {
 					ServiceBusNamespace: pointer.To(state.ServiceBusNamespace),
 					EventHubName:        pointer.To(state.EventHubName),
 					ConsumerGroupName:   pointer.To(state.EventHubConsumerGroupName),
-					AuthenticationMode:  pointer.To(inputs.AuthenticationMode(state.AuthenticationMode)),
+					AuthenticationMode:  pointer.ToEnum[inputs.AuthenticationMode](state.AuthenticationMode),
 				}
 
 				serialization, err := expandStreamAnalyticsStreamInputSerializationTyped(state.Serialization)
@@ -287,46 +287,21 @@ func (r StreamInputEventHubV2Resource) Read() sdk.ResourceFunc {
 					}
 
 					if eventHubV2InputProps := eventHubV2Input.Properties; eventHubV2InputProps != nil {
-						servicebusNamespace := ""
-						if v := eventHubV2InputProps.ServiceBusNamespace; v != nil {
-							servicebusNamespace = *v
-						}
-
-						eventHubName := ""
-						if v := eventHubV2InputProps.EventHubName; v != nil {
-							eventHubName = *v
-						}
-
-						eventHubConsumerGroup := ""
-						if v := eventHubV2InputProps.ConsumerGroupName; v != nil {
-							eventHubConsumerGroup = *v
-						}
-
 						authenticationMode := ""
 						if v := eventHubV2InputProps.AuthenticationMode; v != nil {
 							authenticationMode = string(*v)
 						}
 
-						sharedAccessPolicyName := ""
-						if v := eventHubV2InputProps.SharedAccessPolicyName; v != nil {
-							sharedAccessPolicyName = *v
-						}
-
 						serialization := flattenStreamAnalyticsStreamInputSerializationTyped(streamInput.Serialization)
 
-						partitionKey := ""
-						if v := streamInput.PartitionKey; v != nil {
-							partitionKey = *v
-						}
-
-						state.ServiceBusNamespace = servicebusNamespace
-						state.EventHubName = eventHubName
-						state.EventHubConsumerGroupName = eventHubConsumerGroup
+						state.ServiceBusNamespace = pointer.From(eventHubV2InputProps.ServiceBusNamespace)
+						state.EventHubName = pointer.From(eventHubV2InputProps.EventHubName)
+						state.EventHubConsumerGroupName = pointer.From(eventHubV2InputProps.ConsumerGroupName)
 						state.AuthenticationMode = authenticationMode
-						state.SharedAccessPolicyName = sharedAccessPolicyName
+						state.SharedAccessPolicyName = pointer.From(eventHubV2InputProps.SharedAccessPolicyName)
 						state.SharedAccessPolicyKey = metadata.ResourceData.Get("shared_access_policy_key").(string)
 						state.Serialization = []Serialization{serialization}
-						state.PartitionKey = partitionKey
+						state.PartitionKey = pointer.From(streamInput.PartitionKey)
 
 						return metadata.Encode(&state)
 					}

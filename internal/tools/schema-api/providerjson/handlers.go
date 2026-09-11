@@ -23,7 +23,7 @@ func (p *ProviderJSON) DataSourcesHandler(w http.ResponseWriter, req *http.Reque
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	dsRaw := strings.Split(req.URL.RequestURI(), DataSourcesPath)
-	ds := strings.Split(dsRaw[1], "/")[0]
+	ds, _, _ := strings.Cut(dsRaw[1], "/")
 	data, err := resourceFromRaw(p.DataSourcesMap[ds])
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
@@ -38,7 +38,7 @@ func (p *ProviderJSON) ResourcesHandler(w http.ResponseWriter, req *http.Request
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	dsRaw := strings.Split(req.URL.RequestURI(), ResourcesPath)
-	ds := strings.Split(dsRaw[1], "/")[0]
+	ds, _, _ := strings.Cut(dsRaw[1], "/")
 	data, err := resourceFromRaw(p.ResourcesMap[ds])
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)

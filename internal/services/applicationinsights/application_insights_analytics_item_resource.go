@@ -80,13 +80,10 @@ func resourceApplicationInsightsAnalyticsItem() *pluginsdk.Resource {
 			},
 
 			"scope": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(analyticsitems.ItemScopeShared),
-					string(analyticsitems.ItemScopeUser),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(analyticsitems.PossibleValuesForItemScope(), false),
 			},
 
 			"type": {

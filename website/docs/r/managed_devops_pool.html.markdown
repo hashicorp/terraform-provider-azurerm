@@ -201,7 +201,9 @@ An `organization` block supports the following:
 
 A `permission` block supports the following:
 
-* `kind` - (Required) Determines who has admin permissions to the Azure DevOps pool. Possible values are `Inherit` and `SpecificAccounts`. Changing this forces a new resource to be created.
+* `kind` - (Required) Determines who has admin permissions to the Azure DevOps pool. Possible values are `CreatorOnly`, `Inherit`, and `SpecificAccounts`. Changing this forces a new resource to be created.
+
+~> **Note:** When `kind` is set to `CreatorOnly` and the pool is created using a service principal, the service principal is not automatically granted the administrator role on the Azure DevOps pool.
 
 * `administrator_account` - (Optional) An `administrator_account` block as defined below. This block is only valid when `kind` is set to `SpecificAccounts`. Changing this forces a new resource to be created.
 

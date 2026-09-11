@@ -125,7 +125,7 @@ func dataSourceFunctionAppHostKeysRead(d *pluginsdk.ResourceData, meta interface
 
 		systemKeys := pointer.From(resp.Model.SystemKeys)
 		// The name of the EventGrid System Key has changed from version 1.x to version 2.x:
-		// https://learn.microsoft.com/en-us/azure/azure-functions/event-grid-how-tos?tabs=v2%2Cportal#system-key
+		// https://learn.microsoft.com/azure/azure-functions/event-grid-how-tos?tabs=v2%2Cportal#system-key
 		// This block accommodates both keys.
 		eventGridExtensionConfigKey := ""
 		for _, key := range []string{"eventgridextensionconfig_extension", "eventgrid_extension"} {

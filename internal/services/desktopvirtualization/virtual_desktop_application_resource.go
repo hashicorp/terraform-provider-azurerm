@@ -11,8 +11,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/application"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/applicationgroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/application"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/applicationgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -41,8 +41,6 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 			_, err := application.ParseApplicationID(id)
 			return err
 		}),
-
-		SchemaVersion: 0,
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -85,13 +83,9 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 			},
 
 			"command_line_argument_policy": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(application.CommandLineSettingAllow),
-					string(application.CommandLineSettingDoNotAllow),
-					string(application.CommandLineSettingRequire),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(application.PossibleValuesForCommandLineSetting(), false),
 			},
 
 			"command_line_arguments": {

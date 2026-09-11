@@ -7,23 +7,23 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routetables"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name route -service-package-name network -properties "name,route_table_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceRoute() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -69,15 +69,9 @@ func resourceRoute() *pluginsdk.Resource {
 			},
 
 			"next_hop_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(routes.RouteNextHopTypeVirtualNetworkGateway),
-					string(routes.RouteNextHopTypeVnetLocal),
-					string(routes.RouteNextHopTypeInternet),
-					string(routes.RouteNextHopTypeVirtualAppliance),
-					string(routes.RouteNextHopTypeNone),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(routes.PossibleValuesForRouteNextHopType(), false),
 			},
 
 			"next_hop_in_ip_address": {
@@ -113,8 +107,9 @@ func resourceRouteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	locks.ByName(id.RouteTableName, routeTableResourceName)
-	defer locks.UnlockByName(id.RouteTableName, routeTableResourceName)
+	rtId := routetables.NewRouteTableID(id.SubscriptionId, id.ResourceGroupName, id.RouteTableName)
+	locks.ByID(rtId.ID())
+	defer locks.UnlockByID(rtId.ID())
 
 	route := routes.Route{
 		Name: pointer.To(id.RouteName),
@@ -164,8 +159,9 @@ func resourceRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	payload := existing.Model
 
-	locks.ByName(id.RouteTableName, routeTableResourceName)
-	defer locks.UnlockByName(id.RouteTableName, routeTableResourceName)
+	rtId := routetables.NewRouteTableID(id.SubscriptionId, id.ResourceGroupName, id.RouteTableName)
+	locks.ByID(rtId.ID())
+	defer locks.UnlockByID(rtId.ID())
 
 	if d.HasChange("address_prefix") {
 		payload.Properties.AddressPrefix = pointer.To(d.Get("address_prefix").(string))
@@ -233,8 +229,9 @@ func resourceRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	locks.ByName(id.RouteTableName, routeTableResourceName)
-	defer locks.UnlockByName(id.RouteTableName, routeTableResourceName)
+	rtId := routetables.NewRouteTableID(id.SubscriptionId, id.ResourceGroupName, id.RouteTableName)
+	locks.ByID(rtId.ID())
+	defer locks.UnlockByID(rtId.ID())
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

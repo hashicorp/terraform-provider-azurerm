@@ -93,7 +93,7 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 			"event_system_properties": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -148,7 +148,7 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 			"retrieval_start_date": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 		},
@@ -187,8 +187,7 @@ func resourceKustoEventHubDataConnectionCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if databaseRouting, ok := d.GetOk("database_routing_type"); ok {
-		dbRouting := dataconnections.DatabaseRouting(databaseRouting.(string))
-		dataConnection1.Properties.DatabaseRouting = &dbRouting
+		dataConnection1.Properties.DatabaseRouting = pointer.ToEnum[dataconnections.DatabaseRouting](databaseRouting.(string))
 	}
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, dataConnection1, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -304,8 +303,7 @@ func resourceKustoEventHubDataConnectionUpdate(d *pluginsdk.ResourceData, meta i
 		Properties: props,
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, *id, dataConnection)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, dataConnection); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -322,8 +320,7 @@ func resourceKustoEventHubDataConnectionDelete(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.DataConnectionName, id.ResourceGroupName, id.ClusterName, id.DatabaseName, err)
 	}
 
@@ -350,13 +347,11 @@ func expandKustoEventHubDataConnectionProperties(d *pluginsdk.ResourceData) *dat
 	}
 
 	if df, ok := d.GetOk("data_format"); ok {
-		dataFormat := dataconnections.EventHubDataFormat(df.(string))
-		eventHubConnectionProperties.DataFormat = &dataFormat
+		eventHubConnectionProperties.DataFormat = pointer.ToEnum[dataconnections.EventHubDataFormat](df.(string))
 	}
 
 	if compression, ok := d.GetOk("compression"); ok {
-		comp := dataconnections.Compression(compression.(string))
-		eventHubConnectionProperties.Compression = &comp
+		eventHubConnectionProperties.Compression = pointer.ToEnum[dataconnections.Compression](compression.(string))
 	}
 
 	if eventSystemProperties, ok := d.GetOk("event_system_properties"); ok {

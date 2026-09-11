@@ -101,9 +101,7 @@ func (r StorageMoverJobDefinitionResource) Exists(ctx context.Context, clients *
 
 func (r StorageMoverJobDefinitionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
-
-%[1]s
+	%[1]s
 
 resource "azurerm_storage_mover_agent" "test" {
   name                     = "acctest-sa-%[2]d"
@@ -126,7 +124,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acccontainer%[4]s"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
 
@@ -147,11 +145,10 @@ resource "azurerm_storage_mover_project" "test" {
   name             = "acctest-sp-%[2]d"
   storage_mover_id = azurerm_storage_mover.test.id
 }
-`, StorageMoverAgentResource{}.template(data), data.RandomInteger, data.Locations.Primary, data.RandomString)
+	`, StorageMoverAgentResource{}.template(data), data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r StorageMoverJobDefinitionResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -171,7 +168,7 @@ resource "azurerm_storage_mover_job_definition" "test" {
   source_name              = azurerm_storage_mover_source_endpoint.test.name
   target_name              = azurerm_storage_mover_target_endpoint.test.name
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StorageMoverJobDefinitionResource) requiresImport(data acceptance.TestData) string {
@@ -191,7 +188,6 @@ resource "azurerm_storage_mover_job_definition" "import" {
 }
 
 func (r StorageMoverJobDefinitionResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -214,11 +210,10 @@ resource "azurerm_storage_mover_job_definition" "test" {
   target_sub_path          = "/"
   description              = "Example Job Definition Description"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StorageMoverJobDefinitionResource) update(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -241,5 +236,5 @@ resource "azurerm_storage_mover_job_definition" "test" {
   target_sub_path          = "/"
   description              = "Update example Job Definition Description"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }

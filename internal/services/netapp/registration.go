@@ -36,9 +36,9 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_netapp_account":         dataSourceNetAppAccount(),
 		"azurerm_netapp_pool":            dataSourceNetAppPool(),
-		"azurerm_netapp_volume":          dataSourceNetAppVolume(),
 		"azurerm_netapp_snapshot":        dataSourceNetAppSnapshot(),
 		"azurerm_netapp_snapshot_policy": dataSourceNetAppSnapshotPolicy(),
+		"azurerm_netapp_volume":          dataSourceNetAppVolume(),
 	}
 }
 
@@ -46,38 +46,44 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_netapp_account":         resourceNetAppAccount(),
 		"azurerm_netapp_pool":            resourceNetAppPool(),
-		"azurerm_netapp_volume":          resourceNetAppVolume(),
 		"azurerm_netapp_snapshot":        resourceNetAppSnapshot(),
 		"azurerm_netapp_snapshot_policy": resourceNetAppSnapshotPolicy(),
+		"azurerm_netapp_volume":          resourceNetAppVolume(),
 	}
 }
 
 // DataSources returns the typed DataSources supported by this service
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
+		NetAppAccountEncryptionDataSource{},
+		NetAppBackupPolicyDataSource{},
+		NetAppBackupVaultDataSource{},
+		NetAppVolumeBucketDataSource{},
+		NetAppVolumeBucketWithServerDataSource{},
+		NetAppVolumeGroupOracleDataSource{},
 		NetAppVolumeGroupSAPHanaDataSource{},
 		NetAppVolumeQuotaRuleDataSource{},
-		NetAppAccountEncryptionDataSource{},
-		NetAppBackupVaultDataSource{},
-		NetAppBackupPolicyDataSource{},
-		NetAppVolumeGroupOracleDataSource{},
 	}
 }
 
 // Resources returns the typed Resources supported by this service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		NetAppAccountEncryptionResource{},
+		NetAppBackupPolicyResource{},
+		NetAppBackupVaultResource{},
+		NetAppVolumeBucketResource{},
+		NetAppVolumeBucketWithServerResource{},
+		NetAppVolumeGroupOracleResource{},
 		NetAppVolumeGroupSAPHanaResource{},
 		NetAppVolumeQuotaRuleResource{},
-		NetAppAccountEncryptionResource{},
-		NetAppBackupVaultResource{},
-		NetAppBackupPolicyResource{},
-		NetAppVolumeGroupOracleResource{},
 	}
 }
 
 func (r Registration) Actions() []func() action.Action {
-	return []func() action.Action{}
+	return []func() action.Action{
+		newNetAppVolumeBucketCredentialsAction,
+	}
 }
 
 func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
@@ -93,5 +99,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		NetAppVolumeBucketListResource{},
+	}
 }

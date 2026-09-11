@@ -108,13 +108,9 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 			},
 
 			"caching": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachines.CachingTypesNone),
-					string(virtualmachines.CachingTypesReadOnly),
-					string(virtualmachines.CachingTypesReadWrite),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForCachingTypes(), false),
 			},
 
 			"create_option": {
@@ -187,12 +183,12 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 
 	expandedDisk := virtualmachines.DataDisk{
 		Name:         pointer.To(name),
-		Caching:      pointer.To(virtualmachines.CachingTypes(caching)),
+		Caching:      pointer.ToEnum[virtualmachines.CachingTypes](caching),
 		CreateOption: createOption,
 		Lun:          int64(lun),
 		ManagedDisk: &virtualmachines.ManagedDiskParameters{
 			Id:                 pointer.To(managedDiskId),
-			StorageAccountType: pointer.To(virtualmachines.StorageAccountTypes(*managedDisk.Sku.Name)),
+			StorageAccountType: pointer.ToEnum[virtualmachines.StorageAccountTypes](string(*managedDisk.Sku.Name)),
 		},
 		WriteAcceleratorEnabled: pointer.To(writeAcceleratorEnabled),
 	}

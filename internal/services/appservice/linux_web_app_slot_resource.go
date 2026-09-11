@@ -185,7 +185,7 @@ func (r LinuxWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		"key_vault_reference_identity_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		},
 
@@ -216,7 +216,7 @@ func (r LinuxWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		"zip_deploy_file": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
 			Description:  "The local path and filename of the Zip packaged application to deploy to this Windows Web App. **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` on the App in `app_settings`.",
 		},
@@ -372,7 +372,7 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 					SiteConfig:                siteConfig,
 					ClientAffinityEnabled:     pointer.To(webAppSlot.ClientAffinityEnabled),
 					ClientCertEnabled:         pointer.To(webAppSlot.ClientCertEnabled),
-					ClientCertMode:            pointer.To(webapps.ClientCertMode(webAppSlot.ClientCertMode)),
+					ClientCertMode:            pointer.ToEnum[webapps.ClientCertMode](webAppSlot.ClientCertMode),
 					VnetBackupRestoreEnabled:  pointer.To(webAppSlot.VirtualNetworkBackupRestoreEnabled),
 					VnetRouteAllEnabled:       siteConfig.VnetRouteAllEnabled,
 					VnetImagePullEnabled:      pointer.To(webAppSlot.VnetImagePullEnabled),
@@ -475,9 +475,7 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 
 			if !webAppSlot.PublishingDeployBasicAuthEnabled {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{},
 				}
 				if _, err := client.UpdateScmAllowedSlot(ctx, id, sitePolicy); err != nil {
 					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
@@ -486,9 +484,7 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 
 			if !webAppSlot.PublishingFTPBasicAuthEnabled {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{},
 				}
 				if _, err := client.UpdateFtpAllowedSlot(ctx, id, sitePolicy); err != nil {
 					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
@@ -788,7 +784,7 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 				model.Properties.ClientCertEnabled = pointer.To(state.ClientCertEnabled)
 			}
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
-				model.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(state.ClientCertMode))
+				model.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](state.ClientCertMode)
 			}
 			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
 				model.Properties.ClientCertExclusionPaths = pointer.To(state.ClientCertExclusionPaths)

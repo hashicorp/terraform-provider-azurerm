@@ -32,8 +32,7 @@ func main() {
 		serveOpts = append(serveOpts, tf5server.WithManagedDebug())
 	}
 
-	err = tf5server.Serve("registry.terraform.io/hashicorp/azurerm", providerServer, serveOpts...)
-	if err != nil {
+	if err = tf5server.Serve("registry.terraform.io/hashicorp/azurerm", providerServer, serveOpts...); err != nil {
 		log.Fatal(err)
 	}
 }

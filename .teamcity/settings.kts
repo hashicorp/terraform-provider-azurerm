@@ -15,7 +15,7 @@ var tenantIdAlt = DslContext.getParameter("tenantIdAlt", "")
 var subscriptionIdAltTenant = DslContext.getParameter("subscriptionIdAltTenant", "")
 var principalIdAltTenant = DslContext.getParameter("principalIdAltTenant", "")
 var vcsRootId = DslContext.getParameter("vcsRootId", "TF_HashiCorp_AzureRM_Repository")
-var runBetaVersion = DslContext.getParameter("runBetaVersion", "true").equals("true", ignoreCase = true)
+var createBetaProject = DslContext.getParameter("createBetaProject", "false").equals("true", ignoreCase = true)
 var enableTestTriggersGlobally = DslContext.getParameter("enableTestTriggersGlobally", "true").equals("true", ignoreCase = true)
 var emailAddressAccTests = DslContext.getParameter("emailAddressAccTests", "")
 var gitHubRepo = DslContext.getParameter("gitHubRepo", "hashicorp/terraform-provider-azurerm")
@@ -24,6 +24,9 @@ var teamcityToken = DslContext.getParameter("teamcityToken", "")
 var betaVersionEnvVar = DslContext.getParameter("betaVersionEnvVar", "env.ARM_FIVEPOINTZERO_BETA")
 var labelSuccess = DslContext.getParameter("labelSuccess", "teamcity-passed")
 var labelFailure = DslContext.getParameter("labelFailure", "teamcity-failed")
+var labelOutdated = DslContext.getParameter("labelOutdated", "teamcity-outdated")
+var labelNewFailure = DslContext.getParameter("labelNewFailure", "teamcity-new-failure")
+var applyTestingLabelsEnabled = DslContext.getParameter("applyTestingLabelsEnabled", "true").equals("true", ignoreCase = true)
 
 
 var clientConfig = ClientConfiguration(
@@ -39,7 +42,7 @@ var clientConfig = ClientConfiguration(
     subscriptionIdAltTenant,
     principalIdAltTenant,
     vcsRootId,
-    runBetaVersion,
+    createBetaProject,
     enableTestTriggersGlobally,
     emailAddressAccTests,
     gitHubRepo,
@@ -47,7 +50,10 @@ var clientConfig = ClientConfiguration(
     teamcityToken,
     betaVersionEnvVar,
     labelSuccess,
-    labelFailure
+    labelFailure,
+    labelOutdated,
+    labelNewFailure,
+    applyTestingLabelsEnabled
 )
 
 project(AzureRM(environment, clientConfig))

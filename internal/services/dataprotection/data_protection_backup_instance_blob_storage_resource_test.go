@@ -123,22 +123,23 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "acctestsa%[3]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "testaccsc%[3]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
 
 resource "azurerm_storage_container" "another" {
   name                  = "testaccsc2%[3]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
 
@@ -192,7 +193,7 @@ resource "azurerm_data_protection_backup_policy_blob_storage" "hybrid" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8))
+	`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8))
 }
 
 func (r DataProtectionBackupInstanceBlobStorageResource) basic(data acceptance.TestData) string {

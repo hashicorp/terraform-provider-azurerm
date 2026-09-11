@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/serviceendpointpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -24,10 +25,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name subnet_service_endpoint_storage_policy -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -271,7 +271,7 @@ func expandServiceEndpointPolicyDefinitions(input []interface{}) *[]serviceendpo
 			Properties: &serviceendpointpolicies.ServiceEndpointPolicyDefinitionPropertiesFormat{
 				Description:      pointer.To(e["description"].(string)),
 				Service:          pointer.To(e["service"].(string)),
-				ServiceResources: utils.ExpandStringSlice(e["service_resources"].(*pluginsdk.Set).List()),
+				ServiceResources: helpers.ExpandStringSlice(e["service_resources"].(*pluginsdk.Set).List()),
 			},
 		})
 	}
@@ -286,11 +286,6 @@ func flattenServiceEndpointPolicyDefinitions(input *[]serviceendpointpolicies.Se
 
 	output := make([]interface{}, 0)
 	for _, e := range *input {
-		name := ""
-		if e.Name != nil {
-			name = *e.Name
-		}
-
 		var (
 			description     = ""
 			service         = ""
@@ -300,14 +295,14 @@ func flattenServiceEndpointPolicyDefinitions(input *[]serviceendpointpolicies.Se
 			if b.Description != nil {
 				description = *b.Description
 			}
-			serviceResource = utils.FlattenStringSlice(b.ServiceResources)
+			serviceResource = helpers.FlattenStringSlice(b.ServiceResources)
 			if b.Service != nil {
 				service = *b.Service
 			}
 		}
 
 		output = append(output, map[string]interface{}{
-			"name":              name,
+			"name":              pointer.From(e.Name),
 			"description":       description,
 			"service_resources": serviceResource,
 			"service":           service,

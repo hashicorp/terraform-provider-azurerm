@@ -151,9 +151,9 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "acctest-share-%[1]d"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 1
+  name               = "acctest-share-%[1]d"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
 
   acl {
     id = "GhostedRecall"
@@ -162,5 +162,5 @@ resource "azurerm_storage_share" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

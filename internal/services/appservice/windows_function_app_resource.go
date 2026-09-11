@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
@@ -105,7 +104,7 @@ func (r WindowsFunctionAppResource) IDValidationFunc() pluginsdk.SchemaValidateF
 }
 
 func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -176,7 +175,7 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Description: "A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.",
+			Description: "A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.",
 		},
 
 		"auth_settings": helpers.AuthSettingsSchema(),
@@ -200,15 +199,11 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"client_certificate_mode": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  webapps.ClientCertModeOptional,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(webapps.ClientCertModeOptional),
-				string(webapps.ClientCertModeRequired),
-				string(webapps.ClientCertModeOptionalInteractiveUser),
-			}, false),
-			Description: "The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser` ",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      webapps.ClientCertModeOptional,
+			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForClientCertMode(), false),
+			Description:  "The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser` ",
 		},
 
 		"client_certificate_exclusion_paths": {
@@ -251,7 +246,7 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"https_only": {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
-			Computed:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			Description: "Can the Function App only be accessed via HTTPS?",
 		},
 
@@ -266,7 +261,7 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"key_vault_reference_identity_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 			Description:  "The User Assigned Identity to use for Key Vault access.",
 		},
@@ -319,17 +314,11 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"zip_deploy_file": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
 			Description:  "The local path and filename of the Zip packaged application to deploy to this Windows Function App. **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` to be set on the App in `app_settings`.",
 		},
 	}
-
-	if !features.FivePointOh() {
-		args["storage_key_vault_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
-	}
-
-	return args
 }
 
 func (r WindowsFunctionAppResource) Attributes() map[string]*pluginsdk.Schema {
@@ -553,7 +542,7 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 					HTTPSOnly:                 pointer.To(functionApp.HttpsOnly),
 					SiteConfig:                siteConfig,
 					ClientCertEnabled:         pointer.To(functionApp.ClientCertEnabled),
-					ClientCertMode:            pointer.To(webapps.ClientCertMode(functionApp.ClientCertMode)),
+					ClientCertMode:            pointer.ToEnum[webapps.ClientCertMode](functionApp.ClientCertMode),
 					DailyMemoryTimeQuota:      pointer.To(functionApp.DailyMemoryTimeQuota),
 					VnetBackupRestoreEnabled:  pointer.To(functionApp.VirtualNetworkBackupRestoreEnabled),
 					VnetImagePullEnabled:      pointer.To(functionApp.VnetImagePullEnabled),
@@ -591,9 +580,7 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 
 			if !functionApp.PublishingDeployBasicAuthEnabled {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{},
 				}
 				if _, err := client.UpdateScmAllowed(ctx, *id, sitePolicy); err != nil {
 					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
@@ -602,9 +589,7 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 
 			if !functionApp.PublishingFTPBasicAuthEnabled {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{},
 				}
 				if _, err := client.UpdateFtpAllowed(ctx, *id, sitePolicy); err != nil {
 					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
@@ -978,7 +963,7 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
-				model.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(state.ClientCertMode))
+				model.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](state.ClientCertMode)
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
@@ -1424,8 +1409,7 @@ func (m *WindowsFunctionAppModel) unpackWindowsFunctionAppSettings(input *webapp
 
 		case "AzureWebJobsStorage":
 			if strings.HasPrefix(v, "@Microsoft.KeyVault") {
-				trimmed := strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(SecretUri=")
-				m.StorageKeyVaultSecretID = trimmed
+				m.StorageKeyVaultSecretID = strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(SecretUri=")
 			} else {
 				m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
 			}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package schema
@@ -210,7 +210,7 @@ func (a SetNestedAttribute) IsSensitive() bool {
 	return false
 }
 
-// IsWriteOnly always returns false as action schema attributes cannot be WriteOnly.
+// IsWriteOnly returns false as write-only attributes are not supported for sets and set-based data.
 func (a SetNestedAttribute) IsWriteOnly() bool {
 	return false
 }

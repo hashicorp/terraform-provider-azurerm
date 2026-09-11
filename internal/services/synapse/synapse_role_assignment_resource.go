@@ -12,6 +12,8 @@ import (
 
 	frsUUID "github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -21,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	accesscontrol "github.com/jackofallops/kermit/sdk/synapse/2020-08-01-preview/synapse"
 )
 
@@ -53,7 +54,7 @@ func resourceSynapseRoleAssignment() *pluginsdk.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ExactlyOneOf: []string{"synapse_workspace_id", "synapse_spark_pool_id"},
-				ValidateFunc: validate.WorkspaceID,
+				ValidateFunc: validation.AsGeneratedID(workspaces.ParseWorkspaceIDInsensitively),
 			},
 
 			"synapse_spark_pool_id": {
@@ -148,7 +149,7 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 	principalId := d.Get("principal_id").(string)
 	listResp, err := client.ListRoleAssignments(ctx, roleId.String(), principalId, scope, "")
 	if err != nil {
-		if !utils.ResponseWasNotFound(listResp.Response) {
+		if !response.WasNotFound(listResp.Response.Response) {
 			return fmt.Errorf("checking for presence of existing Synapse Role Assignment (workspace %q): %+v", workspaceName, err)
 		}
 	}
@@ -156,7 +157,7 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		if listResp.Value != nil && len(*listResp.Value) != 0 {
 			existing := (*listResp.Value)[0]
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				resourceId := parse.NewRoleAssignmentId(synapseScope, *existing.ID).ID()
 				return tf.ImportAsExistsError("azurerm_synapse_role_assignment", resourceId)
 			}
@@ -181,8 +182,7 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if v, ok := d.GetOk("principal_type"); ok {
-		principalType := v.(string)
-		roleAssignment.PrincipalType = &principalType
+		roleAssignment.PrincipalType = pointer.To(v.(string))
 	}
 
 	resp, err := client.CreateRoleAssignment(ctx, roleAssignment, uuid)
@@ -194,8 +194,7 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("empty or nil ID returned for Synapse RoleAssignment %q", roleName)
 	}
 
-	resourceId := parse.NewRoleAssignmentId(synapseScope, *resp.ID).ID()
-	d.SetId(resourceId)
+	d.SetId(parse.NewRoleAssignmentId(synapseScope, *resp.ID).ID())
 	return resourceSynapseRoleAssignmentRead(d, meta)
 }
 
@@ -231,7 +230,7 @@ func resourceSynapseRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface
 
 	resp, err := client.GetRoleAssignmentByID(ctx, id.DataPlaneAssignmentId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] synapse role assignment %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -245,15 +244,11 @@ func resourceSynapseRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface
 	}
 	d.Set("principal_id", principalID)
 
-	principalType := ""
-	if resp.PrincipalType != nil {
-		principalType = *resp.PrincipalType
-	}
-	d.Set("principal_type", principalType)
+	d.Set("principal_type", pointer.From(resp.PrincipalType))
 
 	synapseWorkspaceId := ""
 	synapseSparkPoolId := ""
-	if _, err := parse.WorkspaceIDInsensitively(id.Scope); err == nil {
+	if _, err := workspaces.ParseWorkspaceIDInsensitively(id.Scope); err == nil {
 		synapseWorkspaceId = id.Scope
 	} else if _, err := parse.SparkPoolIDInsensitively(id.Scope); err == nil {
 		synapseSparkPoolId = id.Scope

@@ -98,9 +98,8 @@ resource "azurerm_virtual_network_gateway" "test" {
   sku  = "Standard"
 
   ip_configuration {
-    name                 = "vnetGatewayConfig"
-    public_ip_address_id = azurerm_public_ip.test.id
-    subnet_id            = azurerm_subnet.gatewaySubnet.id
+    name      = "vnetGatewayConfig"
+    subnet_id = azurerm_subnet.gatewaySubnet.id
   }
 }
 
@@ -136,6 +135,8 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 
 func (r VmwareNetappFileVolumeAttachmentResource) templateNetappFile(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+
+
 
 
 resource "azurerm_subnet" "netappSubnet" {
@@ -194,7 +195,7 @@ resource "azurerm_netapp_volume" "test" {
   export_policy_rule {
     rule_index          = 1
     allowed_clients     = ["0.0.0.0/0"]
-    protocols_enabled   = ["NFSv3"]
+    protocol            = ["NFSv3"]
     unix_read_only      = false
     unix_read_write     = true
     root_access_enabled = true
@@ -208,14 +209,6 @@ resource "azurerm_netapp_volume" "test" {
 
 func (r VmwareNetappFileVolumeAttachmentResource) templateVnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-resource "azurerm_public_ip" "test" {
-  name                = "acctestpip-%d"
-  location            = "centralus"
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-}
-
 resource "azurerm_virtual_network" "test" {
   name                = "acctest-VirtualNetwork-%d"
   location            = "centralus"
@@ -228,5 +221,5 @@ resource "azurerm_virtual_network" "test" {
 }
 
 
-`, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger)
 }

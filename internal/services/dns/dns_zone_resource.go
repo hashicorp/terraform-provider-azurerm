@@ -66,7 +66,7 @@ func (DnsZoneResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"email": {
@@ -126,7 +126,7 @@ func (DnsZoneResource) Arguments() map[string]*pluginsdk.Schema {
 
 					"host_name": {
 						Type:     pluginsdk.TypeString,
-						Computed: true, // (@jackofallops) - This should not be set or updatable to meet API design, see https://learn.microsoft.com/en-us/azure/dns/dns-zones-records#soa-records
+						Computed: true, // (@jackofallops) - This should not be set or updatable to meet API design, see https://learn.microsoft.com/azure/dns/dns-zones-records#soa-records
 					},
 				},
 			},
@@ -407,7 +407,7 @@ func (r DnsZoneResource) Delete() sdk.ResourceFunc {
 }
 
 func expandDNSZoneSOARecord(input DnsZoneSoaRecordResourceRecord) *recordsets.SoaRecord {
-	result := &recordsets.SoaRecord{
+	return &recordsets.SoaRecord{
 		Email:        pointer.To(input.Email),
 		ExpireTime:   pointer.To(input.ExpireTime),
 		MinimumTTL:   pointer.To(input.MinimumTtl),
@@ -415,8 +415,6 @@ func expandDNSZoneSOARecord(input DnsZoneSoaRecordResourceRecord) *recordsets.So
 		RetryTime:    pointer.To(input.RetryTime),
 		SerialNumber: pointer.To(input.SerialNumber),
 	}
-
-	return result
 }
 
 func flattenDNSZoneSOARecord(input *recordsets.RecordSet) []DnsZoneSoaRecordResourceRecord {

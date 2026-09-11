@@ -182,7 +182,7 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"key_vault_reference_identity_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		},
 
@@ -215,7 +215,7 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"zip_deploy_file": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
 			Description:  "The local path and filename of the Zip packaged application to deploy to this Linux Web App. **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
 		},
@@ -392,11 +392,11 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 					SiteConfig:                siteConfig,
 					ClientAffinityEnabled:     pointer.To(webApp.ClientAffinityEnabled),
 					ClientCertEnabled:         pointer.To(webApp.ClientCertEnabled),
-					ClientCertMode:            pointer.To(webapps.ClientCertMode(webApp.ClientCertMode)),
+					ClientCertMode:            pointer.ToEnum[webapps.ClientCertMode](webApp.ClientCertMode),
 					VnetBackupRestoreEnabled:  pointer.To(webApp.VirtualNetworkBackupRestoreEnabled),
 					VnetImagePullEnabled:      pointer.To(webApp.VnetImagePullEnabled),
-					EndToEndEncryptionEnabled: pointer.To(webApp.E2eEncryptionEnabled),
 					VnetRouteAllEnabled:       siteConfig.VnetRouteAllEnabled,
+					EndToEndEncryptionEnabled: pointer.To(webApp.E2eEncryptionEnabled),
 				},
 			}
 			pna := helpers.PublicNetworkAccessEnabled
@@ -505,9 +505,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 
 			if !webApp.PublishingDeployBasicAuthEnabled {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{},
 				}
 				if _, err := client.UpdateScmAllowed(ctx, id, sitePolicy); err != nil {
 					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
@@ -516,9 +514,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 
 			if !webApp.PublishingFTPBasicAuthEnabled {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{},
 				}
 				if _, err := client.UpdateFtpAllowed(ctx, id, sitePolicy); err != nil {
 					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
@@ -812,7 +808,7 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				model.Properties.ClientCertEnabled = pointer.To(state.ClientCertEnabled)
 			}
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
-				model.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(state.ClientCertMode))
+				model.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](state.ClientCertMode)
 			}
 			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
 				model.Properties.ClientCertExclusionPaths = pointer.To(state.ClientCertExclusionPaths)

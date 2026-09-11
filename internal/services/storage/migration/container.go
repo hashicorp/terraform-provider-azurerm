@@ -60,8 +60,7 @@ func (ContainerV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 
 		containerName := rawState["name"]
 		storageAccountName := rawState["storage_account_name"]
-		newID := fmt.Sprintf("https://%s.blob.%s/%s", storageAccountName, *storageDomainSuffix, containerName)
-		rawState["id"] = newID
+		rawState["id"] = fmt.Sprintf("https://%s.blob.%s/%s", storageAccountName, *storageDomainSuffix, containerName)
 
 		return rawState, nil
 	}
