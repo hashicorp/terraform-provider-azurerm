@@ -125,7 +125,7 @@ jobs:
           script: |
             const fs = require('fs')
             const prNumber = parseInt(fs.readFileSync('artifacts/pr-number', 'utf8').trim())
-            
+
             try {
               await github.rest.issues.removeLabel({
                 owner: context.repo.owner,
