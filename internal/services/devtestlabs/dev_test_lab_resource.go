@@ -26,7 +26,7 @@ import (
 )
 
 func resourceDevTestLab() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceDevTestLabCreateUpdate,
 		Read:   resourceDevTestLabRead,
 		Update: resourceDevTestLabCreateUpdate,
@@ -95,8 +95,6 @@ func resourceDevTestLab() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
 func resourceDevTestLabCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -218,8 +216,7 @@ func resourceDevTestLabDelete(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

@@ -13,11 +13,11 @@ import (
 
 type ManagerConnectivityConfigurationDataSource struct{}
 
-func testAccNetworkManagerConnectivityConfigurationDataSource_basic(t *testing.T) {
+func TestAccNetworkManagerConnectivityConfigurationDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_manager_connectivity_configuration", "test")
 	d := ManagerConnectivityConfigurationDataSource{}
 
-	data.DataSourceTestInSequence(t, []acceptance.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: d.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -27,6 +27,9 @@ func testAccNetworkManagerConnectivityConfigurationDataSource_basic(t *testing.T
 				check.That(data.ResourceName).Key("hub.#").HasValue("1"),
 				check.That(data.ResourceName).Key("hub.0.resource_id").IsNotEmpty(),
 				check.That(data.ResourceName).Key("hub.0.resource_type").IsNotEmpty(),
+				check.That(data.ResourceName).Key("connected_group_address_overlap_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("connected_group_private_endpoints_scale").HasValue("HighScale"),
+				check.That(data.ResourceName).Key("peering_enforcement_enabled").HasValue("true"),
 			),
 		},
 	})

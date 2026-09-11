@@ -4,7 +4,7 @@
 package helper
 
 // sku.name is not an Enum in the REST API specs.
-// These are the accepted values based on https://learn.microsoft.com/en-us/azure/azure-sql/database/elastic-jobs-overview?view=azuresql#concurrent-capacity-tiers
+// These are the accepted values based on https://learn.microsoft.com/azure/azure-sql/database/elastic-jobs-overview?view=azuresql#concurrent-capacity-tiers
 const (
 	SqlJobAgentSkuJA100 string = "JA100"
 	SqlJobAgentSkuJA200 string = "JA200"

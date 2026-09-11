@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-04-15/afdcustomdomains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -87,8 +87,8 @@ func (r CdnFrontDoorCustomDomainAssociationResource) Exists(ctx context.Context,
 	}
 
 	client := clients.Cdn.AFDCustomDomainsClient
-	customDomainId := afdcustomdomains.NewCustomDomainID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AssociationName)
-	resp, err := client.Get(ctx, customDomainId)
+	customDomainId := afddomains.NewCustomDomainID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AssociationName)
+	resp, err := client.AFDCustomDomainsGet(ctx, customDomainId)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil
@@ -165,7 +165,7 @@ func (r CdnFrontDoorCustomDomainAssociationResource) remove(data acceptance.Test
 func (r CdnFrontDoorCustomDomainAssociationResource) template(data acceptance.TestData) string {
 	dnsZoneName := os.Getenv("ARM_TEST_DNS_ZONE")
 	dnsZoneRG := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
-	childZoneSuffix := data.RandomIntOfLength(8)
+	childZoneSuffix := data.RandomString
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -184,7 +184,7 @@ data "azurerm_dns_zone" "test" {
 locals {
   # Create a delegated child zone inside the test RG.
   # NOTE: ARM_TEST_DNS_ZONE / ARM_TEST_DATA_RESOURCE_GROUP must refer to a real, delegated parent zone.
-  child_zone_label = "acctest%[6]d"
+  child_zone_label = "%[6]s"
   child_zone_name  = join(".", [local.child_zone_label, data.azurerm_dns_zone.test.name])
 }
 
@@ -288,7 +288,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "contoso" {
   depends_on = [azurerm_dns_ns_record.delegation]
 
   dns_zone_id = azurerm_dns_zone.child.id
-  host_name   = join(".", ["%[3]s", azurerm_dns_zone.child.name])
+  host_name   = join(".", ["fd", azurerm_dns_zone.child.name])
 
   tls {
     certificate_type = "ManagedCertificate"

@@ -194,8 +194,7 @@ func (r ReplicationPolicyHyperVResource) Update() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.UpdateThenPoll(ctx, *id, parameters)
-			if err != nil {
+			if err = client.UpdateThenPoll(ctx, *id, parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -215,8 +214,7 @@ func (r ReplicationPolicyHyperVResource) Delete() sdk.ResourceFunc {
 
 			client := metadata.Client.RecoveryServices.ReplicationPoliciesClient
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s : %+v", id, err)
 			}
 

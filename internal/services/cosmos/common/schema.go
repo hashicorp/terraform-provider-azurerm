@@ -87,7 +87,7 @@ func DatabaseAutoscaleSettingsSchema() *pluginsdk.Schema {
 				"max_throughput": {
 					Type:          pluginsdk.TypeInt,
 					Optional:      true,
-					Computed:      true,
+					Computed:      true, // azignore:AZS007 - pre-existing violation
 					ConflictsWith: []string{"throughput"},
 					ValidateFunc:  validate.CosmosMaxThroughput,
 				},
@@ -100,7 +100,7 @@ func CosmosDbIndexingPolicySchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -154,18 +154,15 @@ func ConflictResolutionPolicy() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		ForceNew: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"mode": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(cosmosdb.ConflictResolutionModeLastWriterWins),
-						string(cosmosdb.ConflictResolutionModeCustom),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForConflictResolutionMode(), false),
 				},
 
 				"conflict_resolution_path": {
@@ -207,10 +204,7 @@ func CosmosDbIndexingPolicyCompositeIndexSchema() *pluginsdk.Schema {
 								Required: true,
 								// Workaround for Azure/azure-rest-api-specs#11222
 								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(cosmosdb.CompositePathSortOrderAscending),
-									string(cosmosdb.CompositePathSortOrderDescending),
-								}, true),
+								ValidateFunc:     validation.StringInSlice(cosmosdb.PossibleValuesForCompositePathSortOrder(), true),
 							},
 						},
 					},

@@ -91,7 +91,7 @@ func resourceLogAnalyticsSavedSearch() *pluginsdk.Resource {
 				ForceNew: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
-					// https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/functions/user-defined-functions
+					// https://learn.microsoft.com/azure/data-explorer/kusto/query/functions/user-defined-functions
 					ValidateFunc: validation.StringMatch(
 						regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9-_]*:([a-z]+(=[^,\n]+)?|\(\*\)|(\([a-zA-Z_][a-zA-Z0-9-_]*:[a-z]+(,[a-zA-Z_][a-zA-Z0-9-_]*:([a-z]+))*\)))(,\s*[a-zA-Z_][a-zA-Z0-9-_]*:([a-z]+(=[^,\n]+)?|\(\*\)|(\([a-zA-Z_][a-zA-Z0-9-_]*:[a-z]+(,\s*[a-zA-Z_][a-zA-Z0-9-_]*:([a-z]+))*\))))*$`),
 						"Log Analytics Saved Search Function Parameters must be in the following format: param-name1:type1=default_value1 OR param-name1:type1 OR param-name1:string='string goes here'",
@@ -185,11 +185,7 @@ func resourceLogAnalyticsSavedSearchRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("category", props.Category)
 		d.Set("query", props.Query)
 
-		functionAlias := ""
-		if props.FunctionAlias != nil {
-			functionAlias = *props.FunctionAlias
-		}
-		d.Set("function_alias", functionAlias)
+		d.Set("function_alias", pointer.From(props.FunctionAlias))
 
 		functionParams := make([]string, 0)
 		if props.FunctionParameters != nil {

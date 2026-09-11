@@ -55,7 +55,7 @@ func EnsureRegistered(ctx context.Context, client *providers.ProvidersClient, su
 
 // registerForSubscription registers the specified Resource Providers in the current Subscription
 func registerForSubscription(ctx context.Context, client *providers.ProvidersClient, subscriptionId commonids.SubscriptionId, providersToRegister []string) error {
-	errs := &registrationErrors{}
+	errs := &registrationError{}
 	var wg sync.WaitGroup
 	wg.Add(len(providersToRegister))
 

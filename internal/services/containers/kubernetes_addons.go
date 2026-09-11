@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/applicationgateways"
@@ -46,7 +47,7 @@ var unsupportedAddonsForEnvironment = map[string][]string{
 }
 
 func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"aci_connector_linux": {
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,
@@ -120,6 +121,11 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 					"msi_auth_for_monitoring_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
+					},
+					"retina_flow_logs_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
 					},
 					"oms_agent_identity": {
 						Type:     pluginsdk.TypeList,
@@ -277,14 +283,10 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
-
-	return out
 }
 
 func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interface{}, env environments.Environment) (*map[string]managedclusters.ManagedClusterAddonProfile, error) {
-	disabled := managedclusters.ManagedClusterAddonProfile{
-		Enabled: false,
-	}
+	disabled := managedclusters.ManagedClusterAddonProfile{}
 
 	addonProfiles := map[string]managedclusters.ManagedClusterAddonProfile{}
 
@@ -328,6 +330,10 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 			config["useAADAuth"] = fmt.Sprintf("%t", useAADAuth)
 		}
 
+		if retinaFlowLogsEnabled, ok := value["retina_flow_logs_enabled"].(bool); ok {
+			config["enableRetinaNetworkFlags"] = fmt.Sprintf("%t", retinaFlowLogsEnabled)
+		}
+
 		addonProfiles[omsAgentKey] = managedclusters.ManagedClusterAddonProfile{
 			Enabled: true,
 			Config:  &config,
@@ -355,10 +361,9 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 
 	// Always set the azure_policy addon profile to ensure it's synchronized with Azure on every update
 	azurePolicyEnabled := input["azure_policy_enabled"].(bool)
-	props := managedclusters.ManagedClusterAddonProfile{
+	addonProfiles[azurePolicyKey] = managedclusters.ManagedClusterAddonProfile{
 		Enabled: azurePolicyEnabled,
 	}
-	addonProfiles[azurePolicyKey] = props
 
 	ingressApplicationGateway := input["ingress_application_gateway"].([]interface{})
 	if len(ingressApplicationGateway) > 0 && ingressApplicationGateway[0] != nil {
@@ -392,7 +397,6 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 	if ok := d.HasChange("open_service_mesh_enabled"); ok {
 		addonProfiles[openServiceMeshKey] = managedclusters.ManagedClusterAddonProfile{
 			Enabled: input["open_service_mesh_enabled"].(bool),
-			Config:  nil,
 		}
 	}
 
@@ -401,8 +405,7 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 		value := azureKeyVaultSecretsProvider[0].(map[string]interface{})
 		config := make(map[string]string)
 
-		enableSecretRotation := fmt.Sprintf("%t", value["secret_rotation_enabled"].(bool))
-		config["enableSecretRotation"] = enableSecretRotation
+		config["enableSecretRotation"] = fmt.Sprintf("%t", value["secret_rotation_enabled"].(bool))
 		config["rotationPollInterval"] = value["secret_rotation_interval"].(string)
 
 		addonProfiles[azureKeyvaultSecretsProviderKey] = managedclusters.ManagedClusterAddonProfile{
@@ -496,6 +499,7 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 	if enabled := omsAgent.Enabled; enabled {
 		workspaceID := ""
 		useAADAuth := false
+		retinaFlowLogsEnabled := false
 
 		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != "" {
 			if lawid, err := workspaces.ParseWorkspaceIDInsensitively(v); err == nil {
@@ -507,11 +511,16 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 			useAADAuth = true
 		}
 
+		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "enableRetinaNetworkFlags"); v == "true" {
+			retinaFlowLogsEnabled = true
+		}
+
 		omsAgentIdentity := flattenKubernetesClusterAddOnIdentityProfile(omsAgent.Identity)
 
 		omsAgents = append(omsAgents, map[string]interface{}{
 			"log_analytics_workspace_id":      workspaceID,
 			"msi_auth_for_monitoring_enabled": useAADAuth,
+			"retina_flow_logs_enabled":        retinaFlowLogsEnabled,
 			"oms_agent_identity":              omsAgentIdentity,
 		})
 	}
@@ -605,20 +614,11 @@ func flattenKubernetesClusterAddOnIdentityProfile(profile *managedclusters.UserA
 	}
 
 	identity := make([]interface{}, 0)
-	clientID := ""
-	if clientid := profile.ClientId; clientid != nil {
-		clientID = *clientid
-	}
+	clientID := pointer.From(profile.ClientId)
 
-	objectID := ""
-	if objectid := profile.ObjectId; objectid != nil {
-		objectID = *objectid
-	}
+	objectID := pointer.From(profile.ObjectId)
 
-	userAssignedIdentityID := ""
-	if resourceid := profile.ResourceId; resourceid != nil {
-		userAssignedIdentityID = *resourceid
-	}
+	userAssignedIdentityID := pointer.From(profile.ResourceId)
 
 	identity = append(identity, map[string]interface{}{
 		"client_id":                 clientID,

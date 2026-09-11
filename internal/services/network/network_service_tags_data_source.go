@@ -102,8 +102,7 @@ func dataSourceNetworkServiceTagsRead(d *pluginsdk.ResourceData, meta interface{
 				if props.AddressPrefixes != nil {
 					addressPrefixes = *props.AddressPrefixes
 				}
-				err = d.Set("address_prefixes", addressPrefixes)
-				if err != nil {
+				if err = d.Set("address_prefixes", addressPrefixes); err != nil {
 					return fmt.Errorf("setting `address_prefixes`: %+v", err)
 				}
 
@@ -123,13 +122,11 @@ func dataSourceNetworkServiceTagsRead(d *pluginsdk.ResourceData, meta interface{
 					}
 				}
 
-				err = d.Set("ipv4_cidrs", ipv4Cidrs)
-				if err != nil {
+				if err = d.Set("ipv4_cidrs", ipv4Cidrs); err != nil {
 					return fmt.Errorf("setting `ipv4_cidrs`: %+v", err)
 				}
 
-				err = d.Set("ipv6_cidrs", ipv6Cidrs)
-				if err != nil {
+				if err = d.Set("ipv6_cidrs", ipv6Cidrs); err != nil {
 					return fmt.Errorf("setting `ipv6_cidrs`: %+v", err)
 				}
 

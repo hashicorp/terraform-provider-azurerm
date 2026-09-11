@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -270,48 +269,36 @@ func expandApiManagementCustomDomains(input *pluginsdk.ResourceData) *[]apimanag
 
 	if managementRawVal, ok := input.GetOk("management"); ok {
 		vs := managementRawVal.([]interface{})
-		for idx, rawVal := range vs {
+		for _, rawVal := range vs {
 			v := rawVal.(map[string]interface{})
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeManagement)
-			if !features.FivePointOh() {
-				output = expandApiManagementCommonHostnameConfigurationFourPointOh(input, v, apimanagementservice.HostnameTypeManagement, fmt.Sprintf("management.%d", idx))
-			}
 			results = append(results, output)
 		}
 	}
 
 	if portalRawVal, ok := input.GetOk("portal"); ok {
 		vs := portalRawVal.([]interface{})
-		for idx, rawVal := range vs {
+		for _, rawVal := range vs {
 			v := rawVal.(map[string]interface{})
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypePortal)
-			if !features.FivePointOh() {
-				output = expandApiManagementCommonHostnameConfigurationFourPointOh(input, v, apimanagementservice.HostnameTypePortal, fmt.Sprintf("portal.%d", idx))
-			}
 			results = append(results, output)
 		}
 	}
 
 	if developerPortalRawVal, ok := input.GetOk("developer_portal"); ok {
 		vs := developerPortalRawVal.([]interface{})
-		for idx, rawVal := range vs {
+		for _, rawVal := range vs {
 			v := rawVal.(map[string]interface{})
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeDeveloperPortal)
-			if !features.FivePointOh() {
-				output = expandApiManagementCommonHostnameConfigurationFourPointOh(input, v, apimanagementservice.HostnameTypeDeveloperPortal, fmt.Sprintf("developer_portal.%d", idx))
-			}
 			results = append(results, output)
 		}
 	}
 
 	if gatewayRawVal, ok := input.GetOk("gateway"); ok {
 		vs := gatewayRawVal.([]interface{})
-		for idx, rawVal := range vs {
+		for _, rawVal := range vs {
 			v := rawVal.(map[string]interface{})
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeProxy)
-			if !features.FivePointOh() {
-				output = expandApiManagementCommonHostnameConfigurationFourPointOh(input, v, apimanagementservice.HostnameTypeProxy, fmt.Sprintf("gateway.%d", idx))
-			}
 
 			if value, ok := v["default_ssl_binding"]; ok {
 				output.DefaultSslBinding = pointer.To(value.(bool))
@@ -323,12 +310,9 @@ func expandApiManagementCustomDomains(input *pluginsdk.ResourceData) *[]apimanag
 
 	if scmRawVal, ok := input.GetOk("scm"); ok {
 		vs := scmRawVal.([]interface{})
-		for idx, rawVal := range vs {
+		for _, rawVal := range vs {
 			v := rawVal.(map[string]interface{})
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeScm)
-			if !features.FivePointOh() {
-				output = expandApiManagementCommonHostnameConfigurationFourPointOh(input, v, apimanagementservice.HostnameTypeScm, fmt.Sprintf("scm.%d", idx))
-			}
 			results = append(results, output)
 		}
 	}
@@ -359,10 +343,6 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagementservice.Hos
 		output["negotiate_client_certificate"] = pointer.From(config.NegotiateClientCertificate)
 		output["key_vault_certificate_id"] = pointer.From(config.KeyVaultId)
 		output["ssl_keyvault_identity_client_id"] = pointer.From(config.IdentityClientId)
-
-		if !features.FivePointOh() {
-			output["key_vault_id"] = pointer.From(config.KeyVaultId)
-		}
 
 		var configType string
 		switch strings.ToLower(string(config.Type)) {

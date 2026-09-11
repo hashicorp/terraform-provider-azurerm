@@ -54,7 +54,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Arguments() ma
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ManagedInstanceID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlManagedInstanceIDInsensitively),
 		},
 
 		"login_username": {
@@ -138,8 +138,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Create() sdk.R
 				},
 			}
 
-			err = aadAuthOnlyClient.CreateOrUpdateThenPoll(ctx, *managedInstanceId, aadAuthOnlyParams)
-			if err != nil {
+			if err = aadAuthOnlyClient.CreateOrUpdateThenPoll(ctx, *managedInstanceId, aadAuthOnlyParams); err != nil {
 				return fmt.Errorf("setting `azuread_authentication_only` for %s: %+v", id, err)
 			}
 
@@ -179,8 +178,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Update() sdk.R
 				},
 			}
 
-			err = client.CreateOrUpdateThenPoll(ctx, *managedInstanceId, parameters)
-			if err != nil {
+			if err = client.CreateOrUpdateThenPoll(ctx, *managedInstanceId, parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -190,8 +188,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Update() sdk.R
 				},
 			}
 
-			err = aadAuthOnlyClient.CreateOrUpdateThenPoll(ctx, *managedInstanceId, aadAuthOnlyProperties)
-			if err != nil {
+			if err = aadAuthOnlyClient.CreateOrUpdateThenPoll(ctx, *managedInstanceId, aadAuthOnlyProperties); err != nil {
 				return fmt.Errorf("setting `azuread_authentication_only` for %s: %+v", id, err)
 			}
 
@@ -228,8 +225,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Read() sdk.Res
 			}
 
 			model := MsSqlManagedInstanceActiveDirectoryAdministratorModel{
-				ManagedInstanceId:         managedInstanceId.ID(),
-				AzureADAuthenticationOnly: false,
+				ManagedInstanceId: managedInstanceId.ID(),
 			}
 
 			if result.Model != nil {
@@ -273,18 +269,14 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Delete() sdk.R
 			// Before deleting an AAD admin, it is necessary to disable `AzureADOnlyAuthentication` first, as deleting an AAD admin when `AzureADOnlyAuthentication` feature is enabled is not supported.
 			// Use `CreateOrUpdateThenPoll` instead of `DeleteThenPoll`, because the actual deletion behavior of the API is not to really delete the record, but to update `AzureADOnlyAuthentication` to false. Therefore, using `DeleteThenPoll` will cause pull till done to never end until it times out.
 			aadAuthOnlyParams := managedinstanceazureadonlyauthentications.ManagedInstanceAzureADOnlyAuthentication{
-				Properties: &managedinstanceazureadonlyauthentications.ManagedInstanceAzureADOnlyAuthProperties{
-					AzureADOnlyAuthentication: false,
-				},
+				Properties: &managedinstanceazureadonlyauthentications.ManagedInstanceAzureADOnlyAuthProperties{},
 			}
 
-			err = aadAuthOnlyClient.CreateOrUpdateThenPoll(ctx, managedInstanceId, aadAuthOnlyParams)
-			if err != nil {
+			if err = aadAuthOnlyClient.CreateOrUpdateThenPoll(ctx, managedInstanceId, aadAuthOnlyParams); err != nil {
 				return fmt.Errorf("disabling `azuread_authentication_only` for %s: %+v", id, err)
 			}
 
-			err = client.DeleteThenPoll(ctx, managedInstanceId)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, managedInstanceId); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

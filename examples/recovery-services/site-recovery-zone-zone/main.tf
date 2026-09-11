@@ -83,7 +83,6 @@ resource "azurerm_recovery_services_vault" "example" {
   location            = azurerm_resource_group.secondary.location
   resource_group_name = azurerm_resource_group.secondary.name
   sku                 = "Standard"
-  soft_delete_enabled = false
 }
 
 resource "azurerm_site_recovery_fabric" "example" {
@@ -157,7 +156,11 @@ resource "azurerm_site_recovery_replicated_vm" "example" {
 
   network_interface {
     source_network_interface_id = azurerm_network_interface.example.id
-    target_subnet_name          = azurerm_subnet.example.name
+
+    ip_configuration {
+      name               = "${var.prefix}-ipconfig"
+      target_subnet_name = azurerm_subnet.example.name
+    }
   }
 
   depends_on = [

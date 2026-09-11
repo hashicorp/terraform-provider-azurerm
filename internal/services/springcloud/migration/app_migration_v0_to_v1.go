@@ -7,8 +7,8 @@ import (
 	"context"
 	"log"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -203,7 +203,7 @@ func (s SpringCloudAppV0ToV1) Schema() map[string]*pluginsdk.Schema {
 func (s SpringCloudAppV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldId := rawState["id"].(string)
-		newId, err := parse.SpringCloudAppIDInsensitively(oldId)
+		newId, err := appplatform.ParseAppIDInsensitively(oldId)
 		if err != nil {
 			return nil, err
 		}

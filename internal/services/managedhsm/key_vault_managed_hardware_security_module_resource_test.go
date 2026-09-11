@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -18,7 +18,7 @@ import (
 
 type KeyVaultManagedHardwareSecurityModuleResource struct{}
 
-func TestAccKeyVaultManagedHardwareSecurityModule(t *testing.T) {
+func TestAccKeyVaultManagedHardwareSecurityModule_sequential(t *testing.T) {
 	// @manicminer: these tests are sequential due to low service limits for Managed HSM
 	// (max 5 instances per subscription as of 2024-04-23)
 	// and to try and maintain a little headroom for cleanup after failed tests
@@ -237,6 +237,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctest%[2]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -344,7 +345,9 @@ resource "azurerm_subnet" "test_a" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-  service_endpoints    = ["Microsoft.KeyVault"]
+  service_endpoint {
+    service = "Microsoft.KeyVault"
+  }
 }
 
 resource "azurerm_key_vault_managed_hardware_security_module" "test" {
