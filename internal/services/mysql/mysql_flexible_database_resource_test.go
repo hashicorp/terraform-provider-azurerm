@@ -60,7 +60,7 @@ func TestAccMySQLFlexibleDatabase_charsetUppercase(t *testing.T) {
 			Config: r.charsetUppercase(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("charset").HasValue("utf8"),
+				check.That(data.ResourceName).Key("charset").HasValue("utf8mb3"),
 			),
 		},
 		data.ImportStep(),
@@ -76,10 +76,45 @@ func TestAccMySQLFlexibleDatabase_charsetMixedcase(t *testing.T) {
 			Config: r.charsetMixedcase(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("charset").HasValue("utf8"),
+				check.That(data.ResourceName).Key("charset").HasValue("utf8mb3"),
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccMySQLFlexibleDatabase_collationUppercase(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_database", "test")
+	r := MysqlFlexibleDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.collationUppercase(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("collation").HasValue("utf8mb3_unicode_ci"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMySQLFlexibleDatabase_utf8Aliases(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_database", "test")
+	r := MysqlFlexibleDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.charsetAndCollation(data, "utf8mb3", "utf8mb3_unicode_ci"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:             r.charsetAndCollation(data, "utf8", "utf8_unicode_ci"),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: false,
+		},
 	})
 }
 
@@ -97,34 +132,8 @@ func (r MysqlFlexibleDatabaseResource) Exists(ctx context.Context, clients *clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (MysqlFlexibleDatabaseResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-resource "azurerm_mysql_flexible_server" "test" {
-  name                   = "acctest-fs-%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  administrator_login    = "adminTerraform"
-  administrator_password = "QAZwsx123"
-  sku_name               = "B_Standard_B1ms"
-  zone                   = "1"
-}
-
-resource "azurerm_mysql_flexible_database" "test" {
-  name                = "acctestdb_%d"
-  resource_group_name = azurerm_resource_group.test.name
-  server_name         = azurerm_mysql_flexible_server.test.name
-  charset             = "utf8"
-  collation           = "utf8_unicode_ci"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+func (r MysqlFlexibleDatabaseResource) basic(data acceptance.TestData) string {
+	return r.charsetAndCollation(data, "utf8", "utf8_unicode_ci")
 }
 
 func (r MysqlFlexibleDatabaseResource) requiresImport(data acceptance.TestData) string {
@@ -141,7 +150,19 @@ resource "azurerm_mysql_flexible_database" "import" {
 `, r.basic(data))
 }
 
-func (MysqlFlexibleDatabaseResource) charsetUppercase(data acceptance.TestData) string {
+func (r MysqlFlexibleDatabaseResource) charsetUppercase(data acceptance.TestData) string {
+	return r.charsetAndCollation(data, "UTF8", "UTF8_UNICODE_CI")
+}
+
+func (r MysqlFlexibleDatabaseResource) charsetMixedcase(data acceptance.TestData) string {
+	return r.charsetAndCollation(data, "Utf8", "utf8_unicode_ci")
+}
+
+func (r MysqlFlexibleDatabaseResource) collationUppercase(data acceptance.TestData) string {
+	return r.charsetAndCollation(data, "utf8", "UTF8_UNICODE_CI")
+}
+
+func (MysqlFlexibleDatabaseResource) charsetAndCollation(data acceptance.TestData, charset, collation string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -165,38 +186,8 @@ resource "azurerm_mysql_flexible_database" "test" {
   name                = "acctestdb_%d"
   resource_group_name = azurerm_resource_group.test.name
   server_name         = azurerm_mysql_flexible_server.test.name
-  charset             = "UTF8"
-  collation           = "utf8_unicode_ci"
+  charset             = "%s"
+  collation           = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func (MysqlFlexibleDatabaseResource) charsetMixedcase(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-resource "azurerm_mysql_flexible_server" "test" {
-  name                   = "acctest-fs-%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  administrator_login    = "adminTerraform"
-  administrator_password = "QAZwsx123"
-  sku_name               = "B_Standard_B1ms"
-  zone                   = "1"
-}
-
-resource "azurerm_mysql_flexible_database" "test" {
-  name                = "acctestdb_%d"
-  resource_group_name = azurerm_resource_group.test.name
-  server_name         = azurerm_mysql_flexible_server.test.name
-  charset             = "Utf8"
-  collation           = "utf8_unicode_ci"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, charset, collation)
 }
