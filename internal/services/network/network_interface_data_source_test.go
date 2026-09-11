@@ -31,17 +31,6 @@ func TestAccDataSourceArmNetworkInterface_basic(t *testing.T) {
 	})
 }
 
-func (NetworkInterfaceDataSource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_network_interface" "test" {
-  name                = azurerm_network_interface.test.name
-  resource_group_name = azurerm_network_interface.test.resource_group_name
-}
-`, NetworkInterfaceResource{}.static(data))
-}
-
 func TestAccDataSourceArmNetworkInterface_auxiliary(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_interface", "test")
 	r := NetworkInterfaceDataSource{}
@@ -57,17 +46,6 @@ func TestAccDataSourceArmNetworkInterface_auxiliary(t *testing.T) {
 	})
 }
 
-func (NetworkInterfaceDataSource) auxiliary(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_network_interface" "test" {
-  name                = azurerm_network_interface.test.name
-  resource_group_name = azurerm_network_interface.test.resource_group_name
-}
-`, NetworkInterfaceResource{}.auxiliaryAcceleratedConnections(data))
-}
-
 func TestAccDataSourceArmNetworkInterface_edgeZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_interface", "test")
 	r := NetworkInterfaceDataSource{}
@@ -80,6 +58,28 @@ func TestAccDataSourceArmNetworkInterface_edgeZone(t *testing.T) {
 			),
 		},
 	})
+}
+
+func (NetworkInterfaceDataSource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_network_interface" "test" {
+  name                = azurerm_network_interface.test.name
+  resource_group_name = azurerm_network_interface.test.resource_group_name
+}
+`, NetworkInterfaceResource{}.static(data))
+}
+
+func (NetworkInterfaceDataSource) auxiliary(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_network_interface" "test" {
+  name                = azurerm_network_interface.test.name
+  resource_group_name = azurerm_network_interface.test.resource_group_name
+}
+`, NetworkInterfaceResource{}.auxiliaryAcceleratedConnections(data))
 }
 
 func (NetworkInterfaceDataSource) edgeZone(data acceptance.TestData) string {

@@ -262,17 +262,9 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 		d.Set("virtual_machine_id", virtualMachineId)
 
-		auxiliaryMode := ""
-		if props.AuxiliaryMode != nil && *props.AuxiliaryMode != networkinterfaces.NetworkInterfaceAuxiliaryModeNone {
-			auxiliaryMode = string(*props.AuxiliaryMode)
-		}
-		d.Set("auxiliary_mode", auxiliaryMode)
+		d.Set("auxiliary_mode", pointer.FromEnum(props.AuxiliaryMode))
 
-		auxiliarySku := ""
-		if props.AuxiliarySku != nil && *props.AuxiliarySku != networkinterfaces.NetworkInterfaceAuxiliarySkuNone {
-			auxiliarySku = string(*props.AuxiliarySku)
-		}
-		d.Set("auxiliary_sku", auxiliarySku)
+		d.Set("auxiliary_mode", pointer.FromEnum(props.AuxiliarySku))
 
 		var appliedDNSServers []string
 		var dnsServers []string
