@@ -38,6 +38,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Container App Environment Certificate
 
+* `certificate_key_vault` - A `certificate_key_vault` block as defined below.
+
 * `expiration_date` - The expiration date for the Certificate.
 
 * `issue_date` - The date of issue for the Certificate.
@@ -49,6 +51,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `thumbprint` - The Thumbprint of the Certificate.
 
 * `tags` - A mapping of tags assigned to the resource.
+
+---
+
+A `certificate_key_vault` block exports the following:
+
+* `identity` - The managed identity used to authenticate with Azure Key Vault.
+
+* `key_vault_secret_id` - The ID of the Key Vault Secret containing the certificate.
 
 ## Timeouts
 
