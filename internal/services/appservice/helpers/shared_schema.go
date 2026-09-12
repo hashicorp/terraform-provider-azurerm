@@ -5,6 +5,7 @@ package helpers
 
 import (
 	"fmt"
+	"maps"
 	"math"
 	"strings"
 
@@ -390,14 +391,6 @@ func ExpandCorsSettings(input []CorsSetting) *webapps.CorsSettings {
 		AllowedOrigins:     pointer.To(cors.AllowedOrigins),
 		SupportCredentials: pointer.To(cors.SupportCredentials),
 	}
-}
-
-type SourceControl struct {
-	RepoURL           string `tfschema:"repo_url"`
-	Branch            string `tfschema:"branch"`
-	ManualIntegration bool   `tfschema:"manual_integration"`
-	UseMercurial      bool   `tfschema:"use_mercurial"`
-	RollbackEnabled   bool   `tfschema:"rollback_enabled"`
 }
 
 type SiteCredential struct {
@@ -1608,9 +1601,7 @@ func flattenIpRestrictionHeaders(headers map[string][]string) []IpRestrictionHea
 func FlattenWebStringDictionary(input *webapps.StringDictionary) map[string]string {
 	result := make(map[string]string)
 	if input != nil && input.Properties != nil {
-		for k, v := range *input.Properties {
-			result[k] = v
-		}
+		maps.Copy(result, *input.Properties)
 	}
 	return result
 }

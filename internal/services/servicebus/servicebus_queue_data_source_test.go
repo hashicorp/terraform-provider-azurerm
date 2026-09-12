@@ -31,6 +31,7 @@ func TestAccDataSourceServiceBusQueue_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("partitioning_enabled").Exists(),
 				check.That(data.ResourceName).Key("lock_duration").Exists(),
 				check.That(data.ResourceName).Key("max_delivery_count").Exists(),
+				check.That(data.ResourceName).Key("maximum_message_size_in_kb").Exists(),
 				check.That(data.ResourceName).Key("max_size_in_megabytes").Exists(),
 				check.That(data.ResourceName).Key("requires_duplicate_detection").Exists(),
 				check.That(data.ResourceName).Key("requires_session").Exists(),

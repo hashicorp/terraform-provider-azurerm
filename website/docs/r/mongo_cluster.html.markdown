@@ -77,6 +77,10 @@ The following arguments are supported:
 
 * `compute_tier` - (Optional) The compute tier to assign to the MongoDB Cluster. Possible values are `Free`, `M10`, `M20`, `M25`, `M30`, `M40`, `M50`, `M60`, `M80`, and `M200`.
 
+* `cosmos_db_network_bypass_enabled` - (Optional) Whether Cosmos DB network bypass is enabled for the MongoDB Cluster. Defaults to `false`.
+
+~> **Note:** `cosmos_db_network_bypass_enabled` can only be set to `true` when `public_network_access` is `Disabled`, `authentication_methods` contains only `MicrosoftEntraID`, and no firewall rules exist on the cluster. This is not supported on portal yet because Entra ID-only authentication is not supported there.
+
 * `high_availability_mode` - (Optional) The high availability mode for the MongoDB Cluster. Possibles values are `Disabled` and `ZoneRedundantPreferred`.
 
 * `public_network_access` - (Optional) The Public Network Access setting for the MongoDB Cluster. Possibles values are `Disabled` and `Enabled`. Defaults to `Enabled`.

@@ -23,8 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-type ServiceBusNamespaceDisasterRecoveryConfigResource struct{}
-
 func resourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceServiceBusNamespaceDisasterRecoveryConfigCreate,
