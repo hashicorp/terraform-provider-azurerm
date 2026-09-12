@@ -29,6 +29,8 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Resource Group should exist. Changing this forces a new Resource Group to be created.
 
+-> **Note:** Not all Azure Regions are available to every subscription. Availability depends on your subscription type and quota — for example, Azure for Students subscriptions may have access to a limited set of regions. Run `az account list-locations -o table` to see which regions are available to your subscription.
+
 * `name` - (Required) The Name which should be used for this Resource Group. Changing this forces a new Resource Group to be created.
 
 ---
