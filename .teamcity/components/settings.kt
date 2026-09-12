@@ -9,6 +9,12 @@ var defaultStartHour = 23
 // specifies the default level of parallelism per-service-package
 var defaultParallelism = 20
 
+// specifies the default number of concurrent builds allowed per-service-package
+var defaultMaxConcurrentBuilds = 3
+
+// specifies the default number of concurrent builds allowed per-branch per-service-package
+var defaultMaxConcurrentBuildsPerBranch = 1
+
 // specifies the default build timeout in hours
 var defaultTimeout = 12
 
@@ -18,8 +24,8 @@ var defaultTerraformCoreVersion = "1.15.8"
 // This represents a cron view of days of the week, Monday - Friday.
 const val defaultDaysOfWeek = "2,3,4,5,6"
 
-// This represents a cron view of Monday.
-const val defaultWeeklyDay = "2"
+// This represents a cron view of Sunday.
+const val defaultWeeklyDay = "1"
 
 // Cron value for any day of month
 const val defaultDaysOfMonth = "*"
@@ -43,7 +49,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "apimanagement" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus2", false)),
 
         // App Service Plans for Linux are currently unavailable in WestUS2
-        "appservice" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", true)),
+        "appservice" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", true), maxConcurrentBuilds = 1),
 
         // Arc Kubernetes Provisioned Cluster is only available in certain locations
         "arckubernetes" to testConfiguration(locationOverride = LocationConfiguration("australiaeast", "eastus", "westeurope", true)),
@@ -78,7 +84,7 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // Container App Managed Environments are limited to 20 per location, using 10 as they can take some time to clear
         // Enable rotation test to mitigate resource burden in a single region
-        "containerapps" to testConfiguration(parallelism = 10, locationOverride = LocationConfiguration("eastus2","westus2","southcentralus", true)),
+        "containerapps" to testConfiguration(parallelism = 10, locationOverride = LocationConfiguration("eastus2","westus2","southcentralus", true), maxConcurrentBuilds = 1),
 
         // The AKS API has a low rate limit
         "containers" to testConfiguration(parallelism = 5, locationOverride = LocationConfiguration("eastus","westeurope","eastus2", false), timeout = 18),
