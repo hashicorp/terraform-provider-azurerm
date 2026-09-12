@@ -103,6 +103,26 @@ func TestAccManagedRedis_updateSku(t *testing.T) {
 	})
 }
 
+func TestAccManagedRedis_updateClusteringPolicyFromNoCluster(t *testing.T) {
+  data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
+  r := ManagedRedisResource{}
+  data.ResourceTest(t, r, []acceptance.TestStep{
+    {
+      Config: r.clusteringPolicy(data, "NoCluster"),
+      Check: acceptance.ComposeTestCheckFunc(
+        check.That(data.ResourceName).Key("default_database.0.clustering_policy").HasValue("NoCluster"),
+      ),
+    },
+    {
+      Config: r.clusteringPolicy(data, "EnterpriseCluster"),
+      Check: acceptance.ComposeTestCheckFunc(
+        check.That(data.ResourceName).Key("default_database.0.clustering_policy").HasValue("EnterpriseCluster"),
+      ),
+    },
+    data.ImportStep(),
+  })
+}
+
 func TestAccManagedRedis_withPrivateEndpoint(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
 	r := ManagedRedisResource{}
@@ -337,6 +357,31 @@ resource "azurerm_managed_redis" "test" {
   default_database {}
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r ManagedRedisResource) clusteringPolicy(data acceptance.TestData, clusteringPolicy string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-managedRedis-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_managed_redis" "test" {
+  name                = "acctest-amr-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location = "%[2]s"
+  sku_name = "Balanced_B0"
+
+  default_database {
+    clustering_policy = "%[3]s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, clusteringPolicy)
 }
 
 func (r ManagedRedisResource) requiresImport(data acceptance.TestData) string {
