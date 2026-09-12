@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2019-10-17-preview/privatelinkscopedresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-07-01-preview/privatelinkscopesapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -50,13 +51,37 @@ func resourceMonitorPrivateLinkScopedService() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": commonschema.ResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupNameOptional(),
+
+			"scope_resource_group_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				AtLeastOneOf: []string{"resource_group_name", "scope_resource_group_name", "scope_resource_id"},
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"scope_subscription_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsUUID,
+			},
 
 			"scope_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
+				AtLeastOneOf: []string{"scope_name", "scope_resource_id"},
 				ValidateFunc: validate.PrivateLinkScopeName,
+			},
+
+			"scope_resource_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				AtLeastOneOf: []string{"scope_name", "scope_resource_id"},
+				ValidateFunc: privatelinkscopesapis.ValidatePrivateLinkScopeID,
 			},
 
 			"linked_resource_id": {
@@ -76,11 +101,30 @@ func resourceMonitorPrivateLinkScopedService() *pluginsdk.Resource {
 
 func resourceMonitorPrivateLinkScopedServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	resourceGroupName := d.Get("resource_group_name").(string)
+	scopeName := d.Get("scope_name").(string)
+	if scopeResourceGroupName, ok := d.GetOk("scope_resource_group_name"); ok {
+		resourceGroupName = scopeResourceGroupName.(string)
+	}
+	if scopeSubscriptionId, ok := d.GetOk("scope_subscription_id"); ok {
+		subscriptionId = scopeSubscriptionId.(string)
+	}
 	client := meta.(*clients.Client).Monitor.PrivateLinkScopedResourcesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := privatelinkscopedresources.NewScopedResourceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("scope_name").(string), d.Get("name").(string))
+	if scopeIdRaw, ok := d.GetOk("scope_resource_id"); ok {
+		scopeId, err := privatelinkscopesapis.ParsePrivateLinkScopeID(scopeIdRaw.(string))
+		if err != nil {
+			return fmt.Errorf("parsing scope ID: %+v", err)
+		}
+
+		subscriptionId = scopeId.SubscriptionId
+		resourceGroupName = scopeId.ResourceGroupName
+		scopeName = scopeId.PrivateLinkScopeName
+	}
+
+	id := privatelinkscopedresources.NewScopedResourceID(subscriptionId, resourceGroupName, scopeName, d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
@@ -129,8 +173,23 @@ func resourceMonitorPrivateLinkScopedServiceRead(d *pluginsdk.ResourceData, meta
 	}
 
 	d.Set("name", id.ScopedResourceName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("scope_name", id.PrivateLinkScopeName)
+	if scopeIdRaw, ok := d.GetOk("scope_resource_id"); ok {
+		scopeId, err := privatelinkscopesapis.ParsePrivateLinkScopeID(scopeIdRaw.(string))
+		if err != nil {
+			return fmt.Errorf("parsing scope ID: %+v", err)
+		}
+		d.Set("scope_resource_id", scopeId.ID())
+	} else {
+		d.Set("scope_name", id.PrivateLinkScopeName)
+		if _, ok := d.GetOk("scope_resource_group_name"); ok {
+			d.Set("scope_resource_group_name", id.ResourceGroupName)
+		} else {
+			d.Set("resource_group_name", id.ResourceGroupName)
+		}
+		if _, ok := d.GetOk("scope_subscription_id"); ok {
+			d.Set("scope_subscription_id", id.SubscriptionId)
+		}
+	}
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {

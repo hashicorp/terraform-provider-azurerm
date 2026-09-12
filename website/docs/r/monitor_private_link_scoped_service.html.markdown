@@ -33,7 +33,7 @@ resource "azurerm_monitor_private_link_scope" "example" {
 resource "azurerm_monitor_private_link_scoped_service" "example" {
   name                = "example-amplsservice"
   resource_group_name = azurerm_resource_group.example.name
-  scope_name          = azurerm_monitor_private_link_scope.example.name
+  scope_resource_id   = azurerm_monitor_private_link_scope.example.id
   linked_resource_id  = azurerm_application_insights.example.id
 }
 ```
@@ -42,27 +42,33 @@ resource "azurerm_monitor_private_link_scoped_service" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Azure Monitor Private Link Scoped Service. Changing this forces a new resource to be created.
+- `name` - (Required) The name of the Azure Monitor Private Link Scoped Service. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Azure Monitor Private Link Scoped Service should exist. Changing this forces a new resource to be created.
+- `resource_group_name` - (Optional) The name of the Resource Group containing the Azure Monitor Private Link Scope. One of `resource_group_name`, `scope_resource_group_name`, or `scope_resource_id` must be specified. Changing this forces a new resource to be created.
 
-* `scope_name` - (Required) The name of the Azure Monitor Private Link Scope. Changing this forces a new resource to be created.
+- `scope_resource_group_name` - (Optional) The name of the Resource Group containing the Azure Monitor Private Link Scope. One of `resource_group_name`, `scope_resource_group_name`, or `scope_resource_id` must be specified. Changing this forces a new resource to be created.
 
-* `linked_resource_id` - (Required) The ID of the linked resource. It must be the Log Analytics workspace or the Application Insights component or the Data Collection endpoint. Changing this forces a new resource to be created.
+- `scope_subscription_id` - (Optional) The subscription ID containing the Azure Monitor Private Link Scope. Changing this forces a new resource to be created.
+
+- `scope_name` - (Optional) The name of the Azure Monitor Private Link Scope. One of `scope_name` or `scope_resource_id` must be specified. Changing this forces a new resource to be created.
+
+- `scope_resource_id` - (Optional) The resource ID of the Azure Monitor Private Link Scope. One of `scope_name` or `scope_resource_id` must be specified. Changing this forces a new resource to be created. When both are specified, `scope_resource_id` takes precedence.
+
+- `linked_resource_id` - (Required) The ID of the linked resource. It must be the Log Analytics workspace or the Application Insights component or the Data Collection endpoint. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Azure Monitor Private Link Scoped Service.
+- `id` - The ID of the Azure Monitor Private Link Scoped Service.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Azure Monitor Private Link Scope.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Azure Monitor Private Link Scope.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Azure Monitor Private Link Scope.
+- `create` - (Defaults to 30 minutes) Used when creating the Azure Monitor Private Link Scope.
+- `read` - (Defaults to 5 minutes) Used when retrieving the Azure Monitor Private Link Scope.
+- `delete` - (Defaults to 30 minutes) Used when deleting the Azure Monitor Private Link Scope.
 
 ## Import
 
@@ -73,7 +79,9 @@ terraform import azurerm_monitor_private_link_scoped_service.example /subscripti
 ```
 
 ## API Providers
+
 <!-- This section is generated, changes will be overwritten -->
+
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Insights` - 2019-10-17-preview
+- `Microsoft.Insights` - 2019-10-17-preview
