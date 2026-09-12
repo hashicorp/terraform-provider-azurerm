@@ -6,6 +6,7 @@
 package applicationinsights
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -118,6 +119,15 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			// Portal "JavaScript source map blob storage URL". Azure stores this as the
+			// hidden-link:Insights.Sourcemap.Storage tag (JSON {"Uri":"..."}), not a
+			// first-class ARM property — see hashicorp/terraform-provider-azurerm#13255.
+			"javascript_source_map_storage_uri": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+			},
+
 			"tags": commonschema.Tags(),
 
 			"daily_data_cap_in_gb": {
@@ -174,6 +184,65 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 			},
 		},
 	}
+}
+
+
+// Portal JS source-map blob storage is not an ARM property; it is stored as a
+// special hidden-link tag. Community-confirmed shape (#13255):
+//   "hidden-link:Insights.Sourcemap.Storage" = jsonencode({ Uri = "<blob container url>" })
+const appInsightsSourceMapStorageTag = "hidden-link:Insights.Sourcemap.Storage"
+
+func expandApplicationInsightsTagsWithSourceMap(uri string, input map[string]interface{}) *map[string]string {
+	// Start from user tags, then overlay the source-map hidden-link (attribute wins).
+	outPtr := tags.Expand(input)
+	var out map[string]string
+	if outPtr == nil {
+		out = make(map[string]string)
+	} else {
+		out = *outPtr
+	}
+	if uri == "" {
+		delete(out, appInsightsSourceMapStorageTag)
+		return &out
+	}
+	payload, err := json.Marshal(map[string]string{"Uri": uri})
+	if err != nil {
+		// Unreachable for map[string]string; keep compile-safe.
+		return &out
+	}
+	out[appInsightsSourceMapStorageTag] = string(payload)
+	return &out
+}
+
+func flattenApplicationInsightsSourceMapURI(input *map[string]string) string {
+	if input == nil {
+		return ""
+	}
+	raw, ok := (*input)[appInsightsSourceMapStorageTag]
+	if !ok || raw == "" {
+		return ""
+	}
+	var parsed map[string]string
+	if err := json.Unmarshal([]byte(raw), &parsed); err != nil {
+		return ""
+	}
+	return parsed["Uri"]
+}
+
+func stripApplicationInsightsSourceMapTag(input *map[string]string) *map[string]string {
+	if input == nil {
+		return nil
+	}
+	// Avoid surfacing the provider-managed hidden-link as a user tag (prevents drift
+	// when the first-class attribute is used).
+	out := make(map[string]string, len(*input))
+	for k, v := range *input {
+		if k == appInsightsSourceMapStorageTag {
+			continue
+		}
+		out[k] = v
+	}
+	return &out
 }
 
 func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -234,7 +303,7 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 		Location:   location.Normalize(d.Get("location").(string)),
 		Kind:       d.Get("application_type").(string),
 		Properties: &applicationInsightsComponentProperties,
-		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:       expandApplicationInsightsTagsWithSourceMap(d.Get("javascript_source_map_storage_uri").(string), d.Get("tags").(map[string]interface{})),
 	}
 
 	if _, err := client.ComponentsCreateOrUpdate(ctx, id, insightProperties); err != nil {
@@ -363,7 +432,8 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+		_ = d.Set("javascript_source_map_storage_uri", flattenApplicationInsightsSourceMapURI(model.Tags))
+		if err := tags.FlattenAndSet(d, stripApplicationInsightsSourceMapTag(model.Tags)); err != nil {
 			return fmt.Errorf("flattening `tags`: %+v", err)
 		}
 
@@ -481,8 +551,8 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 		component.Properties.RetentionInDays = pointer.To(int64(d.Get("retention_in_days").(int)))
 	}
 
-	if d.HasChange("tags") {
-		component.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	if d.HasChange("tags") || d.HasChange("javascript_source_map_storage_uri") {
+		component.Tags = expandApplicationInsightsTagsWithSourceMap(d.Get("javascript_source_map_storage_uri").(string), d.Get("tags").(map[string]interface{}))
 	}
 
 	if _, err = client.ComponentsCreateOrUpdate(ctx, *id, *component); err != nil {
