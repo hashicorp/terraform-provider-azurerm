@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupinstanceresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-03-01/backupinstanceresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -101,7 +101,7 @@ func (r DataProtectionBackupInstanceBlobStorageResource) Exists(ctx context.Cont
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.DataProtection.BackupInstanceClient.BackupInstancesGet(ctx, *id)
+	resp, err := client.DataProtection.BackupInstanceClient_v2026_03_01.BackupInstancesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil
