@@ -14,6 +14,10 @@ As a general rule, the more complex the resource the more tests there are - for 
 
 * Always put the resource being tested **at the end of each configuration**, especially if a test requires multiple resource or data declarations. This makes it easy to find the resource being tested, especially in large configurations. Example: note how the `azurerm_virtual_machine` is positioned at the end of each configuration [virtual_machine_resource_test.go](../../internal/services/legacy/virtual_machine_resource_test.go)
 
+* For password fields in acceptance tests, prefer fixed known-valid passwords over randomly generated passwords unless randomness is required by the scenario being tested.
+
+* If a test generates passwords, the generated value must guarantee compliance with the password requirements of the specific resource or service being exercised.
+
 ### Running the Tests
 
 See [Running the Tests](running-the-tests.md).
