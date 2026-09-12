@@ -18,6 +18,16 @@ import (
 
 type BotServiceAzureBotResource struct{}
 
+func TestAccBotServiceAzureBot_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_service_azure_bot", "test")
+	r := BotServiceAzureBotResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccBotServiceAzureBot_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_service_azure_bot", "test")
 	r := BotServiceAzureBotResource{}

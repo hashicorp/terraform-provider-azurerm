@@ -12,6 +12,17 @@ import (
 
 type BillingMPAAccountDataSource struct{}
 
+func TestAccBillingMPAAccountDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_billing_mpa_account_scope", "test")
+	r := BillingMPAAccountDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(),
+		},
+	}, "")
+}
+
 func TestAccBillingMPAAccountDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_billing_mpa_account_scope", "test")
 

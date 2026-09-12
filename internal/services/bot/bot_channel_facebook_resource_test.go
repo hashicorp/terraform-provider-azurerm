@@ -20,6 +20,16 @@ import (
 
 type BotChannelFacebookResource struct{}
 
+func TestAccBotChannelFacebook_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_channel_facebook", "test")
+	r := BotChannelFacebookResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccBotChannelFacebook_basic(t *testing.T) {
 	skipFacebookChannel(t)
 

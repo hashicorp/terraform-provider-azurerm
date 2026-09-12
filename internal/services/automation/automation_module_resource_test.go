@@ -18,6 +18,16 @@ import (
 
 type AutomationModuleResource struct{}
 
+func TestAccAutomationModule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_module", "test")
+	r := AutomationModuleResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccAutomationModule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_module", "test")
 	r := AutomationModuleResource{}

@@ -20,6 +20,16 @@ import (
 
 type BotChannelAlexaResource struct{}
 
+func TestAccBotChannelAlexa_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_channel_alexa", "test")
+	r := BotChannelAlexaResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccBotChannelAlexa_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_alexa", "test")
 	r := BotChannelAlexaResource{}

@@ -20,6 +20,16 @@ import (
 
 type BotChannelSMSResource struct{}
 
+func TestAccBotChannelSMS_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_channel_sms", "test")
+	r := BotChannelSMSResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccBotChannelSMS_basic(t *testing.T) {
 	skipSMSChannel(t)
 

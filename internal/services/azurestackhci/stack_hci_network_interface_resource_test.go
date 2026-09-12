@@ -19,6 +19,17 @@ import (
 
 type StackHCINetworkInterfaceResource struct{}
 
+func TestAccStackHCINetworkInterface_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stack_hci_network_interface", "test")
+	r := StackHCINetworkInterfaceResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccStackHCINetworkInterface_basic(t *testing.T) {
 	if os.Getenv(customLocationIdEnv) == "" {
 		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)

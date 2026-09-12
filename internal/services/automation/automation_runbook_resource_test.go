@@ -18,6 +18,16 @@ import (
 
 type AutomationRunbookResource struct{}
 
+func TestAccAutomationRunbook_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
+	r := AutomationRunbookResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.PSWorkflow(data),
+		},
+	}, "")
+}
+
 func TestAccAutomationRunbook_PSWorkflow(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
 	r := AutomationRunbookResource{}

@@ -31,6 +31,17 @@ const (
 	deploymentUserPasswordEnv  = "ARM_TEST_HCI_DEPLOYMENT_USER_PASSWORD"
 )
 
+func TestAccStackHCIDeploymentSetting_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stack_hci_deployment_setting", "test")
+	r := StackHCIDeploymentSettingResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccStackHCIDeploymentSetting_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stack_hci_deployment_setting", "test")
 	r := StackHCIDeploymentSettingResource{}

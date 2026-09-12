@@ -12,6 +12,17 @@ import (
 
 type BillingMCAAccountDataSource struct{}
 
+func TestAccBillingMCAAccountDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_billing_mca_account_scope", "test")
+	r := BillingMCAAccountDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(),
+		},
+	}, "")
+}
+
 func TestAccBillingMCAAccountDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_billing_mca_account_scope", "test")
 

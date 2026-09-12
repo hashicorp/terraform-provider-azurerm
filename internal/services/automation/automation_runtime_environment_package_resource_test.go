@@ -18,6 +18,16 @@ import (
 
 type AutomationRuntimeEnvironmentPackageResource struct{}
 
+func TestAccAutomationRuntimeEnvironmentPackage_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_runtime_environment_package", "test")
+	r := AutomationRuntimeEnvironmentPackageResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccAutomationRuntimeEnvironmentPackage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_runtime_environment_package", "test")
 	r := AutomationRuntimeEnvironmentPackageResource{}
