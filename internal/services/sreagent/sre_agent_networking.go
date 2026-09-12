@@ -15,13 +15,8 @@ import (
 )
 
 type SreAgentNetworking struct {
-	EgressMode string               `tfschema:"egress_mode"`
-	SubnetID   string               `tfschema:"subnet_id"`
-	PrivateDNS []SreAgentPrivateDNS `tfschema:"private_dns"`
-}
-
-type SreAgentPrivateDNS struct {
-	Enabled bool `tfschema:"enabled"`
+	EgressMode string `tfschema:"egress_mode"`
+	SubnetID   string `tfschema:"subnet_id"`
 }
 
 func sreAgentNetworkingSchema() *pluginsdk.Schema {
@@ -35,12 +30,6 @@ func sreAgentNetworkingSchema() *pluginsdk.Schema {
 			"subnet_id": {
 				Type: pluginsdk.TypeString, Optional: true,
 				ValidateFunc: commonids.ValidateSubnetID,
-			},
-			"private_dns": {
-				Type: pluginsdk.TypeList, Optional: true, Computed: true, MaxItems: 1,
-				Elem: &pluginsdk.Resource{Schema: map[string]*pluginsdk.Schema{
-					"enabled": {Type: pluginsdk.TypeBool, Required: true},
-				}},
 			},
 		}},
 	}
@@ -69,30 +58,15 @@ func sreAgentNetworkingRemovalError() error {
 	return fmt.Errorf("removing the entire `networking` block does not detach the subnet: explicitly select a non-VNet `egress_mode` and omit `subnet_id`")
 }
 
-func sreAgentPrivateDNSRemovalError() error {
-	return fmt.Errorf("removing `networking.private_dns` does not reset the service setting: explicitly configure `enabled` as true or false; null reset is not supported")
-}
-
-func expandSreAgentNetworking(network SreAgentNetworking, props *agents.AgentPatchProperties, attachmentChanged, dnsChanged bool) error {
+func expandSreAgentNetworking(network SreAgentNetworking, props *agents.AgentPatchProperties) error {
 	if err := validateSreAgentNetworking(network); err != nil {
 		return err
 	}
 	props.SandboxConfiguration = &agents.SandboxConfiguration{
-		Egress: &agents.SandboxEgressConfiguration{},
+		Egress: &agents.SandboxEgressConfiguration{Mode: pointer.To(agents.SandboxEgressMode(network.EgressMode))},
 	}
-	if attachmentChanged {
-		props.SandboxConfiguration.Egress.Mode = pointer.To(agents.SandboxEgressMode(network.EgressMode))
-		if network.SubnetID != "" {
-			props.VnetConfiguration = &agents.VnetConfiguration{SubnetResourceId: pointer.To(network.SubnetID)}
-		}
-	}
-	if dnsChanged {
-		if len(network.PrivateDNS) != 1 {
-			return sreAgentPrivateDNSRemovalError()
-		}
-		props.SandboxConfiguration.Egress.VnetConfiguration = &agents.SandboxVnetConfiguration{
-			UsePrivateDnsResolution: pointer.To(network.PrivateDNS[0].Enabled),
-		}
+	if network.SubnetID != "" {
+		props.VnetConfiguration = &agents.VnetConfiguration{SubnetResourceId: pointer.To(network.SubnetID)}
 	}
 	return nil
 }
@@ -104,11 +78,8 @@ func flattenSreAgentNetworking(props *agents.AgentProperties) []SreAgentNetworki
 	}
 	if props.SandboxConfiguration != nil && props.SandboxConfiguration.Egress != nil {
 		network.EgressMode = string(pointer.From(props.SandboxConfiguration.Egress.Mode))
-		if dns := props.SandboxConfiguration.Egress.VnetConfiguration; dns != nil && dns.UsePrivateDnsResolution != nil {
-			network.PrivateDNS = []SreAgentPrivateDNS{{Enabled: *dns.UsePrivateDnsResolution}}
-		}
 	}
-	if network.SubnetID == "" && network.EgressMode == "" && len(network.PrivateDNS) == 0 {
+	if network.SubnetID == "" && network.EgressMode == "" {
 		return nil
 	}
 	return []SreAgentNetworking{network}

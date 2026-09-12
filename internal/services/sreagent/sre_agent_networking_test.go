@@ -34,8 +34,8 @@ func TestSreAgentNetworkingSchema(t *testing.T) {
 		t.Fatal("networking must preserve omitted state and support in-place updates")
 	}
 	fields := schema.Elem.(*pluginsdk.Resource).Schema
-	if len(fields) != 3 || fields["private_dns"] == nil || fields["use_vnet_dns"] != nil {
-		t.Fatal("only public subnet_id, egress_mode and private_dns belong in this experiment")
+	if len(fields) != 2 || fields["private_dns"] != nil || fields["use_vnet_dns"] != nil {
+		t.Fatal("only subnet_id and egress_mode belong in this contribution")
 	}
 	if !fields["egress_mode"].Required || fields["egress_mode"].Default != nil || fields["subnet_id"].ForceNew {
 		t.Fatal("egress selection must be explicit and subnet changes must not force replacement")
@@ -195,7 +195,6 @@ func TestSreAgentNetworkingPlanValidation(t *testing.T) {
 	values := protocolValues(wrapped)
 	values["networking"] = cty.ListVal([]cty.Value{cty.ObjectVal(map[string]cty.Value{
 		"egress_mode": cty.StringVal("AzureVNet"), "subnet_id": cty.UnknownVal(cty.String),
-		"private_dns": cty.NullVal(wrapped.CoreConfigSchema().ImpliedType().AttributeType("networking").ElementType().AttributeType("private_dns")),
 	})})
 	if _, err := wrapped.Diff(context.Background(), nil, terraform.NewResourceConfigShimmed(cty.ObjectVal(values), wrapped.CoreConfigSchema()), &clients.Client{}); err != nil {
 		t.Fatalf("unknown subnet references must remain plannable: %v", err)

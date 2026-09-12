@@ -75,16 +75,13 @@ resource "azurerm_sre_agent" "example" {
     egress_mode = "AzureVNet"
     subnet_id   = data.azurerm_subnet.agent.id
 
-    private_dns {
-      enabled = true
-    }
   }
 }
 ```
 
 The data sources read the existing network; they do not transfer management of it to the agent resource. DNS links, routes, firewall rules and subnet capacity remain separately managed. A new agent can require rules for its own endpoint and subnet. This example does not copy another agent's identities, permissions or full network configuration.
 
-This local experiment uses an unmerged public schema. It explicitly requests private DNS through the pinned public field; configuration readback alone does not prove DNS behavior or connectivity.
+This local experiment uses an unmerged networking schema. It does not expose a DNS selector. VNet DNS configuration remains separately managed, and configuration readback alone does not prove DNS behavior or connectivity.
 
 ### Separate identities and an explicit resource scope
 
@@ -212,19 +209,9 @@ A `networking` block supports the following:
 
 * `subnet_id` - (Optional) The resource ID of a dedicated subnet delegated to `Microsoft.App/environments`. Required with `AzureVNet` and must be omitted with the other modes. Use a subnet of /27 or larger in the agent's region.
 
-* `private_dns` - (Optional, Computed) A `private_dns` block as defined below. When omitted, the provider preserves the service setting.
-
 To attach a subnet, configure `egress_mode = "AzureVNet"` and `subnet_id` together. To detach, retain the block, explicitly select a non-VNet mode such as `Limited`, and omit `subnet_id`. The provider sends an explicit null for `vnetConfiguration` and the selected egress mode in one PATCH.
 
 Removing the entire block does not request detachment. Unknown or unmodeled egress settings remain outside this resource's ownership. Managed-path bypass settings are not exposed.
-
----
-
-A `private_dns` block supports the following:
-
-* `enabled` - (Required) Whether to use the virtual network's private DNS resolution. The provider does not select a default.
-
-An absent or null API DNS value is represented by an absent block; it is not converted to false. Explicit true and false values remain distinct in state. Removing the block preserves the returned setting and does not reset it to null. This experiment does not expose an explicit null-reset operation.
 
 ---
 
@@ -238,7 +225,9 @@ A `resources_configuration` block supports the following:
 
 ## Local Draft Limitations
 
-* Networking is a local experiment pinned to [public schema commit `43a1471`](https://github.com/RobiladK/azure-rest-api-specs/blob/43a14713a37a8cc8dd8c14ea7b822a933092b84b/specification/app/resource-manager/Microsoft.App/SreAgent/stable/2026-01-01/sreagent.json), not released AzureRM support. It requires a separately generated experimental SDK. The earlier local experiment used a different public pin without DNS support.
+* Networking is a local contribution associated with the [networking schema proposal](https://github.com/Azure/azure-rest-api-specs/pull/46278), not released AzureRM support. It requires a separately generated SDK.
+
+* DNS-selector support is deferred. DNS values returned by the API are not exposed as Terraform controls. The provider does not send or reset those unmodeled settings during networking or other selective updates.
 
 * Networking changes use selective PATCH. A subnet update does not force resource replacement; service acceptance and routing must be verified separately. ARM configuration readback alone does not establish private connectivity or DNS behavior.
 

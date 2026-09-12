@@ -294,12 +294,6 @@ func (SreAgentResource) CustomizeDiff() sdk.ResourceFunc {
 					}
 				}
 			}
-			if diff.HasChange("networking.0.private_dns") && diff.NewValueKnown("networking.0.private_dns") {
-				oldValue, newValue := diff.GetChange("networking.0.private_dns")
-				if len(oldValue.([]interface{})) > 0 && len(newValue.([]interface{})) == 0 {
-					return sreAgentPrivateDNSRemovalError()
-				}
-			}
 			return nil
 		},
 	}
@@ -322,10 +316,8 @@ func (r SreAgentResource) expandCreate(config SreAgentModel) (agents.Agent, erro
 			return len(config.ActionConfiguration) > 0
 		case "resources_configuration":
 			return len(config.ResourcesConfiguration) > 0
-		case "networking", "networking.0.egress_mode", "networking.0.subnet_id":
+		case "networking":
 			return len(config.Networking) > 0
-		case "networking.0.private_dns":
-			return len(config.Networking) > 0 && len(config.Networking[0].PrivateDNS) > 0
 		}
 		return false
 	})
@@ -400,8 +392,7 @@ func (SreAgentResource) expandPatch(config SreAgentModel, changed func(string) b
 		if payload.Properties == nil {
 			payload.Properties = &agents.AgentPatchProperties{}
 		}
-		attachmentChanged := changed("networking.0.egress_mode") || changed("networking.0.subnet_id")
-		if err := expandSreAgentNetworking(config.Networking[0], payload.Properties, attachmentChanged, changed("networking.0.private_dns")); err != nil {
+		if err := expandSreAgentNetworking(config.Networking[0], payload.Properties); err != nil {
 			return payload, err
 		}
 	}
