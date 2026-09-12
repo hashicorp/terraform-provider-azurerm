@@ -14,9 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupinstanceresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-03-01/backupinstanceresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -101,7 +101,7 @@ func resourceDataProtectionBackupInstanceBlobStorage() *schema.Resource {
 
 func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).DataProtection.BackupInstanceClient
+	client := meta.(*clients.Client).DataProtection.BackupInstanceClient_v2026_03_01
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -182,7 +182,7 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(backupinstanceresources.StatusConfiguringProtection), "UpdatingProtection"},
 		Target:     []string{string(backupinstanceresources.StatusProtectionConfigured)},
-		Refresh:    policyProtectionStateRefreshFunc(ctx, client, id),
+		Refresh:    blobStorageBackupInstanceProtectionStateRefreshFunc(ctx, client, id),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(deadline),
 	}
@@ -195,7 +195,7 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 }
 
 func resourceDataProtectionBackupInstanceBlobStorageRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataProtection.BackupInstanceClient
+	client := meta.(*clients.Client).DataProtection.BackupInstanceClient_v2026_03_01
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -239,7 +239,7 @@ func resourceDataProtectionBackupInstanceBlobStorageRead(d *schema.ResourceData,
 }
 
 func resourceDataProtectionBackupInstanceBlobStorageDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataProtection.BackupInstanceClient
+	client := meta.(*clients.Client).DataProtection.BackupInstanceClient_v2026_03_01
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -255,7 +255,7 @@ func resourceDataProtectionBackupInstanceBlobStorageDelete(d *schema.ResourceDat
 	return nil
 }
 
-func policyProtectionStateRefreshFunc(ctx context.Context, client *backupinstanceresources.BackupInstanceResourcesClient, id backupinstanceresources.BackupInstanceId) pluginsdk.StateRefreshFunc {
+func blobStorageBackupInstanceProtectionStateRefreshFunc(ctx context.Context, client *backupinstanceresources.BackupInstanceResourcesClient, id backupinstanceresources.BackupInstanceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.BackupInstancesGet(ctx, id)
 		if err != nil {
