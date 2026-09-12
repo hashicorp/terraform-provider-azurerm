@@ -13,6 +13,16 @@ import (
 
 type AttestationProviderDataSource struct{}
 
+func TestAccAttestationProviderDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_attestation_provider", "test")
+	r := AttestationProviderDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccAttestationProviderDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_attestation_provider", "test")
 	resource := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")

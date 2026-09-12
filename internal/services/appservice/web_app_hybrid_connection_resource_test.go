@@ -19,6 +19,16 @@ import (
 
 type WebAppHybridConnectionResource struct{}
 
+func TestAccWebAppHybridConnection_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_app_hybrid_connection", "test")
+	r := WebAppHybridConnectionResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccWebAppHybridConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_app_hybrid_connection", "test")
 	r := WebAppHybridConnectionResource{}

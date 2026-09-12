@@ -15,6 +15,17 @@ import (
 
 type RoleDefinitionDataSource struct{}
 
+func TestAccRoleDefinitionDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_role_definition", "test")
+	id := uuid.New().String()
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: RoleDefinitionDataSource{}.basic(id, data),
+		},
+	}, "")
+}
+
 func TestAccRoleDefinitionDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_definition", "test")
 	id := uuid.New().String()

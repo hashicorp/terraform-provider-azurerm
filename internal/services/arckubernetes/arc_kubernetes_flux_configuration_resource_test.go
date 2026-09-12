@@ -22,6 +22,17 @@ import (
 
 type ArcKubernetesFluxConfigurationResource struct{}
 
+func TestAccArcKubernetesFluxConfiguration_regressionTest(t *testing.T) {
+	credential, privateKey, publicKey := ArcKubernetesClusterResource{}.getCredentials(t)
+	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_flux_configuration", "test")
+	r := ArcKubernetesFluxConfigurationResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, credential, privateKey, publicKey),
+		},
+	}, "")
+}
+
 func TestAccArcKubernetesFluxConfiguration_basic(t *testing.T) {
 	credential, privateKey, publicKey := ArcKubernetesClusterResource{}.getCredentials(t)
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_flux_configuration", "test")

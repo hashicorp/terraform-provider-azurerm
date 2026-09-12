@@ -18,6 +18,16 @@ import (
 
 type AppServiceEnvironmentV3Resource struct{}
 
+func TestAccAppServiceEnvironmentV3_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_environment_v3", "test")
+	r := AppServiceEnvironmentV3Resource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccAppServiceEnvironmentV3_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment_v3", "test")
 	r := AppServiceEnvironmentV3Resource{}

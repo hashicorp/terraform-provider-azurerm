@@ -20,6 +20,16 @@ import (
 
 type RoleDefinitionResource struct{}
 
+func TestAccRoleDefinition_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
+	r := RoleDefinitionResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.emptyId(data),
+		},
+	}, "")
+}
+
 func TestAccRoleDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 	r := RoleDefinitionResource{}
