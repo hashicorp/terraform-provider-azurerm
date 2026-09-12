@@ -4,6 +4,7 @@
 package validate
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -273,5 +274,111 @@ func TestKubernetesGitRepositoryUrl(t *testing.T) {
 		if tc.Valid != valid {
 			t.Fatalf("Expected %t but got %t", tc.Valid, valid)
 		}
+	}
+}
+
+func TestKubernetesNodeTaint(t *testing.T) {
+	cases := []struct {
+		NodeTaint string
+		Errors    int
+	}{
+		{
+			NodeTaint: "",
+			Errors:    1,
+		},
+		{
+			NodeTaint: "key=value:NoSchedule",
+			Errors:    0,
+		},
+		{
+			NodeTaint: "key=value:PreferNoSchedule",
+			Errors:    0,
+		},
+		{
+			NodeTaint: "key=value:NoExecute",
+			Errors:    0,
+		},
+		{
+			// the value is optional
+			NodeTaint: "key=:NoSchedule",
+			Errors:    0,
+		},
+		{
+			// keys may be prefixed with a DNS subdomain
+			NodeTaint: "example.com/key=value:NoSchedule",
+			Errors:    0,
+		},
+		{
+			NodeTaint: "Key_1-2.3=Value_1-2.3:NoSchedule",
+			Errors:    0,
+		},
+		{
+			// the key is not optional
+			NodeTaint: "=value:NoSchedule",
+			Errors:    1,
+		},
+		{
+			// missing the effect
+			NodeTaint: "key=value",
+			Errors:    1,
+		},
+		{
+			// missing the value separator
+			NodeTaint: "key:NoSchedule",
+			Errors:    1,
+		},
+		{
+			// effects are case sensitive
+			NodeTaint: "key=value:noschedule",
+			Errors:    1,
+		},
+		{
+			NodeTaint: "key=value:NotAnEffect",
+			Errors:    1,
+		},
+		{
+			NodeTaint: "key=value:NoSchedule:NoExecute",
+			Errors:    1,
+		},
+		{
+			NodeTaint: "key with spaces=value:NoSchedule",
+			Errors:    1,
+		},
+		{
+			NodeTaint: "key=value with spaces:NoSchedule",
+			Errors:    1,
+		},
+		{
+			NodeTaint: "key=value:NoSchedule ",
+			Errors:    1,
+		},
+		{
+			// a 253 character key is the maximum
+			NodeTaint: strings.Repeat("k", 253) + "=value:NoSchedule",
+			Errors:    0,
+		},
+		{
+			NodeTaint: strings.Repeat("k", 254) + "=value:NoSchedule",
+			Errors:    1,
+		},
+		{
+			// a 63 character value is the maximum
+			NodeTaint: "key=" + strings.Repeat("v", 63) + ":NoSchedule",
+			Errors:    0,
+		},
+		{
+			NodeTaint: "key=" + strings.Repeat("v", 64) + ":NoSchedule",
+			Errors:    1,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.NodeTaint, func(t *testing.T) {
+			_, errors := KubernetesNodeTaint(tc.NodeTaint, "test")
+
+			if len(errors) != tc.Errors {
+				t.Fatalf("Expected NodeTaint to return %d error(s) not %d", tc.Errors, len(errors))
+			}
+		})
 	}
 }
