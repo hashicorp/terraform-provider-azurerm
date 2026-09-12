@@ -395,7 +395,7 @@ func (KubernetesAutomaticClusterDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.KubernetesClustersClient_v2026_04_01
+			client := metadata.Client.Containers.KubernetesClustersClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var state KubernetesAutomaticClusterDataSourceModel

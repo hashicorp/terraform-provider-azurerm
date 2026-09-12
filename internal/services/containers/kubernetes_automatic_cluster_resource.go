@@ -129,7 +129,7 @@ func (r KubernetesAutomaticClusterResource) CustomImporter() sdk.ResourceRunFunc
 			return err
 		}
 
-		client := metadata.Client.Containers.KubernetesClustersClient_v2026_04_01
+		client := metadata.Client.Containers.KubernetesClustersClient
 		resp, err := client.Get(ctx, *id)
 		if err != nil || resp.Model == nil {
 			return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -554,7 +554,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			clusterClient := metadata.Client.Containers.KubernetesClustersClient_v2026_04_01
+			clusterClient := metadata.Client.Containers.KubernetesClustersClient
 			subscriptionID := metadata.Client.Account.SubscriptionId
 
 			var model KubernetesAutomaticClusterModel
@@ -613,7 +613,7 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			clusterClient := metadata.Client.Containers.KubernetesClustersClient_v2026_04_01
+			clusterClient := metadata.Client.Containers.KubernetesClustersClient
 
 			id, err := commonids.ParseKubernetesClusterID(metadata.ResourceData.Id())
 			if err != nil {
@@ -634,7 +634,7 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 }
 
 func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadata sdk.ResourceMetaData, id *commonids.KubernetesClusterId, model *managedclusters.ManagedCluster, includeResource bool) error {
-	client := metadata.Client.Containers.KubernetesClustersClient_v2026_04_01
+	client := metadata.Client.Containers.KubernetesClustersClient
 
 	state := KubernetesAutomaticClusterModel{
 		Name:              id.ManagedClusterName,
@@ -709,7 +709,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			clusterClient := metadata.Client.Containers.KubernetesClustersClient_v2026_04_01
+			clusterClient := metadata.Client.Containers.KubernetesClustersClient
 
 			id, err := commonids.ParseKubernetesClusterID(metadata.ResourceData.Id())
 			if err != nil {
@@ -777,7 +777,7 @@ func (r KubernetesAutomaticClusterResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			clusterClient := metadata.Client.Containers.KubernetesClustersClient_v2026_04_01
+			clusterClient := metadata.Client.Containers.KubernetesClustersClient
 
 			id, err := commonids.ParseKubernetesClusterID(metadata.ResourceData.Id())
 			if err != nil {
