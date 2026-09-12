@@ -43,6 +43,14 @@ The following attributes are exported:
 
 * `server_port` - The publicly accessible port of the SignalR service which is designed for customer server side use.
 
+* `cors` - A `cors` block as documented below.
+
+* `connectivity_logs_enabled` - Specifies if Connectivity Logs are enabled or not.
+
+* `messaging_logs_enabled` - Specifies if Messaging Logs are enabled or not.
+
+* `http_request_logs_enabled` - Specifies if Http Request Logs are enabled or not.
+
 * `primary_access_key` - The primary access key of the SignalR service.
 
 * `primary_connection_string` - The primary connection string of the SignalR service.
@@ -50,6 +58,8 @@ The following attributes are exported:
 * `secondary_access_key` - The secondary access key of the SignalR service.
 
 * `secondary_connection_string` - The secondary connection string of the SignalR service.
+
+* `sku` - A `sku` block as documented below.
 
 * `public_network_access_enabled` - Is public network access enabled for this SignalR service?
 
@@ -61,7 +71,53 @@ The following attributes are exported:
 
 * `serverless_connection_timeout_in_seconds` - The serverless connection timeout of this SignalR service.
 
+* `service_mode` - Specifies the service mode.
+
+* `upstream_endpoint` - One or more `upstream_endpoint` blocks as documented below.
+
+* `live_trace` - A `live_trace` block as defined below.
+
 * `identity` - An `identity` block as documented below.
+
+---
+
+The `sku` block exports the following:
+
+* `name` - The name of the SKU.
+
+* `capacity` - The capacity of the SKU.
+
+---
+
+A `cors` block exports the following:
+
+* `allowed_origins` - A list of origins which should be able to make cross-origin calls.
+
+---
+
+An `upstream_endpoint` block exports the following:
+
+* `url_template` - The upstream URL Template.
+
+* `category_pattern` - The categories to match on, or `*` for all.
+
+* `event_pattern` - The events to match on, or `*` for all.
+
+* `hub_pattern` - The hubs to match on, or `*` for all.
+
+* `user_assigned_identity_id` - The Managed Identity ID assigned to this SignalR upstream setting.
+
+---
+
+A `live_trace` block exports the following:
+
+* `enabled` - Whether live trace is enabled.
+
+* `messaging_logs_enabled` - Whether the log category `MessagingLogs` is enabled.
+
+* `connectivity_logs_enabled` - Whether the log category `ConnectivityLogs` is enabled.
+
+* `http_request_logs_enabled` - Whether the log category `HttpRequestLogs` is enabled.
 
 ---
 
@@ -69,7 +125,7 @@ The `identity` block exports the following:
 
 * `type` - The type of identity used for the signalR service.
 
-* `user_assigned_identity_id` - The ID of the User Assigned Identity. This value will be empty when using system assigned identity.
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to the SignalR service.
 
 * `principal_id` - The principal id of the system assigned identity.
 
