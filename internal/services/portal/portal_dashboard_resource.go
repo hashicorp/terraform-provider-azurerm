@@ -108,6 +108,34 @@ func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	if d.IsNewResource() {
 		d.SetId(id.ID())
+
+		// The API is eventually consistent - a `Get` immediately following `CreateOrUpdate` can 404 before the
+		// platform has finished propagating the newly created Dashboard, which surfaces to users as `Provider
+		// produced inconsistent result after apply`.
+		deadline, ok := ctx.Deadline()
+		if !ok {
+			return fmt.Errorf("internal error: context had no deadline")
+		}
+		log.Printf("[DEBUG] Waiting for %s to become available..", id)
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending:    []string{"404"},
+			Target:     []string{"200"},
+			MinTimeout: 10 * time.Second,
+			Timeout:    time.Until(deadline),
+			Refresh: func() (interface{}, string, error) {
+				resp, err := client.Get(ctx, id)
+				if err != nil {
+					if response.WasNotFound(resp.HttpResponse) {
+						return resp, "404", nil
+					}
+					return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
+				}
+				return resp, "200", nil
+			},
+		}
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("waiting for %s to become available: %+v", id, err)
+		}
 	}
 
 	return resourcePortalDashboardRead(d, meta)
