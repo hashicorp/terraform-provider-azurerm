@@ -53,6 +53,22 @@ func resourceVirtualNetworkPeering() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
+			"subscription_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				ValidateFunc: validation.Any(validation.IsUUID, commonids.ValidateSubscriptionID),
+				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+					normOld, err1 := parseSubscriptionId(old)
+					normNew, err2 := parseSubscriptionId(new)
+					if err1 != nil || err2 != nil {
+						return false
+					}
+					return strings.EqualFold(normOld, normNew)
+				},
+			},
+
 			"virtual_network_name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
@@ -135,6 +151,13 @@ func resourceVirtualNetworkPeering() *pluginsdk.Resource {
 func resourceVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualNetworkPeerings
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	if v, ok := d.GetOk("subscription_id"); ok && v.(string) != "" {
+		parsed, err := parseSubscriptionId(v.(string))
+		if err != nil {
+			return fmt.Errorf("parsing `subscription_id`: %+v", err)
+		}
+		subscriptionId = parsed
+	}
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -313,6 +336,7 @@ func resourceVirtualNetworkPeeringFlatten(d *pluginsdk.ResourceData, id *virtual
 	d.Set("name", id.VirtualNetworkPeeringName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("virtual_network_name", id.VirtualNetworkName)
+	d.Set("subscription_id", id.SubscriptionId)
 
 	if model != nil {
 		if peer := model.Properties; peer != nil {
@@ -365,4 +389,15 @@ func resourceVirtualNetworkPeeringDelete(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	return err
+}
+
+func parseSubscriptionId(in string) (string, error) {
+	if strings.HasPrefix(strings.ToLower(in), "/subscriptions/") {
+		parsed, err := commonids.ParseSubscriptionID(in)
+		if err != nil {
+			return "", err
+		}
+		return parsed.SubscriptionId, nil
+	}
+	return in, nil
 }
