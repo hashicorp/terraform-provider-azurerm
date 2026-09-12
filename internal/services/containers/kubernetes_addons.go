@@ -363,9 +363,6 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 	azurePolicyEnabled := input["azure_policy_enabled"].(bool)
 	addonProfiles[azurePolicyKey] = managedclusters.ManagedClusterAddonProfile{
 		Enabled: azurePolicyEnabled,
-		Config: pointer.To(map[string]string{
-			"version": "v2",
-		}),
 	}
 
 	ingressApplicationGateway := input["ingress_application_gateway"].([]interface{})
