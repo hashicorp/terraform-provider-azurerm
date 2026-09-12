@@ -13,6 +13,16 @@ import (
 
 type PlatformImageDataSource struct{}
 
+func TestAccDataSourcePlatformImage_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_platform_image", "test")
+	r := PlatformImageDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourcePlatformImage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_platform_image", "test")
 	r := PlatformImageDataSource{}

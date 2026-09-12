@@ -13,6 +13,16 @@ import (
 
 type ContainerAppDataSource struct{}
 
+func TestAccContainerAppDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_container_app", "test")
+	r := ContainerAppDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccContainerAppDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_container_app", "test")
 	r := ContainerAppDataSource{}

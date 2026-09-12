@@ -19,6 +19,16 @@ import (
 
 type DiskEncryptionSetResource struct{}
 
+func TestAccDiskEncryptionSet_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
+	r := DiskEncryptionSetResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDiskEncryptionSet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
 	r := DiskEncryptionSetResource{}

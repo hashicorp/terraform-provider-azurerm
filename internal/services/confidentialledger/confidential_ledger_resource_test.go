@@ -25,8 +25,20 @@ func TestAccConfidentialLedger_sequential(t *testing.T) {
 			"private":        testAccConfidentialLedger_private,
 			"requiresImport": testAccConfidentialLedger_requiresImport,
 			"certBased":      testAccConfidentialLedger_certBased,
+			"regression":     testAccConfidentialLedger_regressionTest,
 		},
 	})
+}
+
+func testAccConfidentialLedger_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_confidential_ledger", "test")
+	r := ConfidentialLedgerResource{}
+
+	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.public(data),
+		},
+	}, "")
 }
 
 func testAccConfidentialLedger_public(t *testing.T) {

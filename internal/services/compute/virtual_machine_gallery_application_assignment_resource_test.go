@@ -21,6 +21,16 @@ import (
 
 type VirtualMachineGalleryApplicationAssignmentResource struct{}
 
+func TestAccVirtualMachineGalleryApplicationAssignment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_gallery_application_assignment", "test")
+	r := VirtualMachineGalleryApplicationAssignmentResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccVirtualMachineGalleryApplicationAssignment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_gallery_application_assignment", "test")
 	r := VirtualMachineGalleryApplicationAssignmentResource{}

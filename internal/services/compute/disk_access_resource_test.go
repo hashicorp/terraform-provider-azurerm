@@ -19,6 +19,16 @@ import (
 
 type DiskAccessResource struct{}
 
+func TestAccDiskAccess_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_disk_access", "test")
+	r := DiskAccessResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.empty(data),
+		},
+	}, "")
+}
+
 func TestAccDiskAccess_empty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_disk_access", "test")
 	r := DiskAccessResource{}

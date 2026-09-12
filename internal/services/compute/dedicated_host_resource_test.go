@@ -19,6 +19,16 @@ import (
 
 type DedicatedHostResource struct{}
 
+func TestAccDedicatedHost_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dedicated_host", "test")
+	r := DedicatedHostResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDedicatedHost_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_host", "test")
 	r := DedicatedHostResource{}

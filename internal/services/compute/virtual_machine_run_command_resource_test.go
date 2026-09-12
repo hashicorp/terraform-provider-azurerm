@@ -19,6 +19,16 @@ import (
 
 type VirtualMachineRunCommandTestResource struct{}
 
+func TestAccVirtualMachineRunCommand_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_run_command", "test")
+	r := VirtualMachineRunCommandTestResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccVirtualMachineRunCommand_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_run_command", "test")
 	r := VirtualMachineRunCommandTestResource{}

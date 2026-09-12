@@ -19,6 +19,16 @@ import (
 
 type CapacityReservationGroupResource struct{}
 
+func TestAccCapacityReservationGroup_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_capacity_reservation_group", "test")
+	r := CapacityReservationGroupResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccCapacityReservationGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_capacity_reservation_group", "test")
 	r := CapacityReservationGroupResource{}
