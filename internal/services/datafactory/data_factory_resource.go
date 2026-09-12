@@ -477,6 +477,13 @@ func expandDataFactoryGlobalParameters(input []interface{}) (*map[string]factori
 			Type:  factories.GlobalParameterType(v["type"].(string)),
 			Value: v["value"].(string),
 		}
+
+		if result[name].Type == factories.GlobalParameterTypeArray || result[name].Type == factories.GlobalParameterTypeObject {
+			resultValue := result[name]
+			if err := json.Unmarshal([]byte(v["value"].(string)), &resultValue.Value); err == nil {
+				result[name] = resultValue
+			}
+		}
 	}
 	return &result, nil
 }
