@@ -6,6 +6,7 @@ package dataprotection_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -93,6 +94,94 @@ func TestAccDataProtectionBackupInstanceBlobStorage_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+// Enabling auto protection is irreversible in Azure: a Backup Instance cannot be switched back to a container list,
+// so none of the auto protection tests attempt to do so - the guard against it is only verified with a plan-only step.
+func TestAccDataProtectionBackupInstanceBlobStorage_autoProtection(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_blob_storage", "test")
+	r := DataProtectionBackupInstanceBlobStorageResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.autoProtection(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auto_protection_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("excluded_container_name_prefixes.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.autoProtectionExcludedPrefixes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("excluded_container_name_prefixes.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.autoProtection(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("excluded_container_name_prefixes.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// switching back to a container list must be rejected at plan time
+			Config:      r.complete(data),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("`auto_protection_enabled` cannot be changed from `true` to `false`"),
+		},
+		{
+			// as must removing the container selection altogether
+			Config:      r.basicVaulted(data),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("`auto_protection_enabled` cannot be changed from `true` to `false`"),
+		},
+	})
+}
+
+func TestAccDataProtectionBackupInstanceBlobStorage_autoProtectionFromContainerNames(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_blob_storage", "test")
+	r := DataProtectionBackupInstanceBlobStorageResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auto_protection_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// migrating from a container list to auto protection is an in-place update (ResourceTest asserts no replacement)
+			Config: r.autoProtectionExcludedPrefixes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auto_protection_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("storage_account_container_names.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDataProtectionBackupInstanceBlobStorage_autoProtectionInvalidConfig(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_blob_storage", "test")
+	r := DataProtectionBackupInstanceBlobStorageResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.autoProtectionWithContainerNames(data),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("`storage_account_container_names` cannot be set when `auto_protection_enabled` is `true`"),
+		},
+		{
+			Config:      r.excludedPrefixesWithoutAutoProtection(data),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("`excluded_container_name_prefixes` can only be set when `auto_protection_enabled` is `true`"),
+		},
 	})
 }
 
@@ -272,6 +361,93 @@ resource "azurerm_data_protection_backup_instance_blob_storage" "test" {
   storage_account_id              = azurerm_storage_account.test.id
   backup_policy_id                = azurerm_data_protection_backup_policy_blob_storage.hybrid.id
   storage_account_container_names = [azurerm_storage_container.another.name]
+
+  depends_on = [azurerm_role_assignment.test]
+}
+`, template, data.RandomInteger)
+}
+
+func (r DataProtectionBackupInstanceBlobStorageResource) basicVaulted(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_data_protection_backup_instance_blob_storage" "test" {
+  name               = "acctest-dbi-%d"
+  location           = azurerm_resource_group.test.location
+  vault_id           = azurerm_data_protection_backup_vault.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  backup_policy_id   = azurerm_data_protection_backup_policy_blob_storage.hybrid.id
+
+  depends_on = [azurerm_role_assignment.test]
+}
+`, template, data.RandomInteger)
+}
+
+func (r DataProtectionBackupInstanceBlobStorageResource) autoProtection(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_data_protection_backup_instance_blob_storage" "test" {
+  name                    = "acctest-dbi-%d"
+  location                = azurerm_resource_group.test.location
+  vault_id                = azurerm_data_protection_backup_vault.test.id
+  storage_account_id      = azurerm_storage_account.test.id
+  backup_policy_id        = azurerm_data_protection_backup_policy_blob_storage.hybrid.id
+  auto_protection_enabled = true
+
+  depends_on = [azurerm_role_assignment.test]
+}
+`, template, data.RandomInteger)
+}
+
+func (r DataProtectionBackupInstanceBlobStorageResource) autoProtectionExcludedPrefixes(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_data_protection_backup_instance_blob_storage" "test" {
+  name                             = "acctest-dbi-%d"
+  location                         = azurerm_resource_group.test.location
+  vault_id                         = azurerm_data_protection_backup_vault.test.id
+  storage_account_id               = azurerm_storage_account.test.id
+  backup_policy_id                 = azurerm_data_protection_backup_policy_blob_storage.hybrid.id
+  auto_protection_enabled          = true
+  excluded_container_name_prefixes = ["temp-", azurerm_storage_container.another.name]
+
+  depends_on = [azurerm_role_assignment.test]
+}
+`, template, data.RandomInteger)
+}
+
+func (r DataProtectionBackupInstanceBlobStorageResource) autoProtectionWithContainerNames(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_data_protection_backup_instance_blob_storage" "test" {
+  name                            = "acctest-dbi-%d"
+  location                        = azurerm_resource_group.test.location
+  vault_id                        = azurerm_data_protection_backup_vault.test.id
+  storage_account_id              = azurerm_storage_account.test.id
+  backup_policy_id                = azurerm_data_protection_backup_policy_blob_storage.hybrid.id
+  auto_protection_enabled         = true
+  storage_account_container_names = [azurerm_storage_container.test.name]
+
+  depends_on = [azurerm_role_assignment.test]
+}
+`, template, data.RandomInteger)
+}
+
+func (r DataProtectionBackupInstanceBlobStorageResource) excludedPrefixesWithoutAutoProtection(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_data_protection_backup_instance_blob_storage" "test" {
+  name                             = "acctest-dbi-%d"
+  location                         = azurerm_resource_group.test.location
+  vault_id                         = azurerm_data_protection_backup_vault.test.id
+  storage_account_id               = azurerm_storage_account.test.id
+  backup_policy_id                 = azurerm_data_protection_backup_policy_blob_storage.hybrid.id
+  auto_protection_enabled          = false
+  excluded_container_name_prefixes = ["temp-"]
 
   depends_on = [azurerm_role_assignment.test]
 }
