@@ -70,6 +70,17 @@ func resourceApiConnection() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"kind": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  "V1",
+				ValidateFunc: validation.StringInSlice([]string{
+					"V1",
+					"V2",
+				}, false),
+			},
+
 			"parameter_values": {
 				Type:     pluginsdk.TypeMap,
 				Optional: true,
@@ -109,6 +120,7 @@ func resourceApiConnectionCreate(d *schema.ResourceData, meta interface{}) error
 	}
 	location := location.Normalize(managedAppId.LocationName)
 	model := connections.ApiConnectionDefinition{
+		Kind:     pointer.To(d.Get("kind").(string)),
 		Location: pointer.To(location),
 		Properties: &connections.ApiConnectionDefinitionProperties{
 			Api: &connections.ApiReference{
@@ -154,6 +166,8 @@ func resourceApiConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", id.ConnectionName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	if model := resp.Model; model != nil {
+		d.Set("kind", pointer.From(model.Kind))
+
 		if props := model.Properties; props != nil {
 			d.Set("display_name", props.DisplayName)
 
