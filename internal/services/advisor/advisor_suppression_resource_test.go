@@ -18,6 +18,16 @@ import (
 
 type AdvisorSuppressionResource struct{}
 
+func TestAccAnalysisServicesServer_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_advisor_suppression", "test")
+	r := AdvisorSuppressionResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccAnalysisServicesServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_advisor_suppression", "test")
 	r := AdvisorSuppressionResource{}

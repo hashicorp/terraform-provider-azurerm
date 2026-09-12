@@ -19,6 +19,16 @@ import (
 
 type ApiManagementNamedValueResource struct{}
 
+func TestAccApiManagementNamedValue_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_named_value", "test")
+	r := ApiManagementNamedValueResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementNamedValue_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_named_value", "test")
 	r := ApiManagementNamedValueResource{}

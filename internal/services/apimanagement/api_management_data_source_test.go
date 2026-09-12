@@ -13,6 +13,16 @@ import (
 
 type ApiManagementDataSource struct{}
 
+func TestAccDataSourceApiManagement_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_api_management", "test")
+	r := ApiManagementDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceApiManagement_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_api_management", "test")
 	r := ApiManagementDataSource{}
