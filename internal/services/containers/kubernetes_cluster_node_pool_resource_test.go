@@ -466,6 +466,88 @@ func TestAccKubernetesClusterNodePool_nodePublicIP(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterNodePool_podIPAllocationMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.podIPAllocationModeConfig(data, string(agentpools.PodIPAllocationModeStaticBlock)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("pod_ip_allocation_mode").HasValue(string(agentpools.PodIPAllocationModeStaticBlock)),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesClusterNodePool_podIPAllocationModeOmitted(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+	clusterResourceName := "azurerm_kubernetes_cluster.test"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.podIPAllocationModeConfig(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(func(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+					ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+					defer cancel()
+
+					id, err := agentpools.ParseAgentPoolID(state.ID)
+					if err != nil {
+						return err
+					}
+					result, err := client.Containers.AgentPoolsClient.Get(ctx, *id)
+					if err != nil {
+						return fmt.Errorf("reading omitted node-pool allocation mode: %+v", err)
+					}
+					if result.Model == nil || result.Model.Properties == nil {
+						return fmt.Errorf("reading omitted node-pool allocation mode: missing response properties")
+					}
+					mode := result.Model.Properties.PodIPAllocationMode
+					if actual := state.Attributes["pod_ip_allocation_mode"]; actual != pointer.FromEnum(mode) {
+						return fmt.Errorf("node-pool allocation mode in state %q does not match Azure %q", actual, pointer.FromEnum(mode))
+					}
+					t.Logf("POD_IP_OMITTED_API node_pool present=%t value=%q", mode != nil, pointer.FromEnum(mode))
+					return nil
+				}),
+				data.CheckWithClientForResource(func(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+					ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+					defer cancel()
+
+					id, err := commonids.ParseKubernetesClusterID(state.ID)
+					if err != nil {
+						return err
+					}
+					result, err := client.Containers.KubernetesClustersClient.Get(ctx, *id)
+					if err != nil {
+						return fmt.Errorf("reading omitted default-pool allocation mode: %+v", err)
+					}
+					if result.Model == nil || result.Model.Properties == nil || result.Model.Properties.AgentPoolProfiles == nil {
+						return fmt.Errorf("reading omitted default-pool allocation mode: missing agent-pool profiles")
+					}
+					for _, pool := range *result.Model.Properties.AgentPoolProfiles {
+						if pool.Name == "default" {
+							mode := pool.PodIPAllocationMode
+							if actual := state.Attributes["default_node_pool.0.pod_ip_allocation_mode"]; actual != pointer.FromEnum(mode) {
+								return fmt.Errorf("default-pool allocation mode in state %q does not match Azure %q", actual, pointer.FromEnum(mode))
+							}
+							t.Logf("POD_IP_OMITTED_API default_node_pool present=%t value=%q", mode != nil, pointer.FromEnum(mode))
+							return nil
+						}
+					}
+					return fmt.Errorf("reading omitted default-pool allocation mode: default pool not found")
+				}, clusterResourceName),
+			),
+		},
+		data.ImportStep(),
+		data.ImportStepFor(clusterResourceName),
+	})
+}
+
 func TestAccKubernetesClusterNodePool_podSubnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
@@ -2171,6 +2253,116 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   }
 }
 `, r.templateConfig(data), data.RandomInteger)
+}
+
+func (KubernetesClusterNodePoolResource) podIPAllocationModeConfig(data acceptance.TestData, allocationMode string) string {
+	podIPAllocationMode := ""
+	if allocationMode != "" {
+		podIPAllocationMode = fmt.Sprintf("pod_ip_allocation_mode = %q", allocationMode)
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%[1]d"
+  address_space       = ["10.0.0.0/8"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.1.0.0/16"]
+}
+
+resource "azurerm_subnet" "defaultpod" {
+  name                 = "acctestdefaultpodsubnet-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.2.0.0/16"]
+
+  delegation {
+    name = "aks-delegation"
+    service_delegation {
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+      name = "Microsoft.ContainerService/managedClusters"
+    }
+  }
+}
+
+resource "azurerm_subnet" "testpod" {
+  name                 = "acctesttestpodsubnet-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.3.0.0/16"]
+
+  delegation {
+    name = "aks-delegation"
+    service_delegation {
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+      name = "Microsoft.ContainerService/managedClusters"
+    }
+  }
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]d"
+
+  default_node_pool {
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_D2s_v3"
+    vnet_subnet_id = azurerm_subnet.test.id
+    pod_subnet_id  = azurerm_subnet.defaultpod.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
+  network_profile {
+    network_plugin = "azure"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_D2s_v3"
+  node_count            = 1
+  vnet_subnet_id        = azurerm_subnet.test.id
+  pod_subnet_id         = azurerm_subnet.testpod.id
+  %[3]s
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, podIPAllocationMode)
 }
 
 func (r KubernetesClusterNodePoolResource) podSubnet(data acceptance.TestData) string {

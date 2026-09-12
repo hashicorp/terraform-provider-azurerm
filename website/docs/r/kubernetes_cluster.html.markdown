@@ -429,6 +429,10 @@ A `default_node_pool` block supports the following:
 
 -> **Note:** `Windows2019` is deprecated and not supported for Kubernetes version ≥1.33.
 
+* `pod_ip_allocation_mode` - (Optional) The IP allocation mode for pods in the agent pool. Possible values are `DynamicIndividual` and `StaticBlock`. Must be used with `pod_subnet_id`. Changing this forces a new resource to be created.
+
+-> **Note:** `StaticBlock` requires Azure CNI Pod Subnet and Kubernetes version `1.28` or later. A pod subnet cannot mix static block and dynamic individual allocation. Existing node pools cannot be migrated between these modes in place. See the [Azure documentation](https://learn.microsoft.com/azure/aks/configure-azure-cni-static-block-allocation) for subnet sizing and limitations.
+
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the default Node Pool should exist.
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group. Changing this forces a new resource to be created.
