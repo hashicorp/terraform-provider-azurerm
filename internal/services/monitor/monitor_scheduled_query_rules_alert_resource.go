@@ -144,9 +144,11 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 				}, false),
 			},
 			"severity": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				ValidateFunc: validation.IntBetween(0, 4),
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				ValidateFunc:     validateMonitorSeverity,
+				StateFunc:        normalizeMonitorSeverityState,
+				DiffSuppressFunc: suppressMonitorSeverityDiff,
 			},
 			"throttling": {
 				Type:          pluginsdk.TypeInt,
@@ -353,11 +355,11 @@ func resourceMonitorScheduledQueryRulesAlertFlatten(d *pluginsdk.ResourceData, i
 		if err := d.Set("action", flattenAzureRmScheduledQueryRulesAlertAction(action.AznsAction)); err != nil {
 			return fmt.Errorf("setting `action`: %+v", err)
 		}
-		severity, err := strconv.Atoi(string(action.Severity))
+		severity, err := normalizeMonitorSeverity(string(action.Severity))
 		if err != nil {
 			return fmt.Errorf("converting action.Severity %q to int in %s: %+v", action.Severity, *id, err)
 		}
-		d.Set("severity", severity)
+		d.Set("severity", strconv.Itoa(severity))
 		d.Set("throttling", action.ThrottlingInMin)
 		if err = d.Set("trigger", flattenAzureRmScheduledQueryRulesAlertTrigger(action.Trigger)); err != nil {
 			return fmt.Errorf("setting `trigger`: %+v", err)
@@ -403,8 +405,13 @@ func resourceMonitorScheduledQueryRulesAlertDelete(d *pluginsdk.ResourceData, me
 func expandMonitorScheduledQueryRulesAlertingAction(d *pluginsdk.ResourceData) *scheduledqueryrules.AlertingAction {
 	alertActionRaw := d.Get("action").([]interface{})
 	alertAction := expandMonitorScheduledQueryRulesAlertAction(alertActionRaw)
-	severityRaw := d.Get("severity").(int)
-	severity := strconv.Itoa(severityRaw)
+	severityRaw := d.Get("severity").(string)
+	severityValue, err := normalizeMonitorSeverity(severityRaw)
+	if err != nil {
+		// This should be prevented by schema validation, but we keep a safe fallback.
+		severityValue = 0
+	}
+	severity := strconv.Itoa(severityValue)
 
 	triggerRaw := d.Get("trigger").([]interface{})
 	trigger := expandMonitorScheduledQueryRulesAlertTrigger(triggerRaw)
