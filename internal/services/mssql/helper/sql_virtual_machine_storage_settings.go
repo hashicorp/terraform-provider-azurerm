@@ -27,6 +27,11 @@ func StorageSettingSchema() *pluginsdk.Schema {
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
+				"use_storage_pool": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+				},
 			},
 		},
 	}
@@ -75,6 +80,11 @@ func SQLTempDBStorageSettingSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeInt,
 					},
+				},
+				"use_storage_pool": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
 				},
 			},
 		},
