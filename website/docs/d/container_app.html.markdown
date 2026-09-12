@@ -275,6 +275,8 @@ An `identity` block exports the following:
 
 An `ingress` block exports the following:
 
+* `additional_port_mapping` - One or more `additional_port_mapping` blocks as detailed below.
+
 * `allow_insecure_connections` - Should this ingress allow insecure connections?
 
 * `client_certificate_mode` - The client certificate mode for the Ingress.
@@ -294,6 +296,16 @@ An `ingress` block exports the following:
 * `traffic_weight` - A `traffic_weight` block as detailed below.
 
 * `transport` - The transport method for the Ingress.
+
+---
+
+An `additional_port_mapping` block exports the following:
+
+* `external_enabled` - Are connections to this port mapping from outside the Container App Environment enabled?
+
+* `target_port` - The target TCP port on the container for the additional Ingress traffic.
+
+* `exposed_port` - The TCP port exposed for the additional Ingress traffic.
 
 ---
 
