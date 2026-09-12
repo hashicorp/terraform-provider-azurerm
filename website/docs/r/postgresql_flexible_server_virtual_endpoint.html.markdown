@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `replica_server_id` - (Required) The Resource ID of the *Replica* Postgres Flexible Server this should be associated with
 
-~> **Note:** If a fail-over has occurred, you will be unable to update `replica_server_id`. You can remove the resource from state and reimport it back in with `source_server_id` and `replica_server_id` flipped and then update `replica_server_id`.
+~> **Note:** If a fail-over has occurred, you will be unable to update `replica_server_id`. You can remove the resource from state and reimport it back in with `source_server_id` and `replica_server_id` flipped and then update `replica_server_id`. Alternatively, set `recreate_resource_after_failover = true` in the `postgresql_flexible_server_virtual_endpoint` block of the provider `features {}` configuration to have Terraform automatically handle failover recovery via resource recreation — see the [features block documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#postgresql_flexible_server_virtual_endpoint) for details.
 
 * `type` - (Required) The type of Virtual Endpoint. Currently only `ReadWrite` is supported. Changing this forces a new resource to be created.
 
