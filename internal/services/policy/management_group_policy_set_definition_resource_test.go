@@ -209,7 +209,7 @@ resource "azurerm_management_group_policy_set_definition" "test" {
 PARAMETERS
 
   policy_definition_reference {
-    policy_definition_id = azurerm_policy_definition.test.id
+    policy_definition_id = azurerm_management_group_policy_definition.test.id
     parameter_values     = <<VALUES
    {
      "allowedLocations": {"value": "[parameters('allowedLocations')]"}
@@ -255,7 +255,7 @@ resource "azurerm_management_group_policy_set_definition" "test" {
 PARAMETERS
 
   policy_definition_reference {
-    policy_definition_id = azurerm_policy_definition.test.id
+    policy_definition_id = azurerm_management_group_policy_definition.test.id
     parameter_values     = <<VALUES
    {
      "allowedLocations": {"value": "[parameters('allowedLocations')]"}
@@ -330,7 +330,7 @@ METADATA
 PARAMETERS
 
   policy_definition_reference {
-    policy_definition_id = azurerm_policy_definition.test.id
+    policy_definition_id = azurerm_management_group_policy_definition.test.id
     parameter_values     = <<VALUES
    {
      "allowedLocations": {"value": "[parameters('allowedLocations')]"}
@@ -422,7 +422,7 @@ resource "azurerm_management_group" "test" {
   display_name = "acctestmg-%d"
 }
 
-resource "azurerm_policy_definition" "test" {
+resource "azurerm_management_group_policy_definition" "test" {
   name                = "acctestpol-%[1]d"
   display_name        = "acctestpol-%[1]d"
   management_group_id = azurerm_management_group.test.id
