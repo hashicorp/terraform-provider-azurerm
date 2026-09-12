@@ -44,6 +44,7 @@ func (r Registration) Resources() []sdk.Resource {
 		StorageMoverJobDefinitionResource{},
 		StorageMoverProjectResource{},
 		StorageMoverResource{},
+		StorageMoverSmbFileShareTargetEndpointResource{},
 		StorageMoverSourceEndpointResource{},
 		StorageMoverTargetEndpointResource{},
 	}
@@ -71,6 +72,7 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 		StorageMoverJobDefinitionListResource{},
 		StorageMoverListResource{},
 		StorageMoverProjectListResource{},
+		StorageMoverSmbFileShareTargetEndpointListResource{},
 		StorageMoverSourceEndpointListResource{},
 		StorageMoverTargetEndpointListResource{},
 	}
