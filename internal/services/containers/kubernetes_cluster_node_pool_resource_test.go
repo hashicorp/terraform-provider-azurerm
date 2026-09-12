@@ -493,6 +493,9 @@ func TestAccKubernetesClusterNodePool_podIPAllocationModeOmitted(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClient(func(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+					ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+					defer cancel()
+
 					id, err := agentpools.ParseAgentPoolID(state.ID)
 					if err != nil {
 						return err
@@ -512,6 +515,9 @@ func TestAccKubernetesClusterNodePool_podIPAllocationModeOmitted(t *testing.T) {
 					return nil
 				}),
 				data.CheckWithClientForResource(func(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
+					ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+					defer cancel()
+
 					id, err := commonids.ParseKubernetesClusterID(state.ID)
 					if err != nil {
 						return err
