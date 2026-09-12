@@ -90,6 +90,14 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `key_vault_id` property has been removed.
 
+### `azurerm_kubernetes_cluster`
+
+* The `upgrade_settings` block within `default_node_pool` is now required.
+
+### `azurerm_kubernetes_cluster_node_pool`
+
+* The `upgrade_settings` block is now required.
+
 ### `azurerm_storage_account`
 
 * The deprecated `public_network_access_enabled` property has been removed.
