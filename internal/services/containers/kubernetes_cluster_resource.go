@@ -23,9 +23,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-04-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-04-01/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-04-01/managedclusters"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
@@ -61,7 +61,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				return []*pluginsdk.ResourceData{d}, err
 			}
 
-			client := meta.(*clients.Client).Containers.KubernetesClustersClient
+			client := meta.(*clients.Client).Containers.KubernetesClustersClient_v2026_04_01
 			resp, err := client.Get(ctx, *resourceId)
 			if err != nil || resp.Model == nil {
 				return []*pluginsdk.ResourceData{d}, fmt.Errorf("retrieving %s: %+v", *resourceId, err)
@@ -1706,7 +1706,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).Containers.KubernetesClustersClient
+	client := meta.(*clients.Client).Containers.KubernetesClustersClient_v2026_04_01
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	env := meta.(*clients.Client).Containers.Environment
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -2024,7 +2024,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	containersClient := meta.(*clients.Client).Containers
 	nodePoolsClient := containersClient.AgentPoolsClient
-	clusterClient := containersClient.KubernetesClustersClient
+	clusterClient := containersClient.KubernetesClustersClient_v2026_04_01
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	env := containersClient.Environment
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -2780,7 +2780,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.KubernetesClustersClient
+	client := meta.(*clients.Client).Containers.KubernetesClustersClient_v2026_04_01
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -3111,7 +3111,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceKubernetesClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.KubernetesClustersClient
+	client := meta.(*clients.Client).Containers.KubernetesClustersClient_v2026_04_01
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

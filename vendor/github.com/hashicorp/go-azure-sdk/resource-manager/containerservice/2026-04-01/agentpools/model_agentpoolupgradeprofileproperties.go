@@ -7,5 +7,6 @@ type AgentPoolUpgradeProfileProperties struct {
 	KubernetesVersion      string                                           `json:"kubernetesVersion"`
 	LatestNodeImageVersion *string                                          `json:"latestNodeImageVersion,omitempty"`
 	OsType                 OSType                                           `json:"osType"`
+	RecentlyUsedVersions   *[]AgentPoolRecentlyUsedVersion                  `json:"recentlyUsedVersions,omitempty"`
 	Upgrades               *[]AgentPoolUpgradeProfilePropertiesUpgradesItem `json:"upgrades,omitempty"`
 }
