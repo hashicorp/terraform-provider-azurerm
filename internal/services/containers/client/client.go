@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-07-01/credentialsets"
 	containerregistry "github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2019-08-01/containerservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-03-01/autoupgradeprofiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-03-01/fleetupdatestrategies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-03-01/updateruns"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/deploymentsafeguards"
@@ -37,6 +38,7 @@ type Client struct {
 	// v2019_06_01_preview is needed for container registry agent pools and tasks
 	ContainerRegistryClient_v2019_06_01_preview *containerregistry_v2019_06_01_preview.Client
 	DeploymentSafeguardsClient                  *deploymentsafeguards.DeploymentSafeguardsClient
+	FleetAutoUpgradeProfilesClient              *autoupgradeprofiles.AutoUpgradeProfilesClient
 	FleetUpdateRunsClient                       *updateruns.UpdateRunsClient
 	FleetUpdateStrategiesClient                 *fleetupdatestrategies.FleetUpdateStrategiesClient
 	KubernetesClustersClient                    *managedclusters.ManagedClustersClient
@@ -83,12 +85,17 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(credentialSetsClient.Client, o.Authorizers.ResourceManager)
 
-	// AKS
 	deploymentSafeguardsClient, err := deploymentsafeguards.NewDeploymentSafeguardsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Deployment Safeguards Client: %+v", err)
 	}
 	o.Configure(deploymentSafeguardsClient.Client, o.Authorizers.ResourceManager)
+
+	fleetAutoUpgradeProfilesClient, err := autoupgradeprofiles.NewAutoUpgradeProfilesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Fleet Auto Upgrade Profiles Client: %+v", err)
+	}
+	o.Configure(fleetAutoUpgradeProfilesClient.Client, o.Authorizers.ResourceManager)
 
 	fleetUpdateRunsClient, err := updateruns.NewUpdateRunsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -164,6 +171,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 		ContainerRegistryClient:                     containerRegistryClient,
 		ContainerRegistryClient_v2019_06_01_preview: containerRegistryClient_v2019_06_01_preview,
 		DeploymentSafeguardsClient:                  deploymentSafeguardsClient,
+		FleetAutoUpgradeProfilesClient:              fleetAutoUpgradeProfilesClient,
 		FleetUpdateRunsClient:                       fleetUpdateRunsClient,
 		FleetUpdateStrategiesClient:                 fleetUpdateStrategiesClient,
 		KubernetesClustersClient:                    kubernetesClustersClient,
