@@ -403,6 +403,8 @@ A `default_node_pool` block supports the following:
 
 * `linux_os_config` - (Optional) A `linux_os_config` block as defined below. `temporary_name_for_rotation` must be specified when changing this block.
 
+* `local_dns_profile` - (Optional) A `local_dns_profile` block as defined below. Configures the LocalDNS feature which deploys a DNS proxy on each node for low-latency DNS resolution.
+
 * `fips_enabled` - (Optional) Should the nodes in this Node Pool have Federal Information Processing Standard enabled? `temporary_name_for_rotation` must be specified when changing this block.
 
 * `kubelet_disk_type` - (Optional) The type of disk used by kubelet. Possible values are `OS` and `Temporary`. `temporary_name_for_rotation` must be specified when changing this block.
@@ -550,6 +552,38 @@ A `linux_os_config` block supports the following:
 * `transparent_huge_page_defrag` - (Optional) specifies the defrag configuration for Transparent Huge Page. Possible values are `always`, `defer`, `defer+madvise`, `madvise` and `never`.
 
 * `transparent_huge_page` - (Optional) Specifies the Transparent Huge Page configuration. Possible values are `always`, `madvise` and `never`.
+
+---
+
+A `local_dns_profile` block supports the following:
+
+* `kube_dns_override` - (Optional) One or more `kube_dns_override` blocks as defined below. Configures DNS overrides for Kubernetes DNS resolution.
+
+* `mode` - (Optional) The mode for the LocalDNS feature. Possible values are `Required`, `Preferred` and `Disabled`. Defaults to `Preferred`.
+
+* `vnet_dns_override` - (Optional) One or more `vnet_dns_override` blocks as defined below. Configures DNS overrides for VNet DNS resolution.
+
+---
+
+A `kube_dns_override` and `vnet_dns_override` block supports the following:
+
+* `domain` - (Required) The domain name to configure DNS overrides for. This is used as the map key in the API payload (e.g. `"."` or `"cluster.local"`).
+
+* `cache_duration_in_seconds` - (Optional) The duration in seconds to cache DNS responses. This value must be at least `1`. Defaults to `3600`.
+
+* `forward_destination` - (Optional) The forward destination for DNS queries. Possible values are `ClusterCoreDNS` and `VnetDNS`. Defaults to `ClusterCoreDNS`.
+
+* `forward_policy` - (Optional) The forwarding policy. Possible values are `Random`, `RoundRobin` and `Sequential`. Defaults to `Sequential`.
+
+* `max_concurrent` - (Optional) The maximum number of concurrent DNS queries. This value must be at least `1`. Defaults to `1000`.
+
+* `protocol` - (Optional) The DNS protocol to use. Possible values are `ForceTCP` and `PreferUDP`. Defaults to `PreferUDP`.
+
+* `query_logging` - (Optional) The query logging configuration. Possible values are `Error` and `Log`. Defaults to `Error`.
+
+* `serve_stale` - (Optional) The serve stale configuration. Possible values are `Disable`, `Immediate` and `Verify`. Defaults to `Immediate`.
+
+* `serve_stale_duration` - (Optional) The serve stale duration in seconds. This value must be at least `1`. Defaults to `3600`.
 
 ---
 
