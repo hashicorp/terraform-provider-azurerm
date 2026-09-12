@@ -745,7 +745,23 @@ A `response_header_configuration` block supports the following:
 
 * `header_name` - (Required) Header name of the header configuration.
 
-* `header_value` - (Required) Header value of the header configuration. To delete a response header set this property to an empty string.
+* `header_value` - (Required) Header value of the header configuration. To delete a response header set this property to an empty string. When `header_value_matcher` is specified, the sub-strings captured by its `pattern` can be referenced with `{capt_header_value_matcher_1}`, `{capt_header_value_matcher_2}`, etc.
+
+* `header_value_matcher` - (Optional) A `header_value_matcher` block as defined below. This allows rewriting only the header values that match the given pattern, e.g. when multiple headers with the same name exist. [More info on header value matching](https://learn.microsoft.com/azure/application-gateway/rewrite-http-headers-url#pattern-matching-and-capturing)
+
+~> **Note:** `header_value_matcher` is currently only supported by Azure for the `Set-Cookie` response header.
+
+---
+
+A `header_value_matcher` block supports the following:
+
+* `pattern` - (Required) The regular expression that evaluates the truthfulness of the header value match.
+
+* `ignore_case` - (Optional) Perform a case in-sensitive comparison. Defaults to `false`.
+
+* `negate` - (Optional) Negate the result of the pattern evaluation. Defaults to `false`.
+
+~> **Note:** The `{capt_header_value_matcher_N}` capture variables cannot be referenced in `header_value` when `negate` is set to `true`.
 
 ---
 
