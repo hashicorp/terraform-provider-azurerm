@@ -190,7 +190,7 @@ func (r DataProtectionBackupInstanceBlobStorageResource) Exists(ctx context.Cont
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.DataProtection.BackupInstanceClient.BackupInstancesGet(ctx, *id)
+	resp, err := client.DataProtection.BackupInstanceClient_v2026_03_01.BackupInstancesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil
