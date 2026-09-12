@@ -153,6 +153,38 @@ func TestAccBackupProtectedVm_updateDiskExclusion(t *testing.T) {
 	})
 }
 
+func TestAccBackupProtectedVm_includeDiskLunsOnlyOSDisk(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
+	r := BackupProtectedVmResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.includeDiskLunsEmpty(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("include_disk_luns.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("include_disk_luns.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.includeDiskLunsEmpty(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("include_disk_luns.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccBackupProtectedVm_removeVM(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
 	r := BackupProtectedVmResource{}
@@ -1014,6 +1046,21 @@ resource "azurerm_backup_protected_vm" "test" {
   backup_policy_id    = azurerm_backup_policy_vm.test.id
 
   exclude_disk_luns = [0, 1]
+}
+`, r.base(data))
+}
+
+func (r BackupProtectedVmResource) includeDiskLunsEmpty(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_protected_vm" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+  source_vm_id        = azurerm_virtual_machine.test.id
+  backup_policy_id    = azurerm_backup_policy_vm.test.id
+
+  include_disk_luns = []
 }
 `, r.base(data))
 }
