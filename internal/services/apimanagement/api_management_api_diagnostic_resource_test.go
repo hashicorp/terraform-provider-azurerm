@@ -269,6 +269,7 @@ resource "azurerm_api_management_api_diagnostic" "test" {
   sampling_percentage       = 1.0
   always_log_errors         = true
   log_client_ip             = true
+  metrics                   = true
   http_correlation_protocol = "W3C"
   verbosity                 = "verbose"
   operation_name_format     = "Name"
