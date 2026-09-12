@@ -41,6 +41,51 @@ resource "azurerm_sre_agent" "example" {
 }
 ```
 
+### Experimental attachment to an existing subnet
+
+Use an available dedicated subnet in the agent's region, sized /27 or larger and delegated to `Microsoft.App/environments`. Do not assume a subnet already used by another agent supports sharing or has spare capacity.
+
+```hcl
+data "azurerm_virtual_network" "existing" {
+  name                = "existing-vnet"
+  resource_group_name = "existing-network-rg"
+}
+
+data "azurerm_subnet" "agent" {
+  name                 = "available-agent-subnet"
+  virtual_network_name = data.azurerm_virtual_network.existing.name
+  resource_group_name  = data.azurerm_virtual_network.existing.resource_group_name
+}
+
+resource "azurerm_resource_group" "agent" {
+  name     = "example-agent-rg"
+  location = data.azurerm_virtual_network.existing.location
+}
+
+resource "azurerm_sre_agent" "example" {
+  name                = "example-sre-agent"
+  resource_group_name = azurerm_resource_group.agent.name
+  location            = azurerm_resource_group.agent.location
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  networking {
+    egress_mode = "AzureVNet"
+    subnet_id   = data.azurerm_subnet.agent.id
+
+    private_dns {
+      enabled = true
+    }
+  }
+}
+```
+
+The data sources read the existing network; they do not transfer management of it to the agent resource. DNS links, routes, firewall rules and subnet capacity remain separately managed. A new agent can require rules for its own endpoint and subnet. This example does not copy another agent's identities, permissions or full network configuration.
+
+This local experiment uses an unmerged public schema. It explicitly requests private DNS through the pinned public field; configuration readback alone does not prove DNS behavior or connectivity.
+
 ### Separate identities and an explicit resource scope
 
 This example assigns separate user-assigned managed identities to action and resource configuration. Each identity has an explicit `Reader` role assignment on the monitored resource group.
@@ -135,6 +180,8 @@ The following arguments are supported:
 
 * `action_configuration` - (Optional, Computed) An `action_configuration` block as defined below. When omitted, the provider reads the service value into state without changing it.
 
+* `networking` - (Optional, Computed) A `networking` block as defined below. This local experiment uses an unmerged public networking schema. Omitting the block preserves the remote settings.
+
 * `resources_configuration` - (Optional, Computed) A `resources_configuration` block as defined below. When omitted, the provider reads the service value into state without changing it.
 
 * `tags` - (Optional) A mapping of tags to assign to the SRE Agent.
@@ -159,6 +206,28 @@ An `identity` block supports the following:
 
 ---
 
+A `networking` block supports the following:
+
+* `egress_mode` - (Required) The outbound network mode. Possible values are `AzureVNet`, `Limited`, and `Unrestricted`. The provider does not select a default.
+
+* `subnet_id` - (Optional) The resource ID of a dedicated subnet delegated to `Microsoft.App/environments`. Required with `AzureVNet` and must be omitted with the other modes. Use a subnet of /27 or larger in the agent's region.
+
+* `private_dns` - (Optional, Computed) A `private_dns` block as defined below. When omitted, the provider preserves the service setting.
+
+To attach a subnet, configure `egress_mode = "AzureVNet"` and `subnet_id` together. To detach, retain the block, explicitly select a non-VNet mode such as `Limited`, and omit `subnet_id`. The provider sends an explicit null for `vnetConfiguration` and the selected egress mode in one PATCH.
+
+Removing the entire block does not request detachment. Unknown or unmodeled egress settings remain outside this resource's ownership. Managed-path bypass settings are not exposed.
+
+---
+
+A `private_dns` block supports the following:
+
+* `enabled` - (Required) Whether to use the virtual network's private DNS resolution. The provider does not select a default.
+
+An absent or null API DNS value is represented by an absent block; it is not converted to false. Explicit true and false values remain distinct in state. Removing the block preserves the returned setting and does not reset it to null. This experiment does not expose an explicit null-reset operation.
+
+---
+
 A `resources_configuration` block supports the following:
 
 * `identity_id` - (Required) The Azure resource ID of the identity for resource configuration. Maps to `knowledgeGraphConfiguration.identity`; this reference does not grant permissions.
@@ -169,7 +238,9 @@ A `resources_configuration` block supports the following:
 
 ## Local Draft Limitations
 
-* This draft exposes no virtual network (VNet) arguments. Public networking examples use fields absent from the [stable Agent schema](https://learn.microsoft.com/azure/templates/microsoft.app/2026-01-01/agents). An experimental request adapter is technically possible; upstream support requires public contract evidence and maintainer agreement.
+* Networking is a local experiment pinned to [public schema commit `43a1471`](https://github.com/RobiladK/azure-rest-api-specs/blob/43a14713a37a8cc8dd8c14ea7b822a933092b84b/specification/app/resource-manager/Microsoft.App/SreAgent/stable/2026-01-01/sreagent.json), not released AzureRM support. It requires a separately generated experimental SDK. The earlier local experiment used a different public pin without DNS support.
+
+* Networking changes use selective PATCH. A subnet update does not force resource replacement; service acceptance and routing must be verified separately. ARM configuration readback alone does not establish private connectivity or DNS behavior.
 
 * Removing an `action_configuration` or `resources_configuration` block leaves its remote value unchanged. The provider continues to read that value into state. A dynamic block with no instances has the same behavior.
 

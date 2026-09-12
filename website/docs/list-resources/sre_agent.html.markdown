@@ -64,10 +64,10 @@ Set the Terraform list argument `include_resource = true` to include resource st
 
 Each result includes the agent name as its display name and a Terraform resource identity containing `subscription_id`, `resource_group_name`, and `name`.
 
-With `include_resource = true`, results use the same state mapping as [`azurerm_sre_agent`](/docs/providers/azurerm/r/sre_agent.html). This includes managed identities, action and resource configuration, tags, and computed attributes.
+With `include_resource = true`, results use the same state mapping as [`azurerm_sre_agent`](/docs/providers/azurerm/r/sre_agent.html). This includes managed identities, action and resource configuration, experimental networking, tags, and computed attributes.
 
 Discovery leaves the agent and its permissions unchanged. Results preserve returned `ReadOnly` modes and empty resource scopes, although this draft cannot configure those values. Review generated configuration before applying it.
 
 Omitting an action or resource configuration block preserves its remote value, including when a dynamic block produces no instances. Empty-list assignments are unsupported nested-block syntax; this draft has no block-reset operation.
 
-The resource's other limitations also apply. VNet arguments and default-model setters are not implemented; AgentSpaces and connectors are outside this draft's scope.
+The resource's other limitations also apply. Networking is a local experiment based on an unmerged public schema and a separately generated SDK. Returned networking settings do not prove runtime routing or DNS behavior. DNS true and false values remain distinct; absent or null API values do not produce a false DNS block. Omitting the networking block preserves the remote settings; detachment requires an explicit non-VNet mode and an omitted subnet ID. Default-model setters, AgentSpaces and connectors remain outside this draft's scope.

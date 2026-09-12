@@ -5,6 +5,7 @@ package sreagent
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -59,19 +60,29 @@ func expandSreAgentIdentityPatch(desired, previous *identity.LegacySystemAndUser
 }
 
 func updateSreAgent(ctx context.Context, c *agents.AgentsClient, id agents.AgentId, input agents.AgentPatch, previous *identity.LegacySystemAndUserAssignedMap) error {
-	if input.Identity == nil {
+	if input.Identity == nil && !sreAgentNeedsNetworkDetach(input.Properties) {
 		return c.UpdateThenPoll(ctx, id, input)
 	}
-	if err := validateSreAgentIdentity(input.Identity); err != nil {
-		return err
+	var identityPatch *sreAgentIdentityPatch
+	if input.Identity != nil {
+		if err := validateSreAgentIdentity(input.Identity); err != nil {
+			return err
+		}
+		identityPatch = expandSreAgentIdentityPatch(input.Identity, previous)
 	}
-	// The generated identity model cannot express null entries required to remove individual assignments.
+	properties, err := marshalSreAgentPatchProperties(input.Properties)
+	if err != nil {
+		return fmt.Errorf("encoding selective SRE Agent patch properties: %+v", err)
+	}
+	// Compose identity tombstones and explicit network detach without changing other owned fields.
 	payload := struct {
 		agents.AgentPatch
-		Identity *sreAgentIdentityPatch `json:"identity"`
+		Identity   *sreAgentIdentityPatch `json:"identity,omitempty"`
+		Properties json.RawMessage        `json:"properties,omitempty"`
 	}{
 		AgentPatch: input,
-		Identity:   expandSreAgentIdentityPatch(input.Identity, previous),
+		Identity:   identityPatch,
+		Properties: properties,
 	}
 	req, err := c.Client.NewRequest(ctx, client.RequestOptions{
 		ContentType:         "application/json; charset=utf-8",
