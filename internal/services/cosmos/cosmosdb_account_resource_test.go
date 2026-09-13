@@ -3264,7 +3264,7 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 func (CosmosDBAccountResource) managedHSMKey(data acceptance.TestData, uuids []string) string {
-	// Purge Protection must be enabled to configure Managed HSM Key: https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-setup-customer-managed-keys-mhsm#configure-your-azure-managed-hsm-key-vault
+	// Purge Protection must be enabled to configure Managed HSM Key: https://learn.microsoft.com/azure/cosmos-db/how-to-setup-customer-managed-keys-mhsm#configure-your-azure-managed-hsm-key-vault
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

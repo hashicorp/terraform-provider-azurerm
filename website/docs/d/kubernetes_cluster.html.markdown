@@ -196,7 +196,7 @@ A `upgrade_settings` block exports the following:
 
 A `key_management_service` block supports the following:
 
-* `key_vault_key_id` - Identifier of Azure Key Vault key. See [key identifier format](https://learn.microsoft.com/en-us/azure/key-vault/general/about-keys-secrets-certificates#vault-name-and-object-name) for more details.
+* `key_vault_key_id` - Identifier of Azure Key Vault key. See [key identifier format](https://learn.microsoft.com/azure/key-vault/general/about-keys-secrets-certificates#vault-name-and-object-name) for more details.
 
 * `key_vault_network_access` - Network access of the key vault. The possible values are `Public` and `Private`. `Public` means the key vault allows public access from all networks. `Private` means the key vault disables public access and enables private link.
 
@@ -388,7 +388,7 @@ A `service_mesh_profile` block exports the following:
 * `mode` - The mode of the service mesh.
 
 * `revisions` - List of revisions of the Istio control plane. When an upgrade is not in progress, this holds one value. When canary upgrade is in progress, this can only hold two consecutive values. [Learn More](
-  https://learn.microsoft.com/en-us/azure/aks/istio-upgrade).
+  https://learn.microsoft.com/azure/aks/istio-upgrade).
 
 * `internal_ingress_gateway_enabled` - Is Istio Internal Ingress Gateway enabled?
 

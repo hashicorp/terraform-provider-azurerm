@@ -35,7 +35,7 @@ func DestinationNATName(input interface{}, k string) (warnings []string, errors 
 
 func paloAltoNameValidation(input interface{}, k string) (warnings []string, errors []error) {
 	return validation.All(
-		// regex pulled from https://docs.microsoft.com/en-us/rest/api/resources/resourcegroups/createorupdate
+		// regex pulled from https://docs.microsoft.com/rest/api/resources/resourcegroups/createorupdate
 		validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9-]{1,128}$`), "may only contain alphanumeric characters and dashes, and must be between 1 and 128 characters in length"),
 		validation.StringDoesNotMatch(regexp.MustCompile(`^-|-$`), "cannot start or end with a `-`"),
 	)(input, k)

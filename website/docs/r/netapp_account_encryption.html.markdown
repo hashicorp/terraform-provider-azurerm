@@ -10,7 +10,7 @@ description: |-
 
 Manages a NetApp Account Encryption Resource.
 
-For more information about Azure NetApp Files Customer-Managed Keys feature, please refer to [Configure customer-managed keys for Azure NetApp Files volume encryption](https://learn.microsoft.com/en-us/azure/azure-netapp-files/configure-customer-managed-keys)
+For more information about Azure NetApp Files Customer-Managed Keys feature, please refer to [Configure customer-managed keys for Azure NetApp Files volume encryption](https://learn.microsoft.com/azure/azure-netapp-files/configure-customer-managed-keys)
 
 ## Example Usage
 
