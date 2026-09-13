@@ -17,7 +17,7 @@ import (
 )
 
 func dataSourceServiceBusTopic() *pluginsdk.Resource {
-	d := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceServiceBusTopicRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -67,6 +67,11 @@ func dataSourceServiceBusTopic() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"maximum_message_size_in_kb": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
 			"max_size_in_megabytes": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
@@ -88,8 +93,6 @@ func dataSourceServiceBusTopic() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return d
 }
 
 func dataSourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -131,6 +134,7 @@ func dataSourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("batched_operations_enabled", props.EnableBatchedOperations)
 			d.Set("express_enabled", props.EnableExpress)
 			d.Set("partitioning_enabled", props.EnablePartitioning)
+			d.Set("maximum_message_size_in_kb", props.MaxMessageSizeInKilobytes)
 			d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 			d.Set("support_ordering", props.SupportOrdering)
 

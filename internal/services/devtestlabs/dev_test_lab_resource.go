@@ -26,7 +26,7 @@ import (
 )
 
 func resourceDevTestLab() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceDevTestLabCreateUpdate,
 		Read:   resourceDevTestLabRead,
 		Update: resourceDevTestLabCreateUpdate,
@@ -95,8 +95,6 @@ func resourceDevTestLab() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
 func resourceDevTestLabCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

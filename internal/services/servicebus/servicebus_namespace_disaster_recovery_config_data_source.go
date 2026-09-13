@@ -18,7 +18,7 @@ import (
 )
 
 func dataSourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceServiceBusNamespaceDisasterRecoveryConfigRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -73,8 +73,6 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
 func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceData, meta interface{}) error {

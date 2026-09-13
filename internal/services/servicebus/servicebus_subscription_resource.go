@@ -51,7 +51,7 @@ func resourceServiceBusSubscription() *pluginsdk.Resource {
 }
 
 func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -166,8 +166,6 @@ func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
-
-	return schema
 }
 
 func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

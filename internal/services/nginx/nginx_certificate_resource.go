@@ -211,7 +211,6 @@ func (m CertificateResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			meta.Logger.Infof("deleting %s", id)
 			client := meta.Client.Nginx.NginxCertificate
 
 			if err := client.CertificatesDeleteThenPoll(ctx, *id); err != nil {

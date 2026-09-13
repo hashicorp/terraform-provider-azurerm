@@ -324,44 +324,49 @@ func (r ArcKubernetesProvisionedClusterResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := ArcKubernetesProvisionedClusterModel{
-				Name:              id.ConnectedClusterName,
-				ResourceGroupName: id.ResourceGroupName,
-			}
-
-			if model := resp.Model; model != nil {
-				state.Identity = identity.FlattenSystemAssignedToModel(&model.Identity)
-				state.Location = location.Normalize(model.Location)
-				state.Tags = pointer.From(model.Tags)
-
-				props := model.Properties
-				state.AzureActiveDirectory = flattenArcKubernetesClusterAadProfile(props.AadProfile)
-				state.AgentVersion = pointer.From(props.AgentVersion)
-				state.Distribution = pointer.From(props.Distribution)
-				state.Infrastructure = pointer.From(props.Infrastructure)
-				state.KubernetesVersion = pointer.From(props.KubernetesVersion)
-				state.Offering = pointer.From(props.Offering)
-				state.TotalCoreCount = pointer.From(props.TotalCoreCount)
-				state.TotalNodeCount = pointer.From(props.TotalNodeCount)
-
-				arcAgentAutoUpgradeEnabled := true
-				arcAgentdesiredVersion := ""
-				if arcAgentProfile := props.ArcAgentProfile; arcAgentProfile != nil {
-					arcAgentdesiredVersion = pointer.From(arcAgentProfile.DesiredAgentVersion)
-					if arcAgentProfile.AgentAutoUpgrade != nil && *arcAgentProfile.AgentAutoUpgrade == arckubernetes.AutoUpgradeOptionsDisabled {
-						arcAgentAutoUpgradeEnabled = false
-					}
-				}
-				state.ArcAgentAutoUpgradeEnabled = arcAgentAutoUpgradeEnabled
-				state.ArcAgentDesiredVersion = arcAgentdesiredVersion
-			}
-
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-				return err
-			}
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r ArcKubernetesProvisionedClusterResource) flatten(metadata sdk.ResourceMetaData, id *arckubernetes.ConnectedClusterId, model *arckubernetes.ConnectedCluster) error {
+	state := ArcKubernetesProvisionedClusterModel{
+		Name:              id.ConnectedClusterName,
+		ResourceGroupName: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		state.Identity = identity.FlattenSystemAssignedToModel(&model.Identity)
+		state.Location = location.Normalize(model.Location)
+		state.Tags = pointer.From(model.Tags)
+
+		props := model.Properties
+		state.AzureActiveDirectory = flattenArcKubernetesClusterAadProfile(props.AadProfile)
+		state.AgentVersion = pointer.From(props.AgentVersion)
+		state.Distribution = pointer.From(props.Distribution)
+		state.Infrastructure = pointer.From(props.Infrastructure)
+		state.KubernetesVersion = pointer.From(props.KubernetesVersion)
+		state.Offering = pointer.From(props.Offering)
+		state.TotalCoreCount = pointer.From(props.TotalCoreCount)
+		state.TotalNodeCount = pointer.From(props.TotalNodeCount)
+
+		arcAgentAutoUpgradeEnabled := true
+		arcAgentdesiredVersion := ""
+		if arcAgentProfile := props.ArcAgentProfile; arcAgentProfile != nil {
+			arcAgentdesiredVersion = pointer.From(arcAgentProfile.DesiredAgentVersion)
+			if arcAgentProfile.AgentAutoUpgrade != nil && *arcAgentProfile.AgentAutoUpgrade == arckubernetes.AutoUpgradeOptionsDisabled {
+				arcAgentAutoUpgradeEnabled = false
+			}
+		}
+		state.ArcAgentAutoUpgradeEnabled = arcAgentAutoUpgradeEnabled
+		state.ArcAgentDesiredVersion = arcAgentdesiredVersion
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r ArcKubernetesProvisionedClusterResource) Delete() sdk.ResourceFunc {

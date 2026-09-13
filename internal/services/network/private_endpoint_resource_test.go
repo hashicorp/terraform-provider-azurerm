@@ -393,7 +393,7 @@ func TestAccPrivateEndpoint_multipleInstances(t *testing.T) {
 
 	instanceCount := 5
 	var checks []pluginsdk.TestCheckFunc
-	for i := 0; i < instanceCount; i++ {
+	for i := range instanceCount {
 		checks = append(checks, check.That(fmt.Sprintf("%s.%d", data.ResourceName, i)).ExistsInAzure(r))
 	}
 
@@ -412,7 +412,7 @@ func TestAccPrivateEndpoint_multipleInstancesWithLinkAlias(t *testing.T) {
 
 	instanceCount := 5
 	var checks []pluginsdk.TestCheckFunc
-	for i := 0; i < instanceCount; i++ {
+	for i := range instanceCount {
 		checks = append(checks, check.That(fmt.Sprintf("%s.%d", data.ResourceName, i)).ExistsInAzure(r))
 	}
 

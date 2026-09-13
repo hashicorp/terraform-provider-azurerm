@@ -84,9 +84,10 @@ func (s Server) Arguments() map[string]*pluginsdk.Schema {
 		"tags":                commonschema.Tags(),
 		"identity":            commonschema.SystemAssignedUserAssignedIdentityOptional(),
 		"storage_sku": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C due to the issue linked below
 			// todo remove computed when https://github.com/Azure/azure-rest-api-specs/issues/19700 is fixed
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
 			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(fluidrelayservers.PossibleValuesForStorageSKU(), false),
@@ -345,7 +346,6 @@ func (s Server) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			meta.Logger.Infof("deleting %s", id)
 			if _, err := client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
 			}
@@ -364,7 +364,7 @@ func expandFluidRelayServerCustomerManagedKey(input []CustomerManagedKey) *fluid
 	}
 
 	v := input[0]
-	encryption := &fluidrelayservers.EncryptionProperties{
+	return &fluidrelayservers.EncryptionProperties{
 		CustomerManagedKeyEncryption: &fluidrelayservers.CustomerManagedKeyEncryptionProperties{
 			KeyEncryptionKeyURL: pointer.To(v.KeyVaultKeyID),
 			KeyEncryptionKeyIdentity: &fluidrelayservers.CustomerManagedKeyEncryptionPropertiesKeyEncryptionKeyIdentity{
@@ -373,8 +373,6 @@ func expandFluidRelayServerCustomerManagedKey(input []CustomerManagedKey) *fluid
 			},
 		},
 	}
-
-	return encryption
 }
 
 func flattenFluidRelayServerCustomerManagedKey(input *fluidrelayservers.EncryptionProperties) ([]CustomerManagedKey, error) {
