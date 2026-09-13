@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -35,7 +35,7 @@ func NewKeyUpdatePoller(client *keyvault.BaseClient, baseURI, keyName string, ex
 func (p *keyUpdatePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
 	resp, err := p.client.GetKey(ctx, p.baseURI, p.keyName, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			return nil, fmt.Errorf("key %q was not found after update", p.keyName)
 		}
 		return nil, fmt.Errorf("polling key %q after update: %+v", p.keyName, err)

@@ -245,8 +245,7 @@ func resourceFirewallPolicySetFlatten(d *pluginsdk.ResourceData, id *firewallpol
 				return fmt.Errorf(`setting "insights": %+v`, err)
 			}
 
-			proxySettings := flattenFirewallPolicyExplicitProxy(props.ExplicitProxy)
-			if err := d.Set("explicit_proxy", proxySettings); err != nil {
+			if err := d.Set("explicit_proxy", flattenFirewallPolicyExplicitProxy(props.ExplicitProxy)); err != nil {
 				return fmt.Errorf("setting `explicit_proxy`: %+v", err)
 			}
 
@@ -572,7 +571,7 @@ func flattenFirewallPolicyInsights(input *firewallpolicies.FirewallPolicyInsight
 
 func flattenFirewallPolicyExplicitProxy(input *firewallpolicies.ExplicitProxy) (result []interface{}) {
 	if input == nil {
-		return
+		return []interface{}{}
 	}
 	output := map[string]interface{}{
 		"enabled":         input.EnableExplicitProxy,
@@ -627,15 +626,11 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"sku": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(firewallpolicies.FirewallPolicySkuTierStandard),
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(firewallpolicies.FirewallPolicySkuTierPremium),
-				string(firewallpolicies.FirewallPolicySkuTierStandard),
-				string(firewallpolicies.FirewallPolicySkuTierBasic),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(firewallpolicies.FirewallPolicySkuTierStandard),
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(firewallpolicies.PossibleValuesForFirewallPolicySkuTier(), false),
 		},
 
 		"location": commonschema.Location(),
@@ -671,14 +666,10 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"threat_intelligence_mode": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(firewallpolicies.AzureFirewallThreatIntelModeAlert),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(firewallpolicies.AzureFirewallThreatIntelModeAlert),
-				string(firewallpolicies.AzureFirewallThreatIntelModeDeny),
-				string(firewallpolicies.AzureFirewallThreatIntelModeOff),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(firewallpolicies.AzureFirewallThreatIntelModeAlert),
+			ValidateFunc: validation.StringInSlice(firewallpolicies.PossibleValuesForAzureFirewallThreatIntelMode(), false),
 		},
 
 		"threat_intelligence_allowlist": {
@@ -717,13 +708,9 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"mode": {
-						Type: pluginsdk.TypeString,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(firewallpolicies.FirewallPolicyIntrusionDetectionStateTypeOff),
-							string(firewallpolicies.FirewallPolicyIntrusionDetectionStateTypeAlert),
-							string(firewallpolicies.FirewallPolicyIntrusionDetectionStateTypeDeny),
-						}, false),
-						Optional: true,
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringInSlice(firewallpolicies.PossibleValuesForFirewallPolicyIntrusionDetectionStateType(), false),
+						Optional:     true,
 					},
 					"signature_overrides": {
 						Type:     pluginsdk.TypeList,
@@ -731,13 +718,9 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"state": {
-									Type: pluginsdk.TypeString,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(firewallpolicies.FirewallPolicyIntrusionDetectionStateTypeOff),
-										string(firewallpolicies.FirewallPolicyIntrusionDetectionStateTypeAlert),
-										string(firewallpolicies.FirewallPolicyIntrusionDetectionStateTypeDeny),
-									}, false),
-									Optional: true,
+									Type:         pluginsdk.TypeString,
+									ValidateFunc: validation.StringInSlice(firewallpolicies.PossibleValuesForFirewallPolicyIntrusionDetectionStateType(), false),
+									Optional:     true,
 								},
 								"id": {
 									Type:     pluginsdk.TypeString,
@@ -771,12 +754,7 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 									Required: true,
 									// protocol to be one of [ICMP ANY TCP UDP] but response may be "Any"
 									DiffSuppressFunc: suppress.CaseDifference,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(firewallpolicies.FirewallPolicyIntrusionDetectionProtocolICMP),
-										string(firewallpolicies.FirewallPolicyIntrusionDetectionProtocolANY),
-										string(firewallpolicies.FirewallPolicyIntrusionDetectionProtocolTCP),
-										string(firewallpolicies.FirewallPolicyIntrusionDetectionProtocolUDP),
-									}, true),
+									ValidateFunc:     validation.StringInSlice(firewallpolicies.PossibleValuesForFirewallPolicyIntrusionDetectionProtocol(), true),
 								},
 								"source_addresses": {
 									Type:     pluginsdk.TypeSet,

@@ -40,6 +40,14 @@ func TestKubernetesClusterNodePoolV0ToV1_id(t *testing.T) {
 			},
 			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1/agentPools/pool1"),
 		},
+		{
+			name: "mixed-case resource segments",
+			input: map[string]interface{}{
+				"id":                    "/SUBSCRIPTIONS/12345678-1234-5678-1234-123456789012/RESOURCEGROUPS/Group1/PROVIDERS/microsoft.containerservice/MANAGEDCLUSTERS/Cluster1/AGENTPOOLS/Pool1",
+				"kubernetes_cluster_id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/Group1/providers/Microsoft.ContainerService/managedClusters/Cluster1",
+			},
+			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/Group1/providers/Microsoft.ContainerService/managedClusters/Cluster1/agentPools/Pool1"),
+		},
 	}
 	for _, test := range testData {
 		t.Run(test.name, func(t *testing.T) {
@@ -91,6 +99,14 @@ func TestKubernetesClusterNodePoolV0ToV1_kubernetes_cluster_id(t *testing.T) {
 				"kubernetes_cluster_id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1",
 			},
 			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1"),
+		},
+		{
+			name: "mixed-case resource segments",
+			input: map[string]interface{}{
+				"id":                    "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/Group1/providers/Microsoft.ContainerService/managedClusters/Cluster1/agentPools/Pool1",
+				"kubernetes_cluster_id": "/SUBSCRIPTIONS/12345678-1234-5678-1234-123456789012/RESOURCEGROUPS/Group1/PROVIDERS/microsoft.containerservice/MANAGEDCLUSTERS/Cluster1",
+			},
+			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/Group1/providers/Microsoft.ContainerService/managedClusters/Cluster1"),
 		},
 	}
 	for _, test := range testData {

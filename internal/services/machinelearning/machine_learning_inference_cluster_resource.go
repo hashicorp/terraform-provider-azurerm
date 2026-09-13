@@ -67,15 +67,11 @@ func resourceAksInferenceCluster() *pluginsdk.Resource {
 			},
 
 			"cluster_purpose": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(machinelearningcomputes.ClusterPurposeFastProd),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(machinelearningcomputes.ClusterPurposeDevTest),
-					string(machinelearningcomputes.ClusterPurposeFastProd),
-					string(machinelearningcomputes.ClusterPurposeDenseProd),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(machinelearningcomputes.ClusterPurposeFastProd),
+				ValidateFunc: validation.StringInSlice(machinelearningcomputes.PossibleValuesForClusterPurpose(), false),
 			},
 
 			"description": {
