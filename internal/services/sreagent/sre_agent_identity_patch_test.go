@@ -13,7 +13,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2026-01-01/agents"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2026-10-01/agents"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
@@ -63,7 +63,7 @@ func TestSreAgentIdentityPatchWire(t *testing.T) {
 				t.Fatal(err)
 			}
 			md, id, ctx := sreAgentTestMetadata(t, func(req *http.Request) (*http.Response, error) {
-				if req.URL.Query().Get("api-version") != "2026-01-01" {
+				if req.URL.Query().Get("api-version") != "2026-10-01" {
 					return nil, fmt.Errorf("unexpected API version: %s", req.URL)
 				}
 				switch req.Method {
@@ -97,7 +97,7 @@ func TestSreAgentIdentityPatchPollingFailure(t *testing.T) {
 		case req.Method == http.MethodPatch:
 			patches++
 			result := sreAgentHTTPResponse(req, http.StatusAccepted, `{"properties":{"provisioningState":"Accepted"}}`)
-			result.Header.Set("Azure-AsyncOperation", "https://management.azure.com/operations/identity-update?api-version=2026-01-01")
+			result.Header.Set("Azure-AsyncOperation", "https://management.azure.com/operations/identity-update?api-version=2026-10-01")
 			return result, nil
 		case req.Method == http.MethodGet && req.URL.Path == "/operations/identity-update":
 			polls++

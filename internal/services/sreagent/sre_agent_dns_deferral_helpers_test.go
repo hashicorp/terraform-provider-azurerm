@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2026-01-01/agents"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2026-10-01/agents"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 

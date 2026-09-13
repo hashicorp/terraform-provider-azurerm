@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2026-01-01/agents"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2026-10-01/agents"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -31,7 +31,7 @@ func TestSreAgentListPopulatedResults(t *testing.T) {
 				path := "/subscriptions/" + subscriptionID + "/providers/Microsoft.App/agents"
 				md, _, ctx := sreAgentTestMetadata(t, func(req *http.Request) (*http.Response, error) {
 					calls++
-					if req.Method != http.MethodGet || req.URL.Path != path || req.URL.Query().Get("api-version") != "2026-01-01" {
+					if req.Method != http.MethodGet || req.URL.Path != path || req.URL.Query().Get("api-version") != "2026-10-01" {
 						return nil, fmt.Errorf("unexpected list request %s %s", req.Method, req.URL)
 					}
 					if calls > 2 || (calls == 2 && req.URL.Query().Get("$skiptoken") != "next") {
@@ -41,7 +41,7 @@ func TestSreAgentListPopulatedResults(t *testing.T) {
 					body := fmt.Sprintf(`{"value":[{"id":%q,"name":%q,"location":"East US","identity":{"type":"SystemAssigned"},"tags":{"stage":"listed"},"properties":{"agentEndpoint":"https://example.invalid","actionConfiguration":{"identity":%q,"mode":"ReadOnly","accessLevel":"Low"},"knowledgeGraphConfiguration":{"identity":%q,"managedResources":[]},"defaultModel":{"name":"server-selected","provider":"MicrosoftFoundry"}}}]`,
 						id.ID(), id.AgentName, testIdentityID, testIdentityID+"-resources")
 					if calls == 1 {
-						body += fmt.Sprintf(`,"nextLink":"https://management.azure.com%s?api-version=2026-01-01&$skiptoken=next"`, path)
+						body += fmt.Sprintf(`,"nextLink":"https://management.azure.com%s?api-version=2026-10-01&$skiptoken=next"`, path)
 					}
 					return sreAgentHTTPResponse(req, http.StatusOK, body+"}"), nil
 				})
@@ -225,7 +225,7 @@ func TestSreAgentListScopesPaginationAndErrors(t *testing.T) {
 					}
 					body := `{"value":[]}`
 					if calls == 1 {
-						body = fmt.Sprintf(`{"value":[],"nextLink":"https://management.azure.com%s?api-version=2026-01-01&$skiptoken=next"}`, path)
+						body = fmt.Sprintf(`{"value":[],"nextLink":"https://management.azure.com%s?api-version=2026-10-01&$skiptoken=next"}`, path)
 					} else if calls != 2 || req.URL.Query().Get("$skiptoken") != "next" {
 						return nil, fmt.Errorf("unexpected page %d: %s", calls, req.URL)
 					}

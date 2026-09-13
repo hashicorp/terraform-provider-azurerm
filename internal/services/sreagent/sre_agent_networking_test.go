@@ -14,7 +14,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2026-01-01/agents"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2026-10-01/agents"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -301,7 +301,7 @@ func TestSreAgentNetworkingPollingFailure(t *testing.T) {
 			}
 			assertJSONEqual(t, body, `{"properties":{"vnetConfiguration":null,"sandboxConfiguration":{"egress":{"mode":"Limited"}}}}`)
 			resp := sreAgentHTTPResponse(req, http.StatusAccepted, `{"properties":{"provisioningState":"Accepted"}}`)
-			resp.Header.Set("Azure-AsyncOperation", "https://management.azure.com/operations/network-update?api-version=2026-01-01")
+			resp.Header.Set("Azure-AsyncOperation", "https://management.azure.com/operations/network-update?api-version=2026-10-01")
 			return resp, nil
 		case req.Method == http.MethodGet && req.URL.Path == "/operations/network-update":
 			polls++

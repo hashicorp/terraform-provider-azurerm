@@ -17,8 +17,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2026-01-01/agents"
-	sdkclient "github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2026-10-01/agents"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/hcl/v2"
@@ -30,12 +29,6 @@ import (
 	sreclient "github.com/hashicorp/terraform-provider-azurerm/internal/services/sreagent/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
-
-type sreAgentTransport func(*http.Request) (*http.Response, error)
-
-func (f sreAgentTransport) RoundTrip(request *http.Request) (*http.Response, error) {
-	return f(request)
-}
 
 func sreAgentTestMetadata(t *testing.T, transport sreAgentTransport) (sdk.ResourceMetaData, agents.AgentId, context.Context) {
 	t.Helper()
@@ -57,19 +50,11 @@ func sreAgentTestMetadata(t *testing.T, transport sreAgentTransport) (sdk.Resour
 	return md, id, ctx
 }
 
-func sreAgentHTTPResponse(request *http.Request, status int, body string) *http.Response {
-	return &http.Response{
-		StatusCode: status, Status: fmt.Sprintf("%d %s", status, http.StatusText(status)),
-		Header: http.Header{"Content-Type": []string{"application/json"}, sdkclient.SkipPollingDelayHeader: []string{"true"}},
-		Body:   io.NopCloser(strings.NewReader(body)), Request: request, ContentLength: int64(len(body)),
-	}
-}
-
 func TestSreAgentReadHTTP(t *testing.T) {
 	for _, status := range []int{http.StatusOK, http.StatusNotFound, http.StatusForbidden} {
 		t.Run(http.StatusText(status), func(t *testing.T) {
 			md, id, ctx := sreAgentTestMetadata(t, func(req *http.Request) (*http.Response, error) {
-				if req.Method != http.MethodGet || req.URL.Query().Get("api-version") != "2026-01-01" {
+				if req.Method != http.MethodGet || req.URL.Query().Get("api-version") != "2026-10-01" {
 					t.Fatalf("unexpected request %s %s", req.Method, req.URL)
 				}
 				body := `{"location":"eastus","properties":{"actionConfiguration":{"mode":"ReadOnly","accessLevel":"Low"},"knowledgeGraphConfiguration":{"managedResources":[]},"defaultModel":{"name":"server","provider":"provider"}}}`
@@ -393,7 +378,7 @@ func TestSreAgentCreateCapturesIdentityBeforePolling(t *testing.T) {
 					return sreAgentHTTPResponse(req, http.StatusNotFound, `{"error":{"code":"ResourceNotFound","message":"absent"}}`), nil
 				case http.MethodPut:
 					result := sreAgentHTTPResponse(req, http.StatusCreated, `{"properties":{"provisioningState":"Accepted"}}`)
-					result.Header.Set("Azure-AsyncOperation", "https://management.azure.com/operations/example?api-version=2026-01-01")
+					result.Header.Set("Azure-AsyncOperation", "https://management.azure.com/operations/example?api-version=2026-10-01")
 					return result, nil
 				default:
 					t.Errorf("unexpected %s request", req.Method)

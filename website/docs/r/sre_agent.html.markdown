@@ -225,7 +225,7 @@ A `resources_configuration` block supports the following:
 
 ## Local Draft Limitations
 
-* Networking is a local contribution associated with the [networking schema proposal](https://github.com/Azure/azure-rest-api-specs/pull/46278), not released AzureRM support. It requires a separately generated SDK.
+* Networking targets the proposed stable `2026-10-01` API in the [networking schema proposal](https://github.com/Azure/azure-rest-api-specs/pull/46278). It requires a separately generated SDK and is not released AzureRM support. The API version has not been deployed or live-validated by this contribution. Earlier local `2026-01-01` experiments are historical evidence only.
 
 * DNS-selector support is deferred. DNS values returned by the API are not exposed as Terraform controls. The provider does not send or reset those unmodeled settings during networking or other selective updates.
 
@@ -300,4 +300,4 @@ Import reads the existing resource. It does not configure unsupported fields or 
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.App` - 2026-01-01
+* `Microsoft.App` - 2026-10-01
