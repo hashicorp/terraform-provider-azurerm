@@ -112,13 +112,15 @@ func resourceStreamAnalyticsOutputSynapseCreateUpdate(d *pluginsdk.ResourceData,
 	id := outputs.NewOutputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil && !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of %s: %+v", id, err)
-		}
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+			}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_output_synapse", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_stream_analytics_output_synapse", id.ID())
+			}
 		}
 	}
 
@@ -185,29 +187,13 @@ func resourceStreamAnalyticsOutputSynapseRead(d *pluginsdk.ResourceData, meta in
 				return fmt.Errorf("converting %s to a Synapse Output", *id)
 			}
 
-			server := ""
-			if v := output.Properties.Server; v != nil {
-				server = *v
-			}
-			d.Set("server", server)
+			d.Set("server", pointer.From(output.Properties.Server))
 
-			database := ""
-			if v := output.Properties.Database; v != nil {
-				database = *v
-			}
-			d.Set("database", database)
+			d.Set("database", pointer.From(output.Properties.Database))
 
-			table := ""
-			if v := output.Properties.Table; v != nil {
-				table = *v
-			}
-			d.Set("table", table)
+			d.Set("table", pointer.From(output.Properties.Table))
 
-			user := ""
-			if v := output.Properties.User; v != nil {
-				user = *v
-			}
-			d.Set("user", user)
+			d.Set("user", pointer.From(output.Properties.User))
 		}
 	}
 	return nil

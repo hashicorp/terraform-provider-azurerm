@@ -21,6 +21,8 @@ func TestExpandFeatures(t *testing.T) {
 			Name:  "Empty Block",
 			Input: []interface{}{},
 			Expected: features.UserFeatures{
+				PersistIDOnCreateBeforePollingForCompletion:                 false,
+				SkipImportCheckOnCreateAndAllowOverwritingExistingResources: false,
 				ApiManagement: features.ApiManagementFeatures{
 					PurgeSoftDeleteOnDestroy: true,
 					RecoverSoftDeleted:       true,
@@ -34,6 +36,12 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: true,
+				},
+				EnhancedValidation: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+					PreflightEnabled:  false,
+					LocationFallback:  nil,
 				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeletedCertsOnDestroy:   true,
@@ -104,6 +112,8 @@ func TestExpandFeatures(t *testing.T) {
 			Name: "Complete Enabled",
 			Input: []interface{}{
 				map[string]interface{}{
+					"persist_id_on_create_before_polling_for_completion":                   true,
+					"skip_import_check_on_create_and_allow_overwriting_existing_resources": true,
 					"api_management": []interface{}{
 						map[string]interface{}{
 							"purge_soft_delete_on_destroy": true,
@@ -219,9 +229,19 @@ func TestExpandFeatures(t *testing.T) {
 							"force_delete": true,
 						},
 					},
+					"enhanced_validation": []any{
+						map[string]any{
+							"locations":                   true,
+							"resource_providers":          true,
+							"preflight_enabled":           true,
+							"preflight_location_fallback": "",
+						},
+					},
 				},
 			},
 			Expected: features.UserFeatures{
+				PersistIDOnCreateBeforePollingForCompletion:                 true,
+				SkipImportCheckOnCreateAndAllowOverwritingExistingResources: true,
 				ApiManagement: features.ApiManagementFeatures{
 					PurgeSoftDeleteOnDestroy: true,
 					RecoverSoftDeleted:       true,
@@ -235,6 +255,12 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: true,
+				},
+				EnhancedValidation: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
+					PreflightEnabled:  true,
+					LocationFallback:  nil,
 				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeletedCertsOnDestroy:   true,
@@ -305,6 +331,8 @@ func TestExpandFeatures(t *testing.T) {
 			Name: "Complete Disabled",
 			Input: []interface{}{
 				map[string]interface{}{
+					"persist_id_on_create_before_polling_for_completion":                   false,
+					"skip_import_check_on_create_and_allow_overwriting_existing_resources": false,
 					"api_management": []interface{}{
 						map[string]interface{}{
 							"purge_soft_delete_on_destroy": false,
@@ -420,9 +448,19 @@ func TestExpandFeatures(t *testing.T) {
 							"force_delete": false,
 						},
 					},
+					"enhanced_validation": []any{
+						map[string]any{
+							"locations":                   false,
+							"resource_providers":          false,
+							"preflight_enabled":           false,
+							"preflight_location_fallback": "",
+						},
+					},
 				},
 			},
 			Expected: features.UserFeatures{
+				PersistIDOnCreateBeforePollingForCompletion:                 false,
+				SkipImportCheckOnCreateAndAllowOverwritingExistingResources: false,
 				ApiManagement: features.ApiManagementFeatures{
 					PurgeSoftDeleteOnDestroy: false,
 					RecoverSoftDeleted:       false,
@@ -436,6 +474,12 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: false,
+				},
+				EnhancedValidation: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+					PreflightEnabled:  false,
+					LocationFallback:  nil,
 				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeletedCertsOnDestroy:   false,
@@ -1933,6 +1977,86 @@ func TestExpandFeaturesDatabricksWorkspace(t *testing.T) {
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.DatabricksWorkspace, testCase.Expected.DatabricksWorkspace) {
 			t.Fatalf("Expected %+v but got %+v", result.DatabricksWorkspace, testCase.Expected.DatabricksWorkspace)
+		}
+	}
+}
+
+func TestExpandFeaturesEnhancedValidation(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []interface{}
+		EnvVars  map[string]interface{}
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []interface{}{
+				map[string]interface{}{
+					"enhanced_validation": []interface{}{},
+				},
+			},
+			Expected: features.UserFeatures{
+				EnhancedValidation: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+					PreflightEnabled:  false,
+					LocationFallback:  nil,
+				},
+			},
+		},
+		{
+			Name: "Enhanced Validation Features Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"enhanced_validation": []interface{}{
+						map[string]interface{}{
+							"locations":                   true,
+							"resource_providers":          true,
+							"preflight_enabled":           true,
+							"preflight_location_fallback": "",
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				EnhancedValidation: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
+					PreflightEnabled:  true,
+					LocationFallback:  nil,
+				},
+			},
+		},
+		{
+			Name: "Enhanced Validation Features Disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"enhanced_validation": []interface{}{
+						map[string]interface{}{
+							"locations":                   false,
+							"resource_providers":          false,
+							"preflight_enabled":           false,
+							"preflight_location_fallback": "",
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				EnhancedValidation: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+					PreflightEnabled:  false,
+					LocationFallback:  nil,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.EnhancedValidation, testCase.Expected.EnhancedValidation) {
+			t.Fatalf("Expected %+v but got %+v", testCase.Expected.EnhancedValidation, result.EnhancedValidation)
 		}
 	}
 }

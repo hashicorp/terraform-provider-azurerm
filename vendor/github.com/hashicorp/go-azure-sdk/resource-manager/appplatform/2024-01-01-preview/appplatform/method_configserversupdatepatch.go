@@ -63,9 +63,20 @@ func (c AppPlatformClient) ConfigServersUpdatePatch(ctx context.Context, id comm
 
 // ConfigServersUpdatePatchThenPoll performs ConfigServersUpdatePatch then polls until it's completed
 func (c AppPlatformClient) ConfigServersUpdatePatchThenPoll(ctx context.Context, id commonids.SpringCloudServiceId, input ConfigServerResource) error {
+	return c.ConfigServersUpdatePatchCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ConfigServersUpdatePatchCallbackThenPoll performs ConfigServersUpdatePatch, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) ConfigServersUpdatePatchCallbackThenPoll(ctx context.Context, id commonids.SpringCloudServiceId, input ConfigServerResource, callback func() error) error {
 	result, err := c.ConfigServersUpdatePatch(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ConfigServersUpdatePatch: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

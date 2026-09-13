@@ -90,13 +90,11 @@ func Make() *cobra.Command {
 
 				if r.Document.HasChange {
 					if err := r.Document.Write(fs); err != nil {
-						if err != nil {
-							log.WithFields(log.Fields{
-								"resource": r.Name,
-								"path":     r.Document.Path,
-								"error":    err,
-							}).Error("writing changes to the documentation file")
-						}
+						log.WithFields(log.Fields{
+							"resource": r.Name,
+							"path":     r.Document.Path,
+							"error":    err,
+						}).Error("writing changes to the documentation file")
 					}
 				}
 			}
@@ -166,7 +164,7 @@ func printErrors(rd *data.TerraformNodeData) {
 	b.WriteString(sep)
 
 	for _, v := range rd.Errors {
-		b.WriteString(fmt.Sprintf("-> %s\n", v.Error()))
+		fmt.Fprintf(&b, "-> %s\n", v.Error())
 	}
 
 	b.WriteString("\n")

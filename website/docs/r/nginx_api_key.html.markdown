@@ -57,7 +57,7 @@ resource "azurerm_subnet" "example" {
 resource "azurerm_nginx_deployment" "example" {
   name                      = "example-nginx"
   resource_group_name       = azurerm_resource_group.example.name
-  sku                       = "standardv2_Monthly"
+  sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.example.location
   automatic_upgrade_channel = "stable"
 

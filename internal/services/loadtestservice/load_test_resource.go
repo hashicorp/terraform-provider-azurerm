@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -160,14 +161,16 @@ func (r LoadTestResource) Create() sdk.ResourceFunc {
 
 			id := loadtests.NewLoadTestID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			var payload loadtests.LoadTestResource
@@ -175,7 +178,7 @@ func (r LoadTestResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("mapping schema model to sdk model: %+v", err)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -278,13 +281,7 @@ func (r LoadTestResource) EnsureEncryptionIdentityIDExistsInIdentity(model LoadT
 			return errors.New(msg)
 		}
 
-		existsInIdentity := false
-		for _, id := range model.Identity[0].IdentityIds {
-			if id == model.Encryption[0].Identity[0].IdentityID {
-				existsInIdentity = true
-				break
-			}
-		}
+		existsInIdentity := slices.Contains(model.Identity[0].IdentityIds, model.Encryption[0].Identity[0].IdentityID)
 
 		if !existsInIdentity {
 			return errors.New(msg)
@@ -312,7 +309,7 @@ func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestEncryption(input []
 	encryptionIdentity := &loadtests.EncryptionPropertiesIdentity{}
 	if attrIdentity := attr.Identity; len(attrIdentity) > 0 {
 		encryptionIdentity.ResourceId = pointer.To(attrIdentity[0].IdentityID)
-		encryptionIdentity.Type = pointer.To(loadtests.Type(attrIdentity[0].Type))
+		encryptionIdentity.Type = pointer.ToEnum[loadtests.Type](attrIdentity[0].Type)
 	}
 
 	return &loadtests.EncryptionProperties{

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/fileshares"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/fileshares"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
 
@@ -42,7 +42,6 @@ func (p storageShareCreatePoller) Poll(ctx context.Context) (*pollers.PollResult
 		}
 
 		return &pollers.PollResult{
-			HttpResponse: nil,
 			PollInterval: 5 * time.Second,
 			Status:       pollers.PollingStatusFailed,
 		}, err

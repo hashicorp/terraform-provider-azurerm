@@ -11,24 +11,24 @@ import (
 var _ CopySink = SqlDWSink{}
 
 type SqlDWSink struct {
-	AllowCopyCommand      *bool                  `json:"allowCopyCommand,omitempty"`
-	AllowPolyBase         *bool                  `json:"allowPolyBase,omitempty"`
+	AllowCopyCommand      *interface{}           `json:"allowCopyCommand,omitempty"`
+	AllowPolyBase         *interface{}           `json:"allowPolyBase,omitempty"`
 	CopyCommandSettings   *DWCopyCommandSettings `json:"copyCommandSettings,omitempty"`
 	PolyBaseSettings      *PolybaseSettings      `json:"polyBaseSettings,omitempty"`
 	PreCopyScript         *interface{}           `json:"preCopyScript,omitempty"`
-	SqlWriterUseTableLock *bool                  `json:"sqlWriterUseTableLock,omitempty"`
+	SqlWriterUseTableLock *interface{}           `json:"sqlWriterUseTableLock,omitempty"`
 	TableOption           *interface{}           `json:"tableOption,omitempty"`
 	UpsertSettings        *SqlDWUpsertSettings   `json:"upsertSettings,omitempty"`
 	WriteBehavior         *interface{}           `json:"writeBehavior,omitempty"`
 
 	// Fields inherited from CopySink
 
-	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
-	SinkRetryCount           *int64       `json:"sinkRetryCount,omitempty"`
+	DisableMetricsCollection *interface{} `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *interface{} `json:"maxConcurrentConnections,omitempty"`
+	SinkRetryCount           *interface{} `json:"sinkRetryCount,omitempty"`
 	SinkRetryWait            *interface{} `json:"sinkRetryWait,omitempty"`
 	Type                     string       `json:"type"`
-	WriteBatchSize           *int64       `json:"writeBatchSize,omitempty"`
+	WriteBatchSize           *interface{} `json:"writeBatchSize,omitempty"`
 	WriteBatchTimeout        *interface{} `json:"writeBatchTimeout,omitempty"`
 }
 

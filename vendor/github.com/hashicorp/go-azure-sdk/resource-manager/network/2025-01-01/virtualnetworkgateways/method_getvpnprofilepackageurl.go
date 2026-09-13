@@ -58,9 +58,20 @@ func (c VirtualNetworkGatewaysClient) GetVpnProfilePackageURL(ctx context.Contex
 
 // GetVpnProfilePackageURLThenPoll performs GetVpnProfilePackageURL then polls until it's completed
 func (c VirtualNetworkGatewaysClient) GetVpnProfilePackageURLThenPoll(ctx context.Context, id VirtualNetworkGatewayId) error {
+	return c.GetVpnProfilePackageURLCallbackThenPoll(ctx, id, nil)
+}
+
+// GetVpnProfilePackageURLCallbackThenPoll performs GetVpnProfilePackageURL, runs the optional callback function, then polls until it's completed
+func (c VirtualNetworkGatewaysClient) GetVpnProfilePackageURLCallbackThenPoll(ctx context.Context, id VirtualNetworkGatewayId, callback func() error) error {
 	result, err := c.GetVpnProfilePackageURL(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing GetVpnProfilePackageURL: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

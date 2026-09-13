@@ -12,7 +12,7 @@ var _ FormatWriteSettings = ParquetWriteSettings{}
 
 type ParquetWriteSettings struct {
 	FileNamePrefix *interface{} `json:"fileNamePrefix,omitempty"`
-	MaxRowsPerFile *int64       `json:"maxRowsPerFile,omitempty"`
+	MaxRowsPerFile *interface{} `json:"maxRowsPerFile,omitempty"`
 
 	// Fields inherited from FormatWriteSettings
 

@@ -63,9 +63,20 @@ func (c ResourcesClient) UpdateById(ctx context.Context, id commonids.ScopeId, i
 
 // UpdateByIdThenPoll performs UpdateById then polls until it's completed
 func (c ResourcesClient) UpdateByIdThenPoll(ctx context.Context, id commonids.ScopeId, input GenericResource) error {
+	return c.UpdateByIdCallbackThenPoll(ctx, id, input, nil)
+}
+
+// UpdateByIdCallbackThenPoll performs UpdateById, runs the optional callback function, then polls until it's completed
+func (c ResourcesClient) UpdateByIdCallbackThenPoll(ctx context.Context, id commonids.ScopeId, input GenericResource, callback func() error) error {
 	result, err := c.UpdateById(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing UpdateById: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

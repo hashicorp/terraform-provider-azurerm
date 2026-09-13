@@ -11,12 +11,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/virtualnetworkrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/virtualnetworkrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
@@ -28,7 +29,7 @@ func resourceMsSqlVirtualNetworkRule() *pluginsdk.Resource {
 		Delete: resourceMsSqlVirtualNetworkRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.VirtualNetworkRuleID(id)
+			_, err := virtualnetworkrules.ParseVirtualNetworkRuleID(id)
 			return err
 		}),
 
@@ -51,7 +52,7 @@ func resourceMsSqlVirtualNetworkRule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ServerID,
+				ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlServerIDInsensitively),
 			},
 
 			"subnet_id": {
@@ -74,12 +75,14 @@ func resourceMsSqlVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	serverId, err := parse.ServerID(d.Get("server_id").(string))
+	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+	serverId, err := commonids.ParseSqlServerIDInsensitively(d.Get("server_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing server ID %q: %+v", d.Get("server_id"), err)
 	}
 
-	id := virtualnetworkrules.NewVirtualNetworkRuleID(serverId.SubscriptionId, serverId.ResourceGroup, serverId.Name, d.Get("name").(string))
+	id := virtualnetworkrules.NewVirtualNetworkRuleID(serverId.SubscriptionId, serverId.ResourceGroupName, serverId.ServerName, d.Get("name").(string))
 
 	subnetId, err := commonids.ParseSubnetID(d.Get("subnet_id").(string))
 	if err != nil {
@@ -87,15 +90,17 @@ func resourceMsSqlVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing MSSQL %s: %+v", id.String(), err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing MSSQL %s: %+v", id.String(), err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_mssql_virtual_network_rule", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_mssql_virtual_network_rule", id.ID())
+			}
 		}
 	}
 
@@ -106,15 +111,16 @@ func resourceMsSqlVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, meta
 		},
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
-		return fmt.Errorf("creating MSSQL %s: %+v", id.String(), err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
-
-	// Wait for the provisioning state to become ready
-	log.Printf("[DEBUG] Waiting for MSSQL %s to become ready", id.String())
-
-	d.SetId(id.ID())
 
 	return resourceMsSqlVirtualNetworkRuleRead(d, meta)
 }
@@ -142,7 +148,7 @@ func resourceMsSqlVirtualNetworkRuleRead(d *pluginsdk.ResourceData, meta interfa
 
 	d.Set("name", id.VirtualNetworkRuleName)
 
-	serverId := parse.NewServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName)
+	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName)
 	d.Set("server_id", serverId.ID())
 
 	if model := resp.Model; model != nil {
@@ -171,8 +177,7 @@ func resourceMsSqlVirtualNetworkRuleDelete(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("parsing ID %q: %+v", d.Id(), err)
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting MSSQL %s: %+v", id.String(), err)
 	}
 

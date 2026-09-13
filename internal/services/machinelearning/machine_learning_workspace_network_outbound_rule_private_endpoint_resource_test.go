@@ -144,10 +144,11 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestvault%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  name                       = "acctestvault%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
 
   sku_name = "standard"
 
@@ -175,7 +176,7 @@ resource "azurerm_storage_account" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
   account_replication_type = "LRS"
-}`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomIntOfLength(10))
+}`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomIntOfLength(14))
 }
 
 func (r WorkspaceNetworkOutboundPrivateEndpointResource) onlyApprovedOutbound(data acceptance.TestData) string {
@@ -183,6 +184,9 @@ func (r WorkspaceNetworkOutboundPrivateEndpointResource) onlyApprovedOutbound(da
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
+    application_insights {
+      disable_generated_rule = true
+    }
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
@@ -230,6 +234,9 @@ func (r WorkspaceNetworkOutboundPrivateEndpointResource) internetOutbound(data a
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
+    application_insights {
+      disable_generated_rule = true
+    }
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
@@ -277,6 +284,9 @@ func (r WorkspaceNetworkOutboundPrivateEndpointResource) withKeyVault(data accep
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
+    application_insights {
+      disable_generated_rule = true
+    }
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
@@ -303,10 +313,11 @@ resource "azurerm_machine_learning_workspace" "test" {
 }
 
 resource "azurerm_key_vault" "test2" {
-  name                = "acctestvault%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  name                       = "acctestvault%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
 
   sku_name = "standard"
 
@@ -342,6 +353,9 @@ func (r WorkspaceNetworkOutboundPrivateEndpointResource) withWorkspace(data acce
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
+    application_insights {
+      disable_generated_rule = true
+    }
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
@@ -394,6 +408,9 @@ func (r WorkspaceNetworkOutboundPrivateEndpointResource) withRedis(data acceptan
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
+    application_insights {
+      disable_generated_rule = true
+    }
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
@@ -433,11 +450,20 @@ resource "azurerm_redis_cache" "test" {
   }
 }
 
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_redis_cache.test.id
+  role_definition_name = "Contributor"
+  principal_id         = azurerm_machine_learning_workspace.test.identity[0].principal_id
+}
+
 resource "azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint" "test" {
   name                = "acctest-MLW-outboundrule-%[3]s"
   workspace_id        = azurerm_machine_learning_workspace.test.id
   service_resource_id = azurerm_redis_cache.test.id
   sub_resource_target = "redisCache"
+  depends_on = [
+    azurerm_role_assignment.test
+  ]
 }
 `, template, data.RandomInteger, data.RandomStringOfLength(6))
 }

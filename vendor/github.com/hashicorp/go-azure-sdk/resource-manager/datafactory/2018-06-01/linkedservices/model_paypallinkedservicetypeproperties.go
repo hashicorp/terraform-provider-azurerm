@@ -9,25 +9,25 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type PaypalLinkedServiceTypeProperties struct {
-	ClientId              interface{} `json:"clientId"`
-	ClientSecret          SecretBase  `json:"clientSecret"`
-	EncryptedCredential   *string     `json:"encryptedCredential,omitempty"`
-	Host                  interface{} `json:"host"`
-	UseEncryptedEndpoints *bool       `json:"useEncryptedEndpoints,omitempty"`
-	UseHostVerification   *bool       `json:"useHostVerification,omitempty"`
-	UsePeerVerification   *bool       `json:"usePeerVerification,omitempty"`
+	ClientId              interface{}  `json:"clientId"`
+	ClientSecret          SecretBase   `json:"clientSecret"`
+	EncryptedCredential   *string      `json:"encryptedCredential,omitempty"`
+	Host                  interface{}  `json:"host"`
+	UseEncryptedEndpoints *interface{} `json:"useEncryptedEndpoints,omitempty"`
+	UseHostVerification   *interface{} `json:"useHostVerification,omitempty"`
+	UsePeerVerification   *interface{} `json:"usePeerVerification,omitempty"`
 }
 
 var _ json.Unmarshaler = &PaypalLinkedServiceTypeProperties{}
 
 func (s *PaypalLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		ClientId              interface{} `json:"clientId"`
-		EncryptedCredential   *string     `json:"encryptedCredential,omitempty"`
-		Host                  interface{} `json:"host"`
-		UseEncryptedEndpoints *bool       `json:"useEncryptedEndpoints,omitempty"`
-		UseHostVerification   *bool       `json:"useHostVerification,omitempty"`
-		UsePeerVerification   *bool       `json:"usePeerVerification,omitempty"`
+		ClientId              interface{}  `json:"clientId"`
+		EncryptedCredential   *string      `json:"encryptedCredential,omitempty"`
+		Host                  interface{}  `json:"host"`
+		UseEncryptedEndpoints *interface{} `json:"useEncryptedEndpoints,omitempty"`
+		UseHostVerification   *interface{} `json:"useHostVerification,omitempty"`
+		UsePeerVerification   *interface{} `json:"usePeerVerification,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

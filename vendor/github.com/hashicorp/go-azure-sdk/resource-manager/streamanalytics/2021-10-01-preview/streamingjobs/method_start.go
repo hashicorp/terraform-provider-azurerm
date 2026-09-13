@@ -61,9 +61,20 @@ func (c StreamingJobsClient) Start(ctx context.Context, id StreamingJobId, input
 
 // StartThenPoll performs Start then polls until it's completed
 func (c StreamingJobsClient) StartThenPoll(ctx context.Context, id StreamingJobId, input StartStreamingJobParameters) error {
+	return c.StartCallbackThenPoll(ctx, id, input, nil)
+}
+
+// StartCallbackThenPoll performs Start, runs the optional callback function, then polls until it's completed
+func (c StreamingJobsClient) StartCallbackThenPoll(ctx context.Context, id StreamingJobId, input StartStreamingJobParameters, callback func() error) error {
 	result, err := c.Start(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Start: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

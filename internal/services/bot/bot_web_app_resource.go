@@ -11,16 +11,17 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
@@ -30,21 +31,29 @@ func resourceBotWebApp() *pluginsdk.Resource {
 		Read:   resourceBotWebAppRead,
 		Update: resourceBotWebAppUpdate,
 		Delete: resourceBotWebAppDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			// v0 -> v1 normalises the casing of IDs imported while this resource parsed them with the
+			// case-insensitive legacy parser, so they can be parsed with the case-sensitive SDK parser
+			0: migration.BotWebAppV0ToV1{},
+		}),
+
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.BotServiceID(id)
+			_, err := commonids.ParseBotServiceID(id)
 			return err
 		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 			client := meta.(*clients.Client).Bot.BotClient
 
-			id, err := parse.BotServiceID(d.Id())
+			id, err := commonids.ParseBotServiceID(d.Id())
 			if err != nil {
 				return nil, err
 			}
 
-			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+			resp, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
-					return nil, fmt.Errorf("the Web App Bot %q was not found in Resource Group %q", id.Name, id.ResourceGroup)
+				if response.WasNotFound(resp.Response.Response) {
+					return nil, fmt.Errorf("the Web App Bot %q was not found in Resource Group %q", id.BotServiceName, id.ResourceGroupName)
 				}
 
 				return nil, fmt.Errorf("retrieving Web App %s: %+v", id, err)
@@ -76,13 +85,10 @@ func resourceBotWebApp() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(botservice.SkuNameF0),
-					string(botservice.SkuNameS1),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInEnumSlice(botservice.PossibleSkuNameValues(), false),
 			},
 
 			"microsoft_app_id": {
@@ -92,10 +98,31 @@ func resourceBotWebApp() *pluginsdk.Resource {
 				ValidateFunc: validation.IsUUID,
 			},
 
+			"microsoft_app_type": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInEnumSlice(botservice.PossibleMsaAppTypeValues(), false),
+			},
+
+			"microsoft_app_tenant_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsUUID,
+			},
+
+			"microsoft_app_user_assigned_identity_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+			},
+
 			"display_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -151,22 +178,23 @@ func resourceBotWebAppCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceId := parse.NewBotServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.Name)
+	resourceId := commonids.NewBotServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, resourceId.ResourceGroupName, resourceId.BotServiceName)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of creating Web App Bot %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
+			if !response.WasNotFound(existing.Response.Response) {
+				return fmt.Errorf("checking for presence of creating Web App Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroupName, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_bot_web_app", resourceId.ID())
 		}
 	}
 
 	displayName := d.Get("display_name").(string)
 	if displayName == "" {
-		displayName = resourceId.Name
+		displayName = resourceId.BotServiceName
 	}
 
 	bot := botservice.Bot{
@@ -174,10 +202,11 @@ func resourceBotWebAppCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 			DisplayName:                       pointer.To(displayName),
 			Endpoint:                          pointer.To(d.Get("endpoint").(string)),
 			MsaAppID:                          pointer.To(d.Get("microsoft_app_id").(string)),
+			MsaAppType:                        botservice.MsaAppType(d.Get("microsoft_app_type").(string)),
 			DeveloperAppInsightKey:            pointer.To(d.Get("developer_app_insights_key").(string)),
 			DeveloperAppInsightsAPIKey:        pointer.To(d.Get("developer_app_insights_api_key").(string)),
 			DeveloperAppInsightsApplicationID: pointer.To(d.Get("developer_app_insights_application_id").(string)),
-			LuisAppIds:                        utils.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
+			LuisAppIds:                        helpers.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
 			LuisKey:                           pointer.To(d.Get("luis_key").(string)),
 		},
 		Location: pointer.To(d.Get("location").(string)),
@@ -188,8 +217,16 @@ func resourceBotWebAppCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.Name, bot); err != nil {
-		return fmt.Errorf("creating Web App Bot %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
+	if v, ok := d.GetOk("microsoft_app_tenant_id"); ok {
+		bot.Properties.MsaAppTenantID = pointer.To(v.(string))
+	}
+
+	if v, ok := d.GetOk("microsoft_app_user_assigned_identity_id"); ok {
+		bot.Properties.MsaAppMSIResourceID = pointer.To(v.(string))
+	}
+
+	if _, err := client.Create(ctx, resourceId.ResourceGroupName, resourceId.BotServiceName, bot); err != nil {
+		return fmt.Errorf("creating Web App Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroupName, err)
 	}
 
 	d.SetId(resourceId.ID())
@@ -201,24 +238,24 @@ func resourceBotWebAppRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotServiceID(d.Id())
+	id, err := commonids.ParseBotServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Web App Bot %q was not found in Resource Group %q - removing from state", id.Name, id.ResourceGroup)
+		if response.WasNotFound(resp.Response.Response) {
+			log.Printf("[INFO] Web App Bot %q was not found in Resource Group %q - removing from state", id.BotServiceName, id.ResourceGroupName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Web App Bot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Web App Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroupName, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.BotServiceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if sku := resp.Sku; sku != nil {
@@ -227,6 +264,9 @@ func resourceBotWebAppRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if props := resp.Properties; props != nil {
 		d.Set("microsoft_app_id", props.MsaAppID)
+		d.Set("microsoft_app_type", string(props.MsaAppType))
+		d.Set("microsoft_app_tenant_id", pointer.From(props.MsaAppTenantID))
+		d.Set("microsoft_app_user_assigned_identity_id", pointer.From(props.MsaAppMSIResourceID))
 		d.Set("endpoint", props.Endpoint)
 		d.Set("display_name", props.DisplayName)
 		d.Set("developer_app_insights_key", props.DeveloperAppInsightKey)
@@ -242,14 +282,14 @@ func resourceBotWebAppUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotServiceID(d.Id())
+	id, err := commonids.ParseBotServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	displayName := d.Get("display_name").(string)
 	if displayName == "" {
-		displayName = id.Name
+		displayName = id.BotServiceName
 	}
 
 	bot := botservice.Bot{
@@ -257,10 +297,11 @@ func resourceBotWebAppUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 			DisplayName:                       pointer.To(displayName),
 			Endpoint:                          pointer.To(d.Get("endpoint").(string)),
 			MsaAppID:                          pointer.To(d.Get("microsoft_app_id").(string)),
+			MsaAppType:                        botservice.MsaAppType(d.Get("microsoft_app_type").(string)),
 			DeveloperAppInsightKey:            pointer.To(d.Get("developer_app_insights_key").(string)),
 			DeveloperAppInsightsAPIKey:        pointer.To(d.Get("developer_app_insights_api_key").(string)),
 			DeveloperAppInsightsApplicationID: pointer.To(d.Get("developer_app_insights_application_id").(string)),
-			LuisAppIds:                        utils.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
+			LuisAppIds:                        helpers.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
 			LuisKey:                           pointer.To(d.Get("luis_key").(string)),
 		},
 		Location: pointer.To(d.Get("location").(string)),
@@ -271,8 +312,16 @@ func resourceBotWebAppUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, bot); err != nil {
-		return fmt.Errorf("updating Web App Bot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if v, ok := d.GetOk("microsoft_app_tenant_id"); ok {
+		bot.Properties.MsaAppTenantID = pointer.To(v.(string))
+	}
+
+	if v, ok := d.GetOk("microsoft_app_user_assigned_identity_id"); ok {
+		bot.Properties.MsaAppMSIResourceID = pointer.To(v.(string))
+	}
+
+	if _, err := client.Update(ctx, id.ResourceGroupName, id.BotServiceName, bot); err != nil {
+		return fmt.Errorf("updating Web App Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroupName, err)
 	}
 
 	return resourceBotWebAppRead(d, meta)
@@ -283,15 +332,15 @@ func resourceBotWebAppDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotServiceID(d.Id())
+	id, err := commonids.ParseBotServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroupName, id.BotServiceName)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("deleting Web App Bot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("deleting Web App Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroupName, err)
 		}
 	}
 

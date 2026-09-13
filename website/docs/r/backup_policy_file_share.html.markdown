@@ -85,6 +85,12 @@ The following arguments are supported:
 
 * `retention_yearly` - (Optional) Configures the policy yearly retention as documented in the `retention_yearly` block below.
 
+* `snapshot_retention_in_days` - (Optional) The number of days to retain the snapshots. Defaults to `0`.
+
+* `backup_tier` - (Optional) The backup tier to use. Possible values are `vault-standard` and `snapshot`. Defaults to `snapshot`.
+
+-> **Note:** When `backup_tier` is set to `vault-standard`, the `snapshot_retention_in_days` value must be less than the `retention_daily` count.
+
 ---
 
 The `backup` block supports:
@@ -107,7 +113,7 @@ The `hourly` block supports:
 
 * `start_time` - (Required) Specifies the start time of the hourly backup. The time format should be in 24-hour format. Times must be either on the hour or half hour (e.g. 12:00, 12:30, 13:00, etc.).
 
-* `window_duration` - (Required) Species the duration of the backup window in hours. Details could be found [here](https://learn.microsoft.com/en-us/azure/backup/backup-azure-files-faq#what-does-the-duration-attribute-in-azure-files-backup-policy-signify-).
+* `window_duration` - (Required) Species the duration of the backup window in hours. Details could be found [here](https://learn.microsoft.com/azure/backup/backup-azure-files-faq#what-does-the-duration-attribute-in-azure-files-backup-policy-signify-).
 
 ---
 

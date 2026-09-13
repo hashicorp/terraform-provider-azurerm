@@ -15,7 +15,24 @@ import (
 type ListFieldsByTypeOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *TypeFieldListResult
+	Model        *[]TypeField
+}
+
+type ListFieldsByTypeCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []TypeField
+}
+
+type ListFieldsByTypeCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListFieldsByTypeCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListFieldsByType ...
@@ -26,6 +43,7 @@ func (c ObjectDataTypesClient) ListFieldsByType(ctx context.Context, id ObjectDa
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListFieldsByTypeCustomPager{},
 		Path:       fmt.Sprintf("%s/fields", id.ID()),
 	}
 
@@ -35,7 +53,7 @@ func (c ObjectDataTypesClient) ListFieldsByType(ctx context.Context, id ObjectDa
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -44,11 +62,44 @@ func (c ObjectDataTypesClient) ListFieldsByType(ctx context.Context, id ObjectDa
 		return
 	}
 
-	var model TypeFieldListResult
-	result.Model = &model
-	if err = resp.Unmarshal(result.Model); err != nil {
+	var values struct {
+		Values *[]TypeField `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListFieldsByTypeComplete retrieves all the results into a single object
+func (c ObjectDataTypesClient) ListFieldsByTypeComplete(ctx context.Context, id ObjectDataTypeId) (ListFieldsByTypeCompleteResult, error) {
+	return c.ListFieldsByTypeCompleteMatchingPredicate(ctx, id, TypeFieldOperationPredicate{})
+}
+
+// ListFieldsByTypeCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c ObjectDataTypesClient) ListFieldsByTypeCompleteMatchingPredicate(ctx context.Context, id ObjectDataTypeId, predicate TypeFieldOperationPredicate) (result ListFieldsByTypeCompleteResult, err error) {
+	items := make([]TypeField, 0)
+
+	resp, err := c.ListFieldsByType(ctx, id)
+	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ListFieldsByTypeCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

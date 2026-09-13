@@ -5,6 +5,7 @@ package cdn_test
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -13,13 +14,13 @@ import (
 
 type CdnFrontDoorRuleSetDataSource struct{}
 
-func TestAccCdnFrontDoorRuleSetDataSource_basic(t *testing.T) {
+func TestAccCdnFrontDoorRuleSetDataSource_basic_unattachedRoute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_rule_set", "test")
 	d := CdnFrontDoorRuleSetDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: d.basic(data),
+			Config: d.basic(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("cdn_frontdoor_profile_id").MatchesOtherKey(check.That("azurerm_cdn_frontdoor_profile.test").Key("id")),
 			),
@@ -27,7 +28,33 @@ func TestAccCdnFrontDoorRuleSetDataSource_basic(t *testing.T) {
 	})
 }
 
-func (CdnFrontDoorRuleSetDataSource) basic(data acceptance.TestData) string {
+func TestAccCdnFrontDoorRuleSetDataSource_basic_attachedRoute(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_rule_set", "test")
+	d := CdnFrontDoorRuleSetDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: d.basic(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("cdn_frontdoor_profile_id").MatchesOtherKey(check.That("azurerm_cdn_frontdoor_profile.test").Key("id")),
+			),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorRuleSetDataSource_batchRuleSet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_rule_set", "test")
+	d := CdnFrontDoorRuleSetDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config:      d.batchRuleSet(data),
+			ExpectError: regexp.MustCompile("was provisioned using batch mode, and cannot be read by this data source"),
+		},
+	})
+}
+
+func (CdnFrontDoorRuleSetDataSource) basic(data acceptance.TestData, attachRoute bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -36,5 +63,17 @@ data "azurerm_cdn_frontdoor_rule_set" "test" {
   profile_name        = azurerm_cdn_frontdoor_profile.test.name
   resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
 }
-`, CdnFrontDoorRuleSetResource{}.complete(data))
+`, CdnFrontDoorRuleSetResource{}.complete(data, attachRoute))
+}
+
+func (CdnFrontDoorRuleSetDataSource) batchRuleSet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+data "azurerm_cdn_frontdoor_rule_set" "test" {
+  name                = azurerm_cdn_frontdoor_batch_rule_set.test.name
+  profile_name        = azurerm_cdn_frontdoor_profile.test.name
+  resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
+}
+`, CdnFrontdoorBatchRuleSetResource{}.complete(data))
 }

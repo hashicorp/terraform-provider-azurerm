@@ -5,6 +5,6 @@ package pipelines
 
 type LogSettings struct {
 	CopyActivityLogSettings *CopyActivityLogSettings `json:"copyActivityLogSettings,omitempty"`
-	EnableCopyActivityLog   *bool                    `json:"enableCopyActivityLog,omitempty"`
+	EnableCopyActivityLog   *interface{}             `json:"enableCopyActivityLog,omitempty"`
 	LogLocationSettings     LogLocationSettings      `json:"logLocationSettings"`
 }

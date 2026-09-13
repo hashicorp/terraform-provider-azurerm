@@ -194,7 +194,8 @@ func TestAccBatchAccount_authenticationModesUpdate(t *testing.T) {
 			Config: r.authenticationModesUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("allowed_authentication_modes.#").HasValue("0")),
+				check.That(data.ResourceName).Key("allowed_authentication_modes.#").HasValue("0"),
+			),
 		},
 	})
 }
@@ -495,6 +496,7 @@ resource "azurerm_key_vault" "test" {
   name                            = "batchkv%s"
   location                        = "${azurerm_resource_group.test.location}"
   resource_group_name             = "${azurerm_resource_group.test.name}"
+  rbac_authorization_enabled      = false
   enabled_for_disk_encryption     = true
   enabled_for_deployment          = true
   enabled_for_template_deployment = true
@@ -649,6 +651,7 @@ resource "azurerm_key_vault" "test" {
   name                            = "acctest%[3]s"
   location                        = azurerm_resource_group.test.location
   resource_group_name             = azurerm_resource_group.test.name
+  rbac_authorization_enabled      = false
   enabled_for_disk_encryption     = true
   enabled_for_deployment          = true
   enabled_for_template_deployment = true
@@ -758,6 +761,7 @@ resource "azurerm_key_vault" "test" {
   name                            = "acctest%[3]s"
   location                        = azurerm_resource_group.test.location
   resource_group_name             = azurerm_resource_group.test.name
+  rbac_authorization_enabled      = false
   enabled_for_disk_encryption     = true
   enabled_for_deployment          = true
   enabled_for_template_deployment = true
@@ -864,6 +868,7 @@ resource "azurerm_key_vault" "test" {
   name                            = "acctest%[3]s"
   location                        = azurerm_resource_group.test.location
   resource_group_name             = azurerm_resource_group.test.name
+  rbac_authorization_enabled      = false
   enabled_for_disk_encryption     = true
   enabled_for_deployment          = true
   enabled_for_template_deployment = true

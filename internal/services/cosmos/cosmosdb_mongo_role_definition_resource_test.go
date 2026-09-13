@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-11-15/mongorbacs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-10-15/mongorbacs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -93,7 +93,7 @@ func (r CosmosMongoRoleDefinitionResource) Exists(ctx context.Context, clients *
 
 	resp, err := clients.Cosmos.MongoRBACClient.MongoDBResourcesGetMongoRoleDefinition(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading %q: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil

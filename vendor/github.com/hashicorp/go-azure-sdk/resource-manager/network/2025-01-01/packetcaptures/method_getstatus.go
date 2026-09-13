@@ -58,9 +58,20 @@ func (c PacketCapturesClient) GetStatus(ctx context.Context, id PacketCaptureId)
 
 // GetStatusThenPoll performs GetStatus then polls until it's completed
 func (c PacketCapturesClient) GetStatusThenPoll(ctx context.Context, id PacketCaptureId) error {
+	return c.GetStatusCallbackThenPoll(ctx, id, nil)
+}
+
+// GetStatusCallbackThenPoll performs GetStatus, runs the optional callback function, then polls until it's completed
+func (c PacketCapturesClient) GetStatusCallbackThenPoll(ctx context.Context, id PacketCaptureId, callback func() error) error {
 	result, err := c.GetStatus(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing GetStatus: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -58,9 +58,20 @@ func (c CosmosDBClient) GremlinResourcesMigrateGremlinDatabaseToManualThroughput
 
 // GremlinResourcesMigrateGremlinDatabaseToManualThroughputThenPoll performs GremlinResourcesMigrateGremlinDatabaseToManualThroughput then polls until it's completed
 func (c CosmosDBClient) GremlinResourcesMigrateGremlinDatabaseToManualThroughputThenPoll(ctx context.Context, id GremlinDatabaseId) error {
+	return c.GremlinResourcesMigrateGremlinDatabaseToManualThroughputCallbackThenPoll(ctx, id, nil)
+}
+
+// GremlinResourcesMigrateGremlinDatabaseToManualThroughputCallbackThenPoll performs GremlinResourcesMigrateGremlinDatabaseToManualThroughput, runs the optional callback function, then polls until it's completed
+func (c CosmosDBClient) GremlinResourcesMigrateGremlinDatabaseToManualThroughputCallbackThenPoll(ctx context.Context, id GremlinDatabaseId, callback func() error) error {
 	result, err := c.GremlinResourcesMigrateGremlinDatabaseToManualThroughput(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing GremlinResourcesMigrateGremlinDatabaseToManualThroughput: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

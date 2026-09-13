@@ -89,8 +89,8 @@ for _, item := range items {
 ctx := context.TODO()
 id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
-// alternatively `client.ListBySubscription(ctx, id)` can be used to do batched pagination
-items, err := client.ListBySubscriptionComplete(ctx, id)
+// alternatively `client.ListBySubscription(ctx, id, fleets.DefaultListBySubscriptionOperationOptions())` can be used to do batched pagination
+items, err := client.ListBySubscriptionComplete(ctx, id, fleets.DefaultListBySubscriptionOperationOptions())
 if err != nil {
 	// handle the error
 }

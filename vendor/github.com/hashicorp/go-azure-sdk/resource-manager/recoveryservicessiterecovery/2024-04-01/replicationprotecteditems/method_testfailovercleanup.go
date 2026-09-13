@@ -62,9 +62,20 @@ func (c ReplicationProtectedItemsClient) TestFailoverCleanup(ctx context.Context
 
 // TestFailoverCleanupThenPoll performs TestFailoverCleanup then polls until it's completed
 func (c ReplicationProtectedItemsClient) TestFailoverCleanupThenPoll(ctx context.Context, id ReplicationProtectedItemId, input TestFailoverCleanupInput) error {
+	return c.TestFailoverCleanupCallbackThenPoll(ctx, id, input, nil)
+}
+
+// TestFailoverCleanupCallbackThenPoll performs TestFailoverCleanup, runs the optional callback function, then polls until it's completed
+func (c ReplicationProtectedItemsClient) TestFailoverCleanupCallbackThenPoll(ctx context.Context, id ReplicationProtectedItemId, input TestFailoverCleanupInput, callback func() error) error {
 	result, err := c.TestFailoverCleanup(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing TestFailoverCleanup: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

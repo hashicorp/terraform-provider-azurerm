@@ -10,7 +10,7 @@ description: |-
 
 Manages a Load Balancer NAT Rule.
 
--> **Note:** This resource cannot be used with with virtual machine scale sets, instead use the `azurerm_lb_nat_pool` resource.
+-> **Note:** To target a Virtual Machine Scale Set, set `frontend_port_start`, `frontend_port_end` and `backend_address_pool_id` to create an Inbound NAT rule v2. The legacy `azurerm_lb_nat_pool` resource maps to Inbound NAT rule v1, which Azure has scheduled for retirement on September 30, 2027.
 
 ~> **Note:** When using this resource, the Load Balancer needs to have a FrontEnd IP Configuration Attached
 
@@ -113,4 +113,4 @@ terraform import azurerm_lb_nat_rule.example /subscriptions/00000000-0000-0000-0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2023-09-01
+* `Microsoft.Network` - 2025-01-01

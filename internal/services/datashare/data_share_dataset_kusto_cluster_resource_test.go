@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ShareKustoClusterDataSetResource struct{}
+type DataShareDatasetKustoClusterResource struct{}
 
 func TestAccDataShareKustoClusterDataSet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_kusto_cluster", "test")
-	r := ShareKustoClusterDataSetResource{}
+	r := DataShareDatasetKustoClusterResource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -37,7 +37,7 @@ func TestAccDataShareKustoClusterDataSet_basic(t *testing.T) {
 
 func TestAccDataShareKustoClusterDataSet_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_kusto_cluster", "test")
-	r := ShareKustoClusterDataSetResource{}
+	r := DataShareDatasetKustoClusterResource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccDataShareKustoClusterDataSet_requiresImport(t *testing.T) {
 	})
 }
 
-func (t ShareKustoClusterDataSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataShareDatasetKustoClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := dataset.ParseDataSetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -71,7 +71,7 @@ func (t ShareKustoClusterDataSetResource) Exists(ctx context.Context, clients *c
 	return nil, fmt.Errorf("%s is not a kusto cluster dataset", *id)
 }
 
-func (ShareKustoClusterDataSetResource) template(data acceptance.TestData) string {
+func (DataShareDatasetKustoClusterResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -116,7 +116,7 @@ resource "azurerm_role_assignment" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r ShareKustoClusterDataSetResource) basic(data acceptance.TestData) string {
+func (r DataShareDatasetKustoClusterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -131,7 +131,7 @@ resource "azurerm_data_share_dataset_kusto_cluster" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ShareKustoClusterDataSetResource) requiresImport(data acceptance.TestData) string {
+func (r DataShareDatasetKustoClusterResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -122,44 +121,93 @@ func TestAccLogAnalyticsWorkspace_removeVolumeCap(t *testing.T) {
 	})
 }
 
-func TestAccLogAnalyticsWorkspace_withInternetIngestionEnabled(t *testing.T) {
+func TestAccLogAnalyticsWorkspace_internetIngestionAccessType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
 	r := LogAnalyticsWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withInternetIngestionEnabled(data),
+			Config: r.withInternetIngestionAccessType(data, "Enabled"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("internet_ingestion_access_type").HasValue("Enabled"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.withInternetIngestionEnabledUpdate(data),
+			Config: r.withInternetIngestionAccessType(data, "Disabled"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("internet_ingestion_access_type").HasValue("Disabled"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withInternetIngestionAccessType(data, "Enabled"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("internet_ingestion_access_type").HasValue("Enabled"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccLogAnalyticsWorkspace_withInternetQueryEnabled(t *testing.T) {
+func TestAccLogAnalyticsWorkspace_internetQueryAccessType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
 	r := LogAnalyticsWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withInternetQueryEnabled(data),
+			Config: r.withInternetQueryAccessType(data, "Enabled"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("internet_query_access_type").HasValue("Enabled"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.withInternetQueryEnabledUpdate(data),
+			Config: r.withInternetQueryAccessType(data, "Disabled"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("internet_query_access_type").HasValue("Disabled"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withInternetQueryAccessType(data, "Enabled"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("internet_query_access_type").HasValue("Enabled"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogAnalyticsWorkspace_internetAccessTypeSecuredByPerimeter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	r := LogAnalyticsWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// Associate workspace with an NSP in Enforced mode — Azure sets both
+			// public network access types to SecuredByPerimeter automatically.
+			Config: r.withNspEnforced(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("internet_ingestion_access_type").HasValue("SecuredByPerimeter"),
+				check.That(data.ResourceName).Key("internet_query_access_type").HasValue("SecuredByPerimeter"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Remove the NSP association and explicitly set both back to Enabled.
+			Config: r.withNspRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("internet_ingestion_access_type").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("internet_query_access_type").HasValue("Enabled"),
 			),
 		},
 		data.ImportStep(),
@@ -265,6 +313,7 @@ func TestAccLogAnalyticsWorkspace_ToggleEnableLocalAuth(t *testing.T) {
 			Config: r.localAuthEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -272,6 +321,7 @@ func TestAccLogAnalyticsWorkspace_ToggleEnableLocalAuth(t *testing.T) {
 			Config: r.localAuthEnabled(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -279,6 +329,15 @@ func TestAccLogAnalyticsWorkspace_ToggleEnableLocalAuth(t *testing.T) {
 			Config: r.localAuthEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -624,94 +683,6 @@ resource "azurerm_log_analytics_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (LogAnalyticsWorkspaceResource) withInternetIngestionEnabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_log_analytics_workspace" "test" {
-  name                       = "acctestLAW-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  internet_ingestion_enabled = true
-  sku                        = "PerGB2018"
-  retention_in_days          = 30
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (LogAnalyticsWorkspaceResource) withInternetIngestionEnabledUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_log_analytics_workspace" "test" {
-  name                       = "acctestLAW-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  internet_ingestion_enabled = false
-  sku                        = "PerGB2018"
-  retention_in_days          = 30
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (LogAnalyticsWorkspaceResource) withInternetQueryEnabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_log_analytics_workspace" "test" {
-  name                   = "acctestLAW-%d"
-  location               = azurerm_resource_group.test.location
-  resource_group_name    = azurerm_resource_group.test.name
-  internet_query_enabled = true
-  sku                    = "PerGB2018"
-  retention_in_days      = 30
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (LogAnalyticsWorkspaceResource) withInternetQueryEnabledUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_log_analytics_workspace" "test" {
-  name                   = "acctestLAW-%d"
-  location               = azurerm_resource_group.test.location
-  resource_group_name    = azurerm_resource_group.test.name
-  internet_query_enabled = false
-  sku                    = "PerGB2018"
-  retention_in_days      = 30
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
 func (LogAnalyticsWorkspaceResource) withCapacityReservation(data acceptance.TestData, capacityReservation int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -727,7 +698,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   name                               = "acctestLAW-%d"
   location                           = azurerm_resource_group.test.location
   resource_group_name                = azurerm_resource_group.test.name
-  internet_query_enabled             = false
+  internet_query_access_type         = "Disabled"
   sku                                = "CapacityReservation"
   reservation_capacity_in_gb_per_day = %d
 }
@@ -749,7 +720,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   name                               = "acctestLAW-%d"
   location                           = azurerm_resource_group.test.location
   resource_group_name                = azurerm_resource_group.test.name
-  internet_query_enabled             = false
+  internet_query_access_type         = "Disabled"
   sku                                = "CapacityReservation"
   reservation_capacity_in_gb_per_day = %d
 }
@@ -801,27 +772,6 @@ resource "azurerm_log_analytics_workspace" "test" {
 }
 
 func (LogAnalyticsWorkspaceResource) localAuthEnabled(data acceptance.TestData, localAuthEnabled bool) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_log_analytics_workspace" "test" {
-  name                          = "acctestLAW-%d"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  sku                           = "PerGB2018"
-  retention_in_days             = 30
-  local_authentication_disabled = %[4]t
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, !localAuthEnabled)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -944,4 +894,114 @@ resource "azurerm_log_analytics_workspace" "test" {
   immediate_data_purge_on_30_days_enabled = %[4]t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enable)
+}
+
+func (LogAnalyticsWorkspaceResource) withInternetIngestionAccessType(data acceptance.TestData, accessType string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                           = "acctestLAW-%d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+  internet_ingestion_access_type = "%s"
+  sku                            = "PerGB2018"
+  retention_in_days              = 30
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, accessType)
+}
+
+func (LogAnalyticsWorkspaceResource) withInternetQueryAccessType(data acceptance.TestData, accessType string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                       = "acctestLAW-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  internet_query_access_type = "%s"
+  sku                        = "PerGB2018"
+  retention_in_days          = 30
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, accessType)
+}
+
+func (LogAnalyticsWorkspaceResource) withNspEnforced(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_network_security_perimeter" "test" {
+  name                = "acctestNsp-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_network_security_perimeter_profile" "test" {
+  name                          = "acctestNspProfile-%d"
+  network_security_perimeter_id = azurerm_network_security_perimeter.test.id
+}
+
+# The workspace is declared with SecuredByPerimeter so that Terraform state
+# and the Azure API value agree once the NSP association below is in place.
+resource "azurerm_log_analytics_workspace" "test" {
+  name                           = "acctestLAW-%d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+  sku                            = "PerGB2018"
+  retention_in_days              = 30
+  internet_ingestion_access_type = "SecuredByPerimeter"
+  internet_query_access_type     = "SecuredByPerimeter"
+}
+
+resource "azurerm_network_security_perimeter_association" "test" {
+  name                                  = "acctestNspAssoc-%d"
+  network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.test.id
+  resource_id                           = azurerm_log_analytics_workspace.test.id
+  access_mode                           = "Enforced"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (LogAnalyticsWorkspaceResource) withNspRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                           = "acctestLAW-%d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+  sku                            = "PerGB2018"
+  retention_in_days              = 30
+  internet_ingestion_access_type = "Enabled"
+  internet_query_access_type     = "Enabled"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

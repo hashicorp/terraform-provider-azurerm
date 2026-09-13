@@ -130,7 +130,7 @@ func (t CosmosGremlinDatabaseResource) Exists(ctx context.Context, clients *clie
 
 	resp, err := clients.Cosmos.CosmosDBClient.GremlinResourcesGetGremlinDatabase(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Cosmos Gremlin Database (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil

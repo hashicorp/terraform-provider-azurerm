@@ -152,14 +152,16 @@ func (r WebAppHybridConnectionResource) Create() sdk.ResourceFunc {
 
 			id := webapps.NewRelayID(appId.SubscriptionId, appId.ResourceGroupName, appId.SiteName, relayId.NamespaceName, relayId.HybridConnectionName)
 
-			existing, err := client.GetHybridConnection(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetHybridConnection(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				}
 			}
 
 			sendKeyValue, err := helpers.GetSendKeyValue(ctx, metadata, *relayId, appHybridConn.SendKeyName)
@@ -177,8 +179,7 @@ func (r WebAppHybridConnectionResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			_, err = client.CreateOrUpdateHybridConnection(ctx, id, envelope)
-			if err != nil {
+			if _, err = client.CreateOrUpdateHybridConnection(ctx, id, envelope); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -323,8 +324,7 @@ func (r WebAppHybridConnectionResource) Update() sdk.ResourceFunc {
 				model.Properties.SendKeyValue = sendKeyValue
 			}
 
-			_, err = client.CreateOrUpdateHybridConnection(ctx, *id, model)
-			if err != nil {
+			if _, err = client.CreateOrUpdateHybridConnection(ctx, *id, model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 

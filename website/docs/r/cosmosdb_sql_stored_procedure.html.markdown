@@ -84,3 +84,9 @@ CosmosDB SQL Stored Procedures can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_cosmosdb_sql_stored_procedure.db1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/account1/sqlDatabases/db1/containers/c1/storedProcedures/sp1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DocumentDB` - 2024-08-15

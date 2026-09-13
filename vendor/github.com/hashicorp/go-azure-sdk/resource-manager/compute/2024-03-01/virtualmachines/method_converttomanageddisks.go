@@ -57,9 +57,20 @@ func (c VirtualMachinesClient) ConvertToManagedDisks(ctx context.Context, id Vir
 
 // ConvertToManagedDisksThenPoll performs ConvertToManagedDisks then polls until it's completed
 func (c VirtualMachinesClient) ConvertToManagedDisksThenPoll(ctx context.Context, id VirtualMachineId) error {
+	return c.ConvertToManagedDisksCallbackThenPoll(ctx, id, nil)
+}
+
+// ConvertToManagedDisksCallbackThenPoll performs ConvertToManagedDisks, runs the optional callback function, then polls until it's completed
+func (c VirtualMachinesClient) ConvertToManagedDisksCallbackThenPoll(ctx context.Context, id VirtualMachineId, callback func() error) error {
 	result, err := c.ConvertToManagedDisks(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ConvertToManagedDisks: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

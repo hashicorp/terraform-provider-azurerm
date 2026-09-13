@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
@@ -183,14 +183,15 @@ func (r BackendAddressPoolAddressResource) Create() sdk.ResourceFunc {
 					addresses = *pool.Model.Properties.LoadBalancerBackendAddresses
 				}
 
-				metadata.Logger.Infof("checking for existing %s..", id)
-				for _, address := range addresses {
-					if address.Name == nil {
-						continue
-					}
+				if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					for _, address := range addresses {
+						if address.Name == nil {
+							continue
+						}
 
-					if *address.Name == model.Name {
-						return metadata.ResourceRequiresImport(r.ResourceType(), id)
+						if *address.Name == model.Name {
+							return metadata.ResourceRequiresImport(r.ResourceType(), id)
+						}
 					}
 				}
 
@@ -221,12 +222,10 @@ func (r BackendAddressPoolAddressResource) Create() sdk.ResourceFunc {
 
 				pool.Model.Properties.LoadBalancerBackendAddresses = &addresses
 
-				metadata.Logger.Infof("adding %s..", id)
-				err = lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, *poolId, *pool.Model)
-				if err != nil {
+				// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
+				if err := lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, *poolId, *pool.Model); err != nil {
 					return fmt.Errorf("updating %s: %+v", id, err)
 				}
-				metadata.Logger.Infof("waiting for update %s..", id)
 
 				metadata.SetID(id)
 			}
@@ -386,11 +385,9 @@ func (r BackendAddressPoolAddressResource) Delete() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.Logger.Infof("removing %s..", *id)
 			pool.Model.Properties.LoadBalancerBackendAddresses = &newAddresses
 
-			err = lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, poolId, *pool.Model)
-			if err != nil {
+			if err = lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, poolId, *pool.Model); err != nil {
 				return fmt.Errorf("removing %s: %+v", *id, err)
 			}
 
@@ -496,8 +493,7 @@ func (r BackendAddressPoolAddressResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for parent resource loadbalancer status to be ready error: %+v", err)
 			}
 
-			err = lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, poolId, *pool.Model)
-			if err != nil {
+			if err = lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, poolId, *pool.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 			return nil

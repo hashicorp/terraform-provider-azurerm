@@ -22,16 +22,17 @@ func TestAccKustoClusterManagedPrivateEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_managed_private_endpoint", "test")
 	r := KustoClusterManagedPrivateEndpointResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("group_id").HasValue("blob"),
-			),
+	data.ResourceTest(
+		t, r, []acceptance.TestStep{
+			{
+				Config: r.basic(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("group_id").HasValue("blob"),
+				),
+			},
+			data.ImportStep(),
 		},
-		data.ImportStep(),
-	},
 	)
 }
 
@@ -39,17 +40,18 @@ func TestAccKustoClusterManagedPrivateEndpoint_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_managed_private_endpoint", "test")
 	r := KustoClusterManagedPrivateEndpointResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("group_id").HasValue("blob"),
-				check.That(data.ResourceName).Key("request_message").HasValue("Please Approve"),
-			),
+	data.ResourceTest(
+		t, r, []acceptance.TestStep{
+			{
+				Config: r.complete(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("group_id").HasValue("blob"),
+					check.That(data.ResourceName).Key("request_message").HasValue("Please Approve"),
+				),
+			},
+			data.ImportStep(),
 		},
-		data.ImportStep(),
-	},
 	)
 }
 

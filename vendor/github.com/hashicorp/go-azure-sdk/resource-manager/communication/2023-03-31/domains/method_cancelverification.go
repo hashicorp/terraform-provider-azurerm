@@ -60,9 +60,20 @@ func (c DomainsClient) CancelVerification(ctx context.Context, id DomainId, inpu
 
 // CancelVerificationThenPoll performs CancelVerification then polls until it's completed
 func (c DomainsClient) CancelVerificationThenPoll(ctx context.Context, id DomainId, input VerificationParameter) error {
+	return c.CancelVerificationCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CancelVerificationCallbackThenPoll performs CancelVerification, runs the optional callback function, then polls until it's completed
+func (c DomainsClient) CancelVerificationCallbackThenPoll(ctx context.Context, id DomainId, input VerificationParameter, callback func() error) error {
 	result, err := c.CancelVerification(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CancelVerification: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

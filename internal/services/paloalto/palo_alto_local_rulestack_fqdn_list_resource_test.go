@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/fqdnlistlocalrulestack"
+	fqdnlistlocalrulestack "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/fqdnlistlocalrulestackresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -96,7 +96,7 @@ func (r LocalRulestackFQDNList) Exists(ctx context.Context, client *clients.Clie
 		return nil, err
 	}
 
-	resp, err := client.PaloAlto.FqdnListLocalRulestack.Get(ctx, *id)
+	resp, err := client.PaloAlto.FqdnListLocalRulestackResources.FqdnListLocalRulestackGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil

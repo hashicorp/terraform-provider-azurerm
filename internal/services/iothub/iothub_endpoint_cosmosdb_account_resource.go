@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -19,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
@@ -83,13 +83,10 @@ func (r IotHubEndpointCosmosDBAccountResource) Arguments() map[string]*pluginsdk
 		},
 
 		"authentication_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(devices.AuthenticationTypeKeyBased),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(devices.AuthenticationTypeKeyBased),
-				string(devices.AuthenticationTypeIdentityBased),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(devices.AuthenticationTypeKeyBased),
+			ValidateFunc: validation.StringInEnumSlice(devices.PossibleAuthenticationTypeValues(), false),
 		},
 
 		"identity_id": {
@@ -180,7 +177,7 @@ func (r IotHubEndpointCosmosDBAccountResource) Create() sdk.ResourceFunc {
 
 			iothub, err := client.Get(ctx, iotHubId.ResourceGroup, iotHubId.Name)
 			if err != nil {
-				if utils.ResponseWasNotFound(iothub.Response) {
+				if response.WasNotFound(iothub.Response.Response) {
 					return fmt.Errorf("%q was not found", iotHubId)
 				}
 
@@ -250,7 +247,9 @@ func (r IotHubEndpointCosmosDBAccountResource) Create() sdk.ResourceFunc {
 
 			for _, existingEndpoint := range pointer.From(routing.Endpoints.CosmosDBSQLCollections) {
 				if strings.EqualFold(pointer.From(existingEndpoint.Name), id.EndpointName) {
-					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+					if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+					}
 				}
 				endpoints = append(endpoints, existingEndpoint)
 			}
@@ -263,11 +262,12 @@ func (r IotHubEndpointCosmosDBAccountResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			metadata.SetID(id)
+
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 				return fmt.Errorf("waiting for the completion of the creation of %s: %+v", id, err)
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 		Timeout: 30 * time.Minute,
@@ -290,7 +290,7 @@ func (r IotHubEndpointCosmosDBAccountResource) Read() sdk.ResourceFunc {
 
 			iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 			if err != nil {
-				if utils.ResponseWasNotFound(iothub.Response) {
+				if response.WasNotFound(iothub.Response.Response) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %q: %+v", id, err)
@@ -359,7 +359,7 @@ func (r IotHubEndpointCosmosDBAccountResource) Update() sdk.ResourceFunc {
 
 			iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 			if err != nil {
-				if utils.ResponseWasNotFound(iothub.Response) {
+				if response.WasNotFound(iothub.Response.Response) {
 					return fmt.Errorf("%q was not found", id)
 				}
 
@@ -463,7 +463,7 @@ func (r IotHubEndpointCosmosDBAccountResource) Delete() sdk.ResourceFunc {
 
 			iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 			if err != nil {
-				if utils.ResponseWasNotFound(iothub.Response) {
+				if response.WasNotFound(iothub.Response.Response) {
 					return fmt.Errorf("%q was not found", id)
 				}
 				return fmt.Errorf("retrieving %q: %+v", id, err)

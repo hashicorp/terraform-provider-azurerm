@@ -53,7 +53,7 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"hub_profile": {
-			Deprecated: "The service team has indicated this field is now deprecated and not to be used, as such we are marking it as such and no longer sending it to the API, please see url: https://learn.microsoft.com/en-us/azure/kubernetes-fleet/architectural-overview",
+			Deprecated: "The service team has indicated this field is now deprecated and not to be used, as such we are marking it as such and no longer sending it to the API, please see url: https://learn.microsoft.com/azure/kubernetes-fleet/architectural-overview",
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"dns_prefix": {
@@ -98,20 +98,22 @@ func (r KubernetesFleetManagerResource) Create() sdk.ResourceFunc {
 
 			id := fleets.NewFleetID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			var payload fleets.Fleet
 			r.mapKubernetesFleetManagerResourceSchemaToFleet(config, &payload)
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload, fleets.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, fleets.DefaultCreateOrUpdateOperationOptions(), metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

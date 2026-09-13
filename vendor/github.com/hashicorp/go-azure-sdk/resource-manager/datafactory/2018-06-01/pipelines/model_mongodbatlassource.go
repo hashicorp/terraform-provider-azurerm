@@ -12,16 +12,16 @@ var _ CopySource = MongoDbAtlasSource{}
 
 type MongoDbAtlasSource struct {
 	AdditionalColumns *interface{}                    `json:"additionalColumns,omitempty"`
-	BatchSize         *int64                          `json:"batchSize,omitempty"`
+	BatchSize         *interface{}                    `json:"batchSize,omitempty"`
 	CursorMethods     *MongoDbCursorMethodsProperties `json:"cursorMethods,omitempty"`
 	Filter            *interface{}                    `json:"filter,omitempty"`
 	QueryTimeout      *interface{}                    `json:"queryTimeout,omitempty"`
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64       `json:"sourceRetryCount,omitempty"`
+	DisableMetricsCollection *interface{} `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *interface{} `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *interface{} `json:"sourceRetryCount,omitempty"`
 	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
 	Type                     string       `json:"type"`
 }

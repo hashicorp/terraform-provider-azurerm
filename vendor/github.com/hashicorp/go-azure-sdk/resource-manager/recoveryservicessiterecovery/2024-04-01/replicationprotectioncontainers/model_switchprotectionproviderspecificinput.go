@@ -25,9 +25,9 @@ func (s BaseSwitchProtectionProviderSpecificInputImpl) SwitchProtectionProviderS
 
 var _ SwitchProtectionProviderSpecificInput = RawSwitchProtectionProviderSpecificInputImpl{}
 
-// RawSwitchProtectionProviderSpecificInputImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawSwitchProtectionProviderSpecificInputImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawSwitchProtectionProviderSpecificInputImpl struct {
 	switchProtectionProviderSpecificInput BaseSwitchProtectionProviderSpecificInputImpl
 	Type                                  string
@@ -36,6 +36,10 @@ type RawSwitchProtectionProviderSpecificInputImpl struct {
 
 func (s RawSwitchProtectionProviderSpecificInputImpl) SwitchProtectionProviderSpecificInput() BaseSwitchProtectionProviderSpecificInputImpl {
 	return s.switchProtectionProviderSpecificInput
+}
+
+func (s RawSwitchProtectionProviderSpecificInputImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalSwitchProtectionProviderSpecificInputImplementation(input []byte) (SwitchProtectionProviderSpecificInput, error) {

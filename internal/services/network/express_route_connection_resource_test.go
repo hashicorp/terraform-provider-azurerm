@@ -18,7 +18,7 @@ import (
 
 type ExpressRouteConnectionResource struct{}
 
-func TestAccExpressRouteConnection(t *testing.T) {
+func TestAccExpressRouteConnection_sequential(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"Resource": {
 			"basic":          testAccExpressRouteConnection_basic,
@@ -40,6 +40,7 @@ func testAccExpressRouteConnection_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That("azurerm_express_route_connection.test").Key("routing.0.associated_route_table_id").Exists(),
 				check.That("azurerm_express_route_connection.test").Key("routing.0.propagated_route_table.#").HasValue("1"),
+				check.That("azurerm_express_route_connection.test").Key("internet_security_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -85,13 +86,23 @@ func testAccExpressRouteConnection_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("azurerm_express_route_connection.test").Key("internet_security_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data),
+			Config: r.update(data, 2),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("azurerm_express_route_connection.test").Key("internet_security_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("azurerm_express_route_connection.test").Key("internet_security_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -147,7 +158,7 @@ resource "azurerm_express_route_connection" "test" {
   express_route_circuit_peering_id     = azurerm_express_route_circuit_peering.test.id
   routing_weight                       = 2
   authorization_key                    = "90f8db47-e25b-4b65-a68b-7743ced2a16b"
-  enable_internet_security             = true
+  internet_security_enabled            = true
   express_route_gateway_bypass_enabled = true
 
   routing {
@@ -162,7 +173,7 @@ resource "azurerm_express_route_connection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ExpressRouteConnectionResource) update(data acceptance.TestData) string {
+func (r ExpressRouteConnectionResource) update(data acceptance.TestData, routingWeight int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -216,9 +227,9 @@ resource "azurerm_express_route_connection" "test" {
   name                                 = "acctest-ExpressRouteConnection-%d"
   express_route_gateway_id             = azurerm_express_route_gateway.test.id
   express_route_circuit_peering_id     = azurerm_express_route_circuit_peering.test.id
-  routing_weight                       = 2
+  routing_weight                       = %[3]d
   authorization_key                    = "90f8db47-e25b-4b65-a68b-7743ced2a16b"
-  enable_internet_security             = true
+  internet_security_enabled            = true
   express_route_gateway_bypass_enabled = true
 
   routing {
@@ -232,9 +243,8 @@ resource "azurerm_express_route_connection" "test" {
     inbound_route_map_id  = azurerm_route_map.routemap1.id
     outbound_route_map_id = azurerm_route_map.routemap2.id
   }
-  depends_on = [azurerm_route_map.routemap1, azurerm_route_map.routemap2]
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, routingWeight)
 }
 
 func (r ExpressRouteConnectionResource) template(data acceptance.TestData) string {

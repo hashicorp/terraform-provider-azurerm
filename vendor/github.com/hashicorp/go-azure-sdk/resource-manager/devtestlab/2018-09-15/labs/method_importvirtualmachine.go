@@ -61,9 +61,20 @@ func (c LabsClient) ImportVirtualMachine(ctx context.Context, id LabId, input Im
 
 // ImportVirtualMachineThenPoll performs ImportVirtualMachine then polls until it's completed
 func (c LabsClient) ImportVirtualMachineThenPoll(ctx context.Context, id LabId, input ImportLabVirtualMachineRequest) error {
+	return c.ImportVirtualMachineCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ImportVirtualMachineCallbackThenPoll performs ImportVirtualMachine, runs the optional callback function, then polls until it's completed
+func (c LabsClient) ImportVirtualMachineCallbackThenPoll(ctx context.Context, id LabId, input ImportLabVirtualMachineRequest, callback func() error) error {
 	result, err := c.ImportVirtualMachine(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ImportVirtualMachine: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

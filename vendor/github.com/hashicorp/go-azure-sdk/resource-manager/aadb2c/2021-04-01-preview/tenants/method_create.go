@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
-// Copyright (c) HashiCorp Inc. All rights reserved.
+// Copyright IBM Corp. 2023, 2026 All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type CreateOperationResponse struct {
@@ -61,9 +61,20 @@ func (c TenantsClient) Create(ctx context.Context, id B2CDirectoryId, input Crea
 
 // CreateThenPoll performs Create then polls until it's completed
 func (c TenantsClient) CreateThenPoll(ctx context.Context, id B2CDirectoryId, input CreateTenant) error {
+	return c.CreateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateCallbackThenPoll performs Create, runs the optional callback function, then polls until it's completed
+func (c TenantsClient) CreateCallbackThenPoll(ctx context.Context, id B2CDirectoryId, input CreateTenant, callback func() error) error {
 	result, err := c.Create(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Create: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

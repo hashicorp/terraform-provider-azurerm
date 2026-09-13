@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/migration"
@@ -88,12 +89,19 @@ type SchedulePolicyConfiguration struct {
 	SchedulePolicyType   string   `tfschema:"schedule_policy_type"`
 }
 
+//go:generate go run ../../tools/generator-tests resourceidentity
+
 type AutoManageConfigurationResource struct{}
 
 var (
 	_ sdk.ResourceWithUpdate         = AutoManageConfigurationResource{}
 	_ sdk.ResourceWithStateMigration = AutoManageConfigurationResource{}
+	_ sdk.ResourceWithIdentity       = AutoManageConfigurationResource{}
 )
+
+func (r AutoManageConfigurationResource) Identity() resourceids.ResourceId {
+	return &configurationprofiles.ConfigurationProfileId{}
+}
 
 func (r AutoManageConfigurationResource) ResourceType() string {
 	return "azurerm_automanage_configuration"
@@ -474,13 +482,16 @@ func (r AutoManageConfigurationResource) Create() sdk.ResourceFunc {
 			}
 
 			id := configurationprofiles.NewConfigurationProfileID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := configurationprofiles.ConfigurationProfile{
@@ -497,6 +508,9 @@ func (r AutoManageConfigurationResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -598,6 +612,9 @@ func (r AutoManageConfigurationResource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
 			return metadata.Encode(&state)
 		},
 	}
@@ -736,7 +753,7 @@ func expandConfigurationProfile(model ConfigurationModel) *interface{} {
 
 func flattenAntiMalwareConfig(configMap map[string]interface{}) []AntimalwareConfiguration {
 	if val, ok := configMap["Antimalware/Enable"]; !ok || (val == nil) {
-		return nil
+		return []AntimalwareConfiguration{}
 	}
 
 	antimalware := make([]AntimalwareConfiguration, 1)
@@ -789,7 +806,7 @@ func flattenAntiMalwareConfig(configMap map[string]interface{}) []AntimalwareCon
 
 func flattenAzureSecurityBaselineConfig(configMap map[string]interface{}) []AzureSecurityBaselineConfiguration {
 	if val, ok := configMap["AzureSecurityBaseline/Enable"]; !ok || (val == nil) {
-		return nil
+		return []AzureSecurityBaselineConfiguration{}
 	}
 
 	azureSecurityBaseline := make([]AzureSecurityBaselineConfiguration, 1)
@@ -804,7 +821,7 @@ func flattenAzureSecurityBaselineConfig(configMap map[string]interface{}) []Azur
 
 func flattenBackupConfig(configMap map[string]interface{}) []BackupConfiguration {
 	if val, ok := configMap["Backup/Enable"]; !ok || (val == nil) {
-		return nil
+		return []BackupConfiguration{}
 	}
 
 	backup := make([]BackupConfiguration, 1)

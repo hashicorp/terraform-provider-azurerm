@@ -15,8 +15,7 @@ func OrganizationOrganizationID(i interface{}, k string) (warnings []string, err
 		return warnings, errors
 	}
 
-	err := validateOrganizationId(id)
-	if err != nil {
+	if err := validateOrganizationId(id); err != nil {
 		errors = append(errors, err)
 		return warnings, errors
 	}

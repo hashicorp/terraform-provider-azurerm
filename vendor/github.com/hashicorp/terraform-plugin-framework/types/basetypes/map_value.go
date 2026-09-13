@@ -1,6 +1,9 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
+// Package basetypes provides concrete implementations of basic attribute
+// value types used by the framework (Map, List, Set, etc.). These are
+// internal base implementations used across the terraform-plugin-framework.
 package basetypes
 
 import (
@@ -178,6 +181,23 @@ func (m MapValue) Elements() map[string]attr.Value {
 	return result
 }
 
+// Length returns the number of elements in the Map.
+//
+// If the Map is null or unknown, the behavior depends on the options:
+//   - If UnhandledNullAsZero or UnhandledUnknownAsZero is true, zero is returned.
+//   - If false, a panic occurs.
+func (m MapValue) Length(opts CollectionLengthOptions) int {
+	if m.IsNull() && !opts.UnhandledNullAsZero {
+		panic("cannot call Length on a null Map")
+	}
+
+	if m.IsUnknown() && !opts.UnhandledUnknownAsZero {
+		panic("cannot call Length on an unknown Map")
+	}
+
+	return len(m.elements)
+}
+
 // ElementsAs populates `target` with the elements of the MapValue, throwing an
 // error if the elements cannot be stored in `target`.
 func (m MapValue) ElementsAs(ctx context.Context, target interface{}, allowUnhandled bool) diag.Diagnostics {
@@ -335,6 +355,7 @@ func (m MapValue) String() string {
 		if i != 0 {
 			res.WriteString(",")
 		}
+		//nolint:staticcheck
 		res.WriteString(fmt.Sprintf("%q:%s", k, m.Elements()[k].String()))
 	}
 	res.WriteString("}")

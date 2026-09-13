@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"regexp"
 	"time"
 
@@ -18,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/networkfunction/2022-11-01/azuretrafficcollectors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/networkfunction/2022-11-01/collectorpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -143,13 +145,16 @@ func (r NetworkFunctionCollectorPolicyResource) Create() sdk.ResourceFunc {
 			}
 
 			id := collectorpolicies.NewCollectorPolicyID(azureTrafficCollectorId.SubscriptionId, azureTrafficCollectorId.ResourceGroupName, azureTrafficCollectorId.AzureTrafficCollectorName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := &collectorpolicies.CollectorPolicy{
@@ -165,11 +170,11 @@ func (r NetworkFunctionCollectorPolicyResource) Create() sdk.ResourceFunc {
 				Tags: tags.Expand(model.Tags),
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, *properties, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -273,41 +278,16 @@ func (r NetworkFunctionCollectorPolicyResource) Delete() sdk.ResourceFunc {
 
 			// API has bug, which appears to be eventually consistent. Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/25152
 			log.Printf("[DEBUG] Waiting for %s to be fully deleted..", *id)
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
-			}
-
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending:                   []string{"Exists"},
-				Target:                    []string{"NotFound"},
-				Refresh:                   collectorPolicyDeletedRefreshFunc(ctx, client, *id),
-				MinTimeout:                10 * time.Second,
-				ContinuousTargetOccurence: 20,
-				Timeout:                   time.Until(deadline),
-			}
-
-			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			poller := custompollers.NewEventualConsistencyPoller(20, func(pollerCtx context.Context) (*http.Response, error) {
+				resp, err := client.Get(pollerCtx, *id)
+				return resp.HttpResponse, err
+			}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+			if err := poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("waiting for %s to be fully deleted: %+v", *id, err)
 			}
 
 			return nil
 		},
-	}
-}
-
-func collectorPolicyDeletedRefreshFunc(ctx context.Context, client *collectorpolicies.CollectorPoliciesClient, id collectorpolicies.CollectorPolicyId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return "NotFound", "NotFound", nil
-			}
-
-			return nil, "", fmt.Errorf("checking if %s has been deleted: %+v", id, err)
-		}
-
-		return res, "Exists", nil
 	}
 }
 
@@ -330,7 +310,7 @@ func expandEmissionPolicyDestinationModelArray(inputList []string) *[]collectorp
 	outputList := make([]collectorpolicies.EmissionPolicyDestination, 0, len(inputList))
 	for _, v := range inputList {
 		output := collectorpolicies.EmissionPolicyDestination{
-			DestinationType: pointer.To(collectorpolicies.DestinationType(v)),
+			DestinationType: pointer.ToEnum[collectorpolicies.DestinationType](v),
 		}
 
 		outputList = append(outputList, output)

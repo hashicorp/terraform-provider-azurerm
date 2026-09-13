@@ -4,20 +4,20 @@
 package suppress
 
 import (
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func DiffSuppressIgnoreKeyVaultKeyVersion(k, old, new string, d *pluginsdk.ResourceData) bool {
+func DiffSuppressIgnoreKeyVaultKeyVersion(k, old, new string, _ *pluginsdk.ResourceData) bool {
 	// TODO: deprecate this method in the future, `ignore_changes` should be used instead
-	oldKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(old)
+	oldKey, err := keyvault.ParseNestedItemID(old, keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
 	if err != nil {
 		return false
 	}
-	newKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(new)
+	newKey, err := keyvault.ParseNestedItemID(new, keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
 	if err != nil {
 		return false
 	}
 
-	return (oldKey.KeyVaultBaseUrl == newKey.KeyVaultBaseUrl) && (oldKey.Name == newKey.Name)
+	return (oldKey.KeyVaultBaseURL == newKey.KeyVaultBaseURL) && (oldKey.Name == newKey.Name)
 }

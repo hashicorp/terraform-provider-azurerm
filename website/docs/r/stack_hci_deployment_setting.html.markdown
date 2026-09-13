@@ -10,7 +10,7 @@ description: |-
 
 Manages a Stack HCI Deployment Setting.
 
--> **Note:** Completion of the prerequisites of deploying the Azure Stack HCI in your environment is outside the scope of this document. For more details refer to the [Azure Stack HCI deployment sequence](https://learn.microsoft.com/en-us/azure-stack/hci/deploy/deployment-introduction#deployment-sequence). If you encounter issues completing the prerequisites, we'd recommend opening a ticket with Microsoft Support.
+-> **Note:** Completion of the prerequisites of deploying the Azure Stack HCI in your environment is outside the scope of this document. For more details refer to the [Azure Stack HCI deployment sequence](https://learn.microsoft.com/azure-stack/hci/deploy/deployment-introduction#deployment-sequence). If you encounter issues completing the prerequisites, we'd recommend opening a ticket with Microsoft Support.
 
 -> **Note:** During the deployment process, the service will generate additional resources, including a new Arc Bridge Appliance and a Custom Location containing several Stack HCI Storage Paths. The provider will attempt to remove these resources on the deletion or recreation of `azurerm_stack_hci_deployment_setting`.
 
@@ -87,7 +87,7 @@ resource "azuread_application" "example" {
   display_name = "example-hci-onboard"
 }
 
-# https://learn.microsoft.com/en-us/azure-stack/hci/deploy/deployment-azure-resource-manager-template#create-a-service-principal-and-client-secret
+# https://learn.microsoft.com/azure-stack/hci/deploy/deployment-azure-resource-manager-template#create-a-service-principal-and-client-secret
 resource "azuread_service_principal" "example" {
   client_id = azuread_application.example.client_id
 }
@@ -127,7 +127,7 @@ resource "azurerm_key_vault" "DeploymentKeyVault" {
   enabled_for_disk_encryption     = true
   tenant_id                       = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days      = 30
-  enable_rbac_authorization       = true
+  rbac_authorization_enabled      = true
   public_network_access_enabled   = true
   sku_name                        = "standard"
 }

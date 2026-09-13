@@ -115,7 +115,7 @@ func (c *Client) GetMetaData(ctx context.Context) (*MetaData, error) {
 			OSSRDBMS:       normalizeResourceId(metadata.OssrDbmsResourceId),
 			Synapse:        normalizeResourceId(metadata.SynapseAnalyticsResourceId),
 		},
-		ResourceManagerEndpoint: metadata.ResourceManager,
+		ResourceManagerEndpoint: normalizeEndpoint(metadata.ResourceManager),
 	}, nil
 }
 

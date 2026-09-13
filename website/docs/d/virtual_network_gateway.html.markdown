@@ -38,12 +38,11 @@ output "virtual_network_gateway_id" {
 
 * `vpn_type` - The routing type of the Virtual Network Gateway.
 
-* `enable_bgp` - Will BGP (Border Gateway Protocol) will be enabled
-    for this Virtual Network Gateway.
+* `bgp_enabled` - Will BGP (Border Gateway Protocol) will be enabled for this Virtual Network Gateway.
 
 * `active_active` - Is this an Active-Active Gateway?
 
-* `private_ip_address_enabled` - Whether a private IP will be used for this  gateway for connections.
+* `private_ip_address_enabled` - Whether a private IP will be used for this gateway for connections.
 
 * `default_local_network_gateway_id` -  The ID of the local network gateway
     through which outbound Internet traffic from the virtual network in which the
@@ -90,7 +89,7 @@ The `vpn_client_configuration` block supports:
     `root_certificate` and `revoked_certificate`, `radius_server_address`, and `radius_server_secret`.
 
 * `aad_audience` - The client id of the Azure VPN application.
-    See [Create an Active Directory (AD) tenant for P2S OpenVPN protocol connections](https://docs.microsoft.com/en-gb/azure/vpn-gateway/openvpn-azure-ad-tenant-multi-app) for values
+    See [Create an Active Directory (AD) tenant for P2S OpenVPN protocol connections](https://docs.microsoft.com/azure/vpn-gateway/openvpn-azure-ad-tenant-multi-app) for values
     This setting is incompatible with the use of
     `root_certificate` and `revoked_certificate`, `radius_server_address`, and `radius_server_secret`.
 

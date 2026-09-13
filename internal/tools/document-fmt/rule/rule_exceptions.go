@@ -16,6 +16,9 @@ var Exceptions = map[string]map[string]struct{}{
 	"r.azurerm_resource_provider_registration": {
 		"S002": struct{}{},
 	},
+	"r.azurerm_resource_provider_feature_registration": {
+		"S002": struct{}{},
+	},
 }
 
 func SkipRule(resourceType data.ResourceType, resourceName string, ruleName string) bool {

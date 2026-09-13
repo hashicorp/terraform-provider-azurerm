@@ -62,9 +62,20 @@ func (c ClustersClient) UpdateIdentityCertificate(ctx context.Context, id common
 
 // UpdateIdentityCertificateThenPoll performs UpdateIdentityCertificate then polls until it's completed
 func (c ClustersClient) UpdateIdentityCertificateThenPoll(ctx context.Context, id commonids.HDInsightClusterId, input UpdateClusterIdentityCertificateParameters) error {
+	return c.UpdateIdentityCertificateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// UpdateIdentityCertificateCallbackThenPoll performs UpdateIdentityCertificate, runs the optional callback function, then polls until it's completed
+func (c ClustersClient) UpdateIdentityCertificateCallbackThenPoll(ctx context.Context, id commonids.HDInsightClusterId, input UpdateClusterIdentityCertificateParameters, callback func() error) error {
 	result, err := c.UpdateIdentityCertificate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing UpdateIdentityCertificate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

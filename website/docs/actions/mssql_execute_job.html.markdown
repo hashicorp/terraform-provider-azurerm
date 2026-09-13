@@ -8,8 +8,6 @@ description: |-
 
 # Action: azurerm_mssql_execute_job
 
-~> **Note:** `azurerm_mssql_execute_job` is in beta. Its interface and behaviour may change as the feature evolves, and breaking changes are possible. It is offered as a technical preview without compatibility guarantees until Terraform 1.14 is generally available.
-
 Executes an Elastic Job
 
 ## Example Usage

@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressroutecircuits"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -98,15 +99,17 @@ func resourceExpressRouteCircuitConnectionCreate(d *pluginsdk.ResourceData, meta
 
 	id := expressroutecircuitconnections.NewPeeringConnectionID(circuitPeeringId.SubscriptionId, circuitPeeringId.ResourceGroupName, circuitPeeringId.CircuitName, circuitPeeringId.PeeringName, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_express_route_circuit_connection", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_express_route_circuit_connection", id.ID())
+		}
 	}
 
 	circuitPeerPeeringId, err := commonids.ParseExpressRouteCircuitPeeringID(d.Get("peer_peering_id").(string))
@@ -148,7 +151,7 @@ func resourceExpressRouteCircuitConnectionCreate(d *pluginsdk.ResourceData, meta
 		}
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, expressRouteCircuitConnectionParameters); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, expressRouteCircuitConnectionParameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

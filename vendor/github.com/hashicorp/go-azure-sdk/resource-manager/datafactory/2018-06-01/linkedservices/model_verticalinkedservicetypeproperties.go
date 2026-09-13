@@ -7,7 +7,7 @@ type VerticaLinkedServiceTypeProperties struct {
 	ConnectionString    *interface{}                  `json:"connectionString,omitempty"`
 	Database            *interface{}                  `json:"database,omitempty"`
 	EncryptedCredential *string                       `json:"encryptedCredential,omitempty"`
-	Port                *int64                        `json:"port,omitempty"`
+	Port                *interface{}                  `json:"port,omitempty"`
 	Pwd                 *AzureKeyVaultSecretReference `json:"pwd,omitempty"`
 	Server              *interface{}                  `json:"server,omitempty"`
 	Uid                 *interface{}                  `json:"uid,omitempty"`

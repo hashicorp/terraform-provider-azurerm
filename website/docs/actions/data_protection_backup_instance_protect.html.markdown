@@ -8,8 +8,6 @@ description: |-
 
 # Action: azurerm_data_protection_backup_instance_protect
 
-~> **Note:** `azurerm_data_protection_backup_instance_protect` is in beta. Its interface and behaviour may change as the feature evolves, and breaking changes are possible. It is offered as a technical preview without compatibility guarantees until Terraform 1.14 is generally available.
-
 Changes the Protection state of a Data Protection Backup Instance to the specified value.
 
 ## Example Usage

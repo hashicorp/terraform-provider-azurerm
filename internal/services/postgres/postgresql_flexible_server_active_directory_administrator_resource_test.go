@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/administratorsmicrosoftentra"
+	administratorsmicrosoftentra "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/administratormicrosoftentras"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -69,7 +69,7 @@ func (r PostgresqlFlexibleServerAdministratorResource) Exists(ctx context.Contex
 		return nil, err
 	}
 
-	resp, err := clients.Postgres.FlexibleServerAdministratorsClient.Get(ctx, *id)
+	resp, err := clients.Postgres.FlexibleServerAdministratorsClient.AdministratorsMicrosoftEntraGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Postgresql AAD Administrator (%s): %+v", id.String(), err)
 	}
@@ -83,7 +83,7 @@ func (r PostgresqlFlexibleServerAdministratorResource) Destroy(ctx context.Conte
 		return nil, err
 	}
 
-	if _, err := client.Postgres.FlexibleServerAdministratorsClient.Delete(ctx, *id); err != nil {
+	if _, err := client.Postgres.FlexibleServerAdministratorsClient.AdministratorsMicrosoftEntraDelete(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting Postgresql AAD Administrator (%s): %+v", id.String(), err)
 	}
 
@@ -116,7 +116,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   storage_mb             = 32768
-  version                = "12"
+  version                = "16"
   sku_name               = "GP_Standard_D2s_v3"
   zone                   = "2"
 

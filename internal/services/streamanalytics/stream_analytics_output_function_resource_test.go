@@ -103,7 +103,6 @@ func (r StreamAnalyticsOutputFunctionResource) Exists(ctx context.Context, clien
 }
 
 func (r StreamAnalyticsOutputFunctionResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -111,15 +110,14 @@ resource "azurerm_stream_analytics_output_function" "test" {
   name                      = "acctestoutput-%d"
   stream_analytics_job_name = azurerm_stream_analytics_job.test.name
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
-  function_app              = azurerm_function_app.test.name
+  function_app              = azurerm_linux_function_app.test.name
   function_name             = "somefunctionname"
   api_key                   = "test"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputFunctionResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -127,17 +125,16 @@ resource "azurerm_stream_analytics_output_function" "test" {
   name                      = "acctestoutput-%d"
   stream_analytics_job_name = azurerm_stream_analytics_job.test.name
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
-  function_app              = azurerm_function_app.test.name
+  function_app              = azurerm_linux_function_app.test.name
   function_name             = "somefunctionname"
   api_key                   = "test"
   batch_max_in_bytes        = 128
   batch_max_count           = 200
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputFunctionResource) updated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -145,16 +142,15 @@ resource "azurerm_stream_analytics_output_function" "test" {
   name                      = "acctestoutput-%d"
   stream_analytics_job_name = azurerm_stream_analytics_job.test.name
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
-  function_app              = azurerm_function_app.test.name
+  function_app              = azurerm_linux_function_app.test.name
   function_name             = "adifferentfunctionname"
   api_key                   = "withanewkey!"
   batch_max_in_bytes        = 128
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputFunctionResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -166,7 +162,7 @@ resource "azurerm_stream_analytics_output_function" "import" {
   function_name             = azurerm_stream_analytics_output_function.test.function_name
   api_key                   = azurerm_stream_analytics_output_function.test.api_key
 }
-`, template)
+`, r.basic(data))
 }
 
 func (r StreamAnalyticsOutputFunctionResource) template(data acceptance.TestData) string {
@@ -188,28 +184,29 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestplan-%[3]s"
-  location            = azurerm_resource_group.test.location
+resource "azurerm_service_plan" "test" {
+  name                = "acctest-SP-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
-  kind                = "FunctionApp"
-  reserved            = true
+  location            = azurerm_resource_group.test.location
+  sku_name            = "Y1"
+  os_type             = "Linux"
 
-  sku {
-    tier = "Dynamic"
-    size = "Y1"
+  tags = {
+    environment = "AccTest"
+    Foo         = "bar"
   }
 }
 
-resource "azurerm_function_app" "test" {
-  name                       = "acctestfunction-%[3]s"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  os_type                    = "linux"
-  version                    = "~3"
+
+  site_config {}
 }
 
 resource "azurerm_stream_analytics_job" "test" {

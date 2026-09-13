@@ -1,12 +1,13 @@
 # Maintainer Specific: Merging Pull Requests
 
-> **Note:** All pull requests must be reviewed and approved before they are merged. 
+> **Note:** All pull requests must be reviewed and approved before they are merged.
 
-##  Commit Type
+## Commit Type
 
 All pull requests must be merged using the "Squash and merge" option. This ensures a clean commit history and simplifies either reverting changes or cherry-picking commits in the future.
 
-##  Commit Message Format
+## Commit Message Format
+
 When merging a PR, the **commit message** should clearly describe the change being introduced. If the PR is correctly named (as described in [this guide](guide-opening-a-pr.md)), then the title can be used as-is. Otherwise, update the title to reflect the purpose of the PR in a way that will be meaningful in the Git history and use that as the message.
 
 The **commit description** can contain an optional changelog entry that if included, will be automatically picked up by the changelog automation system and added to the current draft changelog PR. The format for the commit message can be found in the [Automated Changelog Guide](#automated-changelog-guide) section below.
@@ -20,10 +21,11 @@ When a PR is merged it may or may not be included in the changelog. While most P
 - Unit and acceptance test fixes
 - Refactoring
 - Documentation changes
+- Deprecations (these must have an entry in the `{major}.0-upgrade-guide.html.markdown` file instead)
 
 Otherwise, every PR that affects users should be added to the appropriate section:
 
-* `FEATURES` - new resources and data sources
+* `FEATURES` - new resources, data sources, actions, and list resources
 * `ENHANCEMENTS` - new properties, functionality, and features (including SDK/API upgrades)
 * `BUG FIXES` - bug fixes
 
@@ -44,7 +46,9 @@ Here is a list of common changelog entries and how they should be formatted:
 
 FEATURES:
 
+* **New Action**: `azurerm_action` [GH-12345]
 * **New Data Source**: `azurerm_data_source` [GH-12345]
+* **New List Resource**: `azurerm_resource` [GH-12345]
 * **New Resource**: `azurerm_resource` [GH-12345]
 
 ENHANCEMENTS:
@@ -59,6 +63,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* provider: `provider_feature` now correctly reads the default value from an environment variable [GH-12345]
 * Data Source: `azurerm_data_source` - prevent a possible crash by setting `queue_name` correctly [GH-12345]
 * Data Source: `azurerm_data_source` - correctly populate the `kind` and `os_type` attributes [GH-12345]
 * `azurerm_data_factory_dataset_delimited_text` - set defaults properly for `column_delimiter`, `quote_character`, `escape_character`, `first_row_as_header`, and `null_value` [GH-12345]
@@ -67,9 +72,10 @@ BUG FIXES:
 ```
 
 ## Automated Changelog Guide
+
 For maintainers, when reviewing and merging a PR that warrants a changelog entry, the changelog automation flow is documented below.
 
-In the Extended description box of the merge commit message type the changelog entry. 
+In the Extended description box of the merge commit message type the changelog entry.
 
 Example: ```[BUG] * Data Source: `azurerm_data_source` - prevent a possible crash by setting `queue_name` correctly```
 
@@ -83,12 +89,11 @@ The options for the automation are:
 
 * `[FEATURE]`
 
-> **Note:** Breaking changes need to be added manually to the open changelog PR by editing the branch the changelog PR is open on. 
+> **Note:** Breaking changes need to be added manually to the open changelog PR by editing the branch the changelog PR is open on.
 
+After pressing `Confirm squash and merge`, the automation will kick off.
 
-After pressing `Confirm squash and merge`, the automation will kick off. 
-
-1. It will pull the merge commit message and append the PR number `[GH-{number}]` 
+1. It will pull the merge commit message and append the PR number `[GH-{number}]`
 
 2. It will check for the keywords `[BUG]`, `[ENHANCEMENT]`, `[FEATURE]`
 
@@ -106,6 +111,6 @@ After pressing `Confirm squash and merge`, the automation will kick off.
 
 9. It will title itself "CHANGELOG.md for $RELEASENUM" based on the next release numbers minor version (will need to be manually adjusted for hot fixes and major releases)
 
-10. If a PR is already open, or has now been opened, it will add the changelog entry under the appropriate header 
+10. If a PR is already open, or has now been opened, it will add the changelog entry under the appropriate header
 
 11. It will push the change to the open Changelog PR

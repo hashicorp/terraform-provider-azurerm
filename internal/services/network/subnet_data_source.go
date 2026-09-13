@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceSubnet() *pluginsdk.Resource {
@@ -63,14 +63,6 @@ func dataSourceSubnet() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"service_endpoints": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
 			"default_outbound_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
@@ -84,6 +76,23 @@ func dataSourceSubnet() *pluginsdk.Resource {
 			"private_link_service_network_policies_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
+			},
+
+			"service_endpoint": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"service": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"network_identifier": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -119,7 +128,7 @@ func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 					d.Set("address_prefixes", []string{})
 				}
 			} else {
-				d.Set("address_prefixes", utils.FlattenStringSlice(props.AddressPrefixes))
+				d.Set("address_prefixes", helpers.FlattenStringSlice(props.AddressPrefixes))
 			}
 
 			defaultOutboundAccessEnabled := true
@@ -143,9 +152,8 @@ func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 			d.Set("route_table_id", routeTableId)
 
-			serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
-			if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
-				return fmt.Errorf("setting `service_endpoints`: %+v", err)
+			if err := d.Set("service_endpoint", flattenSubnetServiceEndpoint(props.ServiceEndpoints)); err != nil {
+				return fmt.Errorf("setting `service_endpoint`: %+v", err)
 			}
 		}
 	}

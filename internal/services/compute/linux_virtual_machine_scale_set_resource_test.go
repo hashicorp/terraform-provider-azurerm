@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -95,7 +95,7 @@ resource "azurerm_subnet" "test" {
 `, r.templatePublicKey(), data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) templateWithLocation(data acceptance.TestData, location string) string {
+func (r LinuxVirtualMachineScaleSetResource) templateWithLocation(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -121,5 +121,5 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
-`, r.templatePublicKey(), data.RandomInteger, location, data.RandomInteger)
+`, r.templatePublicKey(), data.RandomInteger, "eastus2", data.RandomInteger)
 }

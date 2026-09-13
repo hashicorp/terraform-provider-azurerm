@@ -91,7 +91,8 @@ The provider can be configured to read the certificate bundle from the .pfx file
 
 Our recommended approach is storing the credentials as Environment Variables, for example:
 
-*Reading the certificate bundle from the filesystem*
+#### Reading the certificate bundle from the filesystem
+
 ```shell-session
 # sh
 $ export ARM_CLIENT_ID="00000000-0000-0000-0000-000000000000"
@@ -100,6 +101,7 @@ $ export ARM_CLIENT_CERTIFICATE_PASSWORD="Pa55w0rd123"
 $ export ARM_TENANT_ID="10000000-0000-0000-0000-000000000000"
 $ export ARM_SUBSCRIPTION_ID="20000000-0000-0000-0000-000000000000"
 ```
+
 ```powershell
 # PowerShell
 > $env:ARM_CLIENT_ID = "00000000-0000-0000-0000-000000000000"
@@ -109,7 +111,8 @@ $ export ARM_SUBSCRIPTION_ID="20000000-0000-0000-0000-000000000000"
 > $env:ARM_SUBSCRIPTION_ID = "20000000-0000-0000-0000-000000000000"
 ```
 
-*Passing the encoded certificate bundle directly*
+#### Passing the encoded certificate bundle directly
+
 ```shell-session
 # sh
 $ export ARM_CLIENT_ID="00000000-0000-0000-0000-000000000000"
@@ -118,6 +121,7 @@ $ export ARM_CLIENT_CERTIFICATE_PASSWORD="Pa55w0rd123"
 $ export ARM_TENANT_ID="10000000-0000-0000-0000-000000000000"
 $ export ARM_SUBSCRIPTION_ID="20000000-0000-0000-0000-000000000000"
 ```
+
 ```powershell
 # PowerShell
 > $env:ARM_CLIENT_ID = "00000000-0000-0000-0000-000000000000"
@@ -136,7 +140,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=4.1.0"
+      version = "=5.0.0"
     }
   }
 }
@@ -157,7 +161,8 @@ It's also possible to configure these variables either directly, or from variabl
 
 !> **Note:** We recommend not defining these variables in-line since they could easily be checked into Source Control.
 
-*Reading the certificate bundle from the filesystem*
+#### Reading the certificate bundle from the filesystem
+
 ```hcl
 variable "client_certificate" {}
 variable "client_certificate_password" {}
@@ -168,7 +173,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=4.1.0"
+      version = "=5.0.0"
     }
   }
 }
@@ -185,7 +190,8 @@ provider "azurerm" {
 }
 ```
 
-*Passing the encoded certificate bundle directly*
+#### Passing the encoded certificate bundle directly
+
 ```hcl
 variable "client_certificate" {}
 variable "client_certificate_password" {}
@@ -196,7 +202,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=4.1.0"
+      version = "=5.0.0"
     }
   }
 }

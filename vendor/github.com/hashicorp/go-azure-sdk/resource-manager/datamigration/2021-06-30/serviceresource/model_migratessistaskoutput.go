@@ -26,9 +26,9 @@ func (s BaseMigrateSsisTaskOutputImpl) MigrateSsisTaskOutput() BaseMigrateSsisTa
 
 var _ MigrateSsisTaskOutput = RawMigrateSsisTaskOutputImpl{}
 
-// RawMigrateSsisTaskOutputImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawMigrateSsisTaskOutputImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawMigrateSsisTaskOutputImpl struct {
 	migrateSsisTaskOutput BaseMigrateSsisTaskOutputImpl
 	Type                  string
@@ -37,6 +37,10 @@ type RawMigrateSsisTaskOutputImpl struct {
 
 func (s RawMigrateSsisTaskOutputImpl) MigrateSsisTaskOutput() BaseMigrateSsisTaskOutputImpl {
 	return s.migrateSsisTaskOutput
+}
+
+func (s RawMigrateSsisTaskOutputImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalMigrateSsisTaskOutputImplementation(input []byte) (MigrateSsisTaskOutput, error) {

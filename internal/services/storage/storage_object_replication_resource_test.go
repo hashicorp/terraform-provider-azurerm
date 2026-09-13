@@ -160,7 +160,7 @@ func (r StorageObjectReplicationResource) Exists(ctx context.Context, client *cl
 	if err != nil {
 		return nil, err
 	}
-	dstResp, err := client.Storage.ResourceManager.ObjectReplicationPolicies.Get(ctx, id.Dst)
+	dstResp, err := client.Storage.ResourceManager.ObjectReplicationPolicyOperationGroup.ObjectReplicationPoliciesGet(ctx, id.Dst)
 	if err != nil {
 		if response.WasNotFound(dstResp.HttpResponse) {
 			return pointer.To(false), nil
@@ -168,7 +168,7 @@ func (r StorageObjectReplicationResource) Exists(ctx context.Context, client *cl
 		return nil, fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
-	srcResp, err := client.Storage.ResourceManager.ObjectReplicationPolicies.Get(ctx, id.Src)
+	srcResp, err := client.Storage.ResourceManager.ObjectReplicationPolicyOperationGroup.ObjectReplicationPoliciesGet(ctx, id.Src)
 	if err != nil {
 		if response.WasNotFound(srcResp.HttpResponse) {
 			return pointer.To(false), nil
@@ -204,13 +204,13 @@ resource "azurerm_storage_account" "src" {
 
 resource "azurerm_storage_container" "src" {
   name                  = "strcsrc%[3]s"
-  storage_account_name  = azurerm_storage_account.src.name
+  storage_account_id    = azurerm_storage_account.src.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_container" "src_second" {
   name                  = "strcsrcsecond%[3]s"
-  storage_account_name  = azurerm_storage_account.src.name
+  storage_account_id    = azurerm_storage_account.src.id
   container_access_type = "private"
 }
 
@@ -233,16 +233,16 @@ resource "azurerm_storage_account" "dst" {
 
 resource "azurerm_storage_container" "dst" {
   name                  = "strcdst%[3]s"
-  storage_account_name  = azurerm_storage_account.dst.name
+  storage_account_id    = azurerm_storage_account.dst.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_container" "dst_second" {
   name                  = "strcdstsecond%[3]s"
-  storage_account_name  = azurerm_storage_account.dst.name
+  storage_account_id    = azurerm_storage_account.dst.id
   container_access_type = "private"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Secondary)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Secondary)
 }
 
 func (r StorageObjectReplicationResource) basic(data acceptance.TestData) string {
@@ -282,6 +282,7 @@ func (r StorageObjectReplicationResource) complete(data acceptance.TestData) str
 resource "azurerm_storage_object_replication" "test" {
   source_storage_account_id      = azurerm_storage_account.src.id
   destination_storage_account_id = azurerm_storage_account.dst.id
+  metrics_enabled                = true
   rules {
     source_container_name        = azurerm_storage_container.src.name
     destination_container_name   = azurerm_storage_container.dst.name
@@ -361,13 +362,13 @@ resource "azurerm_storage_account" "src" {
 
 resource "azurerm_storage_container" "src" {
   name                  = "strcsrc%[4]s"
-  storage_account_name  = azurerm_storage_account.src.name
+  storage_account_id    = azurerm_storage_account.src.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_container" "src_second" {
   name                  = "strcsrcsecond%[4]s"
-  storage_account_name  = azurerm_storage_account.src.name
+  storage_account_id    = azurerm_storage_account.src.id
   container_access_type = "private"
 }
 
@@ -393,14 +394,14 @@ resource "azurerm_storage_account" "dst" {
 resource "azurerm_storage_container" "dst" {
   provider              = azurerm-alt
   name                  = "strcdst%[4]s"
-  storage_account_name  = azurerm_storage_account.dst.name
+  storage_account_id    = azurerm_storage_account.dst.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_container" "dst_second" {
   provider              = azurerm-alt
   name                  = "strcdstsecond%[4]s"
-  storage_account_name  = azurerm_storage_account.dst.name
+  storage_account_id    = azurerm_storage_account.dst.id
   container_access_type = "private"
 }
 
@@ -412,7 +413,7 @@ resource "azurerm_storage_object_replication" "test" {
     destination_container_name = azurerm_storage_container.dst.name
   }
 }
-`, data.Subscriptions.Secondary, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Secondary)
+	`, data.Subscriptions.Secondary, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Secondary)
 }
 
 func (r StorageObjectReplicationResource) crossTenantDisabled(data acceptance.TestData) string {
@@ -441,13 +442,13 @@ resource "azurerm_storage_account" "src" {
 
 resource "azurerm_storage_container" "src" {
   name                  = "strcsrc%[3]s"
-  storage_account_name  = azurerm_storage_account.src.name
+  storage_account_id    = azurerm_storage_account.src.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_container" "src_second" {
   name                  = "strcsrcsecond%[3]s"
-  storage_account_name  = azurerm_storage_account.src.name
+  storage_account_id    = azurerm_storage_account.src.id
   container_access_type = "private"
 }
 
@@ -471,13 +472,13 @@ resource "azurerm_storage_account" "dst" {
 
 resource "azurerm_storage_container" "dst" {
   name                  = "strcdst%[3]s"
-  storage_account_name  = azurerm_storage_account.dst.name
+  storage_account_id    = azurerm_storage_account.dst.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_container" "dst_second" {
   name                  = "strcdstsecond%[3]s"
-  storage_account_name  = azurerm_storage_account.dst.name
+  storage_account_id    = azurerm_storage_account.dst.id
   container_access_type = "private"
 }
 
@@ -489,5 +490,5 @@ resource "azurerm_storage_object_replication" "test" {
     destination_container_name = azurerm_storage_container.dst.name
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Secondary)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Secondary)
 }

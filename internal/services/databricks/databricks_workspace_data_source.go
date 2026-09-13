@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -186,7 +186,7 @@ func dataSourceDatabricksWorkspace() *pluginsdk.Resource {
 // It also omits the public and private subnet NSG association IDs since they are not available in API.
 func flattenWorkspaceCustomParametersForDataSource(input *workspaces.WorkspaceCustomParameters) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	parameters := make(map[string]interface{})

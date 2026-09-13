@@ -77,9 +77,20 @@ func (c AppServiceEnvironmentsClient) Resume(ctx context.Context, id commonids.A
 
 // ResumeThenPoll performs Resume then polls until it's completed
 func (c AppServiceEnvironmentsClient) ResumeThenPoll(ctx context.Context, id commonids.AppServiceEnvironmentId) error {
+	return c.ResumeCallbackThenPoll(ctx, id, nil)
+}
+
+// ResumeCallbackThenPoll performs Resume, runs the optional callback function, then polls until it's completed
+func (c AppServiceEnvironmentsClient) ResumeCallbackThenPoll(ctx context.Context, id commonids.AppServiceEnvironmentId, callback func() error) error {
 	result, err := c.Resume(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Resume: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

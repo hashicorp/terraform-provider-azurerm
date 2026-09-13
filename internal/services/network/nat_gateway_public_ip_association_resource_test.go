@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/natgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -50,6 +51,34 @@ func TestAccNatGatewayPublicIpAssociation_updateNatGateway(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.updateNatGateway(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNatGatewayPublicIpAssociation_ipv6(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_association", "test")
+	r := NatGatewayPublicAssociationResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipv6(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNatGatewayPublicIpAssociation_multipleAssociations(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_association", "test")
+	r := NatGatewayPublicAssociationResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleAssociations(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -100,13 +129,16 @@ func (t NatGatewayPublicAssociationResource) Exists(ctx context.Context, clients
 	found := false
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			if props.PublicIPAddresses != nil {
-				for _, pip := range *props.PublicIPAddresses {
-					if pip.Id == nil {
-						continue
-					}
+			for _, pip := range pointer.From(props.PublicIPAddresses) {
+				if strings.EqualFold(pointer.From(pip.Id), id.Second.ID()) {
+					found = true
+					break
+				}
+			}
 
-					if strings.EqualFold(*pip.Id, id.Second.ID()) {
+			if !found {
+				for _, pip := range pointer.From(props.PublicIPAddressesV6) {
+					if strings.EqualFold(pointer.From(pip.Id), id.Second.ID()) {
 						found = true
 						break
 					}
@@ -138,18 +170,28 @@ func (NatGatewayPublicAssociationResource) Destroy(ctx context.Context, client *
 		return nil, fmt.Errorf("retrieving %s: `properties` was nil", id.First)
 	}
 
-	updatedAddresses := make([]natgateways.SubResource, 0)
-	if publicIpAddresses := resp.Model.Properties.PublicIPAddresses; publicIpAddresses != nil {
-		for _, publicIpAddress := range *publicIpAddresses {
-			if !strings.EqualFold(*publicIpAddress.Id, id.Second.ID()) {
-				updatedAddresses = append(updatedAddresses, publicIpAddress)
-			}
+	updatedIPv4Addresses := make([]natgateways.SubResource, 0)
+	for _, publicIpAddress := range pointer.From(resp.Model.Properties.PublicIPAddresses) {
+		if strings.EqualFold(pointer.From(publicIpAddress.Id), id.Second.ID()) {
+			continue
 		}
+
+		updatedIPv4Addresses = append(updatedIPv4Addresses, publicIpAddress)
 	}
-	resp.Model.Properties.PublicIPAddresses = &updatedAddresses
+	resp.Model.Properties.PublicIPAddresses = pointer.To(updatedIPv4Addresses)
+
+	updatedIPv6Addresses := make([]natgateways.SubResource, 0)
+	for _, publicIpAddress := range pointer.From(resp.Model.Properties.PublicIPAddressesV6) {
+		if strings.EqualFold(pointer.From(publicIpAddress.Id), id.Second.ID()) {
+			continue
+		}
+
+		updatedIPv6Addresses = append(updatedIPv6Addresses, publicIpAddress)
+	}
+	resp.Model.Properties.PublicIPAddressesV6 = pointer.To(updatedIPv6Addresses)
 
 	if err := client.Network.NatGateways.CreateOrUpdateThenPoll(ctx2, *id.First, *resp.Model); err != nil {
-		return nil, fmt.Errorf("removing Association between %s and %s: %+v", id.First, id.Second, err)
+		return nil, fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return pointer.To(true), nil
@@ -157,10 +199,10 @@ func (NatGatewayPublicAssociationResource) Destroy(ctx context.Context, client *
 
 func (r NatGatewayPublicAssociationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_nat_gateway" "test" {
-  name                = "acctest-NatGateway-%d"
+  name                = "acctest-NatGateway-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Standard"
@@ -184,12 +226,58 @@ resource "azurerm_nat_gateway_public_ip_association" "import" {
 `, r.basic(data))
 }
 
-func (r NatGatewayPublicAssociationResource) updateNatGateway(data acceptance.TestData) string {
+func (r NatGatewayPublicAssociationResource) ipv6(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_nat_gateway" "test" {
-  name                = "acctest-NatGateway-%d"
+  name                = "acctest-NatGateway-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "StandardV2"
+}
+
+resource "azurerm_nat_gateway_public_ip_association" "test" {
+  nat_gateway_id       = azurerm_nat_gateway.test.id
+  public_ip_address_id = azurerm_public_ip.test.id
+}
+`, r.templateIPv6(data, string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo)), data.RandomInteger)
+}
+
+func (r NatGatewayPublicAssociationResource) multipleAssociations(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_nat_gateway" "test" {
+  name                = "acctest-NatGateway-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "StandardV2"
+}
+
+resource "azurerm_nat_gateway_public_ip_association" "test" {
+  nat_gateway_id       = azurerm_nat_gateway.test.id
+  public_ip_address_id = azurerm_public_ip.test.id
+}
+
+resource "azurerm_nat_gateway_public_ip_association" "test2" {
+  nat_gateway_id       = azurerm_nat_gateway.test.id
+  public_ip_address_id = azurerm_public_ip.test2.id
+}
+
+resource "azurerm_nat_gateway_public_ip_association" "test3" {
+  nat_gateway_id       = azurerm_nat_gateway.test.id
+  public_ip_address_id = azurerm_public_ip.test3.id
+}
+`, r.templateDualStack(data), data.RandomInteger)
+}
+
+func (r NatGatewayPublicAssociationResource) updateNatGateway(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_nat_gateway" "test" {
+  name                = "acctest-NatGateway-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Standard"
@@ -212,16 +300,77 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-ngpi-%d"
-  location = "%s"
+  name     = "acctestRG-ngpi-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_public_ip" "test" {
-  name                = "acctest-PIP-%d"
+  name                = "acctest-PIP-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (NatGatewayPublicAssociationResource) templateIPv6(data acceptance.TestData, sku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-ngpi-v6-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctest-PIPv6-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "%[3]s"
+  ip_version          = "IPv6"
+}
+`, data.RandomInteger, data.Locations.Primary, sku)
+}
+
+func (NatGatewayPublicAssociationResource) templateDualStack(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-ngpi-dual-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctest-PIPv4-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "StandardV2"
+}
+
+resource "azurerm_public_ip" "test2" {
+  name                = "acctest-PIPv6-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "StandardV2"
+  ip_version          = "IPv6"
+}
+
+resource "azurerm_public_ip" "test3" {
+  name                = "acctest-PIPv6b-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "StandardV2"
+  ip_version          = "IPv6"
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

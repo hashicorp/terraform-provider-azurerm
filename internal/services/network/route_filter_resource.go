@@ -5,7 +5,6 @@ package network
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -15,15 +14,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routefilters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name route_filter -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceRouteFilter() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -59,7 +59,7 @@ func resourceRouteFilter() *pluginsdk.Resource {
 			"rule": {
 				Type:       pluginsdk.TypeList,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				MaxItems:   1,
 				Elem: &pluginsdk.Resource{
@@ -110,21 +110,21 @@ func resourceRouteFilterCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Route Filter create.")
-
 	id := routefilters.NewRouteFilterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	location := location.Normalize(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	existing, err := client.Get(ctx, id, routefilters.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, routefilters.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_route_filter", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_route_filter", id.ID())
+		}
 	}
 
 	routeSet := routefilters.RouteFilter{
@@ -136,7 +136,7 @@ func resourceRouteFilterCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Tags: tags.Expand(t),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, routeSet); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, routeSet, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -152,8 +152,6 @@ func resourceRouteFilterUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	client := meta.(*clients.Client).Network.RouteFilters
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Route Filter update.")
 
 	id, err := routefilters.ParseRouteFilterID(d.Id())
 	if err != nil {
@@ -259,7 +257,7 @@ func expandRouteFilterRules(d *pluginsdk.ResourceData) *[]routefilters.RouteFilt
 			Properties: &routefilters.RouteFilterRulePropertiesFormat{
 				Access:              routefilters.Access(data["access"].(string)),
 				RouteFilterRuleType: routefilters.RouteFilterRuleType(data["rule_type"].(string)),
-				Communities:         *utils.ExpandStringSlice(data["communities"].([]interface{})),
+				Communities:         *helpers.ExpandStringSlice(data["communities"].([]interface{})),
 			},
 		}
 

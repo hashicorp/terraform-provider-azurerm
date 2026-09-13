@@ -56,7 +56,7 @@ data "azurerm_communication_service" "test" {
   name                = azurerm_communication_service.test.name
   resource_group_name = azurerm_communication_service.test.resource_group_name
 }
-`, CommunicationServiceTestResource{}.basic(data))
+`, CommunicationServiceResource{}.basic(data))
 }
 
 func (d CommunicationServiceDataSource) complete(data acceptance.TestData) string {
@@ -67,5 +67,5 @@ data "azurerm_communication_service" "test" {
   name                = azurerm_communication_service.test.name
   resource_group_name = azurerm_communication_service.test.resource_group_name
 }
-`, CommunicationServiceTestResource{}.complete(data))
+`, CommunicationServiceResource{}.complete(data))
 }

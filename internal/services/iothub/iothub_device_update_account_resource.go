@@ -55,14 +55,11 @@ func (r IotHubDeviceUpdateAccountResource) Arguments() map[string]*pluginsdk.Sch
 		},
 
 		"sku": {
-			Type:     pluginsdk.TypeString,
-			ForceNew: true,
-			Optional: true,
-			Default:  deviceupdates.SKUStandard,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(deviceupdates.SKUFree),
-				string(deviceupdates.SKUStandard),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			ForceNew:     true,
+			Optional:     true,
+			Default:      deviceupdates.SKUStandard,
+			ValidateFunc: validation.StringInSlice(deviceupdates.PossibleValuesForSKU(), false),
 		},
 
 		"tags": commonschema.Tags(),
@@ -102,13 +99,16 @@ func (r IotHubDeviceUpdateAccountResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.IoTHub.DeviceUpdatesClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := deviceupdates.NewAccountID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.AccountsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.AccountsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
@@ -131,7 +131,7 @@ func (r IotHubDeviceUpdateAccountResource) Create() sdk.ResourceFunc {
 				Tags: &model.Tags,
 			}
 
-			if err := client.AccountsCreateThenPoll(ctx, id, *input); err != nil {
+			if err := client.AccountsCreateCallbackThenPoll(ctx, id, *input, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

@@ -19,7 +19,7 @@ const (
 	connStringAccountNameKey = "AccountName"
 )
 
-// This is an ACCOUNT SAS : https://docs.microsoft.com/en-us/rest/api/storageservices/Constructing-an-Account-SAS
+// This is an ACCOUNT SAS : https://docs.microsoft.com/rest/api/storageservices/Constructing-an-Account-SAS
 // not Service SAS
 func dataSourceStorageAccountSharedAccessSignature() *pluginsdk.Resource {
 	const sasSignedVersion = "2022-11-02"
@@ -127,58 +127,58 @@ func dataSourceStorageAccountSharedAccessSignature() *pluginsdk.Resource {
 
 			"permissions": {
 				Type:     pluginsdk.TypeList,
-				Required: true,
+				Optional: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"read": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"write": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"delete": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"list": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"add": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"create": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"update": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"process": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"tag": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"filter": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 					},
 				},
@@ -206,7 +206,11 @@ func dataSourceStorageAccountSasRead(d *pluginsdk.ResourceData, _ interface{}) e
 
 	resourceTypes := BuildResourceTypesString(resourceTypesIface[0].(map[string]interface{}))
 	services := BuildServicesString(servicesIface[0].(map[string]interface{}))
-	permissions := BuildPermissionsString(permissionsIface[0].(map[string]interface{}))
+
+	permissions := ""
+	if len(permissionsIface) > 0 && permissionsIface[0] != nil {
+		permissions = BuildPermissionsString(permissionsIface[0].(map[string]interface{}))
+	}
 
 	// Parse the connection string
 	kvp, err := storage.ParseAccountSASConnectionString(connString)
@@ -217,7 +221,7 @@ func dataSourceStorageAccountSasRead(d *pluginsdk.ResourceData, _ interface{}) e
 	// Create the string to sign with the key...
 
 	// Details on how to do this are here:
-	// https://docs.microsoft.com/en-us/rest/api/storageservices/Constructing-an-Account-SAS
+	// https://docs.microsoft.com/rest/api/storageservices/Constructing-an-Account-SAS
 	accountName := kvp[connStringAccountNameKey]
 	accountKey := kvp[connStringAccountKeyKey]
 	signedProtocol := "https,http"

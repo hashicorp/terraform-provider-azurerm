@@ -89,12 +89,9 @@ func (r ContainerAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"template": helpers.ContainerTemplateSchema(),
 
 		"revision_mode": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(containerapps.ActiveRevisionsModeSingle),
-				string(containerapps.ActiveRevisionsModeMultiple),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForActiveRevisionsMode(), false),
 		},
 
 		"ingress": helpers.ContainerAppIngressSchema(),
@@ -172,14 +169,16 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 
 			id := containerapps.NewContainerAppID(subscriptionId, app.ResourceGroup, app.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			envId, err := managedenvironments.ParseManagedEnvironmentID(app.ManagedEnvironmentId)
@@ -225,9 +224,9 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 			}
 			containerApp.Identity = pointer.To(identity.LegacySystemAndUserAssignedMap(*ident))
 
-			containerApp.Properties.Configuration.ActiveRevisionsMode = pointer.To(containerapps.ActiveRevisionsMode(app.RevisionMode))
+			containerApp.Properties.Configuration.ActiveRevisionsMode = pointer.ToEnum[containerapps.ActiveRevisionsMode](app.RevisionMode)
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, containerApp); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, containerApp, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -370,7 +369,7 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 			model.Properties.Configuration.Secrets = helpers.UnpackContainerSecretsCollection(secretsResp.Model)
 
 			if metadata.ResourceData.HasChange("revision_mode") {
-				model.Properties.Configuration.ActiveRevisionsMode = pointer.To(containerapps.ActiveRevisionsMode(state.RevisionMode))
+				model.Properties.Configuration.ActiveRevisionsMode = pointer.ToEnum[containerapps.ActiveRevisionsMode](state.RevisionMode)
 			}
 
 			if metadata.ResourceData.HasChange("ingress") {

@@ -205,4 +205,4 @@ terraform import azurerm_palo_alto_next_generation_firewall_virtual_hub_strata_c
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `PaloAltoNetworks.Cloudngfw` - 2025-05-23
+* `PaloAltoNetworks.Cloudngfw` - 2025-10-08

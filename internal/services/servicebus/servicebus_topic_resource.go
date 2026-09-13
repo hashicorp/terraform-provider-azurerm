@@ -5,7 +5,6 @@ package servicebus
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -108,7 +107,7 @@ func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
-		"max_message_size_in_kilobytes": {
+		"max_message_size_in_kilobytes": { // azignore:AZS006 - named `maximum_message_size_in_kb` in the data source to follow new naming conventions
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
 			// NOTE: O+C this gets a variable default based on the sku and can be updated without issues
@@ -141,7 +140,6 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	client := meta.(*clients.Client).ServiceBus.TopicsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for Azure ServiceBus Topic creation.")
 
 	var id topics.TopicId
 	if namespaceIdLit := d.Get("namespace_id").(string); namespaceIdLit != "" {
@@ -153,15 +151,17 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_servicebus_topic", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_servicebus_topic", id.ID())
+			}
 		}
 	}
 
@@ -234,7 +234,10 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("creating/updating %s: %v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	return resourceServiceBusTopicRead(d, meta)
 }
 

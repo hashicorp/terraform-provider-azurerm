@@ -81,15 +81,17 @@ func (r DevCenterEnvironmentTypeResource) Create() sdk.ResourceFunc {
 
 			id := environmenttypes.NewDevCenterEnvironmentTypeID(subscriptionId, devCenterId.ResourceGroupName, devCenterId.DevCenterName, model.Name)
 
-			existing, err := client.EnvironmentTypesGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.EnvironmentTypesGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			payload := environmenttypes.EnvironmentType{

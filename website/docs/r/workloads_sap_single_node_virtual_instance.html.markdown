@@ -88,7 +88,7 @@ resource "azurerm_workloads_sap_single_node_virtual_instance" "example" {
       image {
         offer     = "RHEL-SAP-HA"
         publisher = "RedHat"
-        sku       = "82sapha-gen2"
+        sku       = "86sapha-gen2"
         version   = "latest"
       }
 

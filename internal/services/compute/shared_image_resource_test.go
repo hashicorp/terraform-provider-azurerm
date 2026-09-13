@@ -92,7 +92,7 @@ func TestAccSharedImage_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("os_type").HasValue("Linux"),
 				check.That(data.ResourceName).Key("hyper_v_generation").HasValue("V1"),
-				check.That(data.ResourceName).Key("description").HasValue("Wubba lubba dub dubs"),
+				check.That(data.ResourceName).Key("description").HasValue("Wubba lubba dub"),
 				check.That(data.ResourceName).Key("eula").HasValue("Do you agree there's infinite Rick's and Infinite Morty's?"),
 				check.That(data.ResourceName).Key("privacy_statement_uri").HasValue("https://council.of.ricks/privacy-statement"),
 				check.That(data.ResourceName).Key("release_note_uri").HasValue("https://council.of.ricks/changelog.md"),
@@ -554,7 +554,7 @@ resource "azurerm_shared_image" "test" {
   location              = azurerm_resource_group.test.location
   os_type               = "Linux"
   hyper_v_generation    = "%s"
-  description           = "Wubba lubba dub dub"
+  description           = "Wubba lubba dub"
   eula                  = "Do you agree there's infinite Rick's and Infinite Morty's?"
   privacy_statement_uri = "https://council.of.ricks/privacy-statement"
   release_note_uri      = "https://council.of.ricks/changelog.md"

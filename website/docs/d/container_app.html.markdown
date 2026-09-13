@@ -27,6 +27,8 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where this Container App exists.
 
+* `read_secrets` - (Optional) Should the data source read the secrets from the Container App? Defaults to `true`.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -357,7 +359,7 @@ A `dapr` block exports the following:
 
 A `registry` block exports the following:
 
-* `server` - The hostname for the Container Registry.
+* `server` - The FQDN for the Container Registry.
 
 * `identity` - Resource ID for the User Assigned Managed identity to use when pulling from the Container Registry.
 

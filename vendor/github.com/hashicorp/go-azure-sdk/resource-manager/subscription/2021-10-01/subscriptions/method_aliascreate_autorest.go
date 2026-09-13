@@ -38,9 +38,20 @@ func (c SubscriptionsClient) AliasCreate(ctx context.Context, id AliasId, input 
 
 // AliasCreateThenPoll performs AliasCreate then polls until it's completed
 func (c SubscriptionsClient) AliasCreateThenPoll(ctx context.Context, id AliasId, input PutAliasRequest) error {
+	return c.AliasCreateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// AliasCreateCallbackThenPoll performs AliasCreate, runs the optional callback function, then polls until it's completed
+func (c SubscriptionsClient) AliasCreateCallbackThenPoll(ctx context.Context, id AliasId, input PutAliasRequest, callback func() error) error {
 	result, err := c.AliasCreate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing AliasCreate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(); err != nil {

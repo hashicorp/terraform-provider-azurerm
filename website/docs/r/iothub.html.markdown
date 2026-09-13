@@ -50,11 +50,10 @@ resource "azurerm_eventhub_namespace" "example" {
 }
 
 resource "azurerm_eventhub" "example" {
-  name                = "example-eventhub"
-  resource_group_name = azurerm_resource_group.example.name
-  namespace_name      = azurerm_eventhub_namespace.example.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "example-eventhub"
+  namespace_id      = azurerm_eventhub_namespace.example.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventhub_authorization_rule" "example" {
@@ -169,7 +168,7 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Is the IotHub resource accessible from a public network?
 
-* `min_tls_version` - (Optional) Specifies the minimum TLS version to support for this hub. The only valid value is `1.2`. Changing this forces a new resource to be created.
+* `min_tls_version` - (Optional) Specifies the minimum TLS version to support for this hub. The only valid value is `1.2`. Defaults to `1.2`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
