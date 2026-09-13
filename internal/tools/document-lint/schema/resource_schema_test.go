@@ -12,8 +12,7 @@ import (
 
 func TestResourceFile(t *testing.T) {
 	p := automation.WatcherResource{}
-	file := schema.FileForResource(p.Read().Func)
-	t.Log(file)
+	t.Log(schema.FileForResource(p.Read().Func))
 
 	// inspect schema
 	r := schema.NewResourceByTyped(p)

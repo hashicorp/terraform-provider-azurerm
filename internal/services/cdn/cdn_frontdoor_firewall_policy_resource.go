@@ -946,13 +946,12 @@ func expandCdnFrontDoorFirewallMatchConditions(input []interface{}) []waf.MatchC
 		matchVariable := match["match_variable"].(string)
 		selector := match["selector"].(string)
 		operator := match["operator"].(string)
-		negateCondition := match["negation_condition"].(bool)
 		matchValues := helpers.ExpandStringSlice(match["match_values"].([]interface{}))
 		transforms := match["transforms"].([]interface{})
 
 		matchCondition := waf.MatchCondition{
 			Operator:        waf.Operator(operator),
-			NegateCondition: &negateCondition,
+			NegateCondition: pointer.To(match["negation_condition"].(bool)),
 			MatchValue:      *matchValues,
 			Transforms:      expandCdnFrontDoorFirewallTransforms(transforms),
 		}

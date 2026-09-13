@@ -209,8 +209,7 @@ func (a AlertRuleAnomalyDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving anomaly rule (%s): not found", ruleName)
 			}
 
-			id := securitymlanalyticssettings.NewSecurityMLAnalyticsSettingID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, pointer.From(rule.Name))
-			metadata.SetID(id)
+			metadata.SetID(securitymlanalyticssettings.NewSecurityMLAnalyticsSettingID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, pointer.From(rule.Name)))
 
 			state := AlertRuleAnomalyDataSourceModel{
 				WorkspaceId: workspaceId.ID(),

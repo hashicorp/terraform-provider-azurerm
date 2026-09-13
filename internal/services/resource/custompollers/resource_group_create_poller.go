@@ -29,12 +29,10 @@ var (
 		Status:       pollers.PollingStatusSucceeded,
 	}
 	pollingInProgress = &pollers.PollResult{
-		HttpResponse: nil,
 		PollInterval: 5 * time.Second,
 		Status:       pollers.PollingStatusInProgress,
 	}
 	pollingFailed = &pollers.PollResult{
-		HttpResponse: nil,
 		PollInterval: 5 * time.Second,
 		Status:       pollers.PollingStatusFailed,
 	}

@@ -1,0 +1,59 @@
+# Configuration for markdownlint (run by .github/workflows/pr-check-markdown.yaml via `make markdownlint`).
+# Rule reference: https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+
+# start from every rule enabled, then adjust or disable below
+default: true
+
+# --------------------------------- adjusted rules ----------------------------------
+# MD007: nested list items must be consistently indented - this repo indents by 2 spaces
+ul-indent:
+  indent: 2
+
+# MD010: no hard tabs - permitted inside code blocks (Go snippets are tab-indented)
+no-hard-tabs:
+  code_blocks: false
+
+# MD033: no inline HTML - allow the elements the docs and README legitimately use
+no-inline-html:
+  allowed_elements:
+    - a
+    - br
+    - details
+    - img
+    - p
+    - summary
+    - sup
+
+# --------------------------------- disabled rules ----------------------------------
+
+# MD001: headings must increment one level at a time - docs intentionally jump levels
+heading-increment: false
+
+# MD004: unordered list markers must use one consistent style - docs mix `-` and `*`
+ul-style: false
+
+# MD013: maximum line length - schema descriptions and notes routinely run long
+line-length: false
+
+# MD014: shell commands must not use `$` prompts unless output is shown
+commands-show-output: false
+
+# MD028: no blank line between blockquotes - our docs intentionally stack separate
+# note/example callouts as adjacent blockquotes
+no-blanks-blockquote: false
+
+# MD024: no duplicate heading text - every resource doc repeats the same section names
+# (Example Usage, Arguments Reference, Attributes Reference, Timeouts, Import)
+no-duplicate-heading: false
+
+# MD034: no bare URLs - docs intentionally show raw URLs in prose and examples
+no-bare-urls: false
+
+# MD038: no leading/trailing spaces inside code spans
+no-space-in-code: false
+
+# MD040: fenced code blocks must declare a language - most hcl/shell fences do not
+fenced-code-language: false
+
+# MD059: link text must be descriptive (no "click here") - large wording backlog, revisit
+descriptive-link-text: false

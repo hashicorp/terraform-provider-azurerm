@@ -45,13 +45,13 @@ func parseTimeSpan(s string) (days, hours, minutes, seconds int, err error) {
 	timePart := s
 
 	// Check for "dd.hh:mm:ss" format
-	if dotIdx := strings.IndexByte(s, '.'); dotIdx >= 0 {
-		days, err = strconv.Atoi(s[:dotIdx])
+	if before, after, ok := strings.Cut(s, "."); ok {
+		days, err = strconv.Atoi(before)
 		if err != nil || days < 0 {
 			err = fmt.Errorf("value %q has invalid days component", s)
 			return
 		}
-		timePart = s[dotIdx+1:]
+		timePart = after
 	}
 
 	parts := strings.Split(timePart, ":")

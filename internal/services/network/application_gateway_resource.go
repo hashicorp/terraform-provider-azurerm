@@ -1831,9 +1831,8 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if v, ok := d.GetOk("firewall_policy_id"); ok {
-		id := v.(string)
 		gateway.Properties.FirewallPolicy = &applicationgateways.SubResource{
-			Id: &id,
+			Id: pointer.To(v.(string)),
 		}
 	}
 
@@ -2226,8 +2225,7 @@ func resourceApplicationGatewaySetFlatten(d *pluginsdk.ResourceData, id *applica
 				return fmt.Errorf("setting `redirect_configuration`: %+v", setErr)
 			}
 
-			rewriteRuleSets := flattenApplicationGatewayRewriteRuleSets(props.RewriteRuleSets)
-			if setErr := d.Set("rewrite_rule_set", rewriteRuleSets); setErr != nil {
+			if setErr := d.Set("rewrite_rule_set", flattenApplicationGatewayRewriteRuleSets(props.RewriteRuleSets)); setErr != nil {
 				return fmt.Errorf("setting `rewrite_rule_set`: %+v", setErr)
 			}
 
@@ -2471,7 +2469,6 @@ func expandApplicationGatewayBackendHTTPSettings(input []interface{}, gatewayID 
 	for _, raw := range input {
 		v := raw.(map[string]interface{})
 
-		name := v["name"].(string)
 		path := v["path"].(string)
 		port := int64(v["port"].(int))
 		protocol := v["protocol"].(string)
@@ -2480,7 +2477,7 @@ func expandApplicationGatewayBackendHTTPSettings(input []interface{}, gatewayID 
 		requestTimeout := int64(v["request_timeout"].(int))
 
 		setting := applicationgateways.ApplicationGatewayBackendHTTPSettings{
-			Name: &name,
+			Name: pointer.To(v["name"].(string)),
 			Properties: &applicationgateways.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 				ConnectionDraining:             expandApplicationGatewayConnectionDraining(v),
 				CookieBasedAffinity:            pointer.ToEnum[applicationgateways.ApplicationGatewayCookieBasedAffinity](cookieBasedAffinity),
@@ -3537,11 +3534,10 @@ func expandApplicationGatewayPrivateLinkConfigurations(d *pluginsdk.ResourceData
 			v := rawIp.(map[string]interface{})
 			name := v["name"].(string)
 			subnetId := v["subnet_id"].(string)
-			primary := v["primary"].(bool)
 			ipConfiguration := applicationgateways.ApplicationGatewayPrivateLinkIPConfiguration{
 				Name: pointer.To(name),
 				Properties: &applicationgateways.ApplicationGatewayPrivateLinkIPConfigurationProperties{
-					Primary: &primary,
+					Primary: pointer.To(v["primary"].(bool)),
 					Subnet: &applicationgateways.SubResource{
 						Id: pointer.To(subnetId),
 					},
@@ -4435,13 +4431,11 @@ func flattenApplicationGatewayTrustedClientCertificates(input *[]applicationgate
 			continue
 		}
 
-		name := *v.Name
-
 		if v.Id != nil {
 			output["id"] = *v.Id
 		}
 
-		output["name"] = name
+		output["name"] = *v.Name
 
 		if props := v.Properties; props != nil {
 			if data := props.Data; data != nil {
@@ -4518,13 +4512,11 @@ func flattenApplicationGatewaySslProfiles(input *[]applicationgateways.Applicati
 			continue
 		}
 
-		name := *v.Name
-
 		if v.Id != nil {
 			output["id"] = *v.Id
 		}
 
-		output["name"] = name
+		output["name"] = *v.Name
 		output["ssl_policy"] = flattenApplicationGatewaySslPolicy(v.Properties.SslPolicy)
 
 		verifyClientCertIssuerDn := false
@@ -5084,8 +5076,7 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 		return fmt.Errorf("the Application Gateway must specify either `capacity` or `autoscale_configuration` for the selected SKU tier %q", tier)
 	}
 
-	sslPolicy := d.Get("ssl_policy").([]interface{})
-	if err := checkSslPolicy(sslPolicy); err != nil {
+	if err := checkSslPolicy(d.Get("ssl_policy").([]interface{})); err != nil {
 		return err
 	}
 

@@ -489,6 +489,5 @@ func flattenFunctionFiles(input interface{}) (*string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not marshal `config_json`: %+v", err)
 	}
-	result := string(raw)
-	return &result, nil
+	return pointer.To(string(raw)), nil
 }
