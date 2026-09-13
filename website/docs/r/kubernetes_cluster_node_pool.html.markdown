@@ -126,6 +126,8 @@ The following arguments are supported:
 
 * `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureContainerLinux`, `AzureLinux`, `AzureLinux3`, `Ubuntu`, `Ubuntu2204`, `Ubuntu2404`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` when os_type=Linux or `Windows2019` if os_type=Windows (`Windows2022` Kubernetes ≥1.33). Changing between `AzureLinux`, `AzureLinux3`, `Ubuntu`, `Ubuntu2204` and `Ubuntu2404` does not replace the resource; any other change forces a new resource to be created.
 
+~> **Note:** `AzureContainerLinux` requires Kubernetes version 1.34 or later, a supported Generation 2 VM size, and the cluster's `node_os_upgrade_channel` set to `NodeImage` or `None`. AKS enables Secure Boot and vTPM for this OS SKU. Artifact streaming, Pod Sandboxing and confidential VMs are not supported. See the [Azure Container Linux limitations](https://learn.microsoft.com/azure/aks/create-node-pools#limitations).
+
 -> **Note:** `Windows2019` is deprecated and not supported for Kubernetes version ≥1.33.
 
 * `os_type` - (Optional) The Operating System which should be used for this Node Pool. Changing this forces a new resource to be created. Possible values are `Linux` and `Windows`. Defaults to `Linux`.

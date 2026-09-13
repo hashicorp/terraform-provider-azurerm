@@ -3168,7 +3168,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
-%s
 
   default_node_pool {
     name       = "default"
@@ -3189,7 +3188,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, kubernetesClusterNodeProvisioningProfileTestBlock(), osSKu)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, osSKu)
 }
 
 func (KubernetesClusterResource) workloadRuntimeKataVmIsolation(data acceptance.TestData) string {
