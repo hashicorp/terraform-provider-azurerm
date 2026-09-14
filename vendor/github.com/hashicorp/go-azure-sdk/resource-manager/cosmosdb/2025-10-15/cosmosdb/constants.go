@@ -569,6 +569,91 @@ func parseDefaultConsistencyLevel(input string) (*DefaultConsistencyLevel, error
 	return &out, nil
 }
 
+type DefaultPriorityLevel string
+
+const (
+	DefaultPriorityLevelHigh DefaultPriorityLevel = "High"
+	DefaultPriorityLevelLow  DefaultPriorityLevel = "Low"
+)
+
+func PossibleValuesForDefaultPriorityLevel() []string {
+	return []string{
+		string(DefaultPriorityLevelHigh),
+		string(DefaultPriorityLevelLow),
+	}
+}
+
+func (s *DefaultPriorityLevel) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDefaultPriorityLevel(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseDefaultPriorityLevel(input string) (*DefaultPriorityLevel, error) {
+	vals := map[string]DefaultPriorityLevel{
+		"high": DefaultPriorityLevelHigh,
+		"low":  DefaultPriorityLevelLow,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := DefaultPriorityLevel(input)
+	return &out, nil
+}
+
+type DistanceFunction string
+
+const (
+	DistanceFunctionCosine     DistanceFunction = "cosine"
+	DistanceFunctionDotproduct DistanceFunction = "dotproduct"
+	DistanceFunctionEuclidean  DistanceFunction = "euclidean"
+)
+
+func PossibleValuesForDistanceFunction() []string {
+	return []string{
+		string(DistanceFunctionCosine),
+		string(DistanceFunctionDotproduct),
+		string(DistanceFunctionEuclidean),
+	}
+}
+
+func (s *DistanceFunction) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDistanceFunction(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseDistanceFunction(input string) (*DistanceFunction, error) {
+	vals := map[string]DistanceFunction{
+		"cosine":     DistanceFunctionCosine,
+		"dotproduct": DistanceFunctionDotproduct,
+		"euclidean":  DistanceFunctionEuclidean,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := DistanceFunction(input)
+	return &out, nil
+}
+
 type IndexKind string
 
 const (
@@ -1374,5 +1459,96 @@ func parseUnitType(input string) (*UnitType, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := UnitType(input)
+	return &out, nil
+}
+
+type VectorDataType string
+
+const (
+	VectorDataTypeFloatOneSix   VectorDataType = "float16"
+	VectorDataTypeFloatThreeTwo VectorDataType = "float32"
+	VectorDataTypeIntEight      VectorDataType = "int8"
+	VectorDataTypeUintEight     VectorDataType = "uint8"
+)
+
+func PossibleValuesForVectorDataType() []string {
+	return []string{
+		string(VectorDataTypeFloatOneSix),
+		string(VectorDataTypeFloatThreeTwo),
+		string(VectorDataTypeIntEight),
+		string(VectorDataTypeUintEight),
+	}
+}
+
+func (s *VectorDataType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseVectorDataType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseVectorDataType(input string) (*VectorDataType, error) {
+	vals := map[string]VectorDataType{
+		"float16": VectorDataTypeFloatOneSix,
+		"float32": VectorDataTypeFloatThreeTwo,
+		"int8":    VectorDataTypeIntEight,
+		"uint8":   VectorDataTypeUintEight,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := VectorDataType(input)
+	return &out, nil
+}
+
+type VectorIndexType string
+
+const (
+	VectorIndexTypeDiskANN       VectorIndexType = "diskANN"
+	VectorIndexTypeFlat          VectorIndexType = "flat"
+	VectorIndexTypeQuantizedFlat VectorIndexType = "quantizedFlat"
+)
+
+func PossibleValuesForVectorIndexType() []string {
+	return []string{
+		string(VectorIndexTypeDiskANN),
+		string(VectorIndexTypeFlat),
+		string(VectorIndexTypeQuantizedFlat),
+	}
+}
+
+func (s *VectorIndexType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseVectorIndexType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseVectorIndexType(input string) (*VectorIndexType, error) {
+	vals := map[string]VectorIndexType{
+		"diskann":       VectorIndexTypeDiskANN,
+		"flat":          VectorIndexTypeFlat,
+		"quantizedflat": VectorIndexTypeQuantizedFlat,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := VectorIndexType(input)
 	return &out, nil
 }
