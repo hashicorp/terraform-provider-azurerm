@@ -3,7 +3,7 @@
 
 # NOTE: this config enables the azproviderlint and tfproviderlint module plugins, which only
 # exist in the custom-built binary produced by 'make golangci-with-modules' (see
-# scripts/.custom-gcl.yml) — run lints via 'make lint' / './scripts/golangci-with-modules run',
+# .tools/.custom-gcl.yml) — run lints via 'make lint' / '.tools/bin/golangci-with-modules run',
 # not stock golangci-lint.
 version: "2"
 run:
@@ -18,7 +18,7 @@ linters:
   enable:
     - asasalint                 # check for pass []any as any in variadic func(...any)
     - asciicheck                # ensure code does not contain non-ASCII identifiers
-    - azproviderlint            # custom azurerm provider checks (AZR/AZS/AZT), module plugin - see scripts/.custom-gcl.yml
+    - azproviderlint            # custom azurerm provider checks (AZR/AZS/AZT), module plugin - see .tools/.custom-gcl.yml
     - bidichk                   # checks for dangerous unicode character sequences
     - copyloopvar               # detects redundant x := x copies of loop variables (unnecessary since Go 1.22)
     - decorder                  # check declaration order and count of types, constants, variables and functions
@@ -34,6 +34,7 @@ linters:
     - makezero                  # finds slices created with non-zero length that are later appended to (leaving zero-value elements)
     - mirror                    # reports mismatched bytes/strings function pairs causing needless conversions
     - misspell                  # finds commonly misspelled English words
+    - modernize                 # suggests modern Go idioms (range-over-int, slices/maps/strings helpers), autofixable - see settings below
     - nilerr                    # finds code that returns nil after it checks that the error is not nil
     - nilnesserr                # finds code that checks one error but mistakenly returns a different nil error
     - noctx                     # finds http requests and exec commands made without a context.Context
@@ -42,7 +43,7 @@ linters:
     - reassign                  # checks that package variables are not reassigned
     - staticcheck               # checks rules from staticcheck (not the same thing as the staticcheck binary)
     - tagalign                  # checks struct tags are aligned and sorted (json/tfschema/computed first, per settings below)
-    - tfproviderlint            # terraform provider checks (AT/R/S/V + extended X*), module plugin - see scripts/.custom-gcl.yml
+    - tfproviderlint            # terraform provider checks (AT/R/S/V + extended X*), module plugin - see .tools/.custom-gcl.yml
     - unconvert                 # checks for unnecessary type conversions
     - unparam                   # reports unused function parameters
     - unused                    # checks Go code for unused constants, variables, functions and types
@@ -63,6 +64,12 @@ linters:
       - third_party$
       - builtin$
       - examples$
+    rules:
+      # staticcheck 0.8 (golangci-lint v2.13) started reporting deprecated struct fields set in composite literals,
+      # which flags the legacy Create/Read/Update/Delete funcs on every untyped resource (~2900 sites). Migrating
+      # them to the *Context variants is a mechanical pr of its own; until then keep SA1019 quiet for just these.
+      - linters: [staticcheck]
+        text: '/(pluginsdk|schema)\.Resource\)\.(Create|Read|Update|Delete) is deprecated: Use'
 
   settings:
     errcheck:
@@ -79,6 +86,10 @@ linters:
       ignore-rules:
         - hdinsight
         - exportfs
+    modernize:
+      disable:
+        - any # interface{} -> any: ~15k findings across ~2500 files, to be flipped on in a dedicated mechanical pr
+        - newexpr # flags pointer.To(x) -> new(x), azurerm standardises on pointer.To (see AZG002 below)
     predeclared:
       ignore: # widely used as ordinary variable/parameter names across the provider (old/new in diffs, min/max in validation)
         - new
@@ -96,6 +107,7 @@ linters:
         type: module
         settings:
           disable:
+            - AZG008 # pointer dereferences (*props.Status) must have a reachable nil guard - ~1398 findings to fix later
             - AZR002 # splite create and udpate: ~350 todo over time
             - AZT002 # tests should not obtain credentials via os.Getenv - investigate in a later pr
             - AZR004 # Resource IDs should not be compared with == or != - to fix in a later commit
@@ -104,6 +116,7 @@ linters:
             - AZS003 # TypeList blocks where every property is optional with no default allow empty blocks - 290 findings to fix later
             - AZS005 # resources with no corresponding data source - 768 findings, to determine if to be fixed later
             - AZS006 # data sources missing properties that exist on the resource - 185 findings, todo later
+            - AZR010 # callers nil-checking before flatten* functions that already handle nil - 244 findings, new in v0.8.0, to fix later
           AZG002:
             use: pointer.To # rather than the go1.26 new(<expr>) builtin
           AZG006:

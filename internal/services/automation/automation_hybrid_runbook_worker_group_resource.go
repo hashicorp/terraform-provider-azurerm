@@ -184,7 +184,6 @@ func (m HybridRunbookWorkerGroupResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			meta.Logger.Infof("deleting %s", id)
 
 			// NOTE: Due to incorrect tags in Azure Swagger, the delete operation is only available
 			// in the ListAllHybridRunbookWorkerGroupInAutomationAccount client, not in the

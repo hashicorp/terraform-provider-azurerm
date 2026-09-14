@@ -320,7 +320,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
 			}
 
-			// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
+			// See: https://docs.microsoft.com/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
 			if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuScaleUp(skuName, partnerDatabase.Sku.Name) {
 				if err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
 					Sku: &databases.Sku{
@@ -785,7 +785,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 					return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
 				}
 
-				// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
+				// See: https://docs.microsoft.com/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
 				if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuScaleUp(skuName, partnerDatabase.Sku.Name) {
 					if err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
 						Sku: &databases.Sku{
@@ -942,7 +942,6 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 				return fmt.Errorf("'restore_point_in_time' is supported only for create_mode %s", string(databases.CreateModePointInTimeRestore))
 			}
 			props.RestorePointInTime = pointer.To(restorePointInTime)
-			propertiesUpdateRequired = true
 		}
 	}
 
