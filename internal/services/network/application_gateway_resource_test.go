@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-05-01/applicationgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -1109,6 +1109,7 @@ func TestAccApplicationGateway_sslProfile(t *testing.T) {
 			Config: r.sslProfile(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ssl_profile.0.verify_client_auth_mode").HasValue("Passthrough"),
 				check.That(data.ResourceName).Key("ssl_profile.0.verify_client_certificate_issuer_dn").HasValue("false"),
 				check.That(data.ResourceName).Key("ssl_profile.0.trusted_client_certificate_names.0").DoesNotExist(),
 				check.That(data.ResourceName).Key("http_listener.0.ssl_profile_name").Exists(),
@@ -1125,6 +1126,7 @@ func TestAccApplicationGateway_sslProfile(t *testing.T) {
 			Config: r.sslProfileUpdateOne(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ssl_profile.0.verify_client_auth_mode").HasValue("Strict"),
 				check.That(data.ResourceName).Key("ssl_profile.0.verify_client_certificate_issuer_dn").HasValue("true"),
 				check.That(data.ResourceName).Key("ssl_profile.0.trusted_client_certificate_names.0").DoesNotExist(),
 				check.That(data.ResourceName).Key("http_listener.0.ssl_profile_name").Exists(),
@@ -1413,7 +1415,7 @@ func (r ApplicationGatewayResource) Exists(ctx context.Context, clients *clients
 		return nil, err
 	}
 
-	resp, err := clients.Network.ApplicationGateways.Get(ctx, *id)
+	resp, err := clients.Network.ApplicationGatewaysClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -5490,7 +5492,7 @@ func (ApplicationGatewayResource) changeCert(certificateName string) acceptance.
 			return err
 		}
 
-		agw, err := clients.Network.ApplicationGateways.Get(ctx, *id)
+		agw, err := clients.Network.ApplicationGatewaysClient.Get(ctx, *id)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
@@ -5521,7 +5523,7 @@ func (ApplicationGatewayResource) changeCert(certificateName string) acceptance.
 
 		agw.Model.Properties.SslCertificates = &newSslCertificates
 
-		if err := clients.Network.ApplicationGateways.CreateOrUpdateThenPoll(ctx, *id, *agw.Model); err != nil {
+		if err := clients.Network.ApplicationGatewaysClient.CreateOrUpdateThenPoll(ctx, *id, *agw.Model); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 
@@ -8241,7 +8243,8 @@ resource "azurerm_application_gateway" "test" {
   }
 
   ssl_profile {
-    name = local.ssl_profile_name
+    name                    = local.ssl_profile_name
+    verify_client_auth_mode = "Passthrough"
     ssl_policy {
       policy_type = "Predefined"
       policy_name = "AppGwSslPolicy20220101"
@@ -8339,6 +8342,7 @@ resource "azurerm_application_gateway" "test" {
 
   ssl_profile {
     name                                 = local.ssl_profile_name
+    verify_client_auth_mode              = "Strict"
     verify_client_certificate_issuer_dn  = true
     verify_client_certificate_revocation = "OCSP"
     ssl_policy {

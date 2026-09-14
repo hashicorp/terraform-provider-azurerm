@@ -23,7 +23,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/webapplicationfirewallpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-05-01/applicationgateways"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -1401,6 +1401,16 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							},
 						},
 
+						"verify_client_auth_mode": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Computed: true, // lintignore:AZS007 - the API may return a default when this is omitted
+							ValidateFunc: validation.StringInSlice(
+								applicationgateways.PossibleValuesForApplicationGatewayClientAuthVerificationModes(),
+								false,
+							),
+						},
+
 						"verify_client_certificate_issuer_dn": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
@@ -1414,7 +1424,6 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 								string(applicationgateways.ApplicationGatewayClientRevocationOptionsOCSP),
 							}, false),
 						},
-
 						// lintignore:XS003
 						"ssl_policy": sslProfileSchema(false),
 
@@ -1694,7 +1703,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 }
 
 func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ApplicationGateways
+	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1849,7 +1858,7 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ApplicationGateways
+	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -2082,7 +2091,7 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ApplicationGateways
+	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -2288,7 +2297,7 @@ func resourceApplicationGatewaySetFlatten(d *pluginsdk.ResourceData, id *applica
 }
 
 func resourceApplicationGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ApplicationGateways
+	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -4473,6 +4482,12 @@ func expandApplicationGatewaySslProfiles(d *pluginsdk.ResourceData, gatewayID st
 			},
 		}
 
+		if verifyClientAuthMode := v["verify_client_auth_mode"].(string); verifyClientAuthMode != "" {
+			output.Properties.ClientAuthConfiguration.VerifyClientAuthMode = pointer.To(
+				applicationgateways.ApplicationGatewayClientAuthVerificationModes(verifyClientAuthMode),
+			)
+		}
+
 		if v["trusted_client_certificate_names"] != nil {
 			clientCerts := v["trusted_client_certificate_names"].([]interface{})
 			clientCertSubResources := make([]applicationgateways.SubResource, 0)
@@ -4521,13 +4536,15 @@ func flattenApplicationGatewaySslProfiles(input *[]applicationgateways.Applicati
 
 		verifyClientCertIssuerDn := false
 		verifyClientCertificateRevocation := ""
+		verifyClientAuthMode := ""
 
 		if props := v.Properties; props != nil {
 			if props.ClientAuthConfiguration != nil {
 				verifyClientCertIssuerDn = pointer.From(props.ClientAuthConfiguration.VerifyClientCertIssuerDN)
-				if *props.ClientAuthConfiguration.VerifyClientRevocation != applicationgateways.ApplicationGatewayClientRevocationOptionsNone {
+				if props.ClientAuthConfiguration.VerifyClientRevocation != nil && *props.ClientAuthConfiguration.VerifyClientRevocation != applicationgateways.ApplicationGatewayClientRevocationOptionsNone {
 					verifyClientCertificateRevocation = string(pointer.From(props.ClientAuthConfiguration.VerifyClientRevocation))
 				}
+				verifyClientAuthMode = string(pointer.From(props.ClientAuthConfiguration.VerifyClientAuthMode))
 			}
 
 			trustedClientCertificateNames := make([]interface{}, 0)
@@ -4546,6 +4563,7 @@ func flattenApplicationGatewaySslProfiles(input *[]applicationgateways.Applicati
 				}
 			}
 			output["trusted_client_certificate_names"] = trustedClientCertificateNames
+			output["verify_client_auth_mode"] = verifyClientAuthMode
 			output["verify_client_certificate_issuer_dn"] = verifyClientCertIssuerDn
 			output["verify_client_certificate_revocation"] = verifyClientCertificateRevocation
 		}

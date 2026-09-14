@@ -595,6 +595,8 @@ A `ssl_profile` block supports the following:
 
 * `trusted_client_certificate_names` - (Optional) The name of the Trusted Client Certificate that will be used to authenticate requests from clients.
 
+* `verify_client_auth_mode` - (Optional) Specifies the client authentication mode. Possible values are `Strict` and `Passthrough`. In `Passthrough` mode, client certificate validation is delegated to the backend.
+
 * `verify_client_certificate_issuer_dn` - (Optional) Should client certificate issuer DN be verified? Defaults to `false`.
  
 * `verify_client_certificate_revocation` - (Optional) Specify the method to check client certificate revocation status. Possible value is `OCSP`.
