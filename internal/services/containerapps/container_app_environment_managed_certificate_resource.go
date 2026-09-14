@@ -144,7 +144,7 @@ func (r ContainerAppEnvironmentManagedCertificateResource) Create() sdk.Resource
 				Location: env.Model.Location,
 				Properties: &managedenvironments.ManagedCertificateProperties{
 					SubjectName:             pointer.To(model.SubjectName),
-					DomainControlValidation: pointer.To(managedenvironments.ManagedCertificateDomainControlValidation(model.DomainControlValidation)),
+					DomainControlValidation: pointer.ToEnum[managedenvironments.ManagedCertificateDomainControlValidation](model.DomainControlValidation),
 				},
 				Tags: tags.Expand(model.Tags),
 			}

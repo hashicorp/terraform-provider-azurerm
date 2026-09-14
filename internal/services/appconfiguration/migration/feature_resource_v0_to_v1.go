@@ -33,12 +33,12 @@ func (FeatureResourceV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		oldId := rawState["id"].(string)
 		fixedId := oldId
 
-		if strings.HasSuffix(fixedId, "/Label/\000") {
-			fixedId = strings.TrimSuffix(fixedId, "/Label/\000") + "/Label/%00"
+		if before, ok := strings.CutSuffix(fixedId, "/Label/\000"); ok {
+			fixedId = before + "/Label/%00"
 		}
 
-		if strings.HasSuffix(fixedId, "/Label/") {
-			fixedId = strings.TrimSuffix(fixedId, "/Label/") + "/Label/%00"
+		if before, ok := strings.CutSuffix(fixedId, "/Label/"); ok {
+			fixedId = before + "/Label/%00"
 		}
 
 		parsedOldId, err := parse.FeatureId(fixedId)

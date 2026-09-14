@@ -6,23 +6,18 @@ package validate
 import (
 	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func HDInsightClusterVersion(i interface{}, k string) (warnings []string, errors []error) {
-	version := i.(string)
-
 	// 3.6, 3333.6666 or 1.2.3000.45
-	// `major minor`
-	re := regexp.MustCompile(`^(\d)+(.){1}(\d)+$`)
-	if re != nil && !re.MatchString(version) {
-		// otherwise retry using `major minor build release`
-		re = regexp.MustCompile(`^(\d)+(.)(\d)+(.)(\d)+(.)(\d)+$`)
-		if re != nil && !re.MatchString(version) {
-			errors = append(errors, fmt.Errorf("%s must be a version in the format `x.y` or `a.b.c.d` - got %q", k, version))
-		}
-	}
-
-	return warnings, errors
+	return validation.Any(
+		// `major minor`
+		validation.StringMatch(regexp.MustCompile(`^(\d)+(.){1}(\d)+$`), "must be a version in the format `x.y` or `a.b.c.d`"),
+		// `major minor build release`
+		validation.StringMatch(regexp.MustCompile(`^(\d)+(.)(\d)+(.)(\d)+(.)(\d)+$`), "must be a version in the format `x.y` or `a.b.c.d`"),
+	)(i, k)
 }
 
 func HDInsightName(v interface{}, k string) (warnings []string, errors []error) {

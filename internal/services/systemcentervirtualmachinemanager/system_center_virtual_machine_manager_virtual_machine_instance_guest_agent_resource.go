@@ -112,7 +112,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 						Username: model.Username,
 						Password: model.Password,
 					},
-					ProvisioningAction: pointer.To(guestagents.ProvisioningAction(model.ProvisioningAction)),
+					ProvisioningAction: pointer.ToEnum[guestagents.ProvisioningAction](model.ProvisioningAction),
 				},
 			}
 

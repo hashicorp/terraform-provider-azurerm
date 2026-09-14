@@ -14,17 +14,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type FederatedIdentityCredentialResource struct{}
 
-func TestAccFederatedIdentityCredentialSequential(t *testing.T) {
+func TestAccFederatedIdentityCredential_sequential(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"federatedIdentityCredential": {
 			"basic":            testAccFederatedIdentityCredential_basic,
-			"deprecated":       testAccFederatedIdentityCredential_deprecated,
 			"list":             testAccFederatedIdentityCredential_list,
 			"requiresImport":   testAccFederatedIdentityCredential_requiresImport,
 			"resourceIdentity": testAccFederatedIdentityCredential_resourceIdentity,
@@ -64,26 +62,6 @@ func testAccFederatedIdentityCredential_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func testAccFederatedIdentityCredential_deprecated(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("this test is only valid in versions prior to 5.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_federated_identity_credential", "test")
-	r := FederatedIdentityCredentialResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.deprecated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("parent_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -156,19 +134,6 @@ resource "azurerm_federated_identity_credential" "import" {
   subject                   = "foo"
 }
 `, r.basic(data))
-}
-
-func (r FederatedIdentityCredentialResource) deprecated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-resource "azurerm_federated_identity_credential" "test" {
-  audience  = ["foo"]
-  issuer    = "https://foo"
-  name      = "acctest-${local.random_integer}"
-  parent_id = azurerm_user_assigned_identity.test.id
-  subject   = "foo"
-}
-`, r.template(data))
 }
 
 func (r FederatedIdentityCredentialResource) template(data acceptance.TestData) string {

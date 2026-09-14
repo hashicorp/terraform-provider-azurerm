@@ -11,13 +11,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworks"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVirtualNetworkDnsServers() *pluginsdk.Resource {
@@ -94,7 +94,7 @@ func resourceVirtualNetworkDnsServersCreate(d *pluginsdk.ResourceData, meta inte
 		vnet.Model.Properties.DhcpOptions = &virtualnetworks.DhcpOptions{}
 	}
 
-	vnet.Model.Properties.DhcpOptions.DnsServers = utils.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
+	vnet.Model.Properties.DhcpOptions.DnsServers = helpers.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
 
 	// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
 	if err := client.CreateOrUpdateThenPoll(ctx, *vnetId, *vnet.Model); err != nil {
@@ -188,7 +188,7 @@ func resourceVirtualNetworkDnsServersUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("dns_servers") {
-		vnet.Model.Properties.DhcpOptions.DnsServers = utils.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
+		vnet.Model.Properties.DhcpOptions.DnsServers = helpers.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *vnetId, *vnet.Model); err != nil {
@@ -248,7 +248,7 @@ func resourceVirtualNetworkDnsServersDelete(d *pluginsdk.ResourceData, meta inte
 		return nil
 	}
 
-	vnet.Model.Properties.DhcpOptions.DnsServers = utils.ExpandStringSlice(make([]interface{}, 0))
+	vnet.Model.Properties.DhcpOptions.DnsServers = helpers.ExpandStringSlice(make([]interface{}, 0))
 
 	if err := client.CreateOrUpdateThenPoll(ctx, vnetId, *vnet.Model); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)

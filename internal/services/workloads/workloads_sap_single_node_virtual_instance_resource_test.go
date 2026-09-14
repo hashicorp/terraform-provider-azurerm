@@ -515,7 +515,5 @@ resource "azurerm_workloads_sap_single_node_virtual_instance" "test" {
 
 func SAPSingleNodeVirtualInstanceNameSuffix() int {
 	rand.NewSource(time.Now().UnixNano())
-	num := rand.Intn(90) + 10
-
-	return num
+	return rand.Intn(90) + 10
 }

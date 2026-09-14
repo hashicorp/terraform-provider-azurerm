@@ -37,6 +37,10 @@ output "cidrs" {
 
 * `cidrs` - A list of CIDRs or IP addresses.
 
+* `firewall_ids` - A list of ID of Firewall.
+
+* `firewall_policy_ids` - A list of ID of Firewall Policy`.
+
 * `tags` - A mapping of tags assigned to the resource.
 
 ## Timeouts

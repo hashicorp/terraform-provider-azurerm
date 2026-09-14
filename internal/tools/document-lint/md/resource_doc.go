@@ -149,8 +149,7 @@ func extractFieldFromLine(line string) (field *model.Field) {
 			}
 		}
 		if len(enums) == 0 && strings.Index(res[3], "`") > 0 {
-			guessValues := codeReg.FindAllString(res[3], -1)
-			field.SetGuessEnums(guessValues)
+			field.SetGuessEnums(codeReg.FindAllString(res[3], -1))
 		}
 	}
 	field.AddEnum(enums...)
@@ -159,8 +158,8 @@ func extractFieldFromLine(line string) (field *model.Field) {
 
 func extractBlockNames(line string) (res []string) {
 	if blockHeadReg.MatchString(line) {
-		idx := strings.Index(line, "block")
-		names := codeReg.FindAllString(line[:idx], -1)
+		before, _, _ := strings.Cut(line, "block")
+		names := codeReg.FindAllString(before, -1)
 		for idx, val := range names {
 			names[idx] = strings.Trim(val, "`'")
 		}

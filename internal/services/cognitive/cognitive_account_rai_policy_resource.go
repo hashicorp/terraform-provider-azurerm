@@ -6,6 +6,7 @@ package cognitive
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -31,12 +32,6 @@ type AccountRaiPolicyContentFilter struct {
 	BlockEnabled      bool   `tfschema:"block_enabled"`
 	SeverityThreshold string `tfschema:"severity_threshold"`
 	Source            string `tfschema:"source"`
-}
-
-type AccountRaiPolicyCustomBlock struct {
-	Id           string `tfschema:"rai_blocklist_id"`
-	BlockEnabled bool   `tfschema:"block_enabled"`
-	Source       string `tfschema:"source"`
 }
 
 type AccountRaiPolicyResourceModel struct {
@@ -85,10 +80,8 @@ func (r CognitiveAccountRaiPolicyResource) CustomizeDiff() sdk.ResourceFunc {
 					continue
 				}
 
-				for _, notApplicable := range severityThresholdNotApplicableFilterNames {
-					if name == notApplicable {
-						return fmt.Errorf("`severity_threshold` is not applicable for `content_filter[%d]` with name %q", i, name)
-					}
+				if slices.Contains(severityThresholdNotApplicableFilterNames, name) {
+					return fmt.Errorf("`severity_threshold` is not applicable for `content_filter[%d]` with name %q", i, name)
 				}
 			}
 
@@ -217,7 +210,7 @@ func (r CognitiveAccountRaiPolicyResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.Mode != "" {
-				raiPolicy.Properties.Mode = pointer.To(raipolicies.RaiPolicyMode(model.Mode))
+				raiPolicy.Properties.Mode = pointer.ToEnum[raipolicies.RaiPolicyMode](model.Mode)
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id, raiPolicy); err != nil {
@@ -313,7 +306,7 @@ func (r CognitiveAccountRaiPolicyResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("mode") {
-				payload.Properties.Mode = pointer.To(raipolicies.RaiPolicyMode(model.Mode))
+				payload.Properties.Mode = pointer.ToEnum[raipolicies.RaiPolicyMode](model.Mode)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -369,11 +362,11 @@ func expandRaiPolicyContentFilters(filters []AccountRaiPolicyContentFilter) *[]r
 			Name:     pointer.To(filter.Name),
 			Enabled:  pointer.To(filter.FilterEnabled),
 			Blocking: pointer.To(filter.BlockEnabled),
-			Source:   pointer.To(raipolicies.RaiPolicyContentSource(filter.Source)),
+			Source:   pointer.ToEnum[raipolicies.RaiPolicyContentSource](filter.Source),
 		}
 
 		if filter.SeverityThreshold != "" {
-			f.SeverityThreshold = pointer.To(raipolicies.ContentLevel(filter.SeverityThreshold))
+			f.SeverityThreshold = pointer.ToEnum[raipolicies.ContentLevel](filter.SeverityThreshold)
 		}
 
 		contentFilters = append(contentFilters, f)

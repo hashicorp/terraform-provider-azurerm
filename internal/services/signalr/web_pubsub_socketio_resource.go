@@ -481,7 +481,12 @@ func (w WebPubSubSocketIOResource) Update() sdk.ResourceFunc {
 				payload.Identity = expandedIdentity
 			}
 
-			if rd.HasChanges("live_trace_enabled", "live_trace_connectivity_logs_enabled", "live_trace_http_request_logs_enabled", "live_trace_messaging_logs_enabled") {
+			if rd.HasChanges(
+				"live_trace_enabled",
+				"live_trace_connectivity_logs_enabled",
+				"live_trace_http_request_logs_enabled",
+				"live_trace_messaging_logs_enabled",
+			) {
 				props.LiveTraceConfiguration = expandLiveTraceConfigFromModel(config)
 			}
 

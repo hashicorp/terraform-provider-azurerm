@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -219,25 +220,10 @@ func flattenAzureRmDnsCaaRecords(records *[]recordsets.CaaRecord) []map[string]i
 
 	if records != nil {
 		for _, record := range *records {
-			flags := int64(0)
-			if record.Flags != nil {
-				flags = *record.Flags
-			}
-
-			tag := ""
-			if record.Tag != nil {
-				tag = *record.Tag
-			}
-
-			value := ""
-			if record.Value != nil {
-				value = *record.Value
-			}
-
 			results = append(results, map[string]interface{}{
-				"flags": flags,
-				"tag":   tag,
-				"value": value,
+				"flags": pointer.From(record.Flags),
+				"tag":   pointer.From(record.Tag),
+				"value": pointer.From(record.Value),
 			})
 		}
 	}
@@ -252,14 +238,10 @@ func expandAzureRmDnsCaaRecords(d *pluginsdk.ResourceData) *[]recordsets.CaaReco
 	for _, v := range recordStrings {
 		record := v.(map[string]interface{})
 
-		flags := int64(record["flags"].(int))
-		tag := record["tag"].(string)
-		value := record["value"].(string)
-
 		records = append(records, recordsets.CaaRecord{
-			Flags: &flags,
-			Tag:   &tag,
-			Value: &value,
+			Flags: pointer.To(int64(record["flags"].(int))),
+			Tag:   pointer.To(record["tag"].(string)),
+			Value: pointer.To(record["value"].(string)),
 		})
 	}
 
