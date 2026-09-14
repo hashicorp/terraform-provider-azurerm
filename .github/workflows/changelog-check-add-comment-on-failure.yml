@@ -29,8 +29,10 @@ jobs:
           merge-multiple: true
         continue-on-error: true
 
-      - name: Comment on missing changelog entry
-        if: steps.download.outcome == 'success'
+      - name: Comment on missing changelog entry - maintainers
+        if: >
+          steps.download.outcome == 'success' &&
+          contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           script: |
@@ -53,6 +55,72 @@ jobs:
               "/changelog replace",
               "[<type>] <body>",
               "````",
+              "",
+              "Available types:",
+              "",
+              "```",
+              types,
+              "```",
+              "",
+              "If this PR does not require a changelog entry, add the `no-changelog-needed` label or check the box in the PR description."
+            ].join("\n")
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            })
+
+            const botComments = comments.filter(c => c.user.login === 'github-actions[bot]')
+            const existing = botComments.find(c => c.body.includes(marker))
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              })
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body,
+              })
+            }
+
+            try {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                labels: ['missing-changelog-entry'],
+              })
+            } catch (error) {
+              core.warning(`Failed to add label: ${error.message}`)
+            }
+
+      - name: Comment on missing changelog entry - community
+        if: >
+          steps.download.outcome == 'success' &&
+          !contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          script: |
+            const fs = require('fs')
+            const prNumber = parseInt(fs.readFileSync('artifacts/pr-number', 'utf8').trim())
+            const types = fs.readFileSync('artifacts/types-table', 'utf8').trim()
+            const marker = '<!-- changelog-comment -->'
+            const body = [
+              marker,
+              "This PR is missing a changelog entry, or contains an invalid one. Please add one or more by running:",
+              "",
+              "````",
+              "make changelog TYPE=<type> BODY=<body> PR=" + prNumber,
+              "````",
+              "",
+              "and commit the resulting file.",
               "",
               "Available types:",
               "",
