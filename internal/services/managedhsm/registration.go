@@ -51,17 +51,17 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		KeyvaultMHSMRoleDefinitionDataSource{},
 		KeyvaultMHSMKeyDataSource{},
+		KeyvaultMHSMRoleDefinitionDataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		KeyVaultMHSMKeyResource{},
-		KeyVaultMHSMRoleDefinitionResource{},
 		KeyVaultManagedHSMRoleAssignmentResource{},
+		KeyVaultMHSMKeyResource{},
 		KeyVaultMHSMKeyRotationPolicyResource{},
+		KeyVaultMHSMRoleDefinitionResource{},
 	}
 }
 

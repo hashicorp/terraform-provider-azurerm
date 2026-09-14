@@ -26,7 +26,7 @@ import (
 )
 
 func resourceIotCentralApplication() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceIotCentralAppCreate,
 		Read:   resourceIotCentralAppRead,
 		Update: resourceIotCentralAppUpdate,
@@ -71,7 +71,7 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 			"display_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validate.ApplicationDisplayName,
 			},
 
@@ -84,14 +84,10 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 			},
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(apps.AppSkuSTOne),
-					string(apps.AppSkuSTTwo),
-					string(apps.AppSkuSTZero),
-				}, false),
-				Default: string(apps.AppSkuSTOne),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(apps.PossibleValuesForAppSku(), false),
+				Default:      string(apps.AppSkuSTOne),
 			},
 			"template": {
 				Type:         pluginsdk.TypeString,
@@ -104,8 +100,6 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	return resource
 }
 
 func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -155,11 +149,10 @@ func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	subdomain := d.Get("sub_domain").(string)
 	template := d.Get("template").(string)
-	publicNetworkAccess := apps.PublicNetworkAccessEnabled
 	app := apps.App{
 		Properties: &apps.AppProperties{
 			DisplayName:         &displayName,
-			PublicNetworkAccess: &publicNetworkAccess,
+			PublicNetworkAccess: pointer.To(apps.PublicNetworkAccessEnabled),
 			Subdomain:           &subdomain,
 			Template:            &template,
 		},
@@ -178,8 +171,7 @@ func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	// Public Network Access can only be disabled after creation
 	if !d.Get("public_network_access_enabled").(bool) {
-		publicNetworkAccess := apps.PublicNetworkAccessDisabled
-		app.Properties.PublicNetworkAccess = &publicNetworkAccess
+		app.Properties.PublicNetworkAccess = pointer.To(apps.PublicNetworkAccessDisabled)
 		if err := client.CreateOrUpdateThenPoll(ctx, id, app); err != nil {
 			return fmt.Errorf("updating `public_network_access_enabled` to false for %s: %+v", id, err)
 		}

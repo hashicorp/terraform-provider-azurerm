@@ -12,14 +12,13 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func dataSourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceCdnFrontDoorCustomDomainRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -128,21 +127,6 @@ func dataSourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		tlsSchema := resource.Schema["tls"].Elem.(*pluginsdk.Resource).Schema
-		tlsSchema["minimum_tls_version"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "`minimum_tls_version` has been deprecated in favour of `minimum_version` and will be removed in v5.0 of the AzureRM provider",
-		}
-		tlsSchema["minimum_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		}
-	}
-
-	return resource
 }
 
 func dataSourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -171,13 +155,11 @@ func dataSourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta inte
 		if props := model.Properties; props != nil {
 			d.Set("host_name", props.HostName)
 
-			dnsZoneId := flattenAfdDNSZoneResourceReference(props.AzureDnsZone)
-			if err := d.Set("dns_zone_id", dnsZoneId); err != nil {
+			if err := d.Set("dns_zone_id", flattenAfdDNSZoneResourceReference(props.AzureDnsZone)); err != nil {
 				return fmt.Errorf("setting `dns_zone_id`: %+v", err)
 			}
 
-			tls := flattenAfdDomainHttpsParameters(props.TlsSettings, true)
-			if err := d.Set("tls", tls); err != nil {
+			if err := d.Set("tls", flattenAfdDomainHttpsParameters(props.TlsSettings, true)); err != nil {
 				return fmt.Errorf("setting `tls`: %+v", err)
 			}
 

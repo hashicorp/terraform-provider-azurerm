@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -167,8 +168,8 @@ func parseResourceId(id resourceids.ResourceId) (scope, provider, resourceType, 
 	var scopeSegments []string
 	cutOffIndex := providerIdx - 1
 	if len(typeSegs) > 1 {
-		for i := len(segments) - 1; i >= 0; i-- {
-			if segments[i].Type == resourceids.ConstantSegmentType || segments[i].Type == resourceids.StaticSegmentType {
+		for i, segment := range slices.Backward(segments) {
+			if segment.Type == resourceids.ConstantSegmentType || segment.Type == resourceids.StaticSegmentType {
 				cutOffIndex = i
 				break
 			}

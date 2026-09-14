@@ -195,8 +195,7 @@ func resourceManagedDiskUpdateWithVmShutDown(ctx context.Context, clients *clien
 	}
 
 	// Update Disk
-	err = diskClient.UpdateThenPoll(ctx, *id, diskUpdate)
-	if err != nil {
+	if err = diskClient.UpdateThenPoll(ctx, *id, diskUpdate); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 

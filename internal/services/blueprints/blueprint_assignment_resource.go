@@ -4,9 +4,10 @@
 package blueprints
 
 import (
-	"errors"
+	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -16,14 +17,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/assignment"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/publishedblueprint"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceBlueprintAssignment() *pluginsdk.Resource {
@@ -87,14 +89,10 @@ func resourceBlueprintAssignment() *pluginsdk.Resource {
 			},
 
 			"lock_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(assignment.AssignmentLockModeNone),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(assignment.AssignmentLockModeNone),
-					string(assignment.AssignmentLockModeAllResourcesReadOnly),
-					string(assignment.AssignmentLockModeAllResourcesDoNotDelete),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(assignment.AssignmentLockModeNone),
+				ValidateFunc: validation.StringInSlice(assignment.PossibleValuesForAssignmentLockMode(), false),
 				// The first character of value returned by the service is always in lower case.
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -174,16 +172,16 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if lockModeRaw, ok := d.GetOk("lock_mode"); ok {
 		assignmentLockSettings := &assignment.AssignmentLockSettings{}
 		lockMode := lockModeRaw.(string)
-		assignmentLockSettings.Mode = pointer.To(assignment.AssignmentLockMode(lockMode))
+		assignmentLockSettings.Mode = pointer.ToEnum[assignment.AssignmentLockMode](lockMode)
 		if lockMode != "None" {
 			excludedPrincipalsRaw := d.Get("lock_exclude_principals").([]interface{})
 			if len(excludedPrincipalsRaw) != 0 {
-				assignmentLockSettings.ExcludedPrincipals = utils.ExpandStringSlice(excludedPrincipalsRaw)
+				assignmentLockSettings.ExcludedPrincipals = helpers.ExpandStringSlice(excludedPrincipalsRaw)
 			}
 
 			excludedActionsRaw := d.Get("lock_exclude_actions").([]interface{})
 			if len(excludedActionsRaw) != 0 {
-				assignmentLockSettings.ExcludedActions = utils.ExpandStringSlice(excludedActionsRaw)
+				assignmentLockSettings.ExcludedActions = helpers.ExpandStringSlice(excludedActionsRaw)
 			}
 		}
 		payload.Properties.Locks = assignmentLockSettings
@@ -322,24 +320,12 @@ func resourceBlueprintAssignmentDelete(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("failed to delete Blueprint Assignment %q from scope %q: %+v", id.BlueprintAssignmentName, id.ResourceScope, err)
 	}
 
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return errors.New("internal-error: context had no deadline")
-	}
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{
-			string(assignment.AssignmentProvisioningStateWaiting),
-			string(assignment.AssignmentProvisioningStateValidating),
-			string(assignment.AssignmentProvisioningStateLocking),
-			string(assignment.AssignmentProvisioningStateDeleting),
-			string(assignment.AssignmentProvisioningStateFailed),
-		},
-		Target:  []string{"NotFound"},
-		Refresh: blueprintAssignmentDeleteStateRefreshFunc(ctx, client, *id),
-		Timeout: time.Until(deadline),
-	}
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Blueprint Assignment %q: %+v", id.String(), err)
+	poller := custompollers.NewEventualConsistencyPoller(1, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, *id)
+		return resp.HttpResponse, err
+	}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
 	}
 
 	return nil

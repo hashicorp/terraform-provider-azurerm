@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/scheduledactions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/views"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -41,7 +40,7 @@ type CostManagementScheduledActionModel struct {
 var _ sdk.Resource = CostManagementScheduledActionResource{}
 
 func (r CostManagementScheduledActionResource) Arguments() map[string]*pluginsdk.Schema {
-	resource := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -50,15 +49,9 @@ func (r CostManagementScheduledActionResource) Arguments() map[string]*pluginsdk
 		},
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			// adding 2026/04 api limitations behind 5.0 flag incase existing resources are still allowed with previous limits
-			ValidateFunc: func() pluginsdk.SchemaValidateFunc {
-				if features.FivePointOh() {
-					return validation.StringLenBetween(1, 25)
-				}
-				return validation.StringIsNotEmpty
-			}(),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringLenBetween(1, 25),
 		},
 
 		"view_id": {
@@ -147,12 +140,6 @@ func (r CostManagementScheduledActionResource) Arguments() map[string]*pluginsdk
 			ValidateFunc: validation.IsRFC3339Time,
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource["email_subject"].ValidateFunc = validation.StringLenBetween(1, 70)
-	}
-
-	return resource
 }
 
 func (r CostManagementScheduledActionResource) Attributes() map[string]*pluginsdk.Schema {

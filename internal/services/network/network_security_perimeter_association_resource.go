@@ -118,7 +118,7 @@ func (r NetworkSecurityPerimeterAssociationResource) Create() sdk.ResourceFunc {
 					PrivateLinkResource: &networksecurityperimeterassociations.SubResource{
 						Id: pointer.To(config.ResourceId),
 					},
-					AccessMode: pointer.To(networksecurityperimeterassociations.AssociationAccessMode(config.AccessMode)),
+					AccessMode: pointer.ToEnum[networksecurityperimeterassociations.AssociationAccessMode](config.AccessMode),
 				},
 			}
 
@@ -162,7 +162,7 @@ func (r NetworkSecurityPerimeterAssociationResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("access_mode") {
-				existing.Model.Properties.AccessMode = pointer.To(networksecurityperimeterassociations.AssociationAccessMode(config.AccessMode))
+				existing.Model.Properties.AccessMode = pointer.ToEnum[networksecurityperimeterassociations.AssociationAccessMode](config.AccessMode)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {

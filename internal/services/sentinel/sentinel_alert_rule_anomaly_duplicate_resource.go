@@ -86,18 +86,15 @@ func (r AlertRuleAnomalyDuplicateResource) Arguments() map[string]*schema.Schema
 		},
 
 		"mode": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(securitymlanalyticssettings.SettingsStatusProduction),
-				string(securitymlanalyticssettings.SettingsStatusFlighting),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(securitymlanalyticssettings.PossibleValuesForSettingsStatus(), false),
 		},
 
 		"multi_select_observation": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"name": {
@@ -134,7 +131,7 @@ func (r AlertRuleAnomalyDuplicateResource) Arguments() map[string]*schema.Schema
 		"single_select_observation": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"name": {
@@ -168,7 +165,7 @@ func (r AlertRuleAnomalyDuplicateResource) Arguments() map[string]*schema.Schema
 		"prioritized_exclude_observation": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"name": {
@@ -199,7 +196,7 @@ func (r AlertRuleAnomalyDuplicateResource) Arguments() map[string]*schema.Schema
 		"threshold_observation": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"name": {
@@ -391,7 +388,6 @@ func (r AlertRuleAnomalyDuplicateResource) Create() sdk.ResourceFunc {
 					Techniques:             builtInAnomalyRuleProps.Techniques,
 					AnomalyVersion:         builtInAnomalyRuleProps.AnomalyVersion,
 					Frequency:              builtInAnomalyRuleProps.Frequency,
-					IsDefaultSettings:      false, // for duplicate one, it's not default settings.
 					AnomalySettingsVersion: builtInAnomalyRuleProps.AnomalySettingsVersion,
 					SettingsDefinitionId:   builtInAnomalyRuleProps.SettingsDefinitionId,
 					Enabled:                config.Enabled,
@@ -536,7 +532,12 @@ func (r AlertRuleAnomalyDuplicateResource) Update() sdk.ResourceFunc {
 				v.Properties.SettingsStatus = securitymlanalyticssettings.SettingsStatus(config.Mode)
 			}
 
-			if rd.HasChanges("multi_select_observation", "single_select_observation", "prioritized_exclude_observation", "threshold_observation") {
+			if rd.HasChanges(
+				"multi_select_observation",
+				"single_select_observation",
+				"prioritized_exclude_observation",
+				"threshold_observation",
+			) {
 				if v.Properties.CustomizableObservations == nil {
 					v.Properties.CustomizableObservations = &securitymlanalyticssettings.AnomalySecurityMLAnalyticsCustomizableObservations{}
 				}

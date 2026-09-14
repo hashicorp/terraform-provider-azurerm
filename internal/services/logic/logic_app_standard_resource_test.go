@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -1000,6 +999,21 @@ func TestAccLogicAppStandard_dotnetVersion8(t *testing.T) {
 	})
 }
 
+func TestAccLogicAppStandard_dotnetVersion10(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dotnetVersion(data, "~4", "v10.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLogicAppStandard_vNetIntegration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
 	r := LogicAppStandardResource{}
@@ -1054,33 +1068,6 @@ func TestAccLogicAppStandard_vNetIntegrationUpdate(t *testing.T) {
 			Config: r.vnetIntegrationBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccLogicAppStandard_publicNetworkAccessEnabled(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("skipping since `site_config.public_network_access_enabled` is removed in v5.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
-	r := LogicAppStandardResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.siteConfigPublicNetworkAccessEnabled(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("false"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.siteConfigPublicNetworkAccessEnabled(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -2604,25 +2591,6 @@ resource "azurerm_logic_app_standard" "test" {
 `, r.templateVnetIntegration(data), data.RandomInteger)
 }
 
-func (r LogicAppStandardResource) siteConfigPublicNetworkAccessEnabled(data acceptance.TestData, enabled bool) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%d-func"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-
-  site_config {
-    public_network_access_enabled = %t
-  }
-}
-`, r.template(data), data.RandomInteger, enabled)
-}
-
 func (r LogicAppStandardResource) vnetContentShareEnabled(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
@@ -2751,6 +2719,7 @@ resource "azurerm_key_vault" "test" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
+  rbac_authorization_enabled = false
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -2846,6 +2815,7 @@ resource "azurerm_key_vault" "test" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
+  rbac_authorization_enabled = false
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id

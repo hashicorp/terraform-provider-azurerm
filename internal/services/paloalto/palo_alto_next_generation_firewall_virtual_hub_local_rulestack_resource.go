@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	firewalls "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
 	localrulestacks "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
@@ -54,7 +53,7 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) ResourceType() string 
 }
 
 func (r NextGenerationFirewallVHubLocalRuleStackResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -94,12 +93,6 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Arguments() map[string
 
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.FivePointOh() {
-		args["plan_id"].Default = "panw-cloud-ngfw-payg"
-	}
-
-	return args
 }
 
 func (r NextGenerationFirewallVHubLocalRuleStackResource) Attributes() map[string]*pluginsdk.Schema {
@@ -286,12 +279,10 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Update() sdk.ResourceF
 					return err
 				}
 
-				ruleStack := &firewalls.RulestackDetails{
+				props.AssociatedRulestack = &firewalls.RulestackDetails{
 					Location:   props.AssociatedRulestack.Location,
 					ResourceId: pointer.To(ruleStackID.ID()),
 				}
-
-				props.AssociatedRulestack = ruleStack
 				locks.ByID(ruleStackID.ID())
 				defer locks.UnlockByID(ruleStackID.ID())
 			}

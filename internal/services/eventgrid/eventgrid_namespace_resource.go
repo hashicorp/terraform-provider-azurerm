@@ -92,12 +92,10 @@ func (r EventGridNamespaceResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validate.CIDR,
 					},
 					"action": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(namespaces.IPActionTypeAllow),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(namespaces.IPActionTypeAllow),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(namespaces.IPActionTypeAllow),
+						ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForIPActionType(), false),
 					},
 				},
 			},
@@ -305,11 +303,11 @@ func expandCreateForEventGridNamespace(model EventGridNamespaceResourceModel) (n
 		Name:     pointer.To(model.Name),
 		Properties: &namespaces.NamespaceProperties{
 			InboundIPRules:      expandInboundIPRules(model.InboundIpRules),
-			PublicNetworkAccess: pointer.To(namespaces.PublicNetworkAccess(model.PublicNetworkAccess)),
+			PublicNetworkAccess: pointer.ToEnum[namespaces.PublicNetworkAccess](model.PublicNetworkAccess),
 		},
 		Sku: &namespaces.NamespaceSku{
 			Capacity: pointer.To(model.Capacity),
-			Name:     pointer.To(namespaces.SkuName(model.Sku)),
+			Name:     pointer.ToEnum[namespaces.SkuName](model.Sku),
 		},
 		Tags: pointer.To(model.Tags),
 	}
@@ -364,7 +362,7 @@ func (r EventGridNamespaceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("public_network_access") {
-				payload.Properties.PublicNetworkAccess = pointer.To(namespaces.PublicNetworkAccess(model.PublicNetworkAccess))
+				payload.Properties.PublicNetworkAccess = pointer.ToEnum[namespaces.PublicNetworkAccess](model.PublicNetworkAccess)
 			}
 
 			if metadata.ResourceData.HasChange("topic_spaces_configuration") {
@@ -468,7 +466,7 @@ func expandInboundIPRules(input []InboundIpRuleModel) *[]namespaces.InboundIPRul
 	ipRules := make([]namespaces.InboundIPRule, 0)
 	for _, v := range input {
 		ipRules = append(ipRules, namespaces.InboundIPRule{
-			Action: pointer.To(namespaces.IPActionType(v.Action)),
+			Action: pointer.ToEnum[namespaces.IPActionType](v.Action),
 			IPMask: pointer.To(v.IpMask),
 		})
 	}
@@ -577,7 +575,7 @@ func expandStaticRoutingEnrichments(input []RoutingEnrichmentModel) *[]namespace
 func flattenTopicSpacesConfiguration(topicSpacesConfig *namespaces.TopicSpacesConfiguration) ([]TopicSpacesConfigurationModel, error) {
 	var output TopicSpacesConfigurationModel
 	if topicSpacesConfig == nil {
-		return nil, nil
+		return []TopicSpacesConfigurationModel{}, nil
 	}
 
 	output.MaximumSessionExpiryInHours = pointer.From(topicSpacesConfig.MaximumSessionExpiryInHours)

@@ -159,8 +159,8 @@ func (r SyncServerEndpointResource) Create() sdk.ResourceFunc {
 
 			payload := serverendpointresource.ServerEndpointCreateParameters{
 				Properties: &serverendpointresource.ServerEndpointCreateParametersProperties{
-					InitialDownloadPolicy:  pointer.To(serverendpointresource.InitialDownloadPolicy(config.InitialDownloadPolicy)),
-					LocalCacheMode:         pointer.To(serverendpointresource.LocalCacheMode(config.LocalCacheMode)),
+					InitialDownloadPolicy:  pointer.ToEnum[serverendpointresource.InitialDownloadPolicy](config.InitialDownloadPolicy),
+					LocalCacheMode:         pointer.ToEnum[serverendpointresource.LocalCacheMode](config.LocalCacheMode),
 					ServerLocalPath:        pointer.To(config.ServerLocalPath),
 					ServerResourceId:       pointer.To(config.RegisteredServerId),
 					VolumeFreeSpacePercent: pointer.To(config.VolumeFreeSpacePercent),
@@ -289,7 +289,7 @@ func (r SyncServerEndpointResource) Update() sdk.ResourceFunc {
 
 			payload := serverendpointresource.ServerEndpointUpdateParameters{
 				Properties: &serverendpointresource.ServerEndpointUpdateProperties{
-					LocalCacheMode:         pointer.To(serverendpointresource.LocalCacheMode(config.LocalCacheMode)),
+					LocalCacheMode:         pointer.ToEnum[serverendpointresource.LocalCacheMode](config.LocalCacheMode),
 					VolumeFreeSpacePercent: pointer.To(config.VolumeFreeSpacePercent),
 				},
 			}

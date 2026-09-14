@@ -28,7 +28,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
@@ -92,9 +91,9 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.AppConfigurationFeatureName,
 		},
 		"etag": {
-			Type: pluginsdk.TypeString,
-			// NOTE: O+C The value of this is updated anytime the resource changes so this should remain Computed
+			Type:     pluginsdk.TypeString,
 			Computed: true,
+			// NOTE: O+C The value of this is updated anytime the resource changes
 			Optional: true,
 		},
 		"label": {
@@ -245,7 +244,7 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 				return errors.New("internal-error: context had no deadline")
 			}
 
-			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
+			// from https://learn.microsoft.com/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
 			// allow some time for role permission to be propagated
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:                   []string{"Forbidden"},
@@ -264,7 +263,7 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 				kv, err := client.GetKeyValue(ctx, featureKey, model.Label, "", "", "", []appconfiguration.KeyValueFields{})
 				if err != nil {
 					if v, ok := err.(autorest.DetailedError); ok {
-						if !utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
+						if !response.WasNotFound(v.Response) {
 							return fmt.Errorf("got http status code %d while checking for key's %q existence: %+v", v.Response.StatusCode, featureKey, v.Error())
 						}
 					} else {
@@ -419,8 +418,7 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 			}
 
 			var fv FeatureValue
-			err = json.Unmarshal([]byte(pointer.From(kv.Value)), &fv)
-			if err != nil {
+			if err = json.Unmarshal([]byte(pointer.From(kv.Value)), &fv); err != nil {
 				return fmt.Errorf("while unmarshalling underlying key's value: %+v", err)
 			}
 
@@ -483,8 +481,7 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 			}
 
 			var fv FeatureValue
-			err = json.Unmarshal([]byte(pointer.From(kv.Value)), &fv)
-			if err != nil {
+			if err = json.Unmarshal([]byte(pointer.From(kv.Value)), &fv); err != nil {
 				return fmt.Errorf("while unmarshalling underlying key's value: %+v", err)
 			}
 
@@ -537,8 +534,7 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 						tfp := f
 						targetingFilters = append(targetingFilters, tfp)
 					case PercentageFeatureFilter:
-						pfp := f
-						percentageFilter = pfp
+						percentageFilter = f
 					case CustomFilter:
 						cf := f
 						customFilters = append(customFilters, cf)

@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -267,8 +266,7 @@ func (r LoadBalancerRule) Destroy(ctx context.Context, client *clients.Client, s
 	}
 	loadBalancer.Model.Properties.LoadBalancingRules = &rules
 
-	err = client.LoadBalancers.LoadBalancersClient.CreateOrUpdateThenPoll(ctx, plbId, *loadBalancer.Model)
-	if err != nil {
+	if err = client.LoadBalancers.LoadBalancersClient.CreateOrUpdateThenPoll(ctx, plbId, *loadBalancer.Model); err != nil {
 		return nil, fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
@@ -324,29 +322,6 @@ resource "azurerm_lb_rule" "test" {
 }
 
 func (r LoadBalancerRule) complete(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_lb_rule" "test" {
-  name            = "acctest-lb-rule-%d"
-  loadbalancer_id = azurerm_lb.test.id
-
-  protocol      = "Tcp"
-  frontend_port = 3389
-  backend_port  = 3389
-
-  disable_outbound_snat   = true
-  enable_floating_ip      = true
-  enable_tcp_reset        = true
-  idle_timeout_in_minutes = 100
-  load_distribution       = "SourceIP"
-
-  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
-}
-`, r.template(data), data.RandomInteger%100000000)
-	}
-
 	return fmt.Sprintf(`
 %s
 

@@ -126,8 +126,8 @@ func resolveIdentityStruct(pkgName, typeName string, importsMap map[string]strin
 	var pkgPath string
 
 	if importPath, ok := importsMap[pkgName]; ok {
-		if strings.HasPrefix(importPath, "github.com/hashicorp/terraform-provider-azurerm/") {
-			pkgPath = filepath.Join(providerRoot, strings.TrimPrefix(importPath, "github.com/hashicorp/terraform-provider-azurerm/"))
+		if after, ok0 := strings.CutPrefix(importPath, "github.com/hashicorp/terraform-provider-azurerm/"); ok0 {
+			pkgPath = filepath.Join(providerRoot, after)
 		} else {
 			pkgPath = filepath.Join(providerRoot, "vendor", importPath)
 		}

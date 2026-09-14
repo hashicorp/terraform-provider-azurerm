@@ -76,7 +76,7 @@ func (r PolicySetDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
 		"metadata": {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			Computed:         true,
+			Computed:         true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc:     validation.StringIsJSON,
 			DiffSuppressFunc: policySetDefinitionsMetadataDiffSuppressFunc,
 		},
@@ -136,7 +136,7 @@ func (r PolicySetDefinitionResource) Create() sdk.ResourceFunc {
 				Properties: &policysetdefinitions.PolicySetDefinitionProperties{
 					Description: pointer.To(model.Description),
 					DisplayName: pointer.To(model.DisplayName),
-					PolicyType:  pointer.To(policysetdefinitions.PolicyType(model.PolicyType)),
+					PolicyType:  pointer.ToEnum[policysetdefinitions.PolicyType](model.PolicyType),
 				},
 			}
 
