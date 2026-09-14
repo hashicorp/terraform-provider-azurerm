@@ -332,7 +332,7 @@ func TestAccKubernetesCluster_upgradeOverrideSetting(t *testing.T) {
 	})
 }
 
-func (t KubernetesClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r KubernetesClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseKubernetesClusterID(state.ID)
 	if err != nil {
 		return nil, err
@@ -1448,4 +1448,274 @@ resource "azurerm_kubernetes_cluster" "test" {
     object_id                 = azurerm_user_assigned_identity.aks_kubelet.principal_id
   }
 }`, r.networkIsolatedBootstrapProfileTemplate(data), data.RandomInteger)
+}
+
+func TestAccKubernetesCluster_localDNSProfile_kubeDNS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.localDNSProfileKubeDNSConfig(data, currentKubernetesVersion),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_localDNSProfile_vnetDNS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.localDNSProfileVnetDNSConfig(data, currentKubernetesVersion),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_localDNSProfile_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.localDNSProfileKubeDNSConfig(data, currentKubernetesVersion),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.localDNSProfileComplete(data, currentKubernetesVersion),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.localDNSProfileCompleteUpdate(data, currentKubernetesVersion),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.localDNSProfileComplete(data, currentKubernetesVersion),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r KubernetesClusterResource) localDNSProfileComplete(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg%[1]s"
+  location = "%[2]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]s"
+  kubernetes_version  = "%[3]s"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+
+    local_dns_profile {
+      mode  = "Required"
+      state = "Enabled"
+
+      kube_dns_override {
+        domain                          = "example1.com"
+        cache_duration_in_seconds       = 60
+        forward_destination             = "ClusterCoreDNS"
+        forward_policy                  = "Random"
+        max_concurrent                  = 100
+        protocol                        = "ForceTCP"
+        query_logging                   = "Log"
+        serve_stale                     = "Immediate"
+        serve_stale_duration_in_seconds = 120
+      }
+
+      vnet_dns_override {
+        domain                          = "example1.com"
+        cache_duration_in_seconds       = 60
+        forward_destination             = "VnetDNS"
+        forward_policy                  = "Random"
+        max_concurrent                  = 100
+        protocol                        = "PreferUDP"
+        query_logging                   = "Error"
+        serve_stale                     = "Verify"
+        serve_stale_duration_in_seconds = 120
+      }
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomString, data.Locations.Primary, version)
+}
+
+func (r KubernetesClusterResource) localDNSProfileCompleteUpdate(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg%[1]s"
+  location = "%[2]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]s"
+  kubernetes_version  = "%[3]s"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+
+    local_dns_profile {
+      mode  = "Preferred"
+      state = "Disabled"
+
+      kube_dns_override {
+        domain                          = "example1.com"
+        cache_duration_in_seconds       = 120
+        forward_destination             = "VnetDNS"
+        forward_policy                  = "RoundRobin"
+        max_concurrent                  = 200
+        protocol                        = "PreferUDP"
+        query_logging                   = "Error"
+        serve_stale                     = "Disable"
+        serve_stale_duration_in_seconds = 60
+      }
+
+      kube_dns_override {
+        domain                          = "example2.com"
+        cache_duration_in_seconds       = 60
+        forward_destination             = "ClusterCoreDNS"
+        forward_policy                  = "Sequential"
+        max_concurrent                  = 150
+        protocol                        = "ForceTCP"
+        query_logging                   = "Log"
+        serve_stale                     = "Immediate"
+        serve_stale_duration_in_seconds = 240
+      }
+
+      vnet_dns_override {
+        domain                          = "example1.com"
+        cache_duration_in_seconds       = 120
+        forward_destination             = "ClusterCoreDNS"
+        forward_policy                  = "RoundRobin"
+        max_concurrent                  = 200
+        protocol                        = "ForceTCP"
+        query_logging                   = "Log"
+        serve_stale                     = "Disable"
+        serve_stale_duration_in_seconds = 60
+      }
+
+      vnet_dns_override {
+        domain                          = "example2.com"
+        cache_duration_in_seconds       = 60
+        forward_destination             = "VnetDNS"
+        forward_policy                  = "Sequential"
+        max_concurrent                  = 150
+        protocol                        = "PreferUDP"
+        query_logging                   = "Error"
+        serve_stale                     = "Immediate"
+        serve_stale_duration_in_seconds = 240
+      }
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomString, data.Locations.Primary, version)
+}
+
+func (r KubernetesClusterResource) localDNSProfileKubeDNSConfig(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg%[1]s"
+  location = "%[2]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]s"
+  kubernetes_version  = "%[3]s"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+
+    local_dns_profile {
+      kube_dns_override {
+        domain   = "example.com"
+        protocol = "TCP"
+      }
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomString, data.Locations.Primary, version)
+}
+
+func (r KubernetesClusterResource) localDNSProfileVnetDNSConfig(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg%[1]s"
+  location = "%[2]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]s"
+  kubernetes_version  = "%[3]s"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+
+    local_dns_profile {
+      vnet_dns_override {
+        domain   = "example.com"
+        protocol = "TCP"
+      }
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomString, data.Locations.Primary, version)
 }
