@@ -7,12 +7,7 @@ import jetbrains.buildServer.configs.kotlin.triggers.schedule
 
 // NOTE: in time this could be pulled out into a separate Kotlin package
 
-// The native Go test runner (which TeamCity shells out to) will fail
-// the entire test suite when a single test panics, which isn't ideal.
-//
-// Until that changes, we'll continue to use `teamcity-go-test` to run
-// each test individually
-const val useTeamCityGoTest = false
+const val useTeamCityGoTest = true
 
 fun BuildFeatures.Golang() {
     if (useTeamCityGoTest) {
@@ -94,80 +89,25 @@ fun servicePath(packageName: String) : String {
 }
 
 fun BuildSteps.RunAcceptanceTests(packageName: String) {
-    var packagePath = servicePath(packageName)
-    var withTestsDirectoryPath = "##teamcity[setParameter name='SERVICE_PATH' value='%s/tests']".format(packagePath)
-
-    // some packages use a ./tests folder, others don't - conditionally append that if needed
+    var servicePath = "./internal/services/%s/...".format(packageName)
     step(ScriptBuildStep {
-        name          = "Determine Working Directory for this Package"
-        scriptContent = "if [ -d \"%s/tests\" ]; then echo \"%s\"; fi".format(packagePath, withTestsDirectoryPath)
+        name = "Run Tests"
+        scriptContent = "go test -v \"$servicePath\" -timeout=\"%TIMEOUT%h\" -test.parallel=\"%PARALLELISM%\" -run=\"%TEST_PREFIX%\" -json"
         conditions {
             equals("env.SCHEDULE_MATCHES", "true")
         }
     })
-
-    if (useTeamCityGoTest) {
-        step(ScriptBuildStep {
-            name = "Run Tests"
-            scriptContent = "go test -v \"%SERVICE_PATH%\" -timeout=\"%TIMEOUT%h\" -test.parallel=\"%PARALLELISM%\" -run=\"%TEST_PREFIX%\" -json"
-            conditions {
-                equals("env.SCHEDULE_MATCHES", "true")
-            }
-        })
-    } else {
-        step(ScriptBuildStep {
-            name = "Compile Test Binary"
-            scriptContent = """
-                            mkdir -p %env.GOMODCACHE%
-                            mkdir -p %env.GOCACHE%
-                            go test -c -o test-binary
-                            """.trimIndent()
-            workingDir = "%SERVICE_PATH%"
-            conditions {
-                equals("env.SCHEDULE_MATCHES", "true")
-            }
-        })
-
-        step(ScriptBuildStep {
-            // ./test-binary -test.list=TestAccAzureRMResourceGroup_ | teamcity-go-test -test ./test-binary -timeout 1s
-            name = "Run via jen20/teamcity-go-test"
-            scriptContent = "./test-binary -test.list=\"%TEST_PREFIX%\" | teamcity-go-test -test ./test-binary -parallelism \"%PARALLELISM%\" -timeout \"%TIMEOUT%h\""
-            workingDir = "%SERVICE_PATH%"
-            conditions {
-                equals("env.SCHEDULE_MATCHES", "true")
-            }
-        })
-    }
 }
 
 fun BuildSteps.RunAcceptanceTestsForPullRequest(packageName: String) {
     var servicePath = "./internal/services/%s/...".format(packageName)
-    if (useTeamCityGoTest) {
-        step(ScriptBuildStep {
-            name = "Run Tests"
-            scriptContent = "go test -v \"$servicePath\" -timeout=\"%TIMEOUT%h\" -test.parallel=\"%PARALLELISM%\" -run=\"%TEST_PREFIX%\" -json"
-            conditions {
-                equals("env.SCHEDULE_MATCHES", "true")
-            }
-        })
-    } else {
-        // Building a binary with teamcity-go-test doesn't work for multiple packages, so fallback to this
-        step(ScriptBuildStep {
-            name = "Install tombuildsstuff/teamcity-go-test-json"
-            scriptContent = "wget https://github.com/tombuildsstuff/teamcity-go-test-json/releases/download/v0.2.0/teamcity-go-test-json_linux_amd64 && chmod +x teamcity-go-test-json_linux_amd64"
-            conditions {
-                equals("env.SCHEDULE_MATCHES", "true")
-            }
-        })
-
-        step(ScriptBuildStep {
-            name = "Run Tests"
-            scriptContent = "GOFLAGS=\"-mod=vendor\" ./teamcity-go-test-json_linux_amd64 -scope \"$servicePath\" -prefix \"%TEST_PREFIX%\" -count=1 -parallelism=%PARALLELISM% -timeout %TIMEOUT% | tee results.txt"
-            conditions {
-                equals("env.SCHEDULE_MATCHES", "true")
-            }
-        })
-    }
+    step(ScriptBuildStep {
+        name = "Run Tests"
+        scriptContent = "go test -v \"$servicePath\" -timeout=\"%TIMEOUT%h\" -test.parallel=\"%PARALLELISM%\" -run=\"%TEST_PREFIX%\" -json"
+        conditions {
+            equals("env.SCHEDULE_MATCHES", "true")
+        }
+    })
 }
 
 fun BuildSteps.PostTestResultsToGitHubPullRequest() {
@@ -228,7 +168,6 @@ fun ParametrizedWithType.hiddenPasswordVariable(name: String, value: String, des
 }
 
 fun Triggers.RunNightly(nightlyTestsEnabled: Boolean, startHour: Int, daysOfWeek: String, daysOfMonth: String, disableTriggers: Boolean = false) {
-    // @tombuildsstuff: this temporary flag enables/disables all triggers, allowing a migration between CI servers
     if (!enableTestTriggersGlobally) {
         return
     }
