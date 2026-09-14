@@ -321,7 +321,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   service_mesh {
     internal_ingress_gateway_enabled = %[4]t
     external_ingress_gateway_enabled = %[5]t
-    revisions                        = ["asm-1-28"]
+    revisions                        = ["asm-1-30"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), internalIngressEnabled, externalIngressEnabled)
@@ -651,7 +651,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     internal_ingress_gateway_enabled = true
     external_ingress_gateway_enabled = true
     proxy_redirect_mechanism         = "CNIChaining"
-    revisions                        = ["asm-1-28"]
+    revisions                        = ["asm-1-30"]
   }
 
 }
@@ -736,7 +736,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     internal_ingress_gateway_enabled = true
     external_ingress_gateway_enabled = true
     proxy_redirect_mechanism         = "CNIChaining"
-    revisions                        = ["asm-1-28"]
+    revisions                        = ["asm-1-30"]
   }
 
   depends_on = [
