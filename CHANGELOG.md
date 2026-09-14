@@ -9,6 +9,7 @@ FEATURES:
 * **New List Resource**: `azurerm_batch_account` [GH-33252]
 
 BUG FIXES:
+* `azurerm_site_recovery_replicated_vm` - select `managed_disk` properties compared case insensitive [GH-33424]
 
 ## 5.5.0 (September 10, 2026)
 
