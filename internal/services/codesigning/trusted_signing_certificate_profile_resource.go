@@ -79,7 +79,7 @@ func (TrustedSigningCertificateProfileResource) Arguments() map[string]*pluginsd
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.IsUUID,
 		},
 
 		"profile_type": {
