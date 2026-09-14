@@ -15,7 +15,7 @@ func ExpandDataLakeGen2AceList(input []interface{}) (*accesscontrol.ACL, error) 
 	}
 	aceList := make([]accesscontrol.ACE, len(input))
 
-	for i := 0; i < len(input); i++ {
+	for i := range input {
 		v := input[i].(map[string]interface{})
 
 		isDefault := false

@@ -119,7 +119,7 @@ func randString() string {
 	charSet := "abcdefghijklmnopqrstuvwxyz"
 	strlen := 5
 	result := make([]byte, strlen)
-	for i := 0; i < strlen; i++ {
+	for i := range strlen {
 		result[i] = charSet[rand.Intn(len(charSet))]
 	}
 	return string(result)
