@@ -37,21 +37,6 @@ func SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentID(input s
 	return &id, nil
 }
 
-func SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentIDInsensitively(input string) (*SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(&SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentId{})
-	parsed, err := parser.Parse(input, true)
-	if err != nil {
-		return nil, fmt.Errorf("parsing %q: %+v", input, err)
-	}
-
-	id := SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
-		return nil, err
-	}
-
-	return &id, nil
-}
-
 func (id *SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentId) FromParseResult(input resourceids.ParseResult) error {
 	var ok bool
 

@@ -132,21 +132,9 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"event_source": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(automations.EventSourceAlerts),
-								string(automations.EventSourceAssessments),
-								string(automations.EventSourceAssessmentsSnapshot),
-								string(automations.EventSourceRegulatoryComplianceAssessment),
-								string(automations.EventSourceRegulatoryComplianceAssessmentSnapshot),
-								string(automations.EventSourceSecureScoreControls),
-								string(automations.EventSourceSecureScoreControlsSnapshot),
-								string(automations.EventSourceSecureScores),
-								string(automations.EventSourceSecureScoresSnapshot),
-								string(automations.EventSourceSubAssessments),
-								string(automations.EventSourceSubAssessmentsSnapshot),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(automations.PossibleValuesForEventSource(), false),
 						},
 
 						"rule_set": {
@@ -168,29 +156,14 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 													Required: true,
 												},
 												"operator": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(automations.OperatorContains),
-														string(automations.OperatorEndsWith),
-														string(automations.OperatorEquals),
-														string(automations.OperatorGreaterThan),
-														string(automations.OperatorGreaterThanOrEqualTo),
-														string(automations.OperatorLesserThan),
-														string(automations.OperatorLesserThanOrEqualTo),
-														string(automations.OperatorNotEquals),
-														string(automations.OperatorStartsWith),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(automations.PossibleValuesForOperator(), false),
 												},
 												"property_type": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(automations.PropertyTypeInteger),
-														string(automations.PropertyTypeString),
-														string(automations.PropertyTypeBoolean),
-														string(automations.PropertyTypeNumber),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(automations.PossibleValuesForPropertyType(), false),
 												},
 											},
 										},
@@ -364,17 +337,13 @@ func expandSecurityCenterAutomationSources(sourcesRaw []interface{}) (*[]automat
 			for _, ruleRaw := range rulesRaw {
 				// Parse the rule fields
 				ruleMap := ruleRaw.(map[string]interface{})
-				rulePath := ruleMap["property_path"].(string)
-				ruleType := automations.PropertyType(ruleMap["property_type"].(string))
-				ruleValue := ruleMap["expected_value"].(string)
-				ruleOperator := automations.Operator(ruleMap["operator"].(string))
 
 				// Create AutomationTriggeringRule struct and push into array
 				rule := automations.AutomationTriggeringRule{
-					PropertyJPath: &rulePath,
-					PropertyType:  &ruleType,
-					ExpectedValue: &ruleValue,
-					Operator:      &ruleOperator,
+					PropertyJPath: pointer.To(ruleMap["property_path"].(string)),
+					PropertyType:  pointer.ToEnum[automations.PropertyType](ruleMap["property_type"].(string)),
+					ExpectedValue: pointer.To(ruleMap["expected_value"].(string)),
+					Operator:      pointer.ToEnum[automations.Operator](ruleMap["operator"].(string)),
 				}
 				rules = append(rules, rule)
 			}
@@ -387,9 +356,8 @@ func expandSecurityCenterAutomationSources(sourcesRaw []interface{}) (*[]automat
 		}
 
 		// Finally create AutomationSource struct holding our list of RuleSets
-		eventSource := automations.EventSource(sourceMap["event_source"].(string))
 		source := automations.AutomationSource{
-			EventSource: &eventSource,
+			EventSource: pointer.ToEnum[automations.EventSource](sourceMap["event_source"].(string)),
 			RuleSets:    &ruleSets,
 		}
 

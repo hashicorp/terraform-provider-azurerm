@@ -303,9 +303,8 @@ func expandAzureRmLoadBalancerRule(d *pluginsdk.ResourceData, lb *loadbalancers.
 		if isGateway {
 			var baps []loadbalancers.SubResource
 			for _, p := range l {
-				p := p.(string)
 				baps = append(baps, loadbalancers.SubResource{
-					Id: &p,
+					Id: pointer.To(p.(string)),
 				})
 			}
 			properties.BackendAddressPools = &baps

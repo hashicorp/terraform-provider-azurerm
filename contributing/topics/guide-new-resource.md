@@ -247,7 +247,6 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
 }
 ```
 
-
 Default to the PUT API (`CreateOrUpdateThenPoll` or similar) over PATCH (`UpdateThenPoll` or similar) whenever both are available. Terraform configuration is declarative - removing an optional field from the configuration means "unset this value" - so an Update must be able to *clear* any optional field, not just set it. A PATCH cannot do this: SDK structs generated from the OpenAPI spec use `omitempty` JSON tags, which means the explicit `null` value required to clear a field in a PATCH request can never be sent.
 
 Consider the following struct:
@@ -1061,9 +1060,9 @@ resource "azurerm_resource_group_example" "example" {
 
 The following arguments are supported:
 
-* `location` - (Required) The Azure Region where the Resource Group should exist. Changing this forces a new Resource Group to be created.
+* `location` - (Required) The Azure Region where the Resource Group should exist. Changing this forces a new resource to be created.
 
-* `name` - (Required) The Name which should be used for this Resource Group. Changing this forces a new Resource Group to be created.
+* `name` - (Required) The Name which should be used for this Resource Group. Changing this forces a new resource to be created.
 
 ---
 

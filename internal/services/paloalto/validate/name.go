@@ -41,7 +41,7 @@ func paloAltoNameValidation(input interface{}, k string) (warnings []string, err
 	}
 
 	if matched := regexp.MustCompile(`^[a-zA-Z0-9-]{1,128}$`).Match([]byte(value)); !matched {
-		// regex pulled from https://docs.microsoft.com/en-us/rest/api/resources/resourcegroups/createorupdate
+		// regex pulled from https://docs.microsoft.com/rest/api/resources/resourcegroups/createorupdate
 		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes, and must be between 1 and 128 characters in length", k))
 	}
 

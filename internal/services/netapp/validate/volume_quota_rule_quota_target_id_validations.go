@@ -9,8 +9,10 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+// lintignore:V001 // numeric ID parsing and range checks, not a plain regex match
 func ValidateUnixUserIDOrGroupID(v interface{}, k string) (warnings []string, errors []error) {
 	var value int64
 	var err error
@@ -45,17 +47,6 @@ func ValidateUnixUserIDOrGroupID(v interface{}, k string) (warnings []string, er
 	return warnings, errors
 }
 
-func ValidateWindowsSID(v interface{}, k string) (warnings []string, errors []error) {
-	value, ok := v.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("%q must be a string", k))
-		return warnings, errors
-	}
-
-	if !regexp.MustCompile(`^S-1-5-(0|18|\d{1,9})(-\d{1,10}){0,14}$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%q must be a valid Windows security identifier (SID)", k))
-		return warnings, errors
-	}
-
-	return warnings, errors
+func ValidateWindowsSID(v interface{}, k string) ([]string, []error) {
+	return validation.StringMatch(regexp.MustCompile(`^S-1-5-(0|18|\d{1,9})(-\d{1,10}){0,14}$`), "must be a valid Windows security identifier (SID)")(v, k)
 }
