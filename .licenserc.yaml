@@ -14,7 +14,7 @@ header:
       Copyright IBM Corp. 2014, 2026
       SPDX-License-Identifier: MPL-2.0
     pattern: |
-      Copyright IBM Corp\. 2014, 20(25|26)
+      Copyright IBM Corp\. 2014, 20(2[5-9]|[3-9][0-9])
       SPDX-License-Identifier: MPL-2\.0
   paths: # markdown/json/templates are deliberately excluded, matching the compliance scanner
     - '**/*.go'
