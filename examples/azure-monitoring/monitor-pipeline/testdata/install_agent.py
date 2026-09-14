@@ -9,6 +9,7 @@ import pathlib
 import shutil
 import stat
 import subprocess
+import tempfile
 import time
 import urllib.request
 
@@ -56,7 +57,7 @@ def get_helm_registry():
         return json.load(response)["repositoryPath"]
 
 
-def get_chart_path(registry_path, helm_client):
+def get_chart_path(registry_path, export_path, helm_client):
     os.environ["HELM_EXPERIMENTAL_OCI"] = "1"
     for attempt in range(5):
         result = subprocess.run([helm_client, "chart", "pull", registry_path], capture_output=True, text=True)
@@ -66,8 +67,6 @@ def get_chart_path(registry_path, helm_client):
             raise RuntimeError(f"Unable to pull {CHART_NAME} Helm chart: {result.stderr}")
         time.sleep(3)
 
-    export_path = pathlib.Path.home() / ".azure" / "AzureArcCharts"
-    shutil.rmtree(export_path, ignore_errors=True)
     subprocess.run(
         [helm_client, "chart", "export", registry_path, "--destination", str(export_path)],
         check=True,
@@ -88,53 +87,54 @@ def install_agent():
     args = parser.parse_args()
 
     helm_client = install_helm_client()
-    chart_path = get_chart_path(get_helm_registry(), helm_client)
-    subprocess.run(
-        [
-            helm_client,
-            "upgrade",
-            "--install",
-            "azure-arc",
-            chart_path,
-            "--kubeconfig",
-            args.kubeConfig,
-            "--set",
-            f"global.subscriptionId={args.subscriptionId}",
-            "--set",
-            "global.kubernetesDistro=aks",
-            "--set",
-            "global.kubernetesInfra=azure",
-            "--set",
-            f"global.resourceGroupName={args.resourceGroupName}",
-            "--set",
-            f"global.resourceName={args.clusterName}",
-            "--set",
-            f"global.location={args.location}",
-            "--set",
-            f"global.tenantId={args.tenantId}",
-            "--set",
-            f"global.onboardingPrivateKey={os.environ[args.privatePemEnvironmentVariable]}",
-            "--set",
-            "systemDefaultValues.spnOnboarding=false",
-            "--set",
-            "global.azureEnvironment=AZUREPUBLICCLOUD",
-            "--set",
-            "systemDefaultValues.clusterconnect-agent.enabled=true",
-            "--set",
-            "systemDefaultValues.customLocations.enabled=true",
-            "--set",
-            f"systemDefaultValues.customLocations.oid={args.customLocationsOid}",
-            "--namespace",
-            "azure-arc-release",
-            "--create-namespace",
-            "--output",
-            "json",
-            "--wait",
-            "--timeout",
-            "1800s",
-        ],
-        check=True,
-    )
+    with tempfile.TemporaryDirectory(prefix="AzureArcCharts-") as export_path:
+        chart_path = get_chart_path(get_helm_registry(), export_path, helm_client)
+        subprocess.run(
+            [
+                helm_client,
+                "upgrade",
+                "--install",
+                "azure-arc",
+                chart_path,
+                "--kubeconfig",
+                args.kubeConfig,
+                "--set",
+                f"global.subscriptionId={args.subscriptionId}",
+                "--set",
+                "global.kubernetesDistro=aks",
+                "--set",
+                "global.kubernetesInfra=azure",
+                "--set",
+                f"global.resourceGroupName={args.resourceGroupName}",
+                "--set",
+                f"global.resourceName={args.clusterName}",
+                "--set",
+                f"global.location={args.location}",
+                "--set",
+                f"global.tenantId={args.tenantId}",
+                "--set",
+                f"global.onboardingPrivateKey={os.environ[args.privatePemEnvironmentVariable]}",
+                "--set",
+                "systemDefaultValues.spnOnboarding=false",
+                "--set",
+                "global.azureEnvironment=AZUREPUBLICCLOUD",
+                "--set",
+                "systemDefaultValues.clusterconnect-agent.enabled=true",
+                "--set",
+                "systemDefaultValues.customLocations.enabled=true",
+                "--set",
+                f"systemDefaultValues.customLocations.oid={args.customLocationsOid}",
+                "--namespace",
+                "azure-arc-release",
+                "--create-namespace",
+                "--output",
+                "json",
+                "--wait",
+                "--timeout",
+                "1800s",
+            ],
+            check=True,
+        )
 
 
 if __name__ == "__main__":

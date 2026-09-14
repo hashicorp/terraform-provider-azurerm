@@ -331,7 +331,7 @@ A `batch_processor` block supports the following:
 
 * `batch_size` - (Optional) The size of the batch. Possible values range between `10` and `100000`. Defaults to `8192`.
 
-* `timeout_in_milliseconds` - (Optional) The batch timeout, in milliseconds. Possible values range between `10` and `300000`. Defaults to `300000`.
+* `timeout_in_milliseconds` - (Optional) The batch timeout, in milliseconds. Possible values range between `10` and `300000`. Defaults to `200`.
 
 ---
 

@@ -29,7 +29,7 @@ type MonitorPipelineResource struct{}
 
 const (
 	defaultPipelineBatchSize             = 8192
-	defaultPipelineTimeoutInMilliseconds = 300000
+	defaultPipelineTimeoutInMilliseconds = 200
 )
 
 var (
