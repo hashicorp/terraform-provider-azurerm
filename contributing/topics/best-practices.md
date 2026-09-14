@@ -23,7 +23,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 The update method should be checking if the updatable fields (in this example, only tags) - have changes (using `d.HasChanges` - which will flag updated values in the config if they're not ignored via `ignore_changes`).
 
-### Updates should default to the PUT API
+### Updates should default to the PUT method
 
 Depending on the API there can be two ways to perform an Update - a PUT (a full update requiring the complete payload to be sent, generally called `CreateOrUpdate` in the SDK) - and a PATCH (a partial/delta update where only the fields being changed are sent, generally called `Update` in the SDK).
 
