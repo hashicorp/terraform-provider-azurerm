@@ -191,11 +191,9 @@ func (r ArcKubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			autoUpgradeMinorVersion := model.Version == ""
-
 			properties := &extensions.Extension{
 				Properties: &extensions.ExtensionProperties{
-					AutoUpgradeMinorVersion:        &autoUpgradeMinorVersion,
+					AutoUpgradeMinorVersion:        pointer.To(model.Version == ""),
 					ConfigurationProtectedSettings: &model.ConfigurationProtectedSettings,
 					ConfigurationSettings:          &model.ConfigurationSettings,
 				},

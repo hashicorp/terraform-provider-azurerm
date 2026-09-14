@@ -167,9 +167,8 @@ func resourceSynapseFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("reading Synapse Firewall Rule %q (Workspace %q / Resource Group %q): %+v", id.Name, id.WorkspaceName, id.ResourceGroup, err)
 	}
 
-	workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID()
 	d.Set("name", id.Name)
-	d.Set("synapse_workspace_id", workspaceId)
+	d.Set("synapse_workspace_id", workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
 
 	if props := resp.IPFirewallRuleProperties; props != nil {
 		d.Set("start_ip_address", props.StartIPAddress)

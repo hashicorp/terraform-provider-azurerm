@@ -32,9 +32,11 @@ jobs:
         id: env_vars
         if: steps.get_artifact.outcome == 'success'
         run: |
-          echo "reviewer=$(cat artifact/reviewer.txt)" >>${GITHUB_OUTPUT}
-          echo "reviewState=$(cat artifact/reviewstate.txt)" >>${GITHUB_OUTPUT}
-          echo "prNumber=$(cat artifact/prnumber.txt)" >>${GITHUB_OUTPUT}
+          {
+            echo "reviewer=$(cat artifact/reviewer.txt)"
+            echo "reviewState=$(cat artifact/reviewstate.txt)"
+            echo "prNumber=$(cat artifact/prnumber.txt)"
+          } >> "${GITHUB_OUTPUT}"
 
       - name: Assign the reviewer as assignee when changes are requested
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9

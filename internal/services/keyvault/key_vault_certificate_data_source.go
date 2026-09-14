@@ -303,8 +303,7 @@ func dataSourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface
 
 	d.Set("name", id.Name)
 
-	certificatePolicy := flattenKeyVaultCertificatePolicyForDataSource(cert.Policy)
-	if err := d.Set("certificate_policy", certificatePolicy); err != nil {
+	if err := d.Set("certificate_policy", flattenKeyVaultCertificatePolicyForDataSource(cert.Policy)); err != nil {
 		return fmt.Errorf("setting Key Vault Certificate Policy: %+v", err)
 	}
 

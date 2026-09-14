@@ -283,7 +283,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
 			}
 
-			// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
+			// See: https://docs.microsoft.com/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
 			if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
 				if err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
 					Sku: &databases.Sku{
@@ -886,7 +886,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 					return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
 				}
 
-				// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
+				// See: https://docs.microsoft.com/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
 				if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
 					if err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
 						Sku: &databases.Sku{
@@ -1188,8 +1188,6 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 		d.Set("name", id.DatabaseName)
 
 		if props := model.Properties; props != nil {
-			minCapacity := pointer.From(props.MinCapacity)
-
 			requestedBackupStorageRedundancy := ""
 			if props.RequestedBackupStorageRedundancy != nil {
 				requestedBackupStorageRedundancy = string(*props.RequestedBackupStorageRedundancy)
@@ -1255,7 +1253,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 			}
 
 			d.Set("elastic_pool_id", elasticPoolId)
-			d.Set("min_capacity", minCapacity)
+			d.Set("min_capacity", pointer.From(props.MinCapacity))
 			d.Set("sku_name", skuName)
 			d.Set("maintenance_configuration_name", configurationName)
 			d.Set("ledger_enabled", ledgerEnabled)

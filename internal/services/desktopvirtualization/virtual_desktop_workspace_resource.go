@@ -26,12 +26,12 @@ import (
 
 var workspaceResourceType = "azurerm_virtual_desktop_workspace"
 
-func resourceArmDesktopVirtualizationWorkspace() *pluginsdk.Resource {
+func resourceVirtualDesktopWorkspace() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmDesktopVirtualizationWorkspaceCreateUpdate,
-		Read:   resourceArmDesktopVirtualizationWorkspaceRead,
-		Update: resourceArmDesktopVirtualizationWorkspaceCreateUpdate,
-		Delete: resourceArmDesktopVirtualizationWorkspaceDelete,
+		Create: resourceVirtualDesktopWorkspaceCreateUpdate,
+		Read:   resourceVirtualDesktopWorkspaceRead,
+		Update: resourceVirtualDesktopWorkspaceCreateUpdate,
+		Delete: resourceVirtualDesktopWorkspaceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -85,7 +85,7 @@ func resourceArmDesktopVirtualizationWorkspace() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmDesktopVirtualizationWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -133,10 +133,10 @@ func resourceArmDesktopVirtualizationWorkspaceCreateUpdate(d *pluginsdk.Resource
 
 	d.SetId(id.ID())
 
-	return resourceArmDesktopVirtualizationWorkspaceRead(d, meta)
+	return resourceVirtualDesktopWorkspaceRead(d, meta)
 }
 
-func resourceArmDesktopVirtualizationWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -181,7 +181,7 @@ func resourceArmDesktopVirtualizationWorkspaceRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceArmDesktopVirtualizationWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
 
 	id, err := workspace.ParseWorkspaceID(d.Id())

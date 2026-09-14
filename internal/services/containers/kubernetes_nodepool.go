@@ -5,6 +5,7 @@ package containers
 
 import (
 	"fmt"
+	"maps"
 	"regexp"
 	"strconv"
 	"strings"
@@ -690,8 +691,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 	}
 
 	if osDisktypeNodePool := defaultCluster.OsDiskType; osDisktypeNodePool != nil {
-		osDisktype := agentpools.OSDiskType(string(*osDisktypeNodePool))
-		agentpool.Properties.OsDiskType = &osDisktype
+		agentpool.Properties.OsDiskType = pointer.ToEnum[agentpools.OSDiskType](string(*osDisktypeNodePool))
 	}
 	if kubeletConfigNodePool := defaultCluster.KubeletConfig; kubeletConfigNodePool != nil {
 		kubeletConfig := agentpools.KubeletConfig{
@@ -882,8 +882,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.PodSubnetID = pointer.To(podSubnetID)
 	}
 
-	scaleDownModeDelete := managedclusters.ScaleDownModeDelete
-	profile.ScaleDownMode = &scaleDownModeDelete
+	profile.ScaleDownMode = pointer.To(managedclusters.ScaleDownModeDelete)
 	if scaleDownMode := raw["scale_down_mode"].(string); scaleDownMode != "" {
 		profile.ScaleDownMode = pointer.ToEnum[managedclusters.ScaleDownMode](scaleDownMode)
 	}
@@ -1227,9 +1226,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	var nodeLabels map[string]string
 	if agentPool.NodeLabels != nil {
 		nodeLabels = make(map[string]string)
-		for k, v := range *agentPool.NodeLabels {
-			nodeLabels[k] = v
-		}
+		maps.Copy(nodeLabels, *agentPool.NodeLabels)
 	}
 
 	nodePublicIPPrefixID := pointer.From(agentPool.NodePublicIPPrefixID)

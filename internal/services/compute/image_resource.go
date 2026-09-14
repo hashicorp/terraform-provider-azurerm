@@ -370,8 +370,7 @@ func expandImageOSDisk(input []interface{}) *images.ImageOSDisk {
 			}
 		}
 
-		blobURI := config["blob_uri"].(string)
-		out.BlobUri = &blobURI
+		out.BlobUri = pointer.To(config["blob_uri"].(string))
 
 		if v := config["caching"].(string); v != "" {
 			out.Caching = pointer.ToEnum[images.CachingTypes](v)
