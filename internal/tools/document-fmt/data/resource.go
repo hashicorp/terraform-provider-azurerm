@@ -6,6 +6,10 @@ package data
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/util"
+	"github.com/spf13/afero"
 )
 
 type ResourceType string
@@ -37,6 +41,31 @@ func (r ResourceType) String() string {
 	return string(r)
 }
 
-func expectedResourceCodePath(pattern string, name string, service Service, resourceType ResourceType) string {
-	return filepath.FromSlash(fmt.Sprintf(pattern, service.Path, name, ResourceTypeToFileSuffix[resourceType]))
+func expectedResourceCodePath(fs afero.Fs, pattern string, name string, service Service, resourceType ResourceType) string {
+	defaultPath := filepath.FromSlash(fmt.Sprintf(pattern, service.Path, name, ResourceTypeToFileSuffix[resourceType]))
+	if fs == nil || util.FileExists(fs, defaultPath) {
+		return defaultPath
+	}
+
+	suffix := ResourceTypeToFileSuffix[resourceType]
+	if strings.Contains(pattern, "_gen.go") {
+		suffix += "_gen"
+	}
+
+	cleanServiceName := strings.ToLower(strings.ReplaceAll(service.Name, " ", ""))
+	shortNameWithoutService := strings.TrimPrefix(name, cleanServiceName+"_")
+	candidates := []string{
+		filepath.Join(service.Path, shortNameWithoutService, fmt.Sprintf("%s.go", suffix)),
+		filepath.Join(service.Path, shortNameWithoutService, fmt.Sprintf("%s_%s.go", shortNameWithoutService, suffix)),
+		filepath.Join(service.Path, name, fmt.Sprintf("%s.go", suffix)),
+		filepath.Join(service.Path, name, fmt.Sprintf("%s_%s.go", name, suffix)),
+	}
+
+	for _, candidate := range candidates {
+		if util.FileExists(fs, candidate) {
+			return candidate
+		}
+	}
+
+	return defaultPath
 }

@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package advisor_test
+package suppression_test
 
 import (
 	"context"
@@ -18,7 +18,7 @@ import (
 
 type AdvisorSuppressionResource struct{}
 
-func TestAccAnalysisServicesServer_basic(t *testing.T) {
+func TestAccAdvisorSuppression_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_advisor_suppression", "test")
 	r := AdvisorSuppressionResource{}
 
