@@ -59,6 +59,12 @@ if d.HasChanges("tags") {
 
 if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
   return fmt.Errorf("updating %s: %+v", id, err)
+if d.HasChanges("tags") {
+existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+}
+
+if err := client.CreateOrUpdateThenPoll(ctx, id, *existing.Model); err != nil {
+  return fmt.Errorf("updating %s: %+v", id, err)
 }
 ```
 
