@@ -63,13 +63,10 @@ func resourceStorageSync() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"incoming_traffic_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(storagesyncservicesresource.IncomingTrafficPolicyAllowAllTraffic),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(storagesyncservicesresource.IncomingTrafficPolicyAllowAllTraffic),
-					string(storagesyncservicesresource.IncomingTrafficPolicyAllowVirtualNetworksOnly),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(storagesyncservicesresource.IncomingTrafficPolicyAllowAllTraffic),
+				ValidateFunc: validation.StringInSlice(storagesyncservicesresource.PossibleValuesForIncomingTrafficPolicy(), false),
 			},
 
 			"registered_servers": {
@@ -108,7 +105,7 @@ func resourceStorageSyncCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	parameters := storagesyncservicesresource.StorageSyncServiceCreateParameters{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &storagesyncservicesresource.StorageSyncServiceCreateParametersProperties{
-			IncomingTrafficPolicy: pointer.To(storagesyncservicesresource.IncomingTrafficPolicy(d.Get("incoming_traffic_policy").(string))),
+			IncomingTrafficPolicy: pointer.ToEnum[storagesyncservicesresource.IncomingTrafficPolicy](d.Get("incoming_traffic_policy").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -207,7 +204,7 @@ func resourceStorageSyncUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if d.HasChange("incoming_traffic_policy") {
 		update.Properties = &storagesyncservicesresource.StorageSyncServiceUpdateProperties{
-			IncomingTrafficPolicy: pointer.To(storagesyncservicesresource.IncomingTrafficPolicy(d.Get("incoming_traffic_policy").(string))),
+			IncomingTrafficPolicy: pointer.ToEnum[storagesyncservicesresource.IncomingTrafficPolicy](d.Get("incoming_traffic_policy").(string)),
 		}
 	}
 

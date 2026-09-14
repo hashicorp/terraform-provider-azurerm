@@ -270,7 +270,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherPrioritySpotDeallocate(t *testing
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherPrioritySpot(data, "Deallocate"),
+			Config: r.otherPrioritySpot(data, "Deallocate", 1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -285,7 +285,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherPrioritySpotDelete(t *testing.T) 
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherPrioritySpot(data, "Delete"),
+			Config: r.otherPrioritySpot(data, "Delete", 0),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1515,7 +1515,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data))
 }
 
-func (r WindowsVirtualMachineScaleSetResource) otherPrioritySpot(data acceptance.TestData, evictionPolicy string) string {
+func (r WindowsVirtualMachineScaleSetResource) otherPrioritySpot(data acceptance.TestData, evictionPolicy string, instances int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1524,7 +1524,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Standard_F2"
-  instances           = 1
+  instances           = %d
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
   eviction_policy     = %q
@@ -1553,7 +1553,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data), evictionPolicy)
+`, r.template(data), instances, evictionPolicy)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherPrioritySpotMaxBidPrice(data acceptance.TestData, maxBid string) string {
@@ -2595,6 +2595,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   termination_notification {
     enabled = %t
   }
+
 }
 `, r.template(data), enabled)
 }
@@ -3424,13 +3425,24 @@ resource "azurerm_lb_probe" "test2" {
 
 resource "azurerm_lb_rule" "test" {
   loadbalancer_id                = azurerm_lb.test.id
-  probe_id                       = azurerm_lb_probe.test2.id
+  probe_id                       = azurerm_lb_probe.test.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
   frontend_ip_configuration_name = local.frontend_ip_configuration_name
   name                           = "LBRule"
   protocol                       = "Tcp"
   frontend_port                  = 22
   backend_port                   = 22
+}
+
+resource "azurerm_lb_rule" "test2" {
+  loadbalancer_id                = azurerm_lb.test.id
+  probe_id                       = azurerm_lb_probe.test2.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
+  frontend_ip_configuration_name = local.frontend_ip_configuration_name
+  name                           = "LBRule2"
+  protocol                       = "Tcp"
+  frontend_port                  = 23
+  backend_port                   = 23
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
@@ -3469,7 +3481,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 
-  depends_on = [azurerm_lb_rule.test]
+  depends_on = [azurerm_lb_rule.test2]
 }
 `, r.template(data), data.RandomInteger)
 }

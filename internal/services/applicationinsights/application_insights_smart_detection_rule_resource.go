@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	smartdetection "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentproactivedetectionapis"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApplicationInsightsSmartDetectionRule() *pluginsdk.Resource {
@@ -115,7 +115,7 @@ func resourceApplicationInsightsSmartDetectionRuleUpdate(d *pluginsdk.ResourceDa
 		Name:                           &name,
 		Enabled:                        pointer.To(d.Get("enabled").(bool)),
 		SendEmailsToSubscriptionOwners: pointer.To(d.Get("send_emails_to_subscription_owners").(bool)),
-		CustomEmails:                   utils.ExpandStringSlice(d.Get("additional_email_recipients").(*pluginsdk.Set).List()),
+		CustomEmails:                   helpers.ExpandStringSlice(d.Get("additional_email_recipients").(*pluginsdk.Set).List()),
 	}
 
 	if _, err = client.ProactiveDetectionConfigurationsUpdate(ctx, id, smartDetectionRuleProperties); err != nil {
@@ -153,7 +153,7 @@ func resourceApplicationInsightsSmartDetectionRuleRead(d *pluginsdk.ResourceData
 		d.Set("name", model.Name)
 		d.Set("enabled", model.Enabled)
 		d.Set("send_emails_to_subscription_owners", model.SendEmailsToSubscriptionOwners)
-		d.Set("additional_email_recipients", utils.FlattenStringSlice(model.CustomEmails))
+		d.Set("additional_email_recipients", helpers.FlattenStringSlice(model.CustomEmails))
 	}
 	return nil
 }
@@ -187,7 +187,7 @@ func resourceApplicationInsightsSmartDetectionRuleDelete(d *pluginsdk.ResourceDa
 		Name:                           pointer.To(id.ConfigurationId),
 		Enabled:                        resp.Model.RuleDefinitions.IsEnabledByDefault,
 		SendEmailsToSubscriptionOwners: resp.Model.RuleDefinitions.SupportsEmailNotifications,
-		CustomEmails:                   utils.ExpandStringSlice([]interface{}{}),
+		CustomEmails:                   helpers.ExpandStringSlice([]interface{}{}),
 	}
 
 	// Application Insights defaults all the Smart Detection Rules so if a user wants to delete a rule, we'll update it back to it's default values.

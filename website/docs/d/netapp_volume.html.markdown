@@ -73,6 +73,8 @@ The following attributes are exported:
 
 * `large_volume_enabled` - Indicates if the volume is a large volume.
 
+* `breakthrough_mode_enabled` - Indicates if the large volume runs in Breakthrough Mode, placing it on dedicated capacity that provides higher throughput and greater capacity.
+
 * `accept_grow_capacity_pool_for_short_term_clone_split` - The accept grow capacity pool for short term clone split property.
 
 ---
@@ -103,7 +105,7 @@ A `data_protection_advanced_ransomware` block exports the following:
 
 * `protection_enabled` - Whether the Advanced Ransomware Protection feature is enabled.
 
-~> **Note:** For performance considerations and supported regions, please refer to the [Azure documentation](https://learn.microsoft.com/en-us/azure/azure-netapp-files/ransomware-configure).
+~> **Note:** For performance considerations and supported regions, please refer to the [Azure documentation](https://learn.microsoft.com/azure/azure-netapp-files/ransomware-configure).
 
 ---
 
@@ -123,4 +125,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.NetApp` - 2026-01-01
+* `Microsoft.NetApp` - 2026-05-01

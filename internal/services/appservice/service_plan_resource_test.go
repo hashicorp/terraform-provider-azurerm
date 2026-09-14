@@ -231,7 +231,7 @@ func TestAccServicePlan_memoryOptimized(t *testing.T) {
 }
 
 // ASE tests given longer prefix to allow them to be more easily filtered out due to exceptionally long running time
-func TestAccServicePlanIsolated_appServiceEnvironmentV3(t *testing.T) {
+func TestAccServicePlan_appServiceEnvironmentV3(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
 	r := ServicePlanResource{}
 
@@ -246,7 +246,7 @@ func TestAccServicePlanIsolated_appServiceEnvironmentV3(t *testing.T) {
 	})
 }
 
-func TestAccServicePlanIsolated_appServiceEnvironmentV3memoryIntensive(t *testing.T) {
+func TestAccServicePlan_appServiceEnvironmentV3memoryIntensive(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
 	r := ServicePlanResource{}
 

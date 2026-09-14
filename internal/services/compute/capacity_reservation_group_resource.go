@@ -15,15 +15,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity
+
+const azureCapacityReservationGroupResourceName = "azurerm_capacity_reservation_group"
 
 func resourceCapacityReservationGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -126,12 +128,16 @@ func resourceCapacityReservationGroupRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourceCapacityReservationGroupFlatten(d, id, resp.Model)
+}
+
+func resourceCapacityReservationGroupFlatten(d *pluginsdk.ResourceData, id *capacityreservationgroups.CapacityReservationGroupId, model *capacityreservationgroups.CapacityReservationGroup) error {
 	d.Set("name", id.CapacityReservationGroupName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
-		d.Set("zones", utils.FlattenStringSlice(model.Zones))
+		d.Set("zones", helpers.FlattenStringSlice(model.Zones))
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return fmt.Errorf("setting `tags`: %+v", err)
 		}

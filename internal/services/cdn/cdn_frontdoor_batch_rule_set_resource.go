@@ -417,10 +417,14 @@ func (CdnFrontDoorBatchRuleSetResource) Arguments() map[string]*pluginsdk.Schema
 											Optional: true,
 											MaxItems: 25,
 											Elem: &pluginsdk.Schema{
+												// Azure accepts `/` as the root path, while non-root values must omit the leading slash.
 												Type: pluginsdk.TypeString,
 												ValidateFunc: validation.All(
 													validation.StringIsNotEmpty,
-													validation.StringDoesNotStartWithOneOf("/"),
+													validation.Any(
+														validation.StringDoesNotStartWithOneOf("/"),
+														validation.StringInSlice([]string{"/"}, false),
+													),
 												),
 											},
 										},

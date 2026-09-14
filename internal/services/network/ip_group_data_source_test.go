@@ -29,7 +29,7 @@ func TestAccDataSourceIPGroup_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceIpGroup_complete(t *testing.T) {
+func TestAccDataSourceIPGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_ip_group", "test")
 	r := IPGroupDataSource{}
 

@@ -20,7 +20,7 @@ import (
 )
 
 func EventHubNamespaceDataSource() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: EventHubNamespaceDataSourceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -106,8 +106,6 @@ func EventHubNamespaceDataSource() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
-
-	return resource
 }
 
 func EventHubNamespaceDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {

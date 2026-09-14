@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -28,7 +27,7 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceLocalNetworkGateway() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create:   resourceLocalNetworkGatewayCreate,
 		Read:     resourceLocalNetworkGatewayRead,
 		Update:   resourceLocalNetworkGatewayUpdate,
@@ -105,12 +104,6 @@ func resourceLocalNetworkGateway() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["address_space"].Type = pluginsdk.TypeList
-	}
-
-	return r
 }
 
 func resourceLocalNetworkGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -203,25 +196,6 @@ func resourceLocalNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interface
 	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 
 	if d.HasChange("address_space") {
-		if !features.FivePointOh() {
-			// There is a bug in the provider where the address space ordering doesn't change as expected.
-			// In the UI we have to remove the current list of addresses in the address space and re-add them in the new order and we'll copy that here.
-			// since the local network gateway cannot have both empty address prefix and empty BGP setting(confirmed with service team, it is by design),
-			// replace the empty address prefix with the first address prefix in the "address_space" list to avoid error.
-			if v := d.Get("address_space").([]interface{}); len(v) > 0 {
-				payload.Properties.LocalNetworkAddressSpace = &localnetworkgateways.AddressSpace{
-					AddressPrefixes: &[]string{v[0].(string)},
-				}
-			}
-
-			if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
-				return fmt.Errorf("removing %s: %+v", id, err)
-			}
-			if err := poller.PollUntilDone(ctx); err != nil {
-				return err
-			}
-		}
-
 		payload.Properties.LocalNetworkAddressSpace = expandLocalNetworkGatewayAddressSpaces(d)
 	}
 
@@ -271,8 +245,7 @@ func resourceLocalNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface{}
 		if lnas := props.LocalNetworkAddressSpace; lnas != nil {
 			d.Set("address_space", lnas.AddressPrefixes)
 		}
-		flattenedSettings := flattenLocalNetworkGatewayBGPSettings(props.BgpSettings)
-		if err := d.Set("bgp_settings", flattenedSettings); err != nil {
+		if err := d.Set("bgp_settings", flattenLocalNetworkGatewayBGPSettings(props.BgpSettings)); err != nil {
 			return err
 		}
 
@@ -331,14 +304,8 @@ func expandLocalNetworkGatewayBGPSettings(d *pluginsdk.ResourceData) *localnetwo
 func expandLocalNetworkGatewayAddressSpaces(d *pluginsdk.ResourceData) *localnetworkgateways.AddressSpace {
 	prefixes := make([]string, 0)
 
-	if !features.FivePointOh() {
-		for _, pref := range d.Get("address_space").([]interface{}) {
-			prefixes = append(prefixes, pref.(string))
-		}
-	} else {
-		for _, pref := range d.Get("address_space").(*pluginsdk.Set).List() {
-			prefixes = append(prefixes, pref.(string))
-		}
+	for _, pref := range d.Get("address_space").(*pluginsdk.Set).List() {
+		prefixes = append(prefixes, pref.(string))
 	}
 
 	return &localnetworkgateways.AddressSpace{

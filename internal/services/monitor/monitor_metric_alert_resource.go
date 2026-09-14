@@ -8,7 +8,8 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
+	"maps"
+	"net/http"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
@@ -20,14 +21,15 @@ import (
 	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity
@@ -81,14 +83,14 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 			"target_resource_type": {
 				Type:        pluginsdk.TypeString,
 				Optional:    true,
-				Computed:    true,
+				Computed:    true, // azignore:AZS007 - pre-existing violation
 				Description: `The resource type (e.g. Microsoft.Compute/virtualMachines) of the target pluginsdk. Required when using subscription, resource group scope or multiple scopes.`,
 			},
 
 			"target_resource_location": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				StateFunc:        location.StateFunc,
 				DiffSuppressFunc: location.DiffSuppressFunc,
 				Description:      `The location of the target pluginsdk. Required when using subscription, resource group scope or multiple scopes.`,
@@ -154,15 +156,9 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 							},
 						},
 						"operator": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(metricalerts.OperatorEquals),
-								string(metricalerts.OperatorGreaterThan),
-								string(metricalerts.OperatorGreaterThanOrEqual),
-								string(metricalerts.OperatorLessThan),
-								string(metricalerts.OperatorLessThanOrEqual),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(metricalerts.PossibleValuesForOperator(), false),
 						},
 						"threshold": {
 							Type:     pluginsdk.TypeFloat,
@@ -239,22 +235,14 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 							},
 						},
 						"operator": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(metricalerts.DynamicThresholdOperatorLessThan),
-								string(metricalerts.DynamicThresholdOperatorGreaterThan),
-								string(metricalerts.DynamicThresholdOperatorGreaterOrLessThan),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(metricalerts.PossibleValuesForDynamicThresholdOperator(), false),
 						},
 						"alert_sensitivity": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(metricalerts.DynamicThresholdSensitivityLow),
-								string(metricalerts.DynamicThresholdSensitivityMedium),
-								string(metricalerts.DynamicThresholdSensitivityHigh),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(metricalerts.PossibleValuesForDynamicThresholdSensitivity(), false),
 						},
 
 						"evaluation_total_count": {
@@ -462,7 +450,7 @@ func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			TargetResourceType:   pointer.To(targetResourceType),
 			TargetResourceRegion: pointer.To(targetResourceLocation),
 		},
-		Tags: utils.ExpandPtrMapStringString(t),
+		Tags: helpers.ExpandPtrMapStringString(t),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -472,21 +460,15 @@ func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	// Monitor Metric Alert API would return 404 while creating multiple Monitor Metric Alerts and get each resource immediately once it's created successfully in parallel.
 	// Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/10973
 	log.Printf("[DEBUG] Waiting for %s to be created", id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"404"},
-		Target:                    []string{"200"},
-		Refresh:                   monitorMetricAlertStateRefreshFunc(ctx, client, id),
-		MinTimeout:                15 * time.Second,
-		ContinuousTargetOccurence: 10,
-	}
-
-	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
-	} else {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(10, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, id)
+		return resp.HttpResponse, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:              15 * time.Second,
+		TargetStatusCode:      pointer.To(http.StatusOK),
+		RetryErrorStatusCodes: []int{http.StatusNotFound},
+	})
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for Monitor %s to finish provisioning: %s", id, err)
 	}
 
@@ -576,7 +558,7 @@ func resourceMonitorMetricAlertFlatten(d *pluginsdk.ResourceData, id *metricaler
 		d.Set("target_resource_type", props.TargetResourceType)
 		d.Set("target_resource_location", props.TargetResourceRegion)
 
-		if err := d.Set("tags", utils.FlattenPtrMapStringString(model.Tags)); err != nil {
+		if err := d.Set("tags", helpers.FlattenPtrMapStringString(model.Tags)); err != nil {
 			return err
 		}
 	}
@@ -752,13 +734,13 @@ func flattenMonitorMetricAlertCriteria(input metricalerts.MetricAlertCriteria) [
 	case metricalerts.WebtestLocationAvailabilityCriteria:
 		return flattenMonitorMetricAlertWebtestLocAvailCriteria(&criteria)
 	default:
-		return nil
+		return []interface{}{}
 	}
 }
 
 func flattenMonitorMetricAlertSingleResourceMultiMetricCriteria(input *[]metricalerts.MetricCriteria) []interface{} {
 	if input == nil || len(*input) == 0 {
-		return nil
+		return []interface{}{}
 	}
 	criteria := (*input)[0]
 	metricName := criteria.MetricName
@@ -779,10 +761,7 @@ func flattenMonitorMetricAlertSingleResourceMultiMetricCriteria(input *[]metrica
 	operator := string(criteria.Operator)
 	threshold := criteria.Threshold
 
-	var skipMetricValidation bool
-	if criteria.SkipMetricValidation != nil {
-		skipMetricValidation = *criteria.SkipMetricValidation
-	}
+	skipMetricValidation := pointer.From(criteria.SkipMetricValidation)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -799,7 +778,7 @@ func flattenMonitorMetricAlertSingleResourceMultiMetricCriteria(input *[]metrica
 
 func flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(input *[]metricalerts.MultiMetricCriteria) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 	result := make([]interface{}, 0)
 
@@ -851,11 +830,7 @@ func flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(input *[]metrical
 			v["evaluation_total_count"] = int(criteria.FailingPeriods.NumberOfEvaluationPeriods)
 			v["evaluation_failure_count"] = int(criteria.FailingPeriods.MinFailingPeriodsToAlert)
 
-			ignoreDataBefore := ""
-			if criteria.IgnoreDataBefore != nil {
-				ignoreDataBefore = *criteria.IgnoreDataBefore
-			}
-			v["ignore_data_before"] = ignoreDataBefore
+			v["ignore_data_before"] = pointer.From(criteria.IgnoreDataBefore)
 		}
 
 		// Common properties
@@ -882,7 +857,7 @@ func flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(input *[]metrical
 
 func flattenMonitorMetricAlertWebtestLocAvailCriteria(input *metricalerts.WebtestLocationAvailabilityCriteria) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	return []interface{}{
@@ -908,9 +883,7 @@ func flattenMonitorMetricAlertAction(input *[]metricalerts.MetricAlertAction) (r
 
 		props := make(map[string]string)
 		if action.WebHookProperties != nil {
-			for pk, pv := range *action.WebHookProperties {
-				props[pk] = pv
-			}
+			maps.Copy(props, *action.WebHookProperties)
 		}
 		v["webhook_properties"] = props
 
@@ -929,19 +902,4 @@ func resourceMonitorMetricAlertActionHash(input interface{}) int {
 		}
 	}
 	return pluginsdk.HashString(buf.String())
-}
-
-func monitorMetricAlertStateRefreshFunc(ctx context.Context, client *metricalerts.MetricAlertsClient, id metricalerts.MetricAlertId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return nil, "404", nil
-			}
-
-			return nil, "", fmt.Errorf("retrieving %s: %s", id, err)
-		}
-
-		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil
-	}
 }

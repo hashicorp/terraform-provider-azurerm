@@ -22,7 +22,7 @@ import (
 )
 
 func dataSourceCosmosDbAccount() *pluginsdk.Resource {
-	dataSource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceCosmosDbAccountRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -250,8 +250,6 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return dataSource
 }
 
 func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
