@@ -43,6 +43,13 @@ if err != nil {
 
 if resp.Model == nil {
   return fmt.Errorf("retrieving %s: model was nil", id)
+existing, err := client.Get(ctx, id)
+if err != nil {
+return fmt.Errorf("retrieving %s: %+v", id, err)
+}
+
+if existing.Model == nil {
+return fmt.Errorf("retrieving %s: `model` was nil", id)
 }
 
 payload := *resp.Model
