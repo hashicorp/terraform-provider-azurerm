@@ -105,11 +105,9 @@ func customDiffComputedSet(setKey string, forceNewOnRemoval bool, hashFunc schem
 					oldPropStr = fmt.Sprintf("%v", oldVal)
 				}
 
-				var propsAreDifferent bool
+				propsAreDifferent := newPropStr != oldPropStr
 				if slices.Contains(caseInsensitiveProps, prop) {
 					propsAreDifferent = !strings.EqualFold(newPropStr, oldPropStr)
-				} else {
-					propsAreDifferent = newPropStr != oldPropStr
 				}
 
 				if propsAreDifferent {
