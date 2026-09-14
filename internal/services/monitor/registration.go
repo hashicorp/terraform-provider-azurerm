@@ -70,9 +70,9 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_monitor_aad_diagnostic_setting":      resourceMonitorAADDiagnosticSetting(),
-		"azurerm_monitor_autoscale_setting":           resourceMonitorAutoScaleSetting(),
 		"azurerm_monitor_action_group":                resourceMonitorActionGroup(),
 		"azurerm_monitor_activity_log_alert":          resourceMonitorActivityLogAlert(),
+		"azurerm_monitor_autoscale_setting":           resourceMonitorAutoScaleSetting(),
 		"azurerm_monitor_diagnostic_setting":          resourceMonitorDiagnosticSetting(),
 		"azurerm_monitor_metric_alert":                resourceMonitorMetricAlert(),
 		"azurerm_monitor_private_link_scope":          resourceMonitorPrivateLinkScope(),
@@ -101,6 +101,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
+		MonitorActionGroupListResource{},
 		MonitorActivityLogAlertListResource{},
 		MonitorMetricAlertListResource{},
 		MonitorPipelineListResource{},

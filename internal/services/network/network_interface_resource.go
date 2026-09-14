@@ -84,6 +84,7 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 						"private_ip_address": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							// Note: O+C because Azure assigns a private IP from the subnet when not specified
 							Computed: true,
 						},
 
@@ -109,13 +110,13 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 						"primary": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 						},
 
 						"gateway_load_balancer_frontend_ip_configuration_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.AsGeneratedID(loadbalancers.ParseFrontendIPConfigurationIDInsensitively),
 						},
 					},
@@ -585,9 +586,8 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]networkinte
 		privateIpAllocationMethod := data["private_ip_address_allocation"].(string)
 		privateIpAddressVersion := networkinterfaces.IPVersion(data["private_ip_address_version"].(string))
 
-		allocationMethod := networkinterfaces.IPAllocationMethod(privateIpAllocationMethod)
 		properties := networkinterfaces.NetworkInterfaceIPConfigurationPropertiesFormat{
-			PrivateIPAllocationMethod: &allocationMethod,
+			PrivateIPAllocationMethod: pointer.ToEnum[networkinterfaces.IPAllocationMethod](privateIpAllocationMethod),
 			PrivateIPAddressVersion:   &privateIpAddressVersion,
 		}
 
@@ -619,9 +619,8 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]networkinte
 			properties.GatewayLoadBalancer = &networkinterfaces.SubResource{Id: &v}
 		}
 
-		name := data["name"].(string)
 		ipConfigs = append(ipConfigs, networkinterfaces.NetworkInterfaceIPConfiguration{
-			Name:       &name,
+			Name:       pointer.To(data["name"].(string)),
 			Properties: &properties,
 		})
 	}

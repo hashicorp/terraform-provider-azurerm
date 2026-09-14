@@ -124,7 +124,8 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			"network_features": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true, // O+C - This is Optional/Computed because the service team is changing network features on the backend to upgrade everyone from Basic to Standard and there is a feature that allows customers to change network features from portal but not the API. This could cause drift that forces data loss that we want to avoid
+				// Note: O+C because the service team is changing network features on the backend to upgrade everyone from Basic to Standard and there is a feature that allows customers to change network features from portal but not the API. This could cause drift that forces data loss that we want to avoid
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(volumes.NetworkFeaturesBasic),
 					string(volumes.NetworkFeaturesStandard),
@@ -134,7 +135,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			"protocols": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 2,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
@@ -172,7 +173,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForSecurityStyle(), false),
 			},
 
@@ -187,7 +188,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			"throughput_in_mibps": {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.FloatAtLeast(1.0),
 			},
 
@@ -404,7 +405,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForEncryptionKeySource(), false),
 			},
 
@@ -412,7 +413,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: azure.ValidateResourceID,
 				RequiredWith: []string{"encryption_key_source"},
 			},
@@ -539,7 +540,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				poolNameChange := d.HasChange("pool_name")
 
 				// `service_level` and `pool_name` must be updated together or we ForceNew the resource
-				// https://learn.microsoft.com/en-us/azure/azure-netapp-files/dynamic-change-volume-service-level
+				// https://learn.microsoft.com/azure/azure-netapp-files/dynamic-change-volume-service-level
 				if serviceLevelChange && !poolNameChange {
 					return d.ForceNew("service_level")
 				}
@@ -939,10 +940,9 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		dataProtectionSnapshotPolicyRaw := d.Get("data_protection_snapshot_policy").([]interface{})
-		dataProtectionSnapshotPolicy := expandNetAppVolumeDataProtectionSnapshotPolicyPatch(dataProtectionSnapshotPolicyRaw)
 
 		update.Properties.DataProtection = &volumes.VolumePatchPropertiesDataProtection{}
-		update.Properties.DataProtection.Snapshot = dataProtectionSnapshotPolicy
+		update.Properties.DataProtection.Snapshot = expandNetAppVolumeDataProtectionSnapshotPolicyPatch(dataProtectionSnapshotPolicyRaw)
 	}
 
 	if d.HasChange("data_protection_backup_policy") {
@@ -955,22 +955,20 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		dataProtectionBackupPolicyRaw := d.Get("data_protection_backup_policy").([]interface{})
-		dataProtectionBackupPolicy := expandNetAppVolumeDataProtectionBackupPolicyPatch(dataProtectionBackupPolicyRaw)
 
 		if update.Properties.DataProtection == nil {
 			update.Properties.DataProtection = &volumes.VolumePatchPropertiesDataProtection{}
 		}
-		update.Properties.DataProtection.Backup = dataProtectionBackupPolicy
+		update.Properties.DataProtection.Backup = expandNetAppVolumeDataProtectionBackupPolicyPatch(dataProtectionBackupPolicyRaw)
 	}
 
 	if d.HasChange("data_protection_advanced_ransomware") {
 		dataProtectionARPRaw := d.Get("data_protection_advanced_ransomware").([]interface{})
-		dataProtectionARP := expandNetAppVolumeDataProtectionAdvancedRansomwareProtectionPatch(dataProtectionARPRaw)
 
 		if update.Properties.DataProtection == nil {
 			update.Properties.DataProtection = &volumes.VolumePatchPropertiesDataProtection{}
 		}
-		update.Properties.DataProtection.RansomwareProtection = dataProtectionARP
+		update.Properties.DataProtection.RansomwareProtection = expandNetAppVolumeDataProtectionAdvancedRansomwareProtectionPatch(dataProtectionARPRaw)
 	}
 
 	if d.HasChange("throughput_in_mibps") {
@@ -979,20 +977,16 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("smb_non_browsable_enabled") {
-		smbNonBrowsable := volumes.SmbNonBrowsableDisabled
-		update.Properties.SmbNonBrowsable = &smbNonBrowsable
+		update.Properties.SmbNonBrowsable = pointer.To(volumes.SmbNonBrowsableDisabled)
 		if d.Get("smb_non_browsable_enabled").(bool) {
-			smbNonBrowsable := volumes.SmbNonBrowsableEnabled
-			update.Properties.SmbNonBrowsable = &smbNonBrowsable
+			update.Properties.SmbNonBrowsable = pointer.To(volumes.SmbNonBrowsableEnabled)
 		}
 	}
 
 	if d.HasChange("smb_access_based_enumeration_enabled") {
-		smbAccessBasedEnumeration := volumes.SmbAccessBasedEnumerationDisabled
-		update.Properties.SmbAccessBasedEnumeration = &smbAccessBasedEnumeration
+		update.Properties.SmbAccessBasedEnumeration = pointer.To(volumes.SmbAccessBasedEnumerationDisabled)
 		if d.Get("smb_access_based_enumeration_enabled").(bool) {
-			smbAccessBasedEnumeration := volumes.SmbAccessBasedEnumerationEnabled
-			update.Properties.SmbAccessBasedEnumeration = &smbAccessBasedEnumeration
+			update.Properties.SmbAccessBasedEnumeration = pointer.To(volumes.SmbAccessBasedEnumerationEnabled)
 		}
 	}
 

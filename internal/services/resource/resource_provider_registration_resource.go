@@ -138,8 +138,7 @@ func (r ResourceProviderRegistrationResource) Create() sdk.ResourceFunc {
 			}
 
 			log.Printf("[DEBUG] Registering %s..", resourceId)
-			payload := providers.ProviderRegistrationRequest{}
-			if _, err := client.Register(ctx, resourceId, payload); err != nil {
+			if _, err := client.Register(ctx, resourceId, providers.ProviderRegistrationRequest{}); err != nil {
 				return fmt.Errorf("registering %s: %+v", resourceId, err)
 			}
 			metadata.SetID(resourceId)
@@ -284,7 +283,7 @@ func (r ResourceProviderRegistrationResource) Read() sdk.ResourceFunc {
 					case Registering, Registered:
 						features = append(features, ResourceProviderRegistrationFeatureModel{Name: featureName, Registered: true})
 					case Unregistering, Unregistered:
-						features = append(features, ResourceProviderRegistrationFeatureModel{Name: featureName, Registered: false})
+						features = append(features, ResourceProviderRegistrationFeatureModel{Name: featureName})
 					}
 				}
 			}

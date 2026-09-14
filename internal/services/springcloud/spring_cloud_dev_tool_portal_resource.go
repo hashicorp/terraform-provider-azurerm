@@ -78,13 +78,13 @@ func (s SpringCloudDevToolPortalResource) Arguments() map[string]*schema.Schema 
 		"application_accelerator_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"application_live_view_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"public_network_access_enabled": {

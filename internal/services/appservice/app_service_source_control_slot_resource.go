@@ -49,7 +49,7 @@ func (r SourceControlSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		"repo_url": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			RequiredWith: []string{
@@ -61,7 +61,7 @@ func (r SourceControlSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		"branch": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			RequiredWith: []string{

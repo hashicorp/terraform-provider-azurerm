@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -161,7 +162,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			"network_rule_set": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				// ConfigModeAttr ensures we can set this to an empty array for Premium -> Basic
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				MaxItems:   1,
@@ -177,7 +178,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 						"ip_rule": {
 							Type:       pluginsdk.TypeSet,
 							Optional:   true,
-							Computed:   true,
+							Computed:   true, // azignore:AZS007 - pre-existing violation
 							ConfigMode: pluginsdk.SchemaConfigModeAttr,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -285,10 +286,8 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				geoReplicationLocations = append(geoReplicationLocations, location.Normalize(v["location"].(string)))
 			}
 			location := location.Normalize(d.Get("location").(string))
-			for _, loc := range geoReplicationLocations {
-				if loc == location {
-					return errors.New("the `georeplications` list cannot contain the location where the Container Registry exists")
-				}
+			if slices.Contains(geoReplicationLocations, location) {
+				return errors.New("the `georeplications` list cannot contain the location where the Container Registry exists")
 			}
 
 			quarantinePolicyEnabled := d.Get("quarantine_policy_enabled").(bool)
@@ -797,8 +796,7 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("login_server", props.LoginServer)
 			d.Set("public_network_access_enabled", *props.PublicNetworkAccess == registries.PublicNetworkAccessEnabled)
 
-			networkRuleSet := flattenNetworkRuleSet(props.NetworkRuleSet)
-			if err := d.Set("network_rule_set", networkRuleSet); err != nil {
+			if err := d.Set("network_rule_set", flattenNetworkRuleSet(props.NetworkRuleSet)); err != nil {
 				return fmt.Errorf("setting `network_rule_set`: %+v", err)
 			}
 
