@@ -21,7 +21,7 @@ When a PR is opened, it may require a changelog entry. While most PRs deserve a 
 
 Otherwise, every PR that affects users should include a changelog entry file. This file should be located in the `.changelog` directory, and the file's name must be `<PR number>.hcl`.
 
-To ensure consistency, and to group entries in the appropriate section, this repository uses a CLI tool to validate and add entries. To view the types of changes, run `make changelog-types`. 
+To ensure consistency, and to group entries in the appropriate section, this repository uses a CLI tool to validate and add entries. To view the types of changes, run `make changelog-types`.
 
 When adding a changelog entry, the following rules should be followed:
 
