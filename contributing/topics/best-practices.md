@@ -36,31 +36,17 @@ This makes PATCH-based Updates a trap: setting and changing values works fine, b
 A PUT-based Update retrieves the existing object from the API, applies the changed fields, and sends it back, for example:
 
 ```go
-resp, err := client.Get(ctx, id)
+existing, err := client.Get(ctx, id)
 if err != nil {
   return fmt.Errorf("retrieving %s: %+v", id, err)
 }
 
-if resp.Model == nil {
-  return fmt.Errorf("retrieving %s: model was nil", id)
-existing, err := client.Get(ctx, id)
-if err != nil {
-return fmt.Errorf("retrieving %s: %+v", id, err)
-}
-
 if existing.Model == nil {
-return fmt.Errorf("retrieving %s: `model` was nil", id)
+  return fmt.Errorf("retrieving %s: `model` was nil", id)
 }
 
-payload := *resp.Model
 if d.HasChanges("tags") {
-  payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
-}
-
-if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
-  return fmt.Errorf("updating %s: %+v", id, err)
-if d.HasChanges("tags") {
-existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+  existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 }
 
 if err := client.CreateOrUpdateThenPoll(ctx, id, *existing.Model); err != nil {
@@ -73,17 +59,18 @@ Starting from the retrieved model (rather than rebuilding the payload from the c
 The PATCH API should only be used when:
 
 * the API does not offer a PUT, or
-* the PUT for that API is broken or destructive (e.g. it rejects payloads containing fields returned by the GET, or causes the resource to restart)
+* a property can only be set through the PATCH API and the PUT ignores it (e.g. `networkBypassMode` on a MongoDB cluster, which has to be applied with a separate PATCH after the cluster is created)
 
-**and** no updatable field ever needs to be cleared (or the PATCH model is able to send an explicit empty value, e.g. a non-pointer map that serialises to `{}`). The burden of proof sits on choosing PATCH, not PUT.
+**and** no updatable field ever needs to be cleared (or the PATCH model is able to send an explicit empty value, e.g. a non-pointer map that serialises to `{}`). The burden of proof sits on choosing PATCH - if PATCH is used, there must be a comment above the request explaining why the PUT could not be.
 
 A PATCH-based Update would look similar to below:
 
 ```go
+// PATCH is used here because <reason the PUT cannot be used for this API>
 payload := resources.GroupUpdate{}
 if d.HasChanges("tags") {
-  // this uses `pointer.To` since all fields are optional in a patch/delta update, so they'll only be updated if specified
-  payload.Tags = pointer.To(tags.Expand(d.Get("tags").(map[string]interface{})))
+  // all fields in a PATCH model are pointers so only the fields that are set are sent
+  payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 }
 
 if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
