@@ -9,6 +9,7 @@ tool (
 	github.com/katbyte/tctest
 	github.com/katbyte/terrafmt
 	github.com/rhysd/actionlint/cmd/actionlint
+	github.com/sreallymatt/changeloggy
 	golang.org/x/tools/cmd/goimports
 	gotest.tools/gotestsum
 	mvdan.cc/gofumpt
