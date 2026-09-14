@@ -41,11 +41,15 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `api_id` - The ID of the API assigned to this Subscription.
 
+* `api_management_name` - The name of the API Management Service.
+
 * `display_name` - The display name of this Subscription.
 
 * `primary_key` - The primary key for this subscription.
 
 * `product_id` - The ID of the Product assigned to this Subscription.
+
+* `resource_group_name` - The name of the Resource Group where the API Management Service exists.
 
 * `secondary_key` - The secondary key for this subscription.
 

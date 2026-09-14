@@ -19,6 +19,7 @@ func TestAccDataSourceApiManagementWorkspace_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("display_name").Exists(),
+				check.That(data.ResourceName).Key("description").HasValue("example workspace description"),
 			),
 		},
 	})
@@ -59,6 +60,7 @@ resource "azurerm_api_management_workspace" "test" {
   name              = "acctestws%d"
   api_management_id = azurerm_api_management.test.id
   display_name      = "acctest-workspace-%d"
+  description       = "example workspace description"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
