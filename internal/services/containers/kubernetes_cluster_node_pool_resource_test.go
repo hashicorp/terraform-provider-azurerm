@@ -4188,7 +4188,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   local_dns_profile {
     kube_dns_override {
       domain   = "example.com"
-      protocol = "TCP"
+      protocol = "ForceTCP"
     }
   }
 }
@@ -4208,7 +4208,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   local_dns_profile {
     vnet_dns_override {
       domain   = "example.com"
-      protocol = "TCP"
+      protocol = "ForceTCP"
     }
   }
 }
@@ -4266,26 +4266,26 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     state = "Enabled"
 
     kube_dns_override {
-      domain = "example1.com"
-      cache_duration_in_seconds = 60
-      forward_destination = "ClusterCoreDNS"
-      forward_policy = "Random"
-      max_concurrent = 100
-      protocol = "ForceTCP"
-      query_logging = "Log"
-      serve_stale = "Immediate"
+      domain                          = "example1.com"
+      cache_duration_in_seconds       = 60
+      forward_destination             = "ClusterCoreDNS"
+      forward_policy                  = "Random"
+      max_concurrent                  = 100
+      protocol                        = "ForceTCP"
+      query_logging                   = "Log"
+      serve_stale                     = "Immediate"
       serve_stale_duration_in_seconds = 120
     }
 
     vnet_dns_override {
-      domain = "example1.com"
-      cache_duration_in_seconds = 60
-      forward_destination = "VnetDNS"
-      forward_policy = "Random"
-      max_concurrent = 100
-      protocol = "PreferUDP"
-      query_logging = "Error"
-      serve_stale = "Verify"
+      domain                          = "example1.com"
+      cache_duration_in_seconds       = 60
+      forward_destination             = "VnetDNS"
+      forward_policy                  = "Random"
+      max_concurrent                  = 100
+      protocol                        = "PreferUDP"
+      query_logging                   = "Error"
+      serve_stale                     = "Verify"
       serve_stale_duration_in_seconds = 120
     }
   }
@@ -4308,50 +4308,50 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     state = "Disabled"
 
     kube_dns_override {
-      domain = "example1.com"
-      cache_duration_in_seconds = 120
-      forward_destination = "VnetDNS"
-      forward_policy = "RoundRobin"
-      max_concurrent = 200
-      protocol = "PreferUDP"
-      query_logging = "Error"
-      serve_stale = "Disable"
+      domain                          = "example1.com"
+      cache_duration_in_seconds       = 120
+      forward_destination             = "VnetDNS"
+      forward_policy                  = "RoundRobin"
+      max_concurrent                  = 200
+      protocol                        = "PreferUDP"
+      query_logging                   = "Error"
+      serve_stale                     = "Disable"
       serve_stale_duration_in_seconds = 60
     }
 
     kube_dns_override {
-      domain = "example2.com"
-      cache_duration_in_seconds = 60
-      forward_destination = "ClusterCoreDNS"
-      forward_policy = "Sequential"
-      max_concurrent = 150
-      protocol = "ForceTCP"
-      query_logging = "Log"
-      serve_stale = "Immediate"
+      domain                          = "example2.com"
+      cache_duration_in_seconds       = 60
+      forward_destination             = "ClusterCoreDNS"
+      forward_policy                  = "Sequential"
+      max_concurrent                  = 150
+      protocol                        = "ForceTCP"
+      query_logging                   = "Log"
+      serve_stale                     = "Immediate"
       serve_stale_duration_in_seconds = 240
     }
 
     vnet_dns_override {
-      domain = "example1.com"
-      cache_duration_in_seconds = 120
-      forward_destination = "ClusterCoreDNS"
-      forward_policy = "RoundRobin"
-      max_concurrent = 200
-      protocol = "ForceTCP"
-      query_logging = "Log"
-      serve_stale = "Disable"
+      domain                          = "example1.com"
+      cache_duration_in_seconds       = 120
+      forward_destination             = "ClusterCoreDNS"
+      forward_policy                  = "RoundRobin"
+      max_concurrent                  = 200
+      protocol                        = "ForceTCP"
+      query_logging                   = "Log"
+      serve_stale                     = "Disable"
       serve_stale_duration_in_seconds = 60
     }
 
     vnet_dns_override {
-      domain = "example2.com"
-      cache_duration_in_seconds = 60
-      forward_destination = "VnetDNS"
-      forward_policy = "Sequential"
-      max_concurrent = 150
-      protocol = "PreferUDP"
-      query_logging = "Error"
-      serve_stale = "Immediate"
+      domain                          = "example2.com"
+      cache_duration_in_seconds       = 60
+      forward_destination             = "VnetDNS"
+      forward_policy                  = "Sequential"
+      max_concurrent                  = 150
+      protocol                        = "PreferUDP"
+      query_logging                   = "Error"
+      serve_stale                     = "Immediate"
       serve_stale_duration_in_seconds = 240
     }
   }
