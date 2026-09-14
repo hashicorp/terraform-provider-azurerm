@@ -1415,7 +1415,7 @@ func (r ApplicationGatewayResource) Exists(ctx context.Context, clients *clients
 		return nil, err
 	}
 
-	resp, err := clients.Network.ApplicationGatewaysClient.Get(ctx, *id)
+	resp, err := clients.Network.ApplicationGateways.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -5492,7 +5492,7 @@ func (ApplicationGatewayResource) changeCert(certificateName string) acceptance.
 			return err
 		}
 
-		agw, err := clients.Network.ApplicationGatewaysClient.Get(ctx, *id)
+		agw, err := clients.Network.ApplicationGateways.Get(ctx, *id)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
@@ -5523,7 +5523,7 @@ func (ApplicationGatewayResource) changeCert(certificateName string) acceptance.
 
 		agw.Model.Properties.SslCertificates = &newSslCertificates
 
-		if err := clients.Network.ApplicationGatewaysClient.CreateOrUpdateThenPoll(ctx, *id, *agw.Model); err != nil {
+		if err := clients.Network.ApplicationGateways.CreateOrUpdateThenPoll(ctx, *id, *agw.Model); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 

@@ -1703,7 +1703,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 }
 
 func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
+	client := meta.(*clients.Client).Network.ApplicationGateways
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1858,7 +1858,7 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
+	client := meta.(*clients.Client).Network.ApplicationGateways
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -2091,7 +2091,7 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
+	client := meta.(*clients.Client).Network.ApplicationGateways
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -2297,7 +2297,7 @@ func resourceApplicationGatewaySetFlatten(d *pluginsdk.ResourceData, id *applica
 }
 
 func resourceApplicationGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
+	client := meta.(*clients.Client).Network.ApplicationGateways
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

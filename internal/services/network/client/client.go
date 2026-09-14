@@ -22,8 +22,8 @@ import (
 type Client struct {
 	*network_2025_01_01.Client
 
-	ApplicationGatewaysClient *applicationgateways.ApplicationGatewaysClient
-	BastionHostsClient        *bastionhosts.BastionHostsClient
+	ApplicationGateways *applicationgateways.ApplicationGatewaysClient
+	BastionHostsClient  *bastionhosts.BastionHostsClient
 	// VMSS Data Source requires the Network Interfaces and VMSSPublicIpAddresses client from `2023-09-01` for the `ListVirtualMachineScaleSetVMNetworkInterfacesComplete` method
 	NetworkInterfacesClient                    *networkinterfaces.NetworkInterfacesClient
 	NetworkSecurityPerimeterAccessRulesClient  *networksecurityperimeteraccessrules.NetworkSecurityPerimeterAccessRulesClient
@@ -34,11 +34,11 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	ApplicationGatewaysClient, err := applicationgateways.NewApplicationGatewaysClientWithBaseURI(o.Environment.ResourceManager)
+	applicationGateways, err := applicationgateways.NewApplicationGatewaysClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Application Gateways Client: %+v", err)
 	}
-	o.Configure(ApplicationGatewaysClient.Client, o.Authorizers.ResourceManager)
+	o.Configure(applicationGateways.Client, o.Authorizers.ResourceManager)
 
 	BastionHostsClient, err := bastionhosts.NewBastionHostsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -90,7 +90,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 
 	return &Client{
-		ApplicationGatewaysClient:                  ApplicationGatewaysClient,
+		ApplicationGateways:                        applicationGateways,
 		BastionHostsClient:                         BastionHostsClient,
 		NetworkInterfacesClient:                    NetworkInterfacesClient,
 		NetworkSecurityPerimeterAccessRulesClient:  NetworkSecurityPerimeterAccessRulesClient,

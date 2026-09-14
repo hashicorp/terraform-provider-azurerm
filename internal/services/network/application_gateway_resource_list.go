@@ -30,7 +30,7 @@ func (r ApplicationGatewayListResource) Metadata(_ context.Context, _ resource.M
 }
 
 func (r ApplicationGatewayListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.Network.ApplicationGatewaysClient
+	client := metadata.Client.Network.ApplicationGateways
 	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)
 	if diags.HasError() {
