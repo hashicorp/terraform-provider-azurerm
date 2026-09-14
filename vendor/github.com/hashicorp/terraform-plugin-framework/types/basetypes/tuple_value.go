@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package basetypes
@@ -129,6 +129,23 @@ func (v TupleValue) Elements() []attr.Value {
 	result = append(result, v.elements...)
 
 	return result
+}
+
+// Length returns the number of elements in the Tuple.
+//
+// If the Tuple is null or unknown, the behavior depends on the options:
+//   - If UnhandledNullAsZero or UnhandledUnknownAsZero is true, zero is returned.
+//   - If false, a panic occurs.
+func (v TupleValue) Length(opts CollectionLengthOptions) int {
+	if v.IsNull() && !opts.UnhandledNullAsZero {
+		panic("cannot call Length on a null Tuple")
+	}
+
+	if v.IsUnknown() && !opts.UnhandledUnknownAsZero {
+		panic("cannot call Length on an unknown Tuple")
+	}
+
+	return len(v.elements)
 }
 
 // ElementTypes returns the ordered list of element types for the Tuple.

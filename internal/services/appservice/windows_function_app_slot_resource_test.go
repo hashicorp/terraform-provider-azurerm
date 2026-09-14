@@ -1275,7 +1275,7 @@ func TestAccWindowsFunctionAppSlot_vNetIntegrationUpdate(t *testing.T) {
 	})
 }
 
-func TestAccWindowsFunctionAppSlotASEv3_basic(t *testing.T) {
+func TestAccWindowsFunctionAppSlot_ASEv3Basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
 	r := WindowsFunctionAppSlotResource{}
 
@@ -2911,6 +2911,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv-%[2]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -2985,6 +2986,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv-%[2]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -3251,9 +3253,9 @@ resource "azurerm_subnet" "test" {
     }
   }
 
-  service_endpoints = [
-    "Microsoft.Storage"
-  ]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
 }
 
 resource "azurerm_storage_account_network_rules" "test" {

@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	storageclient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs"
@@ -619,18 +618,14 @@ func (r StorageBlobResource) blobMatchesContent(kind blobs.BlobType, expectedCon
 		}
 
 		name := state.Attributes["name"]
-		containerName := state.Attributes["storage_container_name"]
-		accountName := state.Attributes["storage_account_name"]
 
-		if features.FivePointOh() {
-			containerIdStr := state.Attributes["storage_container_id"]
-			containerId, err := commonids.ParseStorageContainerID(containerIdStr)
-			if err != nil {
-				return fmt.Errorf("parsing container ID %q: %v", containerIdStr, err)
-			}
-			containerName = containerId.ContainerName
-			accountName = containerId.StorageAccountName
+		containerIdStr := state.Attributes["storage_container_id"]
+		containerId, err := commonids.ParseStorageContainerID(containerIdStr)
+		if err != nil {
+			return fmt.Errorf("parsing container ID %q: %v", containerIdStr, err)
 		}
+		containerName := containerId.ContainerName
+		accountName := containerId.StorageAccountName
 
 		account, err := clients.Storage.FindAccount(ctx, clients.Account.SubscriptionId, accountName)
 		if err != nil {
@@ -679,22 +674,6 @@ func (r StorageBlobResource) blobMatchesContent(kind blobs.BlobType, expectedCon
 }
 
 func (r StorageBlobResource) appendEmpty(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-		%s
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "example.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Append"
-}
-`, r.template(data, "private"))
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -711,26 +690,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) appendEmptyMetaData(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-		%s
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "example.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Append"
-
-  metadata = {
-    hello = "world"
-  }
-}
-`, r.template(data, "private"))
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -751,22 +710,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) blockEmpty(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-		%s
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "example.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-}
-`, r.template(data, "private"))
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -783,23 +726,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) blockEmptyAzureADAuth(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-  storage_use_azuread = true
-}
-
-%s
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "example.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-}
-`, r.template(data, "private"))
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -817,26 +743,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) blockEmptyMetaData(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "example.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-
-  metadata = {
-    hello = "world"
-  }
-}
-`, r.template(data, "private"))
-	}
 	return fmt.Sprintf(`
 	%s
 
@@ -857,23 +763,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) blockEmptyAccessTier(data acceptance.TestData, accessTier blobs.AccessTier) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "example.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  access_tier            = "%s"
-}
-`, r.templateBlockBlobStorage(data, "private"), string(accessTier))
-	}
 	return fmt.Sprintf(`
 	%s
 
@@ -891,25 +780,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) blockFromInlineContent(data acceptance.TestData, content string) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "rick.morty"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source_content         = <<EOT
-		%s
-		EOT
-}
-`, r.template(data, "blob"), content)
-	}
 	return fmt.Sprintf(`
 	%s
 
@@ -929,26 +799,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) blockFromInlineContentWithContentType(data acceptance.TestData, content string) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "blob.json"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  content_type           = "application/json"
-  source_content         = <<EOT
-		%s
-		EOT
-}
-`, r.template(data, "blob"), content)
-	}
 	return fmt.Sprintf(`
 	%s
 
@@ -969,39 +819,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) blockFromPublicBlob(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_storage_blob" "source" {
-  name                   = "example.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source_uri             = "http://old-releases.ubuntu.com/releases/bionic/ubuntu-18.04-desktop-amd64.iso"
-  content_type           = "application/x-iso9660-image"
-}
-
-resource "azurerm_storage_container" "second" {
-  name                  = "second"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "copied.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.second.name
-  type                   = "Block"
-  source_uri             = azurerm_storage_blob.source.id
-  content_type           = azurerm_storage_blob.source.content_type
-}
-`, r.template(data, "blob"))
-	}
 	return fmt.Sprintf(`
 	%s
 
@@ -1034,24 +851,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) blockFromPublicFile(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "example.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source_uri             = "http://old-releases.ubuntu.com/releases/bionic/ubuntu-18.04-desktop-amd64.iso"
-  content_type           = "application/x-iso9660-image"
-}
-`, r.template(data, "private"))
-	}
 	return fmt.Sprintf(`
 	%s
 
@@ -1070,33 +869,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) blockFromExistingBlob(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_storage_blob" "source" {
-  name                   = "example.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source_uri             = "http://old-releases.ubuntu.com/releases/bionic/ubuntu-18.04-desktop-amd64.iso"
-  content_type           = "application/x-iso9660-image"
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "copied.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source_uri             = azurerm_storage_blob.source.id
-  content_type           = azurerm_storage_blob.source.content_type
-}
-`, r.template(data, "private"))
-	}
 	return fmt.Sprintf(`
 	%s
 
@@ -1123,23 +895,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) blockFromLocalBlob(data acceptance.TestData, fileName string) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "example.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source                 = "%s"
-}
-`, r.template(data, "private"), fileName)
-	}
 	return fmt.Sprintf(`
 	%s
 
@@ -1157,24 +912,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) contentMd5ForLocalFile(data acceptance.TestData, fileName string) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "example.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source                 = "%s"
-  content_md5            = "${filemd5("%s")}"
-}
-`, r.template(data, "blob"), fileName, fileName)
-	}
 	return fmt.Sprintf(`
 	%s
 
@@ -1193,24 +930,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) contentType(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "example.ext"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Page"
-  size                   = 5120
-  content_type           = "image/png"
-}
-`, r.template(data, "private"))
-	}
 	return fmt.Sprintf(`
 	%s
 
@@ -1229,24 +948,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) contentTypePremium(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "example.ext"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Page"
-  size                   = 5120
-  content_type           = "image/png"
-}
-`, r.templatePremium(data))
-	}
 	return fmt.Sprintf(`
 	%s
 
@@ -1265,24 +966,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) contentTypeUpdated(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "example.ext"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Page"
-  size                   = 5120
-  content_type           = "image/gif"
-}
-`, r.template(data, "private"))
-	}
 	return fmt.Sprintf(`
 	%s
 
@@ -1301,32 +984,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) encryptionScope(data acceptance.TestData, content string) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%[1]s
-
-resource "azurerm_storage_encryption_scope" "test" {
-  name               = "acctestEScontainer%[2]d"
-  storage_account_id = azurerm_storage_account.test.id
-  source             = "Microsoft.Storage"
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "rick.morty"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  encryption_scope       = azurerm_storage_encryption_scope.test.name
-  source_content         = <<EOT
-		%[3]s
-		EOT
-}
-`, r.template(data, "blob"), data.RandomInteger, content)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1353,36 +1010,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) encryptionScopeUpdateMetadata(data acceptance.TestData, content string) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-		%[1]s
-
-resource "azurerm_storage_encryption_scope" "test" {
-  name               = "acctestEScontainer%[2]d"
-  storage_account_id = azurerm_storage_account.test.id
-  source             = "Microsoft.Storage"
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "rick.morty"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  encryption_scope       = azurerm_storage_encryption_scope.test.name
-  source_content         = <<EOT
-		%[3]s
-		EOT
-
-  metadata = {
-    hello = "world"
-  }
-}
-`, r.template(data, "blob"), data.RandomInteger, content)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1413,38 +1040,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) encryptionScopeUpdateProperties(data acceptance.TestData, content string) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-		%[1]s
-
-resource "azurerm_storage_encryption_scope" "test" {
-  name               = "acctestEScontainer%[2]d"
-  storage_account_id = azurerm_storage_account.test.id
-  source             = "Microsoft.Storage"
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "rick.morty"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  encryption_scope       = azurerm_storage_encryption_scope.test.name
-  source_content         = <<EOT
-		%[3]s
-		EOT
-
-  metadata = {
-    hello = "world"
-  }
-
-  content_type = "text/plain"
-}
-`, r.template(data, "blob"), data.RandomInteger, content)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1477,39 +1072,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) encryptionScopeUpdateAccessTier(data acceptance.TestData, content string) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-		%[1]s
-
-resource "azurerm_storage_encryption_scope" "test" {
-  name               = "acctestEScontainer%[2]d"
-  storage_account_id = azurerm_storage_account.test.id
-  source             = "Microsoft.Storage"
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "rick.morty"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  encryption_scope       = azurerm_storage_encryption_scope.test.name
-  source_content         = <<EOT
-		%[3]s
-		EOT
-
-  metadata = {
-    hello = "world"
-  }
-
-  content_type = "text/plain"
-  access_tier  = "Hot"
-}
-`, r.template(data, "blob"), data.RandomInteger, content)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1543,23 +1105,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) pageEmpty(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "example.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Page"
-  size                   = 5120
-}
-`, r.template(data, "private"))
-	}
 	return fmt.Sprintf(`
 	%s
 
@@ -1577,23 +1122,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) pageEmptyPremium(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "example.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Page"
-  size                   = 5120
-}
-`, r.templatePremium(data))
-	}
 	return fmt.Sprintf(`
 	%s
 
@@ -1611,27 +1139,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) pageEmptyMetaData(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "example.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Page"
-  size                   = 5120
-
-  metadata = {
-    hello = "world"
-  }
-}
-`, r.template(data, "private"))
-	}
 	return fmt.Sprintf(`
 	%s
 
@@ -1653,33 +1160,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) pageFromExistingBlob(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_storage_blob" "source" {
-  name                   = "example.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Page"
-  size                   = 5120
-  content_type           = "application/x-iso9660-image"
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "copied.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Page"
-  source_uri             = azurerm_storage_blob.source.id
-  content_type           = azurerm_storage_blob.source.content_type
-}
-`, r.template(data, "private"))
-	}
 	return fmt.Sprintf(`
 	%s
 
@@ -1706,23 +1186,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) pageFromLocalBlob(data acceptance.TestData, fileName string) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "example.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Page"
-  source                 = "%s"
-}
-`, r.template(data, "private"), fileName)
-	}
 	return fmt.Sprintf(`
 	%s
 
@@ -1740,23 +1203,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) pageFromInlineContent(data acceptance.TestData, length int) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "rick.morty"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Page"
-  source_content         = join("", [for i in range(0, %d) : "a"])
-}
-`, r.template(data, "private"), length)
-	}
 	return fmt.Sprintf(`
 	%s
 
@@ -1774,19 +1220,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) requiresImport(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
-
-resource "azurerm_storage_blob" "import" {
-  name                   = azurerm_storage_blob.test.name
-  storage_account_name   = azurerm_storage_blob.test.storage_account_name
-  storage_container_name = azurerm_storage_blob.test.storage_container_name
-  type                   = azurerm_storage_blob.test.type
-  size                   = azurerm_storage_blob.test.size
-}
-`, r.blockFromPublicBlob(data))
-	}
 	return fmt.Sprintf(`
 	%s
 
@@ -1800,27 +1233,6 @@ resource "azurerm_storage_blob" "import" {
 }
 
 func (r StorageBlobResource) update(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "example.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  size                   = 5120
-  content_type           = "vnd/panda+pops"
-  metadata = {
-    hello = "world"
-  }
-}
-`, r.template(data, "private"))
-	}
 	return fmt.Sprintf(`
 	%s
 
@@ -1842,28 +1254,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) updateUpdated(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "example.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  size                   = 5120
-  content_type           = "vnd/mountain-mover-3000"
-  metadata = {
-    hello = "world"
-    panda = "pops"
-  }
-}
-`, r.template(data, "private"))
-	}
 	return fmt.Sprintf(`
 	%s
 
@@ -1886,25 +1276,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) cacheControl(data acceptance.TestData, cacheControl string) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "example.ext"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Page"
-  size                   = 5120
-  content_type           = "image/png"
-  cache_control          = "%s"
-}
-`, r.template(data, "private"), cacheControl)
-	}
 	return fmt.Sprintf(`
 	%s
 
@@ -1924,29 +1295,6 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func (r StorageBlobResource) template(data acceptance.TestData, accessLevel string) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                            = "acctestacc%s"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  account_tier                    = "Standard"
-  account_replication_type        = "LRS"
-  allow_nested_items_to_be_public = true
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "%s"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, accessLevel)
-	}
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -1971,30 +1319,6 @@ resource "azurerm_storage_container" "test" {
 }
 
 func (r StorageBlobResource) templateBlockBlobStorage(data acceptance.TestData, accessLevel string) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                            = "acctestacc%s"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  account_kind                    = "StorageV2"
-  account_tier                    = "Standard"
-  account_replication_type        = "LRS"
-  allow_nested_items_to_be_public = true
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "%s"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, accessLevel)
-	}
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -2020,29 +1344,6 @@ resource "azurerm_storage_container" "test" {
 }
 
 func (r StorageBlobResource) templatePremium(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                            = "acctestacc%s"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  account_tier                    = "Premium"
-  account_replication_type        = "LRS"
-  allow_nested_items_to_be_public = true
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-	}
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -2067,24 +1368,6 @@ resource "azurerm_storage_container" "test" {
 }
 
 func (r StorageBlobResource) archive(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-		%s
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "rick.morty"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source_content         = "Wubba Lubba Dub Dub"
-  access_tier            = "Archive"
-}
-`, r.template(data, "private"))
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

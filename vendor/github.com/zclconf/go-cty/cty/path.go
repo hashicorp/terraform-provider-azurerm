@@ -199,7 +199,11 @@ func (p Path) Copy() Path {
 // *any* key of the given type.
 //
 // When indexing into a set, the Key is actually the element being accessed
-// itself, since in sets elements are their own identity.
+// itself, since in sets elements are their own identity. Applying such an
+// index step to a set will test if the key is present in the set and return
+// it if so, but note that if the key contains any unknown values then the
+// result is itself an unknown value because we cannot know whether the element
+// is present or not.
 type IndexStep struct {
 	pathStepImpl
 	Key Value
@@ -210,6 +214,32 @@ type IndexStep struct {
 func (s IndexStep) Apply(val Value) (Value, error) {
 	if val == NilVal || val.IsNull() {
 		return NilVal, errors.New("cannot index a null value")
+	}
+
+	if valType := val.Type(); valType.IsSetType() {
+		// Indexing into a set with [Value.Index] is not allowed because
+		// sets don't have indices, but [Path] is often used to describe
+		// the current location in a nested data structure when working
+		// with functions like [Walk] or [Transform] and in that case
+		// traversal into a set is represented as an IndexStep whose
+		// key is the set element value itself, with the idea that a set
+		// element effectively acts as its own "key" in the set.
+		//
+		// To make it possible to use that kind of path with [Path.Apply],
+		// we have a special case here: if the index step's key is in the
+		// set then we return that value.
+		markedPresent := val.HasElement(s.Key)
+		present, marks := markedPresent.Unmark()
+		if !present.IsKnown() {
+			return UnknownVal(valType.ElementType()).WithMarks(marks), nil
+		}
+		if present.False() {
+			return NilVal, errors.New("set does not contain the requested element")
+		}
+		// We transfer the marks from the set here too, which is sufficient
+		// because cty cannot not preserve marks deeply within a set so they
+		// always aggregate onto the set as a whole during set construction.
+		return s.Key.WithMarks(marks), nil
 	}
 
 	switch s.Key.Type() {

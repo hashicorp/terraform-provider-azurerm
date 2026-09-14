@@ -60,9 +60,10 @@ func resourceSubscription() *pluginsdk.Resource {
 			},
 
 			"alias": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true, // O+C - This value is supplied by the provider if omitted so must remain `Computed`
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C - This value is supplied by the provider if omitted so must remain `Computed`
+				Computed:     true,
 				ForceNew:     true,
 				Description:  "The Alias Name of the subscription. If omitted a new UUID will be generated for this property.",
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -88,10 +89,7 @@ func resourceSubscription() *pluginsdk.Resource {
 				ForceNew:    true,
 				Description: "The workload type for the Subscription. Possible values are `Production` (default) and `DevTest`.",
 				// Other RP's have updated Constants with contextual prefixes so these are likely to change
-				ValidateFunc: validation.StringInSlice([]string{
-					string(subscriptionAlias.WorkloadProduction),
-					string(subscriptionAlias.WorkloadDevTest),
-				}, false),
+				ValidateFunc: validation.StringInSlice(subscriptionAlias.PossibleValuesForWorkload(), false),
 				// Workload is not exposed in any way, so must be ignored if the resource is imported.
 				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 					return new == ""
@@ -103,7 +101,8 @@ func resourceSubscription() *pluginsdk.Resource {
 				Description: "The GUID of the Subscription.",
 				ForceNew:    true,
 				Optional:    true,
-				Computed:    true, // O+C This must remain computed due to the unique nature of this resource - See resource documentation for notes.
+				// Note: O+C because Azure returns a computed value when a new subscription is created
+				Computed: true,
 				ExactlyOneOf: []string{
 					"subscription_id",
 					"billing_scope_id",
@@ -384,10 +383,7 @@ func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	if err != nil || alias.Model == nil || alias.Model.Properties == nil {
 		return fmt.Errorf("could not read Alias %q for Subscription: %+v", id.AliasName, err)
 	}
-	subscriptionId := ""
-	if subscriptionIdRaw := alias.Model.Properties.SubscriptionId; subscriptionIdRaw != nil {
-		subscriptionId = *subscriptionIdRaw
-	}
+	subscriptionId := pointer.From(alias.Model.Properties.SubscriptionId)
 	locks.ByID(subscriptionId)
 	defer locks.UnlockByID(subscriptionId)
 

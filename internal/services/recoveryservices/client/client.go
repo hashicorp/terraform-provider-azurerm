@@ -12,10 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupprotectableitems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupprotecteditems"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupresourcevaultconfigs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protectioncontainers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/resourceguardproxy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2024-10-01/backuppolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2024-10-01/protectionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationfabrics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationnetworkmappings"
@@ -38,12 +38,12 @@ type Client struct {
 	ProtectedItemOperationResultsClient       *backup.ProtectedItemOperationResultsClient
 	ProtectedItemsGroupClient                 *backupprotecteditems.BackupProtectedItemsClient
 	ProtectionPoliciesClient                  *protectionpolicies.ProtectionPoliciesClient
+	BackupPoliciesClient                      *backuppolicies.BackupPoliciesClient
 	ProtectionContainerOperationResultsClient *backup.ProtectionContainerOperationResultsClient
 	BackupProtectionContainersClient          *protectioncontainers.ProtectionContainersClient
 	BackupOperationStatusesClient             *backup.OperationStatusesClient
 	BackupOperationResultsClient              *backup.OperationResultsClient
 	VaultsClient                              *vaults.VaultsClient
-	VaultsConfigsClient                       *backupresourcevaultconfigs.BackupResourceVaultConfigsClient
 	VaultCertificatesClient                   *azuresdkhacks.VaultCertificatesClient
 	VaultReplicationProvider                  *replicationrecoveryservicesproviders.ReplicationRecoveryServicesProvidersClient
 	VaultsSettingsClient                      *replicationvaultsetting.ReplicationVaultSettingClient
@@ -61,9 +61,6 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	vaultConfigsClient := backupresourcevaultconfigs.NewBackupResourceVaultConfigsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&vaultConfigsClient.Client, o.ResourceManagerAuthorizer)
-
 	vaultSettingsClient, err := replicationvaultsetting.NewReplicationVaultSettingClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building ReplicationVaultSettings client: %+v", err)
@@ -93,6 +90,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	protectionPoliciesClient := protectionpolicies.NewProtectionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&protectionPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
+	backupPoliciesClient := backuppolicies.NewBackupPoliciesClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&backupPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
 	backupProtectionContainersClient := protectioncontainers.NewProtectionContainersClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&backupProtectionContainersClient.Client, o.ResourceManagerAuthorizer)
@@ -174,13 +174,13 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ProtectedItemsClient:                      &protectedItemsClient,
 		ProtectedItemsGroupClient:                 &protectedItemsGroupClient,
 		ProtectionPoliciesClient:                  &protectionPoliciesClient,
+		BackupPoliciesClient:                      &backupPoliciesClient,
 		ProtectionContainerOperationResultsClient: &backupProtectionContainerOperationResultsClient,
 		BackupProtectionContainersClient:          &backupProtectionContainersClient,
 		ProtectedItemOperationResultsClient:       &protectedItemOperationResultClient,
 		BackupOperationStatusesClient:             &backupOperationStatusesClient,
 		BackupOperationResultsClient:              &backupOperationResultClient,
 		VaultsClient:                              vaultsClient,
-		VaultsConfigsClient:                       &vaultConfigsClient,
 		VaultCertificatesClient:                   &vaultCertificatesClient,
 		VaultsSettingsClient:                      vaultSettingsClient,
 		FabricClient:                              fabricClient,

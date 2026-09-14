@@ -10,7 +10,7 @@ description: |-
 
 Manages a NetApp Account Encryption Resource.
 
-For more information about Azure NetApp Files Customer-Managed Keys feature, please refer to [Configure customer-managed keys for Azure NetApp Files volume encryption](https://learn.microsoft.com/en-us/azure/azure-netapp-files/configure-customer-managed-keys)
+For more information about Azure NetApp Files Customer-Managed Keys feature, please refer to [Configure customer-managed keys for Azure NetApp Files volume encryption](https://learn.microsoft.com/azure/azure-netapp-files/configure-customer-managed-keys)
 
 ## Example Usage
 
@@ -33,6 +33,7 @@ resource "azurerm_key_vault" "example" {
   name                            = "anfcmkakv"
   location                        = azurerm_resource_group.example.location
   resource_group_name             = azurerm_resource_group.example.name
+  rbac_authorization_enabled      = false
   enabled_for_disk_encryption     = true
   enabled_for_deployment          = true
   enabled_for_template_deployment = true
@@ -182,4 +183,4 @@ terraform import azurerm_netapp_account_encryption.example /subscriptions/000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.NetApp` - 2025-12-01
+* `Microsoft.NetApp` - 2026-05-01

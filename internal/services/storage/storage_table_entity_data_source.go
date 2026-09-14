@@ -5,26 +5,21 @@ package storage
 
 import (
 	"fmt"
-	"log"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	rmTables "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/tables"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/table/entities"
-	"github.com/jackofallops/giovanni/storage/2023-11-03/table/tables"
 )
 
 func dataSourceStorageTableEntity() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceStorageTableEntityRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -59,17 +54,10 @@ func dataSourceStorageTableEntity() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["storage_table_id"].ValidateFunc = validation.Any(rmTables.ValidateTableID, storageValidate.StorageTableDataPlaneID)
-	}
-
-	return resource
 }
 
 func dataSourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -88,47 +76,17 @@ func dataSourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{
 	}
 	storageTableIdRaw := tableIdRaw.(string)
 
-	if !features.FivePointOh() {
-		if strings.HasPrefix(strings.ToLower(storageTableIdRaw), "/subscriptions/") {
-			storageTableId, err := rmTables.ParseTableID(storageTableIdRaw)
-			if err != nil {
-				return err
-			}
-			storageTableIdFmtd = storageTableId.ID()
-			tableName = storageTableId.TableName
-			accountName = storageTableId.StorageAccountName
-			storageAccountId := commonids.NewStorageAccountID(storageTableId.SubscriptionId, storageTableId.ResourceGroupName, storageTableId.StorageAccountName)
-			account, err = storageClient.GetAccount(ctx, storageAccountId)
-			if err != nil {
-				return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
-			}
-		} else {
-			log.Printf("[WARN] `storage_table_id` is currently configured as a Data Plane URL. This legacy behavior has been deprecated and will be removed in version 5.0 of the AzureRM Provider. Please migrate to the Management Plane ID format.")
-			storageTableId, err := tables.ParseTableID(storageTableIdRaw, storageClient.StorageDomainSuffix)
-			if err != nil {
-				return err
-			}
-			storageTableIdFmtd = storageTableId.ID()
-			tableName = storageTableId.TableName
-			accountName = storageTableId.AccountId.AccountName
-			account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
-			if err != nil {
-				return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
-			}
-		}
-	} else {
-		storageTableId, err := rmTables.ParseTableID(storageTableIdRaw)
-		if err != nil {
-			return err
-		}
-		storageTableIdFmtd = storageTableId.ID()
-		tableName = storageTableId.TableName
-		accountName = storageTableId.StorageAccountName
-		storageAccountId := commonids.NewStorageAccountID(storageTableId.SubscriptionId, storageTableId.ResourceGroupName, storageTableId.StorageAccountName)
-		account, err = storageClient.GetAccount(ctx, storageAccountId)
-		if err != nil {
-			return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
-		}
+	storageTableId, err := rmTables.ParseTableID(storageTableIdRaw)
+	if err != nil {
+		return err
+	}
+	storageTableIdFmtd = storageTableId.ID()
+	tableName = storageTableId.TableName
+	accountName = storageTableId.StorageAccountName
+	storageAccountId := commonids.NewStorageAccountID(storageTableId.SubscriptionId, storageTableId.ResourceGroupName, storageTableId.StorageAccountName)
+	account, err = storageClient.GetAccount(ctx, storageAccountId)
+	if err != nil {
+		return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
 	}
 
 	if account == nil {

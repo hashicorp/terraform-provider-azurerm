@@ -26,6 +26,29 @@ import (
 
 type ResourceProviderFeatureRegistrationResource struct{}
 
+func TestAccResourceProviderFeatureRegistration_regressionTest(t *testing.T) {
+	if os.Getenv("ARM_SUBSCRIPTION_ID_ALT") == "" {
+		t.Skip("Skipping as `ARM_SUBSCRIPTION_ID_ALT` was not specified")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_resource_provider_feature_registration", "test")
+	r := ResourceProviderFeatureRegistrationResource{}
+	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
+		{
+			PreConfig: func() {
+				// Ensure the feature is not currently registered.
+				// Microsoft.ContainerService/AKSWindowsAnnualPreview is an auto-approving feature deliberately
+				// not shared with the other tests in this file so that this test cannot collide with them over
+				// the same subscription-level singleton.
+				if err := r.unRegisterFeature(data, "AKSWindowsAnnualPreview", "Microsoft.ContainerService"); err != nil {
+					t.Fatalf("unregistering feature: %+v", err)
+				}
+			},
+			Config: r.basic(data, "AKSWindowsAnnualPreview", "Microsoft.ContainerService"),
+		},
+	}, "")
+}
+
 func TestAccResourceProviderFeatureRegistration_basic(t *testing.T) {
 	if os.Getenv("ARM_SUBSCRIPTION_ID_ALT") == "" {
 		t.Skip("Skipping as `ARM_SUBSCRIPTION_ID_ALT` was not specified")

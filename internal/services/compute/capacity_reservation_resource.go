@@ -8,8 +8,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -20,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -244,20 +243,10 @@ func expandCapacityReservationSku(input []interface{}) capacityreservations.Sku 
 }
 
 func flattenCapacityReservationSku(input capacityreservations.Sku) []interface{} {
-	var name string
-	if input.Name != nil {
-		name = *input.Name
-	}
-
-	var capacity int64
-	if input.Capacity != nil {
-		capacity = *input.Capacity
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"name":     name,
-			"capacity": capacity,
+			"name":     pointer.From(input.Name),
+			"capacity": pointer.From(input.Capacity),
 		},
 	}
 }

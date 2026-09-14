@@ -20,7 +20,7 @@ import (
 
 type StaticWebAppResource struct{}
 
-func TestAccAzureStaticWebApp_basic(t *testing.T) {
+func TestAccStaticWebApp_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
 	r := StaticWebAppResource{}
 
@@ -38,7 +38,7 @@ func TestAccAzureStaticWebApp_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureStaticWebApp_complete(t *testing.T) {
+func TestAccStaticWebApp_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
 	r := StaticWebAppResource{}
 
@@ -55,7 +55,7 @@ func TestAccAzureStaticWebApp_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureStaticWebApp_completeUpdate(t *testing.T) {
+func TestAccStaticWebApp_completeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
 	r := StaticWebAppResource{}
 
@@ -90,7 +90,7 @@ func TestAccAzureStaticWebApp_completeUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureStaticWebApp_withSystemAssignedIdentity(t *testing.T) {
+func TestAccStaticWebApp_withSystemAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
 	r := StaticWebAppResource{}
 
@@ -108,7 +108,7 @@ func TestAccAzureStaticWebApp_withSystemAssignedIdentity(t *testing.T) {
 	})
 }
 
-func TestAccAzureStaticWebApp_identity(t *testing.T) {
+func TestAccStaticWebApp_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
 	r := StaticWebAppResource{}
 
@@ -137,7 +137,7 @@ func TestAccAzureStaticWebApp_identity(t *testing.T) {
 	})
 }
 
-func TestAccAzureStaticWebApp_withUserAssignedIdentity(t *testing.T) {
+func TestAccStaticWebApp_withUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
 	r := StaticWebAppResource{}
 
@@ -154,7 +154,7 @@ func TestAccAzureStaticWebApp_withUserAssignedIdentity(t *testing.T) {
 	})
 }
 
-func TestAccAzureStaticWebApp_basicUpdate(t *testing.T) {
+func TestAccStaticWebApp_basicUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
 	r := StaticWebAppResource{}
 
@@ -182,7 +182,7 @@ func TestAccAzureStaticWebApp_basicUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureStaticWebApp_requiresImport(t *testing.T) {
+func TestAccStaticWebApp_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
 	r := StaticWebAppResource{}
 
@@ -257,7 +257,7 @@ func TestAccStaticWebApp_basicAuth(t *testing.T) {
 	})
 }
 
-func TestAccAzureStaticWebApp_basicWithConfigShouldFail(t *testing.T) {
+func TestAccStaticWebApp_basicWithConfigShouldFail(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
 	r := StaticWebAppResource{}
 
@@ -273,7 +273,7 @@ func TestAccAzureStaticWebApp_basicWithConfigShouldFail(t *testing.T) {
 	})
 }
 
-func TestAccAzureStaticWebApp_publicNetworkAccessDisabled(t *testing.T) {
+func TestAccStaticWebApp_publicNetworkAccessDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
 	r := StaticWebAppResource{}
 
@@ -289,7 +289,7 @@ func TestAccAzureStaticWebApp_publicNetworkAccessDisabled(t *testing.T) {
 	})
 }
 
-func TestAccAzureStaticWebApp_publicNetworkAccessUpdate(t *testing.T) {
+func TestAccStaticWebApp_publicNetworkAccessUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
 	r := StaticWebAppResource{}
 
@@ -321,7 +321,7 @@ func TestAccAzureStaticWebApp_publicNetworkAccessUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureStaticWebApp_privateEndpointUpdate(t *testing.T) {
+func TestAccStaticWebApp_privateEndpointUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
 	r := StaticWebAppResource{}
 
