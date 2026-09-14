@@ -873,7 +873,7 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"live_trace_enabled": {
+		"live_trace_enabled": { // azignore:AZS006 - deprecated in favor of `live_trace` and not added to the data source
 			Type:       pluginsdk.TypeBool,
 			Optional:   true,
 			Default:    false,
