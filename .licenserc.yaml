@@ -38,4 +38,6 @@ header:
     - 'vendor/**'
     - '**/*_gen.go' # pandora generated files
     - '.goreleaser.yml'
+    - '**/.terraform/**' # local terraform init output (gitignored, but license-eye does not read .gitignore)
+    - '**/.terraform.lock.hcl'
   comment: never
