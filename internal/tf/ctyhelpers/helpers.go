@@ -12,7 +12,7 @@ import (
 func ConstructCtyPath(key string) cty.Path {
 	p := cty.Path{}
 
-	for _, segment := range strings.Split(key, ".") {
+	for segment := range strings.SplitSeq(key, ".") {
 		if n, err := strconv.Atoi(segment); err == nil {
 			p = p.IndexInt(n)
 			continue
