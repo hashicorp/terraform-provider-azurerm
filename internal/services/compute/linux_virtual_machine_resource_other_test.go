@@ -970,6 +970,42 @@ func TestAccLinuxVirtualMachine_otherRebootSetting(t *testing.T) {
 	})
 }
 
+func TestAccLinuxVirtualMachine_otherSizeProperties(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherSizeProperties(data, 0, 0),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.otherSizeProperties(data, 0, 2),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.otherSizeProperties(data, 1, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.otherSizeProperties(data, 0, 0),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r LinuxVirtualMachineResource) otherPatchMode(data acceptance.TestData, patchMode string) string {
 	return fmt.Sprintf(`
 %s
@@ -3046,4 +3082,58 @@ resource "azurerm_linux_virtual_machine" "test" {
   patch_mode = "ImageDefault"
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineResource) otherSizeProperties(data acceptance.TestData, available, percore int) string {
+	text, vCpuAvailable, vCPUsPerCore := "", "", ""
+
+	if available > 0 || percore > 0 {
+		if available > 0 {
+			vCpuAvailable = fmt.Sprintf(`vcpu_available = %[1]d`, available)
+		}
+		if percore > 0 {
+			vCPUsPerCore = fmt.Sprintf(`vcpu_per_core = %[1]d`, percore)
+		}
+
+		text = fmt.Sprintf(`
+  size_properties {
+    %[1]s
+    %[2]s
+  }`, vCpuAvailable, vCPUsPerCore)
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_D2s_v3"
+  admin_username      = "adminuser"
+
+  %[3]s
+
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+`, r.template(data), data.RandomInteger, text)
 }
