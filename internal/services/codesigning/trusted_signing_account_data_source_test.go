@@ -14,6 +14,16 @@ import (
 
 type TrustedSigningAccountDataSource struct{}
 
+func TestAccTrustedSigningAccountDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_trusted_signing_account", "test")
+	r := TrustedSigningAccountDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccTrustedSigningAccountDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_trusted_signing_account", "test")
 	r := TrustedSigningAccountDataSource{}

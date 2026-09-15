@@ -15,6 +15,16 @@ import (
 
 type CognitiveAccountProjectResource struct{}
 
+func TestAccCognitiveAccountProject_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_project", "test")
+	r := CognitiveAccountProjectResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccCognitiveAccountProject_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_project", "test")
 	r := CognitiveAccountProjectResource{}

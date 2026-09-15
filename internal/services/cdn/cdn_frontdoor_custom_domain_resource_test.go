@@ -20,6 +20,16 @@ import (
 
 type CdnFrontDoorCustomDomainResource struct{}
 
+func TestAccCdnFrontDoorCustomDomain_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
+	r := CdnFrontDoorCustomDomainResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccCdnFrontDoorCustomDomain_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
 	r := CdnFrontDoorCustomDomainResource{}
