@@ -69,6 +69,21 @@ func TestAccApiConnection_complete(t *testing.T) {
 	})
 }
 
+func TestAccApiConnection_kindV2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_connection", "test")
+	r := ApiConnectionTestResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.kindV2(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("V2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t ApiConnectionTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := connections.ParseConnectionID(state.ID)
 	if err != nil {
@@ -96,6 +111,20 @@ resource "azurerm_api_connection" "test" {
   name                = "acctestconn-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   managed_api_id      = data.azurerm_managed_api.test.id
+}
+`, template, data.RandomInteger)
+}
+
+func (t ApiConnectionTestResource) kindV2(data acceptance.TestData) string {
+	template := t.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_api_connection" "test" {
+  name                = "acctestconn-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  managed_api_id      = data.azurerm_managed_api.test.id
+  kind                = "V2"
 }
 `, template, data.RandomInteger)
 }
