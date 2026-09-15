@@ -215,6 +215,8 @@ The following arguments are supported:
 
 ~> **Note:** When `ip_version_type` is set to `IPv6` or `DualStack`, `private_endpoint_vnet_policies` must be set to `Basic` on the Virtual Network and all peered Virtual Networks. In addition, `private_endpoint_network_policies` must be set to `RouteTableEnabled` on the Subnet. Refer to [document](https://learn.microsoft.com/en-us/azure/private-link/private-link-ipv6#prerequisites).
 
+~> **Note:** `ip_version_type` cannot be changed directly between `IPv4` and `IPv6`. It can be changed from either `IPv4` or `IPv6` to `DualStack`, but cannot be changed from `DualStack` back to `IPv4` or `IPv6`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
