@@ -19,6 +19,16 @@ import (
 
 type WebAppActiveSlotResource struct{}
 
+func TestWebAppAccActiveSlot_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_app_active_slot", "test")
+	r := WebAppActiveSlotResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWindows(data),
+		},
+	}, "")
+}
+
 func TestWebAppAccActiveSlot_basicWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_app_active_slot", "test")
 	r := WebAppActiveSlotResource{}

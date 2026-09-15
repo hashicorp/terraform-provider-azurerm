@@ -14,6 +14,16 @@ import (
 
 type ClientConfigDataSource struct{}
 
+func TestAccClientConfigDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_client_config", "current")
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: ClientConfigDataSource{}.basic(),
+		},
+	}, "")
+}
+
 func TestAccClientConfigDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_client_config", "current")
 	clientId := os.Getenv("ARM_CLIENT_ID")

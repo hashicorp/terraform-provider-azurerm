@@ -31,6 +31,16 @@ const (
 )
 
 // Plan types
+func TestAccLinuxFunctionApp_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withIPRestrictions(data),
+		},
+	}, "")
+}
+
 func TestAccLinuxFunctionApp_basicBasicPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
