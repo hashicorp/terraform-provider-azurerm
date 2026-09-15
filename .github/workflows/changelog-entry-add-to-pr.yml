@@ -50,11 +50,14 @@ jobs:
         uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: ~/go/bin/changeloggy
-          key: changeloggy-${{ runner.os }}-v0.1.0
+          key: changeloggy-${{ runner.os }}-${{ hashFiles('.tools/go.mod', '.tools/go.sum') }}
 
       - name: Install changeloggy
         if: steps.cache-changeloggy.outputs.cache-hit != 'true'
-        run: go install github.com/sreallymatt/changeloggy@v0.1.0
+        run: make .tools/bin/changeloggy
+
+      - name: Add changeloggy to PATH
+        run: echo "$PWD/.tools/bin" >> "$GITHUB_PATH"
 
       - name: Checkout PR branch
         env:
