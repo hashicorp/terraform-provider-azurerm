@@ -109,6 +109,19 @@ func TestAccMonitorDataCollectionEndpoint_complete(t *testing.T) {
 	})
 }
 
+func TestAccMonitorDataCollectionEndpoint_completePreflightPlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_endpoint", "test")
+	r := MonitorDataCollectionEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:             r.completePreflightPlan(data),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: true,
+		},
+	})
+}
+
 func (r MonitorDataCollectionEndpointResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -146,6 +159,35 @@ resource "azurerm_monitor_data_collection_endpoint" "import" {
   location            = azurerm_monitor_data_collection_endpoint.test.location
 }
 `, r.basic(data))
+}
+
+func (r MonitorDataCollectionEndpointResource) completePreflightPlan(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    enhanced_validation {
+      preflight_enabled = true
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-DataCollectionEndpoint-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_monitor_data_collection_endpoint" "test" {
+  name                          = "acctestmdce-%[1]d"
+  resource_group_name           = azurerm_resource_group.test.name
+  location                      = azurerm_resource_group.test.location
+  kind                          = "Windows"
+  public_network_access_enabled = false
+  description                   = "acc test monitor_data_collection_endpoint preflight"
+  tags = {
+    ENV = "test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r MonitorDataCollectionEndpointResource) template(data acceptance.TestData) string {
