@@ -117,7 +117,7 @@ jobs:
               "This PR is missing a changelog entry, or contains an invalid one. Please add one or more by running:",
               "",
               "````",
-              "make changelog TYPE=<type> BODY=<body> PR=" + prNumber,
+              "make changelog TYPE=<type> BODY='<body>' PR=" + prNumber,
               "````",
               "",
               "and commit the resulting file.",
