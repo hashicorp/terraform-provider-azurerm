@@ -31,7 +31,7 @@ func resourceStreamAnalyticsOutputEventHub() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := outputs.ParseOutputID(id)
 			return err
-		}, importStreamAnalyticsOutput(outputs.EventHubOutputDataSource{})),
+		}, importStreamAnalyticsOutput([]outputs.OutputDataSource{outputs.EventHubV2OutputDataSource{}, outputs.EventHubOutputDataSource{}})),
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{

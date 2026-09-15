@@ -31,7 +31,7 @@ func resourceStreamAnalyticsOutputServiceBusQueue() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := outputs.ParseOutputID(id)
 			return err
-		}, importStreamAnalyticsOutput(outputs.ServiceBusQueueOutputDataSource{})),
+		}, importStreamAnalyticsOutput([]outputs.OutputDataSource{outputs.ServiceBusQueueOutputDataSource{}})),
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
