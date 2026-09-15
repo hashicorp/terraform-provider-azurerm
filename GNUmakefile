@@ -20,12 +20,14 @@ TFPROVIDERDOCS=$(TOOLS_BIN)/tfproviderdocs
 PATH := $(CURDIR)/$(TOOLS_BIN):$(PATH)
 
 # non-Go tools also live in .tools/bin at pinned versions, but the pins are here (dependabot
-# cannot bump them): shellcheck is a static binary downloaded from its github releases, yamllint
+# cannot bump them): shellcheck and lychee are static binaries downloaded from their github releases, yamllint
 # is pip installed into a repo-local venv and markdownlint-cli2 is npm installed into a repo-local
 # prefix. all rebuild when this makefile changes.
+LYCHEE_VERSION=v0.24.2
 MARKDOWNLINT_CLI2_VERSION=0.23.2
 SHELLCHECK_VERSION=v0.11.0
 YAMLLINT_VERSION=1.38.0
+LYCHEE=$(TOOLS_BIN)/lychee
 MARKDOWNLINT=$(TOOLS_BIN)/markdownlint-cli2
 SHELLCHECK=$(TOOLS_BIN)/shellcheck
 YAMLLINT=$(TOOLS_BIN)/yamllint
@@ -59,6 +61,11 @@ $(SHELLCHECK): GNUmakefile | $(TOOLS_BIN)
 	@echo "==> Downloading shellcheck $(SHELLCHECK_VERSION)..."
 	@curl -sSfL https://github.com/koalaman/shellcheck/releases/download/$(SHELLCHECK_VERSION)/shellcheck-$(SHELLCHECK_VERSION).$(HOST_OS).$(HOST_ARCH).tar.xz | tar -xJO shellcheck-$(SHELLCHECK_VERSION)/shellcheck > $@ && chmod +x $@
 
+$(LYCHEE): GNUmakefile | $(TOOLS_BIN)
+	@echo "==> Downloading lychee $(LYCHEE_VERSION)..."
+	@case "$(HOST_OS)" in darwin) target=apple-darwin;; *) target=unknown-linux-gnu;; esac; \
+		curl -sSfL https://github.com/lycheeverse/lychee/releases/download/lychee-$(LYCHEE_VERSION)/lychee-$(HOST_ARCH)-$$target.tar.gz | tar -xzO --strip-components=1 lychee-$(HOST_ARCH)-$$target/lychee > $@ && chmod +x $@
+
 $(YAMLLINT): GNUmakefile | $(TOOLS_BIN)
 	@command -v python3 >/dev/null || (echo "python3 is required to install yamllint (macOS: xcode CLT; Debian/Ubuntu: apt install python3-venv)" && exit 1)
 	@echo "==> Installing yamllint $(YAMLLINT_VERSION) into .tools/venv..."
@@ -88,7 +95,7 @@ golangci-fix: ## renamed to lint-fix
 	@$(MAKE) lint-fix
 
 ##@ Build & Generate
-tools: $(ACTIONLINT) $(GOFUMPT) $(GOIMPORTS) $(GOLANGCI_LINT) $(GOLANGCI_LINT_MODULES) $(GOTESTSUM) $(MISSPELL) $(TCTEST) $(TERRAFMT) $(TFPROVIDERDOCS) $(MARKDOWNLINT) $(SHELLCHECK) $(YAMLLINT) ## Install all pinned dev tools into .tools/bin (targets install what they need on demand)
+tools: $(ACTIONLINT) $(GOFUMPT) $(GOIMPORTS) $(GOLANGCI_LINT) $(GOLANGCI_LINT_MODULES) $(GOTESTSUM) $(MISSPELL) $(TCTEST) $(TERRAFMT) $(TFPROVIDERDOCS) $(LYCHEE) $(MARKDOWNLINT) $(SHELLCHECK) $(YAMLLINT) ## Install all pinned dev tools into .tools/bin (targets install what they need on demand)
 
 build: quick-checks generate ## Run the quick checks, generate code, and compile the provider
 	go install
@@ -219,6 +226,31 @@ markdownlint: $(MARKDOWNLINT) ## Check repo markdown with markdownlint (config i
 	@echo "==> Checking markdown with markdownlint..."
 	@$(MARKDOWNLINT) $(MARKDOWN_INPUTS)
 
+# Remap website link conventions to checkable targets: rendered .html links -> the
+# .html.markdown source files, and old terraform.io root-relative paths -> live URLs.
+# \# escapes the hash from make; remaps do not chain, so each maps to its final form.
+LYCHEE_REMAPS=--root-dir $(CURDIR) \
+	--remap 'file://$(CURDIR)/docs/providers/azurerm/(.*)\.html(\#.*)?$$ file://$(CURDIR)/website/docs/$$1.html.markdown$$2' \
+	--remap 'file://$(CURDIR)/docs/(.*)$$ https://www.terraform.io/docs/$$1' \
+	--remap 'file://$(CURDIR)/providers/(.*)$$ https://registry.terraform.io/providers/$$1' \
+	--remap 'file://(.*)\.html(\#.*)?$$ file://$$1.html.markdown$$2'
+
+# markdown checked by lychee: website docs, README, contributing docs, and the
+# .github markdown (PR/issue templates etc)
+LYCHEE_INPUTS='$(CURDIR)/website/docs/**/*.markdown' '$(CURDIR)/README.md' '$(CURDIR)/contributing/**/*.md' '$(CURDIR)/.github/**/*.md'
+
+# lychee runs from .github/ so its cwd-hardwired files (lychee.toml config,
+# .lycheecache cache) live there instead of the repo root; inputs are absolute paths
+linkcheck: linkcheck-local linkcheck-external ## Check all doc links, internal and external
+
+linkcheck-local: $(LYCHEE) ## Check internal doc links and anchors with lychee (offline, run on PRs)
+	@echo "==> Checking internal website doc links with lychee..."
+	@cd .github && $(CURDIR)/$(LYCHEE) --offline --include-fragments --no-progress $(LYCHEE_REMAPS) $(LYCHEE_INPUTS)
+
+linkcheck-external: $(LYCHEE) ## Check external doc links with lychee (network access, cached)
+	@echo "==> Checking external website doc links with lychee..."
+	@cd .github && $(CURDIR)/$(LYCHEE) --no-progress --scheme https --scheme http $(LYCHEE_REMAPS) $(LYCHEE_INPUTS)
+
 website-lint: $(MISSPELL) $(TFPROVIDERDOCS) $(TERRAFMT) ## Check website documentation for issues
 	@echo "==> Checking documentation for .html.markdown extension present"
 	@if ! find website/docs -type f -not -name "*.html.markdown" -print -exec false {} +; then \
@@ -268,4 +300,4 @@ resource-counts: ## Print the number of resources and data sources in the provid
 
 pr-check: generate build test lint website-lint ## Run the same set of checks CI runs against a PR
 
-.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint actionlint yamllint markdownlint shellcheck depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check
+.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint actionlint yamllint markdownlint linkcheck linkcheck-local linkcheck-external shellcheck depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check
