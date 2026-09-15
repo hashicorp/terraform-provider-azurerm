@@ -1540,8 +1540,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     vm_size    = "Standard_DS2_v2"
 
     local_dns_profile {
-      mode  = "Required"
-      state = "Enabled"
+      mode = "Required"
 
       kube_dns_override {
         domain                          = "example1.com"
@@ -1600,8 +1599,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     vm_size    = "Standard_DS2_v2"
 
     local_dns_profile {
-      mode  = "Preferred"
-      state = "Disabled"
+      mode = "Preferred"
 
       kube_dns_override {
         domain                          = "example1.com"
@@ -1684,8 +1682,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     vm_size    = "Standard_DS2_v2"
 
     local_dns_profile {
-      mode  = "Preferred"
-      state = "Enabled"
+      mode = "Preferred"
 
       kube_dns_override {
         domain   = "example.com"

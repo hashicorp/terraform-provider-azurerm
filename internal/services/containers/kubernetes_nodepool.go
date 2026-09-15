@@ -612,12 +612,6 @@ func schemaNodePoolLocalDNSProfile() *pluginsdk.Schema {
 					Required:     true,
 					ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForLocalDNSMode(), true),
 				},
-
-				"state": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForLocalDNSState(), true),
-				},
 			},
 		},
 	}
@@ -1227,20 +1221,13 @@ func expandClusterNodePoolLocalDNSProfile(input []interface{}) *managedclusters.
 	raw := input[0].(map[string]interface{})
 	profile := &managedclusters.LocalDNSProfile{}
 
-	if v, ok := raw["mode"].(string); ok && v != "" {
-		profile.Mode = pointer.ToEnum[managedclusters.LocalDNSMode](v)
-	}
-
-	if v, ok := raw["state"].(string); ok && v != "" {
-		profile.State = pointer.ToEnum[managedclusters.LocalDNSState](v)
-	}
+	profile.Mode = pointer.ToEnum[managedclusters.LocalDNSMode](raw["mode"].(string))
 
 	if v, ok := raw["kube_dns_override"].(*pluginsdk.Set); ok && v.Len() > 0 {
 		overrides := make(map[string]managedclusters.LocalDNSOverride)
 		for _, item := range v.List() {
 			overrideData := item.(map[string]interface{})
-			domain := overrideData["domain"].(string)
-			overrides[domain] = expandClusterNodePoolLocalDNSOverride(overrideData)
+			overrides[overrideData["domain"].(string)] = expandClusterNodePoolLocalDNSOverride(overrideData)
 		}
 		profile.KubeDNSOverrides = &overrides
 	}
@@ -1249,8 +1236,7 @@ func expandClusterNodePoolLocalDNSProfile(input []interface{}) *managedclusters.
 		overrides := make(map[string]managedclusters.LocalDNSOverride)
 		for _, item := range v.List() {
 			overrideData := item.(map[string]interface{})
-			domain := overrideData["domain"].(string)
-			overrides[domain] = expandClusterNodePoolLocalDNSOverride(overrideData)
+			overrides[overrideData["domain"].(string)] = expandClusterNodePoolLocalDNSOverride(overrideData)
 		}
 		profile.VnetDNSOverrides = &overrides
 	}
@@ -1585,13 +1571,7 @@ func flattenClusterNodePoolLocalDNSProfile(input *managedclusters.LocalDNSProfil
 
 	values := make(map[string]interface{})
 
-	if input.Mode != nil {
-		values["mode"] = string(*input.Mode)
-	}
-
-	if input.State != nil {
-		values["state"] = string(*input.State)
-	}
+	values["mode"] = pointer.FromEnum(input.Mode)
 
 	if input.KubeDNSOverrides != nil && len(*input.KubeDNSOverrides) > 0 {
 		overrides := make([]interface{}, 0, len(*input.KubeDNSOverrides))

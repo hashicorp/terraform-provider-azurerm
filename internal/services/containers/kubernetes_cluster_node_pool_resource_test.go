@@ -4190,8 +4190,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
 
   local_dns_profile {
-    mode  = "Preferred"
-    state = "Enabled"
+    mode = "Preferred"
 
     kube_dns_override {
       domain   = "example.com"
@@ -4217,8 +4216,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
 
   local_dns_profile {
-    mode  = "Preferred"
-    state = "Enabled"
+    mode = "Preferred"
 
     vnet_dns_override {
       domain   = "example.com"
@@ -4276,8 +4274,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
 
   local_dns_profile {
-    mode  = "Required"
-    state = "Enabled"
+    mode = "Required"
 
     kube_dns_override {
       domain                          = "example1.com"
@@ -4322,8 +4319,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
 
   local_dns_profile {
-    mode  = "Preferred"
-    state = "Disabled"
+    mode = "Preferred"
 
     kube_dns_override {
       domain                          = "example1.com"
