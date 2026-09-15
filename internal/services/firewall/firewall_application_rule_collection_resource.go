@@ -66,12 +66,9 @@ func resourceFirewallApplicationRuleCollection() *pluginsdk.Resource {
 			},
 
 			"action": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(azurefirewalls.AzureFirewallRCActionTypeAllow),
-					string(azurefirewalls.AzureFirewallRCActionTypeDeny),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(azurefirewalls.PossibleValuesForAzureFirewallRCActionType(), false),
 			},
 
 			"rule": {
@@ -116,13 +113,9 @@ func resourceFirewallApplicationRuleCollection() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"type": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(azurefirewalls.AzureFirewallApplicationRuleProtocolTypeHTTP),
-											string(azurefirewalls.AzureFirewallApplicationRuleProtocolTypeHTTPS),
-											string(azurefirewalls.AzureFirewallApplicationRuleProtocolTypeMssql),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(azurefirewalls.PossibleValuesForAzureFirewallApplicationRuleProtocolType(), false),
 									},
 									"port": {
 										Type:         pluginsdk.TypeInt,
@@ -329,8 +322,7 @@ func resourceFirewallApplicationRuleCollectionRead(d *pluginsdk.ResourceData, me
 			d.Set("priority", int(*priority))
 		}
 
-		flattenedRules := flattenFirewallApplicationRuleCollectionRules(props.Rules)
-		if err := d.Set("rule", flattenedRules); err != nil {
+		if err := d.Set("rule", flattenFirewallApplicationRuleCollectionRules(props.Rules)); err != nil {
 			return fmt.Errorf("setting `rule`: %+v", err)
 		}
 	}

@@ -121,25 +121,19 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 			"network_acls": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"default_action": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(managedhsms.NetworkRuleActionAllow),
-								string(managedhsms.NetworkRuleActionDeny),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(managedhsms.PossibleValuesForNetworkRuleAction(), false),
 						},
 						"bypass": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(managedhsms.NetworkRuleBypassOptionsNone),
-								string(managedhsms.NetworkRuleBypassOptionsAzureServices),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(managedhsms.PossibleValuesForNetworkRuleBypassOptions(), false),
 						},
 					},
 				},

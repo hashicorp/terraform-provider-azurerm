@@ -212,7 +212,7 @@ func resourceLogAnalyticsLinkedServiceSchema() map[string]*pluginsdk.Schema {
 
 		"read_access_id": {
 			Type:         pluginsdk.TypeString,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			Optional:     true,
 			ValidateFunc: azure.ValidateResourceID,
 			ExactlyOneOf: []string{"read_access_id", "write_access_id"},

@@ -31,7 +31,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -94,7 +93,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 			"certificate_policy": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				AtLeastOneOf: []string{
 					"certificate_policy",
 					"certificate",
@@ -122,15 +121,10 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"curve": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										Computed: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(kv.JSONWebKeyCurveNameP256),
-											string(kv.JSONWebKeyCurveNameP256K),
-											string(kv.JSONWebKeyCurveNameP384),
-											string(kv.JSONWebKeyCurveNameP521),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Computed:     true, // azignore:AZS007 - pre-existing violation
+										ValidateFunc: validation.StringInEnumSlice(kv.PossibleJSONWebKeyCurveNameValues(), false),
 									},
 									"exportable": {
 										Type:     pluginsdk.TypeBool,
@@ -139,7 +133,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 									"key_size": {
 										Type:     pluginsdk.TypeInt,
 										Optional: true,
-										Computed: true,
+										Computed: true, // azignore:AZS007 - pre-existing violation
 										ValidateFunc: validation.IntInSlice([]int{
 											256,
 											384,
@@ -179,12 +173,9 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"action_type": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(kv.CertificatePolicyActionAutoRenew),
-														string(kv.CertificatePolicyActionEmailContacts),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInEnumSlice(kv.PossibleCertificatePolicyActionValues(), false),
 												},
 											},
 										},
@@ -227,14 +218,14 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 						"x509_certificate_properties": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"extended_key_usage": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
-										Computed: true,
+										Computed: true, // azignore:AZS007 - pre-existing violation
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
@@ -244,18 +235,8 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeSet,
 										Required: true,
 										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												string(kv.KeyUsageTypeCRLSign),
-												string(kv.KeyUsageTypeDataEncipherment),
-												string(kv.KeyUsageTypeDecipherOnly),
-												string(kv.KeyUsageTypeDigitalSignature),
-												string(kv.KeyUsageTypeEncipherOnly),
-												string(kv.KeyUsageTypeKeyAgreement),
-												string(kv.KeyUsageTypeKeyCertSign),
-												string(kv.KeyUsageTypeKeyEncipherment),
-												string(kv.KeyUsageTypeNonRepudiation),
-											}, false),
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringInEnumSlice(kv.PossibleKeyUsageTypeValues(), false),
 										},
 									},
 									"subject": {
@@ -265,7 +246,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 									"subject_alternative_names": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
-										Computed: true,
+										Computed: true, // azignore:AZS007 - pre-existing violation
 										MaxItems: 1,
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
@@ -489,7 +470,7 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.GetCertificate(ctx, *keyVaultBaseUrl, name, "")
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of existing Certificate %q in %s: %s", name, *keyVaultBaseUrl, err)
 			}
 		}
@@ -517,7 +498,7 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 		}
 		newCert, err = client.ImportCertificate(ctx, *keyVaultBaseUrl, name, importParameters)
 		if err != nil {
-			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && utils.ResponseWasConflict(newCert.Response) {
+			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && response.WasConflict(newCert.Response.Response) {
 				if err = recoverDeletedCertificate(ctx, d, meta, *keyVaultBaseUrl, name); err != nil {
 					return fmt.Errorf("recover deleted certificate: %+v", err)
 				}
@@ -533,7 +514,7 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 		// Generate new
 		newCert, err = createCertificate(d, meta)
 		if err != nil {
-			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && utils.ResponseWasConflict(newCert.Response) {
+			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && response.WasConflict(newCert.Response.Response) {
 				if err = recoverDeletedCertificate(ctx, d, meta, *keyVaultBaseUrl, name); err != nil {
 					return fmt.Errorf("recover deleted certificate: %+v", err)
 				}
@@ -568,7 +549,7 @@ func recoverDeletedCertificate(ctx context.Context, d *pluginsdk.ResourceData, m
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending:                   []string{"pending"},
 			Target:                    []string{"available"},
-			Refresh:                   keyVaultChildItemRefreshFunc(*certificate),
+			Refresh:                   keyVaultChildItemRefreshFunc(ctx, *certificate),
 			Delay:                     30 * time.Second,
 			PollInterval:              10 * time.Second,
 			ContinuousTargetOccurence: 10,
@@ -746,7 +727,7 @@ func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface{}
 
 	cert, err := client.GetCertificate(ctx, id.KeyVaultBaseURL, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(cert.Response) {
+		if response.WasNotFound(cert.Response.Response) {
 			log.Printf("[DEBUG] Certificate %q was not found in Key Vault at URI %q - removing from state", id.Name, id.KeyVaultBaseURL)
 			d.SetId("")
 			return nil
@@ -757,8 +738,7 @@ func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface{}
 
 	d.Set("name", id.Name)
 
-	certificatePolicy := flattenKeyVaultCertificatePolicy(cert.Policy, cert.Cer)
-	if err := d.Set("certificate_policy", certificatePolicy); err != nil {
+	if err := d.Set("certificate_policy", flattenKeyVaultCertificatePolicy(cert.Policy, cert.Cer)); err != nil {
 		return fmt.Errorf("setting Key Vault Certificate Policy: %+v", err)
 	}
 
