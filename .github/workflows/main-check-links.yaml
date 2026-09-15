@@ -40,9 +40,10 @@ jobs:
       - name: Check internal and external links
         run: make linkcheck
       # first seed only: spread entry ages uniformly across the 30d window so expiry
-      # (and thus rechecking) trickles instead of arriving all at once in a month
+      # (and thus rechecking) trickles instead of arriving all at once in a month. always()
+      # so a seeding run that finds a dead link still skews the cache it saves below
       - name: Skew fresh cache across the 30d window
-        if: steps.cache-restore.outputs.cache-matched-key == ''
+        if: always() && steps.cache-restore.outputs.cache-matched-key == '' && hashFiles('.github/.lycheecache') != ''
         run: |
           awk -F, -v OFS=, 'BEGIN{srand()} {$NF = $NF - int(rand() * 30*24*3600); print}' .github/.lycheecache > .github/.lycheecache.skewed
           mv .github/.lycheecache.skewed .github/.lycheecache

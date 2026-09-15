@@ -7,7 +7,7 @@
 # internal check, off for external sites that render anchors client-side (registry, MS docs)
 
 # Reuse results across runs (.lycheecache, persisted in CI via actions/cache). The workflow
-# skews the seeded cache timestamps across the full 30d window, so each PR run rechecks only
+# skews the seeded cache timestamps across the full 30d window, so each run on main rechecks only
 # the ~1/30 slice that has expired - a rolling recheck instead of a monthly stampede.
 cache = true
 max_cache_age = "30d"
