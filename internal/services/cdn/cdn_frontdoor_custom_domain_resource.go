@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/secrets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -25,6 +26,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id cdn_frontdoor_profile_id -test-env-vars "ARM_TEST_DATA_RESOURCE_GROUP,ARM_TEST_DNS_ZONE"
+
+const azurermCdnFrontDoorCustomDomainResourceName = "azurerm_cdn_frontdoor_custom_domain"
 
 // Front Door currently rejects the DHE TLS 1.2 suites exposed by the SDK helper.
 // The service team confirmed this supported set officially, so this is not a
@@ -53,10 +58,11 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(12 * time.Hour),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := afddomains.ParseCustomDomainID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&afddomains.CustomDomainId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&afddomains.CustomDomainId{}),
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.CustomizeDiffShim(frontDoorCustomDomainHostNameCustomizeDiff),
@@ -226,7 +232,7 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 		}
 
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_custom_domain", id.ID())
+			return tf.ImportAsExistsError(azurermCdnFrontDoorCustomDomainResourceName, id.ID())
 		}
 	}
 
@@ -255,6 +261,9 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceCdnFrontDoorCustomDomainRead(d, meta)
 }
@@ -279,10 +288,14 @@ func resourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourceCdnFrontDoorCustomDomainFlatten(d, id, resp.Model)
+}
+
+func resourceCdnFrontDoorCustomDomainFlatten(d *pluginsdk.ResourceData, id *afddomains.CustomDomainId, model *afddomains.AFDDomain) error {
 	d.Set("name", id.CustomDomainName)
 	d.Set("cdn_frontdoor_profile_id", profiles.NewProfileID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName).ID())
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("host_name", props.HostName)
 
@@ -302,7 +315,7 @@ func resourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
