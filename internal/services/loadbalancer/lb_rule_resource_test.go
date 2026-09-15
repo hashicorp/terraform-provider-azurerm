@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LoadBalancerRule struct{}
+type LbRuleResource struct{}
 
 func TestAccAzureRMLoadBalancerRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
-	r := LoadBalancerRule{}
+	r := LbRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccAzureRMLoadBalancerRule_basic(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
-	r := LoadBalancerRule{}
+	r := LbRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccAzureRMLoadBalancerRule_complete(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
-	r := LoadBalancerRule{}
+	r := LbRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -87,7 +87,7 @@ func TestAccAzureRMLoadBalancerRule_update(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
-	r := LoadBalancerRule{}
+	r := LbRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -102,7 +102,7 @@ func TestAccAzureRMLoadBalancerRule_requiresImport(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
-	r := LoadBalancerRule{}
+	r := LbRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
@@ -115,7 +115,7 @@ func TestAccAzureRMLoadBalancerRule_disappears(t *testing.T) {
 // https://github.com/hashicorp/terraform/issues/9424
 func TestAccAzureRMLoadBalancerRule_inconsistentReads(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
-	r := LoadBalancerRule{}
+	r := LbRuleResource{}
 	p := LoadBalancerProbe{}
 	b := LoadBalancerBackendAddressPool{}
 
@@ -135,7 +135,7 @@ func TestAccAzureRMLoadBalancerRule_inconsistentReads(t *testing.T) {
 func TestAccAzureRMLoadBalancerRule_updateMultipleRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
 	data2 := acceptance.BuildTestData(t, "azurerm_lb_rule", "test2")
-	r := LoadBalancerRule{}
+	r := LbRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -166,7 +166,7 @@ func TestAccAzureRMLoadBalancerRule_updateMultipleRules(t *testing.T) {
 func TestAccAzureRMLoadBalancerRule_vmssBackendPoolUpdateRemoveLBRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
 	lbRuleName := fmt.Sprintf("acctest-lb-rule-%d", data.RandomInteger%100000000)
-	r := LoadBalancerRule{}
+	r := LbRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -191,7 +191,7 @@ func TestAccAzureRMLoadBalancerRule_vmssBackendPoolUpdateRemoveLBRule(t *testing
 
 func TestAccAzureRMLoadBalancerRule_gatewayLBRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
-	r := LoadBalancerRule{}
+	r := LbRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -206,7 +206,7 @@ func TestAccAzureRMLoadBalancerRule_gatewayLBRule(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerRule_gatewayLBRuleMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
-	r := LoadBalancerRule{}
+	r := LbRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -219,7 +219,7 @@ func TestAccAzureRMLoadBalancerRule_gatewayLBRuleMultiple(t *testing.T) {
 	})
 }
 
-func (r LoadBalancerRule) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r LbRuleResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := loadbalancers.ParseLoadBalancerLoadBalancingRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -237,7 +237,7 @@ func (r LoadBalancerRule) Exists(ctx context.Context, client *clients.Client, st
 	return pointer.To(rule.Model != nil && rule.Model.Id != nil), nil
 }
 
-func (r LoadBalancerRule) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r LbRuleResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := loadbalancers.ParseLoadBalancingRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -273,7 +273,7 @@ func (r LoadBalancerRule) Destroy(ctx context.Context, client *clients.Client, s
 	return pointer.To(true), nil
 }
 
-func (r LoadBalancerRule) template(data acceptance.TestData) string {
+func (r LbRuleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -306,7 +306,7 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LoadBalancerRule) basic(data acceptance.TestData) string {
+func (r LbRuleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -321,7 +321,7 @@ resource "azurerm_lb_rule" "test" {
 `, r.template(data), data.RandomInteger%100000000)
 }
 
-func (r LoadBalancerRule) complete(data acceptance.TestData) string {
+func (r LbRuleResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -344,7 +344,7 @@ resource "azurerm_lb_rule" "test" {
 `, r.template(data), data.RandomInteger%100000000)
 }
 
-func (r LoadBalancerRule) completeUpdate(data acceptance.TestData) string {
+func (r LbRuleResource) completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -367,7 +367,7 @@ resource "azurerm_lb_rule" "test" {
 `, r.template(data), data.RandomInteger%100000000)
 }
 
-func (r LoadBalancerRule) requiresImport(data acceptance.TestData) string {
+func (r LbRuleResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -384,7 +384,7 @@ resource "azurerm_lb_rule" "import" {
 }
 
 // https://github.com/hashicorp/terraform/issues/9424
-func (r LoadBalancerRule) inconsistentRead(data acceptance.TestData) string {
+func (r LbRuleResource) inconsistentRead(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -412,7 +412,7 @@ resource "azurerm_lb_rule" "test" {
 `, template, data.RandomInteger, data.RandomInteger, data.RandomInteger%100000000)
 }
 
-func (r LoadBalancerRule) multipleRules(data, data2 acceptance.TestData) string {
+func (r LbRuleResource) multipleRules(data, data2 acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -437,7 +437,7 @@ resource "azurerm_lb_rule" "test2" {
 `, template, data.RandomInteger%100000000, data2.RandomInteger%100000000)
 }
 
-func (r LoadBalancerRule) multipleRulesUpdate(data, data2 acceptance.TestData) string {
+func (r LbRuleResource) multipleRulesUpdate(data, data2 acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -462,7 +462,7 @@ resource "azurerm_lb_rule" "test2" {
 `, template, data.RandomInteger%100000000, data2.RandomInteger%100000000)
 }
 
-func (r LoadBalancerRule) vmssBackendPoolWithoutLBRule(data acceptance.TestData) string {
+func (r LbRuleResource) vmssBackendPoolWithoutLBRule(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -526,7 +526,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r LoadBalancerRule) vmssBackendPool(data acceptance.TestData, lbRuleName string) string {
+func (r LbRuleResource) vmssBackendPool(data acceptance.TestData, lbRuleName string) string {
 	template := r.vmssBackendPoolWithoutLBRule(data)
 	return fmt.Sprintf(`
 %s
@@ -543,7 +543,7 @@ resource "azurerm_lb_rule" "test" {
 `, template, lbRuleName)
 }
 
-func (r LoadBalancerRule) vmssBackendPoolUpdate(data acceptance.TestData, lbRuleName string) string {
+func (r LbRuleResource) vmssBackendPoolUpdate(data acceptance.TestData, lbRuleName string) string {
 	template := r.vmssBackendPoolWithoutLBRule(data)
 	return fmt.Sprintf(`
 %s
@@ -560,7 +560,7 @@ resource "azurerm_lb_rule" "test" {
 `, template, lbRuleName)
 }
 
-func (r LoadBalancerRule) gatewayLBRuleTemplate(data acceptance.TestData) string {
+func (r LbRuleResource) gatewayLBRuleTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -639,7 +639,7 @@ resource "azurerm_lb" "c2" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LoadBalancerRule) gatewayLBRule(data acceptance.TestData) string {
+func (r LbRuleResource) gatewayLBRule(data acceptance.TestData) string {
 	template := r.gatewayLBRuleTemplate(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -675,7 +675,7 @@ resource "azurerm_lb_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r LoadBalancerRule) gatewayLBRuleMultiple(data acceptance.TestData) string {
+func (r LbRuleResource) gatewayLBRuleMultiple(data acceptance.TestData) string {
 	template := r.gatewayLBRuleTemplate(data)
 	return fmt.Sprintf(`
 %[1]s
