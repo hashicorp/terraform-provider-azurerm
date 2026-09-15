@@ -247,22 +247,20 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 			}
 
 			if config.KeySize > 0 {
-				if config.KeyType != string(keyvault.JSONWebKeyTypeRSAHSM) {
-					return fmt.Errorf("`key_type` must be `RSA-HSM` when `key_size` is set")
+				if config.KeyType != string(keyvault.JSONWebKeyTypeRSAHSM) && config.KeyType != string(keyvault.JSONWebKeyTypeOctHSM) {
+					return fmt.Errorf("`key_type` must be `RSA-HSM` or `oct-HSM` when `key_size` is set")
 				}
 				parameters.KeySize = pointer.To(int32(config.KeySize))
 			}
 
 			if config.NotBeforeDate != "" {
 				notBeforeDate, _ := time.Parse(time.RFC3339, config.NotBeforeDate) // validated by schema
-				notBeforeUnixTime := date.UnixTime(notBeforeDate)
-				parameters.KeyAttributes.NotBefore = &notBeforeUnixTime
+				parameters.KeyAttributes.NotBefore = pointer.To(date.UnixTime(notBeforeDate))
 			}
 
 			if config.ExpirationDate != "" {
 				expirationDate, _ := time.Parse(time.RFC3339, config.ExpirationDate) // validated by schema
-				expirationUnixTime := date.UnixTime(expirationDate)
-				parameters.KeyAttributes.Expires = &expirationUnixTime
+				parameters.KeyAttributes.Expires = pointer.To(date.UnixTime(expirationDate))
 			}
 
 			if resp, err := client.CreateKey(ctx, endpoint.BaseURI(), config.Name, parameters); err != nil {
@@ -276,7 +274,7 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 						stateConf := &pluginsdk.StateChangeConf{
 							Pending:                   []string{"pending"},
 							Target:                    []string{"available"},
-							Refresh:                   managedHSMKeyRefreshFunc(*kid),
+							Refresh:                   managedHSMKeyRefreshFunc(ctx, *kid),
 							Delay:                     30 * time.Second,
 							PollInterval:              10 * time.Second,
 							ContinuousTargetOccurence: 10,
@@ -405,14 +403,12 @@ func (r KeyVaultMHSMKeyResource) Update() sdk.ResourceFunc {
 
 			if config.NotBeforeDate != "" {
 				notBeforeDate, _ := time.Parse(time.RFC3339, config.NotBeforeDate) // validated by schema
-				notBeforeUnixTime := date.UnixTime(notBeforeDate)
-				parameters.KeyAttributes.NotBefore = &notBeforeUnixTime
+				parameters.KeyAttributes.NotBefore = pointer.To(date.UnixTime(notBeforeDate))
 			}
 
 			if config.ExpirationDate != "" {
 				expirationDate, _ := time.Parse(time.RFC3339, config.ExpirationDate) // validated by schema
-				expirationUnixTime := date.UnixTime(expirationDate)
-				parameters.KeyAttributes.Expires = &expirationUnixTime
+				parameters.KeyAttributes.Expires = pointer.To(date.UnixTime(expirationDate))
 			}
 
 			resp, err := client.UpdateKey(ctx, id.BaseUri(), config.Name, "", parameters)

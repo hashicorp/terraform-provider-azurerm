@@ -247,6 +247,34 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
 }
 ```
 
+Default to the PUT API (`CreateOrUpdateThenPoll` or similar) over PATCH (`UpdateThenPoll` or similar) whenever both are available. Terraform configuration is declarative - removing an optional field from the configuration means "unset this value" - so an Update must be able to *clear* any optional field, not just set it. A PATCH cannot do this: SDK structs generated from the OpenAPI spec use `omitempty` JSON tags, which means the explicit `null` value required to clear a field in a PATCH request can never be sent.
+
+Consider the following struct:
+
+```go
+type FooProperties struct {
+    SizeGB *int64  `json:"sizeGB,omitempty"`
+    Sku    *string `json:"sku,omitempty"`
+}
+```
+
+To clear `sizeGB`, the following JSON payload must be sent in a PATCH request:
+
+```json
+{
+    "sizeGB": null
+}
+```
+
+However, the following struct instance will not serialize to that JSON because of the `omitempty` tag:
+
+```go
+props := FooProperties{
+    SizeGB: nil, // this will serialize to "{}"!
+}
+```
+
+As a result a PATCH-based Update silently ignores the removal of a field from the user's configuration, producing permanent drift that the provider cannot correct. Only use the PATCH API when a PUT is unavailable (or a property can only be set through the PATCH) **and** no updatable field ever needs to be cleared, and leave a comment above the request explaining why. When using the PUT API, retrieve the existing resource, apply the changed fields to the retrieved model, and send the full payload back - see [best practices](best-practices.md#updates-should-default-to-the-put-method) for more detail.
 
 Let's implement the Update function:
 
@@ -315,33 +343,6 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
 ```
 
 If an API supports an LRO (Long Running Operation), use the `{Operation}ThenPoll` variant so the provider waits for the operation to complete before returning.
-
-Prefer the PUT API (`CreateOrUpdateThenPoll` or similar) over PATCH (`UpdateThenPoll` or similar) when both are available and you need to clear values. SDK structs generated from the OpenAPI spec use `omitempty` JSON tags, which means they cannot send explicit `null` values for fields on update.
-
-Consider the following struct:
-
-```go
-type FooProperties struct {
-    SizeGB *int64  `json:"sizeGB,omitempty"`
-    Sku    *string `json:"sku,omitempty"`
-}
-```
-
-To clear `sizeGB`, the following JSON payload must be sent in a PATCH request:
-
-```json
-{
-    "sizeGB": null
-}
-```
-
-However, the following struct instance will not serialize to that JSON because of the `omitempty` tag:
-
-```go
-props := FooProperties{
-    SizeGB: nil, // this will serialize to "{}"!
-}
-```
 
 ---
 

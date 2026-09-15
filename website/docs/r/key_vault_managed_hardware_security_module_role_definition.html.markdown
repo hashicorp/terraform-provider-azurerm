@@ -62,7 +62,7 @@ The following arguments are supported:
 
 ---
 
-A `permission` block supports the following, more details about permission see [permitted-operations](https://learn.microsoft.com/en-us/azure/key-vault/managed-hsm/built-in-roles#permitted-operations):
+A `permission` block supports the following, more details about permission see [permitted-operations](https://learn.microsoft.com/azure/key-vault/managed-hsm/built-in-roles#permitted-operations):
 
 * `actions` - (Optional) One or more Allowed Actions, such as `*`, `Microsoft.Resources/subscriptions/resourceGroups/read`. See ['Azure Resource Manager resource provider operations'](https://docs.microsoft.com/azure/role-based-access-control/resource-provider-operations) for details.
 

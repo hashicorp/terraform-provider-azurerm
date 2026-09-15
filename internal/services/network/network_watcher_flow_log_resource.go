@@ -166,7 +166,7 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 			"location": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				ForceNew:         true,
 				ValidateFunc:     location.EnhancedValidate,
 				StateFunc:        location.StateFunc,
@@ -178,9 +178,7 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 
 		CustomizeDiff: func(_ context.Context, d *pluginsdk.ResourceDiff, _ any) error {
 			if d.Id() == "" {
-				targetResourceId := d.Get("target_resource_id").(string)
-
-				if _, err := networksecuritygroups.ParseNetworkSecurityGroupID(targetResourceId); err == nil {
+				if _, err := networksecuritygroups.ParseNetworkSecurityGroupID(d.Get("target_resource_id").(string)); err == nil {
 					return errors.New("creation of new NSG flow logs is no longer supported by Azure as of June 30, 2025. NSG flow logs will be retired on September 30, 2027. For more information, see https://learn.microsoft.com/azure/network-watcher/nsg-flow-logs-migrate")
 				}
 			}

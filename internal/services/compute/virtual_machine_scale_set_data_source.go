@@ -159,8 +159,7 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 		if props := model.Properties; props != nil {
 			if profile := props.VirtualMachineProfile; profile != nil {
 				if nwProfile := profile.NetworkProfile; nwProfile != nil {
-					flattenedNics := FlattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
-					if err := d.Set("network_interface", flattenedNics); err != nil {
+					if err := d.Set("network_interface", FlattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)); err != nil {
 						return fmt.Errorf("setting `network_interface`: %+v", err)
 					}
 				}
@@ -179,8 +178,7 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 	var orchestrationMode string
 	if props := resp.Model.Properties; props != nil {
 		if *props.OrchestrationMode == virtualmachinescalesets.OrchestrationModeUniform {
-			expandStr := "instanceView"
-			optionsVMSS.Expand = &expandStr
+			optionsVMSS.Expand = pointer.To("instanceView")
 			orchestrationMode = "Uniform"
 		}
 		if *props.OrchestrationMode == virtualmachinescalesets.OrchestrationModeFlexible {
