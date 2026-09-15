@@ -34,13 +34,33 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group within which this Kubernetes Fleet Manager should exist. Changing this forces a new Kubernetes Fleet Manager to be created.
 
+* `hub_profile` - (Optional) A `hub_profile` block as defined below. Changing this forces a new Kubernetes Fleet Manager to be created.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Kubernetes Fleet Manager.
+
+---
+
+A `hub_profile` block supports the following:
+
+* `dns_prefix` - (Required) DNS prefix used to create the FQDN for the Fleet hub. Changing this forces a new Kubernetes Fleet Manager to be created.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Kubernetes Fleet Manager.
+
+* `hub_profile` - A `hub_profile` block as defined below.
+
+---
+
+A `hub_profile` block exports the following:
+
+* `fqdn` - The FQDN of the Fleet hub.
+
+* `kubernetes_version` - The Kubernetes version of the Fleet hub.
+
+* `portal_fqdn` - The Azure Portal FQDN of the Fleet hub.
 
 ## Timeouts
 
