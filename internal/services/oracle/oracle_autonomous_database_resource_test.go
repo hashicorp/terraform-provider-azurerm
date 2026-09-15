@@ -53,6 +53,7 @@ func TestAdbsRegularResource_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("database_edition").HasValue("EnterpriseEdition"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -95,6 +96,7 @@ func TestAdbsRegularResource_updateBackupSchedule(t *testing.T) {
 			Config: r.updateBackupSchedule(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("database_edition").HasValue("StandardEdition"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -201,6 +203,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   compute_model                    = "ECPU"
   compute_count                    = 2
   license_model                    = "BringYourOwnLicense"
+  database_edition                 = "EnterpriseEdition"
   backup_retention_period_in_days  = 12
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = false
@@ -217,7 +220,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   allowed_ips                      = []
   long_term_backup_schedule {
     repeat_cadence           = "Monthly"
-    time_of_backup           = "2025-08-03T09:00:00Z"
+    time_of_backup           = "2026-10-30T09:00:00Z"
     retention_period_in_days = 200
     enabled                  = true
   }
@@ -275,6 +278,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   compute_model                    = "ECPU"
   compute_count                    = 2
   license_model                    = "BringYourOwnLicense"
+  database_edition                 = "StandardEdition"
   backup_retention_period_in_days  = 12
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = false
