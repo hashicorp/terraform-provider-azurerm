@@ -44,6 +44,19 @@ func resourceApiManagementApiTagDescription() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: apitag.ValidateApiTagID,
+				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+					oldApiTagId, err := apitag.ParseApiTagID(old)
+					if err != nil {
+						return false
+					}
+
+					newApiTagId, err := apitag.ParseApiTagID(new)
+					if err != nil {
+						return false
+					}
+
+					return oldApiTagId.ApiId == getApiName(newApiTagId.ApiId)
+				},
 			},
 
 			"description": {
