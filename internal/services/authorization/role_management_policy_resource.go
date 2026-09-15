@@ -195,6 +195,7 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Computed:    true, // azignore:AZS007 - pre-existing violation
+						Deprecated:  "Azure does not support requiring ticket information for active assignments, and setting this to `true` is rejected by the service. This property will be removed in the next major version of the Provider. Use `activation_rules.0.require_ticket_info` instead.",
 					},
 				},
 			},
