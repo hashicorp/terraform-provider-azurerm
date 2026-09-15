@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
@@ -22,16 +23,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+const azureApiManagementApiOperationResourceName = "azurerm_api_management_api_operation"
+
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "operation_id,api_id:api_name,service_name:api_management_name,resource_group_name"
+
 func resourceApiManagementApiOperation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceApiManagementApiOperationCreateUpdate,
 		Read:   resourceApiManagementApiOperationRead,
 		Update: resourceApiManagementApiOperationCreateUpdate,
 		Delete: resourceApiManagementApiOperationDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := apioperation.ParseOperationID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&apioperation.OperationId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&apioperation.OperationId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -171,7 +177,7 @@ func resourceApiManagementApiOperationCreateUpdate(d *pluginsdk.ResourceData, me
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_api_management_api_operation", id.ID())
+				return tf.ImportAsExistsError(azureApiManagementApiOperationResourceName, id.ID())
 			}
 		}
 	}
@@ -213,6 +219,9 @@ func resourceApiManagementApiOperationCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceApiManagementApiOperationRead(d, meta)
 }
@@ -241,12 +250,16 @@ func resourceApiManagementApiOperationRead(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("retrieving %s: %+v", newId, err)
 	}
 
+	return resourceApiManagementApiOperationFlatten(d, id, resp.Model)
+}
+
+func resourceApiManagementApiOperationFlatten(d *pluginsdk.ResourceData, id *apioperation.OperationId, model *apioperation.OperationContract) error {
 	d.Set("operation_id", id.OperationId)
-	d.Set("api_name", apiName)
+	d.Set("api_name", getApiName(id.ApiId))
 	d.Set("api_management_name", id.ServiceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("description", pointer.From(props.Description))
 			d.Set("display_name", props.DisplayName)
@@ -279,7 +292,7 @@ func resourceApiManagementApiOperationRead(d *pluginsdk.ResourceData, meta inter
 			}
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceApiManagementApiOperationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
