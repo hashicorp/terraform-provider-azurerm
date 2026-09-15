@@ -1,6 +1,7 @@
 ## 5.6.0 (Unreleased)
 
 ENHANCEMENTS:
+* **New Resource**: `azurerm_storage_discovery_workspace` [GH-31479]
 * `azurerm_mongo_cluster` - Support new property `network_bypass_mode` [GH-33168]
 * dependencies: `go-azure-sdk` - update to `v0.20260910.1141000` [GH-33413]
 
