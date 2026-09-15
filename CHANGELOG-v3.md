@@ -1063,7 +1063,7 @@ ENHANCEMENTS:
 * `azurerm_app_service_environment_v3` - support for the `remote_debugging_enabled` property ([#24760](https://github.com/hashicorp/terraform-provider-azurerm/issues/24760))
 * `azurerm_storage_account` - support for the `local_user_enabled` property ([#24800](https://github.com/hashicorp/terraform-provider-azurerm/issues/24800))
 * `azurerm_log_analytics_workspace_table` - support for the `total_retention_in_days` property ([#24513](https://github.com/hashicorp/terraform-provider-azurerm/issues/24513))
-* `azurerm_maching_learning_workspace` - support for the `feature_store` and `kind` properties ([#24716](https://github.com/hashicorp/terraform-provider-azurerm/issues/24716))
+* `azurerm_machine_learning_workspace` - support for the `feature_store` and `kind` properties ([#24716](https://github.com/hashicorp/terraform-provider-azurerm/issues/24716))
 * `azurerm_traffic_manager_azure_endpoint` - support for the `always_serve_enabled` property ([#24573](https://github.com/hashicorp/terraform-provider-azurerm/issues/24573))
 * `azurerm_traffic_manager_external_endpoint` - support for the `always_serve_enabled` property ([#24573](https://github.com/hashicorp/terraform-provider-azurerm/issues/24573))
 
@@ -1530,7 +1530,7 @@ BUG FIXES:
 ENHANCEMENTS:
 
 * provider: log instead of error when RPs are unavailable when validating RP registrations ([#23380](https://github.com/hashicorp/terraform-provider-azurerm/issues/23380))
-* `azurerm_arc_kuberenetes_cluster_extension_resource` - the `version` and `release_train` properties can now be set simultaneously ([#23692](https://github.com/hashicorp/terraform-provider-azurerm/issues/23692))
+* `azurerm_arc_kubernetes_cluster_extension_resource` - the `version` and `release_train` properties can now be set simultaneously ([#23692](https://github.com/hashicorp/terraform-provider-azurerm/issues/23692))
 * `azurerm_container_apps` - support for the `ingress.exposed_port` property ([#23752](https://github.com/hashicorp/terraform-provider-azurerm/issues/23752))
 * `azurerm_cosmosdb_postgresql_cluster` - read replica clusters can be created without specifying `administrator_login_password` property ([#23750](https://github.com/hashicorp/terraform-provider-azurerm/issues/23750))
 * `azurerm_managed_application` - arrays can be supplied in the `parameter_values` property ([#23754](https://github.com/hashicorp/terraform-provider-azurerm/issues/23754))
@@ -4942,7 +4942,7 @@ FEATURES:
 
 * **New Datasource**: `azurerm_kusto_database` ([#16180](https://github.com/hashicorp/terraform-provider-azurerm/issues/16180))
 * **New Resource**: `azurerm_container_connected_registry` ([#15731](https://github.com/hashicorp/terraform-provider-azurerm/issues/15731))
-* **New Resource**: `azurerm_managment_group_policy_exemption` ([#16293](https://github.com/hashicorp/terraform-provider-azurerm/issues/16293))
+* **New Resource**: `azurerm_management_group_policy_exemption` ([#16293](https://github.com/hashicorp/terraform-provider-azurerm/issues/16293))
 * **New Resource**: `azurerm_resource_group_policy_exemption` ([#16293](https://github.com/hashicorp/terraform-provider-azurerm/issues/16293))
 * **New Resource**: `azurerm_resource_policy_exemption` ([#16293](https://github.com/hashicorp/terraform-provider-azurerm/issues/16293))
 * **New Resource**: `azurerm_stream_analytics_job_schedule` ([#16349](https://github.com/hashicorp/terraform-provider-azurerm/issues/16349))

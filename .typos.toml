@@ -19,7 +19,7 @@ extend-exclude = [
 
 [default]
 extend-ignore-re = [
-  '[A-Za-z0-9+/=_-]{30,}', # base64 blobs, certificates, storage ids
+  '[A-Za-z0-9+/=-]{30,}', # base64 blobs, certificates, storage ids (no underscore, so long snake_case names are still checked)
   '`[A-Z]{2}`',            # ISO country / region codes listed in docs
   '(acctest|testacc)[A-Za-z]*-[a-z]{3,5}-', # acceptance test resource name prefixes (acctest-agrc-, acctestRG-mapp-)
   'CUSTOMERx|Val1ue',   # deliberately odd tag values in tests
@@ -82,6 +82,18 @@ tthe = "the"
 # misspelled names in the plugin SDK and go-azure-sdk that the provider has to use as-is
 ContinuousTargetOccurence = "ContinuousTargetOccurence"
 NegationConditon = "NegationConditon"
+
 # identifiers cannot hold apostrophes, so the contraction corrections above must not apply to them
 doesntHavePermissions = "doesntHavePermissions"
 ValidateVolumeSpecCantRepeat = "ValidateVolumeSpecCantRepeat"
+
+# attributes that were misspelled in the provider, referenced by their real names in changelogs and upgrade guides
+disable_triple_des_chipers = "disable_triple_des_chipers"
+error_meesage = "error_meesage"
+moniter_metrics_after_duration = "moniter_metrics_after_duration"
+reservation_capcity_in_gb_per_day = "reservation_capcity_in_gb_per_day"
+hub_to_vitual_network_traffic_allowed = "hub_to_vitual_network_traffic_allowed"
+vitual_network_to_hub_gateways_traffic_allowed = "vitual_network_to_hub_gateways_traffic_allowed"
+
+# repo secret name as it exists in the repository settings
+GH_MEMEBERSHIP_CHECK_TOKEN = "GH_MEMEBERSHIP_CHECK_TOKEN"

@@ -813,7 +813,7 @@ IMPROVEMENTS:
 * dependencies: upgrading the `storage` SDK to `2019-04-01` ([#3578](https://github.com/hashicorp/terraform-provider-azurerm/issues/3578))
 * Data Source `azurerm_app_service` - support windows containers ([#3566](https://github.com/hashicorp/terraform-provider-azurerm/issues/3566))
 * Data Source `azurerm_app_service_plan` - support windows containers ([#3566](https://github.com/hashicorp/terraform-provider-azurerm/issues/3566))
-* `azurerm_api_management` - rename `disable_triple_des_ciphers` to `disable_triple_des_ciphers` ([#3539](https://github.com/hashicorp/terraform-provider-azurerm/issues/3539))
+* `azurerm_api_management` - rename `disable_triple_des_chipers` to `disable_triple_des_ciphers` ([#3539](https://github.com/hashicorp/terraform-provider-azurerm/issues/3539))
 * `azurerm_application_gateway` - support for the value `General` in the `rule_group_name` field within the `disabled_rule_group` block ([#3533](https://github.com/hashicorp/terraform-provider-azurerm/issues/3533))
 * `azurerm_app_service` - support for windows containers ([#3566](https://github.com/hashicorp/terraform-provider-azurerm/issues/3566))
 * `azurerm_app_service_plan` - support for the `maximum_elastic_worker_count` property ([#3547](https://github.com/hashicorp/terraform-provider-azurerm/issues/3547))

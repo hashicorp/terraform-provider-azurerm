@@ -630,7 +630,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 * The deprecated `linux.classification_included` property has been removed in favour of the `linux.classifications_included` property.
 * The deprecated `windows.classification_included` property has been removed in favour of the `windows.classifications_included` property.
 * The deprecated `operating_system` property has been removed in favour of the `linux` or `windows` blocks.
-* The deprecated `error_message` property has been removed in favour of the `error_message` property.
+* The deprecated `error_meesage` property has been removed in favour of the `error_message` property.
 
 ### `azurerm_bot_channel_web_chat`
 
