@@ -42,6 +42,8 @@ The following attributes are exported:
 
 * `sku_tier` - The SKU tier of the Azure Firewall.
 
+* `autoscale_configuration` - An `autoscale_configuration` block as defined below.
+
 * `firewall_policy_id` - The ID of the Firewall Policy applied to the Azure Firewall.
 
 * `ip_configuration` - A `ip_configuration` block as defined below.
@@ -59,6 +61,14 @@ The following attributes are exported:
 * `zones` - A list of Availability Zones in which this Azure Firewall is located.
 
 * `tags` - A mapping of tags assigned to the Azure Firewall.
+
+---
+
+An `autoscale_configuration` block exports the following:
+
+* `min_capacity` - The minimum number of capacity units for the Azure Firewall.
+
+* `max_capacity` - The maximum number of capacity units for the Azure Firewall.
 
 ---
 
