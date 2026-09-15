@@ -91,16 +91,9 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"coverage_level": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(connectionmonitors.CoverageLevelAboveAverage),
-							string(connectionmonitors.CoverageLevelAverage),
-							string(connectionmonitors.CoverageLevelBelowAverage),
-							string(connectionmonitors.CoverageLevelDefault),
-							string(connectionmonitors.CoverageLevelFull),
-							string(connectionmonitors.CoverageLevelLow),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(connectionmonitors.PossibleValuesForCoverageLevel(), false),
 					},
 
 					"excluded_ip_addresses": {
@@ -134,24 +127,20 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 											},
 
 											"type": {
-												Type:     pluginsdk.TypeString,
-												Optional: true,
-												Default:  string(connectionmonitors.ConnectionMonitorEndpointFilterItemTypeAgentAddress),
-												ValidateFunc: validation.StringInSlice([]string{
-													string(connectionmonitors.ConnectionMonitorEndpointFilterItemTypeAgentAddress),
-												}, false),
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												Default:      string(connectionmonitors.ConnectionMonitorEndpointFilterItemTypeAgentAddress),
+												ValidateFunc: validation.StringInSlice(connectionmonitors.PossibleValuesForConnectionMonitorEndpointFilterItemType(), false),
 											},
 										},
 									},
 								},
 
 								"type": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  string(connectionmonitors.ConnectionMonitorEndpointFilterTypeInclude),
-									ValidateFunc: validation.StringInSlice([]string{
-										string(connectionmonitors.ConnectionMonitorEndpointFilterTypeInclude),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Default:      string(connectionmonitors.ConnectionMonitorEndpointFilterTypeInclude),
+									ValidateFunc: validation.StringInSlice(connectionmonitors.PossibleValuesForConnectionMonitorEndpointFilterType(), false),
 								},
 							},
 						},
@@ -211,13 +200,9 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"protocol": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(connectionmonitors.ConnectionMonitorTestConfigurationProtocolTcp),
-							string(connectionmonitors.ConnectionMonitorTestConfigurationProtocolHTTP),
-							string(connectionmonitors.ConnectionMonitorTestConfigurationProtocolIcmp),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(connectionmonitors.PossibleValuesForConnectionMonitorTestConfigurationProtocol(), false),
 					},
 
 					"http_configuration": {
@@ -227,13 +212,10 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"method": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  string(connectionmonitors.HTTPConfigurationMethodGet),
-									ValidateFunc: validation.StringInSlice([]string{
-										string(connectionmonitors.HTTPConfigurationMethodGet),
-										string(connectionmonitors.HTTPConfigurationMethodPost),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Default:      string(connectionmonitors.HTTPConfigurationMethodGet),
+									ValidateFunc: validation.StringInSlice(connectionmonitors.PossibleValuesForHTTPConfigurationMethod(), false),
 								},
 
 								"path": {
@@ -302,12 +284,9 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"preferred_ip_version": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(connectionmonitors.PreferredIPVersionIPvFour),
-							string(connectionmonitors.PreferredIPVersionIPvSix),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(connectionmonitors.PossibleValuesForPreferredIPVersion(), false),
 					},
 
 					// lintignore:XS003
@@ -351,12 +330,9 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 								},
 
 								"destination_port_behavior": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(connectionmonitors.DestinationPortBehaviorNone),
-										string(connectionmonitors.DestinationPortBehaviorListenIfAvailable),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringInSlice(connectionmonitors.PossibleValuesForDestinationPortBehavior(), false),
 								},
 							},
 						},

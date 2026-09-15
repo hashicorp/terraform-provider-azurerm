@@ -99,12 +99,7 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice(
-												[]string{
-													string(alertrules.AlertSeverityHigh),
-													string(alertrules.AlertSeverityMedium),
-													string(alertrules.AlertSeverityLow),
-													string(alertrules.AlertSeverityInformational),
-												},
+												alertrules.PossibleValuesForAlertSeverity(),
 												false,
 											),
 										},
@@ -133,7 +128,7 @@ func resourceSentinelAlertRuleFusionCreate(d *pluginsdk.ResourceData, meta inter
 	id := alertrules.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
 
 	// The only one fusion alert is enabled by default, so we do not do exisiting check here.
-	// https://learn.microsoft.com/en-us/azure/sentinel/configure-fusion-rules#configure-scheduled-analytics-rules-for-fusion-detections
+	// https://learn.microsoft.com/azure/sentinel/configure-fusion-rules#configure-scheduled-analytics-rules-for-fusion-detections
 	params := alertrules.FusionAlertRule{
 		Properties: &alertrules.FusionAlertRuleProperties{
 			AlertRuleTemplateName: d.Get("alert_rule_template_guid").(string),

@@ -63,13 +63,10 @@ func (r IotHubFileUploadResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"authentication_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(devices.AuthenticationTypeKeyBased),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(devices.AuthenticationTypeKeyBased),
-				string(devices.AuthenticationTypeIdentityBased),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(devices.AuthenticationTypeKeyBased),
+			ValidateFunc: validation.StringInEnumSlice(devices.PossibleAuthenticationTypeValues(), false),
 		},
 
 		"default_ttl": {
@@ -235,16 +232,12 @@ func (r IotHubFileUploadResource) Read() sdk.ResourceFunc {
 			}
 
 			state := IotHubFileUploadResourceModel{
-				AuthenticationType:   string(devices.AuthenticationTypeKeyBased),
-				ConnectionString:     "",
-				ContainerName:        "",
-				DefaultTTL:           "PT1H",
-				IdentityId:           "",
-				IotHubId:             id.ID(),
-				LockDuration:         "PT1M",
-				MaxDeliveryCount:     10,
-				NotificationsEnabled: false,
-				SasTTL:               "PT1H",
+				AuthenticationType: string(devices.AuthenticationTypeKeyBased),
+				DefaultTTL:         "PT1H",
+				IotHubId:           id.ID(),
+				LockDuration:       "PT1M",
+				MaxDeliveryCount:   10,
+				SasTTL:             "PT1H",
 			}
 
 			if props := iotHub.Properties; props != nil {

@@ -103,25 +103,19 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 			},
 
 			"mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(virtualwans.VpnNatRuleModeEgressSnat),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualwans.VpnNatRuleModeEgressSnat),
-					string(virtualwans.VpnNatRuleModeIngressSnat),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(virtualwans.VpnNatRuleModeEgressSnat),
+				ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForVpnNatRuleMode(), false),
 			},
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(virtualwans.VpnNatRuleTypeStatic),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualwans.VpnNatRuleTypeStatic),
-					string(virtualwans.VpnNatRuleTypeDynamic),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(virtualwans.VpnNatRuleTypeStatic),
+				ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForVpnNatRuleType(), false),
 			},
 		},
 	}

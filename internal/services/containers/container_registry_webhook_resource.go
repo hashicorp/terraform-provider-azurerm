@@ -6,6 +6,7 @@ package containers
 import (
 	"fmt"
 	"log"
+	"maps"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -80,13 +81,10 @@ func resourceContainerRegistryWebhook() *pluginsdk.Resource {
 			},
 
 			"status": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  webhooks.WebhookStatusEnabled,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(webhooks.WebhookStatusDisabled),
-					string(webhooks.WebhookStatusEnabled),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      webhooks.WebhookStatusEnabled,
+				ValidateFunc: validation.StringInSlice(webhooks.PossibleValuesForWebhookStatus(), false),
 			},
 
 			"scope": {
@@ -100,14 +98,8 @@ func resourceContainerRegistryWebhook() *pluginsdk.Resource {
 				Required: true,
 				MinItems: 1,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webhooks.WebhookActionChartDelete),
-						string(webhooks.WebhookActionChartPush),
-						string(webhooks.WebhookActionDelete),
-						string(webhooks.WebhookActionPush),
-						string(webhooks.WebhookActionQuarantine),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(webhooks.PossibleValuesForWebhookAction(), false),
 				},
 			},
 
@@ -235,9 +227,7 @@ func resourceContainerRegistryWebhookRead(d *pluginsdk.ResourceData, meta interf
 
 		customHeaders := make(map[string]string)
 		if callbackModel.CustomHeaders != nil {
-			for k, v := range *callbackModel.CustomHeaders {
-				customHeaders[k] = v
-			}
+			maps.Copy(customHeaders, *callbackModel.CustomHeaders)
 		}
 		d.Set("custom_headers", customHeaders)
 	}

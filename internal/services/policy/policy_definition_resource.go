@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
+	"net/http"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	mgmtGrpParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -23,12 +24,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceArmPolicyDefinition() *pluginsdk.Resource {
+func resourcePolicyDefinition() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmPolicyDefinitionCreateUpdate,
-		Update: resourceArmPolicyDefinitionCreateUpdate,
-		Read:   resourceArmPolicyDefinitionRead,
-		Delete: resourceArmPolicyDefinitionDelete,
+		Create: resourcePolicyDefinitionCreateUpdate,
+		Update: resourcePolicyDefinitionCreateUpdate,
+		Read:   resourcePolicyDefinitionRead,
+		Delete: resourcePolicyDefinitionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.PolicyDefinitionID(id)
@@ -42,7 +43,7 @@ func resourceArmPolicyDefinition() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: resourceArmPolicyDefinitionSchema(),
+		Schema: resourcePolicyDefinitionSchema(),
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			// `parameters` cannot have values removed so we'll ForceNew if there are less parameters between Terraform runs
@@ -75,7 +76,7 @@ func resourceArmPolicyDefinition() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.DefinitionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -160,21 +161,15 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	// Policy Definitions are eventually consistent; wait for them to stabilize
 	log.Printf("[DEBUG] Waiting for Policy Definition %q to become available", name)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"404"},
-		Target:                    []string{"200"},
-		Refresh:                   policyDefinitionRefreshFunc(ctx, client, name, managementGroupName),
-		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 10,
-	}
-
-	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
-	} else {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
-	}
-
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(10, func(pollerCtx context.Context) (*http.Response, error) {
+		res, err := getPolicyDefinitionByName(pollerCtx, client, name, managementGroupName)
+		return res.Response.Response, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:              10 * time.Second,
+		TargetStatusCode:      pointer.To(http.StatusOK),
+		RetryErrorStatusCodes: []int{http.StatusNotFound},
+	})
+	if err = poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for Policy Definition %q to become available: %+v", name, err)
 	}
 
@@ -193,10 +188,10 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 	d.SetId(id.Id)
 
-	return resourceArmPolicyDefinitionRead(d, meta)
+	return resourcePolicyDefinitionRead(d, meta)
 }
 
-func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.DefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -257,7 +252,7 @@ func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmPolicyDefinitionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePolicyDefinitionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.DefinitionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -291,17 +286,6 @@ func resourceArmPolicyDefinitionDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func policyDefinitionRefreshFunc(ctx context.Context, client *policy.DefinitionsClient, name, managementGroupID string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := getPolicyDefinitionByName(ctx, client, name, managementGroupID)
-		if err != nil {
-			return nil, strconv.Itoa(res.StatusCode), fmt.Errorf("issuing read request in policyAssignmentRefreshFunc for Policy Assignment %q: %+v", name, err)
-		}
-
-		return res, strconv.Itoa(res.StatusCode), nil
-	}
-}
-
 func flattenJSON(stringMap interface{}) string {
 	if stringMap != nil {
 		if v, ok := stringMap.(*interface{}); ok {
@@ -317,7 +301,7 @@ func flattenJSON(stringMap interface{}) string {
 	return ""
 }
 
-func resourceArmPolicyDefinitionSchema() map[string]*pluginsdk.Schema {
+func resourcePolicyDefinitionSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -326,15 +310,10 @@ func resourceArmPolicyDefinitionSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"policy_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(policy.TypeBuiltIn),
-				string(policy.TypeCustom),
-				string(policy.TypeNotSpecified),
-				string(policy.TypeStatic),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInEnumSlice(policy.PossibleTypeValues(), false),
 		},
 
 		"mode": {
