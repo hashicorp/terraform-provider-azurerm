@@ -23,6 +23,9 @@ func TestAccDataSourceStreamAnalyticsJob_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("job_id").Exists(),
 				check.That(data.ResourceName).Key("streaming_units").Exists(),
 				check.That(data.ResourceName).Key("transformation_query").Exists(),
+				check.That(data.ResourceName).Key("type").HasValue("Cloud"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Test"),
 			),
 		},
 	})
@@ -93,6 +96,32 @@ data "azurerm_stream_analytics_job" "test" {
   resource_group_name = azurerm_stream_analytics_job.test.resource_group_name
 
   depends_on = [azurerm_stream_analytics_job_schedule.test]
+}
+`, config)
+}
+
+func TestAccDataSourceStreamAnalyticsJob_jobStorageAccount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_stream_analytics_job", "test")
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: StreamAnalyticsJobDataSource{}.jobStorageAccount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("content_storage_policy").HasValue("JobStorageAccount"),
+				check.That(data.ResourceName).Key("job_storage_account.#").HasValue("1"),
+			),
+		},
+	})
+}
+
+func (d StreamAnalyticsJobDataSource) jobStorageAccount(data acceptance.TestData) string {
+	config := StreamAnalyticsJobResource{}.jobStorageAccount(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_stream_analytics_job" "test" {
+  name                = azurerm_stream_analytics_job.test.name
+  resource_group_name = azurerm_stream_analytics_job.test.resource_group_name
 }
 `, config)
 }
