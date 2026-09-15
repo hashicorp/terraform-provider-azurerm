@@ -1,3 +1,26 @@
+## 5.6.0 (Unreleased)
+
+ENHANCEMENTS:
+* `azurerm_linux_web_app` - add support for the `end_to_end_tls_encryption_enabled` property [GH-31135]
+* `azurerm_linux_web_app_slot` - add support for the `end_to_end_tls_encryption_enabled` property [GH-31135]
+* `azurerm_linux_function_app` - add support for the `end_to_end_tls_encryption_enabled` property [GH-31135]
+* `azurerm_linux_function_app_slot` - add support for the `end_to_end_tls_encryption_enabled` property [GH-31135]
+* `azurerm_windows_function_app` - add support for the `end_to_end_tls_encryption_enabled` property [GH-31135]
+* `azurerm_windows_function_app_slot` - add support for the `end_to_end_tls_encryption_enabled` property [GH-31135]
+* `azurerm_windows_web_app` - add support for the `end_to_end_tls_encryption_enabled` property [GH-31135]
+* `azurerm_windows_web_app_slot` - add support for the `end_to_end_tls_encryption_enabled` property [GH-31135]
+* dependencies: `containers` - update API version to `2026-05-01` [GH-32688]
+* `azurerm_mongo_cluster` - Support new property `network_bypass_mode` [GH-33168]
+* dependencies: `go-azure-sdk` - update to `v0.20260910.1141000` [GH-33413]
+
+FEATURES:
+* **New List Resource**: `azurerm_cdn_frontdoor_origin_group` [GH-33334]
+* **New List Resource**: `azurerm_batch_account` [GH-33252]
+* **New Resource**: `azurerm_storage_discovery_workspace` [GH-31479]
+
+BUG FIXES:
+* `azurerm_site_recovery_replicated_vm` - select `managed_disk` properties compared case insensitive [GH-33424]
+
 ## 5.5.0 (September 10, 2026)
 
 FEATURES:
