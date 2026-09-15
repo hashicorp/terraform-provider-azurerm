@@ -61,8 +61,9 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 				},
 
 				"immutability_mode": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					// Note: O+C because the API returns `Unlocked` once time based immutability has been enabled, even when `immutability_mode` has not been explicitly configured.
 					Computed:     true,
 					ValidateFunc: validation.StringInSlice(longtermretentionpolicies.PossibleValuesForTimeBasedImmutabilityMode(), false),
 				},
