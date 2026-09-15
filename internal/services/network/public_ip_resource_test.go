@@ -12,7 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -456,7 +456,7 @@ func (t PublicIpResource) Exists(ctx context.Context, clients *clients.Client, s
 		return nil, err
 	}
 
-	resp, err := clients.Network.PublicIPAddresses.Get(ctx, *id, publicipaddresses.DefaultGetOperationOptions())
+	resp, err := clients.Network.PublicIPAddressesClient.Get(ctx, *id, publicipaddresses.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
@@ -472,7 +472,7 @@ func (PublicIpResource) Destroy(ctx context.Context, client *clients.Client, sta
 
 	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
-	if err := client.Network.PublicIPAddresses.DeleteThenPoll(ctx2, *id); err != nil {
+	if err := client.Network.PublicIPAddressesClient.DeleteThenPoll(ctx2, *id); err != nil {
 		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

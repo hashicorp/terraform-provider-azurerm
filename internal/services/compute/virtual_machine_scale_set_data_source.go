@@ -126,7 +126,7 @@ func dataSourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interf
 	instancesClient := meta.(*clients.Client).Compute.VirtualMachineScaleSetVMsClient
 	virtualMachinesClient := meta.(*clients.Client).Compute.VirtualMachinesClient
 	networkInterfacesClient := meta.(*clients.Client).Network.NetworkInterfacesClient
-	publicIPAddressesClient := meta.(*clients.Client).Network.PublicIPAddresses
+	publicIPAddressesClient := meta.(*clients.Client).Network.PublicIPAddressesClient
 	vmssPublicIpAddressesClient := meta.(*clients.Client).Network.VMSSPublicIPAddressesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
