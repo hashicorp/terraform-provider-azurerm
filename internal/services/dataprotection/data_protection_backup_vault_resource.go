@@ -65,25 +65,17 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"datastore_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(backupvaultresources.StorageSettingStoreTypesArchiveStore),
-					string(backupvaultresources.StorageSettingStoreTypesOperationalStore),
-					string(backupvaultresources.StorageSettingStoreTypesVaultStore),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(backupvaultresources.PossibleValuesForStorageSettingStoreTypes(), false),
 			},
 
 			"redundancy": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(backupvaultresources.StorageSettingTypesGeoRedundant),
-					string(backupvaultresources.StorageSettingTypesLocallyRedundant),
-					string(backupvaultresources.StorageSettingTypesZoneRedundant),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(backupvaultresources.PossibleValuesForStorageSettingTypes(), false),
 			},
 
 			"cross_region_restore_enabled": {

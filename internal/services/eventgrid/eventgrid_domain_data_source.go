@@ -185,13 +185,11 @@ func dataSourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 			d.Set("input_schema", inputSchema)
 
-			inputMappingFields := flattenDomainInputMapping(props.InputSchemaMapping)
-			if err := d.Set("input_mapping_fields", inputMappingFields); err != nil {
+			if err := d.Set("input_mapping_fields", flattenDomainInputMapping(props.InputSchemaMapping)); err != nil {
 				return fmt.Errorf("setting `input_schema_mapping_fields` for %s: %+v", id, err)
 			}
 
-			inputMappingDefaultValues := flattenDomainInputMappingDefaultValues(props.InputSchemaMapping)
-			if err := d.Set("input_mapping_default_values", inputMappingDefaultValues); err != nil {
+			if err := d.Set("input_mapping_default_values", flattenDomainInputMappingDefaultValues(props.InputSchemaMapping)); err != nil {
 				return fmt.Errorf("setting `input_schema_mapping_fields` for %s: %+v", id, err)
 			}
 
@@ -201,8 +199,7 @@ func dataSourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 
-			inboundIPRules := flattenDomainInboundIPRules(props.InboundIPRules)
-			if err := d.Set("inbound_ip_rule", inboundIPRules); err != nil {
+			if err := d.Set("inbound_ip_rule", flattenDomainInboundIPRules(props.InboundIPRules)); err != nil {
 				return fmt.Errorf("setting `inbound_ip_rule` in %s: %+v", id, err)
 			}
 

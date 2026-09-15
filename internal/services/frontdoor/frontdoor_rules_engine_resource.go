@@ -185,13 +185,9 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"header_action_type": {
-													Type: pluginsdk.TypeString,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(frontdoors.HeaderActionTypeAppend),
-														string(frontdoors.HeaderActionTypeDelete),
-														string(frontdoors.HeaderActionTypeOverwrite),
-													}, false),
-													Optional: true,
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.StringInSlice(frontdoors.PossibleValuesForHeaderActionType(), false),
+													Optional:     true,
 												},
 
 												"header_name": {
@@ -216,13 +212,9 @@ func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"header_action_type": {
-													Type: pluginsdk.TypeString,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(frontdoors.HeaderActionTypeAppend),
-														string(frontdoors.HeaderActionTypeDelete),
-														string(frontdoors.HeaderActionTypeOverwrite),
-													}, false),
-													Optional: true,
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.StringInSlice(frontdoors.PossibleValuesForHeaderActionType(), false),
+													Optional:     true,
 												},
 
 												"header_name": {
@@ -373,7 +365,6 @@ func expandFrontDoorRulesEngineMatchCondition(input []interface{}) *[]frontdoors
 		condition := c.(map[string]interface{})
 
 		selector := condition["selector"].(string)
-		negateCondition := condition["negate_condition"].(bool)
 		matchVariable := condition["variable"].(string)
 		operator := condition["operator"].(string)
 		transform := condition["transform"].([]interface{})
@@ -388,7 +379,7 @@ func expandFrontDoorRulesEngineMatchCondition(input []interface{}) *[]frontdoors
 			RulesEngineMatchVariable: frontdoors.RulesEngineMatchVariable(matchVariable),
 			Selector:                 pointer.To(selector),
 			RulesEngineOperator:      frontdoors.RulesEngineOperator(operator),
-			NegateCondition:          &negateCondition,
+			NegateCondition:          pointer.To(condition["negate_condition"].(bool)),
 			RulesEngineMatchValue:    matchValueArray,
 			Transforms:               expandFrontDoorRulesEngineMatchConditionTransform(transform),
 		}

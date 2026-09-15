@@ -61,14 +61,10 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 			},
 
 			"protocol": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(loadbalancers.ProbeProtocolTcp),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(loadbalancers.ProbeProtocolHTTP),
-					string(loadbalancers.ProbeProtocolHTTPS),
-					string(loadbalancers.ProbeProtocolTcp),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(loadbalancers.ProbeProtocolTcp),
+				ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForProbeProtocol(), false),
 			},
 
 			"port": {
@@ -102,12 +98,18 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 				Default:  2,
 			},
 
+			"no_healthy_backends_behavior": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(loadbalancers.ProbeNoHealthyBackendsBehaviorAllProbedDown),
+				ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForProbeNoHealthyBackendsBehavior(), false),
+			},
+
 			"load_balancer_rules": {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
+					Type: pluginsdk.TypeString,
 				},
 				Set: pluginsdk.HashString,
 			},
@@ -215,6 +217,7 @@ func resourceArmLoadBalancerProbeRead(d *pluginsdk.ResourceData, meta interface{
 			d.Set("protocol", string(props.Protocol))
 			d.Set("request_path", pointer.From(props.RequestPath))
 			d.Set("probe_threshold", int(pointer.From(props.ProbeThreshold)))
+			d.Set("no_healthy_backends_behavior", string(pointer.From(props.NoHealthyBackendsBehavior)))
 
 			// TODO: parse/make these consistent
 			var loadBalancerRules []string
@@ -293,6 +296,10 @@ func expandAzureRmLoadBalancerProbe(d *pluginsdk.ResourceData) *loadbalancers.Pr
 
 	if v, ok := d.GetOk("probe_threshold"); ok {
 		properties.ProbeThreshold = pointer.To(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("no_healthy_backends_behavior"); ok {
+		properties.NoHealthyBackendsBehavior = pointer.ToEnum[loadbalancers.ProbeNoHealthyBackendsBehavior](v.(string))
 	}
 
 	return &loadbalancers.Probe{

@@ -19,4 +19,3 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
       - name: Process stale draft PRs
         run: ./scripts/automation/pr-close-inactive-drafts.sh -o "${{ github.repository_owner }}" -r "${{ github.event.repository.name }}" -t "${{ secrets.GITHUB_TOKEN }}"
-

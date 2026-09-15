@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/snapshots"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -866,20 +866,20 @@ func TestAccKubernetesClusterNodePool_hostEncryption(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesClusterNodePool_securityProfile(t *testing.T) {
+func TestAccKubernetesClusterNodePool_security(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.securityProfileConfig(data, true, true),
+			Config: r.securityConfig(data, true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("temporary_name_for_rotation"),
 		{
-			Config: r.securityProfileConfig(data, false, false),
+			Config: r.securityConfig(data, false, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1679,6 +1679,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
+
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 
   kubelet_config {
     cpu_manager_policy    = "static"
@@ -2997,7 +3001,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, r.templateConfig(data))
 }
 
-func (r KubernetesClusterNodePoolResource) securityProfileConfig(data acceptance.TestData, vtpmEnabled, secureBootEnabled bool) string {
+func (r KubernetesClusterNodePoolResource) securityConfig(data acceptance.TestData, vtpmEnabled, secureBootEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3040,7 +3044,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   temporary_name_for_rotation = "tempnp"
   vm_size                     = "Standard_D2s_v3"
 
-  security_profile {
+  security {
     vtpm_enabled        = %[3]t
     secure_boot_enabled = %[4]t
   }

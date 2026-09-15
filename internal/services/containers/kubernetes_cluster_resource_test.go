@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -43,20 +43,20 @@ func TestAccKubernetesCluster_hostEncryption(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_defaultNodePoolSecurityProfile(t *testing.T) {
+func TestAccKubernetesCluster_defaultNodePoolSecurity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.defaultNodePoolSecurityProfile(data, true, true),
+			Config: r.defaultNodePoolSecurity(data, true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 		{
-			Config: r.defaultNodePoolSecurityProfile(data, false, false),
+			Config: r.defaultNodePoolSecurity(data, false, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -462,7 +462,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
 }
 
-func (KubernetesClusterResource) defaultNodePoolSecurityProfile(data acceptance.TestData, vtpmEnabled, secureBootEnabled bool) string {
+func (KubernetesClusterResource) defaultNodePoolSecurity(data acceptance.TestData, vtpmEnabled, secureBootEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -485,7 +485,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     temporary_name_for_rotation = "temp"
     vm_size                     = "Standard_D2s_v3"
 
-    security_profile {
+    security {
       vtpm_enabled        = %[3]t
       secure_boot_enabled = %[4]t
     }
