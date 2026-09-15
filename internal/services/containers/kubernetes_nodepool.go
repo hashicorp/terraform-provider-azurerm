@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
-	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
@@ -204,10 +203,8 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"pod_ip_allocation_mode": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						// NOTE: O+C - Preserve the API value when omitted to avoid replacing existing pools.
-						Computed:     true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
 						ForceNew:     true,
 						RequiredWith: []string{"default_node_pool.0.pod_subnet_id"},
 						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForPodIPAllocationMode(), false),
@@ -895,8 +892,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.PodSubnetID = pointer.To(podSubnetID)
 	}
 
-	if defaultNodePoolPodIPAllocationModeSetInConfig(d) {
-		podIPAllocationMode := raw["pod_ip_allocation_mode"].(string)
+	if podIPAllocationMode := raw["pod_ip_allocation_mode"].(string); podIPAllocationMode != "" {
 		profile.PodIPAllocationMode = pointer.ToEnum[managedclusters.PodIPAllocationMode](podIPAllocationMode)
 	}
 
@@ -1016,19 +1012,6 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 	return &[]managedclusters.ManagedClusterAgentPoolProfile{
 		profile,
 	}, nil
-}
-
-func nodePoolPodIPAllocationModeSetInConfig(d *pluginsdk.ResourceData) bool {
-	return rawConfigHasValue(d, cty.GetAttrPath("pod_ip_allocation_mode"))
-}
-
-func defaultNodePoolPodIPAllocationModeSetInConfig(d *pluginsdk.ResourceData) bool {
-	return rawConfigHasValue(d, cty.GetAttrPath("default_node_pool").IndexInt(0).GetAttr("pod_ip_allocation_mode"))
-}
-
-func rawConfigHasValue(d *pluginsdk.ResourceData, path cty.Path) bool {
-	raw, diags := d.GetRawConfigAt(path)
-	return !diags.HasError() && !raw.IsNull()
 }
 
 func expandClusterNodePoolKubeletConfig(input []interface{}) *managedclusters.KubeletConfig {

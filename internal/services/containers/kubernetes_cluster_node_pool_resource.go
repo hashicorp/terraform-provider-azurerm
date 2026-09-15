@@ -316,10 +316,8 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"pod_ip_allocation_mode": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// NOTE: O+C - Preserve the API value when omitted to avoid replacing existing pools.
-			Computed:     true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
 			ForceNew:     true,
 			RequiredWith: []string{"pod_subnet_id"},
 			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForPodIPAllocationMode(), false),
@@ -620,9 +618,8 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		subnetIDsToLock = append(subnetIDsToLock, podSubnetID.ID())
 	}
 
-	if nodePoolPodIPAllocationModeSetInConfig(d) {
-		podIPAllocationMode := d.Get("pod_ip_allocation_mode").(string)
-		profile.PodIPAllocationMode = pointer.ToEnum[agentpools.PodIPAllocationMode](podIPAllocationMode)
+	if podIPAllocationMode, ok := d.GetOk("pod_ip_allocation_mode"); ok {
+		profile.PodIPAllocationMode = pointer.ToEnum[agentpools.PodIPAllocationMode](podIPAllocationMode.(string))
 	}
 
 	if nodeSubnetID != nil {
