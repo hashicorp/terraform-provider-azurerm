@@ -52,6 +52,7 @@ func (r Registration) Resources() []sdk.Resource {
 		LinuxFunctionAppResource{},
 		LinuxFunctionAppSlotResource{},
 		LinuxWebAppResource{},
+		LinuxWebAppSiteContainerResource{},
 		LinuxWebAppSlotResource{},
 		ServicePlanResource{},
 		SourceControlResource{},
@@ -88,6 +89,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
+		&LinuxWebAppSiteContainerListResource{},
 		&ServicePlanResourceList{},
 	}
 }
