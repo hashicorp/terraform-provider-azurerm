@@ -1357,10 +1357,6 @@ func expandAgentPoolLocalDNSProfile(input []interface{}) *agentpools.LocalDNSPro
 		profile.Mode = pointer.ToEnum[agentpools.LocalDNSMode](v)
 	}
 
-	if v, ok := raw["state"].(string); ok && v != "" {
-		profile.State = pointer.ToEnum[agentpools.LocalDNSState](v)
-	}
-
 	if v, ok := raw["kube_dns_override"].(*pluginsdk.Set); ok && v.Len() > 0 {
 		overrides := make(map[string]agentpools.LocalDNSOverride)
 		for _, item := range v.List() {
@@ -1424,10 +1420,6 @@ func flattenAgentPoolLocalDNSProfile(input *agentpools.LocalDNSProfile) []interf
 
 	if input.Mode != nil {
 		values["mode"] = string(*input.Mode)
-	}
-
-	if input.State != nil {
-		values["state"] = string(*input.State)
 	}
 
 	if input.KubeDNSOverrides != nil && len(*input.KubeDNSOverrides) > 0 {

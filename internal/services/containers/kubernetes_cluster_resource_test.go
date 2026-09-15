@@ -28,6 +28,16 @@ var (
 	currentKubernetesVersionAlias = "1.35"
 )
 
+// func TestAccKubernetesCluster_regressionTest(t *testing.T) {
+//	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
+//	r := ResourceGroupResource{}
+//	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+//		{
+//			Config: r.basic(data),
+//		},
+//	}, "")
+// }
+
 func TestAccKubernetesCluster_hostEncryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -1728,7 +1738,6 @@ resource "azurerm_kubernetes_cluster" "test" {
 
     local_dns_profile {
       mode  = "Preferred"
-      state = "Enabled"
 
       vnet_dns_override {
         domain   = "example.com"

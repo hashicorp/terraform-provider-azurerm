@@ -918,9 +918,6 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 		if localDnsProfile.Mode != nil {
 			agentPoolProfile.Mode = pointer.ToEnum[agentpools.LocalDNSMode](string(*localDnsProfile.Mode))
 		}
-		if localDnsProfile.State != nil {
-			agentPoolProfile.State = pointer.ToEnum[agentpools.LocalDNSState](string(*localDnsProfile.State))
-		}
 		if localDnsProfile.KubeDNSOverrides != nil {
 			overrides := make(map[string]agentpools.LocalDNSOverride, len(*localDnsProfile.KubeDNSOverrides))
 			for k, v := range *localDnsProfile.KubeDNSOverrides {
