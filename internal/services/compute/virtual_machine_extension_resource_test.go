@@ -19,6 +19,16 @@ import (
 
 type VirtualMachineExtensionResource struct{}
 
+func TestAccVirtualMachineExtension_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_extension", "test")
+	r := VirtualMachineExtensionResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccVirtualMachineExtension_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_extension", "test")
 	r := VirtualMachineExtensionResource{}

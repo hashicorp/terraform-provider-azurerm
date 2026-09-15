@@ -21,6 +21,16 @@ import (
 
 type VirtualMachineDataDiskAttachmentResource struct{}
 
+func TestAccVirtualMachineDataDiskAttachment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
+	r := VirtualMachineDataDiskAttachmentResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccVirtualMachineDataDiskAttachment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
 	r := VirtualMachineDataDiskAttachmentResource{}
