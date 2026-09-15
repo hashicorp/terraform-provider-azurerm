@@ -4,6 +4,8 @@
 package helpers
 
 import (
+	"strings"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -97,6 +99,11 @@ func WorkloadProfileSchema() *pluginsdk.Schema {
 	}
 }
 
+func isConsumptionProfileType(workloadProfileType string) bool {
+	return strings.EqualFold(workloadProfileType, string(WorkloadProfileSkuConsumption)) ||
+		strings.HasPrefix(strings.ToLower(workloadProfileType), "consumption-gpu")
+}
+
 func ExpandWorkloadProfiles(input []WorkloadProfileModel) *[]managedenvironments.WorkloadProfile {
 	if len(input) == 0 {
 		return nil
@@ -106,15 +113,13 @@ func ExpandWorkloadProfiles(input []WorkloadProfileModel) *[]managedenvironments
 
 	for _, v := range input {
 		r := managedenvironments.WorkloadProfile{
-			Name: v.Name,
+			Name:                v.Name,
+			WorkloadProfileType: v.WorkloadProfileType,
 		}
 
-		if v.Name != string(WorkloadProfileSkuConsumption) {
-			r.WorkloadProfileType = v.WorkloadProfileType
+		if !isConsumptionProfileType(v.WorkloadProfileType) {
 			r.MaximumCount = pointer.To(v.MaximumCount)
 			r.MinimumCount = pointer.To(v.MinimumCount)
-		} else {
-			r.WorkloadProfileType = string(WorkloadProfileSkuConsumption)
 		}
 
 		result = append(result, r)
