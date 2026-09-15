@@ -18,6 +18,16 @@ import (
 
 type AutomationAccountResource struct{}
 
+func TestAccAutomationAccount_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
+	r := AutomationAccountResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccAutomationAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
 	r := AutomationAccountResource{}

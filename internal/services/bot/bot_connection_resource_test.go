@@ -18,6 +18,16 @@ import (
 
 type BotConnectionResource struct{}
 
+func TestAccBotConnection_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_connection", "test")
+	r := BotConnectionResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicConfig(data),
+		},
+	}, "")
+}
+
 func TestAccBotConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_connection", "test")
 	r := BotConnectionResource{}
