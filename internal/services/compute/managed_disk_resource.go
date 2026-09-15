@@ -102,7 +102,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 					512,
 					4096,
 				}),
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"optimized_frequent_attach_enabled": {
@@ -121,7 +121,7 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			"source_uri": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 			},
 
@@ -160,8 +160,9 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			},
 
 			"disk_size_gb": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because Azure computes disk size when not specified
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(0, 65536),
 			},
@@ -174,29 +175,33 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			},
 
 			"disk_iops_read_write": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because Azure assigns IOPS based on disk size when not specified
 				Computed:     true,
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"disk_mbps_read_write": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because Azure assigns throughput based on disk size when not specified
 				Computed:     true,
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"disk_iops_read_only": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because Azure assigns read-only IOPS based on disk size when not specified
 				Computed:     true,
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"disk_mbps_read_only": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because Azure assigns read-only throughput based on disk size when not specified
 				Computed:     true,
 				ValidateFunc: validation.IntAtLeast(1),
 			},
@@ -237,13 +242,13 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			"tier": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"max_shares": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.IntBetween(2, 10),
 			},
 
@@ -330,7 +335,6 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	t := d.Get("tags").(map[string]interface{})
 	skuName := disks.DiskStorageAccountTypes(storageAccountType)
-	encryptionTypePlatformKey := disks.EncryptionTypeEncryptionAtRestWithPlatformKey
 
 	props := &disks.DiskProperties{
 		CreationData: disks.CreationData{
@@ -340,7 +344,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		OptimizedForFrequentAttach: pointer.To(d.Get("optimized_frequent_attach_enabled").(bool)),
 		OsType:                     &osType,
 		Encryption: &disks.Encryption{
-			Type: &encryptionTypePlatformKey,
+			Type: pointer.To(disks.EncryptionTypeEncryptionAtRestWithPlatformKey),
 		},
 	}
 
@@ -357,14 +361,12 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if storageAccountType == string(disks.DiskStorageAccountTypesUltraSSDLRS) || storageAccountType == string(disks.DiskStorageAccountTypesPremiumVTwoLRS) {
 		if d.HasChange("disk_iops_read_write") {
 			v := d.Get("disk_iops_read_write")
-			diskIOPS := int64(v.(int))
-			props.DiskIOPSReadWrite = &diskIOPS
+			props.DiskIOPSReadWrite = pointer.To(int64(v.(int)))
 		}
 
 		if d.HasChange("disk_mbps_read_write") {
 			v := d.Get("disk_mbps_read_write")
-			diskMBps := int64(v.(int))
-			props.DiskMBpsReadWrite = &diskMBps
+			props.DiskMBpsReadWrite = pointer.To(int64(v.(int)))
 		}
 
 		if v, ok := d.GetOk("disk_iops_read_only"); ok {
@@ -470,11 +472,9 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.Get("public_network_access_enabled").(bool) {
-		networkAccessEnabled := disks.PublicNetworkAccessEnabled
-		props.PublicNetworkAccess = &networkAccessEnabled
+		props.PublicNetworkAccess = pointer.To(disks.PublicNetworkAccessEnabled)
 	} else {
-		networkAccessDisabled := disks.PublicNetworkAccessDisabled
-		props.PublicNetworkAccess = &networkAccessDisabled
+		props.PublicNetworkAccess = pointer.To(disks.PublicNetworkAccessDisabled)
 	}
 
 	if tier := d.Get("tier").(string); tier != "" {
@@ -485,9 +485,8 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.Get("trusted_launch_enabled").(bool) {
-		diskSecurityTypeTrustedLaunch := disks.DiskSecurityTypesTrustedLaunch
 		props.SecurityProfile = &disks.DiskSecurityProfile{
-			SecurityType: &diskSecurityTypeTrustedLaunch,
+			SecurityType: pointer.To(disks.DiskSecurityTypesTrustedLaunch),
 		}
 
 		switch createOption {
@@ -518,9 +517,8 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("`secure_vm_disk_encryption_set_id` must be specified when `security_type` is set to `ConfidentialVM_DiskEncryptedWithCustomerKey`")
 		}
 
-		diskSecurityType := disks.DiskSecurityTypes(securityType)
 		props.SecurityProfile = &disks.DiskSecurityProfile{
-			SecurityType: &diskSecurityType,
+			SecurityType: pointer.ToEnum[disks.DiskSecurityTypes](securityType),
 		}
 	}
 
@@ -547,8 +545,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if v, ok := d.GetOk("hyper_v_generation"); ok {
-		hyperVGeneration := disks.HyperVGeneration(v.(string))
-		props.HyperVGeneration = &hyperVGeneration
+		props.HyperVGeneration = pointer.ToEnum[disks.HyperVGeneration](v.(string))
 	}
 
 	createDisk := disks.Disk{
@@ -657,14 +654,12 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if strings.EqualFold(storageAccountType, string(disks.DiskStorageAccountTypesUltraSSDLRS)) || storageAccountType == string(disks.DiskStorageAccountTypesPremiumVTwoLRS) {
 		if d.HasChange("disk_iops_read_write") {
 			v := d.Get("disk_iops_read_write")
-			diskIOPS := int64(v.(int))
-			diskUpdate.Properties.DiskIOPSReadWrite = &diskIOPS
+			diskUpdate.Properties.DiskIOPSReadWrite = pointer.To(int64(v.(int)))
 		}
 
 		if d.HasChange("disk_mbps_read_write") {
 			v := d.Get("disk_mbps_read_write")
-			diskMBps := int64(v.(int))
-			diskUpdate.Properties.DiskMBpsReadWrite = &diskMBps
+			diskUpdate.Properties.DiskMBpsReadWrite = pointer.To(int64(v.(int)))
 		}
 
 		if d.HasChange("disk_iops_read_only") {
@@ -760,11 +755,9 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if d.HasChange("public_network_access_enabled") {
 		if d.Get("public_network_access_enabled").(bool) {
-			networkAccessEnabled := disks.PublicNetworkAccessEnabled
-			diskUpdate.Properties.PublicNetworkAccess = &networkAccessEnabled
+			diskUpdate.Properties.PublicNetworkAccess = pointer.To(disks.PublicNetworkAccessEnabled)
 		} else {
-			networkAccessDisabled := disks.PublicNetworkAccessDisabled
-			diskUpdate.Properties.PublicNetworkAccess = &networkAccessDisabled
+			diskUpdate.Properties.PublicNetworkAccess = pointer.To(disks.PublicNetworkAccessDisabled)
 		}
 	}
 

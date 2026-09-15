@@ -74,14 +74,11 @@ func resourceHealthcareApisFhirService() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"kind": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(fhirservices.FhirServiceKindFhirNegativeRFour),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(fhirservices.FhirServiceKindFhirNegativeRFour),
-					string(fhirservices.FhirServiceKindFhirNegativeStuThree),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(fhirservices.FhirServiceKindFhirNegativeRFour),
+				ValidateFunc: validation.StringInSlice(fhirservices.PossibleValuesForFhirServiceKind(), false),
 			},
 
 			"access_policy_object_ids": {
@@ -370,11 +367,8 @@ func expandOciArtifacts(input []interface{}) *[]fhirservices.ServiceOciArtifactE
 	for _, artifactSet := range input {
 		artifactRaw := artifactSet.(map[string]interface{})
 
-		loginServer := artifactRaw["login_server"].(string)
 		artifact := fhirservices.ServiceOciArtifactEntry{
-			LoginServer: &loginServer,
-			ImageName:   nil,
-			Digest:      nil,
+			LoginServer: pointer.To(artifactRaw["login_server"].(string)),
 		}
 		if image := artifactRaw["image_name"].(string); image != "" {
 			artifact.ImageName = &image
@@ -513,18 +507,16 @@ func expandFhirCorsConfiguration(input []interface{}) *fhirservices.FhirServiceC
 	allowedOrigins := *helpers.ExpandStringSlice(block["allowed_origins"].(*pluginsdk.Set).List())
 	allowedHeaders := *helpers.ExpandStringSlice(block["allowed_headers"].(*pluginsdk.Set).List())
 	allowedMethods := *helpers.ExpandStringSlice(block["allowed_methods"].(*pluginsdk.Set).List())
-	allowCredentials := block["credentials_allowed"].(bool)
 
 	cors := &fhirservices.FhirServiceCorsConfiguration{
 		Origins:          &allowedOrigins,
 		Headers:          &allowedHeaders,
 		Methods:          &allowedMethods,
-		AllowCredentials: &allowCredentials,
+		AllowCredentials: pointer.To(block["credentials_allowed"].(bool)),
 	}
 
 	if v, ok := block["max_age_in_seconds"]; ok {
-		maxAgeInSeconds := int64(v.(int))
-		cors.MaxAge = &maxAgeInSeconds
+		cors.MaxAge = pointer.To(int64(v.(int)))
 	}
 
 	return cors

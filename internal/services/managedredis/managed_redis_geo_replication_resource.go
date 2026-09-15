@@ -361,7 +361,7 @@ func toClusterId(dbIdStr string) (*redisenterprise.RedisEnterpriseId, error) {
 
 func flattenLinkedDatabases(dbs *[]databases.LinkedDatabase) []string {
 	if dbs == nil {
-		return nil
+		return []string{}
 	}
 
 	result := make([]string, 0, len(*dbs))

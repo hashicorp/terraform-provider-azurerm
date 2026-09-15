@@ -130,9 +130,9 @@ func flattenCsvToStringSlice(input *string) []interface{} {
 		return results
 	}
 
-	v := strings.Split(*input, ",")
+	v := strings.SplitSeq(*input, ",")
 
-	for _, s := range v {
+	for s := range v {
 		results = append(results, s)
 	}
 

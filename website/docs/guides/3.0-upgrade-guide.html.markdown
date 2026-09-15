@@ -1472,7 +1472,6 @@ The deprecated field `data_disk.disk_iops_read_write` will be removed in favour 
 
 The deprecated field `data_disk.disk_mbps_read_write` will be removed in favour of the `data_disk.ultra_ssd_disk_mbps_read_write` property.
 
-
 ## Case Sensitivity Changes
 
   3.0 and above of the provider has moved towards requiring the constant casing match the Azure API specifications casing to avoid issues within Terraform Core which requires that the planned values matches the result of the applied values. This is required since the Azure API and SDKs sometimes case these values differently and terraform requires them to match.

@@ -31,8 +31,10 @@ output "public_ip_prefix" {
 
 ## Attributes Reference
 
+* `custom_ip_prefix_id` - The Custom IP Prefix ID associated with the Public IP Prefix. 
 * `id` - The ID of the Public IP Prefix.
 * `ip_prefix` - The Public IP address range, in CIDR notation.
+* `ip_version` - The IP Version in use. 
 * `location` - The supported Azure location where the resource exists.
 * `sku` - The SKU of the Public IP Prefix.
 * `sku_tier` - The SKU Tier of the Public IP.

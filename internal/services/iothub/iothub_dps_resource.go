@@ -142,35 +142,24 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 							ValidateFunc: validate.CIDR,
 						},
 						"action": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(devices.IPFilterActionTypeAccept),
-								string(devices.IPFilterActionTypeReject),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInEnumSlice(devices.PossibleIPFilterActionTypeValues(), false),
 						},
 						"target": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(iotdpsresource.IPFilterTargetTypeAll),
-								string(iotdpsresource.IPFilterTargetTypeServiceApi),
-								string(iotdpsresource.IPFilterTargetTypeDeviceApi),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(iotdpsresource.PossibleValuesForIPFilterTargetType(), false),
 						},
 					},
 				},
 			},
 
 			"allocation_policy": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(iotdpsresource.AllocationPolicyHashed),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(iotdpsresource.AllocationPolicyHashed),
-					string(iotdpsresource.AllocationPolicyGeoLatency),
-					string(iotdpsresource.AllocationPolicyStatic),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(iotdpsresource.AllocationPolicyHashed),
+				ValidateFunc: validation.StringInSlice(iotdpsresource.PossibleValuesForAllocationPolicy(), false),
 			},
 
 			"data_residency_enabled": {
@@ -281,8 +270,7 @@ func resourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
-		sku := flattenIoTHubDPSSku(model.Sku)
-		if err := d.Set("sku", sku); err != nil {
+		if err := d.Set("sku", flattenIoTHubDPSSku(model.Sku)); err != nil {
 			return fmt.Errorf("setting `sku`: %+v", err)
 		}
 
@@ -291,8 +279,7 @@ func resourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return fmt.Errorf("setting `linked_hub`: %+v", err)
 		}
 
-		ipFilterRules := flattenDpsIPFilterRules(props.IPFilterRules)
-		if err := d.Set("ip_filter_rule", ipFilterRules); err != nil {
+		if err := d.Set("ip_filter_rule", flattenDpsIPFilterRules(props.IPFilterRules)); err != nil {
 			return fmt.Errorf("setting `ip_filter_rule` in IoTHub DPS %q: %+v", id.ProvisioningServiceName, err)
 		}
 
@@ -407,9 +394,8 @@ func expandIoTHubDPSSku(d *pluginsdk.ResourceData) iotdpsresource.IotDpsSkuInfo 
 	skuList := d.Get("sku").([]interface{})
 	skuMap := skuList[0].(map[string]interface{})
 
-	skuName := iotdpsresource.IotDpsSku(skuMap["name"].(string))
 	return iotdpsresource.IotDpsSkuInfo{
-		Name:     &skuName,
+		Name:     pointer.ToEnum[iotdpsresource.IotDpsSku](skuMap["name"].(string)),
 		Capacity: pointer.To(int64(skuMap["capacity"].(int))),
 	}
 }
@@ -486,12 +472,11 @@ func expandDpsIPFilterRules(d *pluginsdk.ResourceData) *[]iotdpsresource.IPFilte
 
 	for _, r := range ipFilterRuleList {
 		rawRule := r.(map[string]interface{})
-		ipFilterTargetType := iotdpsresource.IPFilterTargetType(rawRule["target"].(string))
 		rule := &iotdpsresource.IPFilterRule{
 			FilterName: rawRule["name"].(string),
 			Action:     iotdpsresource.IPFilterActionType(rawRule["action"].(string)),
 			IPMask:     rawRule["ip_mask"].(string),
-			Target:     &ipFilterTargetType,
+			Target:     pointer.ToEnum[iotdpsresource.IPFilterTargetType](rawRule["target"].(string)),
 		}
 
 		rules = append(rules, *rule)
