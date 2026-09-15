@@ -31,10 +31,14 @@ output "network_interface_id" {
 ## Attributes Reference
 
 * `id` - The ID of the Network Interface.
+* `auxiliary_mode` - Specifies the auxiliary mode used to enable network high-performance feature on Network Virtual Appliances (NVAs). This feature offers competitive performance in Connections Per Second (CPS) optimization, along with improvements to handling large amounts of simultaneous connections
+* `auxiliary_sku` - Specifies the SKU used for the network high-performance feature on Network Virtual Appliances (NVAs).
+* `edge_zone` - Specifies the Edge Zone within the Azure Region where this Network Interface should exist. 
 * `accelerated_networking_enabled` - Indicates if accelerated networking is set on the specified Network Interface.
 * `applied_dns_servers` - List of DNS servers applied to the specified Network Interface.
 * `dns_servers` - The list of DNS servers used by the specified Network Interface.
 * `internal_dns_name_label` - The internal DNS name label of the specified Network Interface.
+* `internal_domain_name_suffix` - Even if `internal_dns_name_label` is not specified, a DNS entry is created for the primary NIC of the VM. This DNS name can be constructed by concatenating the VM name with the value of `internal_domain_name_suffix`.
 * `ip_configuration` - One or more `ip_configuration` blocks as defined below.
 * `ip_forwarding_enabled` - Indicate if IP forwarding is set on the specified Network Interface.
 * `location` - The location of the specified Network Interface.
