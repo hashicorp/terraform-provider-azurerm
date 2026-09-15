@@ -9,6 +9,7 @@ type LiftrBaseStorageFileSystemResourceProperties struct {
 	ClusterLoginURL    *string                     `json:"clusterLoginUrl,omitempty"`
 	DelegatedSubnetId  string                      `json:"delegatedSubnetId"`
 	MarketplaceDetails LiftrBaseMarketplaceDetails `json:"marketplaceDetails"`
+	PerformanceTier    *string                     `json:"performanceTier,omitempty"`
 	PrivateIPs         *[]string                   `json:"privateIPs,omitempty"`
 	ProvisioningState  *ProvisioningState          `json:"provisioningState,omitempty"`
 	StorageSku         string                      `json:"storageSku"`
