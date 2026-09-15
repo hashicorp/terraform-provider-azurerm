@@ -97,6 +97,8 @@ The following arguments are supported:
 
 * `private_endpoint_vnet_policies` - (Optional) The Private Endpoint VNet Policies for the Virtual Network. Possible values are `Disabled` and `Basic`. Defaults to `Disabled`.
 
+* `summarized_gateway_prefixes` - (Optional) The list of summarized gateway prefixes advertised for the Virtual Network.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -232,4 +234,4 @@ terraform import azurerm_virtual_network.exampleNetwork /subscriptions/00000000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

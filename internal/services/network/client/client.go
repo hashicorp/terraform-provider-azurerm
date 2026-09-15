@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeterassociations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeterprofiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworks"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -28,6 +29,7 @@ type Client struct {
 	NetworkSecurityPerimeterAssociationsClient *networksecurityperimeterassociations.NetworkSecurityPerimeterAssociationsClient
 	NetworkSecurityPerimeterProfilesClient     *networksecurityperimeterprofiles.NetworkSecurityPerimeterProfilesClient
 	NetworkSecurityPerimetersClient            *networksecurityperimeters.NetworkSecurityPerimetersClient
+	VirtualNetworksClient                      *virtualnetworks.VirtualNetworksClient
 	VMSSPublicIPAddressesClient                *vmsspublicipaddresses.VMSSPublicIPAddressesClient
 }
 
@@ -68,6 +70,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(NetworkSecurityPerimetersClient.Client, o.Authorizers.ResourceManager)
 
+	VirtualNetworksClient, err := virtualnetworks.NewVirtualNetworksClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Virtual Networks Client: %+v", err)
+	}
+	o.Configure(VirtualNetworksClient.Client, o.Authorizers.ResourceManager)
+
 	VMSSPublicIPAddressesClient, err := vmsspublicipaddresses.NewVMSSPublicIPAddressesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building VMSS Public IP Addresses Client: %+v", err)
@@ -88,6 +96,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		NetworkSecurityPerimeterAssociationsClient: NetworkSecurityPerimeterAssociationsClient,
 		NetworkSecurityPerimeterProfilesClient:     NetworkSecurityPerimeterProfilesClient,
 		NetworkSecurityPerimetersClient:            NetworkSecurityPerimetersClient,
+		VirtualNetworksClient:                      VirtualNetworksClient,
 		VMSSPublicIPAddressesClient:                VMSSPublicIPAddressesClient,
 		Client:                                     client,
 	}, nil
