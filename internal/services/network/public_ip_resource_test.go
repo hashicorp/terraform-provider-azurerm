@@ -435,6 +435,30 @@ func TestAccPublicIp_standardV2RegionalTier(t *testing.T) {
 	})
 }
 
+func TestAccPublicIp_skuUpgradeStandardToStandardV2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	r := PublicIpResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.skuTier(data, string(publicipaddresses.PublicIPAddressSkuNameStandard), string(publicipaddresses.PublicIPAddressSkuTierRegional)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.skuTier(data, string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo), string(publicipaddresses.PublicIPAddressSkuTierRegional)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccPublicIp_edgeZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIpResource{}
