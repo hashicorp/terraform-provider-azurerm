@@ -4177,6 +4177,10 @@ func TestAccKubernetesClusterNodePool_localDNSProfile_vnetDNS(t *testing.T) {
 
 func (r KubernetesClusterNodePoolResource) localDNSProfileKubeDNSConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
@@ -4186,6 +4190,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
 
   local_dns_profile {
+    mode = "Preferred"
+
     kube_dns_override {
       domain   = "example.com"
       protocol = "ForceTCP"
@@ -4197,6 +4203,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 
 func (r KubernetesClusterNodePoolResource) localDNSProfileVnetDNSConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
@@ -4206,6 +4216,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
 
   local_dns_profile {
+    mode = "Preferred"
+
     vnet_dns_override {
       domain   = "example.com"
       protocol = "ForceTCP"
@@ -4295,6 +4307,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 
 func (r KubernetesClusterNodePoolResource) localDNSProfileCompleteUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %[1]s
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {

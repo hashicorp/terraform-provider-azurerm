@@ -609,7 +609,7 @@ func schemaNodePoolLocalDNSProfile() *pluginsdk.Schema {
 
 				"mode": {
 					Type:         pluginsdk.TypeString,
-					Optional:     true,
+					Required:     true,
 					ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForLocalDNSMode(), true),
 				},
 
