@@ -37,6 +37,8 @@ The following attributes are exported:
 
 * `ip_address` - The publicly accessible IP of the Web Pubsub service.
 
+* `live_trace` - A `live_trace` block as defined below.
+
 * `location` - The Azure location where the Web Pubsub service exists.
 
 * `public_port` - The publicly accessible port of the Web Pubsub service which is designed for browser/client use.
@@ -52,6 +54,18 @@ The following attributes are exported:
 * `secondary_connection_string` - The secondary connection string of the Web Pubsub service.
 
 * `identity` - An `identity` block as documented below.
+
+---
+
+A `live_trace` block supports the following:
+
+* `enabled` - (Optional) Whether the live trace is enabled? Defaults to `true`.
+
+* `messaging_logs_enabled` - (Optional) Whether the log category `MessagingLogs` is enabled? Defaults to `true`
+
+* `connectivity_logs_enabled` - (Optional) Whether the log category `ConnectivityLogs` is enabled? Defaults to `true`
+
+* `http_request_logs_enabled` - (Optional) Whether the log category `HttpRequestLogs` is enabled? Defaults to `true`
 
 ---
 

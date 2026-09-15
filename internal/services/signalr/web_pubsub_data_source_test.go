@@ -40,6 +40,38 @@ func TestAccDataSourceWebPubsub_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceWebPubsub_identityAndLiveTrace(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_web_pubsub", "test")
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: WebPubsubDataSource{}.identityAndLiveTrace(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
+				check.That(data.ResourceName).Key("live_trace.#").HasValue("1"),
+				check.That(data.ResourceName).Key("live_trace.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("live_trace.0.messaging_logs_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("live_trace.0.connectivity_logs_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("live_trace.0.http_request_logs_enabled").HasValue("false"),
+			),
+		},
+	})
+}
+
+func (r WebPubsubDataSource) identityAndLiveTrace(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_web_pubsub" "test" {
+  name                = azurerm_web_pubsub.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, WebPubsubResource{}.systemAssignedIdentity(data))
+}
+
 func (r WebPubsubDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

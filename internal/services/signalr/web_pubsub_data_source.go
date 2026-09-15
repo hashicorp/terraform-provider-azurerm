@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
@@ -64,6 +65,8 @@ func dataSourceWebPubsub() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
+
 			"primary_access_key": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
@@ -86,6 +89,34 @@ func dataSourceWebPubsub() *pluginsdk.Resource {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
+			},
+
+			"live_trace": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"connectivity_logs_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"messaging_logs_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"http_request_logs_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"local_auth_enabled": {
@@ -189,6 +220,18 @@ func dataSourceWebPubsubRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				tlsClientCertEnabled = *props.Tls.ClientCertEnabled
 			}
 			d.Set("tls_client_cert_enabled", tlsClientCertEnabled)
+
+			if err := d.Set("live_trace", flattenLiveTraceConfig(props.LiveTraceConfiguration)); err != nil {
+				return fmt.Errorf("setting `live_trace`:%+v", err)
+			}
+
+			identityValue, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening `identity`: %+v", err)
+			}
+			if err := d.Set("identity", identityValue); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
+			}
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
