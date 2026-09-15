@@ -463,7 +463,7 @@ func (r ApplicationInsightsStandardWebTestResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (ApplicationInsightsStandardWebTestResource) Read() sdk.ResourceFunc {
+func (r ApplicationInsightsStandardWebTestResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 
@@ -484,55 +484,60 @@ func (ApplicationInsightsStandardWebTestResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := ApplicationInsightsStandardWebTestResourceModel{
-				Name:              id.WebTestName,
-				ResourceGroupName: id.ResourceGroupName,
-			}
-
-			if model := resp.Model; model != nil {
-				tags := pointer.From(model.Tags)
-				for i := range tags {
-					if strings.HasPrefix(i, "hidden-link") {
-						appInsightsId := strings.Split(i, ":")[1]
-
-						parsedAppInsightsId, err := webtests.ParseComponentIDInsensitively(appInsightsId)
-						if err != nil {
-							// there might be more than one hidden-link https://github.com/hashicorp/terraform-provider-azurerm/issues/27994
-							log.Printf("[DEBUG] Error parsing hidden-link id: %+v", err)
-							delete(tags, i)
-							continue
-						}
-						state.ApplicationInsightsID = parsedAppInsightsId.ID()
-						delete(tags, i)
-					}
-				}
-
-				state.Tags = tags
-				state.Location = location.Normalize(model.Location)
-
-				if props := model.Properties; props != nil {
-					state.SyntheticMonitorID = props.SyntheticMonitorId
-					state.Description = pointer.From(props.Description)
-					state.Enabled = pointer.From(props.Enabled)
-					state.Frequency = pointer.From(props.Frequency)
-					state.Timeout = pointer.From(props.Timeout)
-					state.Retry = pointer.From(props.RetryEnabled)
-					req, err := flattenApplicationInsightsStandardWebTestRequest(props.Request)
-					if err != nil {
-						return fmt.Errorf("flattening request for %s: %+v", *id, err)
-					}
-					state.Request = req
-					state.ValidationRules = flattenApplicationInsightsStandardWebTestValidations(props.ValidationRules)
-					state.GeoLocations = flattenApplicationInsightsStandardWebTestGeoLocations(props.Locations)
-				}
-			}
-
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-				return err
-			}
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r ApplicationInsightsStandardWebTestResource) flatten(metadata sdk.ResourceMetaData, id *webtests.WebTestId, model *webtests.WebTest) error {
+	state := ApplicationInsightsStandardWebTestResourceModel{
+		Name:              id.WebTestName,
+		ResourceGroupName: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		tags := pointer.From(model.Tags)
+		for i := range tags {
+			if strings.HasPrefix(i, "hidden-link") {
+				appInsightsId := strings.Split(i, ":")[1]
+
+				parsedAppInsightsId, err := webtests.ParseComponentIDInsensitively(appInsightsId)
+				if err != nil {
+					// there might be more than one hidden-link https://github.com/hashicorp/terraform-provider-azurerm/issues/27994
+					log.Printf("[DEBUG] Error parsing hidden-link id: %+v", err)
+					delete(tags, i)
+					continue
+				}
+				state.ApplicationInsightsID = parsedAppInsightsId.ID()
+				delete(tags, i)
+			}
+		}
+
+		state.Tags = tags
+		state.Location = location.Normalize(model.Location)
+
+		if props := model.Properties; props != nil {
+			state.SyntheticMonitorID = props.SyntheticMonitorId
+			state.Description = pointer.From(props.Description)
+			state.Enabled = pointer.From(props.Enabled)
+			state.Frequency = pointer.From(props.Frequency)
+			state.Timeout = pointer.From(props.Timeout)
+			state.Retry = pointer.From(props.RetryEnabled)
+			req, err := flattenApplicationInsightsStandardWebTestRequest(props.Request)
+			if err != nil {
+				return fmt.Errorf("flattening request for %s: %+v", *id, err)
+			}
+			state.Request = req
+			state.ValidationRules = flattenApplicationInsightsStandardWebTestValidations(props.ValidationRules)
+			state.GeoLocations = flattenApplicationInsightsStandardWebTestGeoLocations(props.Locations)
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (ApplicationInsightsStandardWebTestResource) Delete() sdk.ResourceFunc {

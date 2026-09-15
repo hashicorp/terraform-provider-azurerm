@@ -84,7 +84,7 @@ func resourcePrivateDnsZone() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				MaxItems: 1,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{

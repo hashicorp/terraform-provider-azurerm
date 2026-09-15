@@ -103,12 +103,7 @@ func (r ContainerConnectedRegistryResource) Arguments() map[string]*pluginsdk.Sc
 			ForceNew: true,
 			Default:  string(connectedregistries.ConnectedRegistryModeReadWrite),
 			ValidateFunc: validation.StringInSlice(
-				[]string{
-					string(connectedregistries.ConnectedRegistryModeMirror),
-					string(connectedregistries.ConnectedRegistryModeReadOnly),
-					string(connectedregistries.ConnectedRegistryModeReadWrite),
-					string(connectedregistries.ConnectedRegistryModeRegistry),
-				},
+				connectedregistries.PossibleValuesForConnectedRegistryMode(),
 				false,
 			),
 		},
@@ -160,13 +155,7 @@ func (r ContainerConnectedRegistryResource) Arguments() map[string]*pluginsdk.Sc
 			Optional: true,
 			Default:  connectedregistries.LogLevelNone,
 			ValidateFunc: validation.StringInSlice(
-				[]string{
-					string(connectedregistries.LogLevelNone),
-					string(connectedregistries.LogLevelDebug),
-					string(connectedregistries.LogLevelInformation),
-					string(connectedregistries.LogLevelWarning),
-					string(connectedregistries.LogLevelError),
-				},
+				connectedregistries.PossibleValuesForLogLevel(),
 				false,
 			),
 		},

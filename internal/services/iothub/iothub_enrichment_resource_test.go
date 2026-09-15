@@ -10,12 +10,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IotHubEnrichmentResource struct{}
@@ -81,7 +81,7 @@ func (IotHubEnrichmentResource) Exists(ctx context.Context, client *clients.Clie
 
 	iothub, err := client.IoTHub.ResourceClient.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
-		if utils.ResponseWasNotFound(iothub.Response) {
+		if response.WasNotFound(iothub.Response.Response) {
 			return pointer.To(false), nil
 		}
 

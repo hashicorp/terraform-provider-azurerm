@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `is_https_allowed` - (Optional) Specifies if https allowed. Defaults to `true`.
 
-* `content_types_to_compress` - (Optional) An array of strings that indicates a content types on which compression will be applied. The value for the elements should be MIME types.
+* `content_types_to_compress` - (Optional) An array of strings that indicates a content types on which compression will be applied. The value for the elements should be MIME types. Required if `is_compression_enabled` is `true`.
 
 * `geo_filter` - (Optional) A set of Geo Filters for this CDN Endpoint. Each `geo_filter` block supports fields documented below.
 

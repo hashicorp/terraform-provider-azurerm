@@ -17,21 +17,9 @@ func URLPath() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"operator": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.URLPathOperatorAny),
-					string(cdn.URLPathOperatorBeginsWith),
-					string(cdn.URLPathOperatorContains),
-					string(cdn.URLPathOperatorEndsWith),
-					string(cdn.URLPathOperatorEqual),
-					string(cdn.URLPathOperatorGreaterThan),
-					string(cdn.URLPathOperatorGreaterThanOrEqual),
-					string(cdn.URLPathOperatorLessThan),
-					string(cdn.URLPathOperatorLessThanOrEqual),
-					string(cdn.URLPathOperatorRegEx),
-					string(cdn.URLPathOperatorWildcard),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleURLPathOperatorValues(), false),
 			},
 
 			"negate_condition": {
@@ -54,11 +42,8 @@ func URLPath() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(cdn.TransformLowercase),
-						string(cdn.TransformUppercase),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInEnumSlice(cdn.PossibleTransformValues(), false),
 				},
 			},
 		},

@@ -74,7 +74,7 @@ func resourceDataFactoryManagedPrivateEndpoint() *pluginsdk.Resource {
 			"fqdns": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
