@@ -103,7 +103,6 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			"log_analytics_destination_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ForceNew: false,
 				Computed: true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice([]string{
 					"Dedicated",

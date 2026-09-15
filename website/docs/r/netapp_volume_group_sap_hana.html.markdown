@@ -10,7 +10,7 @@ description: |-
 
 Manages a Application Volume Group for SAP HANA application.
 
--> **Note:** This feature is intended to be used for SAP-HANA workloads only, with several requirements, please refer to [Understand Azure NetApp Files application volume group for SAP HANA](https://learn.microsoft.com/en-us/azure/azure-netapp-files/application-volume-group-introduction) document as the starting point to understand this feature before using it with Terraform.
+-> **Note:** This feature is intended to be used for SAP-HANA workloads only, with several requirements, please refer to [Understand Azure NetApp Files application volume group for SAP HANA](https://learn.microsoft.com/azure/azure-netapp-files/application-volume-group-introduction) document as the starting point to understand this feature before using it with Terraform.
 
 ## Example Usage
 
@@ -515,12 +515,12 @@ A `volume` block supports the following:
 
 * `name` - (Required) The name which should be used for this volume. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `protocols` - (Required) The target volume protocol expressed as a list. Protocol conversion between `NFSv3` and `NFSv4.1` and vice-versa is supported without recreating the volume group, however export policy rules must be updated accordingly to avoid configuration drift (e.g., when converting from `NFSv3` to `NFSv4.1`, set `nfsv3_enabled = false` and `nfsv41_enabled = true` in export policy rules). Supported values include `NFSv3` or `NFSv4.1`, multi-protocol is not supported. Please check [Configure application volume groups for the SAP HANA REST API](https://learn.microsoft.com/en-us/azure/azure-netapp-files/configure-application-volume-group-sap-hana-api) document for details.
+* `protocols` - (Required) The target volume protocol expressed as a list. Protocol conversion between `NFSv3` and `NFSv4.1` and vice-versa is supported without recreating the volume group, however export policy rules must be updated accordingly to avoid configuration drift (e.g., when converting from `NFSv3` to `NFSv4.1`, set `nfsv3_enabled = false` and `nfsv41_enabled = true` in export policy rules). Supported values include `NFSv3` or `NFSv4.1`, multi-protocol is not supported. Please check [Configure application volume groups for the SAP HANA REST API](https://learn.microsoft.com/azure/azure-netapp-files/configure-application-volume-group-sap-hana-api) document for details.
 
 ~> **Note:** NFSv3 protocol is only supported for backup volumes (`data-backup`, `log-backup`) in SAP HANA volume groups. Critical volumes (`data`, `log`, `shared`) must use NFSv4.1. When converting protocols on backup volumes, ensure export policy rules are updated accordingly to avoid configuration drift.
 
 
-* `proximity_placement_group_id` - (Optional) The ID of the proximity placement group. Changing this forces a new Application Volume Group to be created and data will be lost. For SAP-HANA application, it is required to have PPG enabled so Azure NetApp Files can pin the volumes next to your compute resources, please check [Requirements and considerations for application volume group for SAP HANA](https://learn.microsoft.com/en-us/azure/azure-netapp-files/application-volume-group-considerations) for details and other requirements.
+* `proximity_placement_group_id` - (Optional) The ID of the proximity placement group. Changing this forces a new Application Volume Group to be created and data will be lost. For SAP-HANA application, it is required to have PPG enabled so Azure NetApp Files can pin the volumes next to your compute resources, please check [Requirements and considerations for application volume group for SAP HANA](https://learn.microsoft.com/azure/azure-netapp-files/application-volume-group-considerations) for details and other requirements.
 
 * `security_style` - (Required) Volume security style. Possible values are `ntfs` and `unix`. Changing this forces a new Application Volume Group to be created and data will be lost.
 
@@ -552,11 +552,11 @@ A `volume` block supports the following:
 
 * `network_features` - (Optional) Network features of the volume. Possible values are `Basic` or `Standard`. Default value is `Basic`. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `zone` - (Optional) Specifies the Availability Zone in which the Volume should be located. Possible values are `1`, `2` and `3`. This feature is currently in preview, for more information on how to enable it, please refer to [Manage availability zone volume placement for Azure NetApp Files](https://learn.microsoft.com/en-us/azure/azure-netapp-files/manage-availability-zone-volume-placement). Changing this forces a new Application Volume Group to be created and data will be lost.
+* `zone` - (Optional) Specifies the Availability Zone in which the Volume should be located. Possible values are `1`, `2` and `3`. This feature is currently in preview, for more information on how to enable it, please refer to [Manage availability zone volume placement for Azure NetApp Files](https://learn.microsoft.com/azure/azure-netapp-files/manage-availability-zone-volume-placement). Changing this forces a new Application Volume Group to be created and data will be lost.
 
 ---
 
-A `data_protection_replication` block is used when enabling the Cross-Region Replication (CRR) data protection option by deploying two Azure NetApp Files Volumes, one to be a primary volume and the other one will be the secondary, the secondary will have this block and will reference the primary volume, not all volume spec types are supported, please refer to  [Configure application volume groups for the SAP HANA REST API](https://learn.microsoft.com/en-us/azure/azure-netapp-files/configure-application-volume-group-sap-hana-api) for detauls. Each volume must be in a supported [region pair](https://docs.microsoft.com/azure/azure-netapp-files/cross-region-replication-introduction#supported-region-pairs).
+A `data_protection_replication` block is used when enabling the Cross-Region Replication (CRR) data protection option by deploying two Azure NetApp Files Volumes, one to be a primary volume and the other one will be the secondary, the secondary will have this block and will reference the primary volume, not all volume spec types are supported, please refer to  [Configure application volume groups for the SAP HANA REST API](https://learn.microsoft.com/azure/azure-netapp-files/configure-application-volume-group-sap-hana-api) for detauls. Each volume must be in a supported [region pair](https://docs.microsoft.com/azure/azure-netapp-files/cross-region-replication-introduction#supported-region-pairs).
 
 This block supports the following:
 
