@@ -1456,7 +1456,7 @@ func TestAccKubernetesCluster_localDNSProfile_kubeDNS(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.localDNSProfileKubeDNSConfig(data, currentKubernetesVersion),
+			Config: r.localDNSProfileKubeDNS(data, currentKubernetesVersion),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1471,7 +1471,7 @@ func TestAccKubernetesCluster_localDNSProfile_vnetDNS(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.localDNSProfileVnetDNSConfig(data, currentKubernetesVersion),
+			Config: r.localDNSProfileVnetDNS(data, currentKubernetesVersion),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1486,7 +1486,7 @@ func TestAccKubernetesCluster_localDNSProfile_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.localDNSProfileKubeDNSConfig(data, currentKubernetesVersion),
+			Config: r.localDNSProfileKubeDNS(data, currentKubernetesVersion),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1518,6 +1518,10 @@ func TestAccKubernetesCluster_localDNSProfile_update(t *testing.T) {
 
 func (r KubernetesClusterResource) localDNSProfileComplete(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg%[1]s"
   location = "%[2]s"
@@ -1574,6 +1578,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func (r KubernetesClusterResource) localDNSProfileCompleteUpdate(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg%[1]s"
   location = "%[2]s"
@@ -1652,8 +1660,12 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomString, data.Locations.Primary, version)
 }
 
-func (r KubernetesClusterResource) localDNSProfileKubeDNSConfig(data acceptance.TestData, version string) string {
+func (r KubernetesClusterResource) localDNSProfileKubeDNS(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg%[1]s"
   location = "%[2]s"
@@ -1674,7 +1686,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     local_dns_profile {
       kube_dns_override {
         domain   = "example.com"
-        protocol = "TCP"
+        protocol = "ForceTCP"
       }
     }
   }
@@ -1691,8 +1703,12 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomString, data.Locations.Primary, version)
 }
 
-func (r KubernetesClusterResource) localDNSProfileVnetDNSConfig(data acceptance.TestData, version string) string {
+func (r KubernetesClusterResource) localDNSProfileVnetDNS(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg%[1]s"
   location = "%[2]s"
@@ -1713,7 +1729,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     local_dns_profile {
       vnet_dns_override {
         domain   = "example.com"
-        protocol = "TCP"
+        protocol = "ForceTCP"
       }
     }
   }
