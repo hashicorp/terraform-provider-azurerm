@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/tagrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -93,12 +93,12 @@ func TestAccDatadogMonitorTagRules_update(t *testing.T) {
 }
 
 func (r TagRulesDatadogMonitorResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := rules.ParseTagRuleID(state.ID)
+	id, err := tagrules.ParseTagRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Datadog.Rules.TagRulesGet(ctx, *id)
+	resp, err := client.Datadog.TagRules.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
