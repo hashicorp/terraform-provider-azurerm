@@ -615,7 +615,7 @@ func schemaNodePoolLocalDNSProfile() *pluginsdk.Schema {
 
 				"state": {
 					Type:         pluginsdk.TypeString,
-					Optional:     true,
+					Required:     true,
 					ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForLocalDNSState(), true),
 				},
 			},
@@ -632,6 +632,7 @@ func schemaLocalDNSOverride() map[string]*pluginsdk.Schema {
 		"cache_duration_in_seconds": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
+			Default:  0,
 		},
 		"forward_destination": {
 			Type:         pluginsdk.TypeString,
@@ -646,6 +647,7 @@ func schemaLocalDNSOverride() map[string]*pluginsdk.Schema {
 		"max_concurrent": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
+			Default:  0,
 		},
 		"protocol": {
 			Type:         pluginsdk.TypeString,
@@ -665,6 +667,7 @@ func schemaLocalDNSOverride() map[string]*pluginsdk.Schema {
 		"serve_stale_duration_in_seconds": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
+			Default:  0,
 		},
 	}
 }
@@ -694,8 +697,9 @@ func schemaNodePoolNetworkProfile() *pluginsdk.Schema {
 							},
 
 							"protocol": {
-								Type:         pluginsdk.TypeString,
-								Optional:     true,
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+
 								ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForProtocol(), false),
 							},
 						},
@@ -1620,30 +1624,31 @@ func flattenClusterNodePoolLocalDNSProfile(input *managedclusters.LocalDNSProfil
 
 func flattenClusterNodePoolLocalDNSOverride(v managedclusters.LocalDNSOverride) map[string]interface{} {
 	m := make(map[string]interface{})
-	if v.CacheDurationInSeconds != nil {
-		m["cache_duration_in_seconds"] = int(*v.CacheDurationInSeconds)
-	}
+	m["cache_duration_in_seconds"] = pointer.From(v.CacheDurationInSeconds)
 	if v.ForwardDestination != nil {
 		m["forward_destination"] = string(*v.ForwardDestination)
 	}
+
 	if v.ForwardPolicy != nil {
 		m["forward_policy"] = string(*v.ForwardPolicy)
 	}
-	if v.MaxConcurrent != nil {
-		m["max_concurrent"] = int(*v.MaxConcurrent)
-	}
+
+	m["max_concurrent"] = pointer.From(v.MaxConcurrent)
+
 	if v.Protocol != nil {
 		m["protocol"] = string(*v.Protocol)
 	}
+
 	if v.QueryLogging != nil {
 		m["query_logging"] = string(*v.QueryLogging)
 	}
+
 	if v.ServeStale != nil {
 		m["serve_stale"] = string(*v.ServeStale)
 	}
-	if v.ServeStaleDurationInSeconds != nil {
-		m["serve_stale_duration_in_seconds"] = int(*v.ServeStaleDurationInSeconds)
-	}
+
+	m["serve_stale_duration_in_seconds"] = pointer.From(v.ServeStaleDurationInSeconds)
+
 	return m
 }
 
