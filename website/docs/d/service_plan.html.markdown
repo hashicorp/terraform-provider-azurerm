@@ -51,6 +51,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `per_site_scaling_enabled` - Is Per Site Scaling be enabled?
 
+* `premium_plan_auto_scale_enabled` - Is premium plan autoscale enabled.
+
 * `reserved` - Whether this is a reserved Service Plan Type. `true` if `os_type` is `Linux`, otherwise `false`.
 
 * `sku_name` - The SKU for the Service Plan.
