@@ -894,7 +894,7 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(i
 		patchSettings.EnableHotpatching = pointer.To(input["hotpatching_enabled"].(bool))
 		winConfig.PatchSettings = &patchSettings
 
-		// due to a change in RP behavor, it will now throw and error if we pass an empty
+		// due to a change in RP behavior, it will now throw and error if we pass an empty
 		// string add check to only include it if it is actually defined in the config file
 		timeZone := input["timezone"].(string)
 		if timeZone != "" {

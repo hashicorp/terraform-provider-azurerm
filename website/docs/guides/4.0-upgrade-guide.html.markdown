@@ -995,7 +995,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated `enable_non_ssl_port` property has been removed in favour of the `non_ssl_port_enabled` property.
 * The deprecated `redis_configuration.enable_authentication` property has been removed in favour of the `redis_configuration.authentication_enabled` property.
-* The `redis_configuraton.data_persistence_authentication_method` property no longer defaults to `SAS`.
+* The `redis_configuration.data_persistence_authentication_method` property no longer defaults to `SAS`.
 * The `family` property is now case-sensitive. You will need to update your configuration to match the casing expected by the API.
 * The `redis_version` property now defaults to `6`.
 

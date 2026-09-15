@@ -473,7 +473,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 				if !isValid {
 					if strings.EqualFold(oldTierRaw.(string), newTier) {
-						// The tier value did not change, so we need to determin if they are
+						// The tier value did not change, so we need to determine if they are
 						// using the default value for the tier, or they actually defined the
 						// tier in the config or not... If they did not define
 						// the tier in the config we need to assign a new valid default

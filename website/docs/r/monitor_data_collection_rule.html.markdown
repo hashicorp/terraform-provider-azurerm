@@ -386,7 +386,7 @@ An `identity` block supports the following:
 
 A `label_include_filter` block supports the following:
 
-* `label` - (Required) The label of the filter. This label should be unique across all `label_include_fileter` block. Possible value is `microsoft_metrics_include_label`.
+* `label` - (Required) The label of the filter. This label should be unique across all `label_include_filter` block. Possible value is `microsoft_metrics_include_label`.
 
 * `value` - (Required) The value of the filter.
 

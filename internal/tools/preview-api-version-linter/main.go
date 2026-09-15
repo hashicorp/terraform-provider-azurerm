@@ -45,7 +45,7 @@ func main() {
 			delete(previewVersions, exception)
 		}
 	}
-	failIfAnyUnusuedExceptions(unusedExceptions, HISTORICAL_EXCEPTIONS_FILE)
+	failIfAnyUnusedExceptions(unusedExceptions, HISTORICAL_EXCEPTIONS_FILE)
 
 	for _, exception := range exceptions {
 		if !previewVersions[exception] {
@@ -54,7 +54,7 @@ func main() {
 			delete(previewVersions, exception)
 		}
 	}
-	failIfAnyUnusuedExceptions(unusedExceptions, EXCEPTIONS_FILE)
+	failIfAnyUnusedExceptions(unusedExceptions, EXCEPTIONS_FILE)
 
 	if len(previewVersions) > 0 {
 		invalidPreviewVersions := []string{}
@@ -105,7 +105,7 @@ To rerun this check locally, use: go run internal/tools/preview-api-version-lint
 	os.Exit(1)
 }
 
-func failIfAnyUnusuedExceptions(unusedExceptions []string, exceptionsFile string) {
+func failIfAnyUnusedExceptions(unusedExceptions []string, exceptionsFile string) {
 	if len(unusedExceptions) > 0 {
 		fmt.Fprintf(os.Stderr, "❌ Unused exceptions detected in `%s` file, remove these entries:\n\n", exceptionsFile)
 		for _, unusedException := range unusedExceptions {

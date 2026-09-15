@@ -133,6 +133,14 @@ jobs:
       - name: Run ShellCheck
         run: make shellcheck
 
+  typos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      # make downloads the typos version pinned in GNUmakefile into .tools
+      - name: Run typos
+        run: make typos
+
   website-lint:
     runs-on: ubuntu-latest
     steps:

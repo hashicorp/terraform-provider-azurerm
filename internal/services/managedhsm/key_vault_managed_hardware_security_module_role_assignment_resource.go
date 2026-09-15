@@ -164,7 +164,7 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Create() sdk.ResourceFunc {
 			}
 
 			//nolint:misspell
-			// TODO: @manicminer: when migrating to go-azure-sdk, the SDK should auto-retry on 400 responses with code "BadParameter" and message "Unkown role definition" (note the misspelling)
+			// TODO: @manicminer: when migrating to go-azure-sdk, the SDK should auto-retry on 400 responses with code "BadParameter" and message "Unknown role definition" (note the misspelling)
 
 			if _, err = client.Create(ctx, endpoint.BaseURI(), config.Scope, config.Name, param); err != nil {
 				return fmt.Errorf("creating %s: %v", id.ID(), err)

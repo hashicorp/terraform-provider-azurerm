@@ -413,7 +413,7 @@ A `data_protection_snapshot_policy` block supports the following:
 
 A `export_policy_rule` block supports the following:
 
-* `allowed_clients` - (Required) A comma-sperated list of allowed client IPv4 addresses.
+* `allowed_clients` - (Required) A comma-separated list of allowed client IPv4 addresses.
 
 * `nfsv3_enabled` - (Required) Enables NFSv3. Please note that this cannot be enabled if volume has NFSv4.1 as its protocol.
 
