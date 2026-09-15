@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/certificates"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerappsrevisions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerappssessionpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/daprcomponents"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/jobs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
@@ -22,6 +23,7 @@ type Client struct {
 	ContainerAppRevisionClient *containerappsrevisions.ContainerAppsRevisionsClient
 	DaprComponentsClient       *daprcomponents.DaprComponentsClient
 	ManagedEnvironmentClient   *managedenvironments.ManagedEnvironmentsClient
+	SessionPoolClient          *containerappssessionpools.ContainerAppsSessionPoolsClient
 	StorageClient              *managedenvironmentsstorages.ManagedEnvironmentsStoragesClient
 	JobClient                  *jobs.JobsClient
 }
@@ -69,12 +71,19 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(jobsClient.Client, o.Authorizers.ResourceManager)
 
+	sessionPoolClient, err := containerappssessionpools.NewContainerAppsSessionPoolsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Session Pools client : %+v", err)
+	}
+	o.Configure(sessionPoolClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
 		CertificatesClient:         certificatesClient,
 		ContainerAppClient:         containerAppsClient,
 		ContainerAppRevisionClient: containerAppsRevisionsClient,
 		DaprComponentsClient:       daprComponentClient,
 		ManagedEnvironmentClient:   managedEnvironmentClient,
+		SessionPoolClient:          sessionPoolClient,
 		StorageClient:              managedEnvironmentStoragesClient,
 		JobClient:                  jobsClient,
 	}, nil

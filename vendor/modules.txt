@@ -440,6 +440,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budget
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/certificates
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerapps
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerappsrevisions
+github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerappssessionpools
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/daprcomponents
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/jobs
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments
