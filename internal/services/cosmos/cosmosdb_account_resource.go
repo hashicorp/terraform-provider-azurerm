@@ -49,6 +49,21 @@ var connStringPropertyMap = map[string]string{
 	"Secondary Read-Only MongoDB Connection String": "secondary_readonly_mongodb_connection_string",
 }
 
+var cosmosDbAccountCredentialPropertyNames = [...]string{
+	"primary_key",
+	"secondary_key",
+	"primary_readonly_key",
+	"secondary_readonly_key",
+	"primary_sql_connection_string",
+	"secondary_sql_connection_string",
+	"primary_readonly_sql_connection_string",
+	"secondary_readonly_sql_connection_string",
+	"primary_mongodb_connection_string",
+	"secondary_mongodb_connection_string",
+	"primary_readonly_mongodb_connection_string",
+	"secondary_readonly_mongodb_connection_string",
+}
+
 type databaseAccountCapabilities string
 
 const (
@@ -1334,6 +1349,10 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 				return fmt.Errorf("setting `write_endpoints`: %s", err)
 			}
 
+			if pointer.From(props.DisableLocalAuth) {
+				return clearCosmosDbAccountCredentials(d)
+			}
+
 			// ListKeys returns a data structure containing a DatabaseAccountListReadOnlyKeysResult pointer
 			// implying that it also returns the read only keys, however this appears to not be the case
 			keys, err := client.DatabaseAccountsListKeys(ctx, *id)
@@ -1388,6 +1407,16 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 					}
 				}
 			}
+		}
+	}
+
+	return nil
+}
+
+func clearCosmosDbAccountCredentials(d *pluginsdk.ResourceData) error {
+	for _, propertyName := range cosmosDbAccountCredentialPropertyNames {
+		if err := d.Set(propertyName, ""); err != nil {
+			return fmt.Errorf("setting `%s`: %+v", propertyName, err)
 		}
 	}
 
