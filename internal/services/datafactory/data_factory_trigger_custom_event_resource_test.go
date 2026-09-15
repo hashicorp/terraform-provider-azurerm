@@ -92,6 +92,21 @@ func TestAccDataFactoryTriggerCustomEvent_update(t *testing.T) {
 	})
 }
 
+func TestAccDataFactoryTriggerCustomEvent_activated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_custom_event", "test")
+	r := TriggerCustomEventResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.activated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t TriggerCustomEventResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.TriggerID(state.ID)
 	if err != nil {
@@ -208,4 +223,23 @@ resource "azurerm_eventgrid_topic" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r TriggerCustomEventResource) activated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_factory_trigger_custom_event" "test" {
+  name                = "acctestdf%d"
+  data_factory_id     = azurerm_data_factory.test.id
+  eventgrid_topic_id  = azurerm_eventgrid_topic.test.id
+  events              = ["event1"]
+  subject_begins_with = "abc"
+  activated           = true
+
+  pipeline {
+    name = azurerm_data_factory_pipeline.test.name
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
