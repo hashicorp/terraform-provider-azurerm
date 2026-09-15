@@ -141,10 +141,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Azure Managed Lustre File System.
+* `create` - (Defaults to 1 hour) Used when creating the Azure Managed Lustre File System.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Managed Lustre File System.
 * `update` - (Defaults to 30 minutes) Used when updating the Azure Managed Lustre File System.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Azure Managed Lustre File System.
+* `delete` - (Defaults to 1 hour) Used when deleting the Azure Managed Lustre File System.
 
 ## Import
 
