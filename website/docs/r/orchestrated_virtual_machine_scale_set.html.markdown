@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `platform_fault_domain_count` - (Required) Specifies the number of fault domains that are used by this Virtual Machine Scale Set. Changing this forces a new resource to be created.
 
--> **Note:** The number of Fault Domains varies depending on which Azure Region you're using. More information about update and fault domains and how they work can be found [here](https://learn.microsoft.com/en-us/azure/virtual-machines/availability-set-overview).
+-> **Note:** The number of Fault Domains varies depending on which Azure Region you're using. More information about update and fault domains and how they work can be found [here](https://learn.microsoft.com/azure/virtual-machines/availability-set-overview).
 
 * `additional_capabilities` - (Optional) An `additional_capabilities` block as defined below.
 
@@ -368,6 +368,8 @@ A `network_interface` block supports the following:
 
 ~> **Note:** If multiple `network_interface` blocks are specified, one must be set to `primary`.
 
+* `tags` - (Optional) A mapping of tags to assign to the Network Interface created by this Network Interface Configuration.
+
 ---
 
 An `os_disk` block supports the following:
@@ -593,4 +595,4 @@ terraform import azurerm_orchestrated_virtual_machine_scale_set.example /subscri
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Compute` - 2024-11-01
+* `Microsoft.Compute` - 2025-04-01

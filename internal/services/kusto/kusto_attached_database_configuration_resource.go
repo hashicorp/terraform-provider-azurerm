@@ -14,9 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/attacheddatabaseconfigurations"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
@@ -24,11 +24,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceKustoAttachedDatabaseConfigurationCreateUpdate,
 		Read:   resourceKustoAttachedDatabaseConfigurationRead,
 		Update: resourceKustoAttachedDatabaseConfigurationCreateUpdate,
@@ -197,26 +196,6 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["cluster_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ExactlyOneOf: []string{"cluster_id", "cluster_resource_id"},
-			ValidateFunc: commonids.ValidateKustoClusterID,
-		}
-		resource.Schema["cluster_resource_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: commonids.ValidateKustoClusterID,
-			Deprecated:   "`cluster_resource_id` has been deprecated in favour of the `cluster_id` property and will be removed in v5.0 of the AzureRM Provider.",
-			ExactlyOneOf: []string{"cluster_id", "cluster_resource_id"},
-		}
-	}
-
-	return resource
 }
 
 func resourceKustoAttachedDatabaseConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -300,10 +279,6 @@ func resourceKustoAttachedDatabaseConfigurationRead(d *pluginsdk.ResourceData, m
 			d.Set("default_principal_modification_kind", props.DefaultPrincipalsModificationKind)
 			d.Set("attached_database_names", props.AttachedDatabaseNames)
 			d.Set("sharing", flattenAttachedDatabaseConfigurationTableLevelSharingProperties(props.TableLevelSharingProperties))
-
-			if !features.FivePointOh() {
-				d.Set("cluster_resource_id", clusterResourceId.ID())
-			}
 		}
 	}
 
@@ -324,8 +299,7 @@ func resourceKustoAttachedDatabaseConfigurationDelete(d *pluginsdk.ResourceData,
 	locks.ByName(id.ClusterName, "azurerm_kusto_cluster")
 	defer locks.UnlockByName(id.ClusterName, "azurerm_kusto_cluster")
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
@@ -338,12 +312,6 @@ func expandKustoAttachedDatabaseConfigurationProperties(d *pluginsdk.ResourceDat
 	if clusterResourceID, ok := d.GetOk("cluster_id"); ok {
 		AttachedDatabaseConfigurationProperties.ClusterResourceId = clusterResourceID.(string)
 	}
-	if !features.FivePointOh() {
-		if clusterResourceID, ok := d.GetOk("cluster_resource_id"); ok {
-			AttachedDatabaseConfigurationProperties.ClusterResourceId = clusterResourceID.(string)
-		}
-	}
-
 	if databaseName, ok := d.GetOk("database_name"); ok {
 		AttachedDatabaseConfigurationProperties.DatabaseName = databaseName.(string)
 	}
@@ -371,14 +339,14 @@ func expandAttachedDatabaseConfigurationTableLevelSharingProperties(input []inte
 	}
 	v := input[0].(map[string]interface{})
 	return &attacheddatabaseconfigurations.TableLevelSharingProperties{
-		TablesToInclude:            utils.ExpandStringSlice(v["tables_to_include"].(*pluginsdk.Set).List()),
-		TablesToExclude:            utils.ExpandStringSlice(v["tables_to_exclude"].(*pluginsdk.Set).List()),
-		ExternalTablesToInclude:    utils.ExpandStringSlice(v["external_tables_to_include"].(*pluginsdk.Set).List()),
-		ExternalTablesToExclude:    utils.ExpandStringSlice(v["external_tables_to_exclude"].(*pluginsdk.Set).List()),
-		FunctionsToInclude:         utils.ExpandStringSlice(v["functions_to_include"].(*pluginsdk.Set).List()),
-		FunctionsToExclude:         utils.ExpandStringSlice(v["functions_to_exclude"].(*pluginsdk.Set).List()),
-		MaterializedViewsToInclude: utils.ExpandStringSlice(v["materialized_views_to_include"].(*pluginsdk.Set).List()),
-		MaterializedViewsToExclude: utils.ExpandStringSlice(v["materialized_views_to_exclude"].(*pluginsdk.Set).List()),
+		TablesToInclude:            helpers.ExpandStringSlice(v["tables_to_include"].(*pluginsdk.Set).List()),
+		TablesToExclude:            helpers.ExpandStringSlice(v["tables_to_exclude"].(*pluginsdk.Set).List()),
+		ExternalTablesToInclude:    helpers.ExpandStringSlice(v["external_tables_to_include"].(*pluginsdk.Set).List()),
+		ExternalTablesToExclude:    helpers.ExpandStringSlice(v["external_tables_to_exclude"].(*pluginsdk.Set).List()),
+		FunctionsToInclude:         helpers.ExpandStringSlice(v["functions_to_include"].(*pluginsdk.Set).List()),
+		FunctionsToExclude:         helpers.ExpandStringSlice(v["functions_to_exclude"].(*pluginsdk.Set).List()),
+		MaterializedViewsToInclude: helpers.ExpandStringSlice(v["materialized_views_to_include"].(*pluginsdk.Set).List()),
+		MaterializedViewsToExclude: helpers.ExpandStringSlice(v["materialized_views_to_exclude"].(*pluginsdk.Set).List()),
 	}
 }
 
@@ -389,14 +357,14 @@ func flattenAttachedDatabaseConfigurationTableLevelSharingProperties(input *atta
 
 	return []interface{}{
 		map[string]interface{}{
-			"external_tables_to_exclude":    utils.FlattenStringSlice(input.ExternalTablesToExclude),
-			"external_tables_to_include":    utils.FlattenStringSlice(input.ExternalTablesToInclude),
-			"functions_to_exclude":          utils.FlattenStringSlice(input.FunctionsToExclude),
-			"functions_to_include":          utils.FlattenStringSlice(input.FunctionsToInclude),
-			"materialized_views_to_exclude": utils.FlattenStringSlice(input.MaterializedViewsToExclude),
-			"materialized_views_to_include": utils.FlattenStringSlice(input.MaterializedViewsToInclude),
-			"tables_to_exclude":             utils.FlattenStringSlice(input.TablesToExclude),
-			"tables_to_include":             utils.FlattenStringSlice(input.TablesToInclude),
+			"external_tables_to_exclude":    helpers.FlattenStringSlice(input.ExternalTablesToExclude),
+			"external_tables_to_include":    helpers.FlattenStringSlice(input.ExternalTablesToInclude),
+			"functions_to_exclude":          helpers.FlattenStringSlice(input.FunctionsToExclude),
+			"functions_to_include":          helpers.FlattenStringSlice(input.FunctionsToInclude),
+			"materialized_views_to_exclude": helpers.FlattenStringSlice(input.MaterializedViewsToExclude),
+			"materialized_views_to_include": helpers.FlattenStringSlice(input.MaterializedViewsToInclude),
+			"tables_to_exclude":             helpers.FlattenStringSlice(input.TablesToExclude),
+			"tables_to_include":             helpers.FlattenStringSlice(input.TablesToInclude),
 		},
 	}
 }

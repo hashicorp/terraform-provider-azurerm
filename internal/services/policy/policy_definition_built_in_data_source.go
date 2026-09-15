@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-// dataSourceArmPolicyDefinitionBuiltIn read built-in policy definition only
-func dataSourceArmPolicyDefinitionBuiltIn() *pluginsdk.Resource {
+// dataSourcePolicyDefinitionBuiltIn read built-in policy definition only
+func dataSourcePolicyDefinitionBuiltIn() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Read: policyDefinitionReadFunc(true),
 

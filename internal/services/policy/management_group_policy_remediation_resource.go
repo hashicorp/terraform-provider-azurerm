@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	managmentGroupParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
@@ -23,15 +24,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceArmManagementGroupPolicyRemediation() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
-		Create: resourceArmManagementGroupPolicyRemediationCreateUpdate,
-		Read:   resourceArmManagementGroupPolicyRemediationRead,
-		Update: resourceArmManagementGroupPolicyRemediationCreateUpdate,
-		Delete: resourceArmManagementGroupPolicyRemediationDelete,
+func resourceManagementGroupPolicyRemediation() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceManagementGroupPolicyRemediationCreateUpdate,
+		Read:   resourceManagementGroupPolicyRemediationRead,
+		Update: resourceManagementGroupPolicyRemediationCreateUpdate,
+		Delete: resourceManagementGroupPolicyRemediationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ResourcePolicyRemediationID(id)
@@ -106,11 +106,9 @@ func resourceArmManagementGroupPolicyRemediation() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
-func resourceArmManagementGroupPolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagementGroupPolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -138,7 +136,7 @@ func resourceArmManagementGroupPolicyRemediationCreateUpdate(d *pluginsdk.Resour
 	var parameters remediations.Remediation
 	props := &remediations.RemediationProperties{
 		Filters: &remediations.RemediationFilters{
-			Locations: utils.ExpandStringSlice(d.Get("location_filters").([]interface{})),
+			Locations: helpers.ExpandStringSlice(d.Get("location_filters").([]interface{})),
 		},
 		PolicyAssignmentId:          pointer.To(d.Get("policy_assignment_id").(string)),
 		PolicyDefinitionReferenceId: pointer.To(d.Get("policy_definition_reference_id").(string)),
@@ -168,10 +166,10 @@ func resourceArmManagementGroupPolicyRemediationCreateUpdate(d *pluginsdk.Resour
 		d.SetId(id.ID())
 	}
 
-	return resourceArmManagementGroupPolicyRemediationRead(d, meta)
+	return resourceManagementGroupPolicyRemediationRead(d, meta)
 }
 
-func resourceArmManagementGroupPolicyRemediationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagementGroupPolicyRemediationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -198,7 +196,7 @@ func resourceArmManagementGroupPolicyRemediationRead(d *pluginsdk.ResourceData, 
 	if props := resp.Model.Properties; props != nil {
 		locations := make([]interface{}, 0)
 		if filters := props.Filters; filters != nil {
-			locations = utils.FlattenStringSlice(filters.Locations)
+			locations = helpers.FlattenStringSlice(filters.Locations)
 		}
 		if err := d.Set("location_filters", locations); err != nil {
 			return fmt.Errorf("setting `location_filters`: %+v", err)
@@ -217,7 +215,7 @@ func resourceArmManagementGroupPolicyRemediationRead(d *pluginsdk.ResourceData, 
 	return nil
 }
 
-func resourceArmManagementGroupPolicyRemediationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagementGroupPolicyRemediationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

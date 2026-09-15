@@ -133,8 +133,6 @@ A `customer_certificate` block supports the following:
 
 -> **Note:** If you would like to use the **latest version** of the Key Vault Certificate use the Key Vault Certificates `versionless_id` attribute as the `key_vault_certificate_id` fields value(e.g. `key_vault_certificate_id = azurerm_key_vault_certificate.example.versionless_id`).
 
-* `subject_alternative_names` - (Computed) One or more `subject alternative names` contained within the key vault certificate.
-
 ---
 
 ## Attributes Reference
@@ -144,6 +142,22 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Front Door Secret.
 
 * `cdn_frontdoor_profile_name` - The name of the Front Door Profile containing this Front Door Secret.
+
+* `secret` - A `secret` block as defined below.
+
+---
+
+A `secret` block exports the following:
+
+* `customer_certificate` - A `customer_certificate` block as defined below.
+
+---
+
+A `customer_certificate` block exports the following:
+
+* `expiration_date` - The key vault certificate expiration date. 
+
+* `subject_alternative_names` - One or more `subject alternative names` contained within the key vault certificate.
 
 ## Timeouts
 
@@ -160,3 +174,9 @@ Front Door Secrets can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_cdn_frontdoor_secret.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/secrets/secrets1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Cdn` - 2025-12-01

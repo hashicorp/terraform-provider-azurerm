@@ -103,7 +103,7 @@ func TestClusterStatePoller_UnexpectedState(t *testing.T) {
 			HttpResponse: &http.Response{StatusCode: 200},
 			Model: &redisenterprise.Cluster{
 				Properties: &redisenterprise.ClusterCreateProperties{
-					ResourceState: pointer.To(redisenterprise.ResourceState("UnexpectedState")),
+					ResourceState: pointer.ToEnum[redisenterprise.ResourceState]("UnexpectedState"),
 				},
 			},
 		},

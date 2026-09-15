@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 )
@@ -195,8 +195,7 @@ func resourceManagedDiskUpdateWithVmShutDown(ctx context.Context, clients *clien
 	}
 
 	// Update Disk
-	err = diskClient.UpdateThenPoll(ctx, *id, diskUpdate)
-	if err != nil {
+	if err = diskClient.UpdateThenPoll(ctx, *id, diskUpdate); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 

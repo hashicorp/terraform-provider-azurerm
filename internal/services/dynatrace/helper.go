@@ -142,8 +142,7 @@ func FlattenLogRules(input *tagrules.LogRules) []LogRule {
 	var sendSubscriptionLogs bool
 
 	if input.FilteringTags != nil {
-		filteringTags := FlattenFilteringTags(input.FilteringTags)
-		logRule.FilteringTags = filteringTags
+		logRule.FilteringTags = FlattenFilteringTags(input.FilteringTags)
 	}
 
 	if input.SendActivityLogs != nil {
@@ -200,8 +199,7 @@ func FlattenMetricRules(input *tagrules.MetricRules) []MetricRule {
 	var metricRule MetricRule
 
 	if input.FilteringTags != nil {
-		filteringTags := FlattenFilteringTags(input.FilteringTags)
-		metricRule.FilteringTags = filteringTags
+		metricRule.FilteringTags = FlattenFilteringTags(input.FilteringTags)
 	}
 
 	if input.SendingMetrics != nil {

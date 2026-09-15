@@ -8,30 +8,18 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func URLPath() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"operator": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.URLPathOperatorAny),
-					string(cdn.URLPathOperatorBeginsWith),
-					string(cdn.URLPathOperatorContains),
-					string(cdn.URLPathOperatorEndsWith),
-					string(cdn.URLPathOperatorEqual),
-					string(cdn.URLPathOperatorGreaterThan),
-					string(cdn.URLPathOperatorGreaterThanOrEqual),
-					string(cdn.URLPathOperatorLessThan),
-					string(cdn.URLPathOperatorLessThanOrEqual),
-					string(cdn.URLPathOperatorRegEx),
-					string(cdn.URLPathOperatorWildcard),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleURLPathOperatorValues(), false),
 			},
 
 			"negate_condition": {
@@ -54,11 +42,8 @@ func URLPath() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(cdn.TransformLowercase),
-						string(cdn.TransformUppercase),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInEnumSlice(cdn.PossibleTransformValues(), false),
 				},
 			},
 		},
@@ -77,7 +62,7 @@ func ExpandArmCdnEndpointConditionURLPath(input []interface{}) []cdn.BasicDelive
 				OdataType:       pointer.To("Microsoft.Azure.Cdn.Models.DeliveryRuleUrlPathMatchConditionParameters"),
 				Operator:        cdn.URLPathOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
+				MatchValues:     helpers.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
 			},
 		}
 
@@ -113,7 +98,7 @@ func FlattenArmCdnEndpointConditionURLPath(input cdn.BasicDeliveryRuleCondition)
 		}
 
 		if params.MatchValues != nil {
-			matchValues = utils.FlattenStringSlice(params.MatchValues)
+			matchValues = helpers.FlattenStringSlice(params.MatchValues)
 		}
 
 		if params.Transforms != nil {
