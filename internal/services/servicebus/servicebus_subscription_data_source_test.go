@@ -22,6 +22,8 @@ func TestAccDataSourceServiceBusSubscription_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("max_delivery_count").Exists(),
+				check.That(data.ResourceName).Key("status").HasValue("Active"),
+				check.That(data.ResourceName).Key("client_scoped_subscription_enabled").HasValue("false"),
 			),
 		},
 	})
