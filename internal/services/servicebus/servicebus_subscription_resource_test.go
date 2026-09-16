@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ServiceBusSubscriptionResource struct{}
+type ServicebusSubscriptionResource struct{}
 
 func TestAccServiceBusSubscription_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
-	r := ServiceBusSubscriptionResource{}
+	r := ServicebusSubscriptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -37,7 +37,7 @@ func TestAccServiceBusSubscription_basic(t *testing.T) {
 
 func TestAccServiceBusSubscription_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
-	r := ServiceBusSubscriptionResource{}
+	r := ServicebusSubscriptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,7 +52,7 @@ func TestAccServiceBusSubscription_complete(t *testing.T) {
 
 func TestAccServiceBusSubscription_clientScopedEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
-	r := ServiceBusSubscriptionResource{}
+	r := ServicebusSubscriptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -67,7 +67,7 @@ func TestAccServiceBusSubscription_clientScopedEnabled(t *testing.T) {
 
 func TestAccServiceBusSubscription_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
-	r := ServiceBusSubscriptionResource{}
+	r := ServicebusSubscriptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -82,7 +82,7 @@ func TestAccServiceBusSubscription_requiresImport(t *testing.T) {
 
 func TestAccServiceBusSubscription_defaultTtl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
-	r := ServiceBusSubscriptionResource{}
+	r := ServicebusSubscriptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -98,7 +98,7 @@ func TestAccServiceBusSubscription_defaultTtl(t *testing.T) {
 
 func TestAccServiceBusSubscription_updateEnableBatched(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
-	r := ServiceBusSubscriptionResource{}
+	r := ServicebusSubscriptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -119,7 +119,7 @@ func TestAccServiceBusSubscription_updateEnableBatched(t *testing.T) {
 
 func TestAccServiceBusSubscription_requiresSession(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
-	r := ServiceBusSubscriptionResource{}
+	r := ServicebusSubscriptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -134,7 +134,7 @@ func TestAccServiceBusSubscription_requiresSession(t *testing.T) {
 
 func TestAccServiceBusSubscription_updateForwardTo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
-	r := ServiceBusSubscriptionResource{}
+	r := ServicebusSubscriptionResource{}
 
 	expectedValue := fmt.Sprintf("acctestservicebustopic-forward_to-%d", data.RandomInteger)
 
@@ -157,7 +157,7 @@ func TestAccServiceBusSubscription_updateForwardTo(t *testing.T) {
 
 func TestAccServiceBusSubscription_updateForwardDeadLetteredMessagesTo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
-	r := ServiceBusSubscriptionResource{}
+	r := ServicebusSubscriptionResource{}
 
 	expectedValue := fmt.Sprintf("acctestservicebustopic-forward_dl_messages_to-%d", data.RandomInteger)
 
@@ -180,7 +180,7 @@ func TestAccServiceBusSubscription_updateForwardDeadLetteredMessagesTo(t *testin
 
 func TestAccServiceBusSubscription_updateDeadLetteringOnFilterEvaluationExceptions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
-	r := ServiceBusSubscriptionResource{}
+	r := ServicebusSubscriptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -201,7 +201,7 @@ func TestAccServiceBusSubscription_updateDeadLetteringOnFilterEvaluationExceptio
 
 func TestAccServiceBusSubscription_status(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
-	r := ServiceBusSubscriptionResource{}
+	r := ServicebusSubscriptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -232,7 +232,7 @@ func TestAccServiceBusSubscription_status(t *testing.T) {
 	})
 }
 
-func (t ServiceBusSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t ServicebusSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := subscriptions.ParseSubscriptions2ID(state.ID)
 	if err != nil {
 		return nil, err
@@ -276,11 +276,11 @@ resource "azurerm_servicebus_subscription" "test" {
 }
 `
 
-func (ServiceBusSubscriptionResource) basic(data acceptance.TestData) string {
+func (ServicebusSubscriptionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(testAccServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, "")
 }
 
-func (ServiceBusSubscriptionResource) complete(data acceptance.TestData) string {
+func (ServicebusSubscriptionResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -317,7 +317,7 @@ resource "azurerm_servicebus_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary, "")
 }
 
-func (r ServiceBusSubscriptionResource) requiresImport(data acceptance.TestData) string {
+func (r ServicebusSubscriptionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -329,22 +329,22 @@ resource "azurerm_servicebus_subscription" "import" {
 `, r.basic(data))
 }
 
-func (ServiceBusSubscriptionResource) withDefaultTtl(data acceptance.TestData) string {
+func (ServicebusSubscriptionResource) withDefaultTtl(data acceptance.TestData) string {
 	return fmt.Sprintf(testAccServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
 		"default_message_ttl = \"PT1H\"\n")
 }
 
-func (ServiceBusSubscriptionResource) updateEnableBatched(data acceptance.TestData) string {
+func (ServicebusSubscriptionResource) updateEnableBatched(data acceptance.TestData) string {
 	return fmt.Sprintf(testAccServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
 		"batched_operations_enabled = true\n")
 }
 
-func (ServiceBusSubscriptionResource) requiresSession(data acceptance.TestData) string {
+func (ServicebusSubscriptionResource) requiresSession(data acceptance.TestData) string {
 	return fmt.Sprintf(testAccServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
 		"requires_session = true\n")
 }
 
-func (ServiceBusSubscriptionResource) updateForwardTo(data acceptance.TestData) string {
+func (ServicebusSubscriptionResource) updateForwardTo(data acceptance.TestData) string {
 	forwardToTf := testAccServiceBusSubscription_tfTemplate + `
 
 
@@ -363,7 +363,7 @@ resource "azurerm_servicebus_topic" "forward_to" {
 		"forward_to = \"${azurerm_servicebus_topic.forward_to.name}\"\n", data.RandomInteger)
 }
 
-func (ServiceBusSubscriptionResource) updateForwardDeadLetteredMessagesTo(data acceptance.TestData) string {
+func (ServicebusSubscriptionResource) updateForwardDeadLetteredMessagesTo(data acceptance.TestData) string {
 	forwardToTf := testAccServiceBusSubscription_tfTemplate + `
 
 
@@ -382,19 +382,19 @@ resource "azurerm_servicebus_topic" "forward_dl_messages_to" {
 		"forward_dead_lettered_messages_to = \"${azurerm_servicebus_topic.forward_dl_messages_to.name}\"\n", data.RandomInteger)
 }
 
-func (ServiceBusSubscriptionResource) status(data acceptance.TestData, status string) string {
+func (ServicebusSubscriptionResource) status(data acceptance.TestData, status string) string {
 	return fmt.Sprintf(testAccServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
 		fmt.Sprintf("status = \"%s\"", status))
 }
 
-func (ServiceBusSubscriptionResource) updateDeadLetteringOnFilterEvaluationExceptions(data acceptance.TestData) string {
+func (ServicebusSubscriptionResource) updateDeadLetteringOnFilterEvaluationExceptions(data acceptance.TestData) string {
 	return fmt.Sprintf(testAccServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
 		"dead_lettering_on_filter_evaluation_error = false\n")
 }
 
 func TestAccServiceBusSubscription_defaultRuleFeatureFlagEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
-	r := ServiceBusSubscriptionResource{}
+	r := ServicebusSubscriptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -410,7 +410,7 @@ func TestAccServiceBusSubscription_defaultRuleFeatureFlagEnabled(t *testing.T) {
 
 func TestAccServiceBusSubscription_defaultRuleFeatureFlagDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
-	r := ServiceBusSubscriptionResource{}
+	r := ServicebusSubscriptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -424,7 +424,7 @@ func TestAccServiceBusSubscription_defaultRuleFeatureFlagDisabled(t *testing.T) 
 	})
 }
 
-func (r ServiceBusSubscriptionResource) defaultRuleAbsent(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+func (r ServicebusSubscriptionResource) defaultRuleAbsent(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 
@@ -450,7 +450,7 @@ func (r ServiceBusSubscriptionResource) defaultRuleAbsent(ctx context.Context, c
 	return nil
 }
 
-func (r ServiceBusSubscriptionResource) defaultRuleExists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+func (r ServicebusSubscriptionResource) defaultRuleExists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 
@@ -476,7 +476,7 @@ func (r ServiceBusSubscriptionResource) defaultRuleExists(ctx context.Context, c
 	return fmt.Errorf("expected $Default rule to exist for %s, but it was not found", id)
 }
 
-func (ServiceBusSubscriptionResource) defaultRuleFeatureFlagEnabled(data acceptance.TestData) string {
+func (ServicebusSubscriptionResource) defaultRuleFeatureFlagEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -511,7 +511,7 @@ resource "azurerm_servicebus_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (ServiceBusSubscriptionResource) defaultRuleFeatureFlagDisabled(data acceptance.TestData) string {
+func (ServicebusSubscriptionResource) defaultRuleFeatureFlagDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -542,7 +542,7 @@ resource "azurerm_servicebus_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (ServiceBusSubscriptionResource) clientScopedSubscriptionEnabled(data acceptance.TestData) string {
+func (ServicebusSubscriptionResource) clientScopedSubscriptionEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
