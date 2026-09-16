@@ -202,8 +202,8 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_table" "test" {
-  name                 = "acctestst%[1]d"
-  storage_account_name = azurerm_storage_account.test.name
+  name               = "acctestst%[1]d"
+  storage_account_id = azurerm_storage_account.test.id
 }
 
 resource "azurerm_storage_table_entity" "test" {
@@ -371,8 +371,8 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_table" "test" {
-  name                 = "acctestst%[1]d"
-  storage_account_name = azurerm_storage_account.test.name
+  name               = "acctestst%[1]d"
+  storage_account_id = azurerm_storage_account.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

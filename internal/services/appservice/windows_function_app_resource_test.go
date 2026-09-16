@@ -39,6 +39,20 @@ func TestAccWindowsFunctionApp_basicBasicPlan(t *testing.T) {
 	})
 }
 
+func TestAccWindowsFunctionApp_regression(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	}, "")
+}
+
 func TestAccWindowsFunctionApp_basicRuntimeCheck(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
 	r := WindowsFunctionAppResource{}
@@ -1689,7 +1703,7 @@ func TestAccWindowsFunctionApp_vNetIntegrationUpdate(t *testing.T) {
 	})
 }
 
-func TestAccWindowsFunctionAppASEv3_basic(t *testing.T) {
+func TestAccWindowsFunctionApp_ASEv3Basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
 	r := WindowsFunctionAppResource{}
 
@@ -1746,6 +1760,50 @@ func TestAccWindowsFunctionApp_publicNetworkAccessUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccWindowsFunctionApp_e2eEncryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.endToEndTLSEncryptionEnabled(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccWindowsFunctionApp_e2eEncryptionUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.endToEndTLSEncryptionEnabled(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -3575,6 +3633,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv-%[2]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -3656,6 +3715,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv-%[2]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -3935,9 +3995,9 @@ resource "azurerm_subnet" "test" {
     }
   }
 
-  service_endpoints = [
-    "Microsoft.Storage"
-  ]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
 }
 
 resource "azurerm_storage_account_network_rules" "test" {
@@ -4281,7 +4341,6 @@ resource "azurerm_windows_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
 
-// TODO 4.0 enable the vnet_image_pull_enabled property for app running in ase env
 func (r WindowsFunctionAppResource) withASEV3(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -4327,6 +4386,30 @@ resource "azurerm_windows_function_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   public_network_access_enabled = false
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger)
+}
+
+func (r WindowsFunctionAppResource) endToEndTLSEncryptionEnabled(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_function_app" "test" {
+  name                = "acctest-WFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  end_to_end_tls_encryption_enabled = true
 
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key

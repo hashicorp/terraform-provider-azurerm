@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `password` - (Required) The Password associated with the `username` used to login to this Virtual Machine. Changing this forces a new resource to be created.
 
-* `size` - (Required) The Machine Size to use for this Virtual Machine, such as `Standard_F2`. Changing this forces a new resource to be created.
+* `size` - (Required) The Machine Size to use for this Virtual Machine, such as `Standard_D4_v5`. Changing this forces a new resource to be created.
 
 * `storage_type` - (Required) The type of Storage to use on this Virtual Machine. Possible values are `Standard` and `Premium`. Changing this forces a new resource to be created.
 

@@ -25,9 +25,9 @@ func (s BaseResourcePredictionsProfileImpl) ResourcePredictionsProfile() BaseRes
 
 var _ ResourcePredictionsProfile = RawResourcePredictionsProfileImpl{}
 
-// RawResourcePredictionsProfileImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawResourcePredictionsProfileImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawResourcePredictionsProfileImpl struct {
 	resourcePredictionsProfile BaseResourcePredictionsProfileImpl
 	Type                       string
@@ -36,6 +36,10 @@ type RawResourcePredictionsProfileImpl struct {
 
 func (s RawResourcePredictionsProfileImpl) ResourcePredictionsProfile() BaseResourcePredictionsProfileImpl {
 	return s.resourcePredictionsProfile
+}
+
+func (s RawResourcePredictionsProfileImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalResourcePredictionsProfileImplementation(input []byte) (ResourcePredictionsProfile, error) {

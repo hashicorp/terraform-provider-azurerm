@@ -280,9 +280,7 @@ func (r ContainerAppEnvironmentCustomDomainResource) Update() sdk.ResourceFunc {
 			}
 
 			// If custom domain dns suffix or its certificate changed, update all the required attributes
-			if metadata.ResourceData.HasChange("dns_suffix") ||
-				metadata.ResourceData.HasChange("certificate_blob_base64") ||
-				metadata.ResourceData.HasChange("certificate_password") {
+			if metadata.ResourceData.HasChanges("dns_suffix", "certificate_blob_base64", "certificate_password") {
 				existing.Model.Properties.CustomDomainConfiguration = &managedenvironments.CustomDomainConfiguration{
 					DnsSuffix:           pointer.To(model.DnsSuffix),
 					CertificateValue:    pointer.To(model.CertificateValue),

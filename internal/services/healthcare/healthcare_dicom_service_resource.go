@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -18,15 +19,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2024-03-31/dicomservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2024-03-31/workspaces"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceHealthcareApisDicomService() *pluginsdk.Resource {
@@ -281,8 +283,7 @@ func resourceHealthcareApisDicomServiceCreate(d *pluginsdk.ResourceData, meta in
 		parameters.Properties.PublicNetworkAccess = pointer.To(dicomservices.PublicNetworkAccessDisabled)
 	}
 
-	err = client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d))
-	if err != nil {
+	if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -418,8 +419,7 @@ func resourceHealthcareApisDicomServiceUpdate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, *id, *payload)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -437,39 +437,19 @@ func resourceHealthcareApisDicomServiceDelete(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("parsing Dicom service error: %+v", err)
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting Healthcare Dicom Service %s: %+v", id, err)
 	}
 
 	log.Printf("[DEBUG] Waiting for %s to be deleted..", id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"Pending"},
-		Target:                    []string{"Deleted"},
-		Refresh:                   dicomServiceStateStatusCodeRefreshFunc(ctx, client, *id),
-		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
-		ContinuousTargetOccurence: 3,
-		PollInterval:              10 * time.Second,
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(3, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, *id)
+		return resp.HttpResponse, err
+	}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
 	}
 	return nil
-}
-
-func dicomServiceStateStatusCodeRefreshFunc(ctx context.Context, client *dicomservices.DicomServicesClient, id dicomservices.DicomServiceId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return resp, "Deleted", nil
-			}
-			return nil, "Error", fmt.Errorf("polling for the status of %s: %+v", id, err)
-		}
-
-		return resp, "Pending", nil
-	}
 }
 
 func updateTags(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -486,8 +466,7 @@ func updateTags(d *pluginsdk.ResourceData, meta interface{}) error {
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	err = client.UpdateThenPoll(ctx, *id, update)
-	if err != nil {
+	if err = client.UpdateThenPoll(ctx, *id, update); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -586,15 +565,15 @@ func expandDicomServiceCorsConfiguration(inputList []interface{}) *dicomservices
 	output := dicomservices.CorsConfiguration{}
 
 	if v, ok := input["allowed_origins"]; ok {
-		output.Origins = utils.ExpandStringSlice(v.([]interface{}))
+		output.Origins = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 
 	if v, ok := input["allowed_headers"]; ok {
-		output.Headers = utils.ExpandStringSlice(v.([]interface{}))
+		output.Headers = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 
 	if v, ok := input["allowed_methods"]; ok {
-		output.Methods = utils.ExpandStringSlice(v.([]interface{}))
+		output.Methods = helpers.ExpandStringSlice(v.([]interface{}))
 	}
 
 	if v, ok := input["max_age_in_seconds"]; ok {
@@ -618,17 +597,17 @@ func flattenDicomServiceCorsConfiguration(input *dicomservices.CorsConfiguration
 	output["allow_credentials"] = pointer.From(input.AllowCredentials)
 
 	if input.Headers != nil {
-		output["allowed_headers"] = utils.FlattenStringSlice(input.Headers)
+		output["allowed_headers"] = helpers.FlattenStringSlice(input.Headers)
 	}
 
 	output["max_age_in_seconds"] = pointer.From(input.MaxAge)
 
 	if input.Methods != nil {
-		output["allowed_methods"] = utils.FlattenStringSlice(input.Methods)
+		output["allowed_methods"] = helpers.FlattenStringSlice(input.Methods)
 	}
 
 	if input.Origins != nil {
-		output["allowed_origins"] = utils.FlattenStringSlice(input.Origins)
+		output["allowed_origins"] = helpers.FlattenStringSlice(input.Origins)
 	}
 
 	return append(outputList, output)

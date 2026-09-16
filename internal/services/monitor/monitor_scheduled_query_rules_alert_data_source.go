@@ -13,10 +13,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
@@ -205,12 +205,12 @@ func dataSourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, me
 			d.Set("time_window", schedule.TimeWindowInMinutes)
 		}
 
-		d.Set("authorized_resource_ids", utils.FlattenStringSlice(props.Source.AuthorizedResources))
+		d.Set("authorized_resource_ids", helpers.FlattenStringSlice(props.Source.AuthorizedResources))
 		d.Set("data_source_id", props.Source.DataSourceId)
 		d.Set("query", props.Source.Query)
 		d.Set("query_type", string(pointer.From(props.Source.QueryType)))
 
-		if err = d.Set("tags", utils.FlattenPtrMapStringString(model.Tags)); err != nil {
+		if err = d.Set("tags", helpers.FlattenPtrMapStringString(model.Tags)); err != nil {
 			return err
 		}
 	}

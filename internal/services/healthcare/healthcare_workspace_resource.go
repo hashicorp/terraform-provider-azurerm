@@ -101,8 +101,7 @@ func resourceHealthcareApisWorkspaceCreate(d *pluginsdk.ResourceData, meta inter
 		Tags:     tags.Expand(t),
 	}
 
-	err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d))
-	if err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating/ updating %s: %+v", id, err)
 	}
 
@@ -163,8 +162,7 @@ func resourceHealthcareApisWorkspaceUpdate(d *pluginsdk.ResourceData, meta inter
 		Tags: tags.Expand(t),
 	}
 
-	err = client.UpdateThenPoll(ctx, *id, parameters)
-	if err != nil {
+	if err = client.UpdateThenPoll(ctx, *id, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -181,8 +179,7 @@ func resourceHealthcareApisWorkspaceDelete(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

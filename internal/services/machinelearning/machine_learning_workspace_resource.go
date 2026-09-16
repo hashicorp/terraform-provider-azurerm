@@ -185,14 +185,14 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			"managed_network": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"isolation_mode": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForIsolationMode(), false),
 						},
 						"provision_on_creation_enabled": {
@@ -235,6 +235,16 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
+			},
+
+			"storage_account_access_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  workspaces.SystemDatastoresAuthModeAccessKey,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(workspaces.SystemDatastoresAuthModeAccessKey),
+					string(workspaces.SystemDatastoresAuthModeIdentity),
+				}, false),
 			},
 
 			"serverless_compute": {
@@ -313,10 +323,9 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Sku: &workspaces.Sku{
 			Name: d.Get("sku_name").(string),
-			Tier: pointer.To(workspaces.SkuTier(d.Get("sku_name").(string))),
+			Tier: pointer.ToEnum[workspaces.SkuTier](d.Get("sku_name").(string)),
 		},
-		Kind: pointer.To(d.Get("kind").(string)),
-
+		Kind:     pointer.To(d.Get("kind").(string)),
 		Identity: expandedIdentity,
 		Properties: &workspaces.WorkspaceProperties{
 			ApplicationInsights:            pointer.To(d.Get("application_insights_id").(string)),
@@ -327,6 +336,7 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 			PublicNetworkAccess:            pointer.To(networkAccessBehindVnetEnabled),
 			EnableServiceSideCMKEncryption: pointer.To(d.Get("service_side_encryption_enabled").(bool)),
 			StorageAccount:                 pointer.To(d.Get("storage_account_id").(string)),
+			SystemDatastoresAuthMode:       pointer.ToEnum[workspaces.SystemDatastoresAuthMode](d.Get("storage_account_access_type").(string)),
 			V1LegacyMode:                   pointer.To(d.Get("v1_legacy_mode_enabled").(bool)),
 		},
 	}
@@ -466,12 +476,16 @@ func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta inte
 	if d.HasChange("sku_name") {
 		payload.Sku = &workspaces.Sku{
 			Name: d.Get("sku_name").(string),
-			Tier: pointer.To(workspaces.SkuTier(d.Get("sku_name").(string))),
+			Tier: pointer.ToEnum[workspaces.SkuTier](d.Get("sku_name").(string)),
 		}
 	}
 
 	if d.HasChange("v1_legacy_mode_enabled") {
 		payload.Properties.V1LegacyMode = pointer.To(d.Get("v1_legacy_mode_enabled").(bool))
+	}
+
+	if d.HasChange("storage_account_access_type") {
+		payload.Properties.SystemDatastoresAuthMode = pointer.ToEnum[workspaces.SystemDatastoresAuthMode](d.Get("storage_account_access_type").(string))
 	}
 
 	if d.HasChange("serverless_compute") {
@@ -566,6 +580,7 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("public_network_access_enabled", *props.PublicNetworkAccess == workspaces.PublicNetworkAccessEnabled)
 			d.Set("service_side_encryption_enabled", props.EnableServiceSideCMKEncryption)
 			d.Set("v1_legacy_mode_enabled", props.V1LegacyMode)
+			d.Set("storage_account_access_type", pointer.FromEnum(props.SystemDatastoresAuthMode))
 			d.Set("workspace_id", props.WorkspaceId)
 			d.Set("managed_network", flattenMachineLearningWorkspaceManagedNetwork(props.ManagedNetwork, props.ProvisionNetworkNow))
 			d.Set("serverless_compute", flattenMachineLearningWorkspaceServerlessCompute(props.ServerlessComputeSettings))
@@ -576,8 +591,7 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 			}
 			d.Set("key_vault_id", kvId.ID())
 
-			featureStoreSettings := flattenMachineLearningWorkspaceFeatureStore(props.FeatureStoreSettings)
-			if err := d.Set("feature_store", featureStoreSettings); err != nil {
+			if err := d.Set("feature_store", flattenMachineLearningWorkspaceFeatureStore(props.FeatureStoreSettings)); err != nil {
 				return fmt.Errorf("setting `feature_store`: %+v", err)
 			}
 
@@ -666,7 +680,7 @@ func flattenMachineLearningWorkspaceIdentity(input *identity.LegacySystemAndUser
 			transform.TenantId = input.TenantId
 		}
 
-		if input != nil && input.IdentityIds != nil {
+		if input.IdentityIds != nil {
 			for k, v := range input.IdentityIds {
 				transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
 					ClientId:    v.ClientId,
@@ -686,9 +700,7 @@ func expandMachineLearningWorkspaceEncryption(input []interface{}) *workspaces.E
 
 	raw := input[0].(map[string]interface{})
 	out := workspaces.EncryptionProperty{
-		Identity: &workspaces.IdentityForCmk{
-			UserAssignedIdentity: nil,
-		},
+		Identity: &workspaces.IdentityForCmk{},
 		KeyVaultProperties: workspaces.EncryptionKeyVaultProperties{
 			KeyVaultArmId: raw["key_vault_id"].(string),
 			KeyIdentifier: raw["key_id"].(string),
@@ -798,7 +810,7 @@ func expandMachineLearningWorkspaceManagedNetwork(i []interface{}) (*workspaces.
 	v := i[0].(map[string]interface{})
 
 	return &workspaces.ManagedNetworkSettings{
-		IsolationMode: pointer.To(workspaces.IsolationMode(v["isolation_mode"].(string))),
+		IsolationMode: pointer.ToEnum[workspaces.IsolationMode](v["isolation_mode"].(string)),
 	}, v["provision_on_creation_enabled"].(bool)
 }
 

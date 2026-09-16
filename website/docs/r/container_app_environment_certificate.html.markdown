@@ -80,12 +80,12 @@ resource "azurerm_container_app_environment" "example" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                      = "example-keyvault"
-  location                  = azurerm_resource_group.example.location
-  resource_group_name       = azurerm_resource_group.example.name
-  tenant_id                 = data.azurerm_client_config.current.tenant_id
-  sku_name                  = "standard"
-  enable_rbac_authorization = true
+  name                       = "example-keyvault"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  rbac_authorization_enabled = true
 }
 
 resource "azurerm_role_assignment" "user_keyvault_admin" {
@@ -155,7 +155,7 @@ A `certificate_key_vault` block supports the following:
 
 * `identity` - (Optional) The managed identity to authenticate with Azure Key Vault. Possible values are the resource ID of user-assigned identity, and `System` for system-assigned identity. Defaults to `System`. Changing this forces a new resource to be created.
 
-~> **Note:** Please make sure [required permissions](https://learn.microsoft.com/en-us/azure/container-apps/key-vault-certificates-manage) are correctly configured for your Key Vault and managed identity.
+~> **Note:** Please make sure [required permissions](https://learn.microsoft.com/azure/container-apps/key-vault-certificates-manage) are correctly configured for your Key Vault and managed identity.
 
 * `key_vault_secret_id` - (Required) The ID of the Key Vault Secret containing the certificate. Changing this forces a new resource to be created.
 

@@ -98,7 +98,7 @@ func resourceAppServicePublicCertificateCreate(d *pluginsdk.ResourceData, meta i
 
 	certificate := webapps.PublicCertificate{
 		Properties: &webapps.PublicCertificateProperties{
-			PublicCertificateLocation: pointer.To(webapps.PublicCertificateLocation(certificateLocation)),
+			PublicCertificateLocation: pointer.ToEnum[webapps.PublicCertificateLocation](certificateLocation),
 		},
 	}
 

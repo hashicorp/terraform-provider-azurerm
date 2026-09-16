@@ -8,11 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/attacheddatabaseconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -63,24 +63,6 @@ func TestAccKustoAttachedDatabaseConfiguration_databaseNamePrefix(t *testing.T) 
 	})
 }
 
-func TestAccKustoAttachedDatabaseConfiguration_clusterResourceId(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip()
-	}
-	data := acceptance.BuildTestData(t, "azurerm_kusto_attached_database_configuration", "test")
-	r := KustoAttachedDatabaseConfigurationResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.clusterResourceId(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccKustoAttachedDatabaseConfiguration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_attached_database_configuration", "test")
 	r := KustoAttachedDatabaseConfigurationResource{}
@@ -118,9 +100,7 @@ func (KustoAttachedDatabaseConfigurationResource) Exists(ctx context.Context, cl
 		return nil, fmt.Errorf("response model is empty")
 	}
 
-	exists := resp.Model.Properties != nil
-
-	return &exists, nil
+	return pointer.To(resp.Model.Properties != nil), nil
 }
 
 func (r KustoAttachedDatabaseConfigurationResource) basic(data acceptance.TestData) string {
@@ -140,30 +120,6 @@ resource "azurerm_kusto_attached_database_configuration" "test" {
     external_tables_to_include    = ["ExternalTable1"]
     functions_to_exclude          = ["Function2"]
     functions_to_include          = ["Function1"]
-    materialized_views_to_exclude = ["MaterializedViewTable2"]
-    materialized_views_to_include = ["MaterializedViewTable1"]
-    tables_to_exclude             = ["Table2"]
-    tables_to_include             = ["Table1"]
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r KustoAttachedDatabaseConfigurationResource) clusterResourceId(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_kusto_attached_database_configuration" "test" {
-  name                = "acctestka-%d"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  cluster_name        = azurerm_kusto_cluster.cluster1.name
-  cluster_resource_id = azurerm_kusto_cluster.cluster2.id ### <-- Testing this deprecated property
-  database_name       = azurerm_kusto_database.test.name
-
-  sharing {
-    external_tables_to_exclude    = ["ExternalTable2"]
-    external_tables_to_include    = ["ExternalTable1"]
     materialized_views_to_exclude = ["MaterializedViewTable2"]
     materialized_views_to_include = ["MaterializedViewTable1"]
     tables_to_exclude             = ["Table2"]

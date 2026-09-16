@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobexecutions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobstepexecutions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobexecutions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobstepexecutions"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
 

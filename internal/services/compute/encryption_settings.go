@@ -123,10 +123,7 @@ func flattenSnapshotDiskEncryptionSettings(encryptionSettings *snapshots.Encrypt
 				secretUrl = key.SecretURL
 			}
 
-			sourceVaultId := ""
-			if key.SourceVault.Id != nil {
-				sourceVaultId = *key.SourceVault.Id
-			}
+			sourceVaultId := pointer.From(key.SourceVault.Id)
 
 			diskEncryptionKeys = append(diskEncryptionKeys, map[string]interface{}{
 				"secret_url":      secretUrl,
@@ -140,10 +137,7 @@ func flattenSnapshotDiskEncryptionSettings(encryptionSettings *snapshots.Encrypt
 				keyUrl = key.KeyURL
 			}
 
-			sourceVaultId := ""
-			if key.SourceVault.Id != nil {
-				sourceVaultId = *key.SourceVault.Id
-			}
+			sourceVaultId := pointer.From(key.SourceVault.Id)
 
 			keyEncryptionKeys = append(keyEncryptionKeys, map[string]interface{}{
 				"key_url":         keyUrl,
@@ -229,10 +223,7 @@ func flattenManagedDiskEncryptionSettings(encryptionSettings *disks.EncryptionSe
 				secretUrl = key.SecretURL
 			}
 
-			sourceVaultId := ""
-			if key.SourceVault.Id != nil {
-				sourceVaultId = *key.SourceVault.Id
-			}
+			sourceVaultId := pointer.From(key.SourceVault.Id)
 
 			diskEncryptionKeys = append(diskEncryptionKeys, map[string]interface{}{
 				"secret_url":      secretUrl,
@@ -246,10 +237,7 @@ func flattenManagedDiskEncryptionSettings(encryptionSettings *disks.EncryptionSe
 				keyUrl = key.KeyURL
 			}
 
-			sourceVaultId := ""
-			if key.SourceVault.Id != nil {
-				sourceVaultId = *key.SourceVault.Id
-			}
+			sourceVaultId := pointer.From(key.SourceVault.Id)
 
 			keyEncryptionKeys = append(keyEncryptionKeys, map[string]interface{}{
 				"key_url":         keyUrl,

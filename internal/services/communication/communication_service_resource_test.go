@@ -117,6 +117,7 @@ func (r CommunicationServiceResource) basic(data acceptance.TestData) string {
 resource "azurerm_communication_service" "test" {
   name                = "acctest-CommunicationService-%d"
   resource_group_name = azurerm_resource_group.test.name
+  data_location       = "United States"
 }
 `, r.template(data), data.RandomInteger)
 }

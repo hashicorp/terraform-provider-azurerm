@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-func TestAccTestAccFunctionAppFlexConsumption_authV2Update(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_authV2Update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 

@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -157,34 +156,6 @@ func (EventGridSystemTopicResource) Exists(ctx context.Context, clients *clients
 }
 
 func (EventGridSystemTopicResource) basic(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestegst%[3]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_eventgrid_system_topic" "test" {
-  name                   = "acctestEGST%[1]d"
-  location               = azurerm_resource_group.test.location
-  resource_group_name    = azurerm_resource_group.test.name
-  source_arm_resource_id = azurerm_storage_account.test.id
-  topic_type             = "Microsoft.Storage.StorageAccounts"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12))
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

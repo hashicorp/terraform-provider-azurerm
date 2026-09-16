@@ -122,6 +122,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -144,7 +149,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "testaccsc%[3]s"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -246,7 +251,7 @@ resource "azurerm_data_protection_backup_policy_kubernetes_cluster" "test" {
     azurerm_role_assignment.test_vault_data_contributor_on_storage,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r DataProtectionBackupInstanceKubernetesClusterResource) requiresImport(data acceptance.TestData) string {

@@ -48,7 +48,9 @@ resource "azurerm_subnet" "example" {
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.1.0/24"]
-  service_endpoints    = ["Microsoft.Storage.Global"]
+  service_endpoint {
+    service = "Microsoft.Storage.Global"
+  }
 
 }
 
@@ -56,6 +58,7 @@ resource "azurerm_key_vault" "example" {
   name                        = "examplekv"
   location                    = azurerm_resource_group.example.location
   resource_group_name         = azurerm_resource_group.example.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
