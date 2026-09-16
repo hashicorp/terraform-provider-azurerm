@@ -167,11 +167,7 @@ func (a AdbsRegularResource) basic(data acceptance.TestData) string {
 %s
 
 provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
+  features {}
 }
 
 resource "azurerm_oracle_autonomous_database" "test" {
@@ -206,11 +202,7 @@ func (a AdbsRegularResource) complete(data acceptance.TestData) string {
 %s
 
 provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
+  features {}
 }
 
 resource "azurerm_oracle_autonomous_database" "test" {
@@ -254,11 +246,7 @@ func (a AdbsRegularResource) update(data acceptance.TestData) string {
 %s
 
 provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
+  features {}
 }
 
 resource "azurerm_oracle_autonomous_database" "test" {
@@ -300,11 +288,7 @@ func (a AdbsRegularResource) updateBackupSchedule(data acceptance.TestData) stri
 %s
 
 provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
+  features {}
 }
 
 resource "azurerm_oracle_autonomous_database" "test" {
@@ -373,11 +357,7 @@ func (a AdbsRegularResource) publicAccess(data acceptance.TestData) string {
 %s
 
 provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
+  features {}
 }
 
 resource "azurerm_oracle_autonomous_database" "test" {
@@ -410,11 +390,7 @@ func (a AdbsRegularResource) publicAccessUpdate(data acceptance.TestData) string
 %s
 
 provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
+  features {}
 }
 
 resource "azurerm_oracle_autonomous_database" "test" {
