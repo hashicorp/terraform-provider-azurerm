@@ -99,11 +99,11 @@ An `upstream_endpoint` block exports the following:
 
 * `url_template` - The upstream URL Template.
 
-* `category_pattern` - The categories to match on, or `*` for all.
+* `category_pattern` - The pattern that categories match on.
 
-* `event_pattern` - The events to match on, or `*` for all.
+* `event_pattern` - The pattern that events match on.
 
-* `hub_pattern` - The hubs to match on, or `*` for all.
+* `hub_pattern` - The pattern that hubs match on.
 
 * `user_assigned_identity_id` - The Managed Identity ID assigned to this SignalR upstream setting.
 
