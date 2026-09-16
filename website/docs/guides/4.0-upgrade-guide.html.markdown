@@ -159,7 +159,7 @@ export ARM_SUBSCRIPTION_ID=00000000-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 
 This change will not impact users who use any authentication method other than Azure CLI, for example those authenticating as a service principal using the provider's native support, users authenticating using OIDC, or authenticating using managed identity.
 
-Users authenticating the provider using Azure CLI, however, may previously have elected to omit the subscription ID from their Terraform configuration and rely on the provider selecting the currently active subscription from Azure CLI. Whilst convenient, this behavior has historically led to a number of issues. In particular, when omitting the subscription ID, the provider cannot guarantee that a plan is executed against the correct subscription.
+Users authenticating the provider using Azure CLI, however, may previously have elected to omit the subscription ID from their Terraform configuration and rely on the provider selecting the currently active subscription from Azure CLI. Whilst convenient, this behaviour has historically led to a number of issues. In particular, when omitting the subscription ID, the provider cannot guarantee that a plan is executed against the correct subscription.
 
 By making it mandatory to specify the subscription ID for all authentication methods, this will also make it possible to implement a number of improvements to our authentication support in the future.
 
@@ -262,7 +262,7 @@ In order to provide a more reliable experience when using the Azure Provider, Mi
 
 * The `message_of_the_day` property has been removed from the `azurerm_kubernetes_cluster` and `azurerm_kubernetes_cluster_node_pool` resources.
 
-If you wish to use these or any other AKS preview features and accept the risk that comes with using preview features, the [AzAPI Provider](https://registry.terraform.io/providers/Azure/azapi/latest/docs) can be used to access these features. Please note that changes made by AzAPI to a resource managed by the Azure Provider can have unexpected behavioral outcomes in the resource, as well as Terraform configuration consequences, such as diffs or resources being marked for recreation.
+If you wish to use these or any other AKS preview features and accept the risk that comes with using preview features, the [AzAPI Provider](https://registry.terraform.io/providers/Azure/azapi/latest/docs) can be used to access these features. Please note that changes made by AzAPI to a resource managed by the Azure Provider can have unexpected behavioural outcomes in the resource, as well as Terraform configuration consequences, such as diffs or resources being marked for recreation.
 
 ## Removed Resources
 

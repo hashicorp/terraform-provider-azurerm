@@ -848,7 +848,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("fqdn", props.FullyQualifiedDomainName)
 
 			// According to the API spec, `sourceServerResourceId`(`source_server_id`) is only returned by the Azure REST API
-			// when `create_mode` is 'Replica'. For other create modes, this field is not returned, which is intended behavior of the API.
+			// when `create_mode` is 'Replica'. For other create modes, this field is not returned, which is intended behaviour of the API.
 			// Therefore, we populate this field from the API response if present; otherwise, we read the value from the configuration.
 			sourceResourceId := pointer.From(props.SourceServerResourceId)
 			if sourceResourceId == "" {
