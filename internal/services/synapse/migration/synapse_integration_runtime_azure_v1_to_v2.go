@@ -11,26 +11,25 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type SynapseIntegrationRuntimeAzureV0ToV1 struct{}
+var _ pluginsdk.StateUpgrade = SynapseIntegrationRuntimeAzureV1ToV2{}
 
-func (s SynapseIntegrationRuntimeAzureV0ToV1) Schema() map[string]*pluginsdk.Schema {
+type SynapseIntegrationRuntimeAzureV1ToV2 struct{}
+
+func (SynapseIntegrationRuntimeAzureV1ToV2) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ForceNew: true,
 		},
 
 		"synapse_workspace_id": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ForceNew: true,
 		},
 
 		"location": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ForceNew: true,
 		},
 
 		"compute_type": {
@@ -55,17 +54,22 @@ func (s SynapseIntegrationRuntimeAzureV0ToV1) Schema() map[string]*pluginsdk.Sch
 	}
 }
 
-func (s SynapseIntegrationRuntimeAzureV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
+func (SynapseIntegrationRuntimeAzureV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+		// the V0 -> V1 upgrader normalised the states that existed at the time, but IDs imported since
+		// were still parsed with the legacy resourceids.ParseAzureResourceID and can contain
+		// non-canonically cased static segments (e.g. `resourcegroups`, `microsoft.synapse`), which the
+		// case-sensitive SDK parser rejects - normalise them to the canonical casing
 		oldId := rawState["id"].(string)
-		newId, err := integrationruntimes.ParseIntegrationRuntimeIDInsensitively(oldId)
+		id, err := integrationruntimes.ParseIntegrationRuntimeIDInsensitively(oldId)
 		if err != nil {
-			return nil, err
+			return rawState, err
 		}
 
-		log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
+		newId := id.ID()
+		log.Printf("[DEBUG] Updating ID from `%s` to `%s`", oldId, newId)
+		rawState["id"] = newId
 
-		rawState["id"] = newId.ID()
 		return rawState, nil
 	}
 }
