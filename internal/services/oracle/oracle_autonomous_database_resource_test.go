@@ -67,7 +67,7 @@ func TestAdbsRegularResource_updateRegular(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("autonomous_maintenance_schedule_type").HasValue("Regular"),
+				check.That(data.ResourceName).Key("maintenance_patch_level").HasValue("Regular"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -75,30 +75,7 @@ func TestAdbsRegularResource_updateRegular(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("autonomous_maintenance_schedule_type").HasValue("Early"),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
-
-func TestAdbsRegularResource_autonomousMaintenanceScheduleType(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularResource{}.ResourceType(), "test")
-	r := AdbsRegularResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.autonomousMaintenanceScheduleType(data, "Regular"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("autonomous_maintenance_schedule_type").HasValue("Regular"),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.autonomousMaintenanceScheduleType(data, "Early"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("autonomous_maintenance_schedule_type").HasValue("Early"),
+				check.That(data.ResourceName).Key("maintenance_patch_level").HasValue("Early"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -196,7 +173,6 @@ resource "azurerm_oracle_autonomous_database" "test" {
   backup_retention_period_in_days  = 12
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = false
-  autonomous_maintenance_schedule_type = "Regular"
   mtls_connection_required         = true
   data_storage_size_in_tbs         = 1
   db_workload                      = "OLTP"
@@ -251,40 +227,6 @@ resource "azurerm_oracle_autonomous_database" "test" {
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (a AdbsRegularResource) autonomousMaintenanceScheduleType(data acceptance.TestData, autonomousMaintenanceScheduleType string) string {
-	return fmt.Sprintf(`
-
-%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_oracle_autonomous_database" "test" {
-  name                                 = "OFake%[2]d"
-  display_name                         = "OFake%[2]d"
-  resource_group_name                  = azurerm_resource_group.test.name
-  location                             = "%[3]s"
-  compute_model                        = "ECPU"
-  compute_count                        = 2
-  license_model                        = "LicenseIncluded"
-  backup_retention_period_in_days      = 12
-  auto_scaling_enabled                 = false
-  auto_scaling_for_storage_enabled     = false
-  autonomous_maintenance_schedule_type = "%[4]s"
-  mtls_connection_required             = true
-  data_storage_size_in_tbs             = 1
-  db_workload                          = "OLTP"
-  admin_password                       = "TestPass#2024#"
-  db_version                           = "19c"
-  character_set                        = "AL32UTF8"
-  national_character_set               = "AL16UTF16"
-  subnet_id                            = azurerm_subnet.test.id
-  virtual_network_id                   = azurerm_virtual_network.test.id
-}
-`, a.template(data), data.RandomInteger, data.Locations.Primary, autonomousMaintenanceScheduleType)
-}
-
 func (a AdbsRegularResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
@@ -305,7 +247,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   backup_retention_period_in_days  = 30
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = false
-  autonomous_maintenance_schedule_type = "Early"
+  maintenance_patch_level          = "Early"
   mtls_connection_required         = true
   data_storage_size_in_tbs         = 1
   db_workload                      = "OLTP"
