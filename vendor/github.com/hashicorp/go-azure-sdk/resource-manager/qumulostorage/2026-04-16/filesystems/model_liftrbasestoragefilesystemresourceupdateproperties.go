@@ -6,5 +6,6 @@ package filesystems
 type LiftrBaseStorageFileSystemResourceUpdateProperties struct {
 	DelegatedSubnetId  *string                      `json:"delegatedSubnetId,omitempty"`
 	MarketplaceDetails *LiftrBaseMarketplaceDetails `json:"marketplaceDetails,omitempty"`
+	PerformanceTier    *string                      `json:"performanceTier,omitempty"`
 	UserDetails        *LiftrBaseUserDetails        `json:"userDetails,omitempty"`
 }
