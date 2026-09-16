@@ -307,7 +307,7 @@ use computed cross-resource references for key arguments.
 
 ### `azurerm_security_center_auto_provisioning`
 
-* This deprecated resource has been removed from the provider. Please see the [documentation for more details](https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan).
+* This deprecated resource has been removed from the provider. Please see the [documentation for more details](https://learn.microsoft.com/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan).
 
 ### `azurerm_spatial_anchors_account`
 

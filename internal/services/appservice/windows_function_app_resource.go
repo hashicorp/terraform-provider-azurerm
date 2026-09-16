@@ -70,6 +70,7 @@ type WindowsFunctionAppModel struct {
 	PublishingFTPBasicAuthEnabled           bool                                   `tfschema:"ftp_publish_basic_authentication_enabled"`
 	VnetImagePullEnabled                    bool                                   `tfschema:"vnet_image_pull_enabled"`
 	VirtualNetworkApplicationTrafficEnabled bool                                   `tfschema:"virtual_network_application_traffic_enabled"`
+	EndToEndTLSEncryptionEnabled            bool                                   `tfschema:"end_to_end_tls_encryption_enabled"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -176,7 +177,7 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Description: "A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.",
+			Description: "A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.",
 		},
 
 		"auth_settings": helpers.AuthSettingsSchema(),
@@ -249,6 +250,12 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
 			Description: "Can the Function App only be accessed via HTTPS?",
+		},
+
+		"end_to_end_tls_encryption_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -546,13 +553,14 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				Kind:     pointer.To("functionapp"),
 				Identity: expandedIdentity,
 				Properties: &webapps.SiteProperties{
-					ServerFarmId:         pointer.To(functionApp.ServicePlanId),
-					Enabled:              pointer.To(functionApp.Enabled),
-					HTTPSOnly:            pointer.To(functionApp.HttpsOnly),
-					SiteConfig:           siteConfig,
-					ClientCertEnabled:    pointer.To(functionApp.ClientCertEnabled),
-					ClientCertMode:       pointer.ToEnum[webapps.ClientCertMode](functionApp.ClientCertMode),
-					DailyMemoryTimeQuota: pointer.To(functionApp.DailyMemoryTimeQuota),
+					ServerFarmId:              pointer.To(functionApp.ServicePlanId),
+					Enabled:                   pointer.To(functionApp.Enabled),
+					HTTPSOnly:                 pointer.To(functionApp.HttpsOnly),
+					SiteConfig:                siteConfig,
+					ClientCertEnabled:         pointer.To(functionApp.ClientCertEnabled),
+					ClientCertMode:            pointer.ToEnum[webapps.ClientCertMode](functionApp.ClientCertMode),
+					DailyMemoryTimeQuota:      pointer.To(functionApp.DailyMemoryTimeQuota),
+					EndToEndEncryptionEnabled: pointer.To(functionApp.EndToEndTLSEncryptionEnabled),
 					OutboundVnetRouting: &webapps.OutboundVnetRouting{
 						BackupRestoreTraffic: pointer.To(functionApp.VirtualNetworkBackupRestoreEnabled),
 						ImagePullTraffic:     pointer.To(functionApp.VnetImagePullEnabled),
@@ -597,22 +605,24 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating Windows %s: %+v", id, err)
 			}
 
-			sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-				Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-					Allow: functionApp.PublishingDeployBasicAuthEnabled,
-				},
-			}
-			if _, err := client.UpdateScmAllowed(ctx, *id, sitePolicy); err != nil {
-				return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
+			metadata.SetID(id)
+
+			if !functionApp.PublishingDeployBasicAuthEnabled {
+				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{},
+				}
+				if _, err := client.UpdateScmAllowed(ctx, *id, sitePolicy); err != nil {
+					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
+				}
 			}
 
-			sitePolicyFtp := webapps.CsmPublishingCredentialsPoliciesEntity{
-				Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-					Allow: functionApp.PublishingFTPBasicAuthEnabled,
-				},
-			}
-			if _, err := client.UpdateFtpAllowed(ctx, *id, sitePolicyFtp); err != nil {
-				return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
+			if !functionApp.PublishingFTPBasicAuthEnabled {
+				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{},
+				}
+				if _, err := client.UpdateFtpAllowed(ctx, *id, sitePolicy); err != nil {
+					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
+				}
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, siteEnvelope); err != nil {
@@ -797,7 +807,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.DefaultHostname = pointer.From(props.DefaultHostName)
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
-
+					state.EndToEndTLSEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
 					if props.OutboundVnetRouting != nil {
 						state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
 						state.VnetImagePullEnabled = pointer.From(props.OutboundVnetRouting.ImagePullTraffic)
@@ -1035,6 +1045,10 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				} else {
 					model.Properties.VirtualNetworkSubnetId = pointer.To(subnetId)
 				}
+			}
+
+			if metadata.ResourceData.HasChange("end_to_end_tls_encryption_enabled") {
+				model.Properties.EndToEndEncryptionEnabled = pointer.To(state.EndToEndTLSEncryptionEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("storage_account") {

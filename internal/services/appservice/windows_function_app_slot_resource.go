@@ -76,6 +76,7 @@ type WindowsFunctionAppSlotModel struct {
 	VirtualNetworkSubnetID                  string                                     `tfschema:"virtual_network_subnet_id"`
 	VnetImagePullEnabled                    bool                                       `tfschema:"vnet_image_pull_enabled"`
 	VirtualNetworkApplicationTrafficEnabled bool                                       `tfschema:"virtual_network_application_traffic_enabled"`
+	EndToEndTLSEncryptionEnabled            bool                                       `tfschema:"end_to_end_tls_encryption_enabled"`
 }
 
 var _ sdk.ResourceWithUpdate = WindowsFunctionAppSlotResource{}
@@ -169,7 +170,7 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Description: "A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.",
+			Description: "A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.",
 		},
 
 		"auth_settings": helpers.AuthSettingsSchema(),
@@ -242,6 +243,12 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 			Optional:    true,
 			Default:     false,
 			Description: "Can the Function App Slot only be accessed via HTTPS?",
+		},
+
+		"end_to_end_tls_encryption_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -560,12 +567,13 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				Kind:     pointer.To("functionapp"),
 				Identity: expandedIdentity,
 				Properties: &webapps.SiteProperties{
-					Enabled:              pointer.To(functionAppSlot.Enabled),
-					HTTPSOnly:            pointer.To(functionAppSlot.HttpsOnly),
-					SiteConfig:           siteConfig,
-					ClientCertEnabled:    pointer.To(functionAppSlot.ClientCertEnabled),
-					ClientCertMode:       pointer.ToEnum[webapps.ClientCertMode](functionAppSlot.ClientCertMode),
-					DailyMemoryTimeQuota: pointer.To(functionAppSlot.DailyMemoryTimeQuota),
+					Enabled:                   pointer.To(functionAppSlot.Enabled),
+					HTTPSOnly:                 pointer.To(functionAppSlot.HttpsOnly),
+					SiteConfig:                siteConfig,
+					ClientCertEnabled:         pointer.To(functionAppSlot.ClientCertEnabled),
+					ClientCertMode:            pointer.ToEnum[webapps.ClientCertMode](functionAppSlot.ClientCertMode),
+					DailyMemoryTimeQuota:      pointer.To(functionAppSlot.DailyMemoryTimeQuota),
+					EndToEndEncryptionEnabled: pointer.To(functionAppSlot.EndToEndTLSEncryptionEnabled),
 					OutboundVnetRouting: &webapps.OutboundVnetRouting{
 						BackupRestoreTraffic: pointer.To(functionAppSlot.VirtualNetworkBackupRestoreEnabled),
 						ImagePullTraffic:     pointer.To(functionAppSlot.VnetImagePullEnabled),
@@ -619,22 +627,20 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 
 			if !functionAppSlot.PublishingDeployBasicAuthEnabled {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{},
 				}
 				if _, err = client.UpdateScmAllowedSlot(ctx, id, sitePolicy); err != nil {
 					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
 				}
 			}
 
-			sitePolicyFtp := webapps.CsmPublishingCredentialsPoliciesEntity{
-				Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-					Allow: functionAppSlot.PublishingFTPBasicAuthEnabled,
-				},
-			}
-			if _, err = client.UpdateFtpAllowedSlot(ctx, id, sitePolicyFtp); err != nil {
-				return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
+			if !functionAppSlot.PublishingFTPBasicAuthEnabled {
+				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{},
+				}
+				if _, err = client.UpdateFtpAllowedSlot(ctx, id, sitePolicy); err != nil {
+					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
+				}
 			}
 
 			if err = client.CreateOrUpdateSlotThenPoll(ctx, id, siteEnvelope); err != nil {
@@ -813,7 +819,7 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.DefaultHostname = pointer.From(props.DefaultHostName)
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
-
+					state.EndToEndTLSEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
 					if props.OutboundVnetRouting != nil {
 						state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
 						state.VnetImagePullEnabled = pointer.From(props.OutboundVnetRouting.ImagePullTraffic)
@@ -1016,6 +1022,14 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("virtual_network_application_traffic_enabled") {
 				vnetRoutingProps.ApplicationTraffic = pointer.To(state.VirtualNetworkApplicationTrafficEnabled)
+			}
+
+			if metadata.ResourceData.HasChange("end_to_end_tls_encryption_enabled") {
+				model.Properties.EndToEndEncryptionEnabled = pointer.To(state.EndToEndTLSEncryptionEnabled)
+			}
+
+			if metadata.ResourceData.HasChange("end_to_end_tls_encryption_enabled") {
+				model.Properties.EndToEndEncryptionEnabled = pointer.To(state.EndToEndTLSEncryptionEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("storage_account") {

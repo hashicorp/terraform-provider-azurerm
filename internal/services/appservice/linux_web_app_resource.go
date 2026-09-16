@@ -67,6 +67,7 @@ type LinuxWebAppModel struct {
 	PublishingDeployBasicAuthEnabled        bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
 	PublishingFTPBasicAuthEnabled           bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
 	SiteCredentials                         []helpers.SiteCredential                   `tfschema:"site_credential"`
+	EndToEndTLSEncryptionEnabled            bool                                       `tfschema:"end_to_end_tls_encryption_enabled"`
 	VnetImagePullEnabled                    bool                                       `tfschema:"vnet_image_pull_enabled"`
 	VirtualNetworkApplicationTrafficEnabled bool                                       `tfschema:"virtual_network_application_traffic_enabled"`
 }
@@ -164,6 +165,12 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
+		},
+
+		"end_to_end_tls_encryption_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"vnet_image_pull_enabled": {
@@ -395,13 +402,14 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				Identity: expandedIdentity,
 				Tags:     pointer.To(webApp.Tags),
 				Properties: &webapps.SiteProperties{
-					ServerFarmId:          pointer.To(webApp.ServicePlanId),
-					Enabled:               pointer.To(webApp.Enabled),
-					HTTPSOnly:             pointer.To(webApp.HttpsOnly),
-					SiteConfig:            siteConfig,
-					ClientAffinityEnabled: pointer.To(webApp.ClientAffinityEnabled),
-					ClientCertEnabled:     pointer.To(webApp.ClientCertEnabled),
-					ClientCertMode:        pointer.ToEnum[webapps.ClientCertMode](webApp.ClientCertMode),
+					ServerFarmId:              pointer.To(webApp.ServicePlanId),
+					Enabled:                   pointer.To(webApp.Enabled),
+					HTTPSOnly:                 pointer.To(webApp.HttpsOnly),
+					SiteConfig:                siteConfig,
+					ClientAffinityEnabled:     pointer.To(webApp.ClientAffinityEnabled),
+					ClientCertEnabled:         pointer.To(webApp.ClientCertEnabled),
+					ClientCertMode:            pointer.ToEnum[webapps.ClientCertMode](webApp.ClientCertMode),
+					EndToEndEncryptionEnabled: pointer.To(webApp.EndToEndTLSEncryptionEnabled),
 					OutboundVnetRouting: &webapps.OutboundVnetRouting{
 						ImagePullTraffic:     pointer.To(webApp.VnetImagePullEnabled),
 						BackupRestoreTraffic: pointer.To(webApp.VirtualNetworkBackupRestoreEnabled),
@@ -525,22 +533,22 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-				Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-					Allow: webApp.PublishingDeployBasicAuthEnabled,
-				},
-			}
-			if _, err := client.UpdateScmAllowed(ctx, id, sitePolicy); err != nil {
-				return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
+			if !webApp.PublishingDeployBasicAuthEnabled {
+				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{},
+				}
+				if _, err := client.UpdateScmAllowed(ctx, id, sitePolicy); err != nil {
+					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
+				}
 			}
 
-			sitePolicyFtp := webapps.CsmPublishingCredentialsPoliciesEntity{
-				Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-					Allow: webApp.PublishingFTPBasicAuthEnabled,
-				},
-			}
-			if _, err := client.UpdateFtpAllowed(ctx, id, sitePolicyFtp); err != nil {
-				return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
+			if !webApp.PublishingFTPBasicAuthEnabled {
+				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{},
+				}
+				if _, err := client.UpdateFtpAllowed(ctx, id, sitePolicy); err != nil {
+					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
+				}
 			}
 
 			return nil
@@ -670,6 +678,9 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 					state.PossibleOutboundIPAddresses = pointer.From(props.PossibleOutboundIPAddresses)
 					state.PossibleOutboundIPAddressList = strings.Split(pointer.From(props.PossibleOutboundIPAddresses), ",")
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
+					state.EndToEndTLSEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
+					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmId))
 					if err != nil {
 						return err
@@ -880,6 +891,14 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 			}
 			if metadata.ResourceData.HasChange("virtual_network_backup_restore_enabled") {
 				vnetRoutingProps.BackupRestoreTraffic = pointer.To(state.VirtualNetworkBackupRestoreEnabled)
+			}
+
+			if metadata.ResourceData.HasChange("end_to_end_tls_encryption_enabled") {
+				model.Properties.EndToEndEncryptionEnabled = pointer.To(state.EndToEndTLSEncryptionEnabled)
+			}
+
+			if metadata.ResourceData.HasChange("end_to_end_tls_encryption_enabled") {
+				model.Properties.EndToEndEncryptionEnabled = pointer.To(state.EndToEndTLSEncryptionEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") {

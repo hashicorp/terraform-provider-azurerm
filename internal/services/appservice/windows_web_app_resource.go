@@ -69,6 +69,7 @@ type WindowsWebAppModel struct {
 	VirtualNetworkImagePullEnabled          bool                                       `tfschema:"virtual_network_image_pull_enabled"`
 	VirtualNetworkSubnetID                  string                                     `tfschema:"virtual_network_subnet_id"`
 	VirtualNetworkApplicationTrafficEnabled bool                                       `tfschema:"virtual_network_application_traffic_enabled"`
+	EndToEndTLSEncryptionEnabled            bool                                       `tfschema:"end_to_end_tls_encryption_enabled"`
 }
 
 var (
@@ -144,6 +145,12 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
+		},
+
+		"end_to_end_tls_encryption_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"https_only": {
@@ -407,13 +414,14 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				Tags:     pointer.To(webApp.Tags),
 				Identity: expandedIdentity,
 				Properties: &webapps.SiteProperties{
-					ServerFarmId:          pointer.To(webApp.ServicePlanId),
-					Enabled:               pointer.To(webApp.Enabled),
-					HTTPSOnly:             pointer.To(webApp.HttpsOnly),
-					SiteConfig:            siteConfig,
-					ClientAffinityEnabled: pointer.To(webApp.ClientAffinityEnabled),
-					ClientCertEnabled:     pointer.To(webApp.ClientCertEnabled),
-					ClientCertMode:        pointer.ToEnum[webapps.ClientCertMode](webApp.ClientCertMode),
+					ServerFarmId:              pointer.To(webApp.ServicePlanId),
+					Enabled:                   pointer.To(webApp.Enabled),
+					HTTPSOnly:                 pointer.To(webApp.HttpsOnly),
+					SiteConfig:                siteConfig,
+					ClientAffinityEnabled:     pointer.To(webApp.ClientAffinityEnabled),
+					ClientCertEnabled:         pointer.To(webApp.ClientCertEnabled),
+					ClientCertMode:            pointer.ToEnum[webapps.ClientCertMode](webApp.ClientCertMode),
+					EndToEndEncryptionEnabled: pointer.To(webApp.EndToEndTLSEncryptionEnabled),
 					OutboundVnetRouting: &webapps.OutboundVnetRouting{
 						BackupRestoreTraffic: pointer.To(webApp.VirtualNetworkBackupRestoreEnabled),
 						ApplicationTraffic:   pointer.To(webApp.VirtualNetworkApplicationTrafficEnabled),
@@ -557,22 +565,22 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-				Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-					Allow: webApp.PublishingDeployBasicAuthEnabled,
-				},
-			}
-			if _, err := client.UpdateScmAllowed(ctx, *id, sitePolicy); err != nil {
-				return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", *id, err)
+			if !webApp.PublishingDeployBasicAuthEnabled {
+				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{},
+				}
+				if _, err := client.UpdateScmAllowed(ctx, *id, sitePolicy); err != nil {
+					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", *id, err)
+				}
 			}
 
-			sitePolicyFtp := webapps.CsmPublishingCredentialsPoliciesEntity{
-				Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-					Allow: webApp.PublishingFTPBasicAuthEnabled,
-				},
-			}
-			if _, err := client.UpdateFtpAllowed(ctx, *id, sitePolicyFtp); err != nil {
-				return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", *id, err)
+			if !webApp.PublishingFTPBasicAuthEnabled {
+				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{},
+				}
+				if _, err := client.UpdateFtpAllowed(ctx, *id, sitePolicy); err != nil {
+					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", *id, err)
+				}
 			}
 
 			return nil
@@ -720,6 +728,7 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 					state.PossibleOutboundIPAddressList = strings.Split(pointer.From(props.PossibleOutboundIPAddresses), ",")
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 
+					state.EndToEndTLSEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
 					if props.OutboundVnetRouting != nil {
 						state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
 						state.VirtualNetworkImagePullEnabled = pointer.From(props.OutboundVnetRouting.ImagePullTraffic)
@@ -933,6 +942,10 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				} else {
 					model.Properties.VirtualNetworkSubnetId = pointer.To(subnetId)
 				}
+			}
+
+			if metadata.ResourceData.HasChange("end_to_end_tls_encryption_enabled") {
+				model.Properties.EndToEndEncryptionEnabled = pointer.To(state.EndToEndTLSEncryptionEnabled)
 			}
 
 			currentStack := ""

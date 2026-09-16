@@ -132,6 +132,7 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
 				ValidateFunc: validation.IntInSlice([]int{
+					50,
 					100,
 					200,
 					300,
@@ -215,10 +216,10 @@ func resourceLogAnalyticsWorkspaceCustomDiff(_ context.Context, d *pluginsdk.Res
 		}
 
 		// Creation or update workspace to `standard` or `premium` SKU is not allowed. Reference:
-		// https://learn.microsoft.com/en-us/azure/azure-monitor/logs/cost-logs#standard-and-premium-pricing-tiers
+		// https://learn.microsoft.com/azure/azure-monitor/logs/cost-logs#standard-and-premium-pricing-tiers
 		if strings.EqualFold(new.(string), string(workspaces.WorkspaceSkuNameEnumStandard)) ||
 			strings.EqualFold(new.(string), string(workspaces.WorkspaceSkuNameEnumPremium)) {
-			return fmt.Errorf("creation of log analytics workspaces with `Standard` or `Premium` SKUs is no longer supported by Azure - see https://learn.microsoft.com/en-us/azure/azure-monitor/logs/cost-logs#standard-and-premium-pricing-tiers")
+			return fmt.Errorf("creation of log analytics workspaces with `Standard` or `Premium` SKUs is no longer supported by Azure - see https://learn.microsoft.com/azure/azure-monitor/logs/cost-logs#standard-and-premium-pricing-tiers")
 		}
 	}
 
