@@ -6,6 +6,7 @@ package elastic
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -97,17 +98,18 @@ func (r ElasticCloudServerlessResource) Arguments() map[string]*pluginsdk.Schema
 		},
 
 		"offer_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-z0-9_-]{1,50}$`),
+				"must be between 1 and 50 characters in length and contain only lowercase letters, numbers, hyphens and underscores"),
 		},
 
 		"term_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.StringIsNotWhiteSpace,
 		},
 
 		"elastic_cloud_email_address": {
@@ -132,11 +134,12 @@ func (r ElasticCloudServerlessResource) Arguments() map[string]*pluginsdk.Schema
 		},
 
 		"plan_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      "ess-consumption-2024",
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "ess-consumption-2024",
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-z0-9_-]{1,50}$`),
+				"must be between 1 and 50 characters in length and contain only lowercase letters, numbers, hyphens and underscores"),
 		},
 
 		"publisher_id": {
@@ -144,7 +147,7 @@ func (r ElasticCloudServerlessResource) Arguments() map[string]*pluginsdk.Schema
 			Optional:     true,
 			Default:      "elastic",
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.StringIsNotWhiteSpace,
 		},
 
 		"tags": commonschema.TagsForceNew(),
