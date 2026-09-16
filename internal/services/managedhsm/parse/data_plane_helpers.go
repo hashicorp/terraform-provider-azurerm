@@ -87,8 +87,7 @@ func parseDataPlaneResource(input *url.URL, expectedType string, requireVersion 
 		return nil, fmt.Errorf("expected the Nested Item Type to be %q but got %q", expectedType, nestedItemType)
 	}
 	output := dataPlaneResource{
-		itemName:    path[1],
-		itemVersion: nil,
+		itemName: path[1],
 	}
 	if err := validateSegment(output.itemName); err != nil {
 		return nil, fmt.Errorf("expected the path to be in the format %q but %+v", expectedFormatExample, err)

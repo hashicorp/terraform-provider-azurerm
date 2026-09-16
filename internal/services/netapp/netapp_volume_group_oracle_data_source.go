@@ -134,7 +134,7 @@ func (r NetAppVolumeGroupOracleDataSource) Attributes() map[string]*pluginsdk.Sc
 
 					"throughput_in_mibps": {
 						Type:     pluginsdk.TypeFloat,
-						Required: true,
+						Computed: true,
 					},
 
 					"export_policy_rule": {

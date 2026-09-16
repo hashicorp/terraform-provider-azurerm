@@ -100,7 +100,7 @@ func resourceSiteRecoveryProtectionContainerMapping() *pluginsdk.Resource {
 							Optional: true,
 							Default:  string(replicationprotectioncontainermappings.AutomationAccountAuthenticationTypeSystemAssignedIdentity),
 							// The Swagger definition defaults to `RunAsAccount` but it is deprecated.
-							// deprecation details: https://learn.microsoft.com/en-us/azure/automation/whats-new#support-for-run-as-accounts
+							// deprecation details: https://learn.microsoft.com/azure/automation/whats-new#support-for-run-as-accounts
 							ValidateFunc: validation.StringInSlice(replicationprotectioncontainermappings.PossibleValuesForAutomationAccountAuthenticationType(), false),
 						},
 					},

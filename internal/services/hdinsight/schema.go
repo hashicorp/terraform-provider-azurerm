@@ -407,14 +407,6 @@ func SchemaHDInsightsHttpsEndpoints() *pluginsdk.Schema {
 	}
 }
 
-type HttpEndpointModel struct {
-	AccessModes        []string `tfschema:"access_modes"`
-	DestinationPort    int64    `tfschema:"destination_port"`
-	DisableGatewayAuth bool     `tfschema:"disable_gateway_auth"`
-	PrivateIpAddress   string   `tfschema:"private_ip_address"`
-	SubDomainSuffix    string   `tfschema:"sub_domain_suffix"`
-}
-
 func ExpandHDInsightsRolesScriptActions(input []interface{}) *[]clusters.ScriptAction {
 	if len(input) == 0 {
 		return nil

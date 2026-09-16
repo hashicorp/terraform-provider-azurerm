@@ -307,7 +307,6 @@ func expandCdnFrontDoorProfileLogScrubbingRules(input []interface{}) *[]profiles
 
 		item := profiles.ProfileScrubbingRules{
 			MatchVariable:         profiles.ScrubbingRuleEntryMatchVariable(v["match_variable"].(string)),
-			Selector:              nil,
 			SelectorMatchOperator: profiles.ScrubbingRuleEntryMatchOperatorEqualsAny, // EqualsAny is the only valid SelectorMatchOperator for log scrubbing in the Profile API
 			State:                 pointer.To(profiles.ScrubbingRuleEntryStateEnabled),
 		}

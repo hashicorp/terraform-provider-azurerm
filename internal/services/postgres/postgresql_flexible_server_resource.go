@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -466,11 +467,8 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 				// verify that the storage_tier is valid
 				// for the given storage_mb...
-				for _, tier := range *storageTiers.ValidTiers {
-					if newTier == tier {
-						isValid = true
-						break
-					}
+				if slices.Contains(*storageTiers.ValidTiers, newTier) {
+					isValid = true
 				}
 
 				if !isValid {
