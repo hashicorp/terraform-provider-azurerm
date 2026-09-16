@@ -1,6 +1,7 @@
 ## 5.6.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `servicebus` - update to API version `2026-01-01` [GH-33450]
 * `azurerm_linux_web_app` - add support for the `end_to_end_tls_encryption_enabled` property [GH-31135]
 * `azurerm_linux_web_app_slot` - add support for the `end_to_end_tls_encryption_enabled` property [GH-31135]
 * `azurerm_linux_function_app` - add support for the `end_to_end_tls_encryption_enabled` property [GH-31135]
