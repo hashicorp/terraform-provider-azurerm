@@ -53,6 +53,7 @@ type LinuxWebAppSlotModel struct {
 	Tags                                    map[string]string                          `tfschema:"tags"`
 	CustomDomainVerificationId              string                                     `tfschema:"custom_domain_verification_id"`
 	DefaultHostname                         string                                     `tfschema:"default_hostname"`
+	EndToEndTLSEncryptionEnabled            bool                                       `tfschema:"end_to_end_tls_encryption_enabled"`
 	HostingEnvId                            string                                     `tfschema:"hosting_environment_id"`
 	Kind                                    string                                     `tfschema:"kind"`
 	Identity                                []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
@@ -68,7 +69,6 @@ type LinuxWebAppSlotModel struct {
 	VirtualNetworkSubnetID                  string                                     `tfschema:"virtual_network_subnet_id"`
 	VnetImagePullEnabled                    bool                                       `tfschema:"vnet_image_pull_enabled"`
 	VirtualNetworkApplicationTrafficEnabled bool                                       `tfschema:"virtual_network_application_traffic_enabled"`
-	EndToEndTLSEncryptionEnabled            bool                                       `tfschema:"end_to_end_tls_encryption_enabled"`
 }
 
 var _ sdk.ResourceWithUpdate = LinuxWebAppSlotResource{}
