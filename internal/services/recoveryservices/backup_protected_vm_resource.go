@@ -305,20 +305,11 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	// map[operationName][]operationRequestUrl
-	resourceGuardOperationsMap := make(map[string][]string, 0)
 	vaultId := resourceguardproxies.NewVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)
 	guardProxies, err := resourceGuardProxiesClient.GetComplete(ctx, vaultId)
-	if err == nil {
-		for _, proxy := range guardProxies.Items {
-			if proxy.Properties != nil && proxy.Properties.ResourceGuardOperationDetails != nil {
-				for _, op := range *proxy.Properties.ResourceGuardOperationDetails {
-					if op.DefaultResourceRequest != nil && op.VaultCriticalOperation != nil {
-						resourceGuardOperationsMap[*op.VaultCriticalOperation] = append(resourceGuardOperationsMap[*op.VaultCriticalOperation], *op.DefaultResourceRequest)
-					}
-				}
-			}
-		}
+	// Vaults without Resource Guard return a successful empty list.
+	if err != nil {
+		return fmt.Errorf("retrieving Resource Guard proxies for %s: %+v", vaultId, err)
 	}
 
 	features := meta.(*clients.Client).Features.RecoveryService
@@ -341,12 +332,17 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 			desiredState = protecteditems.ProtectionStateBackupsSuspended
 		}
 
+		var resourceGuardOperationRequests []string
+		for _, proxy := range guardProxies.Items {
+			resourceGuardOperationRequests = append(resourceGuardOperationRequests, recoveryServicesResourceGuardOperationRequests(proxy, dataprotection.GuardOperationStopProtectionWithRetainData)...)
+		}
+
 		if model := existing.Model; model != nil {
 			if properties := model.Properties; properties != nil {
 				if vm, ok := properties.(protecteditems.AzureIaaSComputeVMProtectedItem); ok {
 					updateInput := protecteditems.ProtectedItemResource{
 						Properties: &protecteditems.AzureIaaSComputeVMProtectedItem{
-							ResourceGuardOperationRequests: pointer.To(resourceGuardOperationsMap[dataprotection.GuardOperationStopProtectionWithRetainData]),
+							ResourceGuardOperationRequests: pointer.To(resourceGuardOperationRequests),
 							ProtectionState:                pointer.To(desiredState),
 							SourceResourceId:               vm.SourceResourceId,
 						},
@@ -362,16 +358,28 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	if v, ok := resourceGuardOperationsMap[dataprotection.GuardOperationDeleteProtectedItem]; ok {
-		vaultProxyId := resourceguardproxy.NewBackupResourceGuardProxyID(vaultId.SubscriptionId, vaultId.ResourceGroupName, vaultId.VaultName, VaultProxyName)
+	for _, proxy := range guardProxies.Items {
+		operationRequests := recoveryServicesResourceGuardOperationRequests(proxy, dataprotection.GuardOperationDeleteProtectedItem)
+		if len(operationRequests) == 0 {
+			continue
+		}
+
+		if proxy.Id == nil {
+			return fmt.Errorf("retrieving Resource Guard proxies for %s: response contained a proxy with a nil ID", vaultId)
+		}
+
+		vaultProxyId, err := resourceguardproxy.ParseBackupResourceGuardProxyIDInsensitively(*proxy.Id)
+		if err != nil {
+			return err
+		}
 
 		unlock := resourceguardproxy.UnlockDeleteRequest{
-			ResourceGuardOperationRequests: pointer.To(v),
+			ResourceGuardOperationRequests: pointer.To(operationRequests),
 			ResourceToBeDeleted:            pointer.To(id.ID()),
 		}
 
-		if _, err = resourceGuardProxyClient.UnlockDelete(ctx, vaultProxyId, unlock); err != nil {
-			return fmt.Errorf("unlocking delete %s:%+v", id, err)
+		if _, err = resourceGuardProxyClient.UnlockDelete(ctx, *vaultProxyId, unlock); err != nil {
+			return fmt.Errorf("unlocking deletion of %s using %s: %+v", id, vaultProxyId, err)
 		}
 	}
 
@@ -380,6 +388,18 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 	}
 
 	return nil
+}
+
+func recoveryServicesResourceGuardOperationRequests(proxy resourceguardproxies.ResourceGuardProxyBaseResource, operation string) []string {
+	var requests []string
+	if proxy.Properties != nil && proxy.Properties.ResourceGuardOperationDetails != nil {
+		for _, detail := range *proxy.Properties.ResourceGuardOperationDetails {
+			if detail.VaultCriticalOperation != nil && *detail.VaultCriticalOperation == operation && detail.DefaultResourceRequest != nil {
+				requests = append(requests, *detail.DefaultResourceRequest)
+			}
+		}
+	}
+	return requests
 }
 
 func expandDiskExclusion(d *pluginsdk.ResourceData) *protecteditems.ExtendedProperties {
