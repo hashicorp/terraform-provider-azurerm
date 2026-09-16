@@ -104,13 +104,13 @@ resource "azurerm_signalr_service" "test" {
     capacity = 1
   }
 
-  service_mode               = "Serverless"
+  service_mode              = "Serverless"
   connectivity_logs_enabled = true
   messaging_logs_enabled    = false
   http_request_logs_enabled = false
 
   live_trace {
-    enabled                    = true
+    enabled                   = true
     connectivity_logs_enabled = false
     messaging_logs_enabled    = true
   }
