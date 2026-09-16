@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ServiceBusTopicAuthorizationRuleResource struct{}
+type ServicebusTopicAuthorizationRuleResource struct{}
 
 func TestAccServiceBusTopicAuthorizationRule_listen(t *testing.T) {
 	testAccServiceBusTopicAuthorizationRule(t, true, false, false)
@@ -37,7 +37,7 @@ func TestAccServiceBusTopicAuthorizationRule_manage(t *testing.T) {
 
 func testAccServiceBusTopicAuthorizationRule(t *testing.T, listen, send, manage bool) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic_authorization_rule", "test")
-	r := ServiceBusTopicAuthorizationRuleResource{}
+	r := ServicebusTopicAuthorizationRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -63,7 +63,7 @@ func testAccServiceBusTopicAuthorizationRule(t *testing.T, listen, send, manage 
 
 func TestAccServiceBusTopicAuthorizationRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic_authorization_rule", "test")
-	r := ServiceBusTopicAuthorizationRuleResource{}
+	r := ServicebusTopicAuthorizationRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -84,7 +84,7 @@ func TestAccServiceBusTopicAuthorizationRule_requiresImport(t *testing.T) {
 
 func TestAccServiceBusTopicAuthorizationRule_rightsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic_authorization_rule", "test")
-	r := ServiceBusTopicAuthorizationRuleResource{}
+	r := ServicebusTopicAuthorizationRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -119,7 +119,7 @@ func TestAccServiceBusTopicAuthorizationRule_rightsUpdate(t *testing.T) {
 
 func TestAccServiceBusTopicAuthorizationRule_withAliasConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic_authorization_rule", "test")
-	r := ServiceBusTopicAuthorizationRuleResource{}
+	r := ServicebusTopicAuthorizationRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -139,7 +139,7 @@ func TestAccServiceBusTopicAuthorizationRule_withAliasConnectionString(t *testin
 	})
 }
 
-func (t ServiceBusTopicAuthorizationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t ServicebusTopicAuthorizationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := topicsauthorizationrule.ParseTopicAuthorizationRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -153,7 +153,7 @@ func (t ServiceBusTopicAuthorizationRuleResource) Exists(ctx context.Context, cl
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (ServiceBusTopicAuthorizationRuleResource) base(data acceptance.TestData, listen, send, manage bool) string {
+func (ServicebusTopicAuthorizationRuleResource) base(data acceptance.TestData, listen, send, manage bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -187,7 +187,7 @@ resource "azurerm_servicebus_topic_authorization_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, listen, send, manage)
 }
 
-func (r ServiceBusTopicAuthorizationRuleResource) requiresImport(data acceptance.TestData, listen, send, manage bool) string {
+func (r ServicebusTopicAuthorizationRuleResource) requiresImport(data acceptance.TestData, listen, send, manage bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -202,7 +202,7 @@ resource "azurerm_servicebus_topic_authorization_rule" "import" {
 `, r.base(data, listen, send, manage))
 }
 
-func (ServiceBusTopicAuthorizationRuleResource) withAliasConnectionString(data acceptance.TestData) string {
+func (ServicebusTopicAuthorizationRuleResource) withAliasConnectionString(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
