@@ -200,8 +200,9 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		"database_edition": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			// NOTE: O+C The service assigns a database edition when one is not specified.
+			// NOTE: O+C The service can assign a database edition when one is not specified.
 			Computed:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForDatabaseEditionType(), false),
 		},
 
@@ -254,22 +255,13 @@ func (AutonomousDatabaseRegularResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Second,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			if metadata.ResourceDiff == nil {
-				return nil
+			var model AutonomousDatabaseRegularResourceModel
+			if err := metadata.DecodeDiff(&model); err != nil {
+				return err
 			}
 
-			databaseEdition, ok := metadata.ResourceDiff.GetOk("database_edition")
-			if !ok || databaseEdition.(string) == "" {
-				return nil
-			}
-
-			licenseModel, ok := metadata.ResourceDiff.GetOk("license_model")
-			if !ok {
-				return nil
-			}
-
-			if licenseModel.(string) != string(autonomousdatabases.LicenseModelBringYourOwnLicense) {
-				return fmt.Errorf("`database_edition` can only be specified when `license_model` is `BringYourOwnLicense`")
+			if model.LicenseModel != string(autonomousdatabases.LicenseModelBringYourOwnLicense) && model.DatabaseEdition != "" {
+				return fmt.Errorf("`database_edition` can only be specified when `license_model` is `%s`", autonomousdatabases.LicenseModelBringYourOwnLicense)
 			}
 
 			return nil
@@ -327,7 +319,7 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.DatabaseEdition != "" {
-				properties.DatabaseEdition = pointer.To(autonomousdatabases.DatabaseEditionType(model.DatabaseEdition))
+				properties.DatabaseEdition = pointer.ToEnum[autonomousdatabases.DatabaseEditionType](model.DatabaseEdition)
 			}
 
 			if model.SubnetId != "" {
@@ -414,10 +406,6 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 				if metadata.ResourceData.HasChange("allowed_ips") {
 					generalUpdate.Properties.WhitelistedIPs = pointer.To(model.AllowedIps)
 				}
-				if metadata.ResourceData.HasChange("database_edition") {
-					generalUpdate.Properties.DatabaseEdition = pointer.To(autonomousdatabases.DatabaseEditionType(model.DatabaseEdition))
-				}
-
 				if err := client.UpdateThenPoll(ctx, *id, generalUpdate); err != nil {
 					return fmt.Errorf("updating general properties for %s: %+v", *id, err)
 				}
@@ -588,6 +576,5 @@ func (r AutonomousDatabaseRegularResource) hasGeneralUpdates(metadata sdk.Resour
 		"auto_scaling_enabled",
 		"auto_scaling_for_storage_enabled",
 		"allowed_ips",
-	) ||
-		metadata.ResourceData.HasChange("database_edition")
+	)
 }

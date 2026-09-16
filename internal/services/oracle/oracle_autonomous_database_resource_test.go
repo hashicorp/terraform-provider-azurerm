@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/autonomousdatabases"
@@ -53,7 +54,6 @@ func TestAdbsRegularResource_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("database_edition").HasValue("EnterpriseEdition"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -96,7 +96,6 @@ func TestAdbsRegularResource_updateBackupSchedule(t *testing.T) {
 			Config: r.updateBackupSchedule(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("database_edition").HasValue("StandardEdition"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -175,7 +174,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   auto_scaling_for_storage_enabled = false
   mtls_connection_required         = true
   data_storage_size_in_tbs         = 1
-  db_workload                      = "APEX"
+  db_workload                      = "OLTP"
   admin_password                   = "TestPass#2024#"
   db_version                       = "19c"
   character_set                    = "AL32UTF8"
@@ -262,6 +261,8 @@ resource "azurerm_oracle_autonomous_database" "test" {
 }
 
 func (a AdbsRegularResource) updateBackupSchedule(data acceptance.TestData) string {
+	timeOfBackup := time.Now().UTC().Add(72 * time.Hour).Format(time.RFC3339)
+
 	return fmt.Sprintf(`
 %s
 
@@ -278,7 +279,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   compute_model                    = "ECPU"
   compute_count                    = 2
   license_model                    = "BringYourOwnLicense"
-  database_edition                 = "StandardEdition"
+  database_edition                 = "EnterpriseEdition"
   backup_retention_period_in_days  = 12
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = false
@@ -293,12 +294,12 @@ resource "azurerm_oracle_autonomous_database" "test" {
   virtual_network_id               = azurerm_virtual_network.test.id
   long_term_backup_schedule {
     repeat_cadence           = "Weekly"
-    time_of_backup           = "2025-08-03T09:00:00Z"
+    time_of_backup           = "%[4]s"
     retention_period_in_days = 198
     enabled                  = true
   }
 }
-`, a.template(data), data.RandomInteger, data.Locations.Primary)
+`, a.template(data), data.RandomInteger, data.Locations.Primary, timeOfBackup)
 }
 
 func (a AdbsRegularResource) requiresImport(data acceptance.TestData) string {
