@@ -97,7 +97,6 @@ func (d DataCollectionEndpointDataSource) Read() sdk.ResourceFunc {
 			}
 
 			id := datacollectionendpoints.NewDataCollectionEndpointID(subscriptionId, state.ResourceGroupName, state.Name)
-			metadata.Logger.Infof("retrieving %s", id)
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {

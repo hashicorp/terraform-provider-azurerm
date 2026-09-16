@@ -16,14 +16,9 @@ func CacheKeyQueryString() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"behavior": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.QueryStringBehaviorExclude),
-					string(cdn.QueryStringBehaviorExcludeAll),
-					string(cdn.QueryStringBehaviorInclude),
-					string(cdn.QueryStringBehaviorIncludeAll),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleQueryStringBehaviorValues(), false),
 			},
 
 			"parameters": {

@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name application_insights_web_test -properties "name,resource_group_name" -service-package-name applicationinsights -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 package applicationinsights
 
@@ -170,7 +170,7 @@ func resourceApplicationInsightsWebTestsCreate(d *pluginsdk.ResourceData, meta i
 	// component. The tag key is "hidden-link:<resource_id>" where <resource_id> is the full ARM resource ID
 	// of the Application Insights component, and the value is "Resource". This tag is injected into the
 	// user-supplied tags map before sending the request. It is genreally undocumented but can be seen in
-	// https://learn.microsoft.com/en-us/azure/azure-monitor/app/availability?tabs=standard
+	// https://learn.microsoft.com/azure/azure-monitor/app/availability?tabs=standard
 	t := d.Get("tags").(map[string]interface{})
 	tagKey := fmt.Sprintf("hidden-link:%s", appInsightsId.ID())
 	t[tagKey] = "Resource"
@@ -178,7 +178,7 @@ func resourceApplicationInsightsWebTestsCreate(d *pluginsdk.ResourceData, meta i
 	webTest := webtests.WebTest{
 		Name:     pointer.To(id.WebTestName),
 		Location: location.Normalize(d.Get("location").(string)),
-		Kind:     pointer.To(webtests.WebTestKind(d.Get("kind").(string))),
+		Kind:     pointer.ToEnum[webtests.WebTestKind](d.Get("kind").(string)),
 		Properties: &webtests.WebTestProperties{
 			SyntheticMonitorId: id.WebTestName,
 			Name:               id.WebTestName,
@@ -268,7 +268,7 @@ func resourceApplicationInsightsWebTestsUpdate(d *pluginsdk.ResourceData, meta i
 	// component. The tag key is "hidden-link:<resource_id>" where <resource_id> is the full ARM resource ID
 	// of the Application Insights component, and the value is "Resource". This tag is injected into the
 	// user-supplied tags map before sending the request. It is genreally undocumented but can be seen in
-	// https://learn.microsoft.com/en-us/azure/azure-monitor/app/availability?tabs=standard
+	// https://learn.microsoft.com/azure/azure-monitor/app/availability?tabs=standard
 	if d.HasChange("tags") {
 		appInsightsId, err := components.ParseComponentID(d.Get("application_insights_id").(string))
 		if err != nil {
@@ -384,9 +384,8 @@ func expandApplicationInsightsWebTestGeoLocations(input []interface{}) []webtest
 	locations := make([]webtests.WebTestGeolocation, 0)
 
 	for _, v := range input {
-		lc := v.(string)
 		loc := webtests.WebTestGeolocation{
-			Id: &lc,
+			Id: pointer.To(v.(string)),
 		}
 		locations = append(locations, loc)
 	}

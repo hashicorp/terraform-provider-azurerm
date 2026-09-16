@@ -1,0 +1,14 @@
+# Configuration for rhysd/actionlint (run by .github/workflows/workflow-actionlint.yml); this is
+# actionlint's default config path, so it is picked up automatically.
+
+# Custom runner labels used by this repo's workflows.
+self-hosted-runner:
+  labels:
+    - custom-linux-small
+    - custom-linux-large
+    - custom-linux-xl
+    - custom-ubuntu-22.04-medium
+
+# No configuration variables (the `vars` context) are defined for this repository; declaring an
+# empty list makes actionlint error on any ${{ vars.* }} reference instead of accepting it silently.
+config-variables: []

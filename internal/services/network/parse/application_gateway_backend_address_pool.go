@@ -20,16 +20,6 @@ type ApplicationGatewayBackendAddressPoolId struct {
 	BackendAddressPoolName string
 }
 
-// NewApplicationGatewayBackendAddressPoolID returns a new ApplicationGatewayBackendAddressPoolId struct
-func NewApplicationGatewayBackendAddressPoolID(subscriptionId string, resourceGroupName string, applicationGatewayName string, backendAddressPoolName string) ApplicationGatewayBackendAddressPoolId {
-	return ApplicationGatewayBackendAddressPoolId{
-		SubscriptionId:         subscriptionId,
-		ResourceGroupName:      resourceGroupName,
-		ApplicationGatewayName: applicationGatewayName,
-		BackendAddressPoolName: backendAddressPoolName,
-	}
-}
-
 // ApplicationGatewayBackendAddressPoolID parses 'input' into a ApplicationGatewayBackendAddressPoolId
 func ApplicationGatewayBackendAddressPoolID(input string) (*ApplicationGatewayBackendAddressPoolId, error) {
 	parser := resourceids.NewParserFromResourceIdType(&ApplicationGatewayBackendAddressPoolId{})
@@ -40,23 +30,6 @@ func ApplicationGatewayBackendAddressPoolID(input string) (*ApplicationGatewayBa
 
 	id := ApplicationGatewayBackendAddressPoolId{}
 	if err := id.FromParseResult(*parsed); err != nil {
-		return nil, err
-	}
-
-	return &id, nil
-}
-
-// ParseApplicationGatewayBackendAddressPoolIDInsensitively parses 'input' case-insensitively into a ApplicationGatewayBackendAddressPoolId
-// note: this method should only be used for API response data and not user input
-func ParseApplicationGatewayBackendAddressPoolIDInsensitively(input string) (*ApplicationGatewayBackendAddressPoolId, error) {
-	parser := resourceids.NewParserFromResourceIdType(&ApplicationGatewayBackendAddressPoolId{})
-	parsed, err := parser.Parse(input, true)
-	if err != nil {
-		return nil, fmt.Errorf("parsing %q: %+v", input, err)
-	}
-
-	id := ApplicationGatewayBackendAddressPoolId{}
-	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -83,21 +56,6 @@ func (id *ApplicationGatewayBackendAddressPoolId) FromParseResult(input resource
 	}
 
 	return nil
-}
-
-// ValidateApplicationGatewayBackendAddressPoolID checks that 'input' can be parsed as a Compilation Job ID
-func ValidateApplicationGatewayBackendAddressPoolID(input interface{}, key string) (warnings []string, errors []error) {
-	v, ok := input.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
-	}
-
-	if _, err := ApplicationGatewayBackendAddressPoolID(v); err != nil {
-		errors = append(errors, err)
-	}
-
-	return
 }
 
 // ID returns the formatted Compilation Job ID

@@ -378,7 +378,7 @@ func expandStackHCILogicalNetworkSubnet(input []StackHCISubnetModel) *[]logicaln
 		results = append(results, logicalnetworks.Subnet{
 			Properties: &logicalnetworks.SubnetPropertiesFormat{
 				AddressPrefix:      pointer.To(v.AddressPrefix),
-				IPAllocationMethod: pointer.To(logicalnetworks.IPAllocationMethodEnum(v.IpAllocationMethod)),
+				IPAllocationMethod: pointer.ToEnum[logicalnetworks.IPAllocationMethodEnum](v.IpAllocationMethod),
 				IPPools:            expandStackHCILogicalNetworkIPPool(v.IpPool),
 				RouteTable:         expandStackHCILogicalNetworkRouteTable(v.Route),
 				Vlan:               pointer.To(v.VlanId),

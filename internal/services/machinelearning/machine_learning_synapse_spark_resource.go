@@ -117,7 +117,6 @@ func resourceSynapseSparkCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	parameters := machinelearningcomputes.ComputeResource{
 		Properties: &machinelearningcomputes.SynapseSpark{
-			Properties:       nil,
 			ComputeLocation:  pointer.To(d.Get("location").(string)),
 			Description:      pointer.To(d.Get("description").(string)),
 			ResourceId:       pointer.To(d.Get("synapse_spark_pool_id").(string)),

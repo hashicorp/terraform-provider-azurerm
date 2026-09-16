@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -22,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
@@ -55,7 +55,7 @@ func resourceIotHubEndpointServiceBusQueue() *pluginsdk.Resource {
 }
 
 func resourceIothubEndpointServicebusQueue() map[string]*pluginsdk.Schema {
-	out := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -74,13 +74,10 @@ func resourceIothubEndpointServicebusQueue() map[string]*pluginsdk.Schema {
 		},
 
 		"authentication_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(devices.AuthenticationTypeKeyBased),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(devices.AuthenticationTypeKeyBased),
-				string(devices.AuthenticationTypeIdentityBased),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(devices.AuthenticationTypeKeyBased),
+			ValidateFunc: validation.StringInEnumSlice(devices.PossibleAuthenticationTypeValues(), false),
 		},
 
 		"identity_id": {
@@ -129,8 +126,6 @@ func resourceIothubEndpointServicebusQueue() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IsUUID,
 		},
 	}
-
-	return out
 }
 
 func resourceIotHubEndpointServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -156,7 +151,7 @@ func resourceIotHubEndpointServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData
 
 	iothub, err := client.Get(ctx, iotHubRG, iotHubName)
 	if err != nil {
-		if utils.ResponseWasNotFound(iothub.Response) {
+		if response.WasNotFound(iothub.Response.Response) {
 			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iotHubName, iotHubRG)
 		}
 
@@ -266,7 +261,7 @@ func resourceIotHubEndpointServiceBusQueueRead(d *pluginsdk.ResourceData, meta i
 
 	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
-		if utils.ResponseWasNotFound(iothub.Response) {
+		if response.WasNotFound(iothub.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -299,23 +294,11 @@ func resourceIotHubEndpointServiceBusQueueRead(d *pluginsdk.ResourceData, meta i
 					}
 					d.Set("authentication_type", authenticationType)
 
-					connectionStr := ""
-					if endpoint.ConnectionString != nil {
-						connectionStr = *endpoint.ConnectionString
-					}
-					d.Set("connection_string", connectionStr)
+					d.Set("connection_string", pointer.From(endpoint.ConnectionString))
 
-					endpointUri := ""
-					if endpoint.EndpointURI != nil {
-						endpointUri = *endpoint.EndpointURI
-					}
-					d.Set("endpoint_uri", endpointUri)
+					d.Set("endpoint_uri", pointer.From(endpoint.EndpointURI))
 
-					entityPath := ""
-					if endpoint.EntityPath != nil {
-						entityPath = *endpoint.EntityPath
-					}
-					d.Set("entity_path", entityPath)
+					d.Set("entity_path", pointer.From(endpoint.EntityPath))
 
 					identityId := ""
 					if endpoint.Identity != nil && endpoint.Identity.UserAssignedIdentity != nil {
@@ -349,7 +332,7 @@ func resourceIotHubEndpointServiceBusQueueDelete(d *pluginsdk.ResourceData, meta
 
 	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
-		if utils.ResponseWasNotFound(iothub.Response) {
+		if response.WasNotFound(iothub.Response.Response) {
 			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", id.IotHubName, id.ResourceGroup)
 		}
 

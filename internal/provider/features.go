@@ -496,15 +496,6 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 		},
 	}
 
-	if !features.FivePointOh() {
-		featuresMap["virtual_machine"].Elem.(*pluginsdk.Resource).Schema["graceful_shutdown"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Default:    false,
-			Deprecated: "'graceful_shutdown' has been deprecated and will be removed from v5.0 of the AzureRM provider.",
-		}
-	}
-
 	// this is a temporary hack to enable us to gradually add provider blocks to test configurations
 	// rather than doing it as a big-bang and breaking all open PR's
 	if supportLegacyTestSuite {
@@ -814,7 +805,7 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 				featuresMap.EnhancedValidation.ResourceProviders = v.(bool)
 			}
 			if v, ok := evRaw["preflight_enabled"]; ok {
-				featuresMap.EnhancedValidation.PreflightEnabled = v.(bool) && features.FivePointOh() // If we're not in 5.0 mode, ignore setting this to true.
+				featuresMap.EnhancedValidation.PreflightEnabled = v.(bool)
 			}
 			if v, ok := evRaw["preflight_location_fallback"]; ok {
 				if vStr, ok := v.(string); ok && vStr != "" {

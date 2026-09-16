@@ -4,7 +4,6 @@
 package cdn
 
 import (
-	"errors"
 	"fmt"
 	"math"
 	"sort"
@@ -19,8 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-const cdnFrontDoorBatchRuleConditionOperatorNegatedPrefix = "Not"
-
 type CdnFrontDoorBatchRuleSetModel struct {
 	Name                  string                              `tfschema:"name"`
 	CdnFrontdoorProfileID string                              `tfschema:"cdn_frontdoor_profile_id"`
@@ -29,98 +26,11 @@ type CdnFrontDoorBatchRuleSetModel struct {
 }
 
 type CdnFrontDoorBatchRuleSetRuleModel struct {
-	Name             string                                    `tfschema:"name"`
-	BehaviourOnMatch string                                    `tfschema:"behaviour_on_match"`
-	Order            int64                                     `tfschema:"order"`
-	Actions          []CdnFrontDoorBatchRuleSetActionsModel    `tfschema:"actions"`
-	Conditions       []CdnFrontDoorBatchRuleSetConditionsModel `tfschema:"conditions"`
-}
-
-type CdnFrontDoorBatchRuleSetActionsModel struct {
-	URLRedirect                []CdnFrontDoorBatchRuleSetURLRedirectActionModel                `tfschema:"url_redirect"`
-	URLRewrite                 []CdnFrontDoorBatchRuleSetURLRewriteActionModel                 `tfschema:"url_rewrite"`
-	ModifyRequestHeader        []CdnFrontDoorBatchRuleSetHeaderActionModel                     `tfschema:"modify_request_header"`
-	ModifyResponseHeader       []CdnFrontDoorBatchRuleSetHeaderActionModel                     `tfschema:"modify_response_header"`
-	RouteConfigurationOverride []CdnFrontDoorBatchRuleSetRouteConfigurationOverrideActionModel `tfschema:"route_configuration_override"`
-}
-
-type CdnFrontDoorBatchRuleSetURLRedirectActionModel struct {
-	RedirectType        string `tfschema:"redirect_type"`
-	RedirectProtocol    string `tfschema:"redirect_protocol"`
-	DestinationPath     string `tfschema:"destination_path"`
-	DestinationHostName string `tfschema:"destination_host_name"`
-	QueryString         string `tfschema:"query_string"`
-	DestinationFragment string `tfschema:"destination_fragment"`
-}
-
-type CdnFrontDoorBatchRuleSetURLRewriteActionModel struct {
-	SourcePattern                string `tfschema:"source_pattern"`
-	DestinationPath              string `tfschema:"destination_path"`
-	PreserveUnmatchedPathEnabled bool   `tfschema:"preserve_unmatched_path_enabled"`
-}
-
-type CdnFrontDoorBatchRuleSetHeaderActionModel struct {
-	Operator    string `tfschema:"operator"`
-	HeaderName  string `tfschema:"header_name"`
-	HeaderValue string `tfschema:"header_value"`
-}
-
-type CdnFrontDoorBatchRuleSetRouteConfigurationOverrideActionModel struct {
-	OriginGroup []CdnFrontDoorBatchRuleSetRouteConfigurationOverrideOriginGroupModel `tfschema:"origin_group"`
-	Caching     []CdnFrontDoorBatchRuleSetRouteConfigurationOverrideCachingModel     `tfschema:"caching"`
-}
-
-type CdnFrontDoorBatchRuleSetRouteConfigurationOverrideOriginGroupModel struct {
-	CdnFrontdoorOriginGroupID string `tfschema:"cdn_frontdoor_origin_group_id"`
-	ForwardingProtocol        string `tfschema:"forwarding_protocol"`
-}
-
-type CdnFrontDoorBatchRuleSetRouteConfigurationOverrideCachingModel struct {
-	Behaviour             string   `tfschema:"behaviour"`
-	Duration              string   `tfschema:"duration"`
-	CompressionEnabled    bool     `tfschema:"compression_enabled"`
-	QueryStringBehaviour  string   `tfschema:"query_string_behaviour"`
-	QueryStringParameters []string `tfschema:"query_string_parameters"`
-}
-
-type CdnFrontDoorBatchRuleSetConditionsModel struct {
-	RemoteAddress        []CdnFrontDoorBatchRuleSetConditionBaseModel                  `tfschema:"remote_address"`
-	RequestMethod        []CdnFrontDoorBatchRuleSetConditionBaseModel                  `tfschema:"request_method"`
-	QueryString          []CdnFrontDoorBatchRuleSetConditionWithTransformsModel        `tfschema:"query_string"`
-	PostArgs             []CdnFrontDoorBatchRuleSetConditionWithNameAndTransformsModel `tfschema:"post_argument"`
-	RequestURL           []CdnFrontDoorBatchRuleSetConditionWithTransformsModel        `tfschema:"request_url"`
-	RequestHeader        []CdnFrontDoorBatchRuleSetConditionWithNameAndTransformsModel `tfschema:"request_header"`
-	RequestBody          []CdnFrontDoorBatchRuleSetConditionWithTransformsModel        `tfschema:"request_body"`
-	RequestScheme        []CdnFrontDoorBatchRuleSetConditionBaseModel                  `tfschema:"request_scheme"`
-	RequestPath          []CdnFrontDoorBatchRuleSetConditionWithTransformsModel        `tfschema:"request_path"`
-	RequestFileExtension []CdnFrontDoorBatchRuleSetConditionWithTransformsModel        `tfschema:"request_file_extension"`
-	RequestFilename      []CdnFrontDoorBatchRuleSetConditionWithTransformsModel        `tfschema:"request_filename"`
-	HTTPVersion          []CdnFrontDoorBatchRuleSetConditionBaseModel                  `tfschema:"http_version"`
-	RequestCookies       []CdnFrontDoorBatchRuleSetConditionWithNameAndTransformsModel `tfschema:"request_cookies"`
-	DeviceType           []CdnFrontDoorBatchRuleSetConditionBaseModel                  `tfschema:"device_type"`
-	SocketAddress        []CdnFrontDoorBatchRuleSetConditionBaseModel                  `tfschema:"socket_address"`
-	ClientPort           []CdnFrontDoorBatchRuleSetConditionBaseModel                  `tfschema:"client_port"`
-	ServerPort           []CdnFrontDoorBatchRuleSetConditionBaseModel                  `tfschema:"server_port"`
-	HostName             []CdnFrontDoorBatchRuleSetConditionWithTransformsModel        `tfschema:"host_name"`
-	SSLProtocol          []CdnFrontDoorBatchRuleSetConditionBaseModel                  `tfschema:"ssl_protocol"`
-}
-
-type CdnFrontDoorBatchRuleSetConditionBaseModel struct {
-	Operator string   `tfschema:"operator"`
-	Values   []string `tfschema:"values"`
-}
-
-type CdnFrontDoorBatchRuleSetConditionWithTransformsModel struct {
-	Operator   string   `tfschema:"operator"`
-	Values     []string `tfschema:"values"`
-	Transforms []string `tfschema:"transforms"`
-}
-
-type CdnFrontDoorBatchRuleSetConditionWithNameAndTransformsModel struct {
-	Name       string   `tfschema:"name"`
-	Operator   string   `tfschema:"operator"`
-	Values     []string `tfschema:"values"`
-	Transforms []string `tfschema:"transforms"`
+	Name             string                            `tfschema:"name"`
+	BehaviourOnMatch string                            `tfschema:"behaviour_on_match"`
+	Order            int64                             `tfschema:"order"`
+	Actions          []CdnFrontDoorRuleActionsModel    `tfschema:"actions"`
+	Conditions       []CdnFrontDoorRuleConditionsModel `tfschema:"conditions"`
 }
 
 func cdnFrontDoorBatchRuleSetActionModifyHeaderSchema() *pluginsdk.Schema {
@@ -149,18 +59,6 @@ func cdnFrontDoorBatchRuleSetActionModifyHeaderSchema() *pluginsdk.Schema {
 	}
 }
 
-func cdnFrontDoorBatchRuleSetConditionValuesSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 25,
-		Elem: &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-	}
-}
-
 func cdnFrontDoorBatchRuleSetConditionTransformsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
@@ -171,24 +69,6 @@ func cdnFrontDoorBatchRuleSetConditionTransformsSchema() *pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(rulesets.PossibleValuesForTransform(), false),
 		},
 	}
-}
-
-func cdnFrontDoorBatchRuleSetConditionSelectorSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:         pluginsdk.TypeString,
-		Required:     true,
-		ValidateFunc: validation.StringIsNotEmpty,
-	}
-}
-
-func cdnFrontDoorBatchRuleSetConditionOperatorPossibleValues(values []string) []string {
-	result := make([]string, 0, len(values)*2)
-	for _, value := range values {
-		// For each SDK constant, we'll add a negated version in favour of exposing another property
-		// this matches portal more closely, and avoids exposing a number of `operator` fields with only a single allowed value.
-		result = append(result, value, cdnFrontDoorBatchRuleConditionOperatorNegatedPrefix+value)
-	}
-	return result
 }
 
 func expandCdnFrontDoorBatchRuleSetPayload(model CdnFrontDoorBatchRuleSetModel) (rulesets.RuleSet, error) {
@@ -273,14 +153,14 @@ func flattenCdnFrontDoorBatchRuleSetRule(input rulesets.BatchRuleProperties) (Cd
 	return state, nil
 }
 
-func expandCdnFrontDoorBatchRuleSetActions(input []CdnFrontDoorBatchRuleSetActionsModel) ([]rulesets.DeliveryRuleAction, error) {
+func expandCdnFrontDoorBatchRuleSetActions(input []CdnFrontDoorRuleActionsModel) ([]rulesets.DeliveryRuleAction, error) {
 	results := make([]rulesets.DeliveryRuleAction, 0)
 	if len(input) == 0 {
 		return results, nil
 	}
 
 	actions := input[0]
-	if err := validateCdnFrontDoorBatchRuleActionCounts(countCdnFrontDoorBatchRuleActions(input)); err != nil {
+	if err := validateCdnFrontDoorRuleActionCounts(countCdnFrontDoorBatchRuleActions(input)); err != nil {
 		return nil, err
 	}
 
@@ -312,7 +192,7 @@ func expandCdnFrontDoorBatchRuleSetActions(input []CdnFrontDoorBatchRuleSetActio
 	}
 
 	for _, item := range actions.ModifyRequestHeader {
-		if err := validateCdnFrontDoorBatchRuleModifyHeaderAction("modify_request_header", item.Operator, item.HeaderValue); err != nil {
+		if err := validateCdnFrontDoorRuleModifyHeaderAction("modify_request_header", item.Operator, item.HeaderValue); err != nil {
 			return nil, err
 		}
 		results = append(results, rulesets.DeliveryRuleRequestHeaderAction{
@@ -327,7 +207,7 @@ func expandCdnFrontDoorBatchRuleSetActions(input []CdnFrontDoorBatchRuleSetActio
 	}
 
 	for _, item := range actions.ModifyResponseHeader {
-		if err := validateCdnFrontDoorBatchRuleModifyHeaderAction("modify_response_header", item.Operator, item.HeaderValue); err != nil {
+		if err := validateCdnFrontDoorRuleModifyHeaderAction("modify_response_header", item.Operator, item.HeaderValue); err != nil {
 			return nil, err
 		}
 		results = append(results, rulesets.DeliveryRuleResponseHeaderAction{
@@ -360,18 +240,18 @@ func expandCdnFrontDoorBatchRuleSetActions(input []CdnFrontDoorBatchRuleSetActio
 	return results, nil
 }
 
-func flattenCdnFrontDoorBatchRuleSetActions(input *[]rulesets.DeliveryRuleAction) ([]CdnFrontDoorBatchRuleSetActionsModel, error) {
+func flattenCdnFrontDoorBatchRuleSetActions(input *[]rulesets.DeliveryRuleAction) ([]CdnFrontDoorRuleActionsModel, error) {
 	if input == nil {
-		return []CdnFrontDoorBatchRuleSetActionsModel{}, nil
+		return []CdnFrontDoorRuleActionsModel{}, nil
 	}
 
-	results := make([]CdnFrontDoorBatchRuleSetActionsModel, 0, len(*input))
-	actions := CdnFrontDoorBatchRuleSetActionsModel{}
+	results := make([]CdnFrontDoorRuleActionsModel, 0, len(*input))
+	actions := CdnFrontDoorRuleActionsModel{}
 
 	for _, action := range *input {
 		switch a := action.(type) {
 		case rulesets.URLRedirectAction:
-			actions.URLRedirect = append(actions.URLRedirect, CdnFrontDoorBatchRuleSetURLRedirectActionModel{
+			actions.URLRedirect = append(actions.URLRedirect, CdnFrontDoorRuleURLRedirectActionModel{
 				RedirectType:        string(a.Parameters.RedirectType),
 				RedirectProtocol:    pointer.FromEnum(a.Parameters.DestinationProtocol),
 				DestinationPath:     pointer.From(a.Parameters.CustomPath),
@@ -380,19 +260,19 @@ func flattenCdnFrontDoorBatchRuleSetActions(input *[]rulesets.DeliveryRuleAction
 				DestinationFragment: pointer.From(a.Parameters.CustomFragment),
 			})
 		case rulesets.URLRewriteAction:
-			actions.URLRewrite = append(actions.URLRewrite, CdnFrontDoorBatchRuleSetURLRewriteActionModel{
+			actions.URLRewrite = append(actions.URLRewrite, CdnFrontDoorRuleURLRewriteActionModel{
 				SourcePattern:                a.Parameters.SourcePattern,
 				DestinationPath:              a.Parameters.Destination,
 				PreserveUnmatchedPathEnabled: pointer.From(a.Parameters.PreserveUnmatchedPath),
 			})
 		case rulesets.DeliveryRuleRequestHeaderAction:
-			actions.ModifyRequestHeader = append(actions.ModifyRequestHeader, CdnFrontDoorBatchRuleSetHeaderActionModel{
+			actions.ModifyRequestHeader = append(actions.ModifyRequestHeader, CdnFrontDoorRuleHeaderActionModel{
 				Operator:    string(a.Parameters.HeaderAction),
 				HeaderName:  a.Parameters.HeaderName,
 				HeaderValue: pointer.From(a.Parameters.Value),
 			})
 		case rulesets.DeliveryRuleResponseHeaderAction:
-			actions.ModifyResponseHeader = append(actions.ModifyResponseHeader, CdnFrontDoorBatchRuleSetHeaderActionModel{
+			actions.ModifyResponseHeader = append(actions.ModifyResponseHeader, CdnFrontDoorRuleHeaderActionModel{
 				Operator:    string(a.Parameters.HeaderAction),
 				HeaderName:  a.Parameters.HeaderName,
 				HeaderValue: pointer.From(a.Parameters.Value),
@@ -411,8 +291,8 @@ func flattenCdnFrontDoorBatchRuleSetActions(input *[]rulesets.DeliveryRuleAction
 	return append(results, actions), nil
 }
 
-func flattenCdnFrontDoorBatchRuleSetRouteConfigurationOverrideAction(input rulesets.RouteConfigurationOverrideActionParameters) (CdnFrontDoorBatchRuleSetRouteConfigurationOverrideActionModel, error) {
-	result := CdnFrontDoorBatchRuleSetRouteConfigurationOverrideActionModel{
+func flattenCdnFrontDoorBatchRuleSetRouteConfigurationOverrideAction(input rulesets.RouteConfigurationOverrideActionParameters) (CdnFrontDoorRuleRouteConfigurationOverrideActionModel, error) {
+	result := CdnFrontDoorRuleRouteConfigurationOverrideActionModel{
 		Caching: flattenCdnFrontDoorBatchRuleSetRouteConfigurationOverrideCaching(input.CacheConfiguration),
 	}
 
@@ -425,7 +305,7 @@ func flattenCdnFrontDoorBatchRuleSetRouteConfigurationOverrideAction(input rules
 	return result, nil
 }
 
-func expandCdnFrontDoorBatchRuleSetRouteConfigurationOverrideCaching(input []CdnFrontDoorBatchRuleSetRouteConfigurationOverrideCachingModel) (*rulesets.CacheConfiguration, error) {
+func expandCdnFrontDoorBatchRuleSetRouteConfigurationOverrideCaching(input []CdnFrontDoorRuleRouteConfigurationOverrideCachingModel) (*rulesets.CacheConfiguration, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -494,16 +374,16 @@ func expandCdnFrontDoorBatchRuleSetRouteConfigurationOverrideCaching(input []Cdn
 	}, nil
 }
 
-func flattenCdnFrontDoorBatchRuleSetRouteConfigurationOverrideCaching(input *rulesets.CacheConfiguration) []CdnFrontDoorBatchRuleSetRouteConfigurationOverrideCachingModel {
-	result := make([]CdnFrontDoorBatchRuleSetRouteConfigurationOverrideCachingModel, 0)
+func flattenCdnFrontDoorBatchRuleSetRouteConfigurationOverrideCaching(input *rulesets.CacheConfiguration) []CdnFrontDoorRuleRouteConfigurationOverrideCachingModel {
+	result := make([]CdnFrontDoorRuleRouteConfigurationOverrideCachingModel, 0)
 	if input == nil {
 		// The API treats omission as disabled, so we'll need to set `Disabled` back into state if it's nil
-		return append(result, CdnFrontDoorBatchRuleSetRouteConfigurationOverrideCachingModel{
+		return append(result, CdnFrontDoorRuleRouteConfigurationOverrideCachingModel{
 			Behaviour: string(rulesets.RuleIsCompressionEnabledDisabled),
 		})
 	}
 
-	v := CdnFrontDoorBatchRuleSetRouteConfigurationOverrideCachingModel{
+	v := CdnFrontDoorRuleRouteConfigurationOverrideCachingModel{
 		Behaviour:            pointer.FromEnum(input.CacheBehavior),
 		Duration:             pointer.FromEnum(input.CacheDuration),
 		CompressionEnabled:   pointer.From(input.IsCompressionEnabled) == rulesets.RuleIsCompressionEnabledEnabled,
@@ -517,7 +397,7 @@ func flattenCdnFrontDoorBatchRuleSetRouteConfigurationOverrideCaching(input *rul
 	return append(result, v)
 }
 
-func expandCdnFrontDoorBatchRuleSetRouteConfigurationOverrideOriginGroup(input []CdnFrontDoorBatchRuleSetRouteConfigurationOverrideOriginGroupModel) *rulesets.OriginGroupOverride {
+func expandCdnFrontDoorBatchRuleSetRouteConfigurationOverrideOriginGroup(input []CdnFrontDoorRuleRouteConfigurationOverrideOriginGroupModel) *rulesets.OriginGroupOverride {
 	if len(input) == 0 {
 		return nil
 	}
@@ -531,18 +411,19 @@ func expandCdnFrontDoorBatchRuleSetRouteConfigurationOverrideOriginGroup(input [
 	}
 }
 
-func flattenCdnFrontDoorBatchRuleSetRouteConfigurationOverrideOriginGroup(input *rulesets.OriginGroupOverride) ([]CdnFrontDoorBatchRuleSetRouteConfigurationOverrideOriginGroupModel, error) {
-	result := make([]CdnFrontDoorBatchRuleSetRouteConfigurationOverrideOriginGroupModel, 0)
+func flattenCdnFrontDoorBatchRuleSetRouteConfigurationOverrideOriginGroup(input *rulesets.OriginGroupOverride) ([]CdnFrontDoorRuleRouteConfigurationOverrideOriginGroupModel, error) {
+	result := make([]CdnFrontDoorRuleRouteConfigurationOverrideOriginGroupModel, 0)
 	if input == nil {
 		return result, nil
 	}
 
-	v := CdnFrontDoorBatchRuleSetRouteConfigurationOverrideOriginGroupModel{
+	v := CdnFrontDoorRuleRouteConfigurationOverrideOriginGroupModel{
 		ForwardingProtocol: pointer.FromEnum(input.ForwardingProtocol),
 	}
 
 	if input.OriginGroup != nil && input.OriginGroup.Id != nil {
-		originGroupID, err := afdorigins.ParseOriginGroupID(*input.OriginGroup.Id)
+		// Azure can return IDs with inconsistently cased static segments; normalize them to avoid state drift and refresh failures (#32953).
+		originGroupID, err := afdorigins.ParseOriginGroupIDInsensitively(*input.OriginGroup.Id)
 		if err != nil {
 			return result, err
 		}
@@ -552,7 +433,7 @@ func flattenCdnFrontDoorBatchRuleSetRouteConfigurationOverrideOriginGroup(input 
 	return append(result, v), nil
 }
 
-func expandCdnFrontDoorBatchRuleSetConditions(input []CdnFrontDoorBatchRuleSetConditionsModel) ([]rulesets.DeliveryRuleCondition, error) {
+func expandCdnFrontDoorBatchRuleSetConditions(input []CdnFrontDoorRuleConditionsModel) ([]rulesets.DeliveryRuleCondition, error) {
 	results := make([]rulesets.DeliveryRuleCondition, 0)
 	if len(input) == 0 {
 		return results, nil
@@ -681,30 +562,30 @@ func expandCdnFrontDoorBatchRuleSetConditions(input []CdnFrontDoorBatchRuleSetCo
 	return results, nil
 }
 
-func flattenCdnFrontDoorBatchRuleSetConditions(input *[]rulesets.DeliveryRuleCondition) ([]CdnFrontDoorBatchRuleSetConditionsModel, error) {
+func flattenCdnFrontDoorBatchRuleSetConditions(input *[]rulesets.DeliveryRuleCondition) ([]CdnFrontDoorRuleConditionsModel, error) {
 	if input == nil || len(*input) == 0 {
-		return []CdnFrontDoorBatchRuleSetConditionsModel{}, nil
+		return []CdnFrontDoorRuleConditionsModel{}, nil
 	}
 
-	conditions := CdnFrontDoorBatchRuleSetConditionsModel{}
+	conditions := CdnFrontDoorRuleConditionsModel{}
 	for _, condition := range *input {
 		switch c := condition.(type) {
 		case rulesets.DeliveryRuleRemoteAddressCondition:
-			conditions.RemoteAddress = append(conditions.RemoteAddress, flattenCdnFrontDoorBatchRuleSetConditionBaseModel(string(c.Parameters.Operator), pointer.From(c.Parameters.MatchValues), c.Parameters.NegateCondition))
+			conditions.RemoteAddress = append(conditions.RemoteAddress, flattenCdnFrontDoorRuleConditionBaseModel(string(c.Parameters.Operator), pointer.From(c.Parameters.MatchValues), c.Parameters.NegateCondition))
 		case rulesets.DeliveryRuleRequestMethodCondition:
-			conditions.RequestMethod = append(conditions.RequestMethod, flattenCdnFrontDoorBatchRuleSetConditionBaseModel(string(c.Parameters.Operator), pointer.FromEnumSlice(c.Parameters.MatchValues), c.Parameters.NegateCondition))
+			conditions.RequestMethod = append(conditions.RequestMethod, flattenCdnFrontDoorRuleConditionBaseModel(string(c.Parameters.Operator), pointer.FromEnumSlice(c.Parameters.MatchValues), c.Parameters.NegateCondition))
 		case rulesets.DeliveryRuleQueryStringCondition:
 			conditions.QueryString = append(conditions.QueryString, flattenCdnFrontDoorBatchRuleSetConditionWithTransformsModel(string(c.Parameters.Operator), pointer.From(c.Parameters.MatchValues), pointer.FromEnumSlice(c.Parameters.Transforms), c.Parameters.NegateCondition))
 		case rulesets.DeliveryRulePostArgsCondition:
-			conditions.PostArgs = append(conditions.PostArgs, flattenCdnFrontDoorBatchRuleSetConditionWithNameAndTransformsModel(string(c.Parameters.Operator), c.Parameters.Selector, pointer.From(c.Parameters.MatchValues), pointer.FromEnumSlice(c.Parameters.Transforms), c.Parameters.NegateCondition))
+			conditions.PostArgs = append(conditions.PostArgs, flattenCdnFrontDoorRuleConditionWithNameAndTransformsModel(string(c.Parameters.Operator), c.Parameters.Selector, pointer.From(c.Parameters.MatchValues), pointer.FromEnumSlice(c.Parameters.Transforms), c.Parameters.NegateCondition))
 		case rulesets.DeliveryRuleRequestUriCondition:
 			conditions.RequestURL = append(conditions.RequestURL, flattenCdnFrontDoorBatchRuleSetConditionWithTransformsModel(string(c.Parameters.Operator), pointer.From(c.Parameters.MatchValues), pointer.FromEnumSlice(c.Parameters.Transforms), c.Parameters.NegateCondition))
 		case rulesets.DeliveryRuleRequestHeaderCondition:
-			conditions.RequestHeader = append(conditions.RequestHeader, flattenCdnFrontDoorBatchRuleSetConditionWithNameAndTransformsModel(string(c.Parameters.Operator), c.Parameters.Selector, pointer.From(c.Parameters.MatchValues), pointer.FromEnumSlice(c.Parameters.Transforms), c.Parameters.NegateCondition))
+			conditions.RequestHeader = append(conditions.RequestHeader, flattenCdnFrontDoorRuleConditionWithNameAndTransformsModel(string(c.Parameters.Operator), c.Parameters.Selector, pointer.From(c.Parameters.MatchValues), pointer.FromEnumSlice(c.Parameters.Transforms), c.Parameters.NegateCondition))
 		case rulesets.DeliveryRuleRequestBodyCondition:
 			conditions.RequestBody = append(conditions.RequestBody, flattenCdnFrontDoorBatchRuleSetConditionWithTransformsModel(string(c.Parameters.Operator), pointer.From(c.Parameters.MatchValues), pointer.FromEnumSlice(c.Parameters.Transforms), c.Parameters.NegateCondition))
 		case rulesets.DeliveryRuleRequestSchemeCondition:
-			conditions.RequestScheme = append(conditions.RequestScheme, flattenCdnFrontDoorBatchRuleSetConditionBaseModel(string(c.Parameters.Operator), pointer.FromEnumSlice(c.Parameters.MatchValues), c.Parameters.NegateCondition))
+			conditions.RequestScheme = append(conditions.RequestScheme, flattenCdnFrontDoorRuleConditionBaseModel(string(c.Parameters.Operator), pointer.FromEnumSlice(c.Parameters.MatchValues), c.Parameters.NegateCondition))
 		case rulesets.DeliveryRuleURLPathCondition:
 			conditions.RequestPath = append(conditions.RequestPath, flattenCdnFrontDoorBatchRuleSetConditionWithTransformsModel(string(c.Parameters.Operator), pointer.From(c.Parameters.MatchValues), pointer.FromEnumSlice(c.Parameters.Transforms), c.Parameters.NegateCondition))
 		case rulesets.DeliveryRuleURLFileExtensionCondition:
@@ -712,32 +593,32 @@ func flattenCdnFrontDoorBatchRuleSetConditions(input *[]rulesets.DeliveryRuleCon
 		case rulesets.DeliveryRuleURLFileNameCondition:
 			conditions.RequestFilename = append(conditions.RequestFilename, flattenCdnFrontDoorBatchRuleSetConditionWithTransformsModel(string(c.Parameters.Operator), pointer.From(c.Parameters.MatchValues), pointer.FromEnumSlice(c.Parameters.Transforms), c.Parameters.NegateCondition))
 		case rulesets.DeliveryRuleHTTPVersionCondition:
-			conditions.HTTPVersion = append(conditions.HTTPVersion, flattenCdnFrontDoorBatchRuleSetConditionBaseModel(string(c.Parameters.Operator), pointer.FromEnumSlice(c.Parameters.MatchValues), c.Parameters.NegateCondition))
+			conditions.HTTPVersion = append(conditions.HTTPVersion, flattenCdnFrontDoorRuleConditionBaseModel(string(c.Parameters.Operator), pointer.FromEnumSlice(c.Parameters.MatchValues), c.Parameters.NegateCondition))
 		case rulesets.DeliveryRuleCookiesCondition:
-			conditions.RequestCookies = append(conditions.RequestCookies, flattenCdnFrontDoorBatchRuleSetConditionWithNameAndTransformsModel(string(c.Parameters.Operator), c.Parameters.Selector, pointer.From(c.Parameters.MatchValues), pointer.FromEnumSlice(c.Parameters.Transforms), c.Parameters.NegateCondition))
+			conditions.RequestCookies = append(conditions.RequestCookies, flattenCdnFrontDoorRuleConditionWithNameAndTransformsModel(string(c.Parameters.Operator), c.Parameters.Selector, pointer.From(c.Parameters.MatchValues), pointer.FromEnumSlice(c.Parameters.Transforms), c.Parameters.NegateCondition))
 		case rulesets.DeliveryRuleIsDeviceCondition:
-			conditions.DeviceType = append(conditions.DeviceType, flattenCdnFrontDoorBatchRuleSetConditionBaseModel(string(c.Parameters.Operator), pointer.FromEnumSlice(c.Parameters.MatchValues), c.Parameters.NegateCondition))
+			conditions.DeviceType = append(conditions.DeviceType, flattenCdnFrontDoorRuleConditionBaseModel(string(c.Parameters.Operator), pointer.FromEnumSlice(c.Parameters.MatchValues), c.Parameters.NegateCondition))
 		case rulesets.DeliveryRuleSocketAddrCondition:
-			conditions.SocketAddress = append(conditions.SocketAddress, flattenCdnFrontDoorBatchRuleSetConditionBaseModel(string(c.Parameters.Operator), pointer.From(c.Parameters.MatchValues), c.Parameters.NegateCondition))
+			conditions.SocketAddress = append(conditions.SocketAddress, flattenCdnFrontDoorRuleConditionBaseModel(string(c.Parameters.Operator), pointer.From(c.Parameters.MatchValues), c.Parameters.NegateCondition))
 		case rulesets.DeliveryRuleClientPortCondition:
-			conditions.ClientPort = append(conditions.ClientPort, flattenCdnFrontDoorBatchRuleSetConditionBaseModel(string(c.Parameters.Operator), pointer.From(c.Parameters.MatchValues), c.Parameters.NegateCondition))
+			conditions.ClientPort = append(conditions.ClientPort, flattenCdnFrontDoorRuleConditionBaseModel(string(c.Parameters.Operator), pointer.From(c.Parameters.MatchValues), c.Parameters.NegateCondition))
 		case rulesets.DeliveryRuleServerPortCondition:
-			conditions.ServerPort = append(conditions.ServerPort, flattenCdnFrontDoorBatchRuleSetConditionBaseModel(string(c.Parameters.Operator), pointer.From(c.Parameters.MatchValues), c.Parameters.NegateCondition))
+			conditions.ServerPort = append(conditions.ServerPort, flattenCdnFrontDoorRuleConditionBaseModel(string(c.Parameters.Operator), pointer.From(c.Parameters.MatchValues), c.Parameters.NegateCondition))
 		case rulesets.DeliveryRuleHostNameCondition:
 			conditions.HostName = append(conditions.HostName, flattenCdnFrontDoorBatchRuleSetConditionWithTransformsModel(string(c.Parameters.Operator), pointer.From(c.Parameters.MatchValues), pointer.FromEnumSlice(c.Parameters.Transforms), c.Parameters.NegateCondition))
 		case rulesets.DeliveryRuleSslProtocolCondition:
-			conditions.SSLProtocol = append(conditions.SSLProtocol, flattenCdnFrontDoorBatchRuleSetConditionBaseModel(string(c.Parameters.Operator), pointer.FromEnumSlice(c.Parameters.MatchValues), c.Parameters.NegateCondition))
+			conditions.SSLProtocol = append(conditions.SSLProtocol, flattenCdnFrontDoorRuleConditionBaseModel(string(c.Parameters.Operator), pointer.FromEnumSlice(c.Parameters.MatchValues), c.Parameters.NegateCondition))
 		default:
-			return []CdnFrontDoorBatchRuleSetConditionsModel{}, fmt.Errorf("unsupported condition (`%s`) encountered", condition.DeliveryRuleCondition().Name)
+			return []CdnFrontDoorRuleConditionsModel{}, fmt.Errorf("unsupported condition (`%s`) encountered", condition.DeliveryRuleCondition().Name)
 		}
 	}
 
-	return []CdnFrontDoorBatchRuleSetConditionsModel{conditions}, nil
+	return []CdnFrontDoorRuleConditionsModel{conditions}, nil
 }
 
-func expandCdnFrontDoorBatchRuleSetClientPortCondition(input CdnFrontDoorBatchRuleSetConditionBaseModel) (rulesets.DeliveryRuleCondition, error) {
-	operator, negated := expandCdnFrontDoorBatchRuleSetConditionOperator(input.Operator)
-	if err := validateCdnFrontDoorBatchRuleConditionValues("client_port", operator, input.Values); err != nil {
+func expandCdnFrontDoorBatchRuleSetClientPortCondition(input CdnFrontDoorRuleConditionBaseModel) (rulesets.DeliveryRuleCondition, error) {
+	operator, negated := expandCdnFrontDoorRuleConditionOperator(input.Operator)
+	if err := validateCdnFrontDoorRuleConditionValues("client_port", operator, input.Values); err != nil {
 		return nil, err
 	}
 
@@ -752,9 +633,9 @@ func expandCdnFrontDoorBatchRuleSetClientPortCondition(input CdnFrontDoorBatchRu
 	}, nil
 }
 
-func expandCdnFrontDoorBatchRuleSetCookiesCondition(input CdnFrontDoorBatchRuleSetConditionWithNameAndTransformsModel) (rulesets.DeliveryRuleCondition, error) {
-	operator, negated := expandCdnFrontDoorBatchRuleSetConditionOperator(input.Operator)
-	if err := validateCdnFrontDoorBatchRuleConditionValues("request_cookies", operator, input.Values); err != nil {
+func expandCdnFrontDoorBatchRuleSetCookiesCondition(input CdnFrontDoorRuleConditionWithNameAndTransformsModel) (rulesets.DeliveryRuleCondition, error) {
+	operator, negated := expandCdnFrontDoorRuleConditionOperator(input.Operator)
+	if err := validateCdnFrontDoorRuleConditionValues("request_cookies", operator, input.Values); err != nil {
 		return nil, err
 	}
 
@@ -771,9 +652,9 @@ func expandCdnFrontDoorBatchRuleSetCookiesCondition(input CdnFrontDoorBatchRuleS
 	}, nil
 }
 
-func expandCdnFrontDoorBatchRuleSetHostNameCondition(input CdnFrontDoorBatchRuleSetConditionWithTransformsModel) (rulesets.DeliveryRuleCondition, error) {
-	operator, negated := expandCdnFrontDoorBatchRuleSetConditionOperator(input.Operator)
-	if err := validateCdnFrontDoorBatchRuleConditionValues("host_name", operator, input.Values); err != nil {
+func expandCdnFrontDoorBatchRuleSetHostNameCondition(input CdnFrontDoorRuleConditionWithTransformsModel) (rulesets.DeliveryRuleCondition, error) {
+	operator, negated := expandCdnFrontDoorRuleConditionOperator(input.Operator)
+	if err := validateCdnFrontDoorRuleConditionValues("host_name", operator, input.Values); err != nil {
 		return nil, err
 	}
 
@@ -789,8 +670,8 @@ func expandCdnFrontDoorBatchRuleSetHostNameCondition(input CdnFrontDoorBatchRule
 	}, nil
 }
 
-func expandCdnFrontDoorBatchRuleSetHTTPVersionCondition(input CdnFrontDoorBatchRuleSetConditionBaseModel) (rulesets.DeliveryRuleCondition, error) {
-	operator, negated := expandCdnFrontDoorBatchRuleSetConditionOperator(input.Operator)
+func expandCdnFrontDoorBatchRuleSetHTTPVersionCondition(input CdnFrontDoorRuleConditionBaseModel) (rulesets.DeliveryRuleCondition, error) {
+	operator, negated := expandCdnFrontDoorRuleConditionOperator(input.Operator)
 
 	return rulesets.DeliveryRuleHTTPVersionCondition{
 		Name: rulesets.MatchVariableHTTPVersion,
@@ -803,8 +684,8 @@ func expandCdnFrontDoorBatchRuleSetHTTPVersionCondition(input CdnFrontDoorBatchR
 	}, nil
 }
 
-func expandCdnFrontDoorBatchRuleSetDeviceTypeCondition(input CdnFrontDoorBatchRuleSetConditionBaseModel) (rulesets.DeliveryRuleCondition, error) {
-	operator, negated := expandCdnFrontDoorBatchRuleSetConditionOperator(input.Operator)
+func expandCdnFrontDoorBatchRuleSetDeviceTypeCondition(input CdnFrontDoorRuleConditionBaseModel) (rulesets.DeliveryRuleCondition, error) {
+	operator, negated := expandCdnFrontDoorRuleConditionOperator(input.Operator)
 
 	return rulesets.DeliveryRuleIsDeviceCondition{
 		Name: rulesets.MatchVariableIsDevice,
@@ -817,9 +698,9 @@ func expandCdnFrontDoorBatchRuleSetDeviceTypeCondition(input CdnFrontDoorBatchRu
 	}, nil
 }
 
-func expandCdnFrontDoorBatchRuleSetPostArgsCondition(input CdnFrontDoorBatchRuleSetConditionWithNameAndTransformsModel) (rulesets.DeliveryRuleCondition, error) {
-	operator, negated := expandCdnFrontDoorBatchRuleSetConditionOperator(input.Operator)
-	if err := validateCdnFrontDoorBatchRuleConditionValues("post_argument", operator, input.Values); err != nil {
+func expandCdnFrontDoorBatchRuleSetPostArgsCondition(input CdnFrontDoorRuleConditionWithNameAndTransformsModel) (rulesets.DeliveryRuleCondition, error) {
+	operator, negated := expandCdnFrontDoorRuleConditionOperator(input.Operator)
+	if err := validateCdnFrontDoorRuleConditionValues("post_argument", operator, input.Values); err != nil {
 		return nil, err
 	}
 
@@ -836,9 +717,9 @@ func expandCdnFrontDoorBatchRuleSetPostArgsCondition(input CdnFrontDoorBatchRule
 	}, nil
 }
 
-func expandCdnFrontDoorBatchRuleSetQueryStringCondition(input CdnFrontDoorBatchRuleSetConditionWithTransformsModel) (rulesets.DeliveryRuleCondition, error) {
-	operator, negated := expandCdnFrontDoorBatchRuleSetConditionOperator(input.Operator)
-	if err := validateCdnFrontDoorBatchRuleConditionValues("query_string", operator, input.Values); err != nil {
+func expandCdnFrontDoorBatchRuleSetQueryStringCondition(input CdnFrontDoorRuleConditionWithTransformsModel) (rulesets.DeliveryRuleCondition, error) {
+	operator, negated := expandCdnFrontDoorRuleConditionOperator(input.Operator)
+	if err := validateCdnFrontDoorRuleConditionValues("query_string", operator, input.Values); err != nil {
 		return nil, err
 	}
 
@@ -854,8 +735,8 @@ func expandCdnFrontDoorBatchRuleSetQueryStringCondition(input CdnFrontDoorBatchR
 	}, nil
 }
 
-func expandCdnFrontDoorBatchRuleSetRemoteAddressCondition(input CdnFrontDoorBatchRuleSetConditionBaseModel) (rulesets.DeliveryRuleCondition, error) {
-	operator, negated := expandCdnFrontDoorBatchRuleSetConditionOperator(input.Operator)
+func expandCdnFrontDoorBatchRuleSetRemoteAddressCondition(input CdnFrontDoorRuleConditionBaseModel) (rulesets.DeliveryRuleCondition, error) {
+	operator, negated := expandCdnFrontDoorRuleConditionOperator(input.Operator)
 
 	switch rulesets.RemoteAddressOperator(operator) {
 	case rulesets.RemoteAddressOperatorGeoMatch:
@@ -889,9 +770,9 @@ func expandCdnFrontDoorBatchRuleSetRemoteAddressCondition(input CdnFrontDoorBatc
 	}, nil
 }
 
-func expandCdnFrontDoorBatchRuleSetRequestBodyCondition(input CdnFrontDoorBatchRuleSetConditionWithTransformsModel) (rulesets.DeliveryRuleCondition, error) {
-	operator, negated := expandCdnFrontDoorBatchRuleSetConditionOperator(input.Operator)
-	if err := validateCdnFrontDoorBatchRuleConditionValues("request_body", operator, input.Values); err != nil {
+func expandCdnFrontDoorBatchRuleSetRequestBodyCondition(input CdnFrontDoorRuleConditionWithTransformsModel) (rulesets.DeliveryRuleCondition, error) {
+	operator, negated := expandCdnFrontDoorRuleConditionOperator(input.Operator)
+	if err := validateCdnFrontDoorRuleConditionValues("request_body", operator, input.Values); err != nil {
 		return nil, err
 	}
 
@@ -907,9 +788,9 @@ func expandCdnFrontDoorBatchRuleSetRequestBodyCondition(input CdnFrontDoorBatchR
 	}, nil
 }
 
-func expandCdnFrontDoorBatchRuleSetRequestHeaderCondition(input CdnFrontDoorBatchRuleSetConditionWithNameAndTransformsModel) (rulesets.DeliveryRuleCondition, error) {
-	operator, negated := expandCdnFrontDoorBatchRuleSetConditionOperator(input.Operator)
-	if err := validateCdnFrontDoorBatchRuleConditionValues("request_header", operator, input.Values); err != nil {
+func expandCdnFrontDoorBatchRuleSetRequestHeaderCondition(input CdnFrontDoorRuleConditionWithNameAndTransformsModel) (rulesets.DeliveryRuleCondition, error) {
+	operator, negated := expandCdnFrontDoorRuleConditionOperator(input.Operator)
+	if err := validateCdnFrontDoorRuleConditionValues("request_header", operator, input.Values); err != nil {
 		return nil, err
 	}
 
@@ -926,8 +807,8 @@ func expandCdnFrontDoorBatchRuleSetRequestHeaderCondition(input CdnFrontDoorBatc
 	}, nil
 }
 
-func expandCdnFrontDoorBatchRuleSetRequestMethodCondition(input CdnFrontDoorBatchRuleSetConditionBaseModel) (rulesets.DeliveryRuleCondition, error) {
-	operator, negated := expandCdnFrontDoorBatchRuleSetConditionOperator(input.Operator)
+func expandCdnFrontDoorBatchRuleSetRequestMethodCondition(input CdnFrontDoorRuleConditionBaseModel) (rulesets.DeliveryRuleCondition, error) {
+	operator, negated := expandCdnFrontDoorRuleConditionOperator(input.Operator)
 
 	return rulesets.DeliveryRuleRequestMethodCondition{
 		Name: rulesets.MatchVariableRequestMethod,
@@ -940,8 +821,8 @@ func expandCdnFrontDoorBatchRuleSetRequestMethodCondition(input CdnFrontDoorBatc
 	}, nil
 }
 
-func expandCdnFrontDoorBatchRuleSetRequestSchemeCondition(input CdnFrontDoorBatchRuleSetConditionBaseModel) (rulesets.DeliveryRuleCondition, error) {
-	operator, negated := expandCdnFrontDoorBatchRuleSetConditionOperator(input.Operator)
+func expandCdnFrontDoorBatchRuleSetRequestSchemeCondition(input CdnFrontDoorRuleConditionBaseModel) (rulesets.DeliveryRuleCondition, error) {
+	operator, negated := expandCdnFrontDoorRuleConditionOperator(input.Operator)
 
 	return rulesets.DeliveryRuleRequestSchemeCondition{
 		Name: rulesets.MatchVariableRequestScheme,
@@ -954,9 +835,9 @@ func expandCdnFrontDoorBatchRuleSetRequestSchemeCondition(input CdnFrontDoorBatc
 	}, nil
 }
 
-func expandCdnFrontDoorBatchRuleSetRequestURLCondition(input CdnFrontDoorBatchRuleSetConditionWithTransformsModel) (rulesets.DeliveryRuleCondition, error) {
-	operator, negated := expandCdnFrontDoorBatchRuleSetConditionOperator(input.Operator)
-	if err := validateCdnFrontDoorBatchRuleConditionValues("request_url", operator, input.Values); err != nil {
+func expandCdnFrontDoorBatchRuleSetRequestURLCondition(input CdnFrontDoorRuleConditionWithTransformsModel) (rulesets.DeliveryRuleCondition, error) {
+	operator, negated := expandCdnFrontDoorRuleConditionOperator(input.Operator)
+	if err := validateCdnFrontDoorRuleConditionValues("request_url", operator, input.Values); err != nil {
 		return nil, err
 	}
 
@@ -972,9 +853,9 @@ func expandCdnFrontDoorBatchRuleSetRequestURLCondition(input CdnFrontDoorBatchRu
 	}, nil
 }
 
-func expandCdnFrontDoorBatchRuleSetServerPortCondition(input CdnFrontDoorBatchRuleSetConditionBaseModel) (rulesets.DeliveryRuleCondition, error) {
-	operator, negated := expandCdnFrontDoorBatchRuleSetConditionOperator(input.Operator)
-	if err := validateCdnFrontDoorBatchRuleConditionValues("server_port", operator, input.Values); err != nil {
+func expandCdnFrontDoorBatchRuleSetServerPortCondition(input CdnFrontDoorRuleConditionBaseModel) (rulesets.DeliveryRuleCondition, error) {
+	operator, negated := expandCdnFrontDoorRuleConditionOperator(input.Operator)
+	if err := validateCdnFrontDoorRuleConditionValues("server_port", operator, input.Values); err != nil {
 		return nil, err
 	}
 
@@ -989,8 +870,8 @@ func expandCdnFrontDoorBatchRuleSetServerPortCondition(input CdnFrontDoorBatchRu
 	}, nil
 }
 
-func expandCdnFrontDoorBatchRuleSetSocketAddressCondition(input CdnFrontDoorBatchRuleSetConditionBaseModel) (rulesets.DeliveryRuleCondition, error) {
-	operator, negated := expandCdnFrontDoorBatchRuleSetConditionOperator(input.Operator)
+func expandCdnFrontDoorBatchRuleSetSocketAddressCondition(input CdnFrontDoorRuleConditionBaseModel) (rulesets.DeliveryRuleCondition, error) {
+	operator, negated := expandCdnFrontDoorRuleConditionOperator(input.Operator)
 
 	return rulesets.DeliveryRuleSocketAddrCondition{
 		Name: rulesets.MatchVariableSocketAddr,
@@ -1003,8 +884,8 @@ func expandCdnFrontDoorBatchRuleSetSocketAddressCondition(input CdnFrontDoorBatc
 	}, nil
 }
 
-func expandCdnFrontDoorBatchRuleSetSSLProtocolCondition(input CdnFrontDoorBatchRuleSetConditionBaseModel) (rulesets.DeliveryRuleCondition, error) {
-	operator, negated := expandCdnFrontDoorBatchRuleSetConditionOperator(input.Operator)
+func expandCdnFrontDoorBatchRuleSetSSLProtocolCondition(input CdnFrontDoorRuleConditionBaseModel) (rulesets.DeliveryRuleCondition, error) {
+	operator, negated := expandCdnFrontDoorRuleConditionOperator(input.Operator)
 
 	return rulesets.DeliveryRuleSslProtocolCondition{
 		Name: rulesets.MatchVariableSslProtocol,
@@ -1017,9 +898,9 @@ func expandCdnFrontDoorBatchRuleSetSSLProtocolCondition(input CdnFrontDoorBatchR
 	}, nil
 }
 
-func expandCdnFrontDoorBatchRuleSetRequestFileExtensionCondition(input CdnFrontDoorBatchRuleSetConditionWithTransformsModel) (rulesets.DeliveryRuleCondition, error) {
-	operator, negated := expandCdnFrontDoorBatchRuleSetConditionOperator(input.Operator)
-	if err := validateCdnFrontDoorBatchRuleConditionValues("request_file_extension", operator, input.Values); err != nil {
+func expandCdnFrontDoorBatchRuleSetRequestFileExtensionCondition(input CdnFrontDoorRuleConditionWithTransformsModel) (rulesets.DeliveryRuleCondition, error) {
+	operator, negated := expandCdnFrontDoorRuleConditionOperator(input.Operator)
+	if err := validateCdnFrontDoorRuleConditionValues("request_file_extension", operator, input.Values); err != nil {
 		return nil, err
 	}
 
@@ -1035,9 +916,9 @@ func expandCdnFrontDoorBatchRuleSetRequestFileExtensionCondition(input CdnFrontD
 	}, nil
 }
 
-func expandCdnFrontDoorBatchRuleSetRequestFilenameCondition(input CdnFrontDoorBatchRuleSetConditionWithTransformsModel) (rulesets.DeliveryRuleCondition, error) {
-	operator, negated := expandCdnFrontDoorBatchRuleSetConditionOperator(input.Operator)
-	if err := validateCdnFrontDoorBatchRuleConditionValues("request_filename", operator, input.Values); err != nil {
+func expandCdnFrontDoorBatchRuleSetRequestFilenameCondition(input CdnFrontDoorRuleConditionWithTransformsModel) (rulesets.DeliveryRuleCondition, error) {
+	operator, negated := expandCdnFrontDoorRuleConditionOperator(input.Operator)
+	if err := validateCdnFrontDoorRuleConditionValues("request_filename", operator, input.Values); err != nil {
 		return nil, err
 	}
 
@@ -1053,9 +934,9 @@ func expandCdnFrontDoorBatchRuleSetRequestFilenameCondition(input CdnFrontDoorBa
 	}, nil
 }
 
-func expandCdnFrontDoorBatchRuleSetRequestPathCondition(input CdnFrontDoorBatchRuleSetConditionWithTransformsModel) (rulesets.DeliveryRuleCondition, error) {
-	operator, negated := expandCdnFrontDoorBatchRuleSetConditionOperator(input.Operator)
-	if err := validateCdnFrontDoorBatchRuleConditionValues("request_path", operator, input.Values); err != nil {
+func expandCdnFrontDoorBatchRuleSetRequestPathCondition(input CdnFrontDoorRuleConditionWithTransformsModel) (rulesets.DeliveryRuleCondition, error) {
+	operator, negated := expandCdnFrontDoorRuleConditionOperator(input.Operator)
+	if err := validateCdnFrontDoorRuleConditionValues("request_path", operator, input.Values); err != nil {
 		return nil, err
 	}
 
@@ -1071,24 +952,7 @@ func expandCdnFrontDoorBatchRuleSetRequestPathCondition(input CdnFrontDoorBatchR
 	}, nil
 }
 
-func expandCdnFrontDoorBatchRuleSetConditionOperator(input string) (string, bool) {
-	negated := false
-	if strings.HasPrefix(input, cdnFrontDoorBatchRuleConditionOperatorNegatedPrefix) {
-		negated = true
-		input = strings.TrimPrefix(input, cdnFrontDoorBatchRuleConditionOperatorNegatedPrefix)
-	}
-	return input, negated
-}
-
-func flattenCdnFrontDoorBatchRuleSetConditionOperator(input string, negated bool) string {
-	result := input
-	if negated {
-		result = cdnFrontDoorBatchRuleConditionOperatorNegatedPrefix + result
-	}
-	return result
-}
-
-func expandCdnFrontDoorBatchRuleSetConditionBaseModel(input []CdnFrontDoorBatchRuleSetConditionBaseModel, key string, expand func(CdnFrontDoorBatchRuleSetConditionBaseModel) (rulesets.DeliveryRuleCondition, error)) ([]rulesets.DeliveryRuleCondition, error) {
+func expandCdnFrontDoorBatchRuleSetConditionBaseModel(input []CdnFrontDoorRuleConditionBaseModel, key string, expand func(CdnFrontDoorRuleConditionBaseModel) (rulesets.DeliveryRuleCondition, error)) ([]rulesets.DeliveryRuleCondition, error) {
 	result := make([]rulesets.DeliveryRuleCondition, 0, len(input))
 	for _, c := range input {
 		expandedCondition, err := expand(c)
@@ -1100,14 +964,7 @@ func expandCdnFrontDoorBatchRuleSetConditionBaseModel(input []CdnFrontDoorBatchR
 	return result, nil
 }
 
-func flattenCdnFrontDoorBatchRuleSetConditionBaseModel(operator string, values []string, negated *bool) CdnFrontDoorBatchRuleSetConditionBaseModel {
-	return CdnFrontDoorBatchRuleSetConditionBaseModel{
-		Operator: flattenCdnFrontDoorBatchRuleSetConditionOperator(operator, pointer.From(negated)),
-		Values:   values,
-	}
-}
-
-func expandCdnFrontDoorBatchRuleSetConditionWithNameAndTransformsModel(input []CdnFrontDoorBatchRuleSetConditionWithNameAndTransformsModel, key string, expand func(CdnFrontDoorBatchRuleSetConditionWithNameAndTransformsModel) (rulesets.DeliveryRuleCondition, error)) ([]rulesets.DeliveryRuleCondition, error) {
+func expandCdnFrontDoorBatchRuleSetConditionWithNameAndTransformsModel(input []CdnFrontDoorRuleConditionWithNameAndTransformsModel, key string, expand func(CdnFrontDoorRuleConditionWithNameAndTransformsModel) (rulesets.DeliveryRuleCondition, error)) ([]rulesets.DeliveryRuleCondition, error) {
 	result := make([]rulesets.DeliveryRuleCondition, 0, len(input))
 	for _, c := range input {
 		expandedCondition, err := expand(c)
@@ -1119,16 +976,7 @@ func expandCdnFrontDoorBatchRuleSetConditionWithNameAndTransformsModel(input []C
 	return result, nil
 }
 
-func flattenCdnFrontDoorBatchRuleSetConditionWithNameAndTransformsModel(operator string, name *string, values, transforms []string, negated *bool) CdnFrontDoorBatchRuleSetConditionWithNameAndTransformsModel {
-	return CdnFrontDoorBatchRuleSetConditionWithNameAndTransformsModel{
-		Name:       pointer.From(name),
-		Operator:   flattenCdnFrontDoorBatchRuleSetConditionOperator(operator, pointer.From(negated)),
-		Values:     values,
-		Transforms: transforms,
-	}
-}
-
-func expandCdnFrontDoorBatchRuleSetConditionWithTransformsModel(input []CdnFrontDoorBatchRuleSetConditionWithTransformsModel, key string, expand func(CdnFrontDoorBatchRuleSetConditionWithTransformsModel) (rulesets.DeliveryRuleCondition, error)) ([]rulesets.DeliveryRuleCondition, error) {
+func expandCdnFrontDoorBatchRuleSetConditionWithTransformsModel(input []CdnFrontDoorRuleConditionWithTransformsModel, key string, expand func(CdnFrontDoorRuleConditionWithTransformsModel) (rulesets.DeliveryRuleCondition, error)) ([]rulesets.DeliveryRuleCondition, error) {
 	result := make([]rulesets.DeliveryRuleCondition, 0, len(input))
 	for _, c := range input {
 		expandedCondition, err := expand(c)
@@ -1140,13 +988,7 @@ func expandCdnFrontDoorBatchRuleSetConditionWithTransformsModel(input []CdnFront
 	return result, nil
 }
 
-func flattenCdnFrontDoorBatchRuleSetConditionWithTransformsModel(operator string, values, transforms []string, negated *bool) CdnFrontDoorBatchRuleSetConditionWithTransformsModel {
-	return CdnFrontDoorBatchRuleSetConditionWithTransformsModel{
-		Operator:   flattenCdnFrontDoorBatchRuleSetConditionOperator(operator, pointer.From(negated)),
-		Values:     values,
-		Transforms: transforms,
-	}
-}
+// Validation
 
 func validateCdnFrontDoorBatchRules(input []CdnFrontDoorBatchRuleSetRuleModel) error {
 	names := make(map[string]struct{}, len(input))
@@ -1168,7 +1010,7 @@ func validateCdnFrontDoorBatchRules(input []CdnFrontDoorBatchRuleSetRuleModel) e
 			return fmt.Errorf("the `rule` blocks must be declared in ascending `order`, got `%d` before `%d`", lastOrder, item.Order)
 		}
 
-		if err := validateCdnFrontDoorBatchRuleActionCounts(countCdnFrontDoorBatchRuleActions(item.Actions)); err != nil {
+		if err := validateCdnFrontDoorRuleActionCounts(countCdnFrontDoorBatchRuleActions(item.Actions)); err != nil {
 			return err
 		}
 
@@ -1176,68 +1018,4 @@ func validateCdnFrontDoorBatchRules(input []CdnFrontDoorBatchRuleSetRuleModel) e
 	}
 
 	return nil
-}
-
-func validateCdnFrontDoorBatchRuleConditionValues(configName, operator string, matchValues []string) error {
-	if operator == "" {
-		return fmt.Errorf("`%s` is invalid: no `operator` value has been set, got `%s`", configName, operator)
-	}
-
-	// There are multiple condition-specific `Any` operators in the API surface, but they all
-	// resolve to the same literal value.
-	if operator == "Any" && len(matchValues) > 0 {
-		return fmt.Errorf("when `conditions.%[1]s.operator` is set to `Any`, `conditions.%[1]s.values` cannot be defined", configName)
-	}
-
-	if operator != "Any" && len(matchValues) == 0 {
-		return fmt.Errorf("when `conditions.%[1]s.operator` is set to `%[2]s`, `conditions.%[1]s.values` must set one or more values", configName, operator)
-	}
-
-	return nil
-}
-
-func validateCdnFrontDoorBatchRuleActionCounts(urlRewriteCount, urlRedirectCount, routeConfigurationOverrideCount, totalCount int) error {
-	if totalCount == 0 {
-		return errors.New("the `actions` block must define at least one action")
-	}
-
-	if urlRedirectCount > 0 && urlRewriteCount > 0 {
-		return errors.New("cannot specify both `url_redirect` and the `url_rewrite` in the `actions` block")
-	}
-
-	if urlRedirectCount > 0 && routeConfigurationOverrideCount > 0 {
-		return errors.New("cannot specify both `url_redirect` and the `route_configuration_override` in the `actions` block")
-	}
-
-	if totalCount > 5 {
-		return fmt.Errorf("the `actions` block may only contain up to 5 actions, got %d", totalCount)
-	}
-
-	return nil
-}
-
-func validateCdnFrontDoorBatchRuleModifyHeaderAction(blockName, headerAction, value string) error {
-	if value == "" {
-		if headerAction == string(rulesets.HeaderActionOverwrite) || headerAction == string(rulesets.HeaderActionAppend) {
-			return fmt.Errorf("the `%s` block is not valid, `header_value` cannot be empty if the `operator` is set to `Append` or `Overwrite`", blockName)
-		}
-	} else if headerAction == string(rulesets.HeaderActionDelete) {
-		return fmt.Errorf("the `%s` block is not valid, `header_value` must be empty if the `operator` is set to `Delete`", blockName)
-	}
-
-	return nil
-}
-
-func countCdnFrontDoorBatchRuleActions(input []CdnFrontDoorBatchRuleSetActionsModel) (urlRewrite, urlRedirect, routeConfigurationOverride, total int) {
-	if len(input) == 0 {
-		return
-	}
-
-	actions := input[0]
-	urlRewrite = len(actions.URLRewrite)
-	urlRedirect = len(actions.URLRedirect)
-	routeConfigurationOverride = len(actions.RouteConfigurationOverride)
-	total = urlRewrite + urlRedirect + routeConfigurationOverride + len(actions.ModifyRequestHeader) + len(actions.ModifyResponseHeader)
-
-	return
 }

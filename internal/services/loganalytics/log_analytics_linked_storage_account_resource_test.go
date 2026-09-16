@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -147,19 +146,6 @@ resource "azurerm_storage_account" "test" {
 }
 
 func (r LogAnalyticsLinkedStorageAccountResource) basic(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_log_analytics_linked_storage_account" "test" {
-  data_source_type      = "CustomLogs"
-  resource_group_name   = azurerm_resource_group.test.name
-  workspace_resource_id = azurerm_log_analytics_workspace.test.id
-  storage_account_ids   = [azurerm_storage_account.test.id]
-}
-`, r.template(data))
-	}
-
 	return fmt.Sprintf(`
 %s
 

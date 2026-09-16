@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name servicebus_namespace_customer_managed_key -service-package-name servicebus -compare-values "subscription_id:namespace_id,resource_group_name:namespace_id,name:namespace_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -parent-id "namespace_id"
 
 type ServiceBusNamespaceCustomerManagedKeyResource struct{}
 

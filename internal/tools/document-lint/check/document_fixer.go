@@ -23,13 +23,12 @@ type Fixer struct {
 }
 
 func NewFixer(d *ResourceDiff) *Fixer {
-	f := &Fixer{
+	return &Fixer{
 		MDFile:       d.MDFile,
 		SchemaFile:   d.SchemaFile,
 		ResourceType: d.tf.ResourceType,
 		Diff:         d.Diff,
 	}
-	return f
 }
 
 // param rt: resource type
@@ -156,8 +155,7 @@ func (f *Fixer) WriteBack() (err error) {
 		_ = fd.Sync()
 		_ = fd.Close()
 	}()
-	_, err = fd.WriteString(f.FixedContent)
-	if err != nil {
+	if _, err = fd.WriteString(f.FixedContent); err != nil {
 		log.Printf("write %s back: %v", f.MDFile, err)
 		return err
 	}

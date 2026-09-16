@@ -535,9 +535,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                          = "example"
-    primary                       = true
-    enable_accelerated_networking = %t
+    name                           = "example"
+    primary                        = true
+    accelerated_networking_enabled = %t
 
     ip_configuration {
       name      = "internal"
@@ -577,9 +577,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                          = "example"
-    primary                       = true
-    enable_accelerated_networking = true
+    name                           = "example"
+    primary                        = true
+    accelerated_networking_enabled = true
 
     ip_configuration {
       name      = "internal"
@@ -619,10 +619,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                          = "example"
-    primary                       = true
-    enable_accelerated_networking = true
-    auxiliary_mode                = "AcceleratedConnections"
+    name                           = "example"
+    primary                        = true
+    accelerated_networking_enabled = true
+    auxiliary_mode                 = "AcceleratedConnections"
 
     ip_configuration {
       name      = "internal"
@@ -662,10 +662,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                          = "example"
-    primary                       = true
-    enable_accelerated_networking = true
-    auxiliary_sku                 = "A1"
+    name                           = "example"
+    primary                        = true
+    accelerated_networking_enabled = true
+    auxiliary_sku                  = "A1"
 
     ip_configuration {
       name      = "internal"
@@ -705,11 +705,11 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                          = "example"
-    primary                       = true
-    enable_accelerated_networking = true
-    auxiliary_mode                = "AcceleratedConnections"
-    auxiliary_sku                 = "A1"
+    name                           = "example"
+    primary                        = true
+    accelerated_networking_enabled = true
+    auxiliary_mode                 = "AcceleratedConnections"
+    auxiliary_sku                  = "A1"
 
     ip_configuration {
       name      = "internal"
@@ -1092,9 +1092,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                 = "example"
-    primary              = true
-    enable_ip_forwarding = true
+    name                  = "example"
+    primary               = true
+    ip_forwarding_enabled = true
 
     ip_configuration {
       name      = "internal"

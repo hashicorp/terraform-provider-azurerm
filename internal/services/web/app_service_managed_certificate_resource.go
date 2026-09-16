@@ -8,26 +8,24 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/certificates"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceAppServiceManagedCertificate() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceAppServiceManagedCertificateCreate,
 		Read:   resourceAppServiceManagedCertificateRead,
 		Update: resourceAppServiceManagedCertificateUpdate,
@@ -98,25 +96,6 @@ func resourceAppServiceManagedCertificate() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		// Parse insensitively for 4.x matching existing behaviour, enforce casing in 5.0
-		r.Schema["custom_hostname_binding_id"].ValidateFunc = func(input interface{}, key string) (warnings []string, errors []error) {
-			v, ok := input.(string)
-			if !ok {
-				errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-				return
-			}
-
-			if _, err := webapps.ParseHostNameBindingIDInsensitively(v); err != nil {
-				errors = append(errors, err)
-			}
-
-			return
-		}
-	}
-
-	return r
 }
 
 func resourceAppServiceManagedCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {

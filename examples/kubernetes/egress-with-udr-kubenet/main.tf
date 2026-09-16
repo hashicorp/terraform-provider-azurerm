@@ -56,6 +56,10 @@ resource "azurerm_kubernetes_cluster" "example" {
     vnet_subnet_id = azurerm_subnet.internal.id
   }
 
+  node_provisioning_profile {
+    mode = "Manual"
+  }
+
   network_profile {
     network_plugin    = "kubenet"
     load_balancer_sku = "standard"

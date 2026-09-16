@@ -43,13 +43,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Container which should be created within the Storage Account. Changing this forces a new resource to be created.
 
-* `storage_account_name` - (Optional) The name of the Storage Account where the Container should be created. This property is deprecated in favour of `storage_account_id`.
-
-~> **Note:** Migrating from the deprecated `storage_account_name` to `storage_account_id` is supported without recreation. Any other change to either property will result in the resource being recreated.
-
-* `storage_account_id` - (Optional) The name of the Storage Account where the Container should be created.
-
-~> **Note:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
+* `storage_account_id` - (Required) The ID of the Storage Account where the Container should be created. Changing this forces a new resource to be created.
 
 * `container_access_type` - (Optional) The Access Level configured for this Container. Possible values are `blob`, `container` or `private`. Defaults to `private`.
 
@@ -70,8 +64,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `has_immutability_policy` - Is there an Immutability Policy configured on this Storage Container?
 
 * `has_legal_hold` - Is there a Legal Hold configured on this Storage Container?
-
-* `resource_manager_id` - The Resource Manager ID of this Storage Container.
 
 * `url` - The data plane URL of the Storage Container in the format of `<storage blob endpoint>/<container name>`. E.g. `https://example.blob.core.windows.net/mycontainer`.
 

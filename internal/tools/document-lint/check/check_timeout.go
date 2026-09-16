@@ -68,8 +68,7 @@ func (t *TimeoutDiffItem) FixLine(line string) string {
 	if end <= start {
 		return line
 	}
-	res := fmt.Sprintf("%s%s%s", line[:start], t.ValueString(), line[end:])
-	return res
+	return fmt.Sprintf("%s%s%s", line[:start], t.ValueString(), line[end:])
 }
 
 func NewTimeoutDiffItem(line int, typ TimeoutType, want int64) TimeoutDiffItem {

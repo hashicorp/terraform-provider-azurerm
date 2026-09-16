@@ -61,10 +61,10 @@ resource "azurerm_netapp_volume" "example" {
   storage_quota_in_gb = 100
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["0.0.0.0/0"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_write = true
   }
 }
 
@@ -91,9 +91,9 @@ resource "azurerm_netapp_volume" "example-snapshot" {
   create_from_snapshot_resource_id = azurerm_netapp_snapshot.example.id
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["0.0.0.0/0"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_write = true
   }
 }

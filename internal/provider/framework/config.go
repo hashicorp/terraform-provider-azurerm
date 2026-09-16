@@ -126,13 +126,8 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	p.clientBuilder.DisableCorrelationRequestID = getEnvBoolOrDefault(data.DisableCorrelationRequestId, "ARM_DISABLE_CORRELATION_REQUEST_ID", false)
 	p.clientBuilder.DisableTerraformPartnerID = getEnvBoolOrDefault(data.DisableTerraformPartnerId, "ARM_DISABLE_TERRAFORM_PARTNER_ID", false)
 	p.clientBuilder.StorageUseAzureAD = getEnvBoolOrDefault(data.StorageUseAzureAD, "ARM_STORAGE_USE_AZUREAD", false)
-	// In 4.x, validate that the legacy and specific enhanced validation env vars don't conflict
-	if !providerfeatures.FivePointOh() {
-		if err := providerfeatures.ValidateEnhancedValidationEnvVars(); err != nil {
-			diags.Append(diag.NewErrorDiagnostic("validating enhanced validation environment variables", err.Error()))
-			return
-		}
-	} else if os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION") != "" {
+
+	if os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION") != "" {
 		diags.Append(diag.NewErrorDiagnostic("unsupported environment variable", "the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` has been removed in v5.0 of the AzureRM Provider - please use the `enhanced_validation` block inside the `features` block or the replacement environment variables `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` instead"))
 		return
 	}
@@ -142,8 +137,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	// features is required, but we'll play safe here
 	if !data.Features.IsNull() && !data.Features.IsUnknown() {
 		var featuresList []Features
-		d := data.Features.ElementsAs(ctx, &featuresList, true)
-		diags.Append(d...)
+		diags.Append(data.Features.ElementsAs(ctx, &featuresList, true)...)
 		if diags.HasError() {
 			return
 		}
@@ -152,8 +146,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.APIManagement.IsNull() && !features.APIManagement.IsUnknown() {
 			var feature []APIManagement
-			d := features.APIManagement.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.APIManagement.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -174,8 +167,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.AppConfiguration.IsNull() && !features.AppConfiguration.IsUnknown() {
 			var feature []AppConfiguration
-			d := features.AppConfiguration.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.AppConfiguration.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -196,8 +188,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.ApplicationInsights.IsNull() && !features.ApplicationInsights.IsUnknown() {
 			var feature []ApplicationInsights
-			d := features.ApplicationInsights.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.ApplicationInsights.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -210,8 +201,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.CognitiveAccount.IsNull() && !features.CognitiveAccount.IsUnknown() {
 			var feature []CognitiveAccount
-			d := features.CognitiveAccount.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.CognitiveAccount.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -226,8 +216,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.KeyVault.IsNull() && !features.KeyVault.IsUnknown() {
 			var feature []KeyVault
-			d := features.KeyVault.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.KeyVault.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -302,8 +291,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.LogAnalyticsWorkspace.IsNull() && !features.LogAnalyticsWorkspace.IsUnknown() {
 			var feature []LogAnalyticsWorkspace
-			d := features.LogAnalyticsWorkspace.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.LogAnalyticsWorkspace.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -318,8 +306,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.TemplateDeployment.IsNull() && !features.TemplateDeployment.IsUnknown() {
 			var feature []TemplateDeployment
-			d := features.TemplateDeployment.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.TemplateDeployment.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -334,8 +321,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.VirtualMachine.IsNull() && !features.VirtualMachine.IsUnknown() {
 			var feature []VirtualMachine
-			d := features.VirtualMachine.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.VirtualMachine.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -356,8 +342,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.VirtualMachineScaleSet.IsNull() && !features.VirtualMachineScaleSet.IsUnknown() {
 			var feature []VirtualMachineScaleSet
-			d := features.VirtualMachineScaleSet.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.VirtualMachineScaleSet.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -390,8 +375,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.ResourceGroup.IsNull() && !features.ResourceGroup.IsUnknown() {
 			var feature []ResourceGroup
-			d := features.ResourceGroup.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.ResourceGroup.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -406,8 +390,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.ManagedDisk.IsNull() && !features.ManagedDisk.IsUnknown() {
 			var feature []ManagedDisk
-			d := features.ManagedDisk.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.ManagedDisk.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -422,8 +405,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.Storage.IsNull() && !features.Storage.IsUnknown() {
 			var feature []Storage
-			d := features.Storage.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.Storage.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -435,8 +417,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.Subscription.IsNull() && !features.Subscription.IsUnknown() {
 			var feature []Subscription
-			d := features.Subscription.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.Subscription.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -451,8 +432,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.PostgresqlFlexibleServer.IsNull() && !features.PostgresqlFlexibleServer.IsUnknown() {
 			var feature []PostgresqlFlexibleServer
-			d := features.PostgresqlFlexibleServer.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.PostgresqlFlexibleServer.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -467,8 +447,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.RecoveryService.IsNull() && !features.RecoveryService.IsUnknown() {
 			var feature []RecoveryService
-			d := features.RecoveryService.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.RecoveryService.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -494,8 +473,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.NetApp.IsNull() && !features.NetApp.IsUnknown() {
 			var feature []NetApp
-			d := features.NetApp.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.NetApp.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -516,8 +494,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.DatabricksWorkspace.IsNull() && !features.DatabricksWorkspace.IsUnknown() {
 			var feature []DatabricksWorkspace
-			d := features.DatabricksWorkspace.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.DatabricksWorkspace.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -532,8 +509,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.ServiceBus.IsNull() && !features.ServiceBus.IsUnknown() {
 			var feature []ServiceBus
-			d := features.ServiceBus.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.ServiceBus.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -551,31 +527,9 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 		f.EnhancedValidation.PreflightEnabled = providerfeatures.EnhancedValidationPreflightEnabled()
 		f.EnhancedValidation.LocationFallback = providerfeatures.EnhancedValidationLocationFallback()
 
-		if !providerfeatures.FivePointOh() && !data.EnhancedValidation.IsNull() && !data.EnhancedValidation.IsUnknown() {
-			if !features.EnhancedValidation.IsNull() && !features.EnhancedValidation.IsUnknown() {
-				diags.Append(diag.NewErrorDiagnostic("conflicting configuration", "the `enhanced_validation` block is defined at both the provider root and inside the `features` block. Please remove the block at the provider root as it is deprecated."))
-				return
-			}
-
-			var rootEvList []EnhancedValidationModel
-			d := data.EnhancedValidation.ElementsAs(ctx, &rootEvList, true)
-			diags.Append(d...)
-			if diags.HasError() {
-				return
-			}
-
-			if len(rootEvList) > 0 {
-				if !rootEvList[0].Locations.IsNull() && !rootEvList[0].Locations.IsUnknown() {
-					f.EnhancedValidation.Locations = rootEvList[0].Locations.ValueBool()
-				}
-				if !rootEvList[0].ResourceProviders.IsNull() && !rootEvList[0].ResourceProviders.IsUnknown() {
-					f.EnhancedValidation.ResourceProviders = rootEvList[0].ResourceProviders.ValueBool()
-				}
-			}
-		} else if !features.EnhancedValidation.IsNull() && !features.EnhancedValidation.IsUnknown() {
+		if !features.EnhancedValidation.IsNull() && !features.EnhancedValidation.IsUnknown() {
 			var evList []EnhancedValidationModel
-			d := features.EnhancedValidation.ElementsAs(ctx, &evList, true)
-			diags.Append(d...)
+			diags.Append(features.EnhancedValidation.ElementsAs(ctx, &evList, true)...)
 			if diags.HasError() {
 				return
 			}
@@ -587,7 +541,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 					f.EnhancedValidation.ResourceProviders = evList[0].ResourceProviders.ValueBool()
 				}
 				if !evList[0].PreflightEnabled.IsNull() && !evList[0].PreflightEnabled.IsUnknown() {
-					f.EnhancedValidation.PreflightEnabled = evList[0].PreflightEnabled.ValueBool() && providerfeatures.FivePointOh()
+					f.EnhancedValidation.PreflightEnabled = evList[0].PreflightEnabled.ValueBool()
 				}
 				if !evList[0].LocationFallback.IsNull() && !evList[0].LocationFallback.IsUnknown() {
 					f.EnhancedValidation.LocationFallback = evList[0].LocationFallback.ValueStringPointer()
@@ -614,17 +568,6 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	client.StopContext = ctx
 
 	resourceProviderRegistrationSet := getEnvStringOrDefault(data.ResourceProviderRegistrations, "ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsNone)
-	if !providerfeatures.FivePointOh() {
-		resourceProviderRegistrationSet = getEnvStringOrDefault(data.ResourceProviderRegistrations, "ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsLegacy)
-
-		if !data.SkipProviderRegistration.IsNull() && !data.SkipProviderRegistration.ValueBool() {
-			if resourceProviderRegistrationSet != resourceproviders.ProviderRegistrationsLegacy {
-				diags.Append(diag.NewErrorDiagnostic("resource provider registration misconfiguration", "provider property `skip_provider_registration` cannot be set at the same time as `resource_provider_registrations`, please remove `skip_provider_registration` from your configuration or unset the `ARM_SKIP_PROVIDER_REGISTRATION` environment variable"))
-			}
-
-			resourceProviderRegistrationSet = resourceproviders.ProviderRegistrationsNone
-		}
-	}
 
 	requiredResourceProviders, err := resourceproviders.GetResourceProvidersSet(resourceProviderRegistrationSet)
 	if err != nil {

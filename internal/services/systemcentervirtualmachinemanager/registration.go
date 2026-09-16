@@ -40,13 +40,13 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		SystemCenterVirtualMachineManagerAvailabilitySetResource{},
 		SystemCenterVirtualMachineManagerCloudResource{},
 		SystemCenterVirtualMachineManagerServerResource{},
-		SystemCenterVirtualMachineManagerAvailabilitySetResource{},
-		SystemCenterVirtualMachineManagerVirtualMachineInstanceResource{},
-		SystemCenterVirtualMachineManagerVirtualNetworkResource{},
-		SystemCenterVirtualMachineManagerVirtualMachineTemplateResource{},
 		SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResource{},
+		SystemCenterVirtualMachineManagerVirtualMachineInstanceResource{},
+		SystemCenterVirtualMachineManagerVirtualMachineTemplateResource{},
+		SystemCenterVirtualMachineManagerVirtualNetworkResource{},
 	}
 }
 
