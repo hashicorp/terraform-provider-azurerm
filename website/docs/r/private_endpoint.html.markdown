@@ -211,6 +211,12 @@ The following arguments are supported:
 
 * `ip_configuration` - (Optional) One or more `ip_configuration` blocks as defined below. This allows a static IP address to be set for this Private Endpoint, otherwise an address is dynamically allocated from the Subnet.
 
+* `ip_version_type` - (Optional) The IP version type for the Private Endpoint. Possible values are `IPv4`, `IPv6`, and `DualStack`. Defaults to `IPv4`.
+
+~> **Note:** When `ip_version_type` is set to `IPv6` or `DualStack`, `private_endpoint_vnet_policies` must be set to `Basic` on the Virtual Network and all peered Virtual Networks. In addition, `private_endpoint_network_policies` must be set to `RouteTableEnabled` on the Subnet. Refer to [document](https://learn.microsoft.com/en-us/azure/private-link/private-link-ipv6#prerequisites).
+
+~> **Note:** `ip_version_type` cannot be changed directly between `IPv4` and `IPv6`. It can be changed from either `IPv4` or `IPv6` to `DualStack`, but cannot be changed from `DualStack` back to `IPv4` or `IPv6`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -366,4 +372,4 @@ terraform import azurerm_private_endpoint.example /subscriptions/00000000-0000-0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

@@ -14,10 +14,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressroutecircuits"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/localnetworkgateways"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgatewayconnections"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuits"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/localnetworkgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworkgatewayconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -109,7 +110,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: virtualnetworkgateways.ValidateVirtualNetworkGatewayNatRuleID,
+					ValidateFunc: networkgateways.ValidateVirtualNetworkGatewayNatRuleID,
 				},
 			},
 
@@ -118,7 +119,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: virtualnetworkgateways.ValidateVirtualNetworkGatewayNatRuleID,
+					ValidateFunc: networkgateways.ValidateVirtualNetworkGatewayNatRuleID,
 				},
 			},
 
