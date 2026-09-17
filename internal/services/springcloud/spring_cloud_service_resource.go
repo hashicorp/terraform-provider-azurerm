@@ -87,7 +87,7 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice([]string{
 					"Basic",
 					"Enterprise",
@@ -170,7 +170,7 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 			"marketplace": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -229,7 +229,7 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 						"app_network_resource_group": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ForceNew: true,
 						},
 
@@ -253,7 +253,7 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 						"service_runtime_network_resource_group": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ForceNew: true,
 						},
 					},
@@ -812,8 +812,7 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("setting `network`: %+v", err)
 		}
 
-		outboundPublicIPAddresses := flattenOutboundPublicIPAddresses(props.NetworkProfile)
-		if err := d.Set("outbound_public_ip_addresses", outboundPublicIPAddresses); err != nil {
+		if err := d.Set("outbound_public_ip_addresses", flattenOutboundPublicIPAddresses(props.NetworkProfile)); err != nil {
 			return fmt.Errorf("setting `outbound_public_ip_addresses`: %+v", err)
 		}
 

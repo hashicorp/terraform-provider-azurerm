@@ -178,7 +178,7 @@ func resourceLighthouseDefinition() *pluginsdk.Resource {
 			"lighthouse_definition_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
@@ -471,7 +471,7 @@ func expandLighthouseDefinitionApprover(input []interface{}) *[]registrationdefi
 
 func flattenLighthouseDefinitionEligibleAuthorization(input *[]registrationdefinitions.EligibleAuthorization) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	results := make([]interface{}, 0, len(*input))
@@ -497,7 +497,7 @@ func flattenLighthouseDefinitionEligibleAuthorization(input *[]registrationdefin
 
 func flattenLighthouseDefinitionJustInTimeAccessPolicy(input *registrationdefinitions.JustInTimeAccessPolicy) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	var results []interface{}
@@ -523,7 +523,7 @@ func flattenLighthouseDefinitionJustInTimeAccessPolicy(input *registrationdefini
 
 func flattenLighthouseDefinitionApprover(input *[]registrationdefinitions.EligibleApprover) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	results := make([]interface{}, 0, len(*input))

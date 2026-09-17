@@ -245,8 +245,7 @@ func resourceFirewallPolicySetFlatten(d *pluginsdk.ResourceData, id *firewallpol
 				return fmt.Errorf(`setting "insights": %+v`, err)
 			}
 
-			proxySettings := flattenFirewallPolicyExplicitProxy(props.ExplicitProxy)
-			if err := d.Set("explicit_proxy", proxySettings); err != nil {
+			if err := d.Set("explicit_proxy", flattenFirewallPolicyExplicitProxy(props.ExplicitProxy)); err != nil {
 				return fmt.Errorf("setting `explicit_proxy`: %+v", err)
 			}
 
@@ -558,13 +557,13 @@ func flattenFirewallPolicyInsights(input *firewallpolicies.FirewallPolicyInsight
 		retentionInDays = int(*input.RetentionDays)
 	}
 
-	defaultLogAnalyticsWorspaceId, logAnalyticsWorkspaces := flattenFirewallPolicyLogAnalyticsResources(input.LogAnalyticsResources)
+	defaultLogAnalyticsWorkspaceId, logAnalyticsWorkspaces := flattenFirewallPolicyLogAnalyticsResources(input.LogAnalyticsResources)
 
 	return []interface{}{
 		map[string]interface{}{
 			"enabled":                            pointer.From(input.IsEnabled),
 			"retention_in_days":                  retentionInDays,
-			"default_log_analytics_workspace_id": defaultLogAnalyticsWorspaceId,
+			"default_log_analytics_workspace_id": defaultLogAnalyticsWorkspaceId,
 			"log_analytics_workspace":            logAnalyticsWorkspaces,
 		},
 	}
@@ -572,7 +571,7 @@ func flattenFirewallPolicyInsights(input *firewallpolicies.FirewallPolicyInsight
 
 func flattenFirewallPolicyExplicitProxy(input *firewallpolicies.ExplicitProxy) (result []interface{}) {
 	if input == nil {
-		return
+		return []interface{}{}
 	}
 	output := map[string]interface{}{
 		"enabled":         input.EnableExplicitProxy,
