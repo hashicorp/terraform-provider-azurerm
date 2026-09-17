@@ -712,13 +712,6 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	if d.HasChanges("automatic_zone_rebalancing_enabled", "resilient_vm_creation_enabled", "resilient_vm_deletion_enabled") {
-		automaticZoneRebalancingEnabled := d.Get("automatic_zone_rebalancing_enabled").(bool)
-		resilientVMCreationEnabled := d.Get("resilient_vm_creation_enabled").(bool)
-		resilientVMDeletionEnabled := d.Get("resilient_vm_deletion_enabled").(bool)
-		updateProps.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled)
-	}
-
 	if d.HasChange("termination_notification") {
 		notificationRaw := d.Get("termination_notification").([]interface{})
 		updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
@@ -827,6 +820,21 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		Existing:                     *existing.Model,
 		ID:                           id,
 		OSType:                       virtualmachinescalesets.OperatingSystemTypesLinux,
+	}
+
+	if d.HasChanges("automatic_zone_rebalancing_enabled", "resilient_vm_creation_enabled", "resilient_vm_deletion_enabled") {
+		// a health extension or health_probe_id must be set when automatic_zone_rebalancing_enabled is true,
+		// so when the properties changes in the same update we apply it first, then set the resiliency policy.
+		automaticZoneRebalancingEnabled := d.Get("automatic_zone_rebalancing_enabled").(bool)
+		if automaticZoneRebalancingEnabled && d.HasChanges("extension", "health_probe_id") {
+			if err := metaData.performUpdate(ctx, update); err != nil {
+				return err
+			}
+			metaData.UpdateInstances = false
+		}
+		resilientVMCreationEnabled := d.Get("resilient_vm_creation_enabled").(bool)
+		resilientVMDeletionEnabled := d.Get("resilient_vm_deletion_enabled").(bool)
+		updateProps.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled)
 	}
 
 	if err := metaData.performUpdate(ctx, update); err != nil {

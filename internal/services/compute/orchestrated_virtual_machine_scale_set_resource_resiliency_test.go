@@ -156,20 +156,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     enabled      = true
     grace_period = "PT30M"
   }
-
-  extension {
-    name                               = "HealthExtension"
-    publisher                          = "Microsoft.ManagedServices"
-    type                               = "ApplicationHealthLinux"
-    type_handler_version               = "1.0"
-    auto_upgrade_minor_version_enabled = true
-
-    settings = jsonencode({
-      "protocol"    = "http"
-      "port"        = 80
-      "requestPath" = "/healthEndpoint"
-    })
-  }
 }
 # Note: resilient_vm_creation_enabled, resilient_vm_deletion_enabled and automatic_zone_rebalancing_enabled are intentionally NOT configured
 # This tests backward compatibility - these fields should not appear in state

@@ -191,19 +191,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 
-  extension {
-    name                       = "HealthExtension"
-    publisher                  = "Microsoft.ManagedServices"
-    type                       = "ApplicationHealthLinux"
-    type_handler_version       = "1.0"
-    auto_upgrade_minor_version = true
-    settings = jsonencode({
-      protocol    = "https"
-      port        = 443
-      requestPath = "/"
-    })
-  }
-
   # Note: resilient_vm_creation_enabled, resilient_vm_deletion_enabled, and automatic_zone_rebalancing_enabled
   # are intentionally NOT configured here to test backward compatibility - they should not appear in state
 }
