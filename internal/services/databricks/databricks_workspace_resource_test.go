@@ -583,7 +583,7 @@ func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithInvalidComplianceS
 //
 // There are certain condition that automatically enables Unity Catalog assignment for newly created workspaces.
 // The "isUcEnabled" prop can be used to determine if workspace has Unity Catalog enabled.
-// See MS doc: https://learn.microsoft.com/en-us/azure/databricks/data-governance/unity-catalog/enable-workspaces
+// See MS doc: https://learn.microsoft.com/azure/databricks/data-governance/unity-catalog/enable-workspaces
 //
 // The expected behaviour of force deletion with regards to isUcEnabled is as follows:
 //
@@ -649,16 +649,16 @@ func getDatabricksPrincipalId(subscriptionId string) string {
 }
 
 func altSubscriptionCheck() *DatabricksWorkspaceAlternateSubscription {
-	altSubscriptonID := os.Getenv("ARM_SUBSCRIPTION_ID_ALT")
+	altSubscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID_ALT")
 	altTenantID := os.Getenv("ARM_TENANT_ID")
 
-	if altSubscriptonID == "" || altTenantID == "" {
+	if altSubscriptionID == "" || altTenantID == "" {
 		return nil
 	}
 
 	return &DatabricksWorkspaceAlternateSubscription{
 		tenantID:       altTenantID,
-		subscriptionID: altSubscriptonID,
+		subscriptionID: altSubscriptionID,
 	}
 }
 

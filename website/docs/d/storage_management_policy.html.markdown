@@ -70,7 +70,7 @@ The following arguments are supported:
 * `tier_to_archive_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to archive storage.
 * `tier_to_archive_after_days_since_last_access_time_greater_than` - The age in days after last access time to tier blobs to archive storage.
 * `tier_to_archive_after_days_since_creation_greater_than` - The age in days after creation to archive storage.
-* `tier_to_archive_after_days_since_last_tier_change_greater_than` - The age in days after last tier change to the blobs to skip to be archved.
+* `tier_to_archive_after_days_since_last_tier_change_greater_than` - The age in days after last tier change to the blobs to skip to be archived.
 * `tier_to_cold_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to cold storage. Supports blob currently at Hot tier.
 * `tier_to_cold_after_days_since_last_access_time_greater_than` - The age in days after last access time to tier blobs to cold storage. Supports blob currently at Hot tier.
 * `tier_to_cold_after_days_since_creation_greater_than` - Optional The age in days after creation to cold storage. Supports blob currently at Hot tier.

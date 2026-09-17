@@ -352,7 +352,6 @@ func resourceDataProtectionBackupPolicyBlobStorageDelete(d *schema.ResourceData,
 func expandBackupPolicyBlobStorageTaggingCriteriaArray(input []interface{}) (*[]basebackuppolicyresources.TaggingCriteria, error) {
 	results := []basebackuppolicyresources.TaggingCriteria{
 		{
-			Criteria:        nil,
 			IsDefault:       true,
 			TaggingPriority: 99,
 			TagInfo: basebackuppolicyresources.RetentionTag{
@@ -365,7 +364,6 @@ func expandBackupPolicyBlobStorageTaggingCriteriaArray(input []interface{}) (*[]
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		result := basebackuppolicyresources.TaggingCriteria{
-			IsDefault:       false,
 			TaggingPriority: int64(v["priority"].(int)),
 			TagInfo: basebackuppolicyresources.RetentionTag{
 				Id:      pointer.To(v["name"].(string) + "_"),
@@ -583,12 +581,12 @@ func flattenBackupPolicyBlobStorageRetentionRuleArray(input *[]basebackuppolicyr
 		return results
 	}
 
-	var taggingCriterias []basebackuppolicyresources.TaggingCriteria
+	var taggingCriteriaList []basebackuppolicyresources.TaggingCriteria
 	for _, item := range *input {
 		if backupRule, ok := item.(basebackuppolicyresources.AzureBackupRule); ok {
 			if trigger, ok := backupRule.Trigger.(basebackuppolicyresources.ScheduleBasedTriggerContext); ok {
 				if trigger.TaggingCriteria != nil {
-					taggingCriterias = trigger.TaggingCriteria
+					taggingCriteriaList = trigger.TaggingCriteria
 				}
 			}
 		}
@@ -599,7 +597,7 @@ func flattenBackupPolicyBlobStorageRetentionRuleArray(input *[]basebackuppolicyr
 			name := retentionRule.Name
 			var taggingPriority int64
 			var taggingCriteria []interface{}
-			for _, criteria := range taggingCriterias {
+			for _, criteria := range taggingCriteriaList {
 				if strings.EqualFold(criteria.TagInfo.TagName, name) {
 					taggingPriority = criteria.TaggingPriority
 					taggingCriteria = flattenBackupPolicyBlobStorageBackupCriteriaArray(criteria.Criteria)
