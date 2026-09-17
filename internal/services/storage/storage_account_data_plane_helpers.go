@@ -29,7 +29,7 @@ func availableFunctionalityForAccount(kind storageaccounts.Kind, tier storageacc
 			slices.Contains([]string{"LRS", "GRS", "RAGRS"}, replicationType)))
 
 	// File share is only supported for StorageV2 and FileStorage.
-	// See: https://docs.microsoft.com/en-us/azure/storage/files/storage-files-planning#management-concepts
+	// See: https://docs.microsoft.com/azure/storage/files/storage-files-planning#management-concepts
 	// Per test, the StorageV2 with Premium sku tier also doesn't support file share.
 	supportShare := kind == storageaccounts.KindFileStorage || (tier != storageaccounts.SkuTierPremium && (kind == storageaccounts.KindStorageVTwo ||
 		(kind == storageaccounts.KindStorage &&
