@@ -17,12 +17,12 @@ on:
 
 permissions:
   contents: read
-  id-token: write
-  issues: write
-  pull-requests: write
 
 jobs:
   secrets-check:
+    permissions:
+      contents: read
+      id-token: write
     runs-on: ubuntu-latest
     outputs:
       available: "${{ steps.check-secrets.outputs.available }}"
@@ -38,6 +38,9 @@ jobs:
           fi
 
   provider-tests:
+    permissions:
+      contents: read
+      id-token: write
     runs-on: custom-linux-large
     needs: [secrets-check]
     if: needs.secrets-check.outputs.available == 'true'
@@ -102,7 +105,13 @@ jobs:
     needs: provider-tests
     if: ${{ failure() }}
     uses: ./.github/workflows/pr-comment-failure.yaml
+    permissions:
+      issues: write
+      pull-requests: write
   comment-outdated-on-pass:
     needs: provider-tests
     if: ${{ success() }}
     uses: ./.github/workflows/pr-comment-failure-outdated.yaml
+    permissions:
+      issues: write
+      pull-requests: write

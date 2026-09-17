@@ -11,8 +11,6 @@ name: Combined PR Checks
 
 permissions:
   contents: read
-  pull-requests: write
-  issues: write
 
 on:
   pull_request:
@@ -111,6 +109,9 @@ jobs:
     needs: depscheck
     if: always() && needs.depscheck.result == 'failure'
     uses: ./.github/workflows/pr-comment-failure.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     with:
       check_name: "Vendor Dependencies Check"
 
@@ -118,6 +119,9 @@ jobs:
     needs: depscheck
     if: always() && needs.depscheck.result == 'success'
     uses: ./.github/workflows/pr-comment-failure-outdated.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     with:
       check_name: "Vendor Dependencies Check"
 
@@ -151,6 +155,9 @@ jobs:
     needs: copyright
     if: always() && needs.copyright.result == 'failure'
     uses: ./.github/workflows/pr-comment-failure.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     with:
       check_name: "Copyright Headers"
 
@@ -158,6 +165,9 @@ jobs:
     needs: copyright
     if: always() && needs.copyright.result == 'success'
     uses: ./.github/workflows/pr-comment-failure-outdated.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     with:
       check_name: "Copyright Headers"
 
@@ -194,6 +204,9 @@ jobs:
     needs: quick-checks
     if: always() && needs.quick-checks.result == 'failure'
     uses: ./.github/workflows/pr-comment-failure.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     with:
       check_name: "Quick CI Checks"
 
@@ -201,6 +214,9 @@ jobs:
     needs: quick-checks
     if: always() && needs.quick-checks.result == 'success'
     uses: ./.github/workflows/pr-comment-failure-outdated.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     with:
       check_name: "Quick CI Checks"
 
@@ -234,6 +250,9 @@ jobs:
     needs: shellcheck
     if: always() && needs.shellcheck.result == 'failure'
     uses: ./.github/workflows/pr-comment-failure.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     with:
       check_name: "ShellCheck Scripts"
 
@@ -241,6 +260,9 @@ jobs:
     needs: shellcheck
     if: always() && needs.shellcheck.result == 'success'
     uses: ./.github/workflows/pr-comment-failure-outdated.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     with:
       check_name: "ShellCheck Scripts"
 
@@ -273,6 +295,9 @@ jobs:
     needs: typos
     if: always() && needs.typos.result == 'failure'
     uses: ./.github/workflows/pr-comment-failure.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     with:
       check_name: "Typos"
 
@@ -280,6 +305,9 @@ jobs:
     needs: typos
     if: always() && needs.typos.result == 'success'
     uses: ./.github/workflows/pr-comment-failure-outdated.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     with:
       check_name: "Typos"
 
@@ -316,6 +344,9 @@ jobs:
     needs: website-lint
     if: always() && needs.website-lint.result == 'failure'
     uses: ./.github/workflows/pr-comment-failure.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     with:
       check_name: "Website Linting"
 
@@ -323,6 +354,9 @@ jobs:
     needs: website-lint
     if: always() && needs.website-lint.result == 'success'
     uses: ./.github/workflows/pr-comment-failure-outdated.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     with:
       check_name: "Website Linting"
 
@@ -355,6 +389,9 @@ jobs:
     needs: document-validate
     if: always() && needs.document-validate.result == 'failure'
     uses: ./.github/workflows/pr-comment-failure.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     with:
       check_name: "Document Validation"
 
@@ -362,6 +399,9 @@ jobs:
     needs: document-validate
     if: success()
     uses: ./.github/workflows/pr-comment-failure-outdated.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     with:
       check_name: "Document Validation"
 
@@ -404,6 +444,9 @@ jobs:
     needs: build
     if: always() && needs.build.result == 'failure'
     uses: ./.github/workflows/pr-comment-failure.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     with:
       check_name: "GoLang Compilation"
 
@@ -411,6 +454,9 @@ jobs:
     needs: build
     if: always() && needs.build.result == 'success'
     uses: ./.github/workflows/pr-comment-failure-outdated.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     with:
       check_name: "GoLang Compilation"
 
@@ -465,6 +511,9 @@ jobs:
     needs: golangci-lint
     if: always() && needs.golangci-lint.result == 'failure'
     uses: ./.github/workflows/pr-comment-failure.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     with:
       check_name: "GoLangCI Linting"
 
@@ -472,6 +521,9 @@ jobs:
     needs: golangci-lint
     if: always() && needs.golangci-lint.result == 'success'
     uses: ./.github/workflows/pr-comment-failure-outdated.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     with:
       check_name: "GoLangCI Linting"
 
@@ -512,6 +564,9 @@ jobs:
     needs: gencheck
     if: always() && needs.gencheck.result == 'failure'
     uses: ./.github/workflows/pr-comment-failure.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     with:
       check_name: "Generation Check"
 
@@ -519,6 +574,9 @@ jobs:
     needs: gencheck
     if: always() && needs.gencheck.result == 'success'
     uses: ./.github/workflows/pr-comment-failure-outdated.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     with:
       check_name: "Generation Check"
 
@@ -575,6 +633,9 @@ jobs:
     needs: unit-tests
     if: always() && needs.unit-tests.result == 'failure'
     uses: ./.github/workflows/pr-comment-failure.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     with:
       check_name: "Unit Tests"
 
@@ -582,6 +643,9 @@ jobs:
     needs: unit-tests
     if: always() && needs.unit-tests.result == 'success'
     uses: ./.github/workflows/pr-comment-failure-outdated.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     with:
       check_name: "Unit Tests"
 
@@ -623,6 +687,9 @@ jobs:
     needs: validate-examples
     if: always() && needs.validate-examples.result == 'failure'
     uses: ./.github/workflows/pr-comment-failure.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     with:
       check_name: "Validate Examples"
 
@@ -630,5 +697,8 @@ jobs:
     needs: validate-examples
     if: always() && needs.validate-examples.result == 'success'
     uses: ./.github/workflows/pr-comment-failure-outdated.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     with:
       check_name: "Validate Examples"

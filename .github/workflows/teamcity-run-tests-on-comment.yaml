@@ -18,8 +18,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
-  issues: write
 
 jobs:
   check-team-membership:
@@ -96,6 +94,9 @@ jobs:
             return isAllowedUser;
 
   run-tests:
+    permissions:
+      pull-requests: write
+      issues: write
     runs-on: ubuntu-latest
     needs: check-team-membership
     if: needs.check-team-membership.outputs.is-team-member == 'true' || needs.check-team-membership.outputs.is-allowed-user == 'true'
@@ -368,6 +369,9 @@ jobs:
             });
 
   unauthorized-comment:
+    permissions:
+      pull-requests: write
+      issues: write
     runs-on: ubuntu-latest
     needs: check-team-membership
     if: needs.check-team-membership.outputs.is-team-member == 'false' && needs.check-team-membership.outputs.is-allowed-user == 'false'
