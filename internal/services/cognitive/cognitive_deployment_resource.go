@@ -236,8 +236,7 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.VersionUpgradeOption != "" {
-				option := deployments.DeploymentModelVersionUpgradeOption(model.VersionUpgradeOption)
-				properties.Properties.VersionUpgradeOption = &option
+				properties.Properties.VersionUpgradeOption = pointer.ToEnum[deployments.DeploymentModelVersionUpgradeOption](model.VersionUpgradeOption)
 			}
 
 			properties.Sku = expandDeploymentSkuModel(model.Sku)
@@ -426,8 +425,7 @@ func expandDeploymentSkuModel(inputList []DeploymentSkuModel) *deployments.Sku {
 		s.Size = pointer.To(input.Size)
 	}
 	if input.Tier != "" {
-		tier := deployments.SkuTier(input.Tier)
-		s.Tier = &tier
+		s.Tier = pointer.ToEnum[deployments.SkuTier](input.Tier)
 	}
 	return s
 }
@@ -448,7 +446,7 @@ func flattenDeploymentModelModel(input *deployments.DeploymentModel) []Deploymen
 
 func flattenDeploymentSkuModel(input *deployments.Sku) []DeploymentSkuModel {
 	if input == nil {
-		return nil
+		return []DeploymentSkuModel{}
 	}
 	output := DeploymentSkuModel{
 		Name: input.Name,

@@ -54,22 +54,18 @@ func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
 			},
 
 			"severity": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(security.SeverityMedium),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(security.SeverityLow),
-					string(security.SeverityMedium),
-					string(security.SeverityHigh),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(security.SeverityMedium),
+				ValidateFunc: validation.StringInEnumSlice(security.PossibleSeverityValues(), false),
 			},
 
-			// API would return `Unknown` when `categories` isn't set.
-			// After synced with service team, they confirmed will add `Unknown` as possible value to this property and it will be published as a new version of this API.
-			// https://github.com/Azure/azure-rest-api-specs/issues/14918
 			"categories": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
+				// Note: O+C the API would return `Unknown` when `categories` isn't set.
+				// After synced with service team, they confirmed will add `Unknown` as possible value to this property and it will be published as a new version of this API.
+				// https://github.com/Azure/azure-rest-api-specs/issues/14918
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
@@ -85,13 +81,9 @@ func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
 			},
 
 			"implementation_effort": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(security.ImplementationEffortLow),
-					string(security.ImplementationEffortModerate),
-					string(security.ImplementationEffortHigh),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInEnumSlice(security.PossibleImplementationEffortValues(), false),
 			},
 
 			"remediation_description": {
@@ -119,13 +111,9 @@ func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
 			},
 
 			"user_impact": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(security.UserImpactLow),
-					string(security.UserImpactModerate),
-					string(security.UserImpactHigh),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInEnumSlice(security.PossibleUserImpactValues(), false),
 			},
 
 			"name": {

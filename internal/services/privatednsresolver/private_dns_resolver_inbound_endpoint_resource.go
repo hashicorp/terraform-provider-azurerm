@@ -86,6 +86,7 @@ func (r PrivateDNSResolverInboundEndpointResource) Arguments() map[string]*plugi
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ForceNew: true,
+						// Note: O+C because Azure assigns a private IP from the subnet when not specified
 						Computed: true,
 					},
 

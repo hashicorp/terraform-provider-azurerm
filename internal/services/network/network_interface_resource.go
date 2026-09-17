@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -33,7 +34,7 @@ import (
 var networkInterfaceResourceName = "azurerm_network_interface"
 
 func resourceNetworkInterface() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceNetworkInterfaceCreate,
 		Read:   resourceNetworkInterfaceRead,
 		Update: resourceNetworkInterfaceUpdate,
@@ -84,6 +85,7 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 						"private_ip_address": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							// Note: O+C because Azure assigns a private IP from the subnet when not specified
 							Computed: true,
 						},
 
@@ -109,13 +111,13 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 						"primary": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 						},
 
 						"gateway_load_balancer_frontend_ip_configuration_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.AsGeneratedID(loadbalancers.ParseFrontendIPConfigurationIDInsensitively),
 						},
 					},
@@ -124,16 +126,25 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 
 			// Optional
 			"auxiliary_mode": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice(networkinterfaces.PossibleValuesForNetworkInterfaceAuxiliaryMode(), false),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(networkinterfaces.NetworkInterfaceAuxiliaryModeAcceleratedConnections),
+					string(networkinterfaces.NetworkInterfaceAuxiliaryModeFloating),
+					string(networkinterfaces.NetworkInterfaceAuxiliaryModeMaxConnections),
+				}, false),
 				RequiredWith: []string{"auxiliary_sku"},
 			},
 
 			"auxiliary_sku": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice(networkinterfaces.PossibleValuesForNetworkInterfaceAuxiliarySku(), false),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(networkinterfaces.NetworkInterfaceAuxiliarySkuAEight),
+					string(networkinterfaces.NetworkInterfaceAuxiliarySkuAFour),
+					string(networkinterfaces.NetworkInterfaceAuxiliarySkuAOne),
+					string(networkinterfaces.NetworkInterfaceAuxiliarySkuATwo),
+				}, false),
 				RequiredWith: []string{"auxiliary_mode"},
 			},
 
@@ -206,6 +217,24 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.SixPointOh() {
+		r.Schema["auxiliary_mode"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(networkinterfaces.PossibleValuesForNetworkInterfaceAuxiliaryMode(), false),
+			RequiredWith: []string{"auxiliary_sku"},
+		}
+
+		r.Schema["auxiliary_sku"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(networkinterfaces.PossibleValuesForNetworkInterfaceAuxiliarySku(), false),
+			RequiredWith: []string{"auxiliary_mode"},
+		}
+	}
+
+	return r
 }
 
 func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -585,9 +614,8 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]networkinte
 		privateIpAllocationMethod := data["private_ip_address_allocation"].(string)
 		privateIpAddressVersion := networkinterfaces.IPVersion(data["private_ip_address_version"].(string))
 
-		allocationMethod := networkinterfaces.IPAllocationMethod(privateIpAllocationMethod)
 		properties := networkinterfaces.NetworkInterfaceIPConfigurationPropertiesFormat{
-			PrivateIPAllocationMethod: &allocationMethod,
+			PrivateIPAllocationMethod: pointer.ToEnum[networkinterfaces.IPAllocationMethod](privateIpAllocationMethod),
 			PrivateIPAddressVersion:   &privateIpAddressVersion,
 		}
 
@@ -619,9 +647,8 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]networkinte
 			properties.GatewayLoadBalancer = &networkinterfaces.SubResource{Id: &v}
 		}
 
-		name := data["name"].(string)
 		ipConfigs = append(ipConfigs, networkinterfaces.NetworkInterfaceIPConfiguration{
-			Name:       &name,
+			Name:       pointer.To(data["name"].(string)),
 			Properties: &properties,
 		})
 	}

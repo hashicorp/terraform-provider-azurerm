@@ -52,6 +52,7 @@ func TestAccExpressRouteCircuit_sequential(t *testing.T) {
 			"microsoftPeeringIpv6":                testAccExpressRouteCircuitPeering_microsoftPeeringIpv6,
 			"microsoftPeeringIpv6CustomerRouting": testAccExpressRouteCircuitPeering_microsoftPeeringIpv6CustomerRouting,
 			"microsoftPeeringIpv6WithRouteFilter": testAccExpressRouteCircuitPeering_microsoftPeeringIpv6WithRouteFilter,
+			"microsoftPeeringDataSource":          testAccDataSourceExpressRouteCircuitPeering_microsoftPeering,
 		},
 		"authorization": {
 			"basic":          testAccExpressRouteCircuitAuthorization_basic,
@@ -61,10 +62,8 @@ func TestAccExpressRouteCircuit_sequential(t *testing.T) {
 	}
 
 	for group, m := range testCases {
-		m := m
 		t.Run(group, func(t *testing.T) {
 			for name, tc := range m {
-				tc := tc
 				t.Run(name, func(t *testing.T) {
 					tc(t)
 				})

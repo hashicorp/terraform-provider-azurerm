@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -160,8 +159,7 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	if key := resp.Key; key != nil {
 		d.Set("key_type", string(key.Kty))
 
-		options := flattenKeyVaultKeyDataSourceOptions(key.KeyOps)
-		if err := d.Set("key_opts", options); err != nil {
+		if err := d.Set("key_opts", flattenKeyVaultKeyDataSourceOptions(key.KeyOps)); err != nil {
 			return err
 		}
 
@@ -200,9 +198,10 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				if err != nil {
 					return fmt.Errorf("failed to decode Y: %+v", err)
 				}
+				// X/Y are deprecated since go 1.26 in favour of ecdsa.ParseUncompressedPublicKey, which needs the curve up front
 				publicKey := &ecdsa.PublicKey{
-					X: big.NewInt(0).SetBytes(xBytes),
-					Y: big.NewInt(0).SetBytes(yBytes),
+					X: big.NewInt(0).SetBytes(xBytes), //nolint:staticcheck
+					Y: big.NewInt(0).SetBytes(yBytes), //nolint:staticcheck
 				}
 				switch key.Crv {
 				case kv.JSONWebKeyCurveNameP256:
@@ -223,8 +222,8 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	d.Set("version", parsedId.Version)
 
-	d.Set("resource_id", parse.NewKeyID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, parsedId.Name, parsedId.Version).ID())
-	d.Set("resource_versionless_id", parse.NewKeyVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, parsedId.Name).ID())
+	d.Set("resource_id", commonids.NewKeyVaultKeyVersionID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, parsedId.Name, parsedId.Version).ID())
+	d.Set("resource_versionless_id", commonids.NewKeyVaultKeyID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, parsedId.Name).ID())
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
