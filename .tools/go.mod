@@ -19,6 +19,12 @@ require (
 	github.com/YakDriver/tfproviderdocs v0.26.0
 	github.com/apache/skywalking-eyes v0.9.0
 	github.com/golangci/golangci-lint/v2 v2.13.2
+	// Fork of rhysd/actionlint, dormant upstream since April 2026. This is v1.7.12 plus two open
+	// upstream PRs we need: #732 (`$/` self-repository `uses:` syntax, which zizmor wants and
+	// upstream rejects as malformed) and #735 (go.yaml.in/yaml/v4 rc.6, so actionlint and
+	// golangci-lint can share it without a replace directive). Switch back to
+	// rhysd/actionlint if it starts releasing again; otherwise re-evaluate it and the other forks
+	// around mid-2027.
 	github.com/katbyte/actionlint v1.7.13
 	github.com/katbyte/tctest v1.3.3
 	github.com/katbyte/terrafmt v1.0.1
