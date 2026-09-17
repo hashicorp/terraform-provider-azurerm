@@ -66,42 +66,34 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 			"sampling_percentage": {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.FloatBetween(0.0, 100.0),
 			},
 
 			"always_log_errors": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"verbosity": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(diagnostic.VerbosityVerbose),
-					string(diagnostic.VerbosityInformation),
-					string(diagnostic.VerbosityError),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
+				ValidateFunc: validation.StringInSlice(diagnostic.PossibleValuesForVerbosity(), false),
 			},
 
 			"log_client_ip": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"http_correlation_protocol": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(diagnostic.HTTPCorrelationProtocolNone),
-					string(diagnostic.HTTPCorrelationProtocolLegacy),
-					string(diagnostic.HTTPCorrelationProtocolWThreeC),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
+				ValidateFunc: validation.StringInSlice(diagnostic.PossibleValuesForHTTPCorrelationProtocol(), false),
 			},
 
 			"frontend_request": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
@@ -113,12 +105,9 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 			"backend_response": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
 
 			"operation_name_format": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(diagnostic.OperationNameFormatName),
-					string(diagnostic.OperationNameFormatURL),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(diagnostic.PossibleValuesForOperationNameFormat(), false),
 			},
 		},
 
