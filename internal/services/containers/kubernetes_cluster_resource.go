@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
+	"maps"
 	"strconv"
 	"strings"
 	"time"
@@ -22,9 +23,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
@@ -1069,7 +1070,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			"key_management_service": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				ForceNew: false,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -1699,9 +1699,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		},
 	}
 
-	for k, v := range schemaKubernetesAddOns() {
-		resource.Schema[k] = v
-	}
+	maps.Copy(resource.Schema, schemaKubernetesAddOns())
 
 	return resource
 }
@@ -2468,9 +2466,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		workloadAutoscalerProfile := expandKubernetesClusterWorkloadAutoscalerProfile(workloadAutoscalerProfileRaw, d)
 		if workloadAutoscalerProfile == nil {
 			existing.Model.Properties.WorkloadAutoScalerProfile = &managedclusters.ManagedClusterWorkloadAutoScalerProfile{
-				Keda: &managedclusters.ManagedClusterWorkloadAutoScalerProfileKeda{
-					Enabled: false,
-				},
+				Keda: &managedclusters.ManagedClusterWorkloadAutoScalerProfileKeda{},
 			}
 		} else {
 			existing.Model.Properties.WorkloadAutoScalerProfile = workloadAutoscalerProfile
@@ -4382,19 +4378,17 @@ func flattenKubernetesClusterMaintenanceConfiguration(input *maintenanceconfigur
 	if input.StartDate != nil {
 		startDate = *input.StartDate + "T00:00:00Z"
 	}
-	utcOfset := pointer.From(input.UtcOffset)
+	utcOffset := pointer.From(input.UtcOffset)
 
 	windowProperties := map[string]interface{}{
 		"not_allowed": flattenKubernetesClusterMaintenanceConfigurationDateSpans(input.NotAllowedDates),
 		"duration":    int(input.DurationHours),
 		"start_date":  startDate,
 		"start_time":  input.StartTime,
-		"utc_offset":  utcOfset,
+		"utc_offset":  utcOffset,
 	}
 	// Add flattened schedule properties
-	for k, v := range flattenKubernetesClusterMaintenanceConfigurationSchedule(input.Schedule) {
-		windowProperties[k] = v
-	}
+	maps.Copy(windowProperties, flattenKubernetesClusterMaintenanceConfigurationSchedule(input.Schedule))
 
 	return append(results, windowProperties)
 }
@@ -4786,9 +4780,7 @@ func flattenKubernetesClusterIngressProfile(input *managedclusters.ManagedCluste
 func expandKubernetesClusterAzureMonitorProfile(input []interface{}) *managedclusters.ManagedClusterAzureMonitorProfile {
 	if len(input) == 0 {
 		return &managedclusters.ManagedClusterAzureMonitorProfile{
-			Metrics: &managedclusters.ManagedClusterAzureMonitorProfileMetrics{
-				Enabled: false,
-			},
+			Metrics: &managedclusters.ManagedClusterAzureMonitorProfileMetrics{},
 		}
 	}
 	if input[0] == nil {
@@ -4902,7 +4894,7 @@ func flattenKubernetesClusterMetricsProfile(input *managedclusters.ManagedCluste
 func retryNodePoolCreation(ctx context.Context, client *agentpools.AgentPoolsClient, id agentpools.AgentPoolId, profile agentpools.AgentPool) error {
 	// retries the creation of a node pool 3 times
 	var err error
-	for attempt := 0; attempt < 3; attempt++ {
+	for range 3 {
 		if err = client.CreateOrUpdateThenPoll(ctx, id, profile, agentpools.DefaultCreateOrUpdateOperationOptions()); err == nil {
 			return nil
 		}

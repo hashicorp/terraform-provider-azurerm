@@ -6,6 +6,7 @@ package monitor
 import (
 	"fmt"
 	"log"
+	"maps"
 	"strconv"
 	"time"
 
@@ -927,7 +928,7 @@ func flattenAzureRmMonitorAutoScaleSettingRules(input []autoscalesettings.ScaleR
 		if val := v.Value; val != nil && *val != "" {
 			i, err := strconv.Atoi(*val)
 			if err != nil {
-				return nil, fmt.Errorf("`value` %q was not convertable to an int: %s", *val, err)
+				return nil, fmt.Errorf("`value` %q was not convertible to an int: %s", *val, err)
 			}
 			action["value"] = i
 		}
@@ -1038,9 +1039,7 @@ func flattenAzureRmMonitorAutoScaleSettingNotification(notifications *[]autoscal
 
 				props := make(map[string]string)
 				if webHookProps := v.Properties; webHookProps != nil {
-					for key, value := range *v.Properties {
-						props[key] = value
-					}
+					maps.Copy(props, *v.Properties)
 					hook["properties"] = props
 					webhooks = append(webhooks, hook)
 				}
@@ -1072,7 +1071,7 @@ func flattenAzureRmMonitorAutoScaleSettingRulesDimensions(dimensions *[]autoscal
 }
 
 func validateAutoScaleSettingsTimeZone() pluginsdk.SchemaValidateFunc {
-	// from https://docs.microsoft.com/en-us/rest/api/monitor/autoscalesettings/createorupdate#timewindow
+	// from https://docs.microsoft.com/rest/api/monitor/autoscalesettings/createorupdate#timewindow
 	timeZones := []string{
 		"Dateline Standard Time",
 		"UTC-11",
