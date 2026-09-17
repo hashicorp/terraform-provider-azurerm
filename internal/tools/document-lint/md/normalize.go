@@ -41,8 +41,8 @@ func tryBlockHeadDetect(line string) bool {
 }
 
 func tryFixBlockHead(line string) string {
-	if strings.HasPrefix(line, "*") {
-		line = strings.TrimSpace(strings.TrimPrefix(line, "*"))
+	if after, ok := strings.CutPrefix(line, "*"); ok {
+		line = strings.TrimSpace(after)
 	}
 
 	if strings.HasPrefix(line, "`") {

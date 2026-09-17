@@ -187,8 +187,7 @@ func resourceKustoEventHubDataConnectionCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if databaseRouting, ok := d.GetOk("database_routing_type"); ok {
-		dbRouting := dataconnections.DatabaseRouting(databaseRouting.(string))
-		dataConnection1.Properties.DatabaseRouting = &dbRouting
+		dataConnection1.Properties.DatabaseRouting = pointer.ToEnum[dataconnections.DatabaseRouting](databaseRouting.(string))
 	}
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, dataConnection1, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -348,13 +347,11 @@ func expandKustoEventHubDataConnectionProperties(d *pluginsdk.ResourceData) *dat
 	}
 
 	if df, ok := d.GetOk("data_format"); ok {
-		dataFormat := dataconnections.EventHubDataFormat(df.(string))
-		eventHubConnectionProperties.DataFormat = &dataFormat
+		eventHubConnectionProperties.DataFormat = pointer.ToEnum[dataconnections.EventHubDataFormat](df.(string))
 	}
 
 	if compression, ok := d.GetOk("compression"); ok {
-		comp := dataconnections.Compression(compression.(string))
-		eventHubConnectionProperties.Compression = &comp
+		eventHubConnectionProperties.Compression = pointer.ToEnum[dataconnections.Compression](compression.(string))
 	}
 
 	if eventSystemProperties, ok := d.GetOk("event_system_properties"); ok {

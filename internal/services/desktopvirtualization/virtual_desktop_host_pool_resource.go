@@ -438,12 +438,11 @@ func expandAgentUpdateSchedule(input []interface{}) *[]hostpool.MaintenanceWindo
 		}
 
 		v := item.(map[string]interface{})
-		dayOfWeek := hostpool.DayOfWeek(v["day_of_week"].(string))
 
 		hourOfDay := int64(v["hour_of_day"].(int))
 
 		results = append(results, hostpool.MaintenanceWindowProperties{
-			DayOfWeek: &dayOfWeek,
+			DayOfWeek: pointer.ToEnum[hostpool.DayOfWeek](v["day_of_week"].(string)),
 			Hour:      pointer.To(hourOfDay),
 		})
 	}
@@ -459,21 +458,19 @@ func expandAgentUpdateCreate(input []interface{}) *hostpool.AgentUpdatePropertie
 	raw := input[0].(map[string]interface{})
 
 	props := hostpool.AgentUpdateProperties{}
-	updatesScheduled := hostpool.SessionHostComponentUpdateTypeScheduled
-	updatesDefault := hostpool.SessionHostComponentUpdateTypeDefault
 
 	useSessionHostLocalTime := *pointer.To(raw["use_session_host_timezone"].(bool))
 	updateScheduleTimeZone := pointer.To(raw["timezone"].(string))
 
 	if raw["enabled"].(bool) {
-		props.Type = &updatesScheduled
+		props.Type = pointer.To(hostpool.SessionHostComponentUpdateTypeScheduled)
 		if !useSessionHostLocalTime { // based on the priority used in the Azure Portal, if Session Host time is selected, this overrides the explicit TimeZone setting
 			props.MaintenanceWindowTimeZone = updateScheduleTimeZone
 			props.UseSessionHostLocalTime = &useSessionHostLocalTime
 			props.MaintenanceWindows = expandAgentUpdateSchedule(raw["schedule"].([]interface{}))
 		}
 	} else {
-		props.Type = &updatesDefault
+		props.Type = pointer.To(hostpool.SessionHostComponentUpdateTypeDefault)
 		props.MaintenanceWindows = &[]hostpool.MaintenanceWindowProperties{}
 		props.UseSessionHostLocalTime = &useSessionHostLocalTime // required by REST API even when set to Default/Disabled
 		props.MaintenanceWindowTimeZone = updateScheduleTimeZone // required by REST API even when set to Default/Disabled
@@ -490,18 +487,16 @@ func expandAgentUpdatePatch(input []interface{}) *hostpool.AgentUpdatePatchPrope
 	raw := input[0].(map[string]interface{})
 
 	props := hostpool.AgentUpdatePatchProperties{}
-	updatesScheduled := hostpool.SessionHostComponentUpdateTypeScheduled
-	updatesDefault := hostpool.SessionHostComponentUpdateTypeDefault
 
 	useSessionHostLocalTime := *pointer.To(raw["use_session_host_timezone"].(bool))
 	props.MaintenanceWindowTimeZone = pointer.To(raw["timezone"].(string))
 	props.UseSessionHostLocalTime = &useSessionHostLocalTime
 
 	if raw["enabled"].(bool) {
-		props.Type = &updatesScheduled
+		props.Type = pointer.To(hostpool.SessionHostComponentUpdateTypeScheduled)
 		props.MaintenanceWindows = expandAgentUpdateSchedulePatch(raw["schedule"].([]interface{}))
 	} else {
-		props.Type = &updatesDefault
+		props.Type = pointer.To(hostpool.SessionHostComponentUpdateTypeDefault)
 		props.MaintenanceWindows = &[]hostpool.MaintenanceWindowPatchProperties{}
 	}
 
@@ -520,12 +515,11 @@ func expandAgentUpdateSchedulePatch(input []interface{}) *[]hostpool.Maintenance
 		}
 
 		v := item.(map[string]interface{})
-		dayOfWeek := hostpool.DayOfWeek(v["day_of_week"].(string))
 
 		hourOfDay := int64(v["hour_of_day"].(int))
 
 		results = append(results, hostpool.MaintenanceWindowPatchProperties{
-			DayOfWeek: &dayOfWeek,
+			DayOfWeek: pointer.ToEnum[hostpool.DayOfWeek](v["day_of_week"].(string)),
 			Hour:      pointer.To(hourOfDay),
 		})
 	}

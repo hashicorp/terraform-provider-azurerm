@@ -28,6 +28,8 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity
 
+const analysisServicesServerResourceName = "azurerm_analysis_services_server"
+
 func resourceAnalysisServicesServer() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceAnalysisServicesServerCreate,
@@ -213,10 +215,14 @@ func resourceAnalysisServicesServerRead(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceAnalysisServicesServerFlatten(d, id, server.Model)
+}
+
+func resourceAnalysisServicesServerFlatten(d *pluginsdk.ResourceData, id *servers.ServerId, model *servers.AnalysisServicesServer) error {
 	d.Set("name", id.ServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := server.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 		d.Set("sku", model.Sku.Name)
 

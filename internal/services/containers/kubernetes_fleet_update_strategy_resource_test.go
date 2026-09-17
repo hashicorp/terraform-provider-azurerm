@@ -149,7 +149,7 @@ resource "azurerm_kubernetes_fleet_update_strategy" "test" {
   name                        = "acctestfus-%[2]d"
   kubernetes_fleet_manager_id = azurerm_kubernetes_fleet_manager.test.id
   stage {
-    name = "acctestfus-%[2]d-complte"
+    name = "acctestfus-%[2]d-complete"
     group {
       name = "acctestfus-%[2]d-complete"
     }

@@ -148,14 +148,12 @@ func (r AppServiceConnectorResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.ClientType != "" {
-				clientType := servicelinker.ClientType(model.ClientType)
-				serviceConnectorProperties.ClientType = &clientType
+				serviceConnectorProperties.ClientType = pointer.ToEnum[servicelinker.ClientType](model.ClientType)
 			}
 
 			if model.VnetSolution != "" {
-				vNetSolutionType := servicelinker.VNetSolutionType(model.VnetSolution)
 				vNetSolution := servicelinker.VNetSolution{
-					Type: &vNetSolutionType,
+					Type: pointer.ToEnum[servicelinker.VNetSolutionType](model.VnetSolution),
 				}
 				serviceConnectorProperties.VNetSolution = &vNetSolution
 			}
@@ -266,14 +264,12 @@ func (r AppServiceConnectorResource) Update() sdk.ResourceFunc {
 			d := metadata.ResourceData
 
 			if d.HasChange("client_type") {
-				clientType := links.ClientType(state.ClientType)
-				linkerProps.ClientType = &clientType
+				linkerProps.ClientType = pointer.ToEnum[links.ClientType](state.ClientType)
 			}
 
 			if d.HasChange("vnet_solution") {
-				vnetSolutionType := links.VNetSolutionType(state.VnetSolution)
 				vnetSolution := links.VNetSolution{
-					Type: &vnetSolutionType,
+					Type: pointer.ToEnum[links.VNetSolutionType](state.VnetSolution),
 				}
 				linkerProps.VNetSolution = &vnetSolution
 			}
