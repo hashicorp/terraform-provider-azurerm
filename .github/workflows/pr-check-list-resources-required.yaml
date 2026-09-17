@@ -29,6 +29,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
         with:
           fetch-depth: 0
+          persist-credentials: false
       - run: bash scripts/checks/enforce-list-for-new-resources.sh
       - name: Guidance on failure
         if: failure()
@@ -47,12 +48,12 @@ jobs:
   save-artifacts-on-fail:
     needs: check
     if: ${{ failure() }}
-    uses: ./.github/workflows/pr-save-artifacts.yaml
+    uses: $/.github/workflows/pr-save-artifacts.yaml
   comment-on-fail:
     needs: check
     if: ${{ failure() }}
-    uses: ./.github/workflows/pr-comment-failure.yaml
+    uses: $/.github/workflows/pr-comment-failure.yaml
   comment-outdated-on-pass:
     needs: check
     if: ${{ success() }}
-    uses: ./.github/workflows/pr-comment-failure-outdated.yaml
+    uses: $/.github/workflows/pr-comment-failure-outdated.yaml

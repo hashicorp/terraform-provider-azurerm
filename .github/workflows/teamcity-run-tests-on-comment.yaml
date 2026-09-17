@@ -121,6 +121,7 @@ jobs:
             .tools
             GNUmakefile
           sparse-checkout-cone-mode: false
+          persist-credentials: false
 
       - name: Cache tctest binary
         id: cache-tctest
@@ -161,9 +162,10 @@ jobs:
           # tctest reads GITHUB_TOKEN for its GitHub API calls - without it, test
           # discovery runs unauthenticated (60 req/hr per runner IP) and hits 403s
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STEPS_GET_PR_SHA_OUTPUTS_SHA: ${{ steps.get-pr-sha.outputs.sha }}
         run: |
           PR_NUMBER=${{ github.event.issue.number }}
-          PR_SHA="${{ steps.get-pr-sha.outputs.sha }}"
+          PR_SHA="${STEPS_GET_PR_SHA_OUTPUTS_SHA}"
 
           # Parse flags from comment
           # Extract everything after /test (read -ra below ignores the leading whitespace)

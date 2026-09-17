@@ -22,6 +22,8 @@ jobs:
     steps:
       # pull_request_target checks out the base branch (main), not the PR head
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
       - name: "Link Milestone"
         shell: bash
         run: bash ./scripts/automation/milestone-link.sh

@@ -55,14 +55,17 @@ jobs:
       - name: "promote to ${{ inputs.release-channel }}"
         env:
           BOB_GITHUB_TOKEN: ${{ secrets.BOB_GITHUB_TOKEN }}
+          INPUTS_RELEASE_VERSION: ${{ inputs.release-version }}
+          INPUTS_GIT_COMMIT_SHA: ${{ inputs.git-commit-sha }}
+          INPUTS_RELEASE_BRANCH: ${{ inputs.release-branch }}
         run: |
           bob trigger-promotion \
             -product-name ${{ env.product_name }} \
             -org hashicorp \
             -repo ${{ env.repo_name }} \
-            -product-version ${{ inputs.release-version }} \
-            -sha ${{ inputs.git-commit-sha }} \
-            -branch ${{ inputs.release-branch }} \
+            -product-version ${INPUTS_RELEASE_VERSION} \
+            -sha ${INPUTS_GIT_COMMIT_SHA} \
+            -branch ${INPUTS_RELEASE_BRANCH} \
             -slack-channel ${{ env.slack_channel }} \
             -environment ${{ env.deployment_environment_name }} \
             ${{ inputs.release-channel }}

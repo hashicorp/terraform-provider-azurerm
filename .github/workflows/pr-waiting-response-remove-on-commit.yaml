@@ -12,6 +12,6 @@ on:
 
 jobs:
   remove-waiting-response:
-    uses: ./.github/workflows/issue-remove-label.yaml
+    uses: $/.github/workflows/issue-remove-label.yaml
     with:
       label-name: "waiting-response"
