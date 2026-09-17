@@ -249,9 +249,11 @@ jobs:
       - name: Hide missing changelog comment
         if: steps.download.outcome == 'success' && steps.meta.outcome == 'success'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          PR_NUMBER: ${{ steps.meta.outputs.pr-number }}
         with:
           script: |
-            const prNumber = parseInt('${{ steps.meta.outputs.pr-number }}')
+            const prNumber = parseInt(process.env.PR_NUMBER, 10)
             const marker = '<!-- changelog-comment -->'
 
             const comments = await github.paginate(github.rest.issues.listComments, {
