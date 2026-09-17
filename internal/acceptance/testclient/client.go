@@ -64,10 +64,6 @@ func BuildWithTestName(testName string) (*clients.Client, error) {
 
 			EnableAuthenticatingUsingClientCertificate: true,
 			EnableAuthenticatingUsingClientSecret:      true,
-			EnableAuthenticatingUsingAzureCLI:          false,
-			EnableAuthenticatingUsingManagedIdentity:   false,
-			EnableAuthenticationUsingOIDC:              false,
-			EnableAuthenticationUsingGitHubOIDC:        false,
 		}
 
 		clientBuilder := clients.ClientBuilder{
