@@ -168,7 +168,6 @@ func (r DataCollectionEndpointResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("retrieving %s", *id)
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -303,8 +302,7 @@ func expandDataCollectionEndpointKind(input string) *datacollectionendpoints.Kno
 		return nil
 	}
 
-	result := datacollectionendpoints.KnownDataCollectionEndpointResourceKind(input)
-	return &result
+	return pointer.ToEnum[datacollectionendpoints.KnownDataCollectionEndpointResourceKind](input)
 }
 
 func expandDataCollectionEndpointPublicNetworkAccess(input bool) *datacollectionendpoints.KnownPublicNetworkAccessOptions {

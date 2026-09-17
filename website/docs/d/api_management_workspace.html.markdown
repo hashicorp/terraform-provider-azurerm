@@ -52,6 +52,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the API Management Workspace.
 
+* `description` - The description of the API Management Workspace.
+
 * `display_name` - The display name of the API Management Workspace.
 
 ## Timeouts

@@ -168,8 +168,9 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login           = "psqladmin"
   administrator_password        = "H@Sh1CoR3!"
   zone                          = "1"
-  storage_mb                    = 32768
-  storage_tier                  = "P30"
+  storage_type                  = "PremiumV2_LRS"
+  storage_iops                  = 3000
+  storage_throughput            = 125
   sku_name                      = "GP_Standard_D2ads_v5"
 }
 
@@ -182,8 +183,9 @@ resource "azurerm_postgresql_flexible_server" "test_replica" {
   version                       = "16"
   public_network_access_enabled = false
   zone                          = "1"
-  storage_mb                    = 32768
-  storage_tier                  = "P30"
+  storage_type                  = "PremiumV2_LRS"
+  storage_iops                  = 3000
+  storage_throughput            = 125
 }
 
 resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
@@ -215,8 +217,9 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login           = "psqladmin"
   administrator_password        = "H@Sh1CoR3!"
   zone                          = "1"
-  storage_mb                    = 32768
-  storage_tier                  = "P30"
+  storage_type                  = "PremiumV2_LRS"
+  storage_iops                  = 3000
+  storage_throughput            = 125
   sku_name                      = "GP_Standard_D2ads_v5"
 }
 
@@ -229,8 +232,9 @@ resource "azurerm_postgresql_flexible_server" "test_replica_0" {
   version                       = azurerm_postgresql_flexible_server.test.version
   public_network_access_enabled = azurerm_postgresql_flexible_server.test.public_network_access_enabled
   zone                          = azurerm_postgresql_flexible_server.test.zone
-  storage_mb                    = azurerm_postgresql_flexible_server.test.storage_mb
-  storage_tier                  = azurerm_postgresql_flexible_server.test.storage_tier
+  storage_type                  = "PremiumV2_LRS"
+  storage_iops                  = 3000
+  storage_throughput            = 125
 }
 
 resource "azurerm_postgresql_flexible_server" "test_replica_1" {
@@ -242,8 +246,9 @@ resource "azurerm_postgresql_flexible_server" "test_replica_1" {
   version                       = azurerm_postgresql_flexible_server.test.version
   public_network_access_enabled = azurerm_postgresql_flexible_server.test.public_network_access_enabled
   zone                          = azurerm_postgresql_flexible_server.test.zone
-  storage_mb                    = azurerm_postgresql_flexible_server.test.storage_mb
-  storage_tier                  = azurerm_postgresql_flexible_server.test.storage_tier
+  storage_type                  = "PremiumV2_LRS"
+  storage_iops                  = 3000
+  storage_throughput            = 125
 
   ## this prevents a race condition that can occur when 2 replicas are created simultaneously
   depends_on = [azurerm_postgresql_flexible_server.test_replica_0]
@@ -493,16 +498,16 @@ type alternateSubscription struct {
 }
 
 func getAltSubscription() *alternateSubscription {
-	altSubscriptonID := os.Getenv("ARM_SUBSCRIPTION_ID_ALT")
+	altSubscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID_ALT")
 	altTenantID := os.Getenv("ARM_TENANT_ID")
 
-	if altSubscriptonID == "" || altTenantID == "" {
+	if altSubscriptionID == "" || altTenantID == "" {
 		return nil
 	}
 
 	return &alternateSubscription{
 		tenant_id:       altTenantID,
-		subscription_id: altSubscriptonID,
+		subscription_id: altSubscriptionID,
 	}
 }
 

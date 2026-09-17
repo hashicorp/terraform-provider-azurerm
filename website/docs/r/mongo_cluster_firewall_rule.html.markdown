@@ -78,4 +78,4 @@ terraform import azurerm_mongo_cluster_firewall_rule.example /subscriptions/0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DocumentDB` - 2025-09-01
+* `Microsoft.DocumentDB` - 2026-06-01

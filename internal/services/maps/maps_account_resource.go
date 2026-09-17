@@ -58,14 +58,10 @@ func resourceMapsAccount() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(accounts.NameSZero),
-					string(accounts.NameSOne),
-					string(accounts.NameGTwo),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(accounts.PossibleValuesForName(), false),
 			},
 
 			"cors": {

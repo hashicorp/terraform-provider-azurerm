@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package custompollers
 
 import (
@@ -6,8 +9,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobexecutions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobstepexecutions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobexecutions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobstepexecutions"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
 

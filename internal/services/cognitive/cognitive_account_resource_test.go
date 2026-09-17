@@ -597,6 +597,21 @@ func TestAccCognitiveAccount_upgradeOpenAIToAIServicesAndRollback(t *testing.T) 
 	})
 }
 
+func TestAccCognitiveAccount_privateEndpoint(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
+	r := CognitiveAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateEndpoint(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t CognitiveAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := cognitiveservicesaccounts.ParseAccountID(state.ID)
 	if err != nil {
@@ -1821,6 +1836,100 @@ resource "azurerm_cognitive_account" "test" {
   project_management_enabled = true
   identity {
     type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (CognitiveAccountResource) privateEndpoint(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cognitive-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  address_space       = ["10.5.0.0/16"]
+}
+
+resource "azurerm_subnet" "endpoint" {
+  name                 = "acctestsnetendpoint-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.5.2.0/24"]
+
+  private_endpoint_network_policies = "Disabled"
+}
+
+resource "azurerm_cognitive_account" "test" {
+  name                = "acctestcogacc-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  kind                = "AIServices"
+  sku_name            = "S0"
+
+  project_management_enabled         = true
+  custom_subdomain_name              = "testing-%[1]d"
+  public_network_access_enabled      = false
+  local_auth_enabled                 = false
+  outbound_network_access_restricted = true
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_acls {
+    default_action = "Deny"
+    bypass         = "None"
+  }
+}
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctest-privatelink-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  subnet_id           = azurerm_subnet.endpoint.id
+
+  private_service_connection {
+    name                           = azurerm_cognitive_account.test.name
+    is_manual_connection           = false
+    private_connection_resource_id = azurerm_cognitive_account.test.id
+    subresource_names              = ["account"]
+  }
+}
+
+resource "azurerm_cognitive_account_project" "test" {
+  name                 = "acctest-%[1]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  location             = azurerm_resource_group.test.location
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_cognitive_deployment" "test" {
+  name                   = "acctest-cd-%[1]d"
+  cognitive_account_id   = azurerm_cognitive_account.test.id
+  version_upgrade_option = "OnceCurrentVersionExpired"
+
+  sku {
+    name     = "GlobalStandard"
+    capacity = 1
+  }
+
+  model {
+    format  = "OpenAI"
+    name    = "gpt-4.1"
+    version = "2025-04-14"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

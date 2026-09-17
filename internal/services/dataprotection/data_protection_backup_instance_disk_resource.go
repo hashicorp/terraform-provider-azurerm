@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -149,7 +148,7 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 	if v := d.Get("snapshot_subscription_id").(string); v != "" {
 		snapshotSubscriptionId = v
 	}
-	snapshotResourceGroupId := resourceParse.NewResourceGroupID(snapshotSubscriptionId, d.Get("snapshot_resource_group_name").(string))
+	snapshotResourceGroupId := commonids.NewResourceGroupID(snapshotSubscriptionId, d.Get("snapshot_resource_group_name").(string))
 
 	parameters := backupinstanceresources.BackupInstanceResource{
 		Properties: &backupinstanceresources.BackupInstance{
@@ -245,11 +244,11 @@ func resourceDataProtectionBackupInstanceDiskRead(d *schema.ResourceData, meta i
 				parameter := (*props.PolicyInfo.PolicyParameters.DataStoreParametersList)[0].(backupinstanceresources.AzureOperationalStoreParameters)
 
 				if parameter.ResourceGroupId != nil {
-					resourceGroupId, err := resourceParse.ResourceGroupIDInsensitively(*parameter.ResourceGroupId)
+					resourceGroupId, err := commonids.ParseResourceGroupIDInsensitively(*parameter.ResourceGroupId)
 					if err != nil {
 						return err
 					}
-					d.Set("snapshot_resource_group_name", resourceGroupId.ResourceGroup)
+					d.Set("snapshot_resource_group_name", resourceGroupId.ResourceGroupName)
 					d.Set("snapshot_subscription_id", resourceGroupId.SubscriptionId)
 				}
 			}
