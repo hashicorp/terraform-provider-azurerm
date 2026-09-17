@@ -127,7 +127,7 @@ Example:
 
 #### Change Log
 
-[Changelog Format](maintainer-merging.md#changelog-entry-format)
+[Changelog Format](maintainer-merging.md#adding-a-changelog-entry)
 
 <!-- Replace the changelog example below with your entry. One resource per line. -->
 
