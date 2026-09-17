@@ -638,7 +638,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	serviceLevel := volumes.ServiceLevel(d.Get("service_level").(string))
 	subnetID := d.Get("subnet_id").(string)
 	kerberosEnabled := d.Get("kerberos_enabled").(bool)
-	smbContiuouslyAvailable := d.Get("smb_continuous_availability_enabled").(bool)
+	smbContinuouslyAvailable := d.Get("smb_continuous_availability_enabled").(bool)
 	smbEncryption := d.Get("smb3_protocol_encryption_enabled").(bool)
 	networkFeatures := volumes.NetworkFeatures(d.Get("network_features").(string))
 
@@ -784,7 +784,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			ServiceLevel:              &serviceLevel,
 			SubnetId:                  subnetID,
 			KerberosEnabled:           &kerberosEnabled,
-			SmbContinuouslyAvailable:  &smbContiuouslyAvailable,
+			SmbContinuouslyAvailable:  &smbContinuouslyAvailable,
 			SmbEncryption:             &smbEncryption,
 			NetworkFeatures:           &networkFeatures,
 			SmbNonBrowsable:           &smbNonBrowsable,
