@@ -82,7 +82,7 @@ jobs:
               "If this PR does not require a changelog entry, add the `no-changelog-needed` label or check the box in the PR description."
             ].join("\n")
 
-            const { data: comments } = await github.paginate(github.rest.issues.listComments, {
+            const comments = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: prNumber,
@@ -150,7 +150,7 @@ jobs:
               "If this PR does not require a changelog entry, check the `This change does not require a changelog entry` box in the PR description."
             ].join("\n")
 
-            const { data: comments } = await github.paginate(github.rest.issues.listComments, {
+            const comments = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: prNumber,
