@@ -328,6 +328,16 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 		return err
 	}
 
+	existing, err := client.Get(ctx, *id, protecteditems.GetOperationOptions{})
+	if err != nil {
+		if response.WasNotFound(existing.HttpResponse) {
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
 	vaultId := resourceguardproxies.NewVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)
 	guardProxies, err := resourceGuardProxiesClient.GetComplete(ctx, vaultId)
 	// Vaults without Resource Guard return a successful empty list.
@@ -339,16 +349,6 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 
 	if features.VMBackupStopProtectionAndRetainDataOnDestroy || features.VMBackupSuspendProtectionAndRetainDataOnDestroy {
 		log.Printf("[DEBUG] Retaining Data and Stopping Protection for %s", id)
-
-		existing, err := client.Get(ctx, *id, protecteditems.GetOperationOptions{})
-		if err != nil {
-			if response.WasNotFound(existing.HttpResponse) {
-				d.SetId("")
-				return nil
-			}
-
-			return fmt.Errorf("retrieving %s: %+v", *id, err)
-		}
 
 		desiredState := protecteditems.ProtectionStateProtectionStopped
 		if features.VMBackupSuspendProtectionAndRetainDataOnDestroy {
