@@ -44,7 +44,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `key_vault_key_id` - The ID of the Key Vault Key.
 
-* `infrastructure_encryption_required` - Is a secondary layer of encryption with Platform Managed Keys for data applied?
+* `infrastructure_encryption_required` - Whether a secondary layer of encryption with Platform Managed Keys for data is applied.
 
 * `source` - The source of the Storage Encryption Scope.
 
