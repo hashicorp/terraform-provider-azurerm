@@ -239,7 +239,7 @@ jobs:
               }
             }
 
-      - name: Remove missing changelog comment
+      - name: Hide missing changelog comment
         if: steps.download.outcome == 'success' && steps.meta.outcome == 'success'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
@@ -257,11 +257,17 @@ jobs:
             const existing = comments.filter(c => c.user.login === 'github-actions[bot]').find(c => c.body.includes(marker))
 
             if (existing) {
-              await github.rest.issues.deleteComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existing.id,
+              await github.graphql(`
+                mutation($subjectId: ID!) {
+                  minimizeComment(input: { subjectId: $subjectId, classifier: OUTDATED }) {
+                    minimizedComment {
+                      isMinimized
+                    }
+                  }
+                }
+              `, {
+                subjectId: existing.node_id,
               })
             } else {
-              core.info('No changelog comment found, nothing to remove')
+              core.info('No changelog comment found, nothing to hide')
             }
