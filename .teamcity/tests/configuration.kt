@@ -24,6 +24,9 @@ class ConfigurationTests {
     fun buildShouldHaveGoTestFeature() {
         val project = AzureRM("public", TestConfiguration())
         project.buildTypes.forEach{ bt ->
+            if (bt.type == jetbrains.buildServer.configs.kotlin.BuildTypeSettings.Type.COMPOSITE || bt.id.toString().contains("CACHE")) {
+                return@forEach
+            }
             var exists = false
             bt.features.items.forEach { f ->
                 if (f.type == "golang") {
@@ -63,6 +66,9 @@ class ConfigurationTests {
     fun buildShouldHaveGoTestFeatureBetaVersion() {
         val project = AzureRMBetaVersion("public", TestConfiguration())
         project.buildTypes.forEach{ bt ->
+            if (bt.type == jetbrains.buildServer.configs.kotlin.BuildTypeSettings.Type.COMPOSITE || bt.id.toString().contains("CACHE")) {
+                return@forEach
+            }
             var exists = false
             bt.features.items.forEach { f ->
                 if (f.type == "golang") {
