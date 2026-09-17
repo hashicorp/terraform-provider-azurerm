@@ -421,7 +421,7 @@ func flattenNewRelicLabels(input string) map[string]string {
 	if input == "" {
 		return labels
 	}
-	for _, label := range strings.Split(input, ";") {
+	for label := range strings.SplitSeq(input, ";") {
 		parts := strings.Split(label, ":")
 		if len(parts) == 2 {
 			labels[parts[0]] = parts[1]

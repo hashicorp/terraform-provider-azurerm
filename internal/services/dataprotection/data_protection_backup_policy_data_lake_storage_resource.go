@@ -385,7 +385,6 @@ func expandBackupPolicyDataLakeStorageTaggingCriteria(input []BackupPolicyDataLa
 
 	for i, item := range input {
 		result := basebackuppolicyresources.TaggingCriteria{
-			IsDefault:       false,
 			Criteria:        expandBackupPolicyDataLakeStorageRetentionRuleCriteria(item),
 			TaggingPriority: int64(i + 1),
 			TagInfo: basebackuppolicyresources.RetentionTag{
