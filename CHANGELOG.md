@@ -1,6 +1,7 @@
 ## 5.6.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_servicebus_namespace` - add support for the `1.3` value to the `minimum_tls_version` property [GH-33457]
 * `azurerm_iothub_device_update_instance` - add support for the `connection_string_wo` and `connection_string_wo_version` properties [GH-33448]
 * dependencies: `qumulo` - update API version to `2026-04-16` [GH-33421]
 * dependencies: `servicebus` - update to API version `2026-01-01` [GH-33450]
