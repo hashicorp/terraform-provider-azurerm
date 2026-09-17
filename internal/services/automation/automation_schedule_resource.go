@@ -471,13 +471,10 @@ func expandArmAutomationScheduleAdvanced(d *pluginsdk.ResourceData, isUpdate boo
 	expandedMonthlyOccurrences := make([]schedule.AdvancedScheduleMonthlyOccurrence, len(monthlyOccurrences))
 	for i := range monthlyOccurrences {
 		m := monthlyOccurrences[i].(map[string]interface{})
-		occurrence := int64(m["occurrence"].(int))
-
-		day := schedule.ScheduleDay(m["day"].(string))
 
 		expandedMonthlyOccurrences[i] = schedule.AdvancedScheduleMonthlyOccurrence{
-			Occurrence: &occurrence,
-			Day:        &day,
+			Occurrence: pointer.To(int64(m["occurrence"].(int))),
+			Day:        pointer.ToEnum[schedule.ScheduleDay](m["day"].(string)),
 		}
 	}
 	expandedAdvancedSchedule.MonthlyOccurrences = &expandedMonthlyOccurrences

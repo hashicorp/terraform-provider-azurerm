@@ -88,8 +88,6 @@ type Auth struct {
 	ExpireInSec  int64  `tfschema:"expire_in_seconds"`
 }
 
-type SourceSetting struct{}
-
 type SourceTrigger struct {
 	Name          string   `tfschema:"name"`
 	Enabled       bool     `tfschema:"enabled"`
@@ -923,7 +921,7 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 				existing.Model.Tags = &model.Tags
 			}
 
-			// Due to the fact that the service doesn't honor explicitly set to null fields in the PATCH request,
+			// Due to the fact that the service doesn't honour explicitly set to null fields in the PATCH request,
 			// we can not use PATCH (i.e. the Update) here.
 			if err := client.CreateThenPoll(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
@@ -1328,7 +1326,7 @@ func expandRegistryTaskArguments(arguments map[string]string, secretArguments ma
 
 func flattenRegistryTaskArguments(arguments *[]tasks.Argument) map[string]string {
 	if arguments == nil {
-		return nil
+		return map[string]string{}
 	}
 
 	args := map[string]string{}
@@ -1380,7 +1378,7 @@ func expandRegistryTaskValues(values map[string]string, secretValues map[string]
 
 func flattenRegistryTaskValues(values *[]tasks.SetValue) map[string]string {
 	if values == nil {
-		return nil
+		return map[string]string{}
 	}
 
 	vals := map[string]string{}

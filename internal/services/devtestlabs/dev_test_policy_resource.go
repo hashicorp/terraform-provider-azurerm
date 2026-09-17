@@ -136,12 +136,11 @@ func resourceArmDevTestPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	evaluatorType := policies.PolicyEvaluatorType(d.Get("evaluator_type").(string))
 
 	description := d.Get("description").(string)
-	factName := policies.PolicyFactName(id.PolicyName)
 
 	parameters := policies.Policy{
 		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 		Properties: policies.PolicyProperties{
-			FactName:      &factName,
+			FactName:      pointer.ToEnum[policies.PolicyFactName](id.PolicyName),
 			FactData:      pointer.To(factData),
 			Description:   pointer.To(description),
 			EvaluatorType: &evaluatorType,

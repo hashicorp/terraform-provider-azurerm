@@ -217,14 +217,11 @@ func resourceSentinelDataConnectorOffice365Read(d *pluginsdk.ResourceData, meta 
 		d.Set("tenant_id", props.TenantId)
 
 		dt := props.DataTypes
-		exchangeEnabled := strings.EqualFold(string(dt.Exchange.State), string(dataconnectors.DataTypeStateEnabled))
-		d.Set("exchange_enabled", exchangeEnabled)
+		d.Set("exchange_enabled", strings.EqualFold(string(dt.Exchange.State), string(dataconnectors.DataTypeStateEnabled)))
 
-		sharePointEnabled := strings.EqualFold(string(dt.SharePoint.State), string(dataconnectors.DataTypeStateEnabled))
-		d.Set("sharepoint_enabled", sharePointEnabled)
+		d.Set("sharepoint_enabled", strings.EqualFold(string(dt.SharePoint.State), string(dataconnectors.DataTypeStateEnabled)))
 
-		teamsEnabled := strings.EqualFold(string(dt.Teams.State), string(dataconnectors.DataTypeStateEnabled))
-		d.Set("teams_enabled", teamsEnabled)
+		d.Set("teams_enabled", strings.EqualFold(string(dt.Teams.State), string(dataconnectors.DataTypeStateEnabled)))
 	}
 
 	return nil
