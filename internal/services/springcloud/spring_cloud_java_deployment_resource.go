@@ -369,7 +369,7 @@ func resourceSprintCloudJavaDeploymentSchema() map[string]*pluginsdk.Schema {
 					"cpu": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						// Note: O+C The value returned in GET will be recalculated by the service if the deprecated "cpu" is honored, so make this property as Computed.
+						// Note: O+C The value returned in GET will be recalculated by the service if the deprecated "cpu" is honoured, so make this property as Computed.
 						Computed: true,
 						// NOTE: we're intentionally not validating this field since additional values are possible when enabled by the service team
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -378,7 +378,7 @@ func resourceSprintCloudJavaDeploymentSchema() map[string]*pluginsdk.Schema {
 					"memory": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						// Note: O+C The value returned in GET will be recalculated by the service if the deprecated "memory_in_gb" is honored, so make this property as Computed.
+						// Note: O+C The value returned in GET will be recalculated by the service if the deprecated "memory_in_gb" is honoured, so make this property as Computed.
 						Computed: true,
 						// NOTE: we're intentionally not validating this field since additional values are possible when enabled by the service team
 						ValidateFunc: validation.StringIsNotEmpty,

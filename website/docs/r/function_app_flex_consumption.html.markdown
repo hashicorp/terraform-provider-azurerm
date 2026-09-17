@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Function App should exist. Changing this forces a new Function App to be created.
 
-* `name` - (Required) The name which should be used for this Function App. Changing this forces a new Function App to be created. Limit the function name to 32 characters to avoid naming collisions. For more information about [Function App naming rule](https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules#microsoftweb) and [Host ID Collisions](https://github.com/Azure/azure-functions-host/wiki/Host-IDs#host-id-collisions)
+* `name` - (Required) The name which should be used for this Function App. Changing this forces a new Function App to be created. Limit the function name to 32 characters to avoid naming collisions. For more information about [Function App naming rule](https://docs.microsoft.com/azure/azure-resource-manager/management/resource-name-rules#microsoftweb) and [Host ID Collisions](https://github.com/Azure/azure-functions-host/wiki/Host-IDs#host-id-collisions)
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Function App should exist. Changing this forces a new Linux Function App to be created.
 
@@ -87,7 +87,7 @@ The following arguments are supported:
 
 * `runtime_version` - (Required) The Runtime version of the Linux Function App. Accepted values varies with the value of `runtime_name`.
 
-~> **Note:** To get the most up-to-date list of supported versions, use command `az functionapp list-runtimes` or visit [Supported languages in Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/supported-languages)
+~> **Note:** To get the most up-to-date list of supported versions, use command `az functionapp list-runtimes` or visit [Supported languages in Azure Functions](https://learn.microsoft.com/azure/azure-functions/supported-languages)
 
 ---
 
@@ -99,7 +99,7 @@ The following arguments are supported:
 
 ~> **Note:** For health check related settings, please use `health_check_eviction_time_in_min`, terraform will assign the value to the key `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` in app setting.
 
-~> **Note:** For those app settings that are deprecated or replaced by another properties for flex consumption function app, please check https://learn.microsoft.com/en-us/azure/azure-functions/functions-app-settings.
+~> **Note:** For those app settings that are deprecated or replaced by another properties for flex consumption function app, please check https://learn.microsoft.com/azure/azure-functions/functions-app-settings.
 
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
@@ -135,7 +135,7 @@ The following arguments are supported:
 
 * `maximum_instance_count` - (Optional) The number of workers this function app can scale out to. The supported value are from `1` to `1000`.
 
-* `instance_memory_in_mb` - (Optional) The memory size of the instances on which your app runs. Reference the Microsoft Documentation for the [currently supported values](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan#instance-memory). Defaults to `2048`.
+* `instance_memory_in_mb` - (Optional) The memory size of the instances on which your app runs. Reference the Microsoft Documentation for the [currently supported values](https://learn.microsoft.com/azure/azure-functions/flex-consumption-plan#instance-memory). Defaults to `2048`.
 
 * `http_concurrency` - (Optional) The Http concurrency of the instances on which your app runs. The supported value are from `1` to `1000`.
 
@@ -143,11 +143,11 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 
-* `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Function App for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
+* `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Function App for [regional virtual network integration](https://docs.microsoft.com/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
 
 ~> **Note:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [azurerm_app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simultaneously. If the virtual network is set via the resource `app_service_virtual_network_swift_connection` then `ignore_changes` should be used in the function app configuration.
 
-~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
+~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/azure/app-service/overview-vnet-integration#permissions)
 
 * `webdeploy_publish_basic_authentication_enabled` - (Optional) Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to `true`.
 
@@ -155,7 +155,7 @@ The following arguments are supported:
 
 * `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Linux Function App.
 
-~> **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`. Refer to the [Azure docs](https://learn.microsoft.com/en-us/azure/azure-functions/functions-deployment-technologies) for further details.
+~> **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`. Refer to the [Azure docs](https://learn.microsoft.com/azure/azure-functions/functions-deployment-technologies) for further details.
 
 ---
 
@@ -303,7 +303,7 @@ An `active_directory_v2` block supports the following:
 
 * `tenant_auth_endpoint` - (Required) The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/{tenant-guid}/v2.0/`
 
-~> **Note:** [Here](https://learn.microsoft.com/en-us/entra/identity-platform/authentication-national-cloud#microsoft-entra-authentication-endpoints) is a list of possible authentication endpoints based on the cloud environment. [Here](https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-provider-aad?tabs=workforce-tenant) is more information to better understand how to configure authentication for Azure App Service or Azure Functions.
+~> **Note:** [Here](https://learn.microsoft.com/entra/identity-platform/authentication-national-cloud#microsoft-entra-authentication-endpoints) is a list of possible authentication endpoints based on the cloud environment. [Here](https://learn.microsoft.com/azure/app-service/configure-authentication-provider-aad?tabs=workforce-tenant) is more information to better understand how to configure authentication for Azure App Service or Azure Functions.
 
 * `client_secret_setting_name` - (Optional) The App Setting name that contains the client secret of the Client.
 
