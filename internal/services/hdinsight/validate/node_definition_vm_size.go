@@ -8,7 +8,7 @@ package validate
 // using another SKU causes a bad request from the API - as such this is a best effort UX
 // Edit: added new instance types based on these documentation pages:
 // - https://azure.microsoft.com/en-in/pricing/details/hdinsight/
-// - https://docs.microsoft.com/en-us/azure/virtual-machines
+// - https://docs.microsoft.com/azure/virtual-machines
 var NodeDefinitionVMSize = []string{
 	"ExtraSmall",
 	"Small",

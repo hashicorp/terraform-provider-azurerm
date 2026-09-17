@@ -14,7 +14,7 @@ variable "location_1" {
 }
 
 variable "resource_group_name_1" {
-  description = "The Azure Resouce Group in which the primary VNet resources in this module are created."
+  description = "The Azure Resource Group in which the primary VNet resources in this module are created."
 }
 
 variable "vnet_name_1" {
@@ -30,7 +30,7 @@ variable "location_2" {
 }
 
 variable "resource_group_name_2" {
-  description = "The Azure Resouce Group in which the secondary VNet resources in this module are created."
+  description = "The Azure Resource Group in which the secondary VNet resources in this module are created."
 }
 
 variable "vnet_name_2" {

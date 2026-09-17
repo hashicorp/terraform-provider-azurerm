@@ -186,7 +186,7 @@ func dataSourceDatabricksWorkspace() *pluginsdk.Resource {
 // It also omits the public and private subnet NSG association IDs since they are not available in API.
 func flattenWorkspaceCustomParametersForDataSource(input *workspaces.WorkspaceCustomParameters) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	parameters := make(map[string]interface{})
