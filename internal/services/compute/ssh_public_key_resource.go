@@ -60,7 +60,6 @@ func resourceSshPublicKey() *pluginsdk.Resource {
 			"public_key": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ForceNew:     false,
 				ValidateFunc: validate.SSHKey,
 			},
 

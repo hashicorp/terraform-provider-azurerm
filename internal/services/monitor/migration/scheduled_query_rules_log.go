@@ -133,7 +133,7 @@ func scheduledQueryRulesLogSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			MinItems: 1,
-			// Curently, it allows to define only one dynamic criteria in one metric alert.
+			// Currently, it allows to define only one dynamic criteria in one metric alert.
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{

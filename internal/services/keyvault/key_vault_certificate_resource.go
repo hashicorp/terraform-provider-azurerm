@@ -549,7 +549,7 @@ func recoverDeletedCertificate(ctx context.Context, d *pluginsdk.ResourceData, m
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending:                   []string{"pending"},
 			Target:                    []string{"available"},
-			Refresh:                   keyVaultChildItemRefreshFunc(*certificate),
+			Refresh:                   keyVaultChildItemRefreshFunc(ctx, *certificate),
 			Delay:                     30 * time.Second,
 			PollInterval:              10 * time.Second,
 			ContinuousTargetOccurence: 10,
@@ -683,7 +683,7 @@ func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *kv.Base
 			return operation, "Ready", nil
 		}
 
-		return nil, "", fmt.Errorf("certifcate creation faild in state '%s'", *operation.Status)
+		return nil, "", fmt.Errorf("certificate creation failed in state '%s'", *operation.Status)
 	}
 }
 
