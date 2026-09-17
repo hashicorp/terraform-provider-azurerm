@@ -40,7 +40,7 @@ For state migrations, ensure a state migration test has been added. For further 
 
 ## Change Log
 
-Changelog entries must be added to a file in the pull request's source branch. The file must be located under `./changelog/{PR Number}.hcl`.
+Changelog entries must be added to a file in the pull request's source branch. The file must be located under `.changelog/{PR Number}.hcl`.
 
 If this pull request does not require a changelog entry, check the box below. Reference [maintainer-merging](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/contributing/topics/maintainer-merging.md) to determine whether this needs an entry.
 
