@@ -28,6 +28,7 @@ header:
     - '**/*.yml'
   paths-ignore:
     - '.ci/**'
+    - '.changelog/**'
     - '.github/**'
     - '.idea/**'
     - '.release/**'
