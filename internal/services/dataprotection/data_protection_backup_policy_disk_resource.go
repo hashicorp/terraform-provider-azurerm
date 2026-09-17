@@ -307,7 +307,6 @@ func expandBackupPolicyDiskDefaultAzureRetentionRule(input interface{}) baseback
 func expandBackupPolicyDiskTaggingCriteriaArray(input []interface{}) *[]basebackuppolicyresources.TaggingCriteria {
 	results := []basebackuppolicyresources.TaggingCriteria{
 		{
-			Criteria:        nil,
 			IsDefault:       true,
 			TaggingPriority: 99,
 			TagInfo: basebackuppolicyresources.RetentionTag{
@@ -320,7 +319,6 @@ func expandBackupPolicyDiskTaggingCriteriaArray(input []interface{}) *[]baseback
 		v := item.(map[string]interface{})
 		results = append(results, basebackuppolicyresources.TaggingCriteria{
 			Criteria:        expandBackupPolicyDiskCriteriaArray(v["criteria"].([]interface{})),
-			IsDefault:       false,
 			TaggingPriority: int64(v["priority"].(int)),
 			TagInfo: basebackuppolicyresources.RetentionTag{
 				Id:      pointer.To(v["name"].(string) + "_"),
@@ -401,12 +399,12 @@ func flattenBackupPolicyDiskRetentionRuleArray(input *[]basebackuppolicyresource
 		return results
 	}
 
-	var taggingCriterias []basebackuppolicyresources.TaggingCriteria
+	var taggingCriteriaList []basebackuppolicyresources.TaggingCriteria
 	for _, item := range *input {
 		if backupRule, ok := item.(basebackuppolicyresources.AzureBackupRule); ok {
 			if trigger, ok := backupRule.Trigger.(basebackuppolicyresources.ScheduleBasedTriggerContext); ok {
 				if trigger.TaggingCriteria != nil {
-					taggingCriterias = trigger.TaggingCriteria
+					taggingCriteriaList = trigger.TaggingCriteria
 				}
 			}
 		}
@@ -417,7 +415,7 @@ func flattenBackupPolicyDiskRetentionRuleArray(input *[]basebackuppolicyresource
 			name := retentionRule.Name
 			var taggingPriority int64
 			var taggingCriteria []interface{}
-			for _, criteria := range taggingCriterias {
+			for _, criteria := range taggingCriteriaList {
 				if strings.EqualFold(criteria.TagInfo.TagName, name) {
 					taggingPriority = criteria.TaggingPriority
 					taggingCriteria = flattenBackupPolicyDiskBackupCriteriaArray(criteria.Criteria)

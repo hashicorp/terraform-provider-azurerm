@@ -120,7 +120,7 @@ func firewallDataSource() *pluginsdk.Resource {
 			"dns_proxy_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"virtual_hub": {
@@ -198,8 +198,8 @@ func firewallDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 			d.Set("threat_intel_mode", string(pointer.From(props.ThreatIntelMode)))
 
-			dnsProxyEnabeld, dnsServers := flattenFirewallAdditionalProperty(props.AdditionalProperties)
-			if err := d.Set("dns_proxy_enabled", dnsProxyEnabeld); err != nil {
+			dnsProxyEnabled, dnsServers := flattenFirewallAdditionalProperty(props.AdditionalProperties)
+			if err := d.Set("dns_proxy_enabled", dnsProxyEnabled); err != nil {
 				return fmt.Errorf("setting `dns_proxy_enabled`: %+v", err)
 			}
 			if err := d.Set("dns_servers", dnsServers); err != nil {

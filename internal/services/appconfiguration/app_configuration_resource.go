@@ -363,8 +363,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if recoverSoftDeleted {
-		t := configurationstores.CreateModeRecover
-		parameters.Properties.CreateMode = &t
+		parameters.Properties.CreateMode = pointer.To(configurationstores.CreateModeRecover)
 	}
 
 	publicNetworkAccessValue, publicNetworkAccessNotEmpty := d.GetOk("public_network_access")
@@ -927,8 +926,7 @@ func parsePublicNetworkAccess(input string) *configurationstores.PublicNetworkAc
 	}
 
 	// otherwise presume it's an undefined value and best-effort it
-	out := configurationstores.PublicNetworkAccess(input)
-	return &out
+	return pointer.ToEnum[configurationstores.PublicNetworkAccess](input)
 }
 
 func userIsMissingNecessaryPermission(name, location string) string {

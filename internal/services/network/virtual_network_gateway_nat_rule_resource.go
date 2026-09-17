@@ -98,25 +98,19 @@ func resourceVirtualNetworkGatewayNatRule() *pluginsdk.Resource {
 			},
 
 			"mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(virtualnetworkgateways.VpnNatRuleModeEgressSnat),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualnetworkgateways.VpnNatRuleModeEgressSnat),
-					string(virtualnetworkgateways.VpnNatRuleModeIngressSnat),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(virtualnetworkgateways.VpnNatRuleModeEgressSnat),
+				ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForVpnNatRuleMode(), false),
 			},
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(virtualnetworkgateways.VpnNatRuleTypeStatic),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualnetworkgateways.VpnNatRuleTypeStatic),
-					string(virtualnetworkgateways.VpnNatRuleTypeDynamic),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(virtualnetworkgateways.VpnNatRuleTypeStatic),
+				ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForVpnNatRuleType(), false),
 			},
 
 			"ip_configuration_id": {

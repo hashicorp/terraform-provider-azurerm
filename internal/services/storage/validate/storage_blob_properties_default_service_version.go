@@ -4,16 +4,10 @@
 package validate
 
 import (
-	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func BlobPropertiesDefaultServiceVersion(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return warnings, errors
-	}
-
+func BlobPropertiesDefaultServiceVersion(i interface{}, k string) ([]string, []error) {
 	valid := []string{
 		"2008-10-27",
 		"2009-04-14",
@@ -51,12 +45,6 @@ func BlobPropertiesDefaultServiceVersion(i interface{}, k string) (warnings []st
 		"2022-11-02",
 		"2023-01-03",
 	}
-	for _, str := range valid {
-		if v == str {
-			return warnings, errors
-		}
-	}
 
-	errors = append(errors, fmt.Errorf("expected %s to be one of %v, got %s", k, valid, v))
-	return warnings, errors
+	return validation.StringInSlice(valid, false)(i, k)
 }

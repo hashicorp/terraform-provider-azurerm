@@ -13,6 +13,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
@@ -25,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -220,11 +220,11 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.GetKey(ctx, endpoint.BaseURI(), id.KeyName, "")
 				if err != nil {
-					if !utils.ResponseWasNotFound(existing.Response) {
+					if !response.WasNotFound(existing.Response.Response) {
 						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
 					}
 				}
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
 			}
@@ -247,26 +247,24 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 			}
 
 			if config.KeySize > 0 {
-				if config.KeyType != string(keyvault.JSONWebKeyTypeRSAHSM) {
-					return fmt.Errorf("`key_type` must be `RSA-HSM` when `key_size` is set")
+				if config.KeyType != string(keyvault.JSONWebKeyTypeRSAHSM) && config.KeyType != string(keyvault.JSONWebKeyTypeOctHSM) {
+					return fmt.Errorf("`key_type` must be `RSA-HSM` or `oct-HSM` when `key_size` is set")
 				}
 				parameters.KeySize = pointer.To(int32(config.KeySize))
 			}
 
 			if config.NotBeforeDate != "" {
 				notBeforeDate, _ := time.Parse(time.RFC3339, config.NotBeforeDate) // validated by schema
-				notBeforeUnixTime := date.UnixTime(notBeforeDate)
-				parameters.KeyAttributes.NotBefore = &notBeforeUnixTime
+				parameters.KeyAttributes.NotBefore = pointer.To(date.UnixTime(notBeforeDate))
 			}
 
 			if config.ExpirationDate != "" {
 				expirationDate, _ := time.Parse(time.RFC3339, config.ExpirationDate) // validated by schema
-				expirationUnixTime := date.UnixTime(expirationDate)
-				parameters.KeyAttributes.Expires = &expirationUnixTime
+				parameters.KeyAttributes.Expires = pointer.To(date.UnixTime(expirationDate))
 			}
 
 			if resp, err := client.CreateKey(ctx, endpoint.BaseURI(), config.Name, parameters); err != nil {
-				if metadata.Client.Features.KeyVault.RecoverSoftDeletedHSMKeys && utils.ResponseWasConflict(resp.Response) {
+				if metadata.Client.Features.KeyVault.RecoverSoftDeletedHSMKeys && response.WasConflict(resp.Response.Response) {
 					recoveredKey, err := client.RecoverDeletedKey(ctx, endpoint.BaseURI(), config.Name)
 					if err != nil {
 						return err
@@ -276,7 +274,7 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 						stateConf := &pluginsdk.StateChangeConf{
 							Pending:                   []string{"pending"},
 							Target:                    []string{"available"},
-							Refresh:                   managedHSMKeyRefreshFunc(*kid),
+							Refresh:                   managedHSMKeyRefreshFunc(ctx, *kid),
 							Delay:                     30 * time.Second,
 							PollInterval:              10 * time.Second,
 							ContinuousTargetOccurence: 10,
@@ -327,7 +325,7 @@ func (r KeyVaultMHSMKeyResource) Read() sdk.ResourceFunc {
 
 			resp, err := client.GetKey(ctx, id.BaseUri(), id.KeyName, "")
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.Response.Response) {
 					return metadata.MarkAsGone(*id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -405,14 +403,12 @@ func (r KeyVaultMHSMKeyResource) Update() sdk.ResourceFunc {
 
 			if config.NotBeforeDate != "" {
 				notBeforeDate, _ := time.Parse(time.RFC3339, config.NotBeforeDate) // validated by schema
-				notBeforeUnixTime := date.UnixTime(notBeforeDate)
-				parameters.KeyAttributes.NotBefore = &notBeforeUnixTime
+				parameters.KeyAttributes.NotBefore = pointer.To(date.UnixTime(notBeforeDate))
 			}
 
 			if config.ExpirationDate != "" {
 				expirationDate, _ := time.Parse(time.RFC3339, config.ExpirationDate) // validated by schema
-				expirationUnixTime := date.UnixTime(expirationDate)
-				parameters.KeyAttributes.Expires = &expirationUnixTime
+				parameters.KeyAttributes.Expires = pointer.To(date.UnixTime(expirationDate))
 			}
 
 			resp, err := client.UpdateKey(ctx, id.BaseUri(), config.Name, "", parameters)
