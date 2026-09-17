@@ -10,12 +10,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/guestconfiguration/2024-04-05/guestconfigurationassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
 	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policydefinitions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policysetdefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
 	AssignmentsClient                   *assignments.PolicyAssignmentsClient
+	PolicyDefinitionsClient             *policydefinitions.PolicyDefinitionsClient
 	GuestConfigurationAssignmentsClient *guestconfigurationassignments.GuestConfigurationAssignmentsClient
 	PolicySetDefinitionsClient          *policysetdefinitions.PolicySetDefinitionsClient
 	RemediationsClient                  *remediations.RemediationsClient
@@ -38,6 +40,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Guest Configuration Assignments Client:  %+v", err)
 	}
 	o.Configure(guestConfigurationAssignmentsClient.Client, o.Authorizers.ResourceManager)
+
+	policyDefinitionsClient, err := policydefinitions.NewPolicyDefinitionsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Policy Definitions client: %+v", err)
+	}
+	o.Configure(policyDefinitionsClient.Client, o.Authorizers.ResourceManager)
 
 	policySetDefinitionsClient, err := policysetdefinitions.NewPolicySetDefinitionsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -66,6 +74,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		GuestConfigurationAssignmentsClient: guestConfigurationAssignmentsClient,
 		PolicySetDefinitionsClient:          policySetDefinitionsClient,
 		RemediationsClient:                  remediationsClient,
+		PolicyDefinitionsClient:             policyDefinitionsClient,
 
 		// Track 1
 		DefinitionsClient:    &definitionsClient,
