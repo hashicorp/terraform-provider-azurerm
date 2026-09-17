@@ -123,10 +123,11 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"network_profile_id": {
-				Type:       pluginsdk.TypeString,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "the 'network_profile_id' has been removed from the latest versions of the container instance API and has been deprecated. It no longer functions and will be removed from the 4.0 AzureRM provider. Please use the 'subnet_ids' field instead",
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
+				// TODO: 6.0 - remove this, was meant to be removed in 4.0...
+				Deprecated: "the 'network_profile_id' has been removed from the latest versions of the container instance API and has been deprecated. It no longer functions and will be removed from the 6.0 AzureRM provider. Please use the 'subnet_ids' field instead",
 			},
 
 			// lintignore:S018
@@ -180,7 +181,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			"exposed_port": {
 				Type:       pluginsdk.TypeSet,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				ForceNew:   true,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Set:        resourceContainerGroupPortsHash,
@@ -246,7 +247,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 						"commands": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
@@ -354,7 +355,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 						"commands": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
@@ -874,12 +875,10 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		d.Set("priority", priority)
 
-		containerConfigs := flattenContainerGroupContainers(d, &props.Containers, props.Volumes)
-		if err := d.Set("container", containerConfigs); err != nil {
+		if err := d.Set("container", flattenContainerGroupContainers(d, &props.Containers, props.Volumes)); err != nil {
 			return fmt.Errorf("setting `container`: %+v", err)
 		}
-		initContainerConfigs := flattenContainerGroupInitContainers(d, props.InitContainers, props.Volumes)
-		if err := d.Set("init_container", initContainerConfigs); err != nil {
+		if err := d.Set("init_container", flattenContainerGroupInitContainers(d, props.InitContainers, props.Volumes)); err != nil {
 			return fmt.Errorf("setting `init_container`: %+v", err)
 		}
 
@@ -1131,14 +1130,13 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 		data := containerConfig.(map[string]interface{})
 
 		name := data["name"].(string)
-		image := data["image"].(string)
 		cpu := data["cpu"].(float64)
 		memory := data["memory"].(float64)
 
 		container := containerinstance.Container{
 			Name: name,
 			Properties: containerinstance.ContainerProperties{
-				Image: &image,
+				Image: pointer.To(data["image"].(string)),
 				Resources: &containerinstance.ResourceRequirements{
 					Requests: containerinstance.ResourceRequests{
 						MemoryInGB: memory,
@@ -1172,15 +1170,13 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 				port := int64(portObj["port"].(int))
 				proto := portObj["protocol"].(string)
 
-				containerProtocol := containerinstance.ContainerNetworkProtocol(proto)
 				ports = append(ports, containerinstance.ContainerPort{
 					Port:     port,
-					Protocol: &containerProtocol,
+					Protocol: pointer.ToEnum[containerinstance.ContainerNetworkProtocol](proto),
 				})
-				groupProtocol := containerinstance.ContainerGroupNetworkProtocol(proto)
 				containerInstancePorts = append(containerInstancePorts, containerinstance.Port{
 					Port:     port,
-					Protocol: &groupProtocol,
+					Protocol: pointer.ToEnum[containerinstance.ContainerGroupNetworkProtocol](proto),
 				})
 			}
 			container.Properties.Ports = &ports
@@ -1269,10 +1265,9 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 					and protocol. Any ports exposed on the container group must also be exposed on an individual container`,
 					port, proto, port, proto)
 			}
-			portProtocol := containerinstance.ContainerGroupNetworkProtocol(proto)
 			containerGroupPorts = append(containerGroupPorts, containerinstance.Port{
 				Port:     port,
-				Protocol: &portProtocol,
+				Protocol: pointer.ToEnum[containerinstance.ContainerGroupNetworkProtocol](proto),
 			})
 		}
 	} else {
@@ -1518,12 +1513,10 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 				port := x["port"].(int)
 				scheme := x["scheme"].(string)
 
-				httpGetScheme := containerinstance.Scheme(scheme)
-
 				probe.HTTPGet = &containerinstance.ContainerHTTPGet{
 					Path:        pointer.To(path),
 					Port:        int64(port),
-					Scheme:      &httpGetScheme,
+					Scheme:      pointer.ToEnum[containerinstance.Scheme](scheme),
 					HTTPHeaders: expandContainerProbeHttpHeaders(x["http_headers"].(map[string]interface{})),
 				}
 			}
@@ -1550,7 +1543,7 @@ func expandContainerProbeHttpHeaders(input map[string]interface{}) *[]containeri
 
 func flattenContainerProbeHttpHeaders(input *[]containerinstance.HTTPHeader) map[string]interface{} {
 	if input == nil {
-		return nil
+		return map[string]interface{}{}
 	}
 
 	output := map[string]interface{}{}
@@ -1563,7 +1556,7 @@ func flattenContainerProbeHttpHeaders(input *[]containerinstance.HTTPHeader) map
 
 func flattenContainerImageRegistryCredentials(d *pluginsdk.ResourceData, input *[]containerinstance.ImageRegistryCredential) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 	configsOld := d.Get("image_registry_credential").([]interface{})
 
@@ -1591,7 +1584,7 @@ func flattenContainerImageRegistryCredentials(d *pluginsdk.ResourceData, input *
 
 func flattenContainerGroupInitContainers(d *pluginsdk.ResourceData, initContainers *[]containerinstance.InitContainerDefinition, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
 	if initContainers == nil {
-		return nil
+		return []interface{}{}
 	}
 	// map old container names to index so we can look up things up
 	nameIndexMap := map[string]int{}
@@ -1720,8 +1713,7 @@ func flattenContainerVolume(containerConfig map[string]interface{}, containersCo
 			// found container config for current container
 			// extract volume mounts from config
 			if v, ok := data["volume"]; ok {
-				containerVolumesRaw := v.([]interface{})
-				containerVolumesConfig = &containerVolumesRaw
+				containerVolumesConfig = pointer.To(v.([]interface{}))
 			}
 		}
 	}
@@ -1901,8 +1893,7 @@ func expandContainerGroupDiagnostics(input []interface{}) *containerinstance.Con
 	}
 
 	if logType := analyticsV["log_type"].(string); logType != "" {
-		t := containerinstance.LogAnalyticsLogType(logType)
-		logAnalytics.LogType = &t
+		logAnalytics.LogType = pointer.ToEnum[containerinstance.LogAnalyticsLogType](logType)
 
 		metadataMap := analyticsV["metadata"].(map[string]interface{})
 		metadata := make(map[string]string)

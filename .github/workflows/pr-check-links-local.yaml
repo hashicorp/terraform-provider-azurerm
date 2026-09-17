@@ -1,0 +1,34 @@
+name: Check Links Local
+
+# Offline lychee check of internal links and anchors in the repo's markdown (website docs,
+# README, contributing, .github) on PRs - fast, deterministic, no network, no flake.
+# External link rot is deliberately NOT a PR problem: main-check-links.yaml checks it on
+# pushes to main.
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    types: ['opened', 'synchronize']
+    paths:
+      - 'website/docs/**'
+      - 'README.md'
+      - 'contributing/**'
+      - '.github/**/*.md'
+      - '.github/lychee.toml'
+      - '.github/workflows/pr-check-links-local.yaml'
+      - 'GNUmakefile'
+
+concurrency:
+  group: 'pr-check-links-local-${{ github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  linkcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      # make downloads the lychee version pinned in GNUmakefile into .tools
+      - name: Check internal links and anchors
+        run: make linkcheck-local

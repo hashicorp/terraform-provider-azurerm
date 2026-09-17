@@ -137,8 +137,7 @@ func resourceDataFactoryDataFlowCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		mappingDataFlow.Annotations = &annotations
+		mappingDataFlow.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("folder"); ok {

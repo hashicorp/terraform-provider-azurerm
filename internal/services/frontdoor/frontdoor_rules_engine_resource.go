@@ -365,7 +365,6 @@ func expandFrontDoorRulesEngineMatchCondition(input []interface{}) *[]frontdoors
 		condition := c.(map[string]interface{})
 
 		selector := condition["selector"].(string)
-		negateCondition := condition["negate_condition"].(bool)
 		matchVariable := condition["variable"].(string)
 		operator := condition["operator"].(string)
 		transform := condition["transform"].([]interface{})
@@ -380,7 +379,7 @@ func expandFrontDoorRulesEngineMatchCondition(input []interface{}) *[]frontdoors
 			RulesEngineMatchVariable: frontdoors.RulesEngineMatchVariable(matchVariable),
 			Selector:                 pointer.To(selector),
 			RulesEngineOperator:      frontdoors.RulesEngineOperator(operator),
-			NegateCondition:          &negateCondition,
+			NegateCondition:          pointer.To(condition["negate_condition"].(bool)),
 			RulesEngineMatchValue:    matchValueArray,
 			Transforms:               expandFrontDoorRulesEngineMatchConditionTransform(transform),
 		}
