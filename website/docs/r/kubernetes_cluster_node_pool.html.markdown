@@ -96,7 +96,7 @@ The following arguments are supported:
  
 ~> **Note:** The `local_dns_profile` block requires that the `vm_size` has at least `4` cores.
 
-~> **Note:** The Azure API enforces strict validation rules for LocalDNS configurations. For example, `serve_stale` cannot be `Verify` when `protocol` is `ForceTCP`, and the `.` and `cluster.local` domains have restricted forward destinations. See the [Azure LocalDNS validation rules](https://learn.microsoft.com/en-us/azure/aks/localdns-custom#configuration-validation-rules) for the full list of restrictions.
+~> **Note:** The Azure API enforces strict validation rules for LocalDNS configurations. For example, `serve_stale` cannot be `Verify` when `protocol` is `ForceTCP`, and the `.` and `cluster.local` domains have restricted forward destinations. See the [Azure LocalDNS validation rules](https://learn.microsoft.com/azure/aks/localdns-custom#configuration-validation-rules) for the full list of restrictions.
 
 * `fips_enabled` - (Optional) Should the nodes in this Node Pool have Federal Information Processing Standard enabled? Changing this property requires specifying `temporary_name_for_rotation`.
 
