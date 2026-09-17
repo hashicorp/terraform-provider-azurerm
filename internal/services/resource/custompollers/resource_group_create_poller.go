@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package custompollers
 
 import (
@@ -29,12 +32,10 @@ var (
 		Status:       pollers.PollingStatusSucceeded,
 	}
 	pollingInProgress = &pollers.PollResult{
-		HttpResponse: nil,
 		PollInterval: 5 * time.Second,
 		Status:       pollers.PollingStatusInProgress,
 	}
 	pollingFailed = &pollers.PollResult{
-		HttpResponse: nil,
 		PollInterval: 5 * time.Second,
 		Status:       pollers.PollingStatusFailed,
 	}

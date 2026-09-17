@@ -25,7 +25,7 @@ func PollerFromResponse(response *client.Response, client *Client) (poller polle
 	methodIsDelete := strings.EqualFold(response.Request.Method, "DELETE")
 	lroPollingUri := pollingUriForLongRunningOperation(response)
 	lroIsSelfReference := isLROSelfReference(lroPollingUri, originalRequestUri)
-	if isLroStatus && lroPollingUri != "" && !methodIsDelete && !lroIsSelfReference {
+	if isLroStatus && lroPollingUri != "" && !lroIsSelfReference {
 		lro, lroErr := longRunningOperationPollerFromResponse(response, client.Client)
 		if lroErr != nil {
 			return pollers.Poller{}, fmt.Errorf("building long-running-operation poller: %+v", lroErr)
@@ -52,7 +52,7 @@ func PollerFromResponse(response *client.Response, client *Client) (poller polle
 		return pollers.NewPoller(provisioningState, provisioningState.initialRetryDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow), nil
 	}
 
-	// finally, if it was a Delete that returned a 200/204
+	// finally, if it was a Delete that did not return a Polling URI header, and returned 200, 201, 202, or 204
 	statusCodesToCheckDelete := response.StatusCode == http.StatusOK || response.StatusCode == http.StatusCreated || response.StatusCode == http.StatusAccepted || response.StatusCode == http.StatusNoContent
 	if methodIsDelete && statusCodesToCheckDelete {
 		deletePoller, deletePollerErr := deletePollerFromResponse(response, client, DefaultPollingInterval)

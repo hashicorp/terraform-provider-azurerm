@@ -218,8 +218,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *pluginsd
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		datalakeStorageGen2LinkedService.Annotations = &annotations
+		datalakeStorageGen2LinkedService.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -285,13 +284,11 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2Read(d *pluginsdk.Resour
 		d.Set("description", dataLakeStorageGen2.Description)
 	}
 
-	annotations := flattenDataFactoryAnnotations(dataLakeStorageGen2.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(dataLakeStorageGen2.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenLinkedServiceParameters(dataLakeStorageGen2.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(dataLakeStorageGen2.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 

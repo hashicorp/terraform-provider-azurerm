@@ -66,7 +66,7 @@ func (r AadB2cDirectoryResource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "Country code of the B2C tenant. See https://aka.ms/B2CDataResidency for valid country codes.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
@@ -82,7 +82,7 @@ func (r AadB2cDirectoryResource) Arguments() map[string]*pluginsdk.Schema {
 		"display_name": {
 			Description:  "The initial display name of the B2C tenant.",
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Optional:     true, // azignore:AZS007 - pre-existing violation
 			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
