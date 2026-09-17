@@ -74,7 +74,7 @@ An `activation_rules` block returns the following:
 * `require_approval` - (Boolean) Is approval required for activation.
 * `require_justification` - (Boolean) Is a justification required during activation of the role.
 * `require_multifactor_authentication` - (Boolean) Is multi-factor authentication required to activate the role.
-* `require_ticket_info` - (Boolean) Is ticket information requrired during activation of the role.
+* `require_ticket_info` - (Boolean) Is ticket information required during activation of the role.
 * `required_conditional_access_authentication_context` - (String) The Entra ID Conditional Access context that must be present for activation.
 
 ---
@@ -104,7 +104,7 @@ An `eligible_assignment_rules` block returns the following:
 
 A `notification_rules` block returns the following:
 
-* `active_assignments` - A `notification_target` block as defined below with the details of notfications on active role assignments.
+* `active_assignments` - A `notification_target` block as defined below with the details of notifications on active role assignments.
 * `eligible_activations` - A `notification_target` block as defined below with the details of notifications on activation of eligible role.
 * `eligible_assignments` - A `notification_target` block as defined below with the details of notifications on eligible role assignments.
 

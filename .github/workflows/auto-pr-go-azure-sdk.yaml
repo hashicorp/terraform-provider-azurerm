@@ -27,7 +27,7 @@ jobs:
           title="dependencies: updating \`hashicorp/go-azure-sdk\` to \`${version}\`"
           body="This PR updates \`hashicorp/go-azure-sdk\` to \`${version}\` - further details can be found in a comment."
 
-          # this runs everytime the PR gets pushed too, whilst you can only create a PR a single time
+          # this runs every time the PR gets pushed too, whilst you can only create a PR a single time
           # so we should be smarter, but piping this to /dev/null is a fine workaround for MVP
           gh pr create --title "$title" --body "$body" -B "$PR_TARGET" > /dev/null
 
