@@ -104,6 +104,7 @@ func (EventGridNamespaceTopicIdAssociationResource) Create() sdk.ResourceFunc {
 			} else if rawRouteTopicResourceId := existing.Model.Properties.TopicSpacesConfiguration.RouteTopicResourceId; rawRouteTopicResourceId != nil && !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				routeTopicResourceId := pointer.From(rawRouteTopicResourceId)
 				if _, err := namespacetopics.ParseNamespaceTopicID(routeTopicResourceId); err == nil {
+					// If there is existing namespace topic ID assigned to `azurerm_eventgrid_namespace`, tell user to import it
 					return tf.ImportAsExistsAssociationError("azurerm_eventgrid_namespace_topic_id_association", config.EventGridNamespaceId, routeTopicResourceId)
 				}
 			}
