@@ -130,7 +130,7 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 							Optional: true,
 						},
 
-						// Returned value of the `virtual_network_rule` array does not honor the input order,
+						// Returned value of the `virtual_network_rule` array does not honour the input order,
 						// possibly a service design, thus changed to TypeSet
 						"virtual_network_rule": {
 							Type:       pluginsdk.TypeSet,
