@@ -23,10 +23,10 @@ jobs:
         run: |
           mkdir -p wr_actions
           echo ${{ github.repository_owner }} > wr_actions/ghowner.txt
-          echo ${GITHUB_EVENT_REPOSITORY_NAME} > wr_actions/ghrepo.txt
+          echo "${GITHUB_EVENT_REPOSITORY_NAME}" > wr_actions/ghrepo.txt
           echo ${{ github.event.pull_request.number }} > wr_actions/prnumber.txt
-          echo ${GITHUB_EVENT_REVIEW_USER_LOGIN} > wr_actions/reviewer.txt
-          echo ${GITHUB_EVENT_REVIEW_STATE} > wr_actions/reviewstate.txt
+          echo "${GITHUB_EVENT_REVIEW_USER_LOGIN}" > wr_actions/reviewer.txt
+          echo "${GITHUB_EVENT_REVIEW_STATE}" > wr_actions/reviewstate.txt
         env:
           GITHUB_EVENT_REPOSITORY_NAME: ${{ github.event.repository.name }}
           GITHUB_EVENT_REVIEW_USER_LOGIN: ${{ github.event.review.user.login }}

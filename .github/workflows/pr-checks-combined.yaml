@@ -105,19 +105,19 @@ jobs:
   depscheck-save-artifacts:
     needs: depscheck
     if: always() && needs.depscheck.result == 'failure'
-    uses: $/.github/workflows/pr-save-artifacts.yaml
+    uses: ./.github/workflows/pr-save-artifacts.yaml
 
   depscheck-on-fail:
     needs: depscheck
     if: always() && needs.depscheck.result == 'failure'
-    uses: $/.github/workflows/pr-comment-failure.yaml
+    uses: ./.github/workflows/pr-comment-failure.yaml
     with:
       check_name: "Vendor Dependencies Check"
 
   depscheck-on-success:
     needs: depscheck
     if: always() && needs.depscheck.result == 'success'
-    uses: $/.github/workflows/pr-comment-failure-outdated.yaml
+    uses: ./.github/workflows/pr-comment-failure-outdated.yaml
     with:
       check_name: "Vendor Dependencies Check"
 
@@ -145,19 +145,19 @@ jobs:
   copyright-save-artifacts:
     needs: copyright
     if: always() && needs.copyright.result == 'failure'
-    uses: $/.github/workflows/pr-save-artifacts.yaml
+    uses: ./.github/workflows/pr-save-artifacts.yaml
 
   copyright-on-fail:
     needs: copyright
     if: always() && needs.copyright.result == 'failure'
-    uses: $/.github/workflows/pr-comment-failure.yaml
+    uses: ./.github/workflows/pr-comment-failure.yaml
     with:
       check_name: "Copyright Headers"
 
   copyright-on-success:
     needs: copyright
     if: always() && needs.copyright.result == 'success'
-    uses: $/.github/workflows/pr-comment-failure-outdated.yaml
+    uses: ./.github/workflows/pr-comment-failure-outdated.yaml
     with:
       check_name: "Copyright Headers"
 
@@ -188,19 +188,19 @@ jobs:
   quick-checks-save-artifacts:
     needs: quick-checks
     if: always() && needs.quick-checks.result == 'failure'
-    uses: $/.github/workflows/pr-save-artifacts.yaml
+    uses: ./.github/workflows/pr-save-artifacts.yaml
 
   quick-checks-on-fail:
     needs: quick-checks
     if: always() && needs.quick-checks.result == 'failure'
-    uses: $/.github/workflows/pr-comment-failure.yaml
+    uses: ./.github/workflows/pr-comment-failure.yaml
     with:
       check_name: "Quick CI Checks"
 
   quick-checks-on-success:
     needs: quick-checks
     if: always() && needs.quick-checks.result == 'success'
-    uses: $/.github/workflows/pr-comment-failure-outdated.yaml
+    uses: ./.github/workflows/pr-comment-failure-outdated.yaml
     with:
       check_name: "Quick CI Checks"
 
@@ -228,19 +228,19 @@ jobs:
   shellcheck-save-artifacts:
     needs: shellcheck
     if: always() && needs.shellcheck.result == 'failure'
-    uses: $/.github/workflows/pr-save-artifacts.yaml
+    uses: ./.github/workflows/pr-save-artifacts.yaml
 
   shellcheck-on-fail:
     needs: shellcheck
     if: always() && needs.shellcheck.result == 'failure'
-    uses: $/.github/workflows/pr-comment-failure.yaml
+    uses: ./.github/workflows/pr-comment-failure.yaml
     with:
       check_name: "ShellCheck Scripts"
 
   shellcheck-on-success:
     needs: shellcheck
     if: always() && needs.shellcheck.result == 'success'
-    uses: $/.github/workflows/pr-comment-failure-outdated.yaml
+    uses: ./.github/workflows/pr-comment-failure-outdated.yaml
     with:
       check_name: "ShellCheck Scripts"
 
@@ -267,19 +267,19 @@ jobs:
   typos-save-artifacts:
     needs: typos
     if: always() && needs.typos.result == 'failure'
-    uses: $/.github/workflows/pr-save-artifacts.yaml
+    uses: ./.github/workflows/pr-save-artifacts.yaml
 
   typos-on-fail:
     needs: typos
     if: always() && needs.typos.result == 'failure'
-    uses: $/.github/workflows/pr-comment-failure.yaml
+    uses: ./.github/workflows/pr-comment-failure.yaml
     with:
       check_name: "Typos"
 
   typos-on-success:
     needs: typos
     if: always() && needs.typos.result == 'success'
-    uses: $/.github/workflows/pr-comment-failure-outdated.yaml
+    uses: ./.github/workflows/pr-comment-failure-outdated.yaml
     with:
       check_name: "Typos"
 
@@ -310,19 +310,19 @@ jobs:
   website-lint-save-artifacts:
     needs: website-lint
     if: always() && needs.website-lint.result == 'failure'
-    uses: $/.github/workflows/pr-save-artifacts.yaml
+    uses: ./.github/workflows/pr-save-artifacts.yaml
 
   website-lint-on-fail:
     needs: website-lint
     if: always() && needs.website-lint.result == 'failure'
-    uses: $/.github/workflows/pr-comment-failure.yaml
+    uses: ./.github/workflows/pr-comment-failure.yaml
     with:
       check_name: "Website Linting"
 
   website-lint-on-success:
     needs: website-lint
     if: always() && needs.website-lint.result == 'success'
-    uses: $/.github/workflows/pr-comment-failure-outdated.yaml
+    uses: ./.github/workflows/pr-comment-failure-outdated.yaml
     with:
       check_name: "Website Linting"
 
@@ -349,19 +349,19 @@ jobs:
   document-validate-save-artifacts:
     needs: document-validate
     if: always() && needs.document-validate.result == 'failure'
-    uses: $/.github/workflows/pr-save-artifacts.yaml
+    uses: ./.github/workflows/pr-save-artifacts.yaml
 
   document-validate-on-fail:
     needs: document-validate
     if: always() && needs.document-validate.result == 'failure'
-    uses: $/.github/workflows/pr-comment-failure.yaml
+    uses: ./.github/workflows/pr-comment-failure.yaml
     with:
       check_name: "Document Validation"
 
   document-validate-on-success:
     needs: document-validate
     if: success()
-    uses: $/.github/workflows/pr-comment-failure-outdated.yaml
+    uses: ./.github/workflows/pr-comment-failure-outdated.yaml
     with:
       check_name: "Document Validation"
 
@@ -398,19 +398,19 @@ jobs:
   build-save-artifacts:
     needs: build
     if: always() && needs.build.result == 'failure'
-    uses: $/.github/workflows/pr-save-artifacts.yaml
+    uses: ./.github/workflows/pr-save-artifacts.yaml
 
   build-on-fail:
     needs: build
     if: always() && needs.build.result == 'failure'
-    uses: $/.github/workflows/pr-comment-failure.yaml
+    uses: ./.github/workflows/pr-comment-failure.yaml
     with:
       check_name: "GoLang Compilation"
 
   build-on-success:
     needs: build
     if: always() && needs.build.result == 'success'
-    uses: $/.github/workflows/pr-comment-failure-outdated.yaml
+    uses: ./.github/workflows/pr-comment-failure-outdated.yaml
     with:
       check_name: "GoLang Compilation"
 
@@ -459,19 +459,19 @@ jobs:
   golangci-lint-save-artifacts:
     needs: golangci-lint
     if: always() && needs.golangci-lint.result == 'failure'
-    uses: $/.github/workflows/pr-save-artifacts.yaml
+    uses: ./.github/workflows/pr-save-artifacts.yaml
 
   golangci-lint-on-fail:
     needs: golangci-lint
     if: always() && needs.golangci-lint.result == 'failure'
-    uses: $/.github/workflows/pr-comment-failure.yaml
+    uses: ./.github/workflows/pr-comment-failure.yaml
     with:
       check_name: "GoLangCI Linting"
 
   golangci-lint-on-success:
     needs: golangci-lint
     if: always() && needs.golangci-lint.result == 'success'
-    uses: $/.github/workflows/pr-comment-failure-outdated.yaml
+    uses: ./.github/workflows/pr-comment-failure-outdated.yaml
     with:
       check_name: "GoLangCI Linting"
 
@@ -506,19 +506,19 @@ jobs:
   gencheck-save-artifacts:
     needs: gencheck
     if: always() && needs.gencheck.result == 'failure'
-    uses: $/.github/workflows/pr-save-artifacts.yaml
+    uses: ./.github/workflows/pr-save-artifacts.yaml
 
   gencheck-on-fail:
     needs: gencheck
     if: always() && needs.gencheck.result == 'failure'
-    uses: $/.github/workflows/pr-comment-failure.yaml
+    uses: ./.github/workflows/pr-comment-failure.yaml
     with:
       check_name: "Generation Check"
 
   gencheck-on-success:
     needs: gencheck
     if: always() && needs.gencheck.result == 'success'
-    uses: $/.github/workflows/pr-comment-failure-outdated.yaml
+    uses: ./.github/workflows/pr-comment-failure-outdated.yaml
     with:
       check_name: "Generation Check"
 
@@ -569,19 +569,19 @@ jobs:
   unit-tests-save-artifacts:
     needs: unit-tests
     if: always() && needs.unit-tests.result == 'failure'
-    uses: $/.github/workflows/pr-save-artifacts.yaml
+    uses: ./.github/workflows/pr-save-artifacts.yaml
 
   unit-tests-on-fail:
     needs: unit-tests
     if: always() && needs.unit-tests.result == 'failure'
-    uses: $/.github/workflows/pr-comment-failure.yaml
+    uses: ./.github/workflows/pr-comment-failure.yaml
     with:
       check_name: "Unit Tests"
 
   unit-tests-on-success:
     needs: unit-tests
     if: always() && needs.unit-tests.result == 'success'
-    uses: $/.github/workflows/pr-comment-failure-outdated.yaml
+    uses: ./.github/workflows/pr-comment-failure-outdated.yaml
     with:
       check_name: "Unit Tests"
 
@@ -617,18 +617,18 @@ jobs:
   validate-examples-save-artifacts:
     needs: validate-examples
     if: always() && needs.validate-examples.result == 'failure'
-    uses: $/.github/workflows/pr-save-artifacts.yaml
+    uses: ./.github/workflows/pr-save-artifacts.yaml
 
   validate-examples-on-fail:
     needs: validate-examples
     if: always() && needs.validate-examples.result == 'failure'
-    uses: $/.github/workflows/pr-comment-failure.yaml
+    uses: ./.github/workflows/pr-comment-failure.yaml
     with:
       check_name: "Validate Examples"
 
   validate-examples-on-success:
     needs: validate-examples
     if: always() && needs.validate-examples.result == 'success'
-    uses: $/.github/workflows/pr-comment-failure-outdated.yaml
+    uses: ./.github/workflows/pr-comment-failure-outdated.yaml
     with:
       check_name: "Validate Examples"

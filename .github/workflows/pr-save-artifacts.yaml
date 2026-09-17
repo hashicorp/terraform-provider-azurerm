@@ -22,7 +22,7 @@ jobs:
         run: |
           mkdir -p wr_actions
           echo ${{ github.repository_owner }} > wr_actions/ghowner.txt
-          echo ${GITHUB_EVENT_REPOSITORY_NAME} > wr_actions/ghrepo.txt
+          echo "${GITHUB_EVENT_REPOSITORY_NAME}" > wr_actions/ghrepo.txt
           echo ${{ github.event.pull_request.number }} > wr_actions/prnumber.txt
         env:
           GITHUB_EVENT_REPOSITORY_NAME: ${{ github.event.repository.name }}

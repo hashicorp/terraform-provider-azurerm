@@ -1,0 +1,23 @@
+# Copyright IBM Corp. 2014, 2026
+# SPDX-License-Identifier: MPL-2.0
+
+# Configuration for zizmor (https://docs.zizmor.sh), run by `make zizmor` and the
+# Workflow Security Audit workflow.
+
+rules:
+  # GitHub's self-repository syntax (`uses: $/...`, shipped July 2026) is not yet understood by
+  # actionlint, which rejects it as a malformed reusable workflow call. Until actionlint supports
+  # it we keep `uses: ./...`; this audit only affects whether GitHub can enforce fully-pinned
+  # policies, so there is nothing insecure about staying on the older form.
+  self-repository:
+    ignore:
+      - issue-comment-created.yaml
+      - pr-check-breaking-changes.yaml
+      - pr-check-gradually-deprecated.yaml
+      - pr-check-list-resources-required.yaml
+      - pr-check-preview-api-version.yaml
+      - pr-check-provider-tests.yaml
+      - pr-checks-combined.yaml
+      - pr-waiting-response-on-review.yaml
+      - pr-waiting-response-remove-on-commit.yaml
+      - teamcity-test.yaml

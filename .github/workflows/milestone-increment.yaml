@@ -23,4 +23,4 @@ jobs:
           persist-credentials: false
       - name: "Increment Milestone"
         shell: bash
-        run: bash ./scripts/automation/milestone-increment.sh -u https://api.github.com/repos/${{ github.repository }}/milestones -r ${GITHUB_REF_NAME} -t ${{secrets.GITHUB_TOKEN}}
+        run: bash ./scripts/automation/milestone-increment.sh -u https://api.github.com/repos/${{ github.repository }}/milestones -r "${GITHUB_REF_NAME}" -t ${{secrets.GITHUB_TOKEN}}

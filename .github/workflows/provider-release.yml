@@ -63,9 +63,9 @@ jobs:
             -product-name ${{ env.product_name }} \
             -org hashicorp \
             -repo ${{ env.repo_name }} \
-            -product-version ${INPUTS_RELEASE_VERSION} \
-            -sha ${INPUTS_GIT_COMMIT_SHA} \
-            -branch ${INPUTS_RELEASE_BRANCH} \
+            -product-version "${INPUTS_RELEASE_VERSION}" \
+            -sha "${INPUTS_GIT_COMMIT_SHA}" \
+            -branch "${INPUTS_RELEASE_BRANCH}" \
             -slack-channel ${{ env.slack_channel }} \
             -environment ${{ env.deployment_environment_name }} \
             ${{ inputs.release-channel }}
