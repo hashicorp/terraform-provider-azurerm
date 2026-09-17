@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"maps"
 	"slices"
 	"strconv"
 	"strings"
@@ -382,7 +383,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 			}),
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 				// Entra (AD) auth has to be set to disable access keys auth
-				// https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
+				// https://learn.microsoft.com/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
 
 				accessKeysAuthenticationEnabled := diff.Get("access_keys_authentication_enabled").(bool)
 				activeDirectoryAuthenticationEnabled := diff.Get("redis_configuration.0.active_directory_authentication_enabled").(bool)
@@ -1011,9 +1012,7 @@ func flattenTenantSettings(input *map[string]string) map[string]string {
 	output := make(map[string]string)
 
 	if input != nil {
-		for k, v := range *input {
-			output[k] = v
-		}
+		maps.Copy(output, *input)
 	}
 
 	return output
