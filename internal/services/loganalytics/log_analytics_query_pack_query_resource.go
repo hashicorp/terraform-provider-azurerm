@@ -55,7 +55,7 @@ func (r LogAnalyticsQueryPackQueryResource) Arguments() map[string]*pluginsdk.Sc
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},
@@ -586,7 +586,7 @@ func expandLogAnalyticsQueryPackQueryTags(input map[string]string) *map[string][
 
 func flattenLogAnalyticsQueryPackQueryTags(input map[string][]string) map[string]string {
 	if input == nil {
-		return nil
+		return map[string]string{}
 	}
 
 	results := make(map[string]string)

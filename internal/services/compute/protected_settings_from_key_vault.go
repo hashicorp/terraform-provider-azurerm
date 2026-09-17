@@ -116,7 +116,7 @@ func flattenProtectedSettingsFromKeyVaultVMSS(input *virtualmachinescalesets.Key
 
 func flattenProtectedSettingsFromKeyVaultOldVMSSExtension(input *virtualmachinescalesetextensions.KeyVaultSecretReference) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	sourceVaultId := pointer.From(input.SourceVault.Id)
