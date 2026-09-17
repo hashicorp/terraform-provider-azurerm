@@ -21,7 +21,8 @@ TFPROVIDERDOCS=$(TOOLS_BIN)/tfproviderdocs
 PATH := $(CURDIR)/$(TOOLS_BIN):$(PATH)
 
 # non-Go tools also live in .tools/bin at pinned versions, but the pins are here (dependabot
-# cannot bump them): shellcheck, lychee and typos are static binaries downloaded from their github releases, yamllint
+# cannot bump them): shellcheck, lychee, typos and zizmor are static binaries downloaded from their github
+# releases, yamllint
 # is pip installed into a repo-local venv and markdownlint-cli2 is npm installed into a repo-local
 # prefix. all rebuild when this makefile changes.
 LYCHEE_VERSION=v0.24.2
@@ -29,11 +30,13 @@ MARKDOWNLINT_CLI2_VERSION=0.23.2
 SHELLCHECK_VERSION=v0.11.0
 TYPOS_VERSION=v1.50.1
 YAMLLINT_VERSION=1.38.0
+ZIZMOR_VERSION=v1.30.1
 LYCHEE=$(TOOLS_BIN)/lychee
 MARKDOWNLINT=$(TOOLS_BIN)/markdownlint-cli2
 SHELLCHECK=$(TOOLS_BIN)/shellcheck
 TYPOS=$(TOOLS_BIN)/typos
 YAMLLINT=$(TOOLS_BIN)/yamllint
+ZIZMOR=$(TOOLS_BIN)/zizmor
 
 # golangci-lint with the azproviderlint/tfproviderlint module plugins compiled in
 # (.tools/.custom-gcl.yml); the lint targets use this binary, the plain one bootstraps
@@ -79,6 +82,11 @@ $(YAMLLINT): GNUmakefile | $(TOOLS_BIN)
 	@echo "==> Installing yamllint $(YAMLLINT_VERSION) into .tools/venv..."
 	@python3 -m venv .tools/venv && .tools/venv/bin/pip install -q yamllint==$(YAMLLINT_VERSION) && ln -sf ../venv/bin/yamllint $@
 
+$(ZIZMOR): GNUmakefile | $(TOOLS_BIN)
+	@echo "==> Downloading zizmor $(ZIZMOR_VERSION)..."
+	@case "$(HOST_OS)" in darwin) target=apple-darwin;; *) target=unknown-linux-gnu;; esac; \
+		curl -sSfL https://github.com/zizmorcore/zizmor/releases/download/$(ZIZMOR_VERSION)/zizmor-$(HOST_ARCH)-$$target.tar.gz | tar -xzO zizmor > $@ && chmod +x $@
+
 $(MARKDOWNLINT): GNUmakefile | $(TOOLS_BIN)
 	@command -v npm >/dev/null || (echo "npm is required to install markdownlint-cli2 (macOS: brew install node; Debian/Ubuntu: apt install npm)" && exit 1)
 	@echo "==> Installing markdownlint-cli2 $(MARKDOWNLINT_CLI2_VERSION) into .tools/npm..."
@@ -103,7 +111,7 @@ golangci-fix: ## renamed to lint-fix
 	@$(MAKE) lint-fix
 
 ##@ Build & Generate
-tools: $(ACTIONLINT) $(CHANGELOGGY) $(GOFUMPT) $(GOIMPORTS) $(GOLANGCI_LINT) $(GOLANGCI_LINT_MODULES) $(GOTESTSUM) $(LICENSE_EYE) $(TCTEST) $(TERRAFMT) $(TFPROVIDERDOCS) $(LYCHEE) $(MARKDOWNLINT) $(SHELLCHECK) $(TYPOS) $(YAMLLINT) ## Install all pinned dev tools into .tools/bin (targets install what they need on demand)
+tools: $(ACTIONLINT) $(CHANGELOGGY) $(GOFUMPT) $(GOIMPORTS) $(GOLANGCI_LINT) $(GOLANGCI_LINT_MODULES) $(GOTESTSUM) $(LICENSE_EYE) $(TCTEST) $(TERRAFMT) $(TFPROVIDERDOCS) $(LYCHEE) $(MARKDOWNLINT) $(SHELLCHECK) $(TYPOS) $(YAMLLINT) $(ZIZMOR) ## Install all pinned dev tools into .tools/bin (targets install what they need on demand)
 
 build: quick-checks generate ## Run the quick checks, generate code, and compile the provider
 	go install
@@ -176,6 +184,10 @@ yamllint: $(YAMLLINT) ## Check YAML files with yamllint (config in .yamllint.yml
 actionlint: $(ACTIONLINT) $(SHELLCHECK) ## Check GitHub workflows with actionlint (incl. shellcheck on run blocks)
 	@echo "==> Checking workflows with actionlint..."
 	@$(ACTIONLINT) -shellcheck=$(SHELLCHECK)
+
+zizmor: $(ZIZMOR) ## Audit GitHub workflows for security issues with zizmor (config in .github/zizmor.yml)
+	@echo "==> Auditing workflows with zizmor..."
+	@$(ZIZMOR) .
 
 copyright: $(LICENSE_EYE) ## Check copyright headers with license-eye (config in .licenserc.yaml)
 	@echo "==> Checking copyright headers with license-eye..."
@@ -332,4 +344,4 @@ resource-counts: ## Print the number of resources and data sources in the provid
 
 pr-check: generate build test lint website-lint ## Run the same set of checks CI runs against a PR
 
-.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint actionlint yamllint markdownlint linkcheck linkcheck-local linkcheck-external shellcheck copyright copyright-fix typos typos-fix depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check
+.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint actionlint yamllint markdownlint linkcheck linkcheck-local linkcheck-external shellcheck zizmor copyright copyright-fix typos typos-fix depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check
