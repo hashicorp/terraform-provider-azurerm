@@ -17,8 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/resourceguardproxies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/resourceguardproxy"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2024-10-01/protectionpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
@@ -26,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -317,8 +314,6 @@ func resourceRecoveryServicesBackupProtectedVMUpdate(d *pluginsdk.ResourceData, 
 
 func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
-	resourceGuardProxiesClient := meta.(*clients.Client).RecoveryServices.ResourceGuardProxiesClient
-	resourceGuardProxyClient := meta.(*clients.Client).RecoveryServices.ResourceGuardProxyClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -338,13 +333,6 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	vaultId := resourceguardproxies.NewVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)
-	guardProxies, err := resourceGuardProxiesClient.GetComplete(ctx, vaultId)
-	// Vaults without Resource Guard return a successful empty list.
-	if err != nil {
-		return fmt.Errorf("retrieving Resource Guard proxies for %s: %+v", vaultId, err)
-	}
-
 	features := meta.(*clients.Client).Features.RecoveryService
 
 	if features.VMBackupStopProtectionAndRetainDataOnDestroy || features.VMBackupSuspendProtectionAndRetainDataOnDestroy {
@@ -355,19 +343,13 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 			desiredState = protecteditems.ProtectionStateBackupsSuspended
 		}
 
-		var resourceGuardOperationRequests []string
-		for _, proxy := range guardProxies.Items {
-			resourceGuardOperationRequests = append(resourceGuardOperationRequests, recoveryServicesResourceGuardOperationRequests(proxy, dataprotection.GuardOperationStopProtectionWithRetainData)...)
-		}
-
 		if model := existing.Model; model != nil {
 			if properties := model.Properties; properties != nil {
 				if vm, ok := properties.(protecteditems.AzureIaaSComputeVMProtectedItem); ok {
 					updateInput := protecteditems.ProtectedItemResource{
 						Properties: &protecteditems.AzureIaaSComputeVMProtectedItem{
-							ResourceGuardOperationRequests: pointer.To(resourceGuardOperationRequests),
-							ProtectionState:                pointer.To(desiredState),
-							SourceResourceId:               vm.SourceResourceId,
+							ProtectionState:  pointer.To(desiredState),
+							SourceResourceId: vm.SourceResourceId,
 						},
 					}
 
@@ -381,48 +363,11 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	for _, proxy := range guardProxies.Items {
-		operationRequests := recoveryServicesResourceGuardOperationRequests(proxy, dataprotection.GuardOperationDeleteProtectedItem)
-		if len(operationRequests) == 0 {
-			continue
-		}
-
-		if proxy.Id == nil {
-			return fmt.Errorf("retrieving Resource Guard proxies for %s: response contained a proxy with a nil ID", vaultId)
-		}
-
-		vaultProxyId, err := resourceguardproxy.ParseBackupResourceGuardProxyIDInsensitively(*proxy.Id)
-		if err != nil {
-			return err
-		}
-
-		unlock := resourceguardproxy.UnlockDeleteRequest{
-			ResourceGuardOperationRequests: pointer.To(operationRequests),
-			ResourceToBeDeleted:            pointer.To(id.ID()),
-		}
-
-		if _, err = resourceGuardProxyClient.UnlockDelete(ctx, *vaultProxyId, unlock); err != nil {
-			return fmt.Errorf("unlocking deletion of %s using %s: %+v", id, vaultProxyId, err)
-		}
-	}
-
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
-}
-
-func recoveryServicesResourceGuardOperationRequests(proxy resourceguardproxies.ResourceGuardProxyBaseResource, operation string) []string {
-	var requests []string
-	if proxy.Properties != nil && proxy.Properties.ResourceGuardOperationDetails != nil {
-		for _, detail := range *proxy.Properties.ResourceGuardOperationDetails {
-			if detail.VaultCriticalOperation != nil && *detail.VaultCriticalOperation == operation && detail.DefaultResourceRequest != nil {
-				requests = append(requests, *detail.DefaultResourceRequest)
-			}
-		}
-	}
-	return requests
 }
 
 func expandDiskExclusion(d *pluginsdk.ResourceData) *protecteditems.ExtendedProperties {
