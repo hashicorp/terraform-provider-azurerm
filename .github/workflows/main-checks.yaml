@@ -187,6 +187,30 @@ jobs:
       - name: Run zizmor
         run: make zizmor
 
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: ./.go-version
+          cache: false
+      # make builds the actionlint version pinned in .tools/go.mod and downloads shellcheck
+      - name: Run actionlint
+        run: make actionlint
+
+  yamllint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
+      # make installs the yamllint version pinned in GNUmakefile into a repo-local venv
+      - name: Run yamllint
+        run: make yamllint
+
   website-lint:
     runs-on: ubuntu-latest
     steps:
