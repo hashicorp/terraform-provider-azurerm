@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -252,8 +253,8 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 				// TODO: in time this could be worth a series of overrides
 
 				// handles "GallerieName" and `DataFactoriesName`
-				if strings.HasSuffix(key, "ies") {
-					key = strings.TrimSuffix(key, "ies")
+				if before, ok := strings.CutSuffix(key, "ies"); ok {
+					key = before
 					key = fmt.Sprintf("%sy", key)
 				}
 				switch {
@@ -1107,14 +1108,14 @@ func (f GolangCodeFormatter) Format(input string) (*string, error) {
 }
 
 func (f GolangCodeFormatter) runGoFmt(filePath string) {
-	cmd := exec.Command("gofmt", "-w", filePath)
+	cmd := exec.CommandContext(context.Background(), "gofmt", "-w", filePath)
 	// intentionally not using these errors since the exit codes are kinda uninteresting
 	_ = cmd.Start()
 	_ = cmd.Wait()
 }
 
 func (f GolangCodeFormatter) runGoImports(filePath string) {
-	cmd := exec.Command("goimports", "-w", filePath)
+	cmd := exec.CommandContext(context.Background(), "goimports", "-w", filePath)
 	// intentionally not using these errors since the exit codes are kinda uninteresting
 	_ = cmd.Start()
 	_ = cmd.Wait()
