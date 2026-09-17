@@ -78,7 +78,7 @@ The following arguments are supported:
 
 * `include_disk_luns` - (Optional) A list of Disks' Logical Unit Numbers (LUN) to be included for VM Protection.
 
-* `protection_state` - (Optional) Specifies Protection state of the backup. Possible values are `Protected`, `BackupsSuspended`, and `ProtectionStopped`.
+* `protection_state` - (Optional) Specifies Protection state of the backup. Possible values are `Protected`, `BackupsSuspended`, and `ProtectionStopped`. To switch between `BackupsSuspended` and `ProtectionStopped`, first set this to `Protected` and apply to resume protection.
 
 ~> **Note:** `protection_state` cannot be set to `BackupsSuspended` unless the `azurerm_recovery_services_vault` has `immutability` set to `Unlocked` or `Locked`.
 

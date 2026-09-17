@@ -6,6 +6,7 @@ package recoveryservices_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -199,6 +200,11 @@ func TestAccBackupProtectedVm_protectionStopped(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config:      r.backupsSuspended(data, "Unlocked"),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("cannot change directly from \"ProtectionStopped\" to \"BackupsSuspended\""),
+		},
+		{
 			// vault cannot be deleted unless we unregister all backups
 			Config: r.base(data),
 		},
@@ -218,15 +224,24 @@ func TestAccBackupProtectedVm_backupsSuspended(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.backupsSuspended(data),
+			Config: r.backupsSuspended(data, "Unlocked"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("protection_state").HasValue("BackupsSuspended"),
 			),
 		},
 		data.ImportStep(),
 		{
-			// vault cannot be deleted unless we unregister all backups
-			Config: r.base(data),
+			Config:      r.protectionStopped(data),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("cannot change directly from \"BackupsSuspended\" to \"ProtectionStopped\""),
+		},
+		{
+			// Disable immutability before deleting the suspended backup.
+			Config: r.backupsSuspended(data, "Disabled"),
+		},
+		{
+			Config: r.baseWithImmutability(data, "Disabled"),
 		},
 	})
 }
@@ -518,7 +533,7 @@ resource "azurerm_backup_policy_vm" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func (BackupProtectedVmResource) baseImmutableVault(data acceptance.TestData) string {
+func (BackupProtectedVmResource) baseWithImmutability(data acceptance.TestData, immutability string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -646,7 +661,7 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 
-  immutability = "Unlocked"
+  immutability = "%[4]s"
 }
 
 resource "azurerm_backup_policy_vm" "test" {
@@ -663,7 +678,7 @@ resource "azurerm_backup_policy_vm" "test" {
     count = 10
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, immutability)
 }
 
 func (BackupProtectedVmResource) baseWithOutProvider(data acceptance.TestData) string {
@@ -1277,7 +1292,7 @@ resource "azurerm_backup_protected_vm" "test" {
 `, r.base(data))
 }
 
-func (r BackupProtectedVmResource) backupsSuspended(data acceptance.TestData) string {
+func (r BackupProtectedVmResource) backupsSuspended(data acceptance.TestData, immutability string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1290,7 +1305,7 @@ resource "azurerm_backup_protected_vm" "test" {
   include_disk_luns = [0]
   protection_state  = "BackupsSuspended"
 }
-`, r.baseImmutableVault(data))
+`, r.baseWithImmutability(data, immutability))
 }
 
 func (r BackupProtectedVmResource) protectionStoppedOnDestroy(data acceptance.TestData) string {
