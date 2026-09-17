@@ -385,7 +385,6 @@ func (r ManagerConnectivityConfigurationResource) Read() sdk.ResourceFunc {
 				Hub:                                 flattenHubModel(properties.Hubs),
 				ConnectedGroupAddressOverlapEnabled: true,
 				ConnectedGroupPrivateEndpointsScale: string(connectivityconfigurations.ConnectedGroupPrivateEndpointsScaleStandard),
-				PeeringEnforcementEnabled:           false,
 			}
 
 			if properties.ConnectivityCapabilities != nil {
