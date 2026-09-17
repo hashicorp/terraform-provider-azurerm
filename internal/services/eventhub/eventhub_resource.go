@@ -167,7 +167,7 @@ func resourceEventHub() *pluginsdk.Resource {
 										ValidateFunc: commonids.ValidateStorageAccountID,
 									},
 
-									// Storage SAS is the default authentication type for capture destination, it's not supported by the API, so hard coding the value to align with azure portal behavior.
+									// Storage SAS is the default authentication type for capture destination, it's not supported by the API, so hard coding the value to align with azure portal behaviour.
 									"storage_authentication_type": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,

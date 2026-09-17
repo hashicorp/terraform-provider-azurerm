@@ -232,16 +232,12 @@ func (r IotHubFileUploadResource) Read() sdk.ResourceFunc {
 			}
 
 			state := IotHubFileUploadResourceModel{
-				AuthenticationType:   string(devices.AuthenticationTypeKeyBased),
-				ConnectionString:     "",
-				ContainerName:        "",
-				DefaultTTL:           "PT1H",
-				IdentityId:           "",
-				IotHubId:             id.ID(),
-				LockDuration:         "PT1M",
-				MaxDeliveryCount:     10,
-				NotificationsEnabled: false,
-				SasTTL:               "PT1H",
+				AuthenticationType: string(devices.AuthenticationTypeKeyBased),
+				DefaultTTL:         "PT1H",
+				IotHubId:           id.ID(),
+				LockDuration:       "PT1M",
+				MaxDeliveryCount:   10,
+				SasTTL:             "PT1H",
 			}
 
 			if props := iotHub.Properties; props != nil {
