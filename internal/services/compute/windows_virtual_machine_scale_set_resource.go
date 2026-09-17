@@ -1226,10 +1226,9 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"automatic_instance_repair": VirtualMachineScaleSetAutomaticRepairsPolicySchema(),
 
 		"automatic_zone_rebalancing_enabled": {
-			Type:         pluginsdk.TypeBool,
-			Optional:     true,
-			Default:      false,
-			RequiredWith: []string{"zones"},
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"boot_diagnostics": bootDiagnosticsSchema(),

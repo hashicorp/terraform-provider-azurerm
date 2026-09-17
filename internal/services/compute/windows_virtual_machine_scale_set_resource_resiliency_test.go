@@ -75,6 +75,18 @@ func TestAccWindowsVirtualMachineScaleSet_resiliency_automaticZoneRebalancingReq
 	})
 }
 
+func TestAccWindowsVirtualMachineScaleSet_resiliency_automaticZoneRebalancingRequiresZones(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.resiliencyAutomaticZoneRebalancingNoZones(data),
+			ExpectError: regexp.MustCompile("`zones` must be specified when `automatic_zone_rebalancing_enabled` is set to `true`"),
+		},
+	})
+}
+
 func (r WindowsVirtualMachineScaleSetResource) resiliencyVMPolicies(data acceptance.TestData, vmCreationEnabled, vmDeletionEnabled, automaticZoneRebalancingEnabled bool) string {
 	return fmt.Sprintf(`
 %s
@@ -226,6 +238,61 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
       primary   = true
       subnet_id = azurerm_subnet.test.id
     }
+  }
+
+  automatic_zone_rebalancing_enabled = true
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r WindowsVirtualMachineScaleSetResource) resiliencyAutomaticZoneRebalancingNoZones(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                 = "acctestvmss-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  sku                  = "Standard_F2ads_v7"
+  instances            = 1
+  admin_username       = "adminuser"
+  admin_password       = "P@55w0rd1234!"
+  computer_name_prefix = "vm-"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-datacenter-gensecond"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  extension {
+    name                       = "HealthExtension"
+    publisher                  = "Microsoft.ManagedServices"
+    type                       = "ApplicationHealthWindows"
+    type_handler_version       = "1.0"
+    auto_upgrade_minor_version = true
+    settings = jsonencode({
+      protocol    = "https"
+      port        = 443
+      requestPath = "/"
+    })
   }
 
   automatic_zone_rebalancing_enabled = true

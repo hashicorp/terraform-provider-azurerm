@@ -422,6 +422,10 @@ func orchestratedVirtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff(ctx
 		return nil
 	}
 
+	if _, ok := diff.GetOk("zones"); !ok {
+		return errors.New("`zones` must be specified when `automatic_zone_rebalancing_enabled` is set to `true`")
+	}
+
 	if extensions, ok := diff.GetOk("extension"); ok {
 		for _, ext := range extensions.(*pluginsdk.Set).List() {
 			extType := ext.(map[string]interface{})["type"].(string)
@@ -438,6 +442,10 @@ func virtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff(ctx context.Con
 	err := orchestratedVirtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff(ctx, diff, v)
 	if err == nil {
 		return nil
+	}
+
+	if _, ok := diff.GetOk("zones"); !ok {
+		return errors.New("`zones` must be specified when `automatic_zone_rebalancing_enabled` is set to `true`")
 	}
 
 	if healthProbeID := diff.GetRawConfig().GetAttr("health_probe_id"); !healthProbeID.IsNull() {
