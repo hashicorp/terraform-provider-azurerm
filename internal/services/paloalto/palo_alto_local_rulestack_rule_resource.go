@@ -408,7 +408,7 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 
 			existing, err := client.LocalRulesGet(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("retreiving %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			ruleEntry := *existing.Model
