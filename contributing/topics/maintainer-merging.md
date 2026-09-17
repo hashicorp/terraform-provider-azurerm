@@ -56,7 +56,7 @@ ENHANCEMENTS:
 * `azurerm_resource` - add support for the `block1` block [GH-12345]
 * `azurerm_resource` - add support for the `thing2`, `thing3`, and `thing4` properties [GH-12345]
 * `azurerm_resource` - add support for the `block2`, `block3`, and `block4` blocks [GH-12345]
-* `azurerm_resource` - improve validation for the `termination_nofication.timeout` property [GH-12345]
+* `azurerm_resource` - improve validation for the `termination_notification.timeout` property [GH-12345]
 
 BUG FIXES:
 

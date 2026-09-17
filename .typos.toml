@@ -17,6 +17,7 @@ extend-exclude = [
   ".tools/venv/",
   "**/vendor/",
   "**/go.sum",
+  ".changeloggy.hcl",
   "internal/services/postgres/validate/postgresql_flexible_server_database_collation.go", # locale codes
   "internal/services/paloalto/validate/country_code.go", # ISO country codes
   "internal/services/apimanagement/testdata/api_management_api_schema.xml", # verbatim copy of a third-party WSDL, misspelled element names and all
