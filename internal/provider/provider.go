@@ -36,6 +36,7 @@ func AzureProviderWithTestName(testName string) *schema.Provider {
 	return azureProvider(false, testName)
 }
 
+// lintignore:V013 // false positive - this validates a UUID with an optional pid- prefix/suffix; the string comparison checks for empty values
 func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
 	// ValidatePartnerID checks if partner_id is any of the following:
 	//  * a valid UUID - will add "pid-" prefix to the ID if it is not already present
@@ -66,9 +67,7 @@ func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
 
 	// Check for pid=<guid> (without the -partnercenter suffix)
 	if strings.HasPrefix(v, "pid-") && !strings.HasSuffix(v, "-partnercenter") {
-		g := strings.TrimPrefix(v, "pid-")
-
-		if _, err := validation.IsUUID(g, ""); err != nil {
+		if _, err := validation.IsUUID(strings.TrimPrefix(v, "pid-"), ""); err != nil {
 			return nil, []error{fmt.Errorf("expected %q to be a valid UUID", k)}
 		}
 
@@ -384,7 +383,7 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 }
 
 // providerConfigure is used to configure the cloud environment and authentication.
-// To configure behavioral aspects of the provider, use the buildClient function instead.
+// To configure behavioural aspects of the provider, use the buildClient function instead.
 // This separation allows us to robustly test different authentication scenarios.
 func providerConfigure(p *schema.Provider, testName string) schema.ConfigureContextFunc {
 	return func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
@@ -495,7 +494,7 @@ func providerConfigure(p *schema.Provider, testName string) schema.ConfigureCont
 	}
 }
 
-// buildClient is used to configure behavioral aspects of the provider. To configure the
+// buildClient is used to configure behavioural aspects of the provider. To configure the
 // cloud environment and authentication-related settings, use the providerConfigure function.
 func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData, authConfig *auth.Credentials, testName string) (*clients.Client, diag.Diagnostics) {
 	providerRegistrations := d.Get("resource_provider_registrations").(string)

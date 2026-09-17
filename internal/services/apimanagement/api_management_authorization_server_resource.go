@@ -55,17 +55,8 @@ func resourceApiManagementAuthorizationServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(authorizationserver.AuthorizationMethodDELETE),
-						string(authorizationserver.AuthorizationMethodGET),
-						string(authorizationserver.AuthorizationMethodHEAD),
-						string(authorizationserver.AuthorizationMethodOPTIONS),
-						string(authorizationserver.AuthorizationMethodPATCH),
-						string(authorizationserver.AuthorizationMethodPOST),
-						string(authorizationserver.AuthorizationMethodPUT),
-						string(authorizationserver.AuthorizationMethodTRACE),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(authorizationserver.PossibleValuesForAuthorizationMethod(), false),
 				},
 				Set: pluginsdk.HashString,
 			},
@@ -92,13 +83,8 @@ func resourceApiManagementAuthorizationServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(authorizationserver.GrantTypeAuthorizationCode),
-						string(authorizationserver.GrantTypeClientCredentials),
-						string(authorizationserver.GrantTypeImplicit),
-						string(authorizationserver.GrantTypeResourceOwnerPassword),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(authorizationserver.PossibleValuesForGrantType(), false),
 				},
 				Set: pluginsdk.HashString,
 			},
@@ -108,11 +94,8 @@ func resourceApiManagementAuthorizationServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(authorizationserver.BearerTokenSendingMethodAuthorizationHeader),
-						string(authorizationserver.BearerTokenSendingMethodQuery),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(authorizationserver.PossibleValuesForBearerTokenSendingMethod(), false),
 				},
 				Set: pluginsdk.HashString,
 			},
@@ -121,11 +104,8 @@ func resourceApiManagementAuthorizationServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(authorizationserver.ClientAuthenticationMethodBasic),
-						string(authorizationserver.ClientAuthenticationMethodBody),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(authorizationserver.PossibleValuesForClientAuthenticationMethod(), false),
 				},
 				Set: pluginsdk.HashString,
 			},

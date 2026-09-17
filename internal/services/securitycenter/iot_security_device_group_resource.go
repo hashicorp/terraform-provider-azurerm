@@ -10,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -19,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceIotSecurityDeviceGroup() *pluginsdk.Resource {
@@ -165,12 +165,12 @@ func resourceIotSecurityDeviceGroupCreateUpdate(d *pluginsdk.ResourceData, meta 
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			server, err := client.Get(ctx, id.IotHubID, id.Name)
 			if err != nil {
-				if !utils.ResponseWasNotFound(server.Response) {
+				if !response.WasNotFound(server.Response.Response) {
 					return fmt.Errorf("checking for presence of existing Device Security Group for %q: %+v", id.ID(), err)
 				}
 			}
 
-			if !utils.ResponseWasNotFound(server.Response) {
+			if !response.WasNotFound(server.Response.Response) {
 				return tf.ImportAsExistsError("azurerm_iot_security_device_group", id.ID())
 			}
 		}
@@ -207,7 +207,7 @@ func resourceIotSecurityDeviceGroupRead(d *pluginsdk.ResourceData, meta interfac
 
 	resp, err := client.Get(ctx, id.IotHubID, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("Device Security Group not found for %q: %+v", id.ID(), err)
 			d.SetId("")
 			return nil

@@ -168,7 +168,7 @@ func resourceApplicationInsightsSmartDetectionRuleDelete(d *pluginsdk.ResourceDa
 		return err
 	}
 
-	log.Printf("[DEBUG] reseting AzureRM Application Insights Smart Detection Rule %s", id)
+	log.Printf("[DEBUG] resetting AzureRM Application Insights Smart Detection Rule %s", id)
 
 	resp, err := client.ProactiveDetectionConfigurationsGet(ctx, *id)
 	if err != nil {
