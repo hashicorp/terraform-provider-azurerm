@@ -1,3 +1,6 @@
+# Copyright IBM Corp. 2014, 2026
+# SPDX-License-Identifier: MPL-2.0
+
 changelog_file            = "CHANGELOG.md"
 default_version_increment = "minor"
 
