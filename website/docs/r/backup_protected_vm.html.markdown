@@ -10,7 +10,7 @@ description: |-
 
 Manages an Azure Backup Protected Virtual Machine.
 
-~> **Note:** Destroying this resource deletes the backup item according to the vault's soft-delete settings. To retain data, enable [`vm_backup_stop_protection_and_retain_data_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#recovery_service).
+!> **Note:** Destroying this resource deletes the backup item according to the vault's soft-delete settings. To retain data, enable [`vm_backup_stop_protection_and_retain_data_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#recovery_service).
 
 ~> **Note:** For vaults with Resource Guard, the provider identity needs [permission for protected operations](https://learn.microsoft.com/azure/backup/multi-user-authorization-concept). If Terraform manages the Guard association, add it to this resource's `depends_on` so the backup is destroyed first.
 
@@ -78,7 +78,9 @@ The following arguments are supported:
 
 * `include_disk_luns` - (Optional) A list of Disks' Logical Unit Numbers (LUN) to be included for VM Protection.
 
-* `protection_state` - (Optional) Specifies Protection state of the backup. Possible values are `Protected`, `BackupsSuspended`, and `ProtectionStopped`. To switch between `BackupsSuspended` and `ProtectionStopped`, first set this to `Protected` and apply to resume protection.
+* `protection_state` - (Optional) Specifies Protection state of the backup. Possible values are `Protected`, `BackupsSuspended`, and `ProtectionStopped`.
+
+~> **Note:** To switch between `BackupsSuspended` and `ProtectionStopped`, first set this to `Protected` and apply to resume protection.
 
 ~> **Note:** `protection_state` cannot be set to `BackupsSuspended` unless the `azurerm_recovery_services_vault` has `immutability` set to `Unlocked` or `Locked`.
 

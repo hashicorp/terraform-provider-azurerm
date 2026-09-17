@@ -12,5 +12,5 @@ const (
 	GuardOperationGetSecurityPIN               = "Microsoft.RecoveryServices/vaults/backupSecurityPIN/action"
 	GuardOperationDisableSoftDelete            = "Microsoft.RecoveryServices/vaults/backupconfig/write"
 	GuardOperationReduceImmutabilityState      = "Microsoft.RecoveryServices/vaults/write#reduceImmutabilityState"
-	GuardOperationTriggerResotre               = "Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers/protectedItems/recoveryPoints/restore/action"
+	GuardOperationTriggerRestore               = "Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers/protectedItems/recoveryPoints/restore/action"
 )
