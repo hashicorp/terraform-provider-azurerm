@@ -150,7 +150,7 @@ func resourceFirewall() *pluginsdk.Resource {
 			"threat_intel_mode": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice(azurefirewalls.PossibleValuesForAzureFirewallThreatIntelMode(), false),
 			},
 
@@ -167,7 +167,7 @@ func resourceFirewall() *pluginsdk.Resource {
 			"dns_proxy_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"private_ip_ranges": {
@@ -682,7 +682,7 @@ func expandFirewallAdditionalProperty(d *pluginsdk.ResourceData) map[string]stri
 
 func flattenFirewallAdditionalProperty(input *map[string]string) (enabled interface{}, servers []interface{}) {
 	if input == nil || len(*input) == 0 {
-		return nil, nil
+		return nil, []interface{}{}
 	}
 
 	if enabledPtr, ok := (*input)["Network.DNS.EnableProxy"]; ok {
@@ -690,7 +690,7 @@ func flattenFirewallAdditionalProperty(input *map[string]string) (enabled interf
 	}
 
 	if serversPtr, ok := (*input)["Network.DNS.Servers"]; ok {
-		for _, val := range strings.Split(serversPtr, ",") {
+		for val := range strings.SplitSeq(serversPtr, ",") {
 			servers = append(servers, val)
 		}
 	}
@@ -715,7 +715,7 @@ func expandFirewallPrivateIpRange(input []interface{}) map[string]string {
 
 func flattenFirewallPrivateIpRange(input *map[string]string) []interface{} {
 	if input == nil || len(*input) == 0 {
-		return nil
+		return []interface{}{}
 	}
 
 	attrs := *input
@@ -753,7 +753,7 @@ func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, inp
 						// In case of scale down, keep the first new "Count" addresses.
 						if oldCount > newCount {
 							keptAddresses := make([]azurefirewalls.AzureFirewallPublicIPAddress, newCount)
-							for i := 0; i < newCount; i++ {
+							for i := range newCount {
 								keptAddresses[i] = (*addresses)[i]
 							}
 							addresses = &keptAddresses
@@ -777,7 +777,7 @@ func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, inp
 
 func flattenFirewallVirtualHubSetting(props *azurefirewalls.AzureFirewallPropertiesFormat) []interface{} {
 	if props.VirtualHub == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	var (

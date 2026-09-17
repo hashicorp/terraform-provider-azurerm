@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"maps"
 	"strconv"
 	"strings"
 	"time"
@@ -102,7 +103,7 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"app_settings": {
 			Type:     pluginsdk.TypeMap,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -123,7 +124,7 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"client_affinity_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"client_certificate_mode": {
@@ -164,7 +165,7 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"connection_string": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -244,7 +245,7 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_account_share_name": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"version": {
@@ -909,17 +910,12 @@ var (
 )
 
 func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([]webapps.NameValuePair, error) {
-	appKindPropName := "APP_KIND"
-	appKindPropValue := "workflowApp"
-
 	var storageConnection string
 	if d.StorageKeyVaultSecretID != "" {
 		storageConnection = fmt.Sprintf(helpers.StorageStringFmtKV, d.StorageKeyVaultSecretID)
 	} else {
 		storageConnection = fmt.Sprintf(helpers.StorageStringFmt, d.StorageAccountName, d.StorageAccountAccessKey, endpointSuffix)
 	}
-
-	functionVersion := d.Version
 
 	contentShare := strings.ToLower(d.Name) + "-content"
 	if d.StorageAccountShareName != "" {
@@ -928,16 +924,13 @@ func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([
 
 	basicSettings := []webapps.NameValuePair{
 		{Name: &storageAppSettingName, Value: &storageConnection},
-		{Name: &functionVersionAppSettingName, Value: &functionVersion},
-		{Name: &appKindPropName, Value: &appKindPropValue},
+		{Name: &functionVersionAppSettingName, Value: pointer.To(d.Version)},
+		{Name: pointer.To("APP_KIND"), Value: pointer.To("workflowApp")},
 		{Name: &contentShareAppSettingName, Value: &contentShare},
 		{Name: &contentFileConnStringAppSettingName, Value: &storageConnection},
 	}
 
 	if d.UseExtensionBundle {
-		extensionBundlePropName := "AzureFunctionsJobHost__extensionBundle__id"
-		extensionBundleName := "Microsoft.Azure.Functions.ExtensionBundle.Workflows"
-		extensionBundleVersionPropName := "AzureFunctionsJobHost__extensionBundle__version"
 		extensionBundleVersion := d.BundleVersion
 
 		if extensionBundleVersion == "" {
@@ -947,8 +940,8 @@ func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([
 		}
 
 		bundleSettings := []webapps.NameValuePair{
-			{Name: &extensionBundlePropName, Value: &extensionBundleName},
-			{Name: &extensionBundleVersionPropName, Value: &extensionBundleVersion},
+			{Name: pointer.To("AzureFunctionsJobHost__extensionBundle__id"), Value: pointer.To("Microsoft.Azure.Functions.ExtensionBundle.Workflows")},
+			{Name: pointer.To("AzureFunctionsJobHost__extensionBundle__version"), Value: &extensionBundleVersion},
 		}
 
 		return append(basicSettings, bundleSettings...), nil
@@ -1010,7 +1003,7 @@ func flattenLogicAppStandardIpRestriction(input *[]webapps.IPSecurityRestriction
 	restrictions := make([]interface{}, 0)
 
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	for _, v := range *input {
@@ -1313,17 +1306,13 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]inte
 		addOrUpdate[k] = v
 	}
 
-	for k, v := range cMap {
-		addOrUpdate[k] = v
-	}
+	maps.Copy(addOrUpdate, cMap)
 
 	for k := range remove {
 		delete(eMap, k)
 	}
 
-	for k, v := range addOrUpdate {
-		eMap[k] = v
-	}
+	maps.Copy(eMap, addOrUpdate)
 
 	return pointer.To(expandAppSettings(eMap))
 }

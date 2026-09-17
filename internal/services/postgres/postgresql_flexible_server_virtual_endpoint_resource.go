@@ -348,8 +348,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Update() sdk.ResourceFu
 
 			// the id has changed and needs to be updated
 			replicaEndpointId := virtualendpoints.NewVirtualEndpointID(replicaServerId.SubscriptionId, replicaServerId.ResourceGroupName, replicaServerId.FlexibleServerName, virtualEndpoint.Name)
-			endPointId := commonids.NewCompositeResourceID(&virtualEndpointId, &replicaEndpointId)
-			metadata.SetID(endPointId)
+			metadata.SetID(commonids.NewCompositeResourceID(&virtualEndpointId, &replicaEndpointId))
 
 			return nil
 		},

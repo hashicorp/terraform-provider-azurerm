@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	managmentGroupParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
+	managementGroupParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	managementGroupValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
@@ -27,12 +27,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceArmManagementGroupPolicyExemption() *pluginsdk.Resource {
+func resourceManagementGroupPolicyExemption() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmManagementGroupPolicyExemptionCreateUpdate,
-		Read:   resourceArmManagementGroupPolicyExemptionRead,
-		Update: resourceArmManagementGroupPolicyExemptionCreateUpdate,
-		Delete: resourceArmManagementGroupPolicyExemptionDelete,
+		Create: resourceManagementGroupPolicyExemptionCreateUpdate,
+		Read:   resourceManagementGroupPolicyExemptionRead,
+		Update: resourceManagementGroupPolicyExemptionCreateUpdate,
+		Delete: resourceManagementGroupPolicyExemptionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ResourcePolicyExemptionID(id)
@@ -62,12 +62,9 @@ func resourceArmManagementGroupPolicyExemption() *pluginsdk.Resource {
 			},
 
 			"exemption_category": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(policy.ExemptionCategoryMitigated),
-					string(policy.ExemptionCategoryWaiver),
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInEnumSlice(policy.PossibleExemptionCategoryValues(), false),
 			},
 
 			"policy_assignment_id": {
@@ -108,14 +105,14 @@ func resourceArmManagementGroupPolicyExemption() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmManagementGroupPolicyExemptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagementGroupPolicyExemptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.ExemptionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := parse.NewResourcePolicyExemptionId(d.Get("management_group_id").(string), d.Get("name").(string))
 
-	managementGroupId, err := managmentGroupParse.ManagementGroupID(id.ResourceId)
+	managementGroupId, err := managementGroupParse.ManagementGroupID(id.ResourceId)
 	if err != nil {
 		return err
 	}
@@ -174,10 +171,10 @@ func resourceArmManagementGroupPolicyExemptionCreateUpdate(d *pluginsdk.Resource
 		d.SetId(id.ID())
 	}
 
-	return resourceArmManagementGroupPolicyExemptionRead(d, meta)
+	return resourceManagementGroupPolicyExemptionRead(d, meta)
 }
 
-func resourceArmManagementGroupPolicyExemptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagementGroupPolicyExemptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.ExemptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -187,7 +184,7 @@ func resourceArmManagementGroupPolicyExemptionRead(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("reading Policy Exemption: %+v", err)
 	}
 
-	managementGroupId, err := managmentGroupParse.ManagementGroupID(id.ResourceId)
+	managementGroupId, err := managementGroupParse.ManagementGroupID(id.ResourceId)
 	if err != nil {
 		return err
 	}
@@ -229,7 +226,7 @@ func resourceArmManagementGroupPolicyExemptionRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceArmManagementGroupPolicyExemptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagementGroupPolicyExemptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.ExemptionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -239,7 +236,7 @@ func resourceArmManagementGroupPolicyExemptionDelete(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("reading Policy Exemption: %+v", err)
 	}
 
-	managementGroupId, err := managmentGroupParse.ManagementGroupID(id.ResourceId)
+	managementGroupId, err := managementGroupParse.ManagementGroupID(id.ResourceId)
 	if err != nil {
 		return err
 	}

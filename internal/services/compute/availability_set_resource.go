@@ -145,9 +145,8 @@ func resourceAvailabilitySetCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if managed {
-		n := "Aligned"
 		payload.Sku = &availabilitysets.Sku{
-			Name: &n,
+			Name: pointer.To("Aligned"),
 		}
 	}
 
