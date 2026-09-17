@@ -540,7 +540,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				poolNameChange := d.HasChange("pool_name")
 
 				// `service_level` and `pool_name` must be updated together or we ForceNew the resource
-				// https://learn.microsoft.com/en-us/azure/azure-netapp-files/dynamic-change-volume-service-level
+				// https://learn.microsoft.com/azure/azure-netapp-files/dynamic-change-volume-service-level
 				if serviceLevelChange && !poolNameChange {
 					return d.ForceNew("service_level")
 				}

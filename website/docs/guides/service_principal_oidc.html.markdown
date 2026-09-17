@@ -79,7 +79,7 @@ Where the body is:
 }
 ```
 
-See the [official documentation](https://docs.microsoft.com/en-us/azure/active-directory/develop/workload-identity-federation-create-trust-github) for more details.
+See the [official documentation](https://docs.microsoft.com/azure/active-directory/develop/workload-identity-federation-create-trust-github) for more details.
 
 ### Configure Azure Active Directory Application / Managed Identity to Trust an Azure DevOps Service Connection
 
@@ -89,7 +89,7 @@ An application or managed identity requires a federated credential for each Azur
 
 The simplest method for setting up federation is to create a new **Workload Identity federation (automatic)** in Azure DevOps. This will automatically create a new app registration in your tenant. Alternatively, if you want to retain your existing connection, you can convert an existing secret-based connection to a federated one using the provided `Convert` option in the service connection overview. This may have some implications for your pipelines, but there is a rollback option available.
 
-For more details, refer to [the official documentation](https://learn.microsoft.com/en-gb/azure/devops/pipelines/library/connect-to-azure?view=azure-devops#create-a-new-workload-identity-federation-service-connection) for more details.
+For more details, refer to [the official documentation](https://learn.microsoft.com/azure/devops/pipelines/library/connect-to-azure?view=azure-devops#create-a-new-workload-identity-federation-service-connection) for more details.
 
 #### Manual Configuration - Managed Identity / App Registration
 

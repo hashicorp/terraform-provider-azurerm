@@ -105,7 +105,7 @@ A `data_protection_advanced_ransomware` block exports the following:
 
 * `protection_enabled` - Whether the Advanced Ransomware Protection feature is enabled.
 
-~> **Note:** For performance considerations and supported regions, please refer to the [Azure documentation](https://learn.microsoft.com/en-us/azure/azure-netapp-files/ransomware-configure).
+~> **Note:** For performance considerations and supported regions, please refer to the [Azure documentation](https://learn.microsoft.com/azure/azure-netapp-files/ransomware-configure).
 
 ---
 
