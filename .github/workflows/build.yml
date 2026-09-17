@@ -24,6 +24,9 @@ on:
     paths:
       - 'version/VERSION' # and the version file, anything else is redundant for preparing releases
 
+permissions:
+  contents: read
+
 env:
   PKG_NAME: "terraform-provider-azurerm"
 
