@@ -146,14 +146,14 @@ func dataSourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("retreiving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	d.SetId(id.ID())
 
 	infoId := agentregistrationinformation.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName)
 	infoResp, err := iclient.Get(ctx, infoId)
 	if err != nil {
-		return fmt.Errorf("retreiving Agent Registration Information for %s: %+v", id, err)
+		return fmt.Errorf("retrieving Agent Registration Information for %s: %+v", id, err)
 	}
 
 	if model := resp.Model; model != nil {

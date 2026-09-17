@@ -946,13 +946,12 @@ func expandCdnFrontDoorFirewallMatchConditions(input []interface{}) []waf.MatchC
 		matchVariable := match["match_variable"].(string)
 		selector := match["selector"].(string)
 		operator := match["operator"].(string)
-		negateCondition := match["negation_condition"].(bool)
 		matchValues := helpers.ExpandStringSlice(match["match_values"].([]interface{}))
 		transforms := match["transforms"].([]interface{})
 
 		matchCondition := waf.MatchCondition{
 			Operator:        waf.Operator(operator),
-			NegateCondition: &negateCondition,
+			NegateCondition: pointer.To(match["negation_condition"].(bool)),
 			MatchValue:      *matchValues,
 			Transforms:      expandCdnFrontDoorFirewallTransforms(transforms),
 		}
@@ -1162,12 +1161,12 @@ func expandCdnFrontDoorFirewallScrubbingRules(input []interface{}) (*[]waf.WebAp
 		v := rule.(map[string]interface{})
 		var item waf.WebApplicationFirewallScrubbingRules
 
-		enalbed := waf.ScrubbingRuleEntryStateDisabled
+		enabled := waf.ScrubbingRuleEntryStateDisabled
 		if value := v["enabled"].(bool); value {
-			enalbed = waf.ScrubbingRuleEntryStateEnabled
+			enabled = waf.ScrubbingRuleEntryStateEnabled
 		}
 
-		item.State = pointer.To(enalbed)
+		item.State = pointer.To(enabled)
 		item.MatchVariable = waf.ScrubbingRuleEntryMatchVariable(v["match_variable"].(string))
 		item.SelectorMatchOperator = waf.ScrubbingRuleEntryMatchOperator(v["operator"].(string))
 
