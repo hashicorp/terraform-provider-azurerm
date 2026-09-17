@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"maps"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -495,7 +496,7 @@ func (br assignmentBaseResource) arguments(fields map[string]*pluginsdk.Schema) 
 						},
 					},
 
-					// more detail see https://learn.microsoft.com/en-us/azure/governance/policy/concepts/effects
+					// more detail see https://learn.microsoft.com/azure/governance/policy/concepts/effects
 					"value": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
@@ -534,7 +535,7 @@ func (br assignmentBaseResource) arguments(fields map[string]*pluginsdk.Schema) 
 									Required: true,
 									ValidateFunc: validation.StringInSlice([]string{
 										// only 3 types supported for resourceSelector Kind
-										// https://learn.microsoft.com/en-us/azure/governance/policy/concepts/assignment-structure#resource-selectors-preview
+										// https://learn.microsoft.com/azure/governance/policy/concepts/assignment-structure#resource-selectors-preview
 										string(policyassignments.SelectorKindResourceLocation),
 										string(policyassignments.SelectorKindResourceType),
 										string(policyassignments.SelectorKindResourceWithoutLocation),
@@ -556,9 +557,7 @@ func (br assignmentBaseResource) arguments(fields map[string]*pluginsdk.Schema) 
 		},
 	}
 
-	for k, v := range fields {
-		output[k] = v
-	}
+	maps.Copy(output, fields)
 
 	return output
 }

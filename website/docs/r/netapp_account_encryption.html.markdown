@@ -10,7 +10,7 @@ description: |-
 
 Manages a NetApp Account Encryption Resource.
 
-For more information about Azure NetApp Files Customer-Managed Keys feature, please refer to [Configure customer-managed keys for Azure NetApp Files volume encryption](https://learn.microsoft.com/en-us/azure/azure-netapp-files/configure-customer-managed-keys)
+For more information about Azure NetApp Files Customer-Managed Keys feature, please refer to [Configure customer-managed keys for Azure NetApp Files volume encryption](https://learn.microsoft.com/azure/azure-netapp-files/configure-customer-managed-keys)
 
 ## Example Usage
 
@@ -140,7 +140,7 @@ The following arguments are supported:
 
 ---
 
-* `system_assigned_identity_principal_id` - (Optional) The ID of the System Assigned Manged Identity. Conflicts with `user_assigned_identity_id`.
+* `system_assigned_identity_principal_id` - (Optional) The ID of the System Assigned Managed Identity. Conflicts with `user_assigned_identity_id`.
 
 * `user_assigned_identity_id` - (Optional) The ID of the User Assigned Managed Identity. Conflicts with `system_assigned_identity_principal_id`.
 

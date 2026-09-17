@@ -46,7 +46,7 @@ func TestWindowsAdminPassword(t *testing.T) {
 			expected: false,
 		},
 		{
-			// bad: "_" doesnt count as special character
+			// bad: "_" doesn't count as special character
 			input:    "A9BC_7AB",
 			expected: false,
 		},

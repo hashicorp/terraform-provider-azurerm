@@ -575,13 +575,12 @@ func expandFrontDoorFirewallMatchConditions(input []interface{}) []webapplicatio
 		matchVariable := match["match_variable"].(string)
 		selector := match["selector"].(string)
 		operator := match["operator"].(string)
-		negateCondition := match["negation_condition"].(bool)
 		matchValues := match["match_values"].([]interface{})
 		transforms := match["transforms"].([]interface{})
 
 		matchCondition := webapplicationfirewallpolicies.MatchCondition{
 			Operator:        webapplicationfirewallpolicies.Operator(operator),
-			NegateCondition: &negateCondition,
+			NegateCondition: pointer.To(match["negation_condition"].(bool)),
 			MatchValue:      *helpers.ExpandStringSlice(matchValues),
 			Transforms:      expandFrontDoorFirewallTransforms(transforms),
 		}
@@ -714,12 +713,11 @@ func expandFrontDoorFirewallRuleOverride(input []interface{}) *[]webapplicationf
 			enabled = webapplicationfirewallpolicies.ManagedRuleEnabledStateEnabled
 		}
 		ruleId := rule["rule_id"].(string)
-		action := webapplicationfirewallpolicies.ActionType(rule["action"].(string))
 
 		managedRuleOverride := webapplicationfirewallpolicies.ManagedRuleOverride{
 			RuleId:       ruleId,
 			EnabledState: &enabled,
-			Action:       &action,
+			Action:       pointer.ToEnum[webapplicationfirewallpolicies.ActionType](rule["action"].(string)),
 		}
 
 		if exclusions := expandFrontDoorFirewallManagedRuleGroupExclusion(rule["exclusion"].([]interface{})); exclusions != nil {

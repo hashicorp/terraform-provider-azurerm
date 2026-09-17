@@ -700,8 +700,7 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 	}
 
 	if v, ok := d.GetOk("authorization_key"); ok {
-		authorizationKey := v.(string)
-		props.AuthorizationKey = &authorizationKey
+		props.AuthorizationKey = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("dpd_timeout_seconds"); ok {
@@ -709,9 +708,8 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 	}
 
 	if v, ok := d.GetOk("express_route_circuit_id"); ok {
-		expressRouteCircuitId := v.(string)
 		props.Peer = &virtualnetworkgatewayconnections.SubResource{
-			Id: &expressRouteCircuitId,
+			Id: pointer.To(v.(string)),
 		}
 	}
 

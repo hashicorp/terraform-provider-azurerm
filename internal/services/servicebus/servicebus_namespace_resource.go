@@ -17,8 +17,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespacesauthorizationrule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespacesauthorizationrule"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -146,6 +146,7 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 				Default:  string(namespaces.TlsVersionOnePointTwo),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(namespaces.TlsVersionOnePointTwo),
+					string(namespaces.TlsVersionOnePointThree),
 				}, false),
 			},
 
@@ -296,13 +297,12 @@ func resourceServiceBusNamespaceCreate(d *pluginsdk.ResourceData, meta interface
 		publicNetworkEnabled = namespaces.PublicNetworkAccessDisabled
 	}
 
-	s := namespaces.SkuTier(sku)
 	parameters := namespaces.SBNamespace{
 		Location: location,
 		Identity: identity,
 		Sku: &namespaces.SBSku{
 			Name: namespaces.SkuName(sku),
-			Tier: &s,
+			Tier: pointer.ToEnum[namespaces.SkuTier](sku),
 		},
 		Properties: &namespaces.SBNamespaceProperties{
 			Encryption:          expandServiceBusNamespaceEncryption(d.Get("customer_managed_key").([]interface{})),
@@ -313,8 +313,7 @@ func resourceServiceBusNamespaceCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if tlsValue := d.Get("minimum_tls_version").(string); tlsValue != "" {
-		minimumTls := namespaces.TlsVersion(tlsValue)
-		parameters.Properties.MinimumTlsVersion = &minimumTls
+		parameters.Properties.MinimumTlsVersion = pointer.ToEnum[namespaces.TlsVersion](tlsValue)
 	}
 
 	if capacity := d.Get("capacity"); capacity != nil {
@@ -394,10 +393,9 @@ func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if d.HasChange("sku") {
 		sku := d.Get("sku").(string)
-		s := namespaces.SkuTier(sku)
 		payload.Sku = &namespaces.SBSku{
 			Name: namespaces.SkuName(sku),
-			Tier: &s,
+			Tier: pointer.ToEnum[namespaces.SkuTier](sku),
 		}
 	}
 
@@ -591,10 +589,9 @@ func expandServiceBusNamespaceEncryption(input []interface{}) *namespaces.Encryp
 	}
 	v := input[0].(map[string]interface{})
 	keyId, _ := keyvault.ParseNestedItemID(v["key_vault_key_id"].(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
-	keySource := namespaces.KeySourceMicrosoftPointKeyVault
 
 	encryption := namespaces.Encryption{
-		KeySource:                       &keySource,
+		KeySource:                       pointer.To(namespaces.KeySourceMicrosoftPointKeyVault),
 		RequireInfrastructureEncryption: pointer.To(v["infrastructure_encryption_enabled"].(bool)),
 	}
 
@@ -713,14 +710,12 @@ func createNetworkRuleSetForNamespace(ctx context.Context, client *namespaces.Na
 		return fmt.Errorf(" The `default_action` of `network_rule_set` can only be set to `Allow` if no `ip_rules` or `network_rules` is set")
 	}
 
-	publicNetworkAccess := namespaces.PublicNetworkAccessFlag(publicNetworkAcc)
-
 	parameters := namespaces.NetworkRuleSet{
 		Properties: &namespaces.NetworkRuleSetProperties{
 			DefaultAction:               &defaultAction,
 			VirtualNetworkRules:         vnetRule,
 			IPRules:                     ipRule,
-			PublicNetworkAccess:         &publicNetworkAccess,
+			PublicNetworkAccess:         pointer.ToEnum[namespaces.PublicNetworkAccessFlag](publicNetworkAcc),
 			TrustedServiceAccessEnabled: pointer.To(item["trusted_services_allowed"].(bool)),
 		},
 	}
@@ -733,10 +728,9 @@ func createNetworkRuleSetForNamespace(ctx context.Context, client *namespaces.Na
 }
 
 func resetNetworkRuleSetForNamespace(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) error {
-	defaultAction := namespaces.DefaultActionAllow
 	parameters := namespaces.NetworkRuleSet{
 		Properties: &namespaces.NetworkRuleSetProperties{
-			DefaultAction: &defaultAction,
+			DefaultAction: pointer.To(namespaces.DefaultActionAllow),
 		},
 	}
 
@@ -822,12 +816,11 @@ func expandServiceBusNamespaceIPRules(input []interface{}) *[]namespaces.NWRuleS
 		return nil
 	}
 
-	action := namespaces.NetworkRuleIPActionAllow
 	result := make([]namespaces.NWRuleSetIPRules, 0, len(input))
 	for _, v := range input {
 		result = append(result, namespaces.NWRuleSetIPRules{
 			IPMask: pointer.To(v.(string)),
-			Action: &action,
+			Action: pointer.To(namespaces.NetworkRuleIPActionAllow),
 		})
 	}
 

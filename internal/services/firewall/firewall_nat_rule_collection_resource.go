@@ -417,9 +417,6 @@ func expandFirewallNatRules(input []interface{}) (*[]azurefirewalls.AzureFirewal
 			destinationPorts = append(destinationPorts, v.(string))
 		}
 
-		translatedAddress := rule["translated_address"].(string)
-		translatedPort := rule["translated_port"].(string)
-
 		ruleToAdd := azurefirewalls.AzureFirewallNatRule{
 			Name:                 pointer.To(name),
 			Description:          pointer.To(description),
@@ -427,8 +424,8 @@ func expandFirewallNatRules(input []interface{}) (*[]azurefirewalls.AzureFirewal
 			SourceIPGroups:       &sourceIpGroups,
 			DestinationAddresses: &destinationAddresses,
 			DestinationPorts:     &destinationPorts,
-			TranslatedAddress:    &translatedAddress,
-			TranslatedPort:       &translatedPort,
+			TranslatedAddress:    pointer.To(rule["translated_address"].(string)),
+			TranslatedPort:       pointer.To(rule["translated_port"].(string)),
 		}
 
 		nrProtocols := make([]azurefirewalls.AzureFirewallNetworkRuleProtocol, 0)

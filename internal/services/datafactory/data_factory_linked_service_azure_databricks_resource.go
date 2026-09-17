@@ -386,8 +386,7 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 			}
 		}
 
-		initScripts := newClusterMap["init_scripts"]
-		databricksProperties.NewClusterInitScripts = &initScripts
+		databricksProperties.NewClusterInitScripts = pointer.To(newClusterMap["init_scripts"])
 	}
 
 	databricksLinkedService := &datafactory.AzureDatabricksLinkedService{
@@ -409,8 +408,7 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		databricksLinkedService.Annotations = &annotations
+		databricksLinkedService.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/privateendpoints"
@@ -254,10 +255,9 @@ func resourceWebpubsubNetworkACLDelete(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
-	defaultAction := webpubsub.ACLActionDeny
 	var denyRequestTypes []webpubsub.WebPubSubRequestType
 	networkACL := &webpubsub.WebPubSubNetworkACLs{
-		DefaultAction: &defaultAction,
+		DefaultAction: pointer.To(webpubsub.ACLActionDeny),
 		PublicNetwork: &webpubsub.NetworkACL{
 			Allow: &defaultRequestTypes,
 			Deny:  &denyRequestTypes,

@@ -445,28 +445,23 @@ func ExpandBatchPoolImageReference(list []interface{}) (*pool.ImageReference, er
 	imageRef := &pool.ImageReference{}
 
 	if storageImageRef["id"] != nil && storageImageRef["id"] != "" {
-		storageImageRefID := storageImageRef["id"].(string)
-		imageRef.Id = &storageImageRefID
+		imageRef.Id = pointer.To(storageImageRef["id"].(string))
 	}
 
 	if storageImageRef["offer"] != nil && storageImageRef["offer"] != "" {
-		storageImageRefOffer := storageImageRef["offer"].(string)
-		imageRef.Offer = &storageImageRefOffer
+		imageRef.Offer = pointer.To(storageImageRef["offer"].(string))
 	}
 
 	if storageImageRef["publisher"] != nil && storageImageRef["publisher"] != "" {
-		storageImageRefPublisher := storageImageRef["publisher"].(string)
-		imageRef.Publisher = &storageImageRefPublisher
+		imageRef.Publisher = pointer.To(storageImageRef["publisher"].(string))
 	}
 
 	if storageImageRef["sku"] != nil && storageImageRef["sku"] != "" {
-		storageImageRefSku := storageImageRef["sku"].(string)
-		imageRef.Sku = &storageImageRefSku
+		imageRef.Sku = pointer.To(storageImageRef["sku"].(string))
 	}
 
 	if storageImageRef["version"] != nil && storageImageRef["version"] != "" {
-		storageImageRefVersion := storageImageRef["version"].(string)
-		imageRef.Version = &storageImageRefVersion
+		imageRef.Version = pointer.To(storageImageRef["version"].(string))
 	}
 
 	return imageRef, nil
@@ -541,15 +536,11 @@ func ExpandBatchPoolStartTask(list []interface{}) (*pool.StartTask, error) {
 
 	startTaskValue := list[0].(map[string]interface{})
 
-	startTaskCmdLine := startTaskValue["command_line"].(string)
-
 	maxTaskRetryCount := int64(1)
 
 	if v := startTaskValue["task_retry_maximum"].(int); v >= -1 {
 		maxTaskRetryCount = int64(v)
 	}
-
-	waitForSuccess := startTaskValue["wait_for_success"].(bool)
 
 	userIdentityList := startTaskValue["user_identity"].([]interface{})
 	if len(userIdentityList) == 0 {
@@ -633,9 +624,9 @@ func ExpandBatchPoolStartTask(list []interface{}) (*pool.StartTask, error) {
 	}
 
 	startTask := &pool.StartTask{
-		CommandLine:       &startTaskCmdLine,
+		CommandLine:       pointer.To(startTaskValue["command_line"].(string)),
 		MaxTaskRetryCount: &maxTaskRetryCount,
-		WaitForSuccess:    &waitForSuccess,
+		WaitForSuccess:    pointer.To(startTaskValue["wait_for_success"].(bool)),
 		UserIdentity:      &userIdentity,
 		ResourceFiles:     &resourceFiles,
 	}
@@ -905,11 +896,10 @@ func expandCommonEnvironmentProperties(env map[string]interface{}) *[]pool.Envir
 	envSettings := make([]pool.EnvironmentSetting, 0)
 
 	for k, v := range env {
-		theValue := v.(string)
 		theKey := k
 		envSetting := pool.EnvironmentSetting{
 			Name:  theKey,
-			Value: &theValue,
+			Value: pointer.To(v.(string)),
 		}
 
 		envSettings = append(envSettings, envSetting)

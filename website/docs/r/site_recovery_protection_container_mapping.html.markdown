@@ -105,7 +105,7 @@ An `automatic_update` block supports the following:
 
 * `authentication_type` - (Optional) The authentication type used for automation account. Possible values are `RunAsAccount` and `SystemAssignedIdentity`. Defaults to `SystemAssignedIdentity`.
 
-~> **Note:** `RunAsAccount` of `authentication_type` is deprecated and will retire on September 30, 2023. Details could be found [here](https://learn.microsoft.com/en-us/azure/automation/whats-new#support-for-run-as-accounts).
+~> **Note:** `RunAsAccount` of `authentication_type` is deprecated and will retire on September 30, 2023. Details could be found [here](https://learn.microsoft.com/azure/automation/whats-new#support-for-run-as-accounts).
 
 ## Attributes Reference
 

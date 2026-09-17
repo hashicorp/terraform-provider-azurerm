@@ -887,9 +887,8 @@ func expandLogicAppWorkflowOpenAuthenticationPolicy(input []interface{}) *map[st
 		v := item.(map[string]interface{})
 		policyName := v["name"].(string)
 
-		policyType := workflows.OpenAuthenticationProviderTypeAAD
 		results[policyName] = workflows.OpenAuthenticationAccessPolicy{
-			Type:   &policyType,
+			Type:   pointer.To(workflows.OpenAuthenticationProviderTypeAAD),
 			Claims: expandLogicAppWorkflowOpenAuthenticationPolicyClaim(v["claim"].(*pluginsdk.Set).List()),
 		}
 	}
