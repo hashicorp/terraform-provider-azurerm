@@ -47,8 +47,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `external_inbound_ip_addresses` - The external inbound IP addresses of the App Service Environment V3.
 
-* `inbound_network_dependencies` - An Inbound Network Dependencies block as defined below.
-
 * `internal_inbound_ip_addresses` - The internal inbound IP addresses of the App Service Environment V3.
 
 * `internal_load_balancing_mode` - The Internal Load Balancing Mode of this ASEv3.  
@@ -74,16 +72,6 @@ A `cluster_setting` block exports the following:
 * `name` - The name of the Cluster Setting.
 
 * `value` - The value for the Cluster Setting.
-
----
-
-An `inbound_network_dependencies` block exports the following:
-
-* `description` - A short description of the purpose of the network traffic.
-
-* `ip_addresses` - A list of IP addresses that network traffic will originate from in CIDR notation.
-
-* `ports` - The ports that network traffic will arrive to the App Service Environment V3 on.
 
 ## Timeouts
 
