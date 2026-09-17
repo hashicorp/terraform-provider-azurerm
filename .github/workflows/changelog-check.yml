@@ -3,7 +3,6 @@ name: changelog-check
 on:
   pull_request:
     types:
-      - "opened"
       - "synchronize"
       - "labeled"
       - "unlabeled"
