@@ -29,10 +29,15 @@ jobs:
           merge-multiple: true
         continue-on-error: true
 
+      - name: Read author association
+        id: author
+        if: steps.download.outcome == 'success'
+        run: echo "association=$(cat artifacts/author-association)" >> "$GITHUB_OUTPUT"
+
       - name: Comment on missing changelog entry - maintainers
         if: >
           steps.download.outcome == 'success' &&
-          contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+          contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), steps.author.outputs.association)
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           script: |
@@ -65,11 +70,12 @@ jobs:
               "If this PR does not require a changelog entry, add the `no-changelog-needed` label or check the box in the PR description."
             ].join("\n")
 
-            const { data: comments } = await github.rest.issues.listComments({
+            const { data: comments } = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: prNumber,
-            })
+              per_page: 100
+            });
 
             const botComments = comments.filter(c => c.user.login === 'github-actions[bot]')
             const existing = botComments.find(c => c.body.includes(marker))
@@ -104,7 +110,7 @@ jobs:
       - name: Comment on missing changelog entry - community
         if: >
           steps.download.outcome == 'success' &&
-          !contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+          !contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), steps.author.outputs.association)
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           script: |
@@ -131,11 +137,12 @@ jobs:
               "If this PR does not require a changelog entry, check the `This change does not require a changelog entry` box in the PR description."
             ].join("\n")
 
-            const { data: comments } = await github.rest.issues.listComments({
+            const { data: comments } = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: prNumber,
-            })
+              per_page: 100
+            });
 
             const botComments = comments.filter(c => c.user.login === 'github-actions[bot]')
             const existing = botComments.find(c => c.body.includes(marker))

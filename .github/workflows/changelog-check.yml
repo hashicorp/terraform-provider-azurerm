@@ -43,13 +43,15 @@ jobs:
         id: check
         run: changeloggy check --pr ${{ github.event.pull_request.number }}
 
-      - name: Save PR number
+      - name: Save metadata
         if: always()
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
         run: |
           mkdir -p artifacts
           echo "$PR_NUMBER" > artifacts/pr-number
+          echo "$AUTHOR_ASSOCIATION" > artifacts/author-association
 
       - name: Save types table on failure
         if: failure() && steps.check.outcome == 'failure'
