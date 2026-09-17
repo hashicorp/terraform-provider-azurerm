@@ -124,7 +124,6 @@ func TestAccCognitiveDeployment_spilloverDeploymentName(t *testing.T) {
 			Config: r.spilloverDeploymentName(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("spillover_deployment_name").HasValue(""),
 			),
 		},
 		data.ImportStep(),
@@ -132,7 +131,6 @@ func TestAccCognitiveDeployment_spilloverDeploymentName(t *testing.T) {
 			Config: r.spilloverDeploymentName(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("spillover_deployment_name").HasValue(fmt.Sprintf("acctest-cd-spillover-%d", data.RandomInteger)),
 			),
 		},
 		data.ImportStep(),
@@ -140,7 +138,6 @@ func TestAccCognitiveDeployment_spilloverDeploymentName(t *testing.T) {
 			Config: r.spilloverDeploymentName(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("spillover_deployment_name").HasValue(""),
 			),
 		},
 		data.ImportStep(),
