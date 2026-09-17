@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -466,16 +467,13 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 				// verify that the storage_tier is valid
 				// for the given storage_mb...
-				for _, tier := range *storageTiers.ValidTiers {
-					if newTier == tier {
-						isValid = true
-						break
-					}
+				if slices.Contains(*storageTiers.ValidTiers, newTier) {
+					isValid = true
 				}
 
 				if !isValid {
 					if strings.EqualFold(oldTierRaw.(string), newTier) {
-						// The tier value did not change, so we need to determin if they are
+						// The tier value did not change, so we need to determine if they are
 						// using the default value for the tier, or they actually defined the
 						// tier in the config or not... If they did not define
 						// the tier in the config we need to assign a new valid default
@@ -850,7 +848,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("fqdn", props.FullyQualifiedDomainName)
 
 			// According to the API spec, `sourceServerResourceId`(`source_server_id`) is only returned by the Azure REST API
-			// when `create_mode` is 'Replica'. For other create modes, this field is not returned, which is intended behavior of the API.
+			// when `create_mode` is 'Replica'. For other create modes, this field is not returned, which is intended behaviour of the API.
 			// Therefore, we populate this field from the API response if present; otherwise, we read the value from the configuration.
 			sourceResourceId := pointer.From(props.SourceServerResourceId)
 			if sourceResourceId == "" {
