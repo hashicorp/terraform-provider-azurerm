@@ -46,11 +46,13 @@ jobs:
           } >> "${GITHUB_OUTPUT}"
       - name: Add waiting-response on fail
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          PR_NUMBER: ${{ steps.env_vars.outputs.prnumber }}
         with:
           script: |
             github.rest.issues.addLabels({
-              issue_number: ${{ steps.env_vars.outputs.prnumber }},
-              owner: "${{ steps.env_vars.outputs.ghowner }}",
-              repo: "${{ steps.env_vars.outputs.ghrepo }}",
+              issue_number: parseInt(process.env.PR_NUMBER, 10),
+              owner: context.repo.owner,
+              repo: context.repo.repo,
               labels: ["waiting-response"]
             })
