@@ -17,23 +17,23 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ArmLoadBalancerProbeListResource struct{}
+type LoadBalancerProbeListResource struct{}
 
 type ArmLoadBalancerProbeListModel struct {
 	ProviderLoadBalancerId types.String `tfsdk:"loadbalancer_id"`
 }
 
-var _ sdk.FrameworkListWrappedResource = new(ArmLoadBalancerProbeListResource)
+var _ sdk.FrameworkListWrappedResource = new(LoadBalancerProbeListResource)
 
-func (ArmLoadBalancerProbeListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+func (LoadBalancerProbeListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
 	response.TypeName = azureLoadBalancerProbeResourceName
 }
 
-func (ArmLoadBalancerProbeListResource) ResourceFunc() *pluginsdk.Resource {
+func (LoadBalancerProbeListResource) ResourceFunc() *pluginsdk.Resource {
 	return resourceArmLoadBalancerProbe()
 }
 
-func (ArmLoadBalancerProbeListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
+func (LoadBalancerProbeListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{Attributes: map[string]schema.Attribute{
 		"loadbalancer_id": schema.StringAttribute{
 			Required: true,
@@ -44,7 +44,7 @@ func (ArmLoadBalancerProbeListResource) ListResourceConfigSchema(_ context.Conte
 	}}
 }
 
-func (ArmLoadBalancerProbeListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (LoadBalancerProbeListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.LoadBalancers.LoadBalancersClient
 
 	var data ArmLoadBalancerProbeListModel
