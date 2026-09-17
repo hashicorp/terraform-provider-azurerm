@@ -81,13 +81,10 @@ func (r AzureBotServiceResource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"sku": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(botservice.SkuNameF0),
-				string(botservice.SkuNameS1),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInEnumSlice(botservice.PossibleSkuNameValues(), false),
 		},
 
 		"microsoft_app_id": {
@@ -100,7 +97,7 @@ func (r AzureBotServiceResource) Arguments() map[string]*pluginsdk.Schema {
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -150,14 +147,10 @@ func (r AzureBotServiceResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"microsoft_app_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(botservice.MsaAppTypeMultiTenant),
-				string(botservice.MsaAppTypeSingleTenant),
-				string(botservice.MsaAppTypeUserAssignedMSI),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInEnumSlice(botservice.PossibleMsaAppTypeValues(), false),
 		},
 
 		"local_authentication_enabled": {

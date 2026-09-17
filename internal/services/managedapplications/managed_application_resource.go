@@ -100,7 +100,7 @@ func resourceManagedApplicationSchema() map[string]*pluginsdk.Schema {
 		"parameter_values": {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			Computed:         true,
+			Computed:         true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc:     validation.StringIsJSON,
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 		},
@@ -503,9 +503,8 @@ func expandManagedApplicationIdentity(input []interface{}) (*applications.Identi
 		return nil, err
 	}
 
-	resourceType := applications.ResourceIdentityType(expanded.Type)
 	out := &applications.Identity{
-		Type: &resourceType,
+		Type: pointer.ToEnum[applications.ResourceIdentityType](string(expanded.Type)),
 	}
 
 	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {

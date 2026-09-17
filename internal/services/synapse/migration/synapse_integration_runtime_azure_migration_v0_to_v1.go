@@ -7,7 +7,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/integrationruntimes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -58,7 +58,7 @@ func (s SynapseIntegrationRuntimeAzureV0ToV1) Schema() map[string]*pluginsdk.Sch
 func (s SynapseIntegrationRuntimeAzureV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldId := rawState["id"].(string)
-		newId, err := parse.IntegrationRuntimeIDInsensitively(oldId)
+		newId, err := integrationruntimes.ParseIntegrationRuntimeIDInsensitively(oldId)
 		if err != nil {
 			return nil, err
 		}

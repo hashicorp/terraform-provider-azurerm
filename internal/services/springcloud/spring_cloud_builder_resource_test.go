@@ -10,10 +10,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -48,11 +48,11 @@ func TestAccSpringCloudBuildServiceBuilder_requiresImport(t *testing.T) {
 }
 
 func (r SpringCloudBuildServiceBuilderResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SpringCloudBuildServiceBuilderID(state.ID)
+	id, err := appplatform.ParseBuilderID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.AppPlatform.BuildServiceBuilderClient.Get(ctx, id.ResourceGroup, id.SpringName, id.BuildServiceName, id.BuilderName)
+	resp, err := client.AppPlatform.BuildServiceBuilderClient.Get(ctx, id.ResourceGroupName, id.SpringName, id.BuildServiceName, id.BuilderName)
 	if err != nil {
 		if response.WasNotFound(resp.Response.Response) {
 			return pointer.To(false), nil

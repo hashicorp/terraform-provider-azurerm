@@ -18,13 +18,6 @@ type MicrosoftPartnerAccountBillingScopeId struct {
 	CustomerName       string
 }
 
-func NewMPABillingScopeID(billingAccountName, customerName string) MicrosoftPartnerAccountBillingScopeId {
-	return MicrosoftPartnerAccountBillingScopeId{
-		BillingAccountName: billingAccountName,
-		CustomerName:       customerName,
-	}
-}
-
 func (id MicrosoftPartnerAccountBillingScopeId) String() string {
 	segments := []string{
 		fmt.Sprintf("Customer Name %q", id.CustomerName),

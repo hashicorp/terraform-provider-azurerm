@@ -164,7 +164,7 @@ func resourceEventGridSystemTopicEventSubscriptionCreateUpdate(d *pluginsdk.Reso
 
 	destination := expandEventSubscriptionDestination(d)
 	if destination == nil {
-		return fmt.Errorf("one of the following endpoint types must be specificed to create an EventGrid System Topic Event Subscription: %q", possibleSystemTopicEventSubscriptionEndpointTypes())
+		return fmt.Errorf("one of the following endpoint types must be specified to create an EventGrid System Topic Event Subscription: %q", possibleSystemTopicEventSubscriptionEndpointTypes())
 	}
 
 	filter, err := expandEventSubscriptionFilter(d)
@@ -290,8 +290,7 @@ func resourceEventGridSystemTopicEventSubscriptionRead(d *pluginsdk.ResourceData
 			}
 
 			existingMappingsFromState := expandEventSubscriptionDeliveryAttributeMappings(d.Get("delivery_property").([]interface{}))
-			deliveryMappings := flattenEventSubscriptionDeliveryAttributeMappings(destination, existingMappingsFromState)
-			if err := d.Set("delivery_property", deliveryMappings); err != nil {
+			if err := d.Set("delivery_property", flattenEventSubscriptionDeliveryAttributeMappings(destination, existingMappingsFromState)); err != nil {
 				return fmt.Errorf("setting `delivery_property` for %s: %+v", *id, err)
 			}
 
