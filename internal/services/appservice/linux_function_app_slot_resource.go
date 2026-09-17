@@ -19,7 +19,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
@@ -33,48 +34,49 @@ import (
 type LinuxFunctionAppSlotResource struct{}
 
 type LinuxFunctionAppSlotModel struct {
-	Name                               string                                     `tfschema:"name"`
-	FunctionAppID                      string                                     `tfschema:"function_app_id"`
-	ServicePlanID                      string                                     `tfschema:"service_plan_id"`
-	StorageAccountName                 string                                     `tfschema:"storage_account_name"`
-	StorageAccountKey                  string                                     `tfschema:"storage_account_access_key"`
-	StorageUsesMSI                     bool                                       `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
-	StorageKeyVaultSecretID            string                                     `tfschema:"storage_key_vault_secret_id"`
-	AppSettings                        map[string]string                          `tfschema:"app_settings"`
-	AuthSettings                       []helpers.AuthSettings                     `tfschema:"auth_settings"`
-	AuthV2Settings                     []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
-	Backup                             []helpers.Backup                           `tfschema:"backup"` // Not supported on Dynamic or Basic plans
-	BuiltinLogging                     bool                                       `tfschema:"builtin_logging_enabled"`
-	ClientCertEnabled                  bool                                       `tfschema:"client_certificate_enabled"`
-	ClientCertMode                     string                                     `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths           string                                     `tfschema:"client_certificate_exclusion_paths"`
-	ConnectionStrings                  []helpers.ConnectionString                 `tfschema:"connection_string"`
-	DailyMemoryTimeQuota               int64                                      `tfschema:"daily_memory_time_quota"` // TODO - Value ignored in for linux apps, even in Consumption plans?
-	Enabled                            bool                                       `tfschema:"enabled"`
-	FunctionExtensionsVersion          string                                     `tfschema:"functions_extension_version"`
-	ForceDisableContentShare           bool                                       `tfschema:"content_share_force_disabled"`
-	HttpsOnly                          bool                                       `tfschema:"https_only"`
-	KeyVaultReferenceIdentityID        string                                     `tfschema:"key_vault_reference_identity_id"`
-	SiteConfig                         []helpers.SiteConfigLinuxFunctionAppSlot   `tfschema:"site_config"`
-	Tags                               map[string]string                          `tfschema:"tags"`
-	VirtualNetworkBackupRestoreEnabled bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
-	VirtualNetworkSubnetID             string                                     `tfschema:"virtual_network_subnet_id"`
-	CustomDomainVerificationId         string                                     `tfschema:"custom_domain_verification_id"`
-	HostingEnvId                       string                                     `tfschema:"hosting_environment_id"`
-	DefaultHostname                    string                                     `tfschema:"default_hostname"`
-	Kind                               string                                     `tfschema:"kind"`
-	OutboundIPAddresses                string                                     `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList              []string                                   `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses        string                                     `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList      []string                                   `tfschema:"possible_outbound_ip_address_list"`
-	PublicNetworkAccess                bool                                       `tfschema:"public_network_access_enabled"`
-	PublishingDeployBasicAuthEnabled   bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
-	PublishingFTPBasicAuthEnabled      bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
-	SiteCredentials                    []helpers.SiteCredential                   `tfschema:"site_credential"`
-	StorageAccounts                    []helpers.StorageAccount                   `tfschema:"storage_account"`
-	Identity                           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	VnetImagePullEnabled               bool                                       `tfschema:"vnet_image_pull_enabled"`
-	EndToEndTLSEncryptionEnabled       bool                                       `tfschema:"end_to_end_tls_encryption_enabled"`
+	Name                                    string                                     `tfschema:"name"`
+	FunctionAppID                           string                                     `tfschema:"function_app_id"`
+	ServicePlanID                           string                                     `tfschema:"service_plan_id"`
+	StorageAccountName                      string                                     `tfschema:"storage_account_name"`
+	StorageAccountKey                       string                                     `tfschema:"storage_account_access_key"`
+	StorageUsesMSI                          bool                                       `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
+	StorageKeyVaultSecretID                 string                                     `tfschema:"storage_key_vault_secret_id"`
+	AppSettings                             map[string]string                          `tfschema:"app_settings"`
+	AuthSettings                            []helpers.AuthSettings                     `tfschema:"auth_settings"`
+	AuthV2Settings                          []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
+	Backup                                  []helpers.Backup                           `tfschema:"backup"` // Not supported on Dynamic or Basic plans
+	BuiltinLogging                          bool                                       `tfschema:"builtin_logging_enabled"`
+	ClientCertEnabled                       bool                                       `tfschema:"client_certificate_enabled"`
+	ClientCertMode                          string                                     `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths                string                                     `tfschema:"client_certificate_exclusion_paths"`
+	ConnectionStrings                       []helpers.ConnectionString                 `tfschema:"connection_string"`
+	DailyMemoryTimeQuota                    int64                                      `tfschema:"daily_memory_time_quota"` // TODO - Value ignored in for linux apps, even in Consumption plans?
+	Enabled                                 bool                                       `tfschema:"enabled"`
+	FunctionExtensionsVersion               string                                     `tfschema:"functions_extension_version"`
+	ForceDisableContentShare                bool                                       `tfschema:"content_share_force_disabled"`
+	HttpsOnly                               bool                                       `tfschema:"https_only"`
+	KeyVaultReferenceIdentityID             string                                     `tfschema:"key_vault_reference_identity_id"`
+	SiteConfig                              []helpers.SiteConfigLinuxFunctionAppSlot   `tfschema:"site_config"`
+	Tags                                    map[string]string                          `tfschema:"tags"`
+	VirtualNetworkBackupRestoreEnabled      bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
+	VirtualNetworkSubnetID                  string                                     `tfschema:"virtual_network_subnet_id"`
+	CustomDomainVerificationId              string                                     `tfschema:"custom_domain_verification_id"`
+	HostingEnvId                            string                                     `tfschema:"hosting_environment_id"`
+	DefaultHostname                         string                                     `tfschema:"default_hostname"`
+	EndToEndTLSEncryptionEnabled            bool                                       `tfschema:"end_to_end_tls_encryption_enabled"`
+	Kind                                    string                                     `tfschema:"kind"`
+	OutboundIPAddresses                     string                                     `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList                   []string                                   `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses             string                                     `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList           []string                                   `tfschema:"possible_outbound_ip_address_list"`
+	PublicNetworkAccess                     bool                                       `tfschema:"public_network_access_enabled"`
+	PublishingDeployBasicAuthEnabled        bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled           bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
+	SiteCredentials                         []helpers.SiteCredential                   `tfschema:"site_credential"`
+	StorageAccounts                         []helpers.StorageAccount                   `tfschema:"storage_account"`
+	Identity                                []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	VnetImagePullEnabled                    bool                                       `tfschema:"vnet_image_pull_enabled"`
+	VirtualNetworkApplicationTrafficEnabled bool                                       `tfschema:"virtual_network_application_traffic_enabled"`
 }
 
 var _ sdk.ResourceWithUpdate = LinuxFunctionAppSlotResource{}
@@ -94,7 +96,7 @@ func (r LinuxFunctionAppSlotResource) IDValidationFunc() pluginsdk.SchemaValidat
 }
 
 func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	args := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -294,13 +296,28 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
+
 		"vnet_image_pull_enabled": {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
 			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
 		},
+
+		"virtual_network_application_traffic_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 	}
+
+	if !features.SixPointOh() {
+		args["virtual_network_application_traffic_enabled"].Computed = true
+		args["virtual_network_application_traffic_enabled"].Default = nil
+		args["virtual_network_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
+	}
+
+	return args
 }
 
 func (r LinuxFunctionAppSlotResource) Attributes() map[string]*pluginsdk.Schema {
@@ -542,11 +559,24 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 					ClientCertEnabled:         pointer.To(functionAppSlot.ClientCertEnabled),
 					ClientCertMode:            pointer.ToEnum[webapps.ClientCertMode](functionAppSlot.ClientCertMode),
 					DailyMemoryTimeQuota:      pointer.To(functionAppSlot.DailyMemoryTimeQuota),
-					VnetBackupRestoreEnabled:  pointer.To(functionAppSlot.VirtualNetworkBackupRestoreEnabled),
-					VnetImagePullEnabled:      pointer.To(functionAppSlot.VnetImagePullEnabled),
-					VnetRouteAllEnabled:       siteConfig.VnetRouteAllEnabled, // (@jackofallops) - Value appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 					EndToEndEncryptionEnabled: pointer.To(functionAppSlot.EndToEndTLSEncryptionEnabled),
+					OutboundVnetRouting: &webapps.OutboundVnetRouting{
+						BackupRestoreTraffic: pointer.To(functionAppSlot.VirtualNetworkBackupRestoreEnabled),
+						ImagePullTraffic:     pointer.To(functionAppSlot.VnetImagePullEnabled),
+						ApplicationTraffic:   pointer.To(functionAppSlot.VirtualNetworkApplicationTrafficEnabled),
+					},
 				},
+			}
+
+			if !features.SixPointOh() {
+				rawSiteVnetRouting, err := metadata.GetRawConfigAt("site_config.0.vnet_route_all_enabled")
+				if err != nil {
+					return err
+				}
+
+				if !rawSiteVnetRouting.IsNull() {
+					siteEnvelope.Properties.OutboundVnetRouting.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
+				}
 			}
 
 			pan := helpers.PublicNetworkAccessEnabled
@@ -759,8 +789,6 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.DefaultHostname = pointer.From(props.DefaultHostName)
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
-					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
-					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 					state.EndToEndTLSEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
@@ -795,6 +823,15 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 					siteConfig, err := helpers.FlattenSiteConfigLinuxFunctionAppSlot(configResp.Model.Properties)
 					if err != nil {
 						return fmt.Errorf("reading Site Config for Linux %s: %+v", id, err)
+					}
+
+					if props.OutboundVnetRouting != nil {
+						state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
+						state.VnetImagePullEnabled = pointer.From(props.OutboundVnetRouting.ImagePullTraffic)
+						state.VirtualNetworkApplicationTrafficEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
+						if !features.SixPointOh() {
+							siteConfig.VnetRouteAllEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
+						}
 					}
 					state.SiteConfig = []helpers.SiteConfigLinuxFunctionAppSlot{*siteConfig}
 
@@ -936,8 +973,12 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				model.Tags = pointer.To(state.Tags)
 			}
 
+			vnetRoutingProps := &webapps.OutboundVnetRouting{}
+			if model.Properties.OutboundVnetRouting != nil {
+				vnetRoutingProps = model.Properties.OutboundVnetRouting
+			}
 			if metadata.ResourceData.HasChange("virtual_network_backup_restore_enabled") {
-				model.Properties.VnetBackupRestoreEnabled = pointer.To(state.VirtualNetworkBackupRestoreEnabled)
+				vnetRoutingProps.BackupRestoreTraffic = pointer.To(state.VirtualNetworkBackupRestoreEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
@@ -958,7 +999,11 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") {
-				model.Properties.VnetImagePullEnabled = pointer.To(state.VnetImagePullEnabled)
+				vnetRoutingProps.ImagePullTraffic = pointer.To(state.VnetImagePullEnabled)
+			}
+
+			if metadata.ResourceData.HasChange("virtual_network_application_traffic_enabled") {
+				vnetRoutingProps.ApplicationTraffic = pointer.To(state.VirtualNetworkApplicationTrafficEnabled)
 			}
 
 			storageString := state.StorageAccountName
@@ -1006,7 +1051,10 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding Site Config for Linux %s: %+v", id, err)
 				}
 				model.Properties.SiteConfig = siteConfig
-				model.Properties.VnetRouteAllEnabled = model.Properties.SiteConfig.VnetRouteAllEnabled
+			}
+
+			if !features.SixPointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
+				vnetRoutingProps.ApplicationTraffic = siteConfig.VnetRouteAllEnabled
 			}
 
 			if metadata.ResourceData.HasChange("site_config.0.application_stack") {
@@ -1014,6 +1062,7 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			model.Properties.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
+			model.Properties.OutboundVnetRouting = vnetRoutingProps
 
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {
 				pan := helpers.PublicNetworkAccessEnabled
