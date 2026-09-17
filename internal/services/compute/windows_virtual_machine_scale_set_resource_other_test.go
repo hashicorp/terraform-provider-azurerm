@@ -68,7 +68,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherBootDiagnostics(t *testing.T) {
 	})
 }
 
-func TestAccWindowsVirtualMachineScaleSet_otherBootDiagnosticsMananged(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_otherBootDiagnosticsManaged(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 

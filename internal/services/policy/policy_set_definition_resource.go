@@ -76,7 +76,7 @@ func (r PolicySetDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
 		"metadata": {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			Computed:         true,
+			Computed:         true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc:     validation.StringIsJSON,
 			DiffSuppressFunc: policySetDefinitionsMetadataDiffSuppressFunc,
 		},
