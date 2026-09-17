@@ -29,20 +29,32 @@ jobs:
           merge-multiple: true
         continue-on-error: true
 
+      - name: Validate PR number
+        id: meta
+        if: steps.download.outcome == 'success'
+        run: |
+          IFS= read -r pr_number < artifacts/pr-number
+          if ! [[ "$pr_number" =~ ^[0-9]+$ ]]; then
+            echo "Invalid pr-number in artifact" >&2
+            exit 1
+          fi
+          echo "pr-number=$pr_number" >> "$GITHUB_OUTPUT"
+
       - name: Read author association
         id: author
-        if: steps.download.outcome == 'success'
+        if: steps.download.outcome == 'success' && steps.meta.outcome == 'success'
         run: echo "association=$(cat artifacts/author-association)" >> "$GITHUB_OUTPUT"
 
       - name: Comment on missing changelog entry - maintainers
         if: >
           steps.download.outcome == 'success' &&
+          steps.meta.outcome == 'success' &&
           contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), steps.author.outputs.association)
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           script: |
             const fs = require('fs')
-            const prNumber = parseInt(fs.readFileSync('artifacts/pr-number', 'utf8').trim())
+            const prNumber = parseInt('${{ steps.meta.outputs.pr-number }}')
             const types = fs.readFileSync('artifacts/types-table', 'utf8').trim()
             const marker = '<!-- changelog-comment -->'
             const body = [
@@ -110,12 +122,13 @@ jobs:
       - name: Comment on missing changelog entry - community
         if: >
           steps.download.outcome == 'success' &&
+          steps.meta.outcome == 'success' &&
           !contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), steps.author.outputs.association)
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           script: |
             const fs = require('fs')
-            const prNumber = parseInt(fs.readFileSync('artifacts/pr-number', 'utf8').trim())
+            const prNumber = parseInt('${{ steps.meta.outputs.pr-number }}')
             const types = fs.readFileSync('artifacts/types-table', 'utf8').trim()
             const marker = '<!-- changelog-comment -->'
             const body = [
@@ -193,13 +206,23 @@ jobs:
           merge-multiple: true
         continue-on-error: true
 
-      - name: Remove missing-changelog-entry label
+      - name: Validate PR number
+        id: meta
         if: steps.download.outcome == 'success'
+        run: |
+          IFS= read -r pr_number < artifacts/pr-number
+          if ! [[ "$pr_number" =~ ^[0-9]+$ ]]; then
+            echo "Invalid pr-number in artifact" >&2
+            exit 1
+          fi
+          echo "pr-number=$pr_number" >> "$GITHUB_OUTPUT"
+
+      - name: Remove missing-changelog-entry label
+        if: steps.download.outcome == 'success' && steps.meta.outcome == 'success'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           script: |
-            const fs = require('fs')
-            const prNumber = parseInt(fs.readFileSync('artifacts/pr-number', 'utf8').trim())
+            const prNumber = parseInt('${{ steps.meta.outputs.pr-number }}')
 
             try {
               await github.rest.issues.removeLabel({
