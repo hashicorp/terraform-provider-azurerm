@@ -198,8 +198,7 @@ func expandEventSubscriptionStorageQueueEndpoint(input []interface{}) eventsubsc
 	}
 
 	if ttlInSeconds := raw["queue_message_time_to_live_in_seconds"]; ttlInSeconds != 0 {
-		queueMessageTimeToLiveInSeconds := int64(ttlInSeconds.(int))
-		props.QueueMessageTimeToLiveInSeconds = &queueMessageTimeToLiveInSeconds
+		props.QueueMessageTimeToLiveInSeconds = pointer.To(int64(ttlInSeconds.(int)))
 	}
 
 	return eventsubscriptions.StorageQueueEventSubscriptionDestination{
@@ -482,20 +481,15 @@ func flattenEventSubscriptionAdvancedFilter(input *eventsubscriptions.EventSubsc
 	for _, item := range *input.AdvancedFilters {
 		switch f := item.(type) {
 		case eventsubscriptions.BoolEqualsAdvancedFilter:
-			v := interface{}(f.Value)
-			boolEquals = append(boolEquals, flattenValue(f.Key, &v))
+			boolEquals = append(boolEquals, flattenValue(f.Key, pointer.To(interface{}(f.Value))))
 		case eventsubscriptions.NumberGreaterThanAdvancedFilter:
-			v := interface{}(f.Value)
-			numberGreaterThan = append(numberGreaterThan, flattenValue(f.Key, &v))
+			numberGreaterThan = append(numberGreaterThan, flattenValue(f.Key, pointer.To(interface{}(f.Value))))
 		case eventsubscriptions.NumberGreaterThanOrEqualsAdvancedFilter:
-			v := interface{}(f.Value)
-			numberGreaterThanOrEquals = append(numberGreaterThanOrEquals, flattenValue(f.Key, &v))
+			numberGreaterThanOrEquals = append(numberGreaterThanOrEquals, flattenValue(f.Key, pointer.To(interface{}(f.Value))))
 		case eventsubscriptions.NumberLessThanAdvancedFilter:
-			v := interface{}(f.Value)
-			numberLessThan = append(numberLessThan, flattenValue(f.Key, &v))
+			numberLessThan = append(numberLessThan, flattenValue(f.Key, pointer.To(interface{}(f.Value))))
 		case eventsubscriptions.NumberLessThanOrEqualsAdvancedFilter:
-			v := interface{}(f.Value)
-			numberLessThanOrEquals = append(numberLessThanOrEquals, flattenValue(f.Key, &v))
+			numberLessThanOrEquals = append(numberLessThanOrEquals, flattenValue(f.Key, pointer.To(interface{}(f.Value))))
 		case eventsubscriptions.NumberInAdvancedFilter:
 			v := helpers.FlattenFloatSlice(f.Values)
 			numberIn = append(numberIn, flattenValues(f.Key, &v))
@@ -588,13 +582,10 @@ func expandEventSubscriptionFilter(d *pluginsdk.ResourceData) (*eventsubscriptio
 	if v, ok := d.GetOk("subject_filter"); ok {
 		if v.([]interface{})[0] != nil {
 			config := v.([]interface{})[0].(map[string]interface{})
-			subjectBeginsWith := config["subject_begins_with"].(string)
-			subjectEndsWith := config["subject_ends_with"].(string)
-			caseSensitive := config["case_sensitive"].(bool)
 
-			filter.SubjectBeginsWith = &subjectBeginsWith
-			filter.SubjectEndsWith = &subjectEndsWith
-			filter.IsSubjectCaseSensitive = &caseSensitive
+			filter.SubjectBeginsWith = pointer.To(config["subject_begins_with"].(string))
+			filter.SubjectEndsWith = pointer.To(config["subject_ends_with"].(string))
+			filter.IsSubjectCaseSensitive = pointer.To(config["case_sensitive"].(bool))
 		}
 	}
 
@@ -624,34 +615,29 @@ func expandEventSubscriptionAdvancedFilter(operatorType string, config map[strin
 
 	switch operatorType {
 	case "bool_equals":
-		v := config["value"].(bool)
 		return eventsubscriptions.BoolEqualsAdvancedFilter{
 			Key:   &k,
-			Value: &v,
+			Value: pointer.To(config["value"].(bool)),
 		}, nil
 	case "number_greater_than":
-		v := config["value"].(float64)
 		return eventsubscriptions.NumberGreaterThanAdvancedFilter{
 			Key:   &k,
-			Value: &v,
+			Value: pointer.To(config["value"].(float64)),
 		}, nil
 	case "number_greater_than_or_equals":
-		v := config["value"].(float64)
 		return eventsubscriptions.NumberGreaterThanOrEqualsAdvancedFilter{
 			Key:   &k,
-			Value: &v,
+			Value: pointer.To(config["value"].(float64)),
 		}, nil
 	case "number_less_than":
-		v := config["value"].(float64)
 		return eventsubscriptions.NumberLessThanAdvancedFilter{
 			Key:   &k,
-			Value: &v,
+			Value: pointer.To(config["value"].(float64)),
 		}, nil
 	case "number_less_than_or_equals":
-		v := config["value"].(float64)
 		return eventsubscriptions.NumberLessThanOrEqualsAdvancedFilter{
 			Key:   &k,
-			Value: &v,
+			Value: pointer.To(config["value"].(float64)),
 		}, nil
 	case "number_in":
 		v := helpers.ExpandFloatSlice(config["values"].([]interface{}))
@@ -741,12 +727,10 @@ func expandEventSubscriptionAdvancedFilter(operatorType string, config map[strin
 func expandEventSubscriptionStorageBlobDeadLetterDestination(d *pluginsdk.ResourceData) eventsubscriptions.DeadLetterDestination {
 	if v, ok := d.GetOk("storage_blob_dead_letter_destination"); ok {
 		dest := v.([]interface{})[0].(map[string]interface{})
-		resourceId := dest["storage_account_id"].(string)
-		blobName := dest["storage_blob_container_name"].(string)
 		return eventsubscriptions.StorageBlobDeadLetterDestination{
 			Properties: &eventsubscriptions.StorageBlobDeadLetterDestinationProperties{
-				ResourceId:        &resourceId,
-				BlobContainerName: &blobName,
+				ResourceId:        pointer.To(dest["storage_account_id"].(string)),
+				BlobContainerName: pointer.To(dest["storage_blob_container_name"].(string)),
 			},
 		}
 	}

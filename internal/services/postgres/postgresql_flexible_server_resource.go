@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -466,16 +467,13 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 				// verify that the storage_tier is valid
 				// for the given storage_mb...
-				for _, tier := range *storageTiers.ValidTiers {
-					if newTier == tier {
-						isValid = true
-						break
-					}
+				if slices.Contains(*storageTiers.ValidTiers, newTier) {
+					isValid = true
 				}
 
 				if !isValid {
 					if strings.EqualFold(oldTierRaw.(string), newTier) {
-						// The tier value did not change, so we need to determin if they are
+						// The tier value did not change, so we need to determine if they are
 						// using the default value for the tier, or they actually defined the
 						// tier in the config or not... If they did not define
 						// the tier in the config we need to assign a new valid default
@@ -752,13 +750,11 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if createMode != "" {
-		createModeAttr := servers.CreateMode(createMode)
-		parameters.Properties.CreateMode = &createModeAttr
+		parameters.Properties.CreateMode = pointer.ToEnum[servers.CreateMode](createMode)
 	}
 
 	if v, ok := d.GetOk("version"); ok && v.(string) != "" {
-		version := servers.PostgresMajorVersion(v.(string))
-		parameters.Properties.Version = &version
+		parameters.Properties.Version = pointer.ToEnum[servers.PostgresMajorVersion](v.(string))
 	}
 
 	if v, ok := d.GetOk("zone"); ok && v.(string) != "" {
@@ -852,7 +848,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("fqdn", props.FullyQualifiedDomainName)
 
 			// According to the API spec, `sourceServerResourceId`(`source_server_id`) is only returned by the Azure REST API
-			// when `create_mode` is 'Replica'. For other create modes, this field is not returned, which is intended behavior of the API.
+			// when `create_mode` is 'Replica'. For other create modes, this field is not returned, which is intended behaviour of the API.
 			// Therefore, we populate this field from the API response if present; otherwise, we read the value from the configuration.
 			sourceResourceId := pointer.From(props.SourceServerResourceId)
 			if sourceResourceId == "" {
@@ -1061,10 +1057,9 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		createMode := d.Get("create_mode").(string)
 		replicationRole := d.Get("replication_role").(string)
 		if createMode == string(servers.CreateModeReplica) && replicationRole == string(servers.ReplicationRoleNone) {
-			replicationRole := servers.ReplicationRoleNone
 			parameters := servers.ServerForPatch{
 				Properties: &servers.ServerPropertiesForPatch{
-					ReplicationRole: &replicationRole,
+					ReplicationRole: pointer.To(servers.ReplicationRoleNone),
 				},
 			}
 
@@ -1156,7 +1151,6 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if requireUpdateOnLogin {
-		updateMode := servers.CreateModeUpdate
 		// Login password can be set using `administrator_password` or `administrator_password_wo`
 		loginPassword := d.Get("administrator_password").(string)
 		if !woPassword.IsNull() {
@@ -1166,7 +1160,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		loginParameters := servers.Server{
 			Location: location.Normalize(d.Get("location").(string)),
 			Properties: &servers.ServerProperties{
-				CreateMode:                 &updateMode,
+				CreateMode:                 pointer.To(servers.CreateModeUpdate),
 				AuthConfig:                 expandFlexibleServerAuthConfig(d.Get("authentication").([]interface{})),
 				AdministratorLogin:         pointer.To(d.Get("administrator_login").(string)),
 				AdministratorLoginPassword: &loginPassword,
@@ -1402,17 +1396,15 @@ func flattenArmServerMaintenanceWindow(input *servers.MaintenanceWindow) []inter
 
 func expandFlexibleServerHighAvailability(inputs []interface{}, isCreate bool) *servers.HighAvailability {
 	if len(inputs) == 0 || inputs[0] == nil {
-		highAvailability := servers.PostgreSqlFlexibleServerHighAvailabilityModeDisabled
 		return &servers.HighAvailability{
-			Mode: &highAvailability,
+			Mode: pointer.To(servers.PostgreSqlFlexibleServerHighAvailabilityModeDisabled),
 		}
 	}
 
 	input := inputs[0].(map[string]interface{})
 
-	mode := servers.PostgreSqlFlexibleServerHighAvailabilityMode(input["mode"].(string))
 	result := servers.HighAvailability{
-		Mode: &mode,
+		Mode: pointer.ToEnum[servers.PostgreSqlFlexibleServerHighAvailabilityMode](input["mode"].(string)),
 	}
 
 	// service team confirmed it doesn't support to update `high_availability.0.standby_availability_zone` after the PostgreSQL Flexible Server resource is created
@@ -1427,17 +1419,15 @@ func expandFlexibleServerHighAvailability(inputs []interface{}, isCreate bool) *
 
 func expandFlexibleServerHighAvailabilityForPatch(inputs []interface{}, isCreate bool) *servers.HighAvailabilityForPatch {
 	if len(inputs) == 0 || inputs[0] == nil {
-		highAvailability := servers.PostgreSqlFlexibleServerHighAvailabilityModeDisabled
 		return &servers.HighAvailabilityForPatch{
-			Mode: &highAvailability,
+			Mode: pointer.To(servers.PostgreSqlFlexibleServerHighAvailabilityModeDisabled),
 		}
 	}
 
 	input := inputs[0].(map[string]interface{})
 
-	mode := servers.PostgreSqlFlexibleServerHighAvailabilityMode(input["mode"].(string))
 	result := servers.HighAvailabilityForPatch{
-		Mode: &mode,
+		Mode: pointer.ToEnum[servers.PostgreSqlFlexibleServerHighAvailabilityMode](input["mode"].(string)),
 	}
 
 	// service team confirmed it doesn't support to update `high_availability.0.standby_availability_zone` after the PostgreSQL Flexible Server resource is created
@@ -1554,9 +1544,8 @@ func expandFlexibleServerDataEncryption(input []interface{}) *servers.DataEncryp
 	}
 	v := input[0].(map[string]interface{})
 
-	det := servers.DataEncryptionTypeAzureKeyVault
 	dataEncryption := servers.DataEncryption{
-		Type: &det,
+		Type: pointer.To(servers.DataEncryptionTypeAzureKeyVault),
 	}
 
 	if keyVaultKeyId := v["key_vault_key_id"].(string); keyVaultKeyId != "" {

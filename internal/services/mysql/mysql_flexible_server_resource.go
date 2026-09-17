@@ -638,10 +638,9 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	if d.HasChange("replication_role") {
 		oldReplicationRole, newReplicationRole := d.GetChange("replication_role")
 		if oldReplicationRole == "Replica" && newReplicationRole == "None" {
-			replicationRole := servers.ReplicationRoleNone
 			parameters := servers.ServerForUpdate{
 				Properties: &servers.ServerPropertiesForUpdate{
-					ReplicationRole: &replicationRole,
+					ReplicationRole: pointer.To(servers.ReplicationRoleNone),
 				},
 			}
 
@@ -675,11 +674,10 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("failing over %s: %+v", *id, err)
 		}
 	} else if d.HasChange("high_availability") {
-		mode := servers.HighAvailabilityModeDisabled
 		parameters := servers.ServerForUpdate{
 			Properties: &servers.ServerPropertiesForUpdate{
 				HighAvailability: &servers.HighAvailability{
-					Mode: &mode,
+					Mode: pointer.To(servers.HighAvailabilityModeDisabled),
 				},
 			},
 		}
@@ -762,11 +760,10 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 		// log_on_disk_enabled must be updated first when auto_grow_enabled and log_on_disk_enabled are updated from true to false in one request
 		if oldLogOnDiskEnabled, newLogOnDiskEnabled := d.GetChange("storage.0.log_on_disk_enabled"); oldLogOnDiskEnabled.(bool) && !newLogOnDiskEnabled.(bool) {
 			if oldAutoGrowEnabled, newAutoGrowEnabled := d.GetChange("storage.0.auto_grow_enabled"); oldAutoGrowEnabled.(bool) && !newAutoGrowEnabled.(bool) {
-				logOnDiskDisabled := servers.EnableStatusEnumDisabled
 				parameters := servers.ServerForUpdate{
 					Properties: &servers.ServerPropertiesForUpdate{
 						Storage: &servers.Storage{
-							LogOnDisk: &logOnDiskDisabled,
+							LogOnDisk: pointer.To(servers.EnableStatusEnumDisabled),
 						},
 					},
 				}
@@ -995,9 +992,8 @@ func flattenArmServerMaintenanceWindow(input *servers.MaintenanceWindow) []inter
 
 func expandFlexibleServerHighAvailability(inputs []interface{}) *servers.HighAvailability {
 	if len(inputs) == 0 || inputs[0] == nil {
-		highAvailability := servers.HighAvailabilityModeDisabled
 		return &servers.HighAvailability{
-			Mode: &highAvailability,
+			Mode: pointer.To(servers.HighAvailabilityModeDisabled),
 		}
 	}
 
@@ -1037,16 +1033,14 @@ func flattenFlexibleServerHighAvailability(ha *servers.HighAvailability) []inter
 
 func expandFlexibleServerDataEncryption(input []interface{}) *servers.DataEncryption {
 	if len(input) == 0 || input[0] == nil {
-		det := servers.DataEncryptionTypeSystemManaged
 		return &servers.DataEncryption{
-			Type: &det,
+			Type: pointer.To(servers.DataEncryptionTypeSystemManaged),
 		}
 	}
 	v := input[0].(map[string]interface{})
 
-	det := servers.DataEncryptionTypeAzureKeyVault
 	dataEncryption := servers.DataEncryption{
-		Type: &det,
+		Type: pointer.To(servers.DataEncryptionTypeAzureKeyVault),
 	}
 
 	if keyVaultKeyId := v["key_vault_key_id"].(string); keyVaultKeyId != "" {
@@ -1111,9 +1105,8 @@ func expandFlexibleServerIdentity(input []interface{}) (*servers.MySQLServerIden
 		return nil, err
 	}
 
-	identityType := servers.ManagedServiceIdentityType(string(expanded.Type))
 	out := servers.MySQLServerIdentity{
-		Type: &identityType,
+		Type: pointer.ToEnum[servers.ManagedServiceIdentityType](string(expanded.Type)),
 	}
 	if expanded.Type == identity.TypeUserAssigned {
 		ids := make(map[string]interface{})

@@ -310,13 +310,11 @@ func expandKustoIotHubDataConnectionProperties(d *pluginsdk.ResourceData) *datac
 	}
 
 	if df, ok := d.GetOk("data_format"); ok {
-		dataFormat := dataconnections.IotHubDataFormat(df.(string))
-		iotHubDataConnectionProperties.DataFormat = &dataFormat
+		iotHubDataConnectionProperties.DataFormat = pointer.ToEnum[dataconnections.IotHubDataFormat](df.(string))
 	}
 
 	if databaseRouting, ok := d.GetOk("database_routing_type"); ok {
-		dbRoutingType := dataconnections.DatabaseRouting(databaseRouting.(string))
-		iotHubDataConnectionProperties.DatabaseRouting = &dbRoutingType
+		iotHubDataConnectionProperties.DatabaseRouting = pointer.ToEnum[dataconnections.DatabaseRouting](databaseRouting.(string))
 	}
 
 	if eventSystemProperties, ok := d.GetOk("event_system_properties"); ok {
