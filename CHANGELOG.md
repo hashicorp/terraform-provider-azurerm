@@ -1,3 +1,33 @@
+## 5.6.0 (September 17, 2026)
+
+FEATURES:
+
+* **New List Resource**: `azurerm_batch_account` ([#33252](https://github.com/hashicorp/terraform-provider-azurerm/issues/33252))
+* **New List Resource**: `azurerm_cdn_frontdoor_origin_group` ([#33334](https://github.com/hashicorp/terraform-provider-azurerm/issues/33334))
+* **New Resource**: `azurerm_storage_discovery_workspace` ([#31479](https://github.com/hashicorp/terraform-provider-azurerm/issues/31479))
+
+ENHANCEMENTS:
+
+* dependencies: `containers` - update API version to `2026-05-01` ([#32688](https://github.com/hashicorp/terraform-provider-azurerm/issues/32688))
+* dependencies: `go-azure-sdk` - update to `v0.20260910.1141000` ([#33413](https://github.com/hashicorp/terraform-provider-azurerm/issues/33413))
+* dependencies: `qumulo` - update API version to `2026-04-16` ([#33421](https://github.com/hashicorp/terraform-provider-azurerm/issues/33421))
+* dependencies: `servicebus` - update to API version `2026-01-01` ([#33450](https://github.com/hashicorp/terraform-provider-azurerm/issues/33450))
+* `azurerm_iothub_device_update_instance` - add support for the `connection_string_wo` and `connection_string_wo_version` properties ([#33448](https://github.com/hashicorp/terraform-provider-azurerm/issues/33448))
+* `azurerm_linux_function_app` - add support for the `end_to_end_tls_encryption_enabled` property ([#31135](https://github.com/hashicorp/terraform-provider-azurerm/issues/31135))
+* `azurerm_linux_function_app_slot` - add support for the `end_to_end_tls_encryption_enabled` property ([#31135](https://github.com/hashicorp/terraform-provider-azurerm/issues/31135))
+* `azurerm_linux_web_app` - add support for the `end_to_end_tls_encryption_enabled` property ([#31135](https://github.com/hashicorp/terraform-provider-azurerm/issues/31135))
+* `azurerm_linux_web_app_slot` - add support for the `end_to_end_tls_encryption_enabled` property ([#31135](https://github.com/hashicorp/terraform-provider-azurerm/issues/31135))
+* `azurerm_mongo_cluster` - Support new property `network_bypass_mode` ([#33168](https://github.com/hashicorp/terraform-provider-azurerm/issues/33168))
+* `azurerm_servicebus_namespace` - add support for the `1.3` value to the `minimum_tls_version` property ([#33457](https://github.com/hashicorp/terraform-provider-azurerm/issues/33457))
+* `azurerm_windows_function_app` - add support for the `end_to_end_tls_encryption_enabled` property ([#31135](https://github.com/hashicorp/terraform-provider-azurerm/issues/31135))
+* `azurerm_windows_function_app_slot` - add support for the `end_to_end_tls_encryption_enabled` property ([#31135](https://github.com/hashicorp/terraform-provider-azurerm/issues/31135))
+* `azurerm_windows_web_app` - add support for the `end_to_end_tls_encryption_enabled` property ([#31135](https://github.com/hashicorp/terraform-provider-azurerm/issues/31135))
+* `azurerm_windows_web_app_slot` - add support for the `end_to_end_tls_encryption_enabled` property ([#31135](https://github.com/hashicorp/terraform-provider-azurerm/issues/31135))
+
+BUG FIXES:
+
+* `azurerm_site_recovery_replicated_vm` - select `managed_disk` properties compared case insensitive ([#33424](https://github.com/hashicorp/terraform-provider-azurerm/issues/33424))
+
 ## 5.5.0 (September 10, 2026)
 
 FEATURES:

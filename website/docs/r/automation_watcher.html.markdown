@@ -87,7 +87,7 @@ The following arguments are supported:
 
 * `etag` - (Optional) A string of etag assigned to this Automation Watcher.
 
-* `script_parameters` - (Optional) Specifies a list of key-vaule parameters. Changing this forces a new Automation watcher to be created.
+* `script_parameters` - (Optional) Specifies a list of key-value parameters. Changing this forces a new Automation watcher to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Automation Watcher.
 

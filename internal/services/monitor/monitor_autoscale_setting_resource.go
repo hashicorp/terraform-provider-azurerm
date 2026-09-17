@@ -928,7 +928,7 @@ func flattenAzureRmMonitorAutoScaleSettingRules(input []autoscalesettings.ScaleR
 		if val := v.Value; val != nil && *val != "" {
 			i, err := strconv.Atoi(*val)
 			if err != nil {
-				return nil, fmt.Errorf("`value` %q was not convertable to an int: %s", *val, err)
+				return nil, fmt.Errorf("`value` %q was not convertible to an int: %s", *val, err)
 			}
 			action["value"] = i
 		}
@@ -1071,7 +1071,7 @@ func flattenAzureRmMonitorAutoScaleSettingRulesDimensions(dimensions *[]autoscal
 }
 
 func validateAutoScaleSettingsTimeZone() pluginsdk.SchemaValidateFunc {
-	// from https://docs.microsoft.com/en-us/rest/api/monitor/autoscalesettings/createorupdate#timewindow
+	// from https://docs.microsoft.com/rest/api/monitor/autoscalesettings/createorupdate#timewindow
 	timeZones := []string{
 		"Dateline Standard Time",
 		"UTC-11",
