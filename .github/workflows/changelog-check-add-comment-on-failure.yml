@@ -1,6 +1,7 @@
 name: changelog-check-add-comment-on-failure
 
-on:
+# workflow_run is needed for write access on fork PRs, which pull_request cannot provide
+on:  # zizmor: ignore[dangerous-triggers]
   workflow_run:
     workflows:
       - "changelog-check"
@@ -51,10 +52,12 @@ jobs:
           steps.meta.outcome == 'success' &&
           contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), steps.author.outputs.association)
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          PR_NUMBER: ${{ steps.meta.outputs.pr-number }}
         with:
           script: |
             const fs = require('fs')
-            const prNumber = parseInt('${{ steps.meta.outputs.pr-number }}')
+            const prNumber = parseInt(process.env.PR_NUMBER, 10)
             const types = fs.readFileSync('artifacts/types-table', 'utf8').trim()
             const marker = '<!-- changelog-comment -->'
             const body = [
@@ -125,10 +128,12 @@ jobs:
           steps.meta.outcome == 'success' &&
           !contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), steps.author.outputs.association)
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          PR_NUMBER: ${{ steps.meta.outputs.pr-number }}
         with:
           script: |
             const fs = require('fs')
-            const prNumber = parseInt('${{ steps.meta.outputs.pr-number }}')
+            const prNumber = parseInt(process.env.PR_NUMBER, 10)
             const types = fs.readFileSync('artifacts/types-table', 'utf8').trim()
             const marker = '<!-- changelog-comment -->'
             const body = [
@@ -220,9 +225,11 @@ jobs:
       - name: Remove missing-changelog-entry label
         if: steps.download.outcome == 'success' && steps.meta.outcome == 'success'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          PR_NUMBER: ${{ steps.meta.outputs.pr-number }}
         with:
           script: |
-            const prNumber = parseInt('${{ steps.meta.outputs.pr-number }}')
+            const prNumber = parseInt(process.env.PR_NUMBER, 10)
 
             try {
               await github.rest.issues.removeLabel({
@@ -242,9 +249,11 @@ jobs:
       - name: Hide missing changelog comment
         if: steps.download.outcome == 'success' && steps.meta.outcome == 'success'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          PR_NUMBER: ${{ steps.meta.outputs.pr-number }}
         with:
           script: |
-            const prNumber = parseInt('${{ steps.meta.outputs.pr-number }}')
+            const prNumber = parseInt(process.env.PR_NUMBER, 10)
             const marker = '<!-- changelog-comment -->'
 
             const comments = await github.paginate(github.rest.issues.listComments, {
