@@ -5,7 +5,8 @@ name: Assign Reviewer as Assignee
 # reads its wr_actions artifact, since the review event itself has no write token
 # for fork PRs (see the artifact relay in README.md).
 
-on:
+# workflow_run is needed for write access on fork PRs, which pull_request cannot provide
+on:  # zizmor: ignore[dangerous-triggers]
   workflow_run:
     workflows:
       - "Pull Request Reviewed"

@@ -1,6 +1,7 @@
 name: changelog-entry-add-to-pr
 
-on:
+# workflow_run is needed for write access on fork PRs, which pull_request cannot provide
+on:  # zizmor: ignore[dangerous-triggers]
   workflow_run:
     workflows:
       - changelog-entry-read-on-comment
@@ -58,7 +59,8 @@ jobs:
         run: make .tools/bin/changeloggy
 
       - name: Add changeloggy to PATH
-        run: echo "$PWD/.tools/bin" >> "$GITHUB_PATH"
+        # a constant path, not untrusted input
+        run: echo "$PWD/.tools/bin" >> "$GITHUB_PATH"  # zizmor: ignore[github-env]
 
       - name: Checkout PR branch
         env:

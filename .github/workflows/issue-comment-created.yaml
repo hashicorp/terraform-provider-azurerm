@@ -10,27 +10,38 @@ on:
     types: [created]
 
 permissions:
-  pull-requests: write
-  issues: write
+  contents: read
 
 jobs:
   remove-stale:
     uses: ./.github/workflows/issue-remove-label.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     with:
       label-name: "stale"
   remove-waiting-response-from-issue:
     uses: ./.github/workflows/issue-remove-label.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     if: ${{ !github.event.issue.pull_request }}
     with:
       label-name: "waiting-response"
   remove-waiting-response-from-pr:
     uses: ./.github/workflows/issue-remove-label.yaml
+    permissions:
+      issues: write
+      pull-requests: write
     if: (github.event.issue.pull_request && github.actor == github.event.issue.user.login)
     with:
       label-name: "waiting-response"
 
   pull_request_comment:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
     if: github.event.issue.pull_request && endsWith(github.event.comment.body, '/wr')
     steps:
       - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9

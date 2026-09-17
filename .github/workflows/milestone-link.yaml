@@ -6,7 +6,8 @@ name: Link Milestone
 
 permissions: {}
 
-on:
+# pull_request_target is used to label only; the PR head is never checked out
+on:  # zizmor: ignore[dangerous-triggers]
   pull_request_target:
     branches: [main]
     types: ['closed']
