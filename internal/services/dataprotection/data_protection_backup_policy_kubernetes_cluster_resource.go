@@ -464,7 +464,6 @@ func expandBackupPolicyKubernetesClusterLifeCycle(input []LifeCycle) []basebacku
 func expandBackupPolicyKubernetesClusterTaggingCriteriaArray(input []RetentionRule) (*[]basebackuppolicyresources.TaggingCriteria, error) {
 	results := []basebackuppolicyresources.TaggingCriteria{
 		{
-			Criteria:        nil,
 			IsDefault:       true,
 			TaggingPriority: 99,
 			TagInfo: basebackuppolicyresources.RetentionTag{
@@ -475,7 +474,6 @@ func expandBackupPolicyKubernetesClusterTaggingCriteriaArray(input []RetentionRu
 	}
 	for _, item := range input {
 		result := basebackuppolicyresources.TaggingCriteria{
-			IsDefault:       false,
 			TaggingPriority: item.Priority,
 			TagInfo: basebackuppolicyresources.RetentionTag{
 				Id:      pointer.To(item.Name + "_"),
@@ -532,7 +530,6 @@ func expandBackupPolicyKubernetesClusterCriteriaArray(input []Criteria) (*[]base
 
 		results = append(results, basebackuppolicyresources.ScheduleBasedBackupCriteria{
 			AbsoluteCriteria: &absoluteCriteria,
-			DaysOfMonth:      nil,
 			DaysOfTheWeek:    &daysOfWeek,
 			MonthsOfYear:     &monthsOfYear,
 			ScheduleTimes:    pointer.To(item.ScheduledBackupTimes),
@@ -580,11 +577,11 @@ func flattenBackupPolicyKubernetesClusterRetentionRules(input *[]basebackuppolic
 		return results
 	}
 
-	var taggingCriterias []basebackuppolicyresources.TaggingCriteria
+	var taggingCriteriaList []basebackuppolicyresources.TaggingCriteria
 	for _, item := range *input {
 		if backupRule, ok := item.(basebackuppolicyresources.AzureBackupRule); ok {
 			if trigger, ok := backupRule.Trigger.(basebackuppolicyresources.ScheduleBasedTriggerContext); ok {
-				taggingCriterias = trigger.TaggingCriteria
+				taggingCriteriaList = trigger.TaggingCriteria
 			}
 		}
 	}
@@ -596,7 +593,7 @@ func flattenBackupPolicyKubernetesClusterRetentionRules(input *[]basebackuppolic
 			var taggingCriteria []Criteria
 			if retentionRule.IsDefault == nil || !*retentionRule.IsDefault {
 				name = retentionRule.Name
-				for _, criteria := range taggingCriterias {
+				for _, criteria := range taggingCriteriaList {
 					if strings.EqualFold(criteria.TagInfo.TagName, name) {
 						taggingPriority = criteria.TaggingPriority
 						taggingCriteria = flattenBackupPolicyKubernetesClusterBackupCriteriaArray(criteria.Criteria)

@@ -582,7 +582,7 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 	//   3. Cannot use `OpenidAuthenticationSettings` in combination with `Openid` nor `OAuth2`
 	// If specifying `oauth2_authorization`/`openid_authentication` when creating a resource and then updating the resource, the error #2/#3 mentioned above will occur.
 	// This is because starting from the 2022-08-01 version, the Get API additionally returns a collection of `oauth2_authorization`/`openid_authentication` authentication settings, which property name is `OAuth2AuthenticationSettings`/`OpenidAuthenticationSetting`.
-	// Given the API behavior, the update here should only read the specified property `oauth2_authorization`/`openid_authentication` to exclude `OAuth2AuthenticationSettings`/`OpenidAuthenticationSetting` to ensure the update works properly.
+	// Given the API behaviour, the update here should only read the specified property `oauth2_authorization`/`openid_authentication` to exclude `OAuth2AuthenticationSettings`/`OpenidAuthenticationSetting` to ensure the update works properly.
 	if v := existing.AuthenticationSettings; v != nil {
 		authenticationSettings := &api.AuthenticationSettingsContract{}
 		if v.OAuth2 != nil {
