@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigingroups"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -18,6 +19,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "subscription_id:cdn_frontdoor_profile_id,resource_group_name:cdn_frontdoor_profile_id,profile_name:cdn_frontdoor_profile_id"
+
+const azureCdnFrontDoorOriginGroupResourceName = "azurerm_cdn_frontdoor_origin_group"
 
 func resourceCdnFrontDoorOriginGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -33,10 +38,11 @@ func resourceCdnFrontDoorOriginGroup() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := afdorigingroups.ParseOriginGroupID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&afdorigingroups.OriginGroupId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&afdorigingroups.OriginGroupId{}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -163,7 +169,7 @@ func resourceCdnFrontDoorOriginGroupCreate(d *pluginsdk.ResourceData, meta inter
 		}
 
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_origin_group", id.ID())
+			return tf.ImportAsExistsError(azureCdnFrontDoorOriginGroupResourceName, id.ID())
 		}
 	}
 
@@ -181,11 +187,16 @@ func resourceCdnFrontDoorOriginGroupCreate(d *pluginsdk.ResourceData, meta inter
 		},
 	}
 
-	if err := client.CreateCallbackThenPoll(ctx, id, props, sdk.SetIDCallback(meta, &id, d)); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, props, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceCdnFrontDoorOriginGroupRead(d, meta)
 }
 
@@ -209,10 +220,14 @@ func resourceCdnFrontDoorOriginGroupRead(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourceCdnFrontDoorOriginGroupFlatten(d, id, resp.Model)
+}
+
+func resourceCdnFrontDoorOriginGroupFlatten(d *pluginsdk.ResourceData, id *afdorigingroups.OriginGroupId, model *afdorigingroups.AFDOriginGroup) error {
 	d.Set("name", id.OriginGroupName)
 	d.Set("cdn_frontdoor_profile_id", afdorigingroups.NewProfileID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName).ID())
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			if err := d.Set("health_probe", flattenCdnFrontDoorOriginGroupHealthProbeParameters(props.HealthProbeSettings)); err != nil {
 				return fmt.Errorf("setting 'health_probe': %+v", err)
@@ -227,7 +242,7 @@ func resourceCdnFrontDoorOriginGroupRead(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceCdnFrontDoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
