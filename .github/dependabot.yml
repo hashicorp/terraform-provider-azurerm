@@ -8,3 +8,10 @@ updates:
       - dependency-name: "*"
         update-types:
           - "version-update:semver-major"
+
+  # go dev tools (golangci-lint, terrafmt, gofumpt, ...) pinned in .tools/go.mod, built by make
+  # into .tools/bin; tools should move slowly so only check quarterly
+  - package-ecosystem: "gomod"
+    directory: "/.tools"
+    schedule:
+      interval: "quarterly"
