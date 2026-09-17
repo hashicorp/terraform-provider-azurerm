@@ -203,8 +203,7 @@ func resourceDataFactoryLinkedServiceKustoCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		kustoLinkedService.Annotations = &annotations
+		kustoLinkedService.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{

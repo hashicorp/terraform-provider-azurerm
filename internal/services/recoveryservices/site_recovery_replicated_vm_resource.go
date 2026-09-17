@@ -343,6 +343,7 @@ func resourceSiteRecoveryReplicatedVMCustomizeDiff(ctx context.Context, diff *pl
 			resourceSiteRecoveryReplicatedVMDiskHash,
 			[]string{"staging_storage_account_id", "target_resource_group_id", "target_disk_encryption_set_id"},
 			[]string{"target_disk_type", "target_replica_disk_type"},
+			[]string{"staging_storage_account_id", "target_resource_group_id", "target_disk_encryption_set_id"},
 		)
 		if err := managedDiskCustomDiff(ctx, diff, v); err != nil {
 			return err
@@ -676,8 +677,7 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta in
 
 	var targetAvailabilitySetID *string
 	if id, isSet := d.GetOk("target_availability_set_id"); isSet {
-		tmp := id.(string)
-		targetAvailabilitySetID = &tmp
+		targetAvailabilitySetID = pointer.To(id.(string))
 	} else {
 		targetAvailabilitySetID = nil
 	}
@@ -751,14 +751,11 @@ func resourceSiteRecoveryReplicatedItemUpdate(d *pluginsdk.ResourceData, meta in
 	managedDisks := make([]replicationprotecteditems.A2AVMManagedDiskUpdateDetails, 0, len(existingDisks))
 	for _, raw := range existingDisks {
 		diskInput := raw.(map[string]interface{})
-		diskId := diskInput["disk_id"].(string)
-		targetReplicaDiskType := diskInput["target_replica_disk_type"].(string)
-		targetDiskType := diskInput["target_disk_type"].(string)
 
 		managedDisks = append(managedDisks, replicationprotecteditems.A2AVMManagedDiskUpdateDetails{
-			DiskId:                         &diskId,
-			RecoveryReplicaDiskAccountType: &targetReplicaDiskType,
-			RecoveryTargetDiskAccountType:  &targetDiskType,
+			DiskId:                         pointer.To(diskInput["disk_id"].(string)),
+			RecoveryReplicaDiskAccountType: pointer.To(diskInput["target_replica_disk_type"].(string)),
+			RecoveryTargetDiskAccountType:  pointer.To(diskInput["target_disk_type"].(string)),
 			DiskEncryptionInfo:             expandDiskEncryption(diskInput["target_disk_encryption"].([]interface{})),
 		})
 	}
@@ -1095,11 +1092,9 @@ func resourceSiteRecoveryReplicatedItemDelete(d *pluginsdk.ResourceData, meta in
 
 	client := meta.(*clients.Client).RecoveryServices.ReplicationProtectedItemsClient
 
-	disableProtectionReason := replicationprotecteditems.DisableProtectionReasonNotSpecified
-
 	disableProtectionInput := replicationprotecteditems.DisableProtectionInput{
 		Properties: replicationprotecteditems.DisableProtectionInputProperties{
-			DisableProtectionReason: &disableProtectionReason,
+			DisableProtectionReason: pointer.To(replicationprotecteditems.DisableProtectionReasonNotSpecified),
 			// It's a workaround for https://github.com/hashicorp/pandora/issues/1864
 			ReplicationProviderInput: replicationprotecteditems.BaseDisableProtectionProviderSpecificInputImpl{
 				InstanceType: string(siterecovery.InstanceTypeDisableProtectionProviderSpecificInput),

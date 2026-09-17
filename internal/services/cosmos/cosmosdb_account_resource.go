@@ -271,7 +271,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			// Per Documentation: "The default identity needs to be explicitly set by the users." This should not be optional without a default anymore.
-			// DOC: https://learn.microsoft.com/en-us/java/api/com.azure.resourcemanager.cosmos.models.databaseaccountupdateparameters?view=azure-java-stable#method-details
+			// DOC: https://learn.microsoft.com/java/api/com.azure.resourcemanager.cosmos.models.databaseaccountupdateparameters?view=azure-java-stable#method-details
 			"default_identity_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -1584,7 +1584,7 @@ func expandAzureRmCosmosDBAccountGeoLocations(d *pluginsdk.ResourceData) ([]cosm
 		name := *location.LocationName
 
 		if _, ok := byPriorities[priority]; ok {
-			return nil, fmt.Errorf("each `geo_location` needs to have a unique failover_prioroty. Multiple instances of '%d' found", priority)
+			return nil, fmt.Errorf("each `geo_location` needs to have a unique failover_priority. Multiple instances of '%d' found", priority)
 		}
 
 		if _, ok := byName[name]; ok {

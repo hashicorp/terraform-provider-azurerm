@@ -1628,8 +1628,7 @@ func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{
 				return fmt.Errorf("setting `redirect_configuration`: %+v", setErr)
 			}
 
-			rewriteRuleSets := flattenApplicationGatewayRewriteRuleSets(props.RewriteRuleSets)
-			if setErr := d.Set("rewrite_rule_set", rewriteRuleSets); setErr != nil {
+			if setErr := d.Set("rewrite_rule_set", flattenApplicationGatewayRewriteRuleSets(props.RewriteRuleSets)); setErr != nil {
 				return fmt.Errorf("setting `rewrite_rule_set`: %+v", setErr)
 			}
 

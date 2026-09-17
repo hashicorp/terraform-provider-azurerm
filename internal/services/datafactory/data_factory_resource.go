@@ -404,13 +404,11 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				return fmt.Errorf("setting `global_parameter`: %+v", err)
 			}
 
-			githubConfiguration := flattenGitHubRepoConfiguration(props.RepoConfiguration)
-			if err := d.Set("github_configuration", githubConfiguration); err != nil {
+			if err := d.Set("github_configuration", flattenGitHubRepoConfiguration(props.RepoConfiguration)); err != nil {
 				return fmt.Errorf("setting `github_configuration`: %+v", err)
 			}
 
-			vstsConfiguration := flattenVSTSRepoConfiguration(props.RepoConfiguration)
-			if err := d.Set("vsts_configuration", vstsConfiguration); err != nil {
+			if err := d.Set("vsts_configuration", flattenVSTSRepoConfiguration(props.RepoConfiguration)); err != nil {
 				return fmt.Errorf("setting `vsts_configuration`: %+v", err)
 			}
 
