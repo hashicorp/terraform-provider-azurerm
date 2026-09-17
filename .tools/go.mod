@@ -5,7 +5,6 @@ go 1.26.6
 tool (
 	github.com/YakDriver/tfproviderdocs
 	github.com/apache/skywalking-eyes/cmd/license-eye
-	github.com/client9/misspell/cmd/misspell
 	github.com/golangci/golangci-lint/v2/cmd/golangci-lint
 	github.com/katbyte/tctest
 	github.com/katbyte/terrafmt
@@ -18,7 +17,6 @@ tool (
 require (
 	github.com/YakDriver/tfproviderdocs v0.26.0
 	github.com/apache/skywalking-eyes v0.9.0
-	github.com/client9/misspell v0.3.4
 	github.com/golangci/golangci-lint/v2 v2.13.2
 	github.com/katbyte/tctest v1.3.3
 	github.com/katbyte/terrafmt v1.0.1

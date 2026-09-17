@@ -14,23 +14,24 @@ GOIMPORTS=$(TOOLS_BIN)/goimports
 GOLANGCI_LINT=$(TOOLS_BIN)/golangci-lint
 GOTESTSUM=$(TOOLS_BIN)/gotestsum
 LICENSE_EYE=$(TOOLS_BIN)/license-eye
-MISSPELL=$(TOOLS_BIN)/misspell
 TCTEST=$(TOOLS_BIN)/tctest
 TERRAFMT=$(TOOLS_BIN)/terrafmt
 TFPROVIDERDOCS=$(TOOLS_BIN)/tfproviderdocs
 PATH := $(CURDIR)/$(TOOLS_BIN):$(PATH)
 
 # non-Go tools also live in .tools/bin at pinned versions, but the pins are here (dependabot
-# cannot bump them): shellcheck and lychee are static binaries downloaded from their github releases, yamllint
+# cannot bump them): shellcheck, lychee and typos are static binaries downloaded from their github releases, yamllint
 # is pip installed into a repo-local venv and markdownlint-cli2 is npm installed into a repo-local
 # prefix. all rebuild when this makefile changes.
 LYCHEE_VERSION=v0.24.2
 MARKDOWNLINT_CLI2_VERSION=0.23.2
 SHELLCHECK_VERSION=v0.11.0
+TYPOS_VERSION=v1.50.1
 YAMLLINT_VERSION=1.38.0
 LYCHEE=$(TOOLS_BIN)/lychee
 MARKDOWNLINT=$(TOOLS_BIN)/markdownlint-cli2
 SHELLCHECK=$(TOOLS_BIN)/shellcheck
+TYPOS=$(TOOLS_BIN)/typos
 YAMLLINT=$(TOOLS_BIN)/yamllint
 
 # golangci-lint with the azproviderlint/tfproviderlint module plugins compiled in
@@ -67,6 +68,11 @@ $(LYCHEE): GNUmakefile | $(TOOLS_BIN)
 	@case "$(HOST_OS)" in darwin) target=apple-darwin;; *) target=unknown-linux-gnu;; esac; \
 		curl -sSfL https://github.com/lycheeverse/lychee/releases/download/lychee-$(LYCHEE_VERSION)/lychee-$(HOST_ARCH)-$$target.tar.gz | tar -xzO --strip-components=1 lychee-$(HOST_ARCH)-$$target/lychee > $@ && chmod +x $@
 
+$(TYPOS): GNUmakefile | $(TOOLS_BIN)
+	@echo "==> Downloading typos $(TYPOS_VERSION)..."
+	@case "$(HOST_OS)" in darwin) target=apple-darwin;; *) target=unknown-linux-musl;; esac; \
+		curl -sSfL https://github.com/crate-ci/typos/releases/download/$(TYPOS_VERSION)/typos-$(TYPOS_VERSION)-$(HOST_ARCH)-$$target.tar.gz | tar -xzO ./typos > $@ && chmod +x $@
+
 $(YAMLLINT): GNUmakefile | $(TOOLS_BIN)
 	@command -v python3 >/dev/null || (echo "python3 is required to install yamllint (macOS: xcode CLT; Debian/Ubuntu: apt install python3-venv)" && exit 1)
 	@echo "==> Installing yamllint $(YAMLLINT_VERSION) into .tools/venv..."
@@ -96,7 +102,7 @@ golangci-fix: ## renamed to lint-fix
 	@$(MAKE) lint-fix
 
 ##@ Build & Generate
-tools: $(ACTIONLINT) $(GOFUMPT) $(GOIMPORTS) $(GOLANGCI_LINT) $(GOLANGCI_LINT_MODULES) $(GOTESTSUM) $(LICENSE_EYE) $(MISSPELL) $(TCTEST) $(TERRAFMT) $(TFPROVIDERDOCS) $(LYCHEE) $(MARKDOWNLINT) $(SHELLCHECK) $(YAMLLINT) ## Install all pinned dev tools into .tools/bin (targets install what they need on demand)
+tools: $(ACTIONLINT) $(GOFUMPT) $(GOIMPORTS) $(GOLANGCI_LINT) $(GOLANGCI_LINT_MODULES) $(GOTESTSUM) $(LICENSE_EYE) $(TCTEST) $(TERRAFMT) $(TFPROVIDERDOCS) $(LYCHEE) $(MARKDOWNLINT) $(SHELLCHECK) $(TYPOS) $(YAMLLINT) ## Install all pinned dev tools into .tools/bin (targets install what they need on demand)
 
 build: quick-checks generate ## Run the quick checks, generate code, and compile the provider
 	go install
@@ -183,6 +189,14 @@ shellcheck: $(SHELLCHECK) ## Check shell scripts with shellcheck
 	@$(SHELLCHECK) scripts/*.sh scripts/checks/*.sh scripts/automation/*.sh || \
 		(echo; echo "ShellCheck found issues in shell scripts."; echo "Review the errors above and fix them. See https://www.shellcheck.net/ for detailed explanations of each rule."; exit 1)
 
+typos: $(TYPOS) ## Check spelling in code, docs and examples with typos (config in .typos.toml)
+	@echo "==> Checking spelling with typos..."
+	@$(TYPOS) || \
+		(echo; echo "Spelling errors found. Fix them with 'make typos-fix', or add false positives (Azure names, enum values) to .typos.toml."; exit 1)
+
+typos-fix: $(TYPOS) ## Fix spelling errors found by typos
+	@$(TYPOS) --write-changes
+
 depscheck: ## Check that go.mod/go.sum and vendor/ are in sync
 	@echo "==> Checking dependencies.."
 	@./scripts/checks/track2-check.sh
@@ -213,7 +227,7 @@ testacc: ## Run acceptance tests for a package (TEST=./internal/services/<servic
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
 
 acctests: ## Run acceptance tests for a service (SERVICE=<service>)
-	TF_ACC=1 go test -v ./internal/services/$(SERVICE) $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
+	TF_ACC=1 go test -v ./internal/services/$(SERVICE)/... $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
 
 debugacc: ## Run acceptance tests under the delve debugger (TEST=./internal/services/<service>)
 	TF_ACC=1 dlv test $(TEST) --headless --listen=:2345 --api-version=2 -- -test.v $(TESTARGS)
@@ -260,16 +274,13 @@ linkcheck-external: $(LYCHEE) ## Check external doc links with lychee (network a
 	@echo "==> Checking external website doc links with lychee..."
 	@cd .github && $(CURDIR)/$(LYCHEE) --no-progress --scheme https --scheme http $(LYCHEE_REMAPS) $(LYCHEE_INPUTS)
 
-website-lint: $(MISSPELL) $(TFPROVIDERDOCS) $(TERRAFMT) ## Check website documentation for issues
+website-lint: $(TFPROVIDERDOCS) $(TERRAFMT) ## Check website documentation for issues
 	@echo "==> Checking documentation for .html.markdown extension present"
 	@if ! find website/docs -type f -not -name "*.html.markdown" -print -exec false {} +; then \
 		echo "ERROR: file extension should be .html.markdown"; \
 		echo "All documentation files must use the .html.markdown extension."; \
 		exit 1; \
 	fi
-	@echo "==> Checking documentation spelling..."
-	@$(MISSPELL) -error -source=text -i hdinsight,exportfs website/ || \
-		(echo; echo "Spelling errors found in documentation."; exit 1)
 	@echo "==> Checking for locale-specific Microsoft Learn links..."
 	@! grep -rnE '(learn|docs)\.microsoft\.com/[a-z]{2}-[a-z]{2}/' website/ || \
 		(echo; echo "Remove the locale segment (e.g. /en-us/) from Microsoft Learn links so readers are served their own language."; exit 1)
@@ -309,4 +320,4 @@ resource-counts: ## Print the number of resources and data sources in the provid
 
 pr-check: generate build test lint website-lint ## Run the same set of checks CI runs against a PR
 
-.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint actionlint yamllint markdownlint linkcheck linkcheck-local linkcheck-external shellcheck copyright copyright-fix depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check
+.PHONY: default help tools build fmt goimports quick-checks fmtcheck terrafmt generate lint actionlint yamllint markdownlint linkcheck linkcheck-local linkcheck-external shellcheck copyright copyright-fix typos typos-fix depscheck gencheck tfproviderlint tflint azproviderlint lint-fix golangci-fix test testacc acctests debugacc prepare website-lint document-validate document-fix document-lint scaffold-website teamcity-test validate-examples schemagen resource-counts pr-check
