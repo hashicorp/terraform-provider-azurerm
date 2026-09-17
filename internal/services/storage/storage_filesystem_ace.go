@@ -54,7 +54,7 @@ func FlattenDataLakeGen2AceList(d *pluginsdk.ResourceData, acl accesscontrol.ACL
 	output := make([]interface{}, 0)
 
 	for _, v := range acl.Entries {
-		// Filter ACL defalt entries (ones without ID value, for scopes 'user', 'group', 'other', 'mask').
+		// Filter ACL default entries (ones without ID value, for scopes 'user', 'group', 'other', 'mask').
 		//    Include default entries, only if use in a configuration, to match the state file.
 		if v.TagQualifier == nil && existingACLs != nil && !isACLContainingEntry(existingACLs, v.TagType, v.TagQualifier, v.IsDefault) {
 			continue

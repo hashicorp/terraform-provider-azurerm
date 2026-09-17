@@ -48,7 +48,7 @@ func (FeatureResourceV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 
 		configurationStoreId, err := configurationstores.ParseConfigurationStoreIDInsensitively(parsedOldId.ConfigurationStoreId)
 		if err != nil {
-			return rawState, fmt.Errorf("parseing Configuration Store ID %q: %+v", configurationStoreId, err)
+			return rawState, fmt.Errorf("parsing Configuration Store ID %q: %+v", configurationStoreId, err)
 		}
 
 		domainSuffix, ok := meta.(*clients.Client).Account.Environment.AppConfiguration.DomainSuffix()

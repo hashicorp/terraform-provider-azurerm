@@ -164,16 +164,16 @@ func normalizeLinkedResourceId(input *string) *string {
 	}
 
 	if resourceId, err := components.ParseComponentIDInsensitively(*input); err == nil {
-		nomalizedId := resourceId.ID()
-		return &nomalizedId
+		normalizedId := resourceId.ID()
+		return &normalizedId
 	}
 	if resourceId, err := workspaces.ParseWorkspaceIDInsensitively(*input); err == nil {
-		nomalizedId := resourceId.ID()
-		return &nomalizedId
+		normalizedId := resourceId.ID()
+		return &normalizedId
 	}
 	if resourceId, err := datacollectionendpoints.ParseDataCollectionEndpointIDInsensitively(*input); err == nil {
-		nomalizedId := resourceId.ID()
-		return &nomalizedId
+		normalizedId := resourceId.ID()
+		return &normalizedId
 	}
 
 	return input
