@@ -77,41 +77,6 @@ func TestAccTrustedSigningCertificateProfile_complete(t *testing.T) {
 	})
 }
 
-func TestAccTrustedSigningCertificateProfile_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_trusted_signing_certificate_profile", "test")
-	r := TrustedSigningCertificateProfileResource{}
-	r.preCheck(t)
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{Config: r.basic(data)},
-		data.ImportStep(),
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("include_city").HasValue("true"),
-				check.That(data.ResourceName).Key("include_country").HasValue("true"),
-				check.That(data.ResourceName).Key("include_postal_code").HasValue("true"),
-				check.That(data.ResourceName).Key("include_state").HasValue("true"),
-				check.That(data.ResourceName).Key("include_street_address").HasValue("true"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("include_city").HasValue("false"),
-				check.That(data.ResourceName).Key("include_country").HasValue("false"),
-				check.That(data.ResourceName).Key("include_postal_code").HasValue("false"),
-				check.That(data.ResourceName).Key("include_state").HasValue("false"),
-				check.That(data.ResourceName).Key("include_street_address").HasValue("false"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccTrustedSigningCertificateProfile_privateTrustCIPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_trusted_signing_certificate_profile", "test")
 	r := TrustedSigningCertificateProfileResource{}

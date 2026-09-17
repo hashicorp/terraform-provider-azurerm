@@ -23,10 +23,7 @@ import (
 
 type TrustedSigningCertificateProfileResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate   = TrustedSigningCertificateProfileResource{}
-	_ sdk.ResourceWithIdentity = TrustedSigningCertificateProfileResource{}
-)
+var _ sdk.ResourceWithIdentity = TrustedSigningCertificateProfileResource{}
 
 type TrustedSigningCertificateProfileModel struct {
 	Name                    string `tfschema:"name"`
@@ -92,30 +89,35 @@ func (TrustedSigningCertificateProfileResource) Arguments() map[string]*pluginsd
 		"include_city": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
+			ForceNew: true,
 			Default:  false,
 		},
 
 		"include_country": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
+			ForceNew: true,
 			Default:  false,
 		},
 
 		"include_postal_code": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
+			ForceNew: true,
 			Default:  false,
 		},
 
 		"include_state": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
+			ForceNew: true,
 			Default:  false,
 		},
 
 		"include_street_address": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
+			ForceNew: true,
 			Default:  false,
 		},
 	}
@@ -157,29 +159,6 @@ func (r TrustedSigningCertificateProfileResource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
-		},
-	}
-}
-
-func (TrustedSigningCertificateProfileResource) Update() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.CodeSigning.Client.CertificateProfiles
-			id, err := certificateprofiles.ParseCertificateProfileID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
-			var model TrustedSigningCertificateProfileModel
-			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			if err := client.CreateThenPoll(ctx, *id, expandTrustedSigningCertificateProfileResource(model)); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
-			}
-			return nil
 		},
 	}
 }

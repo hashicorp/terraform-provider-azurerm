@@ -42,15 +42,15 @@ The following arguments are supported:
 
 * `profile_type` - (Required) The type of the certificate profile. Possible values are `PrivateTrust`, `PrivateTrustCIPolicy`, `PublicTrust`, `PublicTrustTest`, and `VBSEnclave`. Changing this forces a new resource to be created.
 
-* `include_city` - (Optional) Whether to include the city (`L`) in the certificate subject name. Applicable only to `PrivateTrust` and `PrivateTrustCIPolicy` profiles. Defaults to `false`.
+* `include_city` - (Optional) Whether to include the city (`L`) in the certificate subject name. Applicable only to `PrivateTrust` and `PrivateTrustCIPolicy` profiles. Defaults to `false`. Changing this forces a new resource to be created.
 
-* `include_country` - (Optional) Whether to include the country (`C`) in the certificate subject name. Applicable only to `PrivateTrust` and `PrivateTrustCIPolicy` profiles. Defaults to `false`.
+* `include_country` - (Optional) Whether to include the country (`C`) in the certificate subject name. Applicable only to `PrivateTrust` and `PrivateTrustCIPolicy` profiles. Defaults to `false`. Changing this forces a new resource to be created.
 
-* `include_postal_code` - (Optional) Whether to include the postal code (`PC`) in the certificate subject name. Defaults to `false`.
+* `include_postal_code` - (Optional) Whether to include the postal code (`PC`) in the certificate subject name. Defaults to `false`. Changing this forces a new resource to be created.
 
-* `include_state` - (Optional) Whether to include the state (`S`) in the certificate subject name. Applicable only to `PrivateTrust` and `PrivateTrustCIPolicy` profiles. Defaults to `false`.
+* `include_state` - (Optional) Whether to include the state (`S`) in the certificate subject name. Applicable only to `PrivateTrust` and `PrivateTrustCIPolicy` profiles. Defaults to `false`. Changing this forces a new resource to be created.
 
-* `include_street_address` - (Optional) Whether to include the street address (`STREET`) in the certificate subject name. Defaults to `false`.
+* `include_street_address` - (Optional) Whether to include the street address (`STREET`) in the certificate subject name. Defaults to `false`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -64,7 +64,6 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 * `create` - (Defaults to 30 minutes) Used when creating the Trusted Signing Certificate Profile.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Trusted Signing Certificate Profile.
-* `update` - (Defaults to 30 minutes) Used when updating the Trusted Signing Certificate Profile.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Trusted Signing Certificate Profile.
 
 ## Import
