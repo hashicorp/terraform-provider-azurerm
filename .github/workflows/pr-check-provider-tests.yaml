@@ -100,18 +100,18 @@ jobs:
   save-artifacts-on-fail:
     needs: provider-tests
     if: ${{ failure() }}
-    uses: ./.github/workflows/pr-save-artifacts.yaml
+    uses: $/.github/workflows/pr-save-artifacts.yaml
   comment-on-fail:
     needs: provider-tests
     if: ${{ failure() }}
-    uses: ./.github/workflows/pr-comment-failure.yaml
+    uses: $/.github/workflows/pr-comment-failure.yaml
     permissions:
       issues: write
       pull-requests: write
   comment-outdated-on-pass:
     needs: provider-tests
     if: ${{ success() }}
-    uses: ./.github/workflows/pr-comment-failure-outdated.yaml
+    uses: $/.github/workflows/pr-comment-failure-outdated.yaml
     permissions:
       issues: write
       pull-requests: write

@@ -14,14 +14,14 @@ permissions:
 
 jobs:
   remove-stale:
-    uses: ./.github/workflows/issue-remove-label.yaml
+    uses: $/.github/workflows/issue-remove-label.yaml
     permissions:
       issues: write
       pull-requests: write
     with:
       label-name: "stale"
   remove-waiting-response-from-issue:
-    uses: ./.github/workflows/issue-remove-label.yaml
+    uses: $/.github/workflows/issue-remove-label.yaml
     permissions:
       issues: write
       pull-requests: write
@@ -29,7 +29,7 @@ jobs:
     with:
       label-name: "waiting-response"
   remove-waiting-response-from-pr:
-    uses: ./.github/workflows/issue-remove-label.yaml
+    uses: $/.github/workflows/issue-remove-label.yaml
     permissions:
       issues: write
       pull-requests: write

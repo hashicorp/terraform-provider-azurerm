@@ -185,7 +185,7 @@ actionlint: $(ACTIONLINT) $(SHELLCHECK) ## Check GitHub workflows with actionlin
 	@echo "==> Checking workflows with actionlint..."
 	@$(ACTIONLINT) -shellcheck=$(SHELLCHECK)
 
-zizmor: $(ZIZMOR) ## Audit GitHub workflows for security issues with zizmor (config in .github/zizmor.yml)
+zizmor: $(ZIZMOR) ## Audit GitHub workflows for security issues with zizmor
 	@echo "==> Auditing workflows with zizmor..."
 	@$(ZIZMOR) .
 

@@ -38,17 +38,17 @@ jobs:
   comment-on-fail:
     needs: preview-api-version-linter
     if: ${{ failure() }}
-    uses: ./.github/workflows/pr-comment-failure.yaml
+    uses: $/.github/workflows/pr-comment-failure.yaml
     permissions:
       pull-requests: write
   comment-outdated-on-pass:
     needs: preview-api-version-linter
     if: ${{ success() }}
-    uses: ./.github/workflows/pr-comment-failure-outdated.yaml
+    uses: $/.github/workflows/pr-comment-failure-outdated.yaml
     permissions:
       pull-requests: write
 
   save-artifacts-on-fail:
     needs: preview-api-version-linter
     if: ${{ failure() }}
-    uses: ./.github/workflows/pr-save-artifacts.yaml
+    uses: $/.github/workflows/pr-save-artifacts.yaml

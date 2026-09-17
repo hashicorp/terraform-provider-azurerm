@@ -13,6 +13,6 @@ on:  # zizmor: ignore[dangerous-triggers]
 
 jobs:
   remove-waiting-response:
-    uses: ./.github/workflows/issue-remove-label.yaml
+    uses: $/.github/workflows/issue-remove-label.yaml
     with:
       label-name: "waiting-response"
