@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/edgezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -288,7 +289,7 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	iface := networkinterfaces.NetworkInterface{
 		Name:             pointer.To(id.NetworkInterfaceName),
-		ExtendedLocation: expandEdgeZoneModel(d.Get("edge_zone").(string)),
+		ExtendedLocation: edgezones.Expand(d.Get("edge_zone").(string)),
 		Location:         pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties:       &properties,
 		Tags:             tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -462,7 +463,7 @@ func resourceNetworkInterfaceFlatten(d *pluginsdk.ResourceData, id *commonids.Ne
 
 	if ni != nil {
 		d.Set("location", location.NormalizeNilable(ni.Location))
-		d.Set("edge_zone", flattenEdgeZoneModel(ni.ExtendedLocation))
+		d.Set("edge_zone", edgezones.Flatten(ni.ExtendedLocation))
 
 		if props := ni.Properties; props != nil {
 			primaryPrivateIPAddress, privateIPAddresses := flattenNetworkInterfacePrivateIPAddresses(props.IPConfigurations)
