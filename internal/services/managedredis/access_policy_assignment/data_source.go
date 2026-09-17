@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package managedredis
+package access_policy_assignment
 
 import (
 	"context"
@@ -17,17 +17,17 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type ManagedRedisAccessPolicyAssignmentDataSource struct{}
+type DataSource struct{}
 
-var _ sdk.DataSource = ManagedRedisAccessPolicyAssignmentDataSource{}
+var _ sdk.DataSource = DataSource{}
 
-type ManagedRedisAccessPolicyAssignmentDataSourceModel struct {
+type DataSourceModel struct {
 	ManagedRedisName string `tfschema:"managed_redis_name"`
 	ResourceGroup    string `tfschema:"resource_group_name"`
 	ObjectID         string `tfschema:"object_id"`
 }
 
-func (r ManagedRedisAccessPolicyAssignmentDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"object_id": {
 			Type:         pluginsdk.TypeString,
@@ -45,23 +45,23 @@ func (r ManagedRedisAccessPolicyAssignmentDataSource) Arguments() map[string]*pl
 	}
 }
 
-func (r ManagedRedisAccessPolicyAssignmentDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r ManagedRedisAccessPolicyAssignmentDataSource) ModelObject() interface{} {
-	return &ManagedRedisAccessPolicyAssignmentDataSourceModel{}
+func (r DataSource) ModelObject() interface{} {
+	return &DataSourceModel{}
 }
 
-func (r ManagedRedisAccessPolicyAssignmentDataSource) ResourceType() string {
+func (r DataSource) ResourceType() string {
 	return "azurerm_managed_redis_access_policy_assignment"
 }
 
-func (r ManagedRedisAccessPolicyAssignmentDataSource) Read() sdk.ResourceFunc {
+func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var state ManagedRedisAccessPolicyAssignmentDataSourceModel
+			var state DataSourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}

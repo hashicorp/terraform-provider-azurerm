@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package managedredis
+package managed_redis
 
 import (
 	"context"
@@ -21,11 +21,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ManagedRedisDataSource struct{}
+type DataSource struct{}
 
-var _ sdk.DataSource = ManagedRedisDataSource{}
+var _ sdk.DataSource = DataSource{}
 
-type ManagedRedisDataSourceModel struct {
+type DataSourceModel struct {
 	Name              string `tfschema:"name"`
 	ResourceGroupName string `tfschema:"resource_group_name"`
 
@@ -56,7 +56,7 @@ type DefaultDatabaseDataSourceModel struct {
 	SecondaryAccessKey                       string        `tfschema:"secondary_access_key"`
 }
 
-func (r ManagedRedisDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -68,7 +68,7 @@ func (r ManagedRedisDataSource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r ManagedRedisDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"customer_managed_key": {
 			Type:     pluginsdk.TypeList,
@@ -124,11 +124,11 @@ func (r ManagedRedisDataSource) Attributes() map[string]*pluginsdk.Schema {
 					},
 
 					"geo_replication_linked_database_ids": {
-						Type:     pluginsdk.TypeSet,
-						Computed: true,
+						Type: pluginsdk.TypeSet,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
+						Computed: true,
 					},
 
 					"module": {
@@ -212,15 +212,15 @@ func (r ManagedRedisDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r ManagedRedisDataSource) ModelObject() interface{} {
-	return &ManagedRedisDataSourceModel{}
+func (r DataSource) ModelObject() interface{} {
+	return &DataSourceModel{}
 }
 
-func (r ManagedRedisDataSource) ResourceType() string {
+func (r DataSource) ResourceType() string {
 	return "azurerm_managed_redis"
 }
 
-func (r ManagedRedisDataSource) Read() sdk.ResourceFunc {
+func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -228,7 +228,7 @@ func (r ManagedRedisDataSource) Read() sdk.ResourceFunc {
 			dbClient := metadata.Client.ManagedRedis.DatabaseClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var state ManagedRedisDataSourceModel
+			var state DataSourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -314,4 +314,18 @@ func (r ManagedRedisDataSource) Read() sdk.ResourceFunc {
 			return metadata.Encode(&state)
 		},
 	}
+}
+
+func flattenLinkedDatabases(dbs *[]databases.LinkedDatabase) []string {
+	if dbs == nil {
+		return []string{}
+	}
+
+	result := make([]string, 0, len(*dbs))
+	for _, db := range *dbs {
+		if db.Id != nil {
+			result = append(result, pointer.From(db.Id))
+		}
+	}
+	return result
 }

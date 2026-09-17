@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package managedredis_test
+package flush_databases_test
 
 import (
 	"context"
@@ -90,5 +90,51 @@ resource "terraform_data" "trigger" {
     }
   }
 }
-`, ManagedRedisResource{}.update(data, "Balanced_B3"))
+`, testClusterHcl(data, "Balanced_B3"))
+}
+
+func testClusterHcl(data acceptance.TestData, skuName string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-managedRedis-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_managed_redis" "test" {
+  name                = "acctest-amr-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location = "%[2]s"
+  sku_name = "%[3]s"
+
+  default_database {
+    access_keys_authentication_enabled = false
+    client_protocol                    = "Plaintext"
+    clustering_policy                  = "EnterpriseCluster"
+    eviction_policy                    = "NoEviction"
+    geo_replication_group_name         = "acctest-amr-georep-%[1]d"
+
+    module {
+      name = "RediSearch"
+      args = ""
+    }
+
+    module {
+      name = "RedisJSON"
+      args = ""
+    }
+  }
+
+  high_availability_enabled = true
+
+  tags = {
+    ENV    = "Test",
+    Method = "Update"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, skuName)
 }

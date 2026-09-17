@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package managedredis
+package flush_databases
 
 import (
 	"context"
@@ -18,23 +18,27 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
-type ManagedRedisFlushDatabasesAction struct {
+type flushDatabasesAction struct {
 	sdk.ActionMetadata
 }
 
-var _ sdk.Action = &ManagedRedisFlushDatabasesAction{}
+var _ sdk.Action = &flushDatabasesAction{}
 
-func newManagedRedisFlushDatabasesAction() action.Action {
-	return &ManagedRedisFlushDatabasesAction{}
+func Action() action.Action {
+	return &flushDatabasesAction{}
 }
 
-type ManagedRedisFlushDatabasesActionActionModel struct {
+func New() action.Action {
+	return Action()
+}
+
+type ActionModel struct {
 	ManagedRedisDatabaseId types.String   `tfsdk:"managed_redis_database_id"`
 	LinkedDatabaseIds      []types.String `tfsdk:"linked_database_ids"`
 	Timeout                types.String   `tfsdk:"timeout"`
 }
 
-func (m *ManagedRedisFlushDatabasesAction) Schema(_ context.Context, _ action.SchemaRequest, response *action.SchemaResponse) {
+func (m *flushDatabasesAction) Schema(_ context.Context, _ action.SchemaRequest, response *action.SchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"managed_redis_database_id": schema.StringAttribute{
@@ -69,14 +73,14 @@ func (m *ManagedRedisFlushDatabasesAction) Schema(_ context.Context, _ action.Sc
 	}
 }
 
-func (m *ManagedRedisFlushDatabasesAction) Metadata(_ context.Context, _ action.MetadataRequest, response *action.MetadataResponse) {
+func (m *flushDatabasesAction) Metadata(_ context.Context, _ action.MetadataRequest, response *action.MetadataResponse) {
 	response.TypeName = "azurerm_managed_redis_databases_flush"
 }
 
-func (m *ManagedRedisFlushDatabasesAction) Invoke(ctx context.Context, request action.InvokeRequest, response *action.InvokeResponse) {
+func (m *flushDatabasesAction) Invoke(ctx context.Context, request action.InvokeRequest, response *action.InvokeResponse) {
 	client := m.Client.ManagedRedis.Client
 
-	model := ManagedRedisFlushDatabasesActionActionModel{}
+	model := ActionModel{}
 
 	response.Diagnostics.Append(request.Config.Get(ctx, &model)...)
 	if response.Diagnostics.HasError() {
@@ -125,6 +129,6 @@ func (m *ManagedRedisFlushDatabasesAction) Invoke(ctx context.Context, request a
 	})
 }
 
-func (m *ManagedRedisFlushDatabasesAction) Configure(ctx context.Context, request action.ConfigureRequest, response *action.ConfigureResponse) {
+func (m *flushDatabasesAction) Configure(ctx context.Context, request action.ConfigureRequest, response *action.ConfigureResponse) {
 	m.Defaults(ctx, request, response)
 }

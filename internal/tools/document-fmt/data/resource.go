@@ -59,6 +59,17 @@ func expectedResourceCodePath(fs afero.Fs, pattern string, name string, service 
 	shortNameWithoutService = strings.TrimPrefix(shortNameWithoutService, cleanServiceNameUnderscore+"_")
 	shortNameWithoutService = strings.TrimPrefix(shortNameWithoutService, serviceBaseDir+"_")
 
+	parts := strings.Split(name, "_")
+	var accum string
+	for i, part := range parts {
+		accum += strings.ToLower(part)
+		if accum == cleanServiceName {
+			matchedPrefix := strings.Join(parts[:i+1], "_") + "_"
+			shortNameWithoutService = strings.TrimPrefix(name, matchedPrefix)
+			break
+		}
+	}
+
 	candidates := []string{
 		filepath.Join(service.Path, shortNameWithoutService, fmt.Sprintf("%s.go", suffix)),
 		filepath.Join(service.Path, shortNameWithoutService, fmt.Sprintf("%s_%s.go", shortNameWithoutService, suffix)),
