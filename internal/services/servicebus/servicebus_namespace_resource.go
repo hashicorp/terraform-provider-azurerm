@@ -146,6 +146,7 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 				Default:  string(namespaces.TlsVersionOnePointTwo),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(namespaces.TlsVersionOnePointTwo),
+					string(namespaces.TlsVersionOnePointThree),
 				}, false),
 			},
 
