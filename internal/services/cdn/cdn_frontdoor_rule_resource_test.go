@@ -19,6 +19,16 @@ import (
 
 type CdnFrontDoorRuleResource struct{}
 
+func TestAccCdnFrontDoorRule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.disableCacheError(data),
+		},
+	}, "")
+}
+
 func TestAccCdnFrontDoorRule_basic_unattachedRoute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
 	r := CdnFrontDoorRuleResource{}

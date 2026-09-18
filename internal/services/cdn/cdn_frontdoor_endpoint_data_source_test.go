@@ -13,6 +13,16 @@ import (
 
 type CdnFrontDoorEndpointDataSource struct{}
 
+func TestAccCdnFrontDoorEndpointDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_endpoint", "test")
+	r := CdnFrontDoorEndpointDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccCdnFrontDoorEndpointDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_endpoint", "test")
 	d := CdnFrontDoorEndpointDataSource{}

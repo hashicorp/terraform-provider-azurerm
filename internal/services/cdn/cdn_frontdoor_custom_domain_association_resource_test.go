@@ -23,6 +23,16 @@ type CdnFrontDoorCustomDomainAssociationResource struct{}
 
 // NOTE: There isn't a complete test case because the basic and the
 // update together equals what the complete test case would be...
+func TestAccCdnFrontDoorCustomDomainAssociation_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain_association", "test")
+	r := CdnFrontDoorCustomDomainAssociationResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccCdnFrontDoorCustomDomainAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain_association", "test")
 	r := CdnFrontDoorCustomDomainAssociationResource{}
