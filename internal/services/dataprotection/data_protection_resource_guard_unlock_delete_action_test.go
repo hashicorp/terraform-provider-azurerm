@@ -15,6 +15,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
+// before_destroy, caller, and on_failure require Terraform 1.16.
+// TODO:  terraform-plugin-testing release
+var terraformVersion1_16_0 = version.Must(version.NewVersion("1.16.0"))
+
 type DataProtectionResourceGuardUnlockDeleteAction struct{}
 
 func TestAccDataProtectionResourceGuardUnlockDeleteAction_basic(t *testing.T) {
@@ -25,9 +29,7 @@ func TestAccDataProtectionResourceGuardUnlockDeleteAction_basic(t *testing.T) {
 		PreCheck:                 func() { acceptance.PreCheck(t) },
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
-			// before_destroy, caller, and on_failure require Terraform 1.16.
-			// TODO: use tfversion.Version1_16_0 when terraform-plugin-testing provides it.
-			tfversion.SkipBelow(version.Must(version.NewVersion("1.16.0"))),
+			tfversion.SkipBelow(terraformVersion1_16_0),
 		},
 		Steps: []resource.TestStep{
 			{
@@ -51,9 +53,7 @@ func TestAccDataProtectionResourceGuardUnlockDeleteAction_withoutGuard(t *testin
 		PreCheck:                 func() { acceptance.PreCheck(t) },
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
-			// before_destroy, caller, and on_failure require Terraform 1.16.
-			// TODO: use tfversion.Version1_16_0 when terraform-plugin-testing provides it.
-			tfversion.SkipBelow(version.Must(version.NewVersion("1.16.0"))),
+			tfversion.SkipBelow(terraformVersion1_16_0),
 		},
 		Steps: []resource.TestStep{
 			{
@@ -131,7 +131,7 @@ resource "azurerm_backup_protected_vm" "test" {
 func (DataProtectionResourceGuardUnlockDeleteAction) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 terraform {
-  required_version = ">= 1.16.0"
+  required_version = ">= %s"
 }
 
 provider "azurerm" {
@@ -286,5 +286,5 @@ action "azurerm_data_protection_resource_guard_unlock_delete" "test" {
     protected_item_id = caller.id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, terraformVersion1_16_0.String(), data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
