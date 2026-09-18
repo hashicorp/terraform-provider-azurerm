@@ -23,7 +23,7 @@ import (
 func TestAccTrustedSigningCertificateProfile_list(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_trusted_signing_certificate_profile", "test")
 	r := TrustedSigningCertificateProfileResource{}
-	r.preCheck(t)
+	r.preCheck(t, privateTrustIdentityEnvVar)
 	accountId := codesigningaccounts.NewCodeSigningAccountID(data.Subscriptions.Primary, fmt.Sprintf("acctestRG-%d", data.RandomInteger), "acctest-"+data.RandomString)
 	name := "acctest-" + data.RandomString
 
@@ -56,7 +56,7 @@ list "azurerm_trusted_signing_certificate_profile" "list" {
 					}),
 					querycheck.ExpectResourceKnownValues("azurerm_trusted_signing_certificate_profile.list", queryfilter.ByDisplayName(knownvalue.StringExact(name)), []querycheck.KnownValueCheck{
 						{Path: tfjsonpath.New("trusted_signing_account_id"), KnownValue: knownvalue.StringExact(accountId.ID())},
-						{Path: tfjsonpath.New("identity_validation_id"), KnownValue: knownvalue.StringExact(os.Getenv("ARM_TEST_TRUSTED_SIGNING_IDENTITY_ID"))},
+						{Path: tfjsonpath.New("identity_validation_id"), KnownValue: knownvalue.StringExact(os.Getenv(privateTrustIdentityEnvVar))},
 						{Path: tfjsonpath.New("profile_type"), KnownValue: knownvalue.StringExact("PrivateTrust")},
 						{Path: tfjsonpath.New("include_city"), KnownValue: knownvalue.Bool(true)},
 						{Path: tfjsonpath.New("include_country"), KnownValue: knownvalue.Bool(true)},

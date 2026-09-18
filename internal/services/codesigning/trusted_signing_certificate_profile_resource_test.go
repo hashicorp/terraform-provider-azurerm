@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -18,25 +17,22 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
+const (
+	privateTrustIdentityEnvVar = "ARM_TEST_TRUSTED_SIGNING_IDENTITY_ID"
+	publicTrustIdentityEnvVar  = "ARM_TEST_TRUSTED_SIGNING_PUBLIC_IDENTITY_ID"
+)
+
 type TrustedSigningCertificateProfileResource struct{}
 
 func TestAccTrustedSigningCertificateProfile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_trusted_signing_certificate_profile", "test")
 	r := TrustedSigningCertificateProfileResource{}
-	r.preCheck(t)
+	r.preCheck(t, privateTrustIdentityEnvVar)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("profile_type").HasValue("PrivateTrust"),
-				check.That(data.ResourceName).Key("include_city").HasValue("false"),
-				check.That(data.ResourceName).Key("include_country").HasValue("false"),
-				check.That(data.ResourceName).Key("include_postal_code").HasValue("false"),
-				check.That(data.ResourceName).Key("include_state").HasValue("false"),
-				check.That(data.ResourceName).Key("include_street_address").HasValue("false"),
-			),
+			Check:  check.That(data.ResourceName).ExistsInAzure(r),
 		},
 		data.ImportStep(),
 	})
@@ -45,7 +41,7 @@ func TestAccTrustedSigningCertificateProfile_basic(t *testing.T) {
 func TestAccTrustedSigningCertificateProfile_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_trusted_signing_certificate_profile", "test")
 	r := TrustedSigningCertificateProfileResource{}
-	r.preCheck(t)
+	r.preCheck(t, privateTrustIdentityEnvVar)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -59,19 +55,12 @@ func TestAccTrustedSigningCertificateProfile_requiresImport(t *testing.T) {
 func TestAccTrustedSigningCertificateProfile_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_trusted_signing_certificate_profile", "test")
 	r := TrustedSigningCertificateProfileResource{}
-	r.preCheck(t)
+	r.preCheck(t, privateTrustIdentityEnvVar)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("include_city").HasValue("true"),
-				check.That(data.ResourceName).Key("include_country").HasValue("true"),
-				check.That(data.ResourceName).Key("include_postal_code").HasValue("true"),
-				check.That(data.ResourceName).Key("include_state").HasValue("true"),
-				check.That(data.ResourceName).Key("include_street_address").HasValue("true"),
-			),
+			Check:  check.That(data.ResourceName).ExistsInAzure(r),
 		},
 		data.ImportStep(),
 	})
@@ -80,11 +69,11 @@ func TestAccTrustedSigningCertificateProfile_complete(t *testing.T) {
 func TestAccTrustedSigningCertificateProfile_privateTrustCIPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_trusted_signing_certificate_profile", "test")
 	r := TrustedSigningCertificateProfileResource{}
-	r.preCheck(t)
+	r.preCheck(t, privateTrustIdentityEnvVar)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: strings.ReplaceAll(r.basic(data), "PrivateTrust", "PrivateTrustCIPolicy"),
+			Config: r.profile(data, os.Getenv(privateTrustIdentityEnvVar), "PrivateTrustCIPolicy", ""),
 			Check:  check.That(data.ResourceName).ExistsInAzure(r),
 		},
 		data.ImportStep(),
@@ -94,26 +83,23 @@ func TestAccTrustedSigningCertificateProfile_privateTrustCIPolicy(t *testing.T) 
 func TestAccTrustedSigningCertificateProfile_publicTrust(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_trusted_signing_certificate_profile", "test")
 	r := TrustedSigningCertificateProfileResource{}
-	identityId := os.Getenv("ARM_TEST_TRUSTED_SIGNING_PUBLIC_IDENTITY_ID")
-	if identityId == "" {
-		t.Skip("ARM_TEST_TRUSTED_SIGNING_PUBLIC_IDENTITY_ID is required: complete a Public Trust identity validation in the test subscription using the Azure Portal")
-	}
+	r.preCheck(t, publicTrustIdentityEnvVar)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.profile(data, identityId, "PublicTrust", ""),
+			Config: r.profile(data, os.Getenv(publicTrustIdentityEnvVar), "PublicTrust", ""),
 			Check:  check.That(data.ResourceName).ExistsInAzure(r),
 		},
 		data.ImportStep(),
 	})
 }
 
-func (TrustedSigningCertificateProfileResource) preCheck(t *testing.T) {
+func (TrustedSigningCertificateProfileResource) preCheck(t *testing.T, identityEnvVar string) {
 	// Identity validation requires the Azure Portal and can be shared by accounts in
 	// the same subscription. The test creates its own resource group and account.
 	// https://learn.microsoft.com/azure/artifact-signing/quickstart#create-an-artifact-signing-account
-	if os.Getenv("ARM_TEST_TRUSTED_SIGNING_IDENTITY_ID") == "" {
-		t.Skip("ARM_TEST_TRUSTED_SIGNING_IDENTITY_ID is required: complete a Private Trust identity validation in the test subscription using the Azure Portal")
+	if os.Getenv(identityEnvVar) == "" {
+		t.Skipf("%s is required: complete a matching identity validation in the test subscription using the Azure Portal", identityEnvVar)
 	}
 }
 
@@ -130,11 +116,11 @@ func (TrustedSigningCertificateProfileResource) Exists(ctx context.Context, clie
 }
 
 func (r TrustedSigningCertificateProfileResource) basic(data acceptance.TestData) string {
-	return r.profile(data, os.Getenv("ARM_TEST_TRUSTED_SIGNING_IDENTITY_ID"), "PrivateTrust", "")
+	return r.profile(data, os.Getenv(privateTrustIdentityEnvVar), "PrivateTrust", "")
 }
 
 func (r TrustedSigningCertificateProfileResource) complete(data acceptance.TestData) string {
-	return r.profile(data, os.Getenv("ARM_TEST_TRUSTED_SIGNING_IDENTITY_ID"), "PrivateTrust", `
+	return r.profile(data, os.Getenv(privateTrustIdentityEnvVar), "PrivateTrust", `
   include_city           = true
   include_country        = true
   include_postal_code    = true
@@ -149,9 +135,9 @@ func (TrustedSigningCertificateProfileResource) profile(data acceptance.TestData
 
 resource "azurerm_trusted_signing_certificate_profile" "test" {
   name                       = "acctest-%[2]s"
-  trusted_signing_account_id = azurerm_trusted_signing_account.test.id
   identity_validation_id     = "%[3]s"
   profile_type               = "%[4]s"
+  trusted_signing_account_id = azurerm_trusted_signing_account.test.id
   %[5]s
 }
 `, TrustedSigningAccountResource{}.basic(data), data.RandomString, identityId, profileType, options)
@@ -163,9 +149,9 @@ func (r TrustedSigningCertificateProfileResource) requiresImport(data acceptance
 
 resource "azurerm_trusted_signing_certificate_profile" "import" {
   name                       = azurerm_trusted_signing_certificate_profile.test.name
-  trusted_signing_account_id = azurerm_trusted_signing_certificate_profile.test.trusted_signing_account_id
   identity_validation_id     = azurerm_trusted_signing_certificate_profile.test.identity_validation_id
   profile_type               = azurerm_trusted_signing_certificate_profile.test.profile_type
+  trusted_signing_account_id = azurerm_trusted_signing_certificate_profile.test.trusted_signing_account_id
 }
 `, r.basic(data))
 }

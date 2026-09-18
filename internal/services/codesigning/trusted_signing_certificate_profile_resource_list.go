@@ -87,7 +87,7 @@ func (TrustedSigningCertificateProfileListResource) List(ctx context.Context, re
 			rmd := sdk.NewResourceMetaData(metadata.Client, r)
 			rmd.SetID(id)
 
-			if err := flattenTrustedSigningCertificateProfileResource(rmd, id, &item); err != nil {
+			if err := r.flatten(rmd, id, &item); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", r.ResourceType()), err)
 				return
 			}

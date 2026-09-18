@@ -27,14 +27,14 @@ var _ sdk.ResourceWithIdentity = TrustedSigningCertificateProfileResource{}
 
 type TrustedSigningCertificateProfileModel struct {
 	Name                    string `tfschema:"name"`
-	TrustedSigningAccountId string `tfschema:"trusted_signing_account_id"`
 	IdentityValidationId    string `tfschema:"identity_validation_id"`
 	ProfileType             string `tfschema:"profile_type"`
-	IncludeCity             *bool  `tfschema:"include_city"`
-	IncludeCountry          *bool  `tfschema:"include_country"`
-	IncludePostalCode       *bool  `tfschema:"include_postal_code"`
-	IncludeState            *bool  `tfschema:"include_state"`
-	IncludeStreetAddress    *bool  `tfschema:"include_street_address"`
+	TrustedSigningAccountId string `tfschema:"trusted_signing_account_id"`
+	IncludeCity             bool   `tfschema:"include_city"`
+	IncludeCountry          bool   `tfschema:"include_country"`
+	IncludePostalCode       bool   `tfschema:"include_postal_code"`
+	IncludeState            bool   `tfschema:"include_state"`
+	IncludeStreetAddress    bool   `tfschema:"include_street_address"`
 }
 
 func (TrustedSigningCertificateProfileResource) ResourceType() string {
@@ -65,13 +65,6 @@ func (TrustedSigningCertificateProfileResource) Arguments() map[string]*pluginsd
 			),
 		},
 
-		"trusted_signing_account_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: codesigningaccounts.ValidateCodeSigningAccountID,
-		},
-
 		"identity_validation_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -84,6 +77,13 @@ func (TrustedSigningCertificateProfileResource) Arguments() map[string]*pluginsd
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(certificateprofiles.PossibleValuesForProfileType(), false),
+		},
+
+		"trusted_signing_account_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: codesigningaccounts.ValidateCodeSigningAccountID,
 		},
 
 		"include_city": {
@@ -153,7 +153,7 @@ func (r TrustedSigningCertificateProfileResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if err := client.CreateCallbackThenPoll(ctx, id, expandTrustedSigningCertificateProfileResource(model), metadata.SetIDAndIdentityCallback(&id)); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, r.expand(model), metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -180,7 +180,7 @@ func (r TrustedSigningCertificateProfileResource) Read() sdk.ResourceFunc {
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
-			return flattenTrustedSigningCertificateProfileResource(metadata, id, resp.Model)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
 }
@@ -202,21 +202,21 @@ func (TrustedSigningCertificateProfileResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandTrustedSigningCertificateProfileResource(model TrustedSigningCertificateProfileModel) certificateprofiles.CertificateProfile {
+func (TrustedSigningCertificateProfileResource) expand(model TrustedSigningCertificateProfileModel) certificateprofiles.CertificateProfile {
 	return certificateprofiles.CertificateProfile{
 		Properties: &certificateprofiles.CertificateProfileProperties{
 			IdentityValidationId: model.IdentityValidationId,
 			ProfileType:          certificateprofiles.ProfileType(model.ProfileType),
-			IncludeCity:          model.IncludeCity,
-			IncludeCountry:       model.IncludeCountry,
-			IncludePostalCode:    model.IncludePostalCode,
-			IncludeState:         model.IncludeState,
-			IncludeStreetAddress: model.IncludeStreetAddress,
+			IncludeCity:          pointer.To(model.IncludeCity),
+			IncludeCountry:       pointer.To(model.IncludeCountry),
+			IncludePostalCode:    pointer.To(model.IncludePostalCode),
+			IncludeState:         pointer.To(model.IncludeState),
+			IncludeStreetAddress: pointer.To(model.IncludeStreetAddress),
 		},
 	}
 }
 
-func flattenTrustedSigningCertificateProfileResource(metadata sdk.ResourceMetaData, id *certificateprofiles.CertificateProfileId, model *certificateprofiles.CertificateProfile) error {
+func (TrustedSigningCertificateProfileResource) flatten(metadata sdk.ResourceMetaData, id *certificateprofiles.CertificateProfileId, model *certificateprofiles.CertificateProfile) error {
 	state := TrustedSigningCertificateProfileModel{
 		Name:                    id.CertificateProfileName,
 		TrustedSigningAccountId: codesigningaccounts.NewCodeSigningAccountID(id.SubscriptionId, id.ResourceGroupName, id.CodeSigningAccountName).ID(),
@@ -225,11 +225,11 @@ func flattenTrustedSigningCertificateProfileResource(metadata sdk.ResourceMetaDa
 		if props := model.Properties; props != nil {
 			state.IdentityValidationId = props.IdentityValidationId
 			state.ProfileType = string(props.ProfileType)
-			state.IncludeCity = pointer.To(pointer.From(props.IncludeCity))
-			state.IncludeCountry = pointer.To(pointer.From(props.IncludeCountry))
-			state.IncludePostalCode = pointer.To(pointer.From(props.IncludePostalCode))
-			state.IncludeState = pointer.To(pointer.From(props.IncludeState))
-			state.IncludeStreetAddress = pointer.To(pointer.From(props.IncludeStreetAddress))
+			state.IncludeCity = pointer.From(props.IncludeCity)
+			state.IncludeCountry = pointer.From(props.IncludeCountry)
+			state.IncludePostalCode = pointer.From(props.IncludePostalCode)
+			state.IncludeState = pointer.From(props.IncludeState)
+			state.IncludeStreetAddress = pointer.From(props.IncludeStreetAddress)
 		}
 	}
 
