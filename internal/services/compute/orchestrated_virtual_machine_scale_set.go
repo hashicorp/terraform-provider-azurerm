@@ -974,7 +974,7 @@ func ExpandOrchestratedVirtualMachineScaleSetNetworkInterface(input []interface{
 	for _, v := range input {
 		raw := v.(map[string]interface{})
 
-		dnsServers := helpers.ExpandStringSlice(raw["dns_servers"].([]interface{}))
+		dnsServers := pluginsdk.ExpandStringSlice(raw["dns_servers"].([]interface{}))
 
 		ipConfigurations := make([]virtualmachinescalesets.VirtualMachineScaleSetIPConfiguration, 0)
 		ipConfigurationsRaw := raw["ip_configuration"].([]interface{})
@@ -1117,7 +1117,7 @@ func ExpandOrchestratedVirtualMachineScaleSetNetworkInterfaceUpdate(input []inte
 	for _, v := range input {
 		raw := v.(map[string]interface{})
 
-		dnsServers := helpers.ExpandStringSlice(raw["dns_servers"].([]interface{}))
+		dnsServers := pluginsdk.ExpandStringSlice(raw["dns_servers"].([]interface{}))
 
 		ipConfigurations := make([]virtualmachinescalesets.VirtualMachineScaleSetUpdateIPConfiguration, 0)
 		ipConfigurationsRaw := raw["ip_configuration"].([]interface{})
@@ -1413,7 +1413,7 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 		}
 
 		if val, ok := extensionRaw["extensions_to_provision_after_vm_creation"]; ok && val != nil {
-			extensionProps.ProvisionAfterExtensions = helpers.ExpandStringSlice(val.([]interface{}))
+			extensionProps.ProvisionAfterExtensions = pluginsdk.ExpandStringSlice(val.([]interface{}))
 		}
 
 		protectedSettingsFromKeyVault := expandProtectedSettingsFromKeyVaultVMSS(extensionRaw["protected_settings_from_key_vault"].([]interface{}))
@@ -1512,7 +1512,7 @@ func flattenOrchestratedVirtualMachineScaleSetExtensions(input *virtualmachinesc
 			}
 
 			if props.ProvisionAfterExtensions != nil {
-				provisionAfterExtension = helpers.FlattenSlice(props.ProvisionAfterExtensions)
+				provisionAfterExtension = pluginsdk.FlattenSlice(props.ProvisionAfterExtensions)
 			}
 
 			if props.Settings != nil {
@@ -1801,7 +1801,7 @@ func FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(input *[]virtualm
 			}
 
 			if settings := props.DnsSettings; settings != nil {
-				dnsServers = helpers.FlattenSlice(props.DnsSettings.DnsServers)
+				dnsServers = pluginsdk.FlattenSlice(props.DnsSettings.DnsServers)
 			}
 
 			if len(props.IPConfigurations) != 0 {

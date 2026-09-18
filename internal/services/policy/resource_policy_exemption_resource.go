@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -129,7 +128,7 @@ func resourceResourcePolicyExemptionCreateUpdate(d *pluginsdk.ResourceData, meta
 	exemption := policy.Exemption{
 		ExemptionProperties: &policy.ExemptionProperties{
 			PolicyAssignmentID:           pointer.To(d.Get("policy_assignment_id").(string)),
-			PolicyDefinitionReferenceIds: helpers.ExpandStringSlice(d.Get("policy_definition_reference_ids").([]interface{})),
+			PolicyDefinitionReferenceIds: pluginsdk.ExpandStringSlice(d.Get("policy_definition_reference_ids").([]interface{})),
 			ExemptionCategory:            policy.ExemptionCategory(d.Get("exemption_category").(string)),
 		},
 	}
@@ -198,7 +197,7 @@ func resourceResourcePolicyExemptionRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("description", props.Description)
 		d.Set("exemption_category", string(props.ExemptionCategory))
 
-		if err := d.Set("policy_definition_reference_ids", helpers.FlattenSlice(props.PolicyDefinitionReferenceIds)); err != nil {
+		if err := d.Set("policy_definition_reference_ids", pluginsdk.FlattenSlice(props.PolicyDefinitionReferenceIds)); err != nil {
 			return fmt.Errorf("setting `policy_definition_reference_ids: %+v", err)
 		}
 

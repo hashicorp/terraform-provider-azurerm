@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -914,7 +913,7 @@ func expandWebApplicationFirewallPolicyMatchCondition(input []interface{}) []web
 			transforms = append(transforms, webapplicationfirewallpolicies.WebApplicationFirewallTransform(trans.(string)))
 		}
 		result := webapplicationfirewallpolicies.MatchCondition{
-			MatchValues:      pointer.From(helpers.ExpandStringSlice(matchValues)),
+			MatchValues:      pointer.From(pluginsdk.ExpandStringSlice(matchValues)),
 			MatchVariables:   expandWebApplicationFirewallPolicyMatchVariable(matchVariables),
 			NegationConditon: pointer.To(negationCondition),
 			Operator:         webapplicationfirewallpolicies.WebApplicationFirewallOperator(operator),
@@ -1179,7 +1178,7 @@ func flattenWebApplicationFirewallPolicyMatchCondition(input []webapplicationfir
 				transforms = append(transforms, string(trans))
 			}
 		}
-		v["match_values"] = helpers.FlattenSlice(pointer.To(item.MatchValues))
+		v["match_values"] = pluginsdk.FlattenSlice(pointer.To(item.MatchValues))
 		v["match_variables"] = flattenWebApplicationFirewallPolicyMatchVariable(item.MatchVariables)
 		if negationCondition := item.NegationConditon; negationCondition != nil {
 			v["negation_condition"] = *negationCondition

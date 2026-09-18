@@ -6,7 +6,7 @@ package consumption
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func flattenConsumptionBudgetTimePeriod(input *budgets.BudgetTimePeriod) []interface{} {
@@ -51,20 +51,20 @@ func flattenConsumptionBudgetNotifications(input *map[string]budgets.Notificatio
 
 		var emails []interface{}
 		if v := n.ContactEmails; v != nil {
-			emails = helpers.FlattenSlice(&v)
+			emails = pluginsdk.FlattenSlice(&v)
 		}
 		block["contact_emails"] = emails
 
 		if scope != "management_group_id" {
 			var roles []interface{}
 			if v := n.ContactRoles; v != nil {
-				roles = helpers.FlattenSlice(v)
+				roles = pluginsdk.FlattenSlice(v)
 			}
 			block["contact_roles"] = roles
 
 			var groups []interface{}
 			if v := n.ContactGroups; v != nil {
-				groups = helpers.FlattenSlice(v)
+				groups = pluginsdk.FlattenSlice(v)
 			}
 			block["contact_groups"] = groups
 		}
@@ -80,7 +80,7 @@ func flattenConsumptionBudgetComparisonExpression(input *budgets.BudgetCompariso
 
 	consumptionBudgetComparisonExpression["name"] = input.Name
 	consumptionBudgetComparisonExpression["operator"] = input.Operator
-	consumptionBudgetComparisonExpression["values"] = helpers.FlattenSlice(&input.Values)
+	consumptionBudgetComparisonExpression["values"] = pluginsdk.FlattenSlice(&input.Values)
 
 	return &consumptionBudgetComparisonExpression
 }

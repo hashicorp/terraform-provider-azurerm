@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -422,7 +421,7 @@ func expandVirtualHubRoute(input []interface{}) *virtualwans.VirtualHubRouteTabl
 		nextHopIpAddress := v["next_hop_ip_address"].(string)
 
 		results = append(results, virtualwans.VirtualHubRoute{
-			AddressPrefixes:  helpers.ExpandStringSlice(addressPrefixes),
+			AddressPrefixes:  pluginsdk.ExpandStringSlice(addressPrefixes),
 			NextHopIPAddress: pointer.To(nextHopIpAddress),
 		})
 	}
@@ -441,7 +440,7 @@ func flattenVirtualHubRoute(input *virtualwans.VirtualHubRouteTable) []interface
 	}
 
 	for _, item := range *input.Routes {
-		addressPrefixes := helpers.FlattenSlice(item.AddressPrefixes)
+		addressPrefixes := pluginsdk.FlattenSlice(item.AddressPrefixes)
 
 		results = append(results, map[string]interface{}{
 			"address_prefixes":    addressPrefixes,

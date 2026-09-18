@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedprivateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privatelinkservices"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -150,7 +149,7 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 	}
 
 	if len(fqdns) > 0 {
-		payload.Properties.Fqdns = helpers.ExpandStringSlice(fqdns)
+		payload.Properties.Fqdns = pluginsdk.ExpandStringSlice(fqdns)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, payload, managedprivateendpoints.DefaultCreateOrUpdateOperationOptions()); err != nil {
@@ -201,7 +200,7 @@ func resourceDataFactoryManagedPrivateEndpointRead(d *pluginsdk.ResourceData, me
 		props := model.Properties
 		d.Set("target_resource_id", props.PrivateLinkResourceId)
 		d.Set("subresource_name", props.GroupId)
-		d.Set("fqdns", helpers.FlattenSlice(props.Fqdns))
+		d.Set("fqdns", pluginsdk.FlattenSlice(props.Fqdns))
 	}
 
 	return nil

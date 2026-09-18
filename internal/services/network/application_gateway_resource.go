@@ -2886,7 +2886,7 @@ func expandApplicationGatewayHTTPListeners(d *pluginsdk.ResourceData, gatewayID 
 		}
 
 		if len(hosts) > 0 {
-			listener.Properties.HostNames = helpers.ExpandStringSlice(hosts)
+			listener.Properties.HostNames = pluginsdk.ExpandStringSlice(hosts)
 		}
 
 		if sslCertName := v["ssl_certificate_name"].(string); sslCertName != "" {
@@ -2960,7 +2960,7 @@ func flattenApplicationGatewayHTTPListeners(input *[]applicationgateways.Applica
 			}
 
 			if hostnames := props.HostNames; hostnames != nil {
-				output["host_names"] = helpers.FlattenSlice(hostnames)
+				output["host_names"] = pluginsdk.FlattenSlice(hostnames)
 			}
 
 			output["protocol"] = props.Protocol
@@ -3030,7 +3030,7 @@ func expandApplicationGatewayListeners(input []interface{}, appGwID applicationg
 		}
 
 		if hosts := v["host_names"].(*pluginsdk.Set).List(); len(hosts) > 0 {
-			listener.Properties.HostNames = helpers.ExpandStringSlice(hosts)
+			listener.Properties.HostNames = pluginsdk.ExpandStringSlice(hosts)
 		}
 
 		if sslCertName := v["ssl_certificate_name"].(string); sslCertName != "" {

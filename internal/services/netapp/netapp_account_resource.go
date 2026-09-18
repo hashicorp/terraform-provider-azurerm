@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/netappaccounts"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -366,7 +365,7 @@ func expandNetAppActiveDirectories(input []interface{}) *[]netappaccounts.Active
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		dns := strings.Join(*helpers.ExpandStringSlice(v["dns_servers"].([]interface{})), ",")
+		dns := strings.Join(*pluginsdk.ExpandStringSlice(v["dns_servers"].([]interface{})), ",")
 
 		result := netappaccounts.ActiveDirectory{
 			Dns:                        pointer.To(dns),
@@ -399,7 +398,7 @@ func flattenNetAppActiveDirectories(input *[]netappaccounts.ActiveDirectory, pre
 
 	return []interface{}{
 		map[string]interface{}{
-			"dns_servers":                       helpers.FlattenStringSliceWithDelimiter(v.Dns, ","),
+			"dns_servers":                       pluginsdk.FlattenStringSliceWithDelimiter(v.Dns, ","),
 			"domain":                            v.Domain,
 			"organizational_unit":               v.OrganizationalUnit,
 			"password":                          prevPassword,

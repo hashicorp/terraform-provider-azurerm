@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigins"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/routes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rulesets"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -253,7 +252,7 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 			LinkToDefaultDomain: expandCdnFrontDoorRouteDefaultDomain(linkToDefaultDomain),
 			OriginGroup:         originGroup,
 			OriginPath:          pointer.ToOrNil(d.Get("cdn_frontdoor_origin_path").(string)),
-			PatternsToMatch:     helpers.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
+			PatternsToMatch:     pluginsdk.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
 			RuleSets:            expandCdnFrontdoorRouteRuleSetReferenceArray(d.Get("cdn_frontdoor_rule_set_ids").(*pluginsdk.Set).List()),
 			SupportedProtocols:  expandCdnFrontDoorRouteEndpointProtocolsArray(protocols),
 		},
@@ -436,7 +435,7 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.HasChange("patterns_to_match") {
-		props.PatternsToMatch = helpers.ExpandStringSlice(d.Get("patterns_to_match").([]interface{}))
+		props.PatternsToMatch = pluginsdk.ExpandStringSlice(d.Get("patterns_to_match").([]interface{}))
 	}
 
 	if d.HasChange("cdn_frontdoor_rule_set_ids") {
@@ -559,7 +558,7 @@ func expandCdnFrontdoorRouteCacheConfiguration(input []interface{}) *routes.AfdR
 	}
 
 	if contentTypes := v["content_types_to_compress"].([]interface{}); len(contentTypes) > 0 {
-		cacheConfiguration.CompressionSettings.ContentTypesToCompress = helpers.ExpandStringSlice(contentTypes)
+		cacheConfiguration.CompressionSettings.ContentTypesToCompress = pluginsdk.ExpandStringSlice(contentTypes)
 	}
 
 	return cacheConfiguration
@@ -631,7 +630,7 @@ func flattenCdnFrontDoorRouteCacheConfiguration(input *routes.AfdRouteCacheConfi
 	contentTypesToCompress := make([]interface{}, 0)
 	if v := input.CompressionSettings; v != nil {
 		compressionEnabled = pointer.From(v.IsCompressionEnabled)
-		contentTypesToCompress = helpers.FlattenSlice(v.ContentTypesToCompress)
+		contentTypesToCompress = pluginsdk.FlattenSlice(v.ContentTypesToCompress)
 	}
 
 	return []interface{}{

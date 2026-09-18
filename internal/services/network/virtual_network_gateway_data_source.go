@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgateways"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -356,7 +355,7 @@ func flattenVirtualNetworkGatewayDataSourceVpnClientConfig(cfg *virtualnetworkga
 	flat := make(map[string]interface{})
 
 	if pool := cfg.VpnClientAddressPool; pool != nil {
-		flat["address_space"] = helpers.FlattenSlice(pool.AddressPrefixes)
+		flat["address_space"] = pluginsdk.FlattenSlice(pool.AddressPrefixes)
 	} else {
 		flat["address_space"] = []interface{}{}
 	}

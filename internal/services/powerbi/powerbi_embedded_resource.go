@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/powerbidedicated/2021-01-01/capacities"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -118,7 +117,7 @@ func resourcePowerBIEmbeddedCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &capacities.DedicatedCapacityProperties{
 			Administration: &capacities.DedicatedCapacityAdministrators{
-				Members: helpers.ExpandStringSlice(administrators),
+				Members: pluginsdk.ExpandStringSlice(administrators),
 			},
 			Mode: &mode,
 		},
@@ -167,7 +166,7 @@ func resourcePowerBIEmbeddedRead(d *pluginsdk.ResourceData, meta interface{}) er
 			if props.Administration != nil {
 				adminMembers = props.Administration.Members
 			}
-			if err := d.Set("administrators", helpers.FlattenSlice(adminMembers)); err != nil {
+			if err := d.Set("administrators", pluginsdk.FlattenSlice(adminMembers)); err != nil {
 				return fmt.Errorf("setting `administration`: %+v", err)
 			}
 
@@ -206,7 +205,7 @@ func resourcePowerBIEmbeddedUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 		parameters.Properties = &capacities.DedicatedCapacityMutableProperties{
 			Administration: &capacities.DedicatedCapacityAdministrators{
-				Members: helpers.ExpandStringSlice(administrators),
+				Members: pluginsdk.ExpandStringSlice(administrators),
 			},
 			Mode: &mode,
 		}

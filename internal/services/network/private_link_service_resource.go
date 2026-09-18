@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/privatelinkservices"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -199,15 +198,15 @@ func resourcePrivateLinkServiceCreate(d *pluginsdk.ResourceData, meta interface{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &privatelinkservices.PrivateLinkServiceProperties{
 			AutoApproval: &privatelinkservices.ResourceSet{
-				Subscriptions: helpers.ExpandStringSlice(d.Get("auto_approval_subscription_ids").(*pluginsdk.Set).List()),
+				Subscriptions: pluginsdk.ExpandStringSlice(d.Get("auto_approval_subscription_ids").(*pluginsdk.Set).List()),
 			},
 			EnableProxyProtocol: pointer.To(d.Get("proxy_protocol_enabled").(bool)),
 			Visibility: &privatelinkservices.ResourceSet{
-				Subscriptions: helpers.ExpandStringSlice(d.Get("visibility_subscription_ids").(*pluginsdk.Set).List()),
+				Subscriptions: pluginsdk.ExpandStringSlice(d.Get("visibility_subscription_ids").(*pluginsdk.Set).List()),
 			},
 			IPConfigurations:                     expandPrivateLinkServiceIPConfiguration(d.Get("nat_ip_configuration").([]interface{})),
 			LoadBalancerFrontendIPConfigurations: expandPrivateLinkServiceFrontendIPConfiguration(d.Get("load_balancer_frontend_ip_configuration_ids").(*pluginsdk.Set).List()),
-			Fqdns:                                helpers.ExpandStringSlice(d.Get("fqdns").([]interface{})),
+			Fqdns:                                pluginsdk.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -271,7 +270,7 @@ func resourcePrivateLinkServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	if d.HasChange("auto_approval_subscription_ids") {
 		payload.Properties.AutoApproval = &privatelinkservices.ResourceSet{
-			Subscriptions: helpers.ExpandStringSlice(d.Get("auto_approval_subscription_ids").(*pluginsdk.Set).List()),
+			Subscriptions: pluginsdk.ExpandStringSlice(d.Get("auto_approval_subscription_ids").(*pluginsdk.Set).List()),
 		}
 	}
 
@@ -281,12 +280,12 @@ func resourcePrivateLinkServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	if d.HasChange("visibility_subscription_ids") {
 		payload.Properties.Visibility = &privatelinkservices.ResourceSet{
-			Subscriptions: helpers.ExpandStringSlice(d.Get("visibility_subscription_ids").(*pluginsdk.Set).List()),
+			Subscriptions: pluginsdk.ExpandStringSlice(d.Get("visibility_subscription_ids").(*pluginsdk.Set).List()),
 		}
 	}
 
 	if d.HasChange("fqdns") {
-		payload.Properties.Fqdns = helpers.ExpandStringSlice(d.Get("fqdns").([]interface{}))
+		payload.Properties.Fqdns = pluginsdk.ExpandStringSlice(d.Get("fqdns").([]interface{}))
 	}
 
 	if d.HasChange("nat_ip_configuration") {
@@ -360,7 +359,7 @@ func resourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{})
 
 			var autoApprovalSub []interface{}
 			if autoApproval := props.AutoApproval; autoApproval != nil {
-				autoApprovalSub = helpers.FlattenSlice(autoApproval.Subscriptions)
+				autoApprovalSub = pluginsdk.FlattenSlice(autoApproval.Subscriptions)
 			}
 			if err := d.Set("auto_approval_subscription_ids", autoApprovalSub); err != nil {
 				return fmt.Errorf("setting `auto_approval_subscription_ids`: %+v", err)
@@ -368,13 +367,13 @@ func resourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{})
 
 			var subscriptions []interface{}
 			if visibility := props.Visibility; visibility != nil {
-				subscriptions = helpers.FlattenSlice(visibility.Subscriptions)
+				subscriptions = pluginsdk.FlattenSlice(visibility.Subscriptions)
 			}
 			if err := d.Set("visibility_subscription_ids", subscriptions); err != nil {
 				return fmt.Errorf("setting `visibility_subscription_ids`: %+v", err)
 			}
 
-			if err := d.Set("fqdns", helpers.FlattenSlice(props.Fqdns)); err != nil {
+			if err := d.Set("fqdns", pluginsdk.FlattenSlice(props.Fqdns)); err != nil {
 				return fmt.Errorf("setting `fqdns`: %+v", err)
 			}
 

@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -274,7 +273,7 @@ func waitForRemediationToDelete(ctx context.Context,
 func readRemediationProperties(d *pluginsdk.ResourceData) (prop *remediations.RemediationProperties) {
 	prop = &remediations.RemediationProperties{
 		Filters: &remediations.RemediationFilters{
-			Locations: helpers.ExpandStringSlice(d.Get("location_filters").([]interface{})),
+			Locations: pluginsdk.ExpandStringSlice(d.Get("location_filters").([]interface{})),
 		},
 		PolicyAssignmentId:          pointer.To(d.Get("policy_assignment_id").(string)),
 		PolicyDefinitionReferenceId: pointer.To(d.Get("policy_definition_reference_id").(string)),
@@ -302,7 +301,7 @@ func setRemediationProperties(d *pluginsdk.ResourceData, prop *remediations.Reme
 	}
 	locations := []interface{}{}
 	if filters := prop.Filters; filters != nil {
-		locations = helpers.FlattenSlice(filters.Locations)
+		locations = pluginsdk.FlattenSlice(filters.Locations)
 	}
 	if err := d.Set("location_filters", locations); err != nil {
 		return fmt.Errorf("setting `location_filters`: %+v", err)

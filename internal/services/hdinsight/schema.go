@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/extensions"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
@@ -1669,7 +1668,7 @@ func ExpandHDInsightSecurityProfile(input []interface{}) *clusters.SecurityProfi
 	result := clusters.SecurityProfile{
 		DirectoryType:      pointer.To(clusters.DirectoryTypeActiveDirectory),
 		Domain:             pointer.To(v["domain_name"].(string)),
-		LdapsURLs:          helpers.ExpandStringSlice(v["ldaps_urls"].(*pluginsdk.Set).List()),
+		LdapsURLs:          pluginsdk.ExpandStringSlice(v["ldaps_urls"].(*pluginsdk.Set).List()),
 		DomainUsername:     pointer.To(v["domain_username"].(string)),
 		DomainUserPassword: pointer.To(v["domain_user_password"].(string)),
 		AaddsResourceId:    pointer.To(v["aadds_resource_id"].(string)),
@@ -1677,7 +1676,7 @@ func ExpandHDInsightSecurityProfile(input []interface{}) *clusters.SecurityProfi
 	}
 
 	if clusterUsersGroupDNS := v["cluster_users_group_dns"].(*pluginsdk.Set).List(); len(clusterUsersGroupDNS) != 0 {
-		result.ClusterUsersGroupDNs = helpers.ExpandStringSlice(clusterUsersGroupDNS)
+		result.ClusterUsersGroupDNs = pluginsdk.ExpandStringSlice(clusterUsersGroupDNS)
 	}
 
 	return &result
@@ -1875,11 +1874,11 @@ func flattenHDInsightSecurityProfile(input *clusters.SecurityProfile, d *plugins
 	return []interface{}{
 		map[string]interface{}{
 			"aadds_resource_id":       pointer.From(input.AaddsResourceId),
-			"cluster_users_group_dns": helpers.FlattenSlice(input.ClusterUsersGroupDNs),
+			"cluster_users_group_dns": pluginsdk.FlattenSlice(input.ClusterUsersGroupDNs),
 			"domain_name":             pointer.From(input.Domain),
 			"domain_username":         pointer.From(input.DomainUsername),
 			"domain_user_password":    d.Get("security_profile.0.domain_user_password"),
-			"ldaps_urls":              helpers.FlattenSlice(input.LdapsURLs),
+			"ldaps_urls":              pluginsdk.FlattenSlice(input.LdapsURLs),
 			"msi_resource_id":         pointer.From(input.MsiResourceId),
 		},
 	}

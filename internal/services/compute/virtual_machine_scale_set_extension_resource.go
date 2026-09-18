@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetextensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -166,7 +165,7 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 	}
 
 	provisionAfterExtensionsRaw := d.Get("provision_after_extensions").([]interface{})
-	provisionAfterExtensions := helpers.ExpandStringSlice(provisionAfterExtensionsRaw)
+	provisionAfterExtensions := pluginsdk.ExpandStringSlice(provisionAfterExtensionsRaw)
 
 	props := virtualmachinescalesetextensions.VirtualMachineScaleSetExtension{
 		Name: pointer.To(id.ExtensionName),
@@ -246,7 +245,7 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, me
 
 	if d.HasChange("provision_after_extensions") {
 		provisionAfterExtensionsRaw := d.Get("provision_after_extensions").([]interface{})
-		props.ProvisionAfterExtensions = helpers.ExpandStringSlice(provisionAfterExtensionsRaw)
+		props.ProvisionAfterExtensions = pluginsdk.ExpandStringSlice(provisionAfterExtensionsRaw)
 	}
 
 	if d.HasChange("publisher") {
@@ -329,7 +328,7 @@ func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta
 			d.Set("automatic_upgrade_enabled", props.EnableAutomaticUpgrade)
 			d.Set("force_update_tag", props.ForceUpdateTag)
 			d.Set("protected_settings_from_key_vault", flattenProtectedSettingsFromKeyVaultOldVMSSExtension(props.ProtectedSettingsFromKeyVault))
-			d.Set("provision_after_extensions", helpers.FlattenSlice(props.ProvisionAfterExtensions))
+			d.Set("provision_after_extensions", pluginsdk.FlattenSlice(props.ProvisionAfterExtensions))
 			d.Set("publisher", props.Publisher)
 			d.Set("type", props.Type)
 			d.Set("type_handler_version", props.TypeHandlerVersion)

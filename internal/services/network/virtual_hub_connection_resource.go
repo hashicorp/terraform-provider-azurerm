@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -384,7 +383,7 @@ func expandVirtualHubConnectionPropagatedRouteTable(input []interface{}) *virtua
 	result := virtualwans.PropagatedRouteTable{}
 
 	if labels := v["labels"].(*pluginsdk.Set).List(); len(labels) != 0 {
-		result.Labels = helpers.ExpandStringSlice(labels)
+		result.Labels = pluginsdk.ExpandStringSlice(labels)
 	}
 
 	if routeTableIds := v["route_table_ids"].([]interface{}); len(routeTableIds) != 0 {
@@ -415,7 +414,7 @@ func expandVirtualHubConnectionVnetStaticRoute(input []interface{}) *[]virtualwa
 		}
 
 		if addressPrefixes := v["address_prefixes"].(*pluginsdk.Set).List(); len(addressPrefixes) != 0 {
-			result.AddressPrefixes = helpers.ExpandStringSlice(addressPrefixes)
+			result.AddressPrefixes = pluginsdk.ExpandStringSlice(addressPrefixes)
 		}
 
 		if nextHopIPAddress := v["next_hop_ip_address"].(string); nextHopIPAddress != "" {
@@ -490,7 +489,7 @@ func flattenVirtualHubConnectionPropagatedRouteTable(input *virtualwans.Propagat
 
 	labels := make([]interface{}, 0)
 	if input.Labels != nil {
-		labels = helpers.FlattenSlice(input.Labels)
+		labels = pluginsdk.FlattenSlice(input.Labels)
 	}
 
 	routeTableIds := make([]interface{}, 0)
@@ -515,7 +514,7 @@ func flattenVirtualHubConnectionVnetStaticRoute(input *virtualwans.VnetRoute) []
 	for _, item := range *input.StaticRoutes {
 		addressPrefixes := make([]interface{}, 0)
 		if item.AddressPrefixes != nil {
-			addressPrefixes = helpers.FlattenSlice(item.AddressPrefixes)
+			addressPrefixes = pluginsdk.FlattenSlice(item.AddressPrefixes)
 		}
 
 		v := map[string]interface{}{

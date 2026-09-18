@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2021-06-01/assessmentsmetadata"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -230,7 +229,7 @@ func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, me
 					categories = append(categories, string(item))
 				}
 			}
-			d.Set("categories", helpers.FlattenSlice(&categories))
+			d.Set("categories", pluginsdk.FlattenSlice(&categories))
 
 			threats := make([]string, 0)
 			if props.Threats != nil {
@@ -238,7 +237,7 @@ func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, me
 					threats = append(threats, string(item))
 				}
 			}
-			d.Set("threats", helpers.FlattenSlice(&threats))
+			d.Set("threats", pluginsdk.FlattenSlice(&threats))
 		}
 	}
 

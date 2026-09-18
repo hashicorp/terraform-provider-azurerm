@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/azurefirewalls"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -402,10 +401,10 @@ func expandFirewallApplicationRules(inputs []interface{}) (*[]azurefirewalls.Azu
 		output := azurefirewalls.AzureFirewallApplicationRule{
 			Name:            pointer.To(ruleName),
 			Description:     pointer.To(ruleDescription),
-			SourceAddresses: helpers.ExpandStringSlice(ruleSourceAddresses),
-			SourceIPGroups:  helpers.ExpandStringSlice(ruleSourceIpGroups),
-			FqdnTags:        helpers.ExpandStringSlice(ruleFqdnTags),
-			TargetFqdns:     helpers.ExpandStringSlice(ruleTargetFqdns),
+			SourceAddresses: pluginsdk.ExpandStringSlice(ruleSourceAddresses),
+			SourceIPGroups:  pluginsdk.ExpandStringSlice(ruleSourceIpGroups),
+			FqdnTags:        pluginsdk.ExpandStringSlice(ruleFqdnTags),
+			TargetFqdns:     pluginsdk.ExpandStringSlice(ruleTargetFqdns),
 		}
 
 		ruleProtocols := make([]azurefirewalls.AzureFirewallApplicationRuleProtocol, 0)
@@ -449,16 +448,16 @@ func flattenFirewallApplicationRuleCollectionRules(rules *[]azurefirewalls.Azure
 			output["description"] = *ruleDescription
 		}
 		if ruleSourceAddresses := rule.SourceAddresses; ruleSourceAddresses != nil {
-			output["source_addresses"] = helpers.FlattenSlice(ruleSourceAddresses)
+			output["source_addresses"] = pluginsdk.FlattenSlice(ruleSourceAddresses)
 		}
 		if ruleSourceIpGroups := rule.SourceIPGroups; ruleSourceIpGroups != nil {
-			output["source_ip_groups"] = helpers.FlattenSlice(ruleSourceIpGroups)
+			output["source_ip_groups"] = pluginsdk.FlattenSlice(ruleSourceIpGroups)
 		}
 		if ruleFqdnTags := rule.FqdnTags; ruleFqdnTags != nil {
-			output["fqdn_tags"] = helpers.FlattenSlice(ruleFqdnTags)
+			output["fqdn_tags"] = pluginsdk.FlattenSlice(ruleFqdnTags)
 		}
 		if ruleTargetFqdns := rule.TargetFqdns; ruleTargetFqdns != nil {
-			output["target_fqdns"] = helpers.FlattenSlice(ruleTargetFqdns)
+			output["target_fqdns"] = pluginsdk.FlattenSlice(ruleTargetFqdns)
 		}
 		protocols := make([]map[string]interface{}, 0)
 		if ruleProtocols := rule.Protocols; ruleProtocols != nil {

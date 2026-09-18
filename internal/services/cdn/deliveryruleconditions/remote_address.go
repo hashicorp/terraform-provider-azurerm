@@ -8,7 +8,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -53,7 +52,7 @@ func ExpandArmCdnEndpointConditionRemoteAddress(input []interface{}) []cdn.Basic
 				OdataType:       pointer.To("Microsoft.Azure.Cdn.Models.DeliveryRuleRemoteAddressConditionParameters"),
 				Operator:        cdn.RemoteAddressOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
-				MatchValues:     helpers.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
+				MatchValues:     pluginsdk.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
 			},
 		})
 	}
@@ -78,7 +77,7 @@ func FlattenArmCdnEndpointConditionRemoteAddress(input cdn.BasicDeliveryRuleCond
 		}
 
 		if params.MatchValues != nil {
-			matchValues = helpers.FlattenSlice(params.MatchValues)
+			matchValues = pluginsdk.FlattenSlice(params.MatchValues)
 		}
 	}
 

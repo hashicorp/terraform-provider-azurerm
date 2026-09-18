@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -426,7 +425,7 @@ func expandBackupPolicyBlobStorageCriteriaArray(input []interface{}) (*[]basebac
 
 		var scheduleTimes *[]string
 		if v["scheduled_backup_times"].(*pluginsdk.Set).Len() > 0 {
-			scheduleTimes = helpers.ExpandStringSlice(v["scheduled_backup_times"].(*pluginsdk.Set).List())
+			scheduleTimes = pluginsdk.ExpandStringSlice(v["scheduled_backup_times"].(*pluginsdk.Set).List())
 		}
 
 		var weeksOfMonth []basebackuppolicyresources.WeekNumber
@@ -462,7 +461,7 @@ func expandBackupPolicyBlobStorageAzureBackupRuleArray(input []interface{}, time
 		},
 		Trigger: basebackuppolicyresources.ScheduleBasedTriggerContext{
 			Schedule: basebackuppolicyresources.BackupSchedule{
-				RepeatingTimeIntervals: *helpers.ExpandStringSlice(input),
+				RepeatingTimeIntervals: *pluginsdk.ExpandStringSlice(input),
 				TimeZone:               pointer.To(timeZone),
 			},
 			TaggingCriteria: *taggingCriteria,
@@ -551,7 +550,7 @@ func flattenBackupPolicyBlobStorageVaultBackupRuleArray(input *[]basebackuppolic
 		if backupRule, ok := item.(basebackuppolicyresources.AzureBackupRule); ok {
 			if backupRule.Trigger != nil {
 				if scheduleBasedTrigger, ok := backupRule.Trigger.(basebackuppolicyresources.ScheduleBasedTriggerContext); ok {
-					return helpers.FlattenSlice(&scheduleBasedTrigger.Schedule.RepeatingTimeIntervals)
+					return pluginsdk.FlattenSlice(&scheduleBasedTrigger.Schedule.RepeatingTimeIntervals)
 				}
 			}
 		}

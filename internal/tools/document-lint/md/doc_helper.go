@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/util"
 )
 
@@ -70,7 +70,7 @@ func fileResource(path string) string {
 }
 
 func docDir() string {
-	file, _ := util.FuncFileLine(helpers.ExpandStringSlice)
+	file, _ := util.FuncFileLine(pluginsdk.ExpandStringSlice)
 	return path.Join(path.Dir(path.Dir(file)), "website", "docs")
 }
 

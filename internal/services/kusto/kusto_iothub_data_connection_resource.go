@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/dataconnections"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -220,7 +219,7 @@ func resourceKustoIotHubDataConnectionRead(d *pluginsdk.ResourceData, meta inter
 				d.Set("data_format", string(pointer.From(props.DataFormat)))
 				d.Set("database_routing_type", string(pointer.From(props.DatabaseRouting)))
 				d.Set("shared_access_policy_name", props.SharedAccessPolicyName)
-				d.Set("event_system_properties", helpers.FlattenSlice(props.EventSystemProperties))
+				d.Set("event_system_properties", pluginsdk.FlattenSlice(props.EventSystemProperties))
 				d.Set("retrieval_start_date", pointer.From(props.RetrievalStartDate))
 			}
 		}
@@ -318,7 +317,7 @@ func expandKustoIotHubDataConnectionProperties(d *pluginsdk.ResourceData) *datac
 	}
 
 	if eventSystemProperties, ok := d.GetOk("event_system_properties"); ok {
-		iotHubDataConnectionProperties.EventSystemProperties = helpers.ExpandStringSlice(eventSystemProperties.(*pluginsdk.Set).List())
+		iotHubDataConnectionProperties.EventSystemProperties = pluginsdk.ExpandStringSlice(eventSystemProperties.(*pluginsdk.Set).List())
 	}
 
 	if retrievalStartDate, ok := d.GetOk("retrieval_start_date"); ok {

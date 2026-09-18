@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualwans"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/azurefirewalls"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -703,7 +702,7 @@ func expandFirewallPrivateIpRange(input []interface{}) map[string]string {
 		return nil
 	}
 
-	rangeSlice := *helpers.ExpandStringSlice(input)
+	rangeSlice := *pluginsdk.ExpandStringSlice(input)
 	if len(rangeSlice) == 0 {
 		return nil
 	}
@@ -724,7 +723,7 @@ func flattenFirewallPrivateIpRange(input *map[string]string) []interface{} {
 	if privateIpRanges := attrs["Network.SNAT.PrivateRanges"]; privateIpRanges != "" {
 		rangeSlice = strings.Split(attrs["Network.SNAT.PrivateRanges"], ",")
 	}
-	return helpers.FlattenSlice(&rangeSlice)
+	return pluginsdk.FlattenSlice(&rangeSlice)
 }
 
 func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, input []interface{}) (vhub *azurefirewalls.SubResource, ipAddresses *azurefirewalls.HubIPAddresses, ok bool) {

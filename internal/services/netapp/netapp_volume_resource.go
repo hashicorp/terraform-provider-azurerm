@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -741,7 +740,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		propertyMismatch := []string{}
 		if model := sourceVolume.Model; model != nil {
 			props := model.Properties
-			if !ValidateSlicesEquality(*props.ProtocolTypes, *helpers.ExpandStringSlice(protocols), false) {
+			if !ValidateSlicesEquality(*props.ProtocolTypes, *pluginsdk.ExpandStringSlice(protocols), false) {
 				propertyMismatch = append(propertyMismatch, "protocols")
 			}
 			if !strings.EqualFold(props.SubnetId, subnetID) {
@@ -788,7 +787,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			NetworkFeatures:           &networkFeatures,
 			SmbNonBrowsable:           &smbNonBrowsable,
 			SmbAccessBasedEnumeration: &smbAccessBasedEnumeration,
-			ProtocolTypes:             helpers.ExpandStringSlice(protocols),
+			ProtocolTypes:             pluginsdk.ExpandStringSlice(protocols),
 			SecurityStyle:             &securityStyle,
 			UsageThreshold:            storageQuotaInGB,
 			ExportPolicy:              exportPolicyRule,
@@ -919,14 +918,14 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		// Only override export policy protocols if we're also changing volume protocols
 		if d.HasChange("protocols") {
 			protocols := d.Get("protocols").(*pluginsdk.Set).List()
-			protocolOverride = *helpers.ExpandStringSlice(protocols)
+			protocolOverride = *pluginsdk.ExpandStringSlice(protocols)
 		}
 		update.Properties.ExportPolicy = expandNetAppVolumeExportPolicyRulePatch(exportPolicyRuleRaw, protocolOverride)
 	}
 
 	if d.HasChange("protocols") {
 		protocols := d.Get("protocols").(*pluginsdk.Set).List()
-		update.Properties.ProtocolTypes = helpers.ExpandStringSlice(protocols)
+		update.Properties.ProtocolTypes = pluginsdk.ExpandStringSlice(protocols)
 	}
 
 	if d.HasChange("data_protection_snapshot_policy") {
@@ -1316,7 +1315,7 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 		if item != nil {
 			v := item.(map[string]interface{})
 			ruleIndex := int64(v["rule_index"].(int))
-			allowedClients := strings.Join(*helpers.ExpandStringSlice(v["allowed_clients"].(*pluginsdk.Set).List()), ",")
+			allowedClients := strings.Join(*pluginsdk.ExpandStringSlice(v["allowed_clients"].(*pluginsdk.Set).List()), ",")
 
 			cifsEnabled := false
 			nfsv3Enabled := false
@@ -1381,7 +1380,7 @@ func expandNetAppVolumeExportPolicyRulePatch(input []interface{}, overrideProtoc
 		if item != nil {
 			v := item.(map[string]interface{})
 			ruleIndex := int64(v["rule_index"].(int))
-			allowedClients := strings.Join(*helpers.ExpandStringSlice(v["allowed_clients"].(*pluginsdk.Set).List()), ",")
+			allowedClients := strings.Join(*pluginsdk.ExpandStringSlice(v["allowed_clients"].(*pluginsdk.Set).List()), ",")
 
 			nfsv3Enabled := false
 			nfsv41Enabled := false
@@ -1469,14 +1468,14 @@ func flattenNetAppVolumeExportPolicyRule(input *volumes.VolumePropertiesExportPo
 		}
 
 		results = append(results, map[string]interface{}{
-			"allowed_clients":                helpers.FlattenSlice(&allowedClients),
+			"allowed_clients":                pluginsdk.FlattenSlice(&allowedClients),
 			"kerberos_5_read_only_enabled":   pointer.From(item.Kerberos5ReadOnly),
 			"kerberos_5_read_write_enabled":  pointer.From(item.Kerberos5ReadWrite),
 			"kerberos_5i_read_only_enabled":  pointer.From(item.Kerberos5iReadOnly),
 			"kerberos_5i_read_write_enabled": pointer.From(item.Kerberos5iReadWrite),
 			"kerberos_5p_read_only_enabled":  pointer.From(item.Kerberos5pReadOnly),
 			"kerberos_5p_read_write_enabled": pointer.From(item.Kerberos5pReadWrite),
-			"protocol":                       helpers.FlattenSlice(&protocolsEnabled),
+			"protocol":                       pluginsdk.FlattenSlice(&protocolsEnabled),
 			"root_access_enabled":            pointer.From(item.HasRootAccess),
 			"rule_index":                     pointer.From(item.RuleIndex),
 			"unix_read_only":                 pointer.From(item.UnixReadOnly),

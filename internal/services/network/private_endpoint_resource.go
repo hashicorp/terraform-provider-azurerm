@@ -30,7 +30,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -836,7 +835,7 @@ func expandPrivateLinkEndpointServiceConnection(input []interface{}, parseManual
 			result := privateendpoints.PrivateLinkServiceConnection{
 				Name: pointer.To(name),
 				Properties: &privateendpoints.PrivateLinkServiceConnectionProperties{
-					GroupIds:             helpers.ExpandStringSlice(subresourceNames),
+					GroupIds:             pluginsdk.ExpandStringSlice(subresourceNames),
 					PrivateLinkServiceId: pointer.To(privateConnectionResourceId),
 				},
 			}
@@ -907,7 +906,7 @@ func flattenCustomDnsConfigs(customDnsConfigs *[]privateendpoints.CustomDnsConfi
 	for _, item := range *customDnsConfigs {
 		results = append(results, map[string]interface{}{
 			"fqdn":         item.Fqdn,
-			"ip_addresses": helpers.FlattenSlice(item.IPAddresses),
+			"ip_addresses": pluginsdk.FlattenSlice(item.IPAddresses),
 		})
 	}
 
@@ -927,7 +926,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 
 			if props := item.Properties; props != nil {
 				if v := props.GroupIds; v != nil {
-					subResourceNames = helpers.FlattenSlice(v)
+					subResourceNames = pluginsdk.FlattenSlice(v)
 				}
 				if props.PrivateLinkServiceId != nil {
 					privateConnectionId = *props.PrivateLinkServiceId
@@ -958,7 +957,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 
 			if props := item.Properties; props != nil {
 				if v := props.GroupIds; v != nil {
-					subResourceNames = helpers.FlattenSlice(v)
+					subResourceNames = pluginsdk.FlattenSlice(v)
 				}
 				if props.PrivateLinkServiceId != nil {
 					privateConnectionId = *props.PrivateLinkServiceId
