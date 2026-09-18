@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2023-12-15-preview/namespaces"
 	eventgrid_v2025_02_15 "github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15"
+	namespaces_v2025_02_15 "github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/namespacetopics"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -16,8 +17,9 @@ import (
 type Client struct {
 	*eventgrid_v2025_02_15.Client
 
-	NamespacesClient      *namespaces.NamespacesClient
-	NamespaceTopicsClient *namespacetopics.NamespaceTopicsClient
+	NamespacesClient             *namespaces.NamespacesClient
+	NamespacesClient_v2025_02_15 *namespaces_v2025_02_15.NamespacesClient
+	NamespaceTopicsClient        *namespacetopics.NamespaceTopicsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -26,6 +28,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Namespaces Client: %+v", err)
 	}
 	o.Configure(NamespacesClient.Client, o.Authorizers.ResourceManager)
+
+	NamespacesClient_v2025_02_15, err := namespaces_v2025_02_15.NewNamespacesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Namespaces v2025-02-15 Client: %+v", err)
+	}
+	o.Configure(NamespacesClient_v2025_02_15.Client, o.Authorizers.ResourceManager)
 
 	NamespaceTopicsClient, err := namespacetopics.NewNamespaceTopicsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -40,8 +48,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building EventGrid client: %+v", err)
 	}
 	return &Client{
-		NamespacesClient:      NamespacesClient,
-		NamespaceTopicsClient: NamespaceTopicsClient,
-		Client:                client,
+		NamespacesClient:             NamespacesClient,
+		NamespacesClient_v2025_02_15: NamespacesClient_v2025_02_15,
+		NamespaceTopicsClient:        NamespaceTopicsClient,
+		Client:                       client,
 	}, nil
 }
