@@ -635,3 +635,59 @@ func flattenVirtualMachineGalleryApplication(input *[]virtualmachines.VMGalleryA
 
 	return out
 }
+
+func virtualMachineSizePropertiesSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		// NOTE: O+C the Azure API returns the effective vCPU values derived from the VM size even when these are not configured, and they cannot be unset once applied, so this block and its properties are Optional and Computed to avoid a persistent diff
+		Computed: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"vcpu_available": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.IntPositive,
+				},
+
+				"vcpu_per_core": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.IntPositive,
+				},
+			},
+		},
+	}
+}
+
+func expandVirtualMachineSizeProperties(input []interface{}) *virtualmachines.VMSizeProperties {
+	if len(input) == 0 {
+		return nil
+	}
+	sizeProps := input[0].(map[string]interface{})
+
+	out := &virtualmachines.VMSizeProperties{}
+	if v := sizeProps["vcpu_available"].(int); v > 0 {
+		out.VCPUsAvailable = pointer.To(int64(v))
+	}
+	if v := sizeProps["vcpu_per_core"].(int); v > 0 {
+		out.VCPUsPerCore = pointer.To(int64(v))
+	}
+	return out
+}
+
+func flattenVirtualMachineSizeProperties(input *virtualmachines.VMSizeProperties) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"vcpu_available": pointer.From(input.VCPUsAvailable),
+			"vcpu_per_core":  pointer.From(input.VCPUsPerCore),
+		},
+	}
+}
