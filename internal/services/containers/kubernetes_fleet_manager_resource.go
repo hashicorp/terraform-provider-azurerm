@@ -127,6 +127,7 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 					},
 					"dns_prefix": {
 						Optional: true,
+						// NOTE: O+C - preserves the DNS prefix returned by Azure during import.
 						Computed: true,
 						ForceNew: true,
 						Type:     pluginsdk.TypeString,
