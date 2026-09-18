@@ -19,6 +19,16 @@ import (
 
 type FunctionAppFunctionResource struct{}
 
+func TestAccFunctionAppFunction_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_function", "test")
+	r := FunctionAppFunctionResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccFunctionAppFunction_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_function", "test")
 	r := FunctionAppFunctionResource{}
