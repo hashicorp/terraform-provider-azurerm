@@ -91,6 +91,21 @@ func TestAccFirewallDataSource_inVirtualhub(t *testing.T) {
 	})
 }
 
+func TestAccFirewallDataSource_autoscaleConfiguration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_firewall", "test")
+	r := FirewallDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.autoscaleConfiguration(data, 2, 5),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("autoscale_configuration.0.min_capacity").HasValue("2"),
+				check.That(data.ResourceName).Key("autoscale_configuration.0.max_capacity").HasValue("5"),
+			),
+		},
+	})
+}
+
 func (FirewallDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -187,4 +202,15 @@ data "azurerm_firewall" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 `, FirewallResource{}.inVirtualHub(data, pipCount))
+}
+
+func (FirewallDataSource) autoscaleConfiguration(data acceptance.TestData, minCapacity int, maxCapacity int) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_firewall" "test" {
+  name                = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, FirewallResource{}.autoscaleConfiguration(data, minCapacity, maxCapacity))
 }
