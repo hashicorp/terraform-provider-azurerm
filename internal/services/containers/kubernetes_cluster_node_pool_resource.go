@@ -1288,8 +1288,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 
 		messageOfTheDay := ""
 		if props.MessageOfTheDay != nil {
-			encoded := *props.MessageOfTheDay
-			if decoded, err := base64.StdEncoding.DecodeString(encoded); err == nil {
+			if decoded, err := base64.StdEncoding.DecodeString(*props.MessageOfTheDay); err == nil {
 				messageOfTheDay = string(decoded)
 			}
 		}

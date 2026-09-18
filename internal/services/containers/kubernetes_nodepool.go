@@ -1409,8 +1409,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 
 	messageOfTheDay := ""
 	if agentPool.MessageOfTheDay != nil {
-		encoded := *agentPool.MessageOfTheDay
-		if decoded, err := base64.StdEncoding.DecodeString(encoded); err == nil {
+		if decoded, err := base64.StdEncoding.DecodeString(*agentPool.MessageOfTheDay); err == nil {
 			messageOfTheDay = string(decoded)
 		}
 	}
