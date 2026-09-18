@@ -78,9 +78,7 @@ jobs:
               "",
               "Available types:",
               "",
-              "```",
               types,
-              "```",
               "",
               "If this PR does not require a changelog entry, add the `no-changelog-needed` label or check the box in the PR description."
             ].join("\n")
@@ -148,9 +146,7 @@ jobs:
               "",
               "Available types:",
               "",
-              "```",
               types,
-              "```",
               "",
               "If this PR does not require a changelog entry, check the `This change does not require a changelog entry` box in the PR description."
             ].join("\n")
