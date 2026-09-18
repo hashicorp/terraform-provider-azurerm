@@ -8,6 +8,8 @@ updates:
       - dependency-name: "*"
         update-types:
           - "version-update:semver-major"
+    cooldown:
+      default-days: 7
 
   # go dev tools (golangci-lint, terrafmt, gofumpt, ...) pinned in .tools/go.mod, built by make
   # into .tools/bin; tools should move slowly so only check quarterly
@@ -15,3 +17,5 @@ updates:
     directory: "/.tools"
     schedule:
       interval: "quarterly"
+    cooldown:
+      default-days: 7
