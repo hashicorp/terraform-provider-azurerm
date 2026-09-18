@@ -17,6 +17,6 @@ func OptionalSchema(isVirtualMachine bool) *schema.Schema {
 		Optional:     true,
 		ForceNew:     isVirtualMachine,
 		Sensitive:    true,
-		ValidateFunc: validation.StringIsBase64,
+		ValidateFunc: validation.IsBase64StringOrEmpty,
 	}
 }

@@ -36,7 +36,7 @@ func OrchestratedVirtualMachineScaleSetOSProfileSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Sensitive:    true,
-					ValidateFunc: validation.StringIsBase64,
+					ValidateFunc: validation.IsBase64StringOrEmpty,
 				},
 				"windows_configuration": OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema(),
 				"linux_configuration":   OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema(),

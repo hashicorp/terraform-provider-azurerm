@@ -68,4 +68,3 @@ func TestRemoveFromStringArray(t *testing.T) {
 		})
 	}
 }
-

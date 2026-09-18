@@ -66,7 +66,7 @@ func (r NetAppVolumeBucketWithServerResource) Arguments() map[string]*pluginsdk.
 					Type:          pluginsdk.TypeString,
 					Optional:      true,
 					Sensitive:     true,
-					ValidateFunc:  validation.StringIsBase64,
+					ValidateFunc:  validation.IsBase64StringOrEmpty,
 					ConflictsWith: []string{"key_vault"},
 				},
 				"on_certificate_conflict_action": {

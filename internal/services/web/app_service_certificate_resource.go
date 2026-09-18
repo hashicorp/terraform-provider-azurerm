@@ -58,7 +58,7 @@ func resourceAppServiceCertificate() *pluginsdk.Resource {
 				Optional:     true,
 				Sensitive:    true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsBase64,
+				ValidateFunc: validation.IsBase64StringOrEmpty,
 			},
 
 			"password": {

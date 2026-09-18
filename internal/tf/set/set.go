@@ -9,8 +9,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 )
 
 func HashInt(v interface{}) int {
@@ -59,7 +60,7 @@ func normalizeIPv6Address(ipv6 interface{}) string {
 }
 
 func HashIPv4AddressOrCIDR(ipv4 interface{}) int {
-	warnings, errors := validate.IPv4Address(ipv4, "")
+	warnings, errors := validation.IsIPv4Address(ipv4, "")
 
 	// maybe cidr, just hash it
 	if len(warnings) > 0 || len(errors) > 0 {

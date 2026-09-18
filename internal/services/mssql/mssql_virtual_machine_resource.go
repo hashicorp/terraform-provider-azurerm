@@ -142,7 +142,7 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 						"storage_account_access_key": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringIsBase64,
+							ValidateFunc: validation.IsBase64StringOrEmpty,
 						},
 
 						"system_databases_backup_enabled": {

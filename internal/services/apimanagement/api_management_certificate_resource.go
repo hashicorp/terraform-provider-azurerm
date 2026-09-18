@@ -50,7 +50,7 @@ func resourceApiManagementCertificate() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				Sensitive:     true,
-				ValidateFunc:  validation.StringIsBase64,
+				ValidateFunc:  validation.IsBase64StringOrEmpty,
 				AtLeastOneOf:  []string{"data", "key_vault_secret_id"},
 				ConflictsWith: []string{"key_vault_secret_id", "key_vault_identity_client_id"},
 			},

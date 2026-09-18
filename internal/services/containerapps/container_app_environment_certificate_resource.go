@@ -82,7 +82,7 @@ func (r ContainerAppEnvironmentCertificateResource) Arguments() map[string]*plug
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsBase64,
+			ValidateFunc: validation.IsBase64StringOrEmpty,
 			ExactlyOneOf: []string{"certificate_key_vault", "certificate_blob_base64"},
 			RequiredWith: []string{"certificate_password"},
 		},

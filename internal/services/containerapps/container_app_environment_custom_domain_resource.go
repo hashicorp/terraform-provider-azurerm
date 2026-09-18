@@ -56,7 +56,7 @@ func (r ContainerAppEnvironmentCustomDomainResource) Arguments() map[string]*plu
 		"certificate_blob_base64": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsBase64,
+			ValidateFunc: validation.IsBase64StringOrEmpty,
 			Description:  "The Custom Domain Certificate Private Key as a base64 encoded PFX or PEM.",
 		},
 

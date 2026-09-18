@@ -154,7 +154,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.IPv4Address,
+								ValidateFunc: validation.IsIPv4Address,
 							},
 						},
 
@@ -1328,7 +1328,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Optional:     true,
 							Sensitive:    true,
 							StateFunc:    base64EncodedStateFunc,
-							ValidateFunc: validation.StringIsBase64,
+							ValidateFunc: validation.IsBase64StringOrEmpty,
 						},
 
 						"password": {

@@ -114,7 +114,7 @@ func (m ConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
 					"content": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringIsBase64,
+						ValidateFunc: validation.IsBase64StringOrEmpty,
 					},
 
 					"virtual_path": {
@@ -136,7 +136,7 @@ func (m ConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						Sensitive:    true,
-						ValidateFunc: validation.StringIsBase64,
+						ValidateFunc: validation.IsBase64StringOrEmpty,
 					},
 
 					"virtual_path": {

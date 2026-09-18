@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/parse"
@@ -180,7 +179,7 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							Sensitive:    true,
-							ValidateFunc: azValidate.Base64EncodedString,
+							ValidateFunc: validation.IsBase64String,
 						},
 
 						"pfx_certificate_password": {

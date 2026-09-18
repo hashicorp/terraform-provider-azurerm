@@ -133,7 +133,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 			"custom_block_response_body": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringIsBase64,
+				ValidateFunc: validation.IsBase64StringOrEmpty,
 			},
 
 			"custom_rule": {

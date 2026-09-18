@@ -270,8 +270,8 @@ func StringInEnumSlice[T ~string](valid []T, ignoreCase bool) func(interface{}, 
 	return StringInSlice(values, ignoreCase)
 }
 
-// StringIsBase64 is a ValidateFunc that ensures a string can be parsed as Base64
-func StringIsBase64(i interface{}, k string) ([]string, []error) {
+// IsBase64StringOrEmpty is a ValidateFunc that ensures a string can be parsed as Base64
+func IsBase64StringOrEmpty(i interface{}, k string) ([]string, []error) {
 	return validation.StringIsBase64(i, k)
 }
 

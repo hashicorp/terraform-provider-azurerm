@@ -498,7 +498,7 @@ func resourceIotHub() *pluginsdk.Resource {
 									"ip_mask": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: validate.CIDR,
+										ValidateFunc: validation.IsCIDRIPv4,
 									},
 									"action": {
 										Type:         pluginsdk.TypeString,

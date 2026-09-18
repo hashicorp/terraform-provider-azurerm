@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -117,7 +116,7 @@ func resourceVPNGateway() *pluginsdk.Resource {
 										Required: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
-											ValidateFunc: commonValidate.IPv4Address,
+											ValidateFunc: validation.IsIPv4Address,
 										},
 									},
 
@@ -157,7 +156,7 @@ func resourceVPNGateway() *pluginsdk.Resource {
 										Required: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
-											ValidateFunc: commonValidate.IPv4Address,
+											ValidateFunc: validation.IsIPv4Address,
 										},
 									},
 

@@ -67,7 +67,7 @@ func resourceIotSecurityDeviceGroup() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.CIDR,
+								ValidateFunc: validation.IsCIDRIPv4,
 							},
 							AtLeastOneOf: []string{"allow_rule.0.connection_from_ips_not_allowed", "allow_rule.0.connection_to_ips_not_allowed", "allow_rule.0.local_users_not_allowed", "allow_rule.0.processes_not_allowed"},
 						},
@@ -77,7 +77,7 @@ func resourceIotSecurityDeviceGroup() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.CIDR,
+								ValidateFunc: validation.IsCIDRIPv4,
 							},
 							AtLeastOneOf: []string{"allow_rule.0.connection_from_ips_not_allowed", "allow_rule.0.connection_to_ips_not_allowed", "allow_rule.0.local_users_not_allowed", "allow_rule.0.processes_not_allowed"},
 						},

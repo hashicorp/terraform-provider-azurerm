@@ -69,7 +69,7 @@ func (r ApiManagementWorkspaceCertificateResource) Arguments() map[string]*plugi
 			Optional:     true,
 			Sensitive:    true,
 			ExactlyOneOf: []string{"certificate_data_base64", "key_vault_secret_id"},
-			ValidateFunc: validation.StringIsBase64,
+			ValidateFunc: validation.IsBase64StringOrEmpty,
 		},
 
 		"key_vault_secret_id": {

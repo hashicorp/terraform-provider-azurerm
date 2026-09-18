@@ -33,7 +33,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
@@ -245,7 +244,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.CIDR,
+								ValidateFunc: validation.IsCIDRIPv4,
 							},
 						},
 						"virtual_network_integration_enabled": {
@@ -463,7 +462,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				MaxItems: 10,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsBase64,
+					ValidateFunc: validation.IsBase64StringOrEmpty,
 				},
 			},
 
@@ -1141,7 +1140,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional:     true,
 							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ForceNew:     true,
-							ValidateFunc: validate.IPv4Address,
+							ValidateFunc: validation.IsIPv4Address,
 						},
 
 						"network_data_plane": {
@@ -1164,7 +1163,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true, // azignore:AZS007 - pre-existing violation
-							ValidateFunc: validate.CIDR,
+							ValidateFunc: validation.IsCIDRIPv4,
 						},
 
 						"pod_cidrs": {
@@ -1182,7 +1181,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional:     true,
 							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ForceNew:     true,
-							ValidateFunc: validate.CIDR,
+							ValidateFunc: validation.IsCIDRIPv4,
 						},
 
 						"service_cidrs": {
