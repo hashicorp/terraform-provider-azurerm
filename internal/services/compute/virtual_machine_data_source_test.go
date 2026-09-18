@@ -13,6 +13,16 @@ import (
 
 type VirtualMachineDataSource struct{}
 
+func TestAccDataSourceAzureRMVirtualMachine_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_virtual_machine", "test")
+	r := VirtualMachineDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basicLinux(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceAzureRMVirtualMachine_basicLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_machine", "test")
 	r := VirtualMachineDataSource{}

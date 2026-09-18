@@ -13,6 +13,16 @@ import (
 
 type DiskEncryptionSetDataSource struct{}
 
+func TestAccDataSourceDiskEncryptionSet_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_disk_encryption_set", "test")
+	r := DiskEncryptionSetDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceDiskEncryptionSet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_disk_encryption_set", "test")
 	r := DiskEncryptionSetDataSource{}

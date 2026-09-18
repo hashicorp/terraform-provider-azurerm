@@ -13,6 +13,16 @@ import (
 
 type ManagedDiskDataSource struct{}
 
+func TestAccDataSourceManagedDisk_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_managed_disk", "test")
+	r := ManagedDiskDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.diskAccess(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceManagedDisk_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_managed_disk", "test")
 	r := ManagedDiskDataSource{}
