@@ -94,6 +94,7 @@ var services = mapOf(
         "nginx" to "Nginx",
         "notificationhub" to "Notification Hub",
         "oracle" to "Oracle",
+        "orbitalplanetarycomputer" to "Orbital Planetary Computer",
         "paloalto" to "Palo Alto",
         "policy" to "Policy",
         "portal" to "Portal",

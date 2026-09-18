@@ -111,6 +111,7 @@ import (
 	nginx "github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx/client"
 	notificationhub "github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/client"
 	oracle "github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/client"
+	orbitalplanetarycomputer "github.com/hashicorp/terraform-provider-azurerm/internal/services/orbitalplanetarycomputer/client"
 	paloalto "github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/client"
 	policy "github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/client"
 	portal "github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/client"
@@ -248,6 +249,7 @@ type Client struct {
 	Nginx                             *nginx_2024_11_01_preview.Client
 	NotificationHubs                  *notificationhub.Client
 	Oracle                            *oracle.Client
+	OrbitalPlanetaryComputer          *orbitalplanetarycomputer.Client
 	PaloAlto                          *paloalto.Client
 	Policy                            *policy.Client
 	Portal                            *portal.Client
@@ -566,6 +568,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.Oracle, err = oracle.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for OracleDatabase: %+v", err)
+	}
+	if client.OrbitalPlanetaryComputer, err = orbitalplanetarycomputer.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Orbital Planetary Computer: %+v", err)
 	}
 	if client.Policy, err = policy.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Policy: %+v", err)
