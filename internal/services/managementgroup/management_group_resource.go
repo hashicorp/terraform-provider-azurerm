@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -302,12 +303,11 @@ func resourceManagementGroupDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	recurse := true
 	group, err := client.Get(ctx, *id, managementgroups.GetOperationOptions{
 		CacheControl: &managementGroupCacheControl,
 		Filter:       pointer.To("children.childType eq Subscription"),
 		Expand:       pointer.To(managementgroups.ExpandChildren),
-		Recurse:      &recurse,
+		Recurse:      pointer.To(true),
 	})
 	if err != nil {
 		if response.WasNotFound(group.HttpResponse) || response.WasForbidden(group.HttpResponse) {
@@ -414,13 +414,7 @@ func determineManagementGroupSubscriptionsIdsToRemove(existing *[]managementgrou
 			continue
 		}
 
-		found := false
-		for _, subId := range updated {
-			if id.SubscriptionId == subId {
-				found = true
-				break
-			}
-		}
+		found := slices.Contains(updated, id.SubscriptionId)
 
 		if !found {
 			subscriptionIdsToRemove = append(subscriptionIdsToRemove, id.SubscriptionId)

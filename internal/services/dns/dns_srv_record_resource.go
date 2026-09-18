@@ -282,16 +282,12 @@ func expandAzureRmDnsSrvRecords(d *pluginsdk.ResourceData) *[]recordsets.SrvReco
 
 	for _, v := range recordStrings {
 		record := v.(map[string]interface{})
-		priority := int64(record["priority"].(int))
-		weight := int64(record["weight"].(int))
-		port := int64(record["port"].(int))
-		target := record["target"].(string)
 
 		records = append(records, recordsets.SrvRecord{
-			Priority: &priority,
-			Weight:   &weight,
-			Port:     &port,
-			Target:   &target,
+			Priority: pointer.To(int64(record["priority"].(int))),
+			Weight:   pointer.To(int64(record["weight"].(int))),
+			Port:     pointer.To(int64(record["port"].(int))),
+			Target:   pointer.To(record["target"].(string)),
 		})
 	}
 

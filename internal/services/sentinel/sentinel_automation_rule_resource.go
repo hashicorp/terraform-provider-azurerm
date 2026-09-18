@@ -482,19 +482,16 @@ func expandAutomationRuleActionIncident(input []interface{}) ([]automationrules.
 			return nil, fmt.Errorf("at least one of `severity`, `owner_id`, `labels` or `status` should be specified")
 		}
 
-		classificationPtr := automationrules.IncidentClassification(classification)
-		clrPtr := automationrules.IncidentClassificationReason(clr)
-		severityPtr := automationrules.IncidentSeverity(severity)
 		out = append(out, automationrules.AutomationRuleModifyPropertiesAction{
 			Order: int64(b["order"].(int)),
 			ActionConfiguration: &automationrules.IncidentPropertiesAction{
 				Status:                &status,
-				Classification:        &classificationPtr,
+				Classification:        pointer.ToEnum[automationrules.IncidentClassification](classification),
 				ClassificationComment: &classificationComment,
-				ClassificationReason:  &clrPtr,
+				ClassificationReason:  pointer.ToEnum[automationrules.IncidentClassificationReason](clr),
 				Labels:                labelsPtr,
 				Owner:                 ownerPtr,
-				Severity:              &severityPtr,
+				Severity:              pointer.ToEnum[automationrules.IncidentSeverity](severity),
 			},
 		})
 	}

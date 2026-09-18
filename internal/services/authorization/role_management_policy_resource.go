@@ -115,7 +115,7 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:    true,
 			ValidateFunc: validation.Any(
 				// Elevated access for a global admin is needed to assign roles in this scope:
-				// https://docs.microsoft.com/en-us/azure/role-based-access-control/elevate-access-global-admin#azure-cli
+				// https://docs.microsoft.com/azure/role-based-access-control/elevate-access-global-admin#azure-cli
 				// It seems only user account is allowed to be elevated access.
 				validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Subscription.*"), "Subscription scope is invalid"),
 
@@ -398,9 +398,7 @@ func (r RoleManagementPolicyResource) Create() sdk.ResourceFunc {
 			// We are using a custom type parse.RoleManagementPolicyId as the ID type for this resource, because the actual
 			// resource ID type (ScopedRoleManagementPolicyId) changes each time the policy is updated, so this allows us
 			// to search for the latest policy at Read time.
-			id := parse.NewRoleManagementPolicyId(config.RoleDefinitionId, config.Scope)
-
-			metadata.SetID(id)
+			metadata.SetID(parse.NewRoleManagementPolicyId(config.RoleDefinitionId, config.Scope))
 			return nil
 		},
 	}

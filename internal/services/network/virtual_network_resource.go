@@ -907,15 +907,13 @@ func expandVirtualNetworkProperties(ctx context.Context, client virtualnetworks.
 		}
 
 		if v, ok := ddosPPlan["id"]; ok {
-			id := v.(string)
 			properties.DdosProtectionPlan = &virtualnetworks.SubResource{
-				Id: &id,
+				Id: pointer.To(v.(string)),
 			}
 		}
 
 		if v, ok := ddosPPlan["enable"]; ok {
-			enable := v.(bool)
-			properties.EnableDdosProtection = &enable
+			properties.EnableDdosProtection = pointer.To(v.(bool))
 		}
 	}
 
@@ -1163,8 +1161,7 @@ func expandResourcesForLocking(d *pluginsdk.ResourceData) ([]string, []string, e
 func expandVirtualNetworkSubnetServiceEndpointPolicies(input []interface{}) *[]virtualnetworks.ServiceEndpointPolicy {
 	output := make([]virtualnetworks.ServiceEndpointPolicy, 0)
 	for _, policy := range input {
-		policy := policy.(string)
-		output = append(output, virtualnetworks.ServiceEndpointPolicy{Id: &policy})
+		output = append(output, virtualnetworks.ServiceEndpointPolicy{Id: pointer.To(policy.(string))})
 	}
 	return &output
 }
@@ -1174,10 +1171,8 @@ func expandVirtualNetworkSubnetDelegation(input []interface{}) *[]virtualnetwork
 
 	for _, deleValue := range input {
 		deleData := deleValue.(map[string]interface{})
-		deleName := deleData["name"].(string)
 		srvDelegations := deleData["service_delegation"].([]interface{})
 		srvDelegation := srvDelegations[0].(map[string]interface{})
-		srvName := srvDelegation["name"].(string)
 
 		srvActions := srvDelegation["actions"].(*pluginsdk.Set).List()
 
@@ -1188,9 +1183,9 @@ func expandVirtualNetworkSubnetDelegation(input []interface{}) *[]virtualnetwork
 		}
 
 		retDelegation := virtualnetworks.Delegation{
-			Name: &deleName,
+			Name: pointer.To(deleData["name"].(string)),
 			Properties: &virtualnetworks.ServiceDelegationPropertiesFormat{
-				ServiceName: &srvName,
+				ServiceName: pointer.To(srvDelegation["name"].(string)),
 				Actions:     &retSrvActions,
 			},
 		}
