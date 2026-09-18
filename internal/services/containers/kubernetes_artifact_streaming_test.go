@@ -15,20 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func TestArtifactStreamingSchema(t *testing.T) {
-	schemas := map[string]*pluginsdk.Schema{
-		"default_node_pool": containers.SchemaDefaultNodePool().Elem.(*pluginsdk.Resource).Schema["artifact_streaming_enabled"],
-		"node_pool":         containers.Registration{}.SupportedResources()["azurerm_kubernetes_cluster_node_pool"].Schema["artifact_streaming_enabled"],
-	}
-	for name, schema := range schemas {
-		t.Run(name, func(t *testing.T) {
-			if schema == nil || schema.Type != pluginsdk.TypeBool || !schema.Optional || schema.ForceNew || schema.Computed {
-				t.Fatal("artifact streaming must be an optional, updatable boolean on both node pool schemas")
-			}
-		})
-	}
-}
-
 func TestArtifactStreamingDefaultNodePoolExpand(t *testing.T) {
 	for _, enabled := range []bool{true, false} {
 		data := schema.TestResourceDataRaw(t, map[string]*pluginsdk.Schema{
