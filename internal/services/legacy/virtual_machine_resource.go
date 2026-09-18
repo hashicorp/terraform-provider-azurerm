@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkinterfaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -39,6 +40,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -test-name basicLinuxMachine_managedDisk_implicit -test-expect-non-empty
+
+const azureVirtualMachineResourceName = "azurerm_virtual_machine"
 
 func userDataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
 	return userDataStateFunc(old) == new
@@ -65,10 +70,11 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 		Read:   resourceVirtualMachineRead,
 		Update: resourceVirtualMachineCreateUpdate,
 		Delete: resourceVirtualMachineDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := virtualmachines.ParseVirtualMachineID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&virtualmachines.VirtualMachineId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&virtualmachines.VirtualMachineId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -628,7 +634,7 @@ func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_virtual_machine", id.ID())
+				return tf.ImportAsExistsError(azureVirtualMachineResourceName, id.ID())
 			}
 		}
 	}
@@ -727,7 +733,7 @@ func resourceVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	defer locks.UnlockByName(id.VirtualMachineName, compute2.VirtualMachineResourceName)
 
 	if d.IsNewResource() {
-		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, vm, virtualmachines.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDCallback(meta, &id, d)); err != nil {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, vm, virtualmachines.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 		d.SetId(id.ID())
@@ -787,10 +793,16 @@ func resourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourceVirtualMachineFlatten(ctx, meta.(*clients.Client), d, id, resp.Model, true)
+}
+
+func resourceVirtualMachineFlatten(ctx context.Context, clientsClient *clients.Client, d *pluginsdk.ResourceData, id *virtualmachines.VirtualMachineId, model *virtualmachines.VirtualMachine, includeResource bool) error {
+	disksClient := clientsClient.Compute.DisksClient
+
 	d.Set("name", id.VirtualMachineName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("zones", model.Zones)
 		d.Set("location", location.Normalize(model.Location))
 
@@ -828,9 +840,13 @@ func resourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) err
 				}
 
 				if osDisk := profile.OsDisk; osDisk != nil {
-					diskInfo, err := resourceVirtualMachineGetManagedDiskInfo(d, osDisk.ManagedDisk, meta)
-					if err != nil {
-						return fmt.Errorf("flattening `storage_os_disk`: %#v", err)
+					var diskInfo *disks.Disk
+					if includeResource {
+						info, err := resourceVirtualMachineGetManagedDiskInfo(ctx, disksClient, osDisk.ManagedDisk)
+						if err != nil {
+							return fmt.Errorf("flattening `storage_os_disk`: %#v", err)
+						}
+						diskInfo = info
 					}
 					if err := d.Set("storage_os_disk", flattenAzureRmVirtualMachineOsDisk(osDisk, diskInfo)); err != nil {
 						return fmt.Errorf("setting `storage_os_disk`: %#v", err)
@@ -839,12 +855,14 @@ func resourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 				if dataDisks := profile.DataDisks; dataDisks != nil {
 					disksInfo := make([]*disks.Disk, len(*dataDisks))
-					for i, dataDisk := range *dataDisks {
-						diskInfo, err := resourceVirtualMachineGetManagedDiskInfo(d, dataDisk.ManagedDisk, meta)
-						if err != nil {
-							return fmt.Errorf("[DEBUG] Error getting managed data disk detailed information: %#v", err)
+					if includeResource {
+						for i, dataDisk := range *dataDisks {
+							diskInfo, err := resourceVirtualMachineGetManagedDiskInfo(ctx, disksClient, dataDisk.ManagedDisk)
+							if err != nil {
+								return fmt.Errorf("[DEBUG] Error getting managed data disk detailed information: %#v", err)
+							}
+							disksInfo[i] = diskInfo
 						}
-						disksInfo[i] = diskInfo
 					}
 					if err := d.Set("storage_data_disk", flattenAzureRmVirtualMachineDataDisk(dataDisks, disksInfo)); err != nil {
 						return fmt.Errorf("[DEBUG] Error setting Virtual Machine Storage Data Disks error: %#v", err)
@@ -900,7 +918,7 @@ func resourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return err
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -1843,11 +1861,7 @@ func resourceVirtualMachineStorageImageReferenceHash(v interface{}) int {
 	return pluginsdk.HashString(buf.String())
 }
 
-func resourceVirtualMachineGetManagedDiskInfo(d *pluginsdk.ResourceData, disk *virtualmachines.ManagedDiskParameters, meta interface{}) (*disks.Disk, error) {
-	client := meta.(*clients.Client).Compute.DisksClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
+func resourceVirtualMachineGetManagedDiskInfo(ctx context.Context, client *disks.DisksClient, disk *virtualmachines.ManagedDiskParameters) (*disks.Disk, error) {
 	if disk == nil || disk.Id == nil {
 		return nil, nil
 	}
