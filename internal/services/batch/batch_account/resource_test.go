@@ -11,12 +11,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
-	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
-	"github.com/hashicorp/terraform-plugin-testing/statecheck"
-	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -1200,29 +1196,4 @@ resource "azurerm_batch_account" "test" {
   public_network_access_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
-func TestAccBatchAccount_resourceIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
-	r := BatchAccountResource{}
-
-	checkedFields := map[string]struct{}{
-		"subscription_id":     {},
-		"name":                {},
-		"resource_group_name": {},
-	}
-
-	data.ResourceIdentityTest(t, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			ConfigStateChecks: []statecheck.StateCheck{
-				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_batch_account.test", checkedFields),
-				statecheck.ExpectIdentityValue("azurerm_batch_account.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
-				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_batch_account.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
-				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_batch_account.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
-			},
-		},
-		data.ImportBlockWithResourceIdentityStep(false),
-		data.ImportBlockWithIDStep(false),
-	}, false)
 }

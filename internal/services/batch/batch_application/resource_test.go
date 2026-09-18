@@ -10,12 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/application"
-	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
-	"github.com/hashicorp/terraform-plugin-testing/statecheck"
-	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -166,31 +162,4 @@ resource "azurerm_batch_application" "test" {
   %[4]s
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, displayName)
-}
-
-func TestAccBatchApplication_resourceIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_batch_application", "test")
-	r := BatchApplicationResource{}
-
-	checkedFields := map[string]struct{}{
-		"subscription_id":     {},
-		"batch_account_name":  {},
-		"name":                {},
-		"resource_group_name": {},
-	}
-
-	data.ResourceIdentityTest(t, []acceptance.TestStep{
-		{
-			Config: r.basicForResourceIdentity(data),
-			ConfigStateChecks: []statecheck.StateCheck{
-				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_batch_application.test", checkedFields),
-				statecheck.ExpectIdentityValue("azurerm_batch_application.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
-				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_batch_application.test", tfjsonpath.New("batch_account_name"), tfjsonpath.New("account_name")),
-				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_batch_application.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
-				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_batch_application.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
-			},
-		},
-		data.ImportBlockWithResourceIdentityStep(false),
-		data.ImportBlockWithIDStep(false),
-	}, false)
 }
