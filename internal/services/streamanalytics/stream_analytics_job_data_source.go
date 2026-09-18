@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/clusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/streamingjobs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -41,6 +43,11 @@ func dataSourceStreamAnalyticsJob() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"content_storage_policy": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"data_locale": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -59,6 +66,24 @@ func dataSourceStreamAnalyticsJob() *pluginsdk.Resource {
 			"events_out_of_order_policy": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+			},
+
+			"job_storage_account": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"authentication_mode": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"account_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"job_id": {
@@ -99,6 +124,18 @@ func dataSourceStreamAnalyticsJob() *pluginsdk.Resource {
 			},
 
 			"sku_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"stream_analytics_cluster_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"tags": commonschema.TagsDataSource(),
+
+			"type": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -177,18 +214,47 @@ func dataSourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{
 
 			d.Set("job_id", pointer.From(props.JobId))
 
+			clusterId := ""
+			if props.Cluster != nil && pointer.From(props.Cluster.Id) != "" {
+				cId, err := clusters.ParseClusterID(*props.Cluster.Id)
+				if err != nil {
+					return err
+				}
+				clusterId = cId.ID()
+			}
+			d.Set("stream_analytics_cluster_id", clusterId)
+			d.Set("type", pointer.From(props.JobType))
+
 			sku := ""
 			if props.Sku != nil && props.Sku.Name != nil {
 				sku = string(*props.Sku.Name)
 			}
 			d.Set("sku_name", sku)
+			d.Set("content_storage_policy", pointer.From(props.ContentStoragePolicy))
+			d.Set("job_storage_account", flattenJobStorageAccountDataSource(props.JobStorageAccount))
 
 			if props.Transformation != nil && props.Transformation.Properties != nil {
 				d.Set("streaming_units", pointer.From(props.Transformation.Properties.StreamingUnits))
 
 				d.Set("transformation_query", pointer.From(props.Transformation.Properties.Query))
 			}
+			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
+}
+
+func flattenJobStorageAccountDataSource(input *streamingjobs.JobStorageAccount) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"authentication_mode": string(pointer.From(input.AuthenticationMode)),
+			"account_name":        pointer.From(input.AccountName),
+		},
+	}
 }
