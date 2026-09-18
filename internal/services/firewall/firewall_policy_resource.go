@@ -557,13 +557,13 @@ func flattenFirewallPolicyInsights(input *firewallpolicies.FirewallPolicyInsight
 		retentionInDays = int(*input.RetentionDays)
 	}
 
-	defaultLogAnalyticsWorspaceId, logAnalyticsWorkspaces := flattenFirewallPolicyLogAnalyticsResources(input.LogAnalyticsResources)
+	defaultLogAnalyticsWorkspaceId, logAnalyticsWorkspaces := flattenFirewallPolicyLogAnalyticsResources(input.LogAnalyticsResources)
 
 	return []interface{}{
 		map[string]interface{}{
 			"enabled":                            pointer.From(input.IsEnabled),
 			"retention_in_days":                  retentionInDays,
-			"default_log_analytics_workspace_id": defaultLogAnalyticsWorspaceId,
+			"default_log_analytics_workspace_id": defaultLogAnalyticsWorkspaceId,
 			"log_analytics_workspace":            logAnalyticsWorkspaces,
 		},
 	}

@@ -91,7 +91,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "accTestRG-acr-credetial-set-%d"
+  name     = "accTestRG-acr-credential-set-%d"
   location = "%s"
 }
 
@@ -177,7 +177,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "accTestRG-acr-credetial-set-%d"
+  name     = "accTestRG-acr-credential-set-%d"
   location = "%s"
 }
 
