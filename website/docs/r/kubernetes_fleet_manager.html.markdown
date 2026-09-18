@@ -40,9 +40,29 @@ The following arguments are supported:
 
 ---
 
+An `agent_profile` block supports the following:
+
+* `subnet_id` - (Optional) The ID of the subnet which the Fleet hub node will join on startup. Changing this forces a new resource to be created.
+
+~> **Note:** Custom subnets are supported only for private Fleet hubs. The Fleet resource provider's service principal must have the `Network Contributor` role on the subnet.
+
+* `virtual_machine_size` - (Optional) The virtual machine size of the Fleet hub. Changing this forces a new resource to be created.
+
+---
+
+An `api_server_access_profile` block supports the following:
+
+* `enable_private_cluster` - (Optional) Whether to create the Fleet hub as a private cluster. When set to `true`, `agent_profile.subnet_id` must be specified. Changing this forces a new resource to be created.
+
+---
+
 A `hub_profile` block supports the following:
 
-* `dns_prefix` - (Required) DNS prefix used to create the FQDN for the Fleet hub. Changing this forces a new Kubernetes Fleet Manager to be created.
+* `agent_profile` - (Optional) An `agent_profile` block as defined above. Changing this forces a new resource to be created.
+
+* `api_server_access_profile` - (Optional) An `api_server_access_profile` block as defined above. Changing this forces a new resource to be created.
+
+* `dns_prefix` - (Optional) DNS prefix used to create the FQDN for the Fleet hub. Changing this forces a new Kubernetes Fleet Manager to be created.
 
 ## Attributes Reference
 

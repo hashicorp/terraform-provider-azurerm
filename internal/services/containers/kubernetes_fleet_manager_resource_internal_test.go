@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2026
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -25,6 +25,13 @@ func TestKubernetesFleetManagerHubProfileMapping(t *testing.T) {
 	t.Run("create with hub", func(t *testing.T) {
 		config := KubernetesFleetManagerResourceSchema{
 			HubProfile: []FleetManagerHubProfile{{
+				AgentProfile: []FleetManagerHubAgentProfile{{
+					SubnetId:           "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/subnet",
+					VirtualMachineSize: "Standard_DS2_v2",
+				}},
+				ApiServerAccessProfile: []FleetManagerHubAPIServerAccessProfile{{
+					EnablePrivateCluster: true,
+				}},
 				DnsPrefix:         "fleet-test",
 				Fqdn:              "read-only.example",
 				KubernetesVersion: "1.32.0",
@@ -33,9 +40,18 @@ func TestKubernetesFleetManagerHubProfileMapping(t *testing.T) {
 		}
 		var payload fleets.Fleet
 		r.mapKubernetesFleetManagerResourceSchemaToFleet(config, &payload)
-		expected := &fleets.FleetHubProfile{DnsPrefix: pointer.To("fleet-test")}
+		expected := &fleets.FleetHubProfile{
+			AgentProfile: &fleets.AgentProfile{
+				SubnetId: pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/subnet"),
+				VMSize:   pointer.To("Standard_DS2_v2"),
+			},
+			ApiServerAccessProfile: &fleets.APIServerAccessProfile{
+				EnablePrivateCluster: pointer.To(true),
+			},
+			DnsPrefix: pointer.To("fleet-test"),
+		}
 		if !reflect.DeepEqual(payload.Properties.HubProfile, expected) {
-			t.Fatalf("expected only configured DNS prefix in the request, got %#v", payload.Properties.HubProfile)
+			t.Fatalf("expected configured hub profile in the request, got %#v", payload.Properties.HubProfile)
 		}
 	})
 
@@ -54,6 +70,13 @@ func TestKubernetesFleetManagerHubProfileMapping(t *testing.T) {
 	t.Run("read and import include every hub attribute", func(t *testing.T) {
 		payload := fleets.Fleet{Properties: &fleets.FleetProperties{
 			HubProfile: &fleets.FleetHubProfile{
+				AgentProfile: &fleets.AgentProfile{
+					SubnetId: pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/rg/providers/microsoft.network/virtualnetworks/vnet/subnets/subnet"),
+					VMSize:   pointer.To("Standard_DS2_v2"),
+				},
+				ApiServerAccessProfile: &fleets.APIServerAccessProfile{
+					EnablePrivateCluster: pointer.To(true),
+				},
 				DnsPrefix:         pointer.To("fleet-test"),
 				Fqdn:              pointer.To("fleet.example"),
 				KubernetesVersion: pointer.To("1.32.0"),
@@ -61,8 +84,17 @@ func TestKubernetesFleetManagerHubProfileMapping(t *testing.T) {
 			},
 		}}
 		var state KubernetesFleetManagerResourceSchema
-		r.mapFleetToKubernetesFleetManagerResourceSchema(payload, &state)
+		if err := r.mapFleetToKubernetesFleetManagerResourceSchema(payload, &state); err != nil {
+			t.Fatal(err)
+		}
 		expected := []FleetManagerHubProfile{{
+			AgentProfile: []FleetManagerHubAgentProfile{{
+				SubnetId:           "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/subnet",
+				VirtualMachineSize: "Standard_DS2_v2",
+			}},
+			ApiServerAccessProfile: []FleetManagerHubAPIServerAccessProfile{{
+				EnablePrivateCluster: true,
+			}},
 			DnsPrefix:         "fleet-test",
 			Fqdn:              "fleet.example",
 			KubernetesVersion: "1.32.0",
@@ -81,10 +113,24 @@ func TestKubernetesFleetManagerHubProfileMapping(t *testing.T) {
 			state := KubernetesFleetManagerResourceSchema{
 				HubProfile: []FleetManagerHubProfile{{DnsPrefix: "stale"}},
 			}
-			r.mapFleetToKubernetesFleetManagerResourceSchema(fleets.Fleet{Properties: properties}, &state)
+			if err := r.mapFleetToKubernetesFleetManagerResourceSchema(fleets.Fleet{Properties: properties}, &state); err != nil {
+				t.Fatal(err)
+			}
 			if len(state.HubProfile) != 0 {
 				t.Fatalf("expected missing API hub profile to clear state, got %#v", state.HubProfile)
 			}
 		})
 	}
+
+	t.Run("invalid subnet ID is rejected", func(t *testing.T) {
+		payload := fleets.Fleet{Properties: &fleets.FleetProperties{
+			HubProfile: &fleets.FleetHubProfile{
+				AgentProfile: &fleets.AgentProfile{SubnetId: pointer.To("invalid")},
+			},
+		}}
+		var state KubernetesFleetManagerResourceSchema
+		if err := r.mapFleetToKubernetesFleetManagerResourceSchema(payload, &state); err == nil {
+			t.Fatal("expected invalid subnet ID to be rejected")
+		}
+	})
 }

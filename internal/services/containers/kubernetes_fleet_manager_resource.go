@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -40,10 +41,21 @@ type KubernetesFleetManagerResourceSchema struct {
 }
 
 type FleetManagerHubProfile struct {
-	DnsPrefix         string `tfschema:"dns_prefix"`
-	Fqdn              string `tfschema:"fqdn"`
-	KubernetesVersion string `tfschema:"kubernetes_version"`
-	PortalFqdn        string `tfschema:"portal_fqdn"`
+	AgentProfile           []FleetManagerHubAgentProfile           `tfschema:"agent_profile"`
+	ApiServerAccessProfile []FleetManagerHubAPIServerAccessProfile `tfschema:"api_server_access_profile"`
+	DnsPrefix              string                                  `tfschema:"dns_prefix"`
+	Fqdn                   string                                  `tfschema:"fqdn"`
+	KubernetesVersion      string                                  `tfschema:"kubernetes_version"`
+	PortalFqdn             string                                  `tfschema:"portal_fqdn"`
+}
+
+type FleetManagerHubAgentProfile struct {
+	SubnetId           string `tfschema:"subnet_id"`
+	VirtualMachineSize string `tfschema:"virtual_machine_size"`
+}
+
+type FleetManagerHubAPIServerAccessProfile struct {
+	EnablePrivateCluster bool `tfschema:"enable_private_cluster"`
 }
 
 func (r KubernetesFleetManagerResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -66,8 +78,56 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 		"hub_profile": {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"agent_profile": {
+						Optional: true,
+						// NOTE: O+C - populated by the API when the service creates default hub agent settings.
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"subnet_id": {
+									Optional: true,
+									// NOTE: O+C - populated by the API on read/import when the service returns the configured subnet.
+									Computed:     true,
+									ForceNew:     true,
+									Type:         pluginsdk.TypeString,
+									ValidateFunc: commonids.ValidateSubnetID,
+								},
+								"virtual_machine_size": {
+									Optional: true,
+									// NOTE: O+C - populated by the API on read/import when the service returns the configured VM size.
+									Computed:     true,
+									ForceNew:     true,
+									Type:         pluginsdk.TypeString,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+							},
+						},
+						ForceNew: true,
+						MaxItems: 1,
+						Type:     pluginsdk.TypeList,
+					},
+					"api_server_access_profile": {
+						Optional: true,
+						// NOTE: O+C - populated by the API when the service returns the effective hub API server access settings.
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"enable_private_cluster": {
+									Optional: true,
+									// NOTE: O+C - populated by the API on read/import when private cluster mode is enabled.
+									Computed: true,
+									ForceNew: true,
+									Type:     pluginsdk.TypeBool,
+								},
+							},
+						},
+						ForceNew: true,
+						MaxItems: 1,
+						Type:     pluginsdk.TypeList,
+					},
 					"dns_prefix": {
-						Required: true,
+						Optional: true,
+						Computed: true,
 						ForceNew: true,
 						Type:     pluginsdk.TypeString,
 						ValidateFunc: validation.All(
@@ -165,7 +225,9 @@ func (r KubernetesFleetManagerResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				schema.Name = id.FleetName
 				schema.ResourceGroupName = id.ResourceGroupName
-				r.mapFleetToKubernetesFleetManagerResourceSchema(*model, &schema)
+				if err := r.mapFleetToKubernetesFleetManagerResourceSchema(*model, &schema); err != nil {
+					return err
+				}
 			}
 
 			return metadata.Encode(&schema)
@@ -242,7 +304,7 @@ func (r KubernetesFleetManagerResource) mapKubernetesFleetManagerResourceSchemaT
 	}
 }
 
-func (r KubernetesFleetManagerResource) mapFleetToKubernetesFleetManagerResourceSchema(input fleets.Fleet, output *KubernetesFleetManagerResourceSchema) {
+func (r KubernetesFleetManagerResource) mapFleetToKubernetesFleetManagerResourceSchema(input fleets.Fleet, output *KubernetesFleetManagerResourceSchema) error {
 	output.Location = location.Normalize(input.Location)
 	output.Tags = tags.Flatten(input.Tags)
 
@@ -250,7 +312,12 @@ func (r KubernetesFleetManagerResource) mapFleetToKubernetesFleetManagerResource
 		input.Properties = &fleets.FleetProperties{}
 	}
 
-	output.HubProfile = flattenFleetManagerHubProfile(input.Properties.HubProfile)
+	hubProfile, err := flattenFleetManagerHubProfile(input.Properties.HubProfile)
+	if err != nil {
+		return err
+	}
+	output.HubProfile = hubProfile
+	return nil
 }
 
 func expandFleetManagerHubProfile(input []FleetManagerHubProfile) *fleets.FleetHubProfile {
@@ -258,22 +325,95 @@ func expandFleetManagerHubProfile(input []FleetManagerHubProfile) *fleets.FleetH
 		return nil
 	}
 
-	return &fleets.FleetHubProfile{
-		DnsPrefix: pointer.To(input[0].DnsPrefix),
+	output := &fleets.FleetHubProfile{
+		AgentProfile:           expandFleetManagerHubAgentProfile(input[0].AgentProfile),
+		ApiServerAccessProfile: expandFleetManagerHubAPIServerAccessProfile(input[0].ApiServerAccessProfile),
 	}
+
+	if input[0].DnsPrefix != "" {
+		output.DnsPrefix = pointer.To(input[0].DnsPrefix)
+	}
+
+	return output
 }
 
-func flattenFleetManagerHubProfile(input *fleets.FleetHubProfile) []FleetManagerHubProfile {
+func flattenFleetManagerHubProfile(input *fleets.FleetHubProfile) ([]FleetManagerHubProfile, error) {
 	if input == nil {
-		return []FleetManagerHubProfile{}
+		return []FleetManagerHubProfile{}, nil
+	}
+	agentProfile, err := flattenFleetManagerHubAgentProfile(input.AgentProfile)
+	if err != nil {
+		return []FleetManagerHubProfile{}, err
 	}
 
 	return []FleetManagerHubProfile{
 		{
-			DnsPrefix:         pointer.From(input.DnsPrefix),
-			Fqdn:              pointer.From(input.Fqdn),
-			KubernetesVersion: pointer.From(input.KubernetesVersion),
-			PortalFqdn:        pointer.From(input.PortalFqdn),
+			AgentProfile:           agentProfile,
+			ApiServerAccessProfile: flattenFleetManagerHubAPIServerAccessProfile(input.ApiServerAccessProfile),
+			DnsPrefix:              pointer.From(input.DnsPrefix),
+			Fqdn:                   pointer.From(input.Fqdn),
+			KubernetesVersion:      pointer.From(input.KubernetesVersion),
+			PortalFqdn:             pointer.From(input.PortalFqdn),
+		},
+	}, nil
+}
+
+func expandFleetManagerHubAgentProfile(input []FleetManagerHubAgentProfile) *fleets.AgentProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	output := &fleets.AgentProfile{}
+	if input[0].SubnetId != "" {
+		output.SubnetId = pointer.To(input[0].SubnetId)
+	}
+	if input[0].VirtualMachineSize != "" {
+		output.VMSize = pointer.To(input[0].VirtualMachineSize)
+	}
+
+	return output
+}
+
+func flattenFleetManagerHubAgentProfile(input *fleets.AgentProfile) ([]FleetManagerHubAgentProfile, error) {
+	if input == nil || (input.SubnetId == nil && input.VMSize == nil) {
+		return []FleetManagerHubAgentProfile{}, nil
+	}
+
+	subnetId := ""
+	if input.SubnetId != nil && *input.SubnetId != "" {
+		id, err := commonids.ParseSubnetIDInsensitively(*input.SubnetId)
+		if err != nil {
+			return []FleetManagerHubAgentProfile{}, err
+		}
+		subnetId = id.ID()
+	}
+
+	return []FleetManagerHubAgentProfile{
+		{
+			SubnetId:           subnetId,
+			VirtualMachineSize: pointer.From(input.VMSize),
+		},
+	}, nil
+}
+
+func expandFleetManagerHubAPIServerAccessProfile(input []FleetManagerHubAPIServerAccessProfile) *fleets.APIServerAccessProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	return &fleets.APIServerAccessProfile{
+		EnablePrivateCluster: pointer.To(input[0].EnablePrivateCluster),
+	}
+}
+
+func flattenFleetManagerHubAPIServerAccessProfile(input *fleets.APIServerAccessProfile) []FleetManagerHubAPIServerAccessProfile {
+	if input == nil || input.EnablePrivateCluster == nil {
+		return []FleetManagerHubAPIServerAccessProfile{}
+	}
+
+	return []FleetManagerHubAPIServerAccessProfile{
+		{
+			EnablePrivateCluster: pointer.From(input.EnablePrivateCluster),
 		},
 	}
 }
