@@ -307,20 +307,17 @@ func expandNetworkProfileContainerNetworkInterface(input []interface{}) *[]netwo
 
 	for _, cniConfig := range input {
 		nciData := cniConfig.(map[string]interface{})
-		nciName := nciData["name"].(string)
 		ipConfigs := nciData["ip_configuration"].([]interface{})
 
 		retIPConfigs := make([]networkprofiles.IPConfigurationProfile, 0)
 		for _, ipConfig := range ipConfigs {
 			ipData := ipConfig.(map[string]interface{})
-			ipName := ipData["name"].(string)
-			subnetId := ipData["subnet_id"].(string)
 
 			retIPConfig := networkprofiles.IPConfigurationProfile{
-				Name: &ipName,
+				Name: pointer.To(ipData["name"].(string)),
 				Properties: &networkprofiles.IPConfigurationProfilePropertiesFormat{
 					Subnet: &networkprofiles.Subnet{
-						Id: &subnetId,
+						Id: pointer.To(ipData["subnet_id"].(string)),
 					},
 				},
 			}
@@ -329,7 +326,7 @@ func expandNetworkProfileContainerNetworkInterface(input []interface{}) *[]netwo
 		}
 
 		retCNIConfig := networkprofiles.ContainerNetworkInterfaceConfiguration{
-			Name: &nciName,
+			Name: pointer.To(nciData["name"].(string)),
 			Properties: &networkprofiles.ContainerNetworkInterfaceConfigurationPropertiesFormat{
 				IPConfigurations: &retIPConfigs,
 			},

@@ -266,8 +266,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.R
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		azureSQLDatabaseLinkedService.Annotations = &annotations
+		azureSQLDatabaseLinkedService.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	if credentialName := d.Get("credential_name").(string); credentialName != "" {

@@ -18,9 +18,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func dataSourceArmPolicySetDefinition() *pluginsdk.Resource {
+func dataSourcePolicySetDefinition() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceArmPolicySetDefinitionRead,
+		Read: dataSourcePolicySetDefinitionRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -148,7 +148,7 @@ func dataSourceArmPolicySetDefinition() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceArmPolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourcePolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.SetDefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -198,7 +198,7 @@ func dataSourceArmPolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interf
 
 	definitionBytes, err := json.Marshal(setDefinition.PolicyDefinitions)
 	if err != nil {
-		return fmt.Errorf("flattening JSON for `policy_defintions`: %+v", err)
+		return fmt.Errorf("flattening JSON for `policy_definitions`: %+v", err)
 	}
 	d.Set("policy_definitions", string(definitionBytes))
 

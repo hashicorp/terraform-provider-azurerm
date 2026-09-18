@@ -218,8 +218,7 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *pluginsd
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		datalakeStorageGen2LinkedService.Annotations = &annotations
+		datalakeStorageGen2LinkedService.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{

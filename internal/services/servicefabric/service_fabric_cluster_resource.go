@@ -613,13 +613,11 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if sfZonalUpgradeMode, ok := d.GetOk("service_fabric_zonal_upgrade_mode"); ok {
-		mode := cluster.SfZonalUpgradeMode(sfZonalUpgradeMode.(string))
-		clusterModel.Properties.SfZonalUpgradeMode = &mode
+		clusterModel.Properties.SfZonalUpgradeMode = pointer.ToEnum[cluster.SfZonalUpgradeMode](sfZonalUpgradeMode.(string))
 	}
 
 	if vmssZonalUpgradeMode, ok := d.GetOk("vmss_zonal_upgrade_mode"); ok {
-		mode := cluster.VMSSZonalUpgradeMode(vmssZonalUpgradeMode.(string))
-		clusterModel.Properties.VMSSZonalUpgradeMode = &mode
+		clusterModel.Properties.VMSSZonalUpgradeMode = pointer.ToEnum[cluster.VMSSZonalUpgradeMode](vmssZonalUpgradeMode.(string))
 	}
 
 	if certificateRaw, ok := d.GetOk("certificate"); ok {
@@ -863,11 +861,10 @@ func expandServiceFabricClusterCertificate(input []interface{}) *cluster.Certifi
 	v := input[0].(map[string]interface{})
 
 	thumbprint := v["thumbprint"].(string)
-	x509StoreName := cluster.X509StoreName(v["x509_store_name"].(string))
 
 	result := cluster.CertificateDescription{
 		Thumbprint:    thumbprint,
-		X509StoreName: &x509StoreName,
+		X509StoreName: pointer.ToEnum[cluster.X509StoreName](v["x509_store_name"].(string)),
 	}
 
 	if thumb, ok := v["thumbprint_secondary"]; ok {
@@ -917,11 +914,9 @@ func expandServiceFabricClusterCertificateCommonNames(d *pluginsdk.ResourceData)
 		commonNames = append(commonNames, commonName)
 	}
 
-	x509StoreName := cluster.X509StoreName(input["x509_store_name"].(string))
-
 	output := cluster.ServerCertificateCommonNames{
 		CommonNames:   &commonNames,
-		X509StoreName: &x509StoreName,
+		X509StoreName: pointer.ToEnum[cluster.X509StoreName](input["x509_store_name"].(string)),
 	}
 
 	return &output
@@ -948,11 +943,9 @@ func expandServiceFabricClusterReverseProxyCertificateCommonNames(d *pluginsdk.R
 		commonNames = append(commonNames, commonName)
 	}
 
-	x509StoreName := cluster.X509StoreName(input["x509_store_name"].(string))
-
 	output := cluster.ServerCertificateCommonNames{
 		CommonNames:   &commonNames,
-		X509StoreName: &x509StoreName,
+		X509StoreName: pointer.ToEnum[cluster.X509StoreName](input["x509_store_name"].(string)),
 	}
 
 	return &output
@@ -991,11 +984,9 @@ func expandServiceFabricClusterReverseProxyCertificate(input []interface{}) *clu
 
 	v := input[0].(map[string]interface{})
 
-	x509StoreName := cluster.X509StoreName(v["x509_store_name"].(string))
-
 	result := cluster.CertificateDescription{
 		Thumbprint:    v["thumbprint"].(string),
-		X509StoreName: &x509StoreName,
+		X509StoreName: pointer.ToEnum[cluster.X509StoreName](v["x509_store_name"].(string)),
 	}
 
 	if thumb, ok := v["thumbprint_secondary"]; ok {
@@ -1298,15 +1289,13 @@ func expandServiceFabricClusterNodeTypes(input []interface{}) []cluster.NodeType
 	for _, v := range input {
 		node := v.(map[string]interface{})
 
-		durabilityLevel := cluster.DurabilityLevel(node["durability_level"].(string))
-
 		result := cluster.NodeTypeDescription{
 			Name:                         node["name"].(string),
 			VMInstanceCount:              int64(node["instance_count"].(int)),
 			IsPrimary:                    node["is_primary"].(bool),
 			ClientConnectionEndpointPort: int64(node["client_endpoint_port"].(int)),
 			HTTPGatewayEndpointPort:      int64(node["http_endpoint_port"].(int)),
-			DurabilityLevel:              &durabilityLevel,
+			DurabilityLevel:              pointer.ToEnum[cluster.DurabilityLevel](node["durability_level"].(string)),
 		}
 
 		if isStateless, ok := node["is_stateless"]; ok {

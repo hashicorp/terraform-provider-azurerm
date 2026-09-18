@@ -290,9 +290,8 @@ func resourceDataFactoryDatasetBinaryCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
-		name := v.(string)
 		binaryTableset.Folder = &datafactory.DatasetFolder{
-			Name: &name,
+			Name: pointer.To(v.(string)),
 		}
 	}
 
@@ -301,18 +300,16 @@ func resourceDataFactoryDatasetBinaryCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		binaryTableset.Annotations = &annotations
+		binaryTableset.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
 		binaryTableset.AdditionalProperties = v.(map[string]interface{})
 	}
 
-	datasetType := string(datafactory.TypeBasicDatasetTypeBinary)
 	dataset := datafactory.DatasetResource{
 		Properties: &binaryTableset,
-		Type:       &datasetType,
+		Type:       pointer.To(string(datafactory.TypeBasicDatasetTypeBinary)),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, dataset, ""); err != nil {

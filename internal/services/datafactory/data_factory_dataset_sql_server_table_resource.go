@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -178,10 +179,9 @@ func resourceDataFactoryDatasetSQLServerTableCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	linkedServiceName := d.Get("linked_service_name").(string)
-	linkedServiceType := "LinkedServiceReference"
 	linkedService := &datafactory.LinkedServiceReference{
 		ReferenceName: &linkedServiceName,
-		Type:          &linkedServiceType,
+		Type:          pointer.To("LinkedServiceReference"),
 	}
 
 	description := d.Get("description").(string)
@@ -192,9 +192,8 @@ func resourceDataFactoryDatasetSQLServerTableCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
-		name := v.(string)
 		sqlServerTableset.Folder = &datafactory.DatasetFolder{
-			Name: &name,
+			Name: pointer.To(v.(string)),
 		}
 	}
 
@@ -203,8 +202,7 @@ func resourceDataFactoryDatasetSQLServerTableCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		sqlServerTableset.Annotations = &annotations
+		sqlServerTableset.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
@@ -215,10 +213,9 @@ func resourceDataFactoryDatasetSQLServerTableCreateUpdate(d *pluginsdk.ResourceD
 		sqlServerTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeBasicDatasetTypeSQLServerTable)
 	dataset := datafactory.DatasetResource{
 		Properties: &sqlServerTableset,
-		Type:       &datasetType,
+		Type:       pointer.To(string(datafactory.TypeBasicDatasetTypeSQLServerTable)),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, dataset, ""); err != nil {
