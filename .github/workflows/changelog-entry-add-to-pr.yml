@@ -22,7 +22,7 @@ jobs:
       # the persisted token is what pushes the entry to the PR branch
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6 # zizmor: ignore[artipacked]
         with:
-          token: ${{ secrets.SERVICE_ACCOUNT_TERRAFORM_TOKEN }}
+          token: ${{ secrets.SERVICE_ACCOUNT_CHANGELOG_TOKEN }}
 
       - name: Download event metadata
         id: download
