@@ -36,7 +36,7 @@ func OrchestratedVirtualMachineScaleSetOSProfileSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Sensitive:    true,
-					ValidateFunc: validation.IsBase64StringOrEmpty,
+					ValidateFunc: validation.StringIsBase64,
 				},
 				"windows_configuration": OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema(),
 				"linux_configuration":   OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema(),
@@ -1512,7 +1512,7 @@ func flattenOrchestratedVirtualMachineScaleSetExtensions(input *virtualmachinesc
 			}
 
 			if props.ProvisionAfterExtensions != nil {
-				provisionAfterExtension = helpers.FlattenStringSlice(props.ProvisionAfterExtensions)
+				provisionAfterExtension = helpers.FlattenSlice(props.ProvisionAfterExtensions)
 			}
 
 			if props.Settings != nil {
@@ -1801,7 +1801,7 @@ func FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(input *[]virtualm
 			}
 
 			if settings := props.DnsSettings; settings != nil {
-				dnsServers = helpers.FlattenStringSlice(props.DnsSettings.DnsServers)
+				dnsServers = helpers.FlattenSlice(props.DnsSettings.DnsServers)
 			}
 
 			if len(props.IPConfigurations) != 0 {

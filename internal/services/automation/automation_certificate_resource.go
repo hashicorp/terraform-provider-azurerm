@@ -64,7 +64,7 @@ func resourceAutomationCertificate() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				Sensitive:    true,
-				ValidateFunc: validation.IsBase64StringOrEmpty,
+				ValidateFunc: validation.StringIsBase64,
 			},
 
 			"exportable": {

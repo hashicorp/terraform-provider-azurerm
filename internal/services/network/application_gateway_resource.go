@@ -1328,7 +1328,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Optional:     true,
 							Sensitive:    true,
 							StateFunc:    base64EncodedStateFunc,
-							ValidateFunc: validation.IsBase64StringOrEmpty,
+							ValidateFunc: validation.StringIsBase64,
 						},
 
 						"password": {
@@ -2960,7 +2960,7 @@ func flattenApplicationGatewayHTTPListeners(input *[]applicationgateways.Applica
 			}
 
 			if hostnames := props.HostNames; hostnames != nil {
-				output["host_names"] = helpers.FlattenStringSlice(hostnames)
+				output["host_names"] = helpers.FlattenSlice(hostnames)
 			}
 
 			output["protocol"] = props.Protocol

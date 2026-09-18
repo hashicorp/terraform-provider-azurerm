@@ -179,7 +179,7 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							Sensitive:    true,
-							ValidateFunc: validation.IsBase64String,
+							ValidateFunc: validation.StringIsBase64,
 						},
 
 						"pfx_certificate_password": {

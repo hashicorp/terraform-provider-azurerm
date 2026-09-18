@@ -62,7 +62,7 @@ func resourceAppServicePublicCertificate() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.IsBase64StringOrEmpty,
+				ValidateFunc: validation.StringIsBase64,
 			},
 
 			"thumbprint": {

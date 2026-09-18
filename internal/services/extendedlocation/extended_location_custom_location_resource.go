@@ -114,7 +114,7 @@ func (r ExtendedLocationCustomLocationResource) Arguments() map[string]*pluginsd
 					"value": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validation.IsBase64StringOrEmpty,
+						ValidateFunc: validation.StringIsBase64,
 					},
 				},
 			},

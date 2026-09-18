@@ -58,7 +58,7 @@ func resourceArcKubernetesCluster() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.IsBase64String,
+				ValidateFunc: validation.StringIsBase64,
 			},
 
 			"identity": commonschema.SystemAssignedIdentityRequiredForceNew(),

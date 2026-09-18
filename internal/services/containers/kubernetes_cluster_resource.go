@@ -462,7 +462,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				MaxItems: 10,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.IsBase64StringOrEmpty,
+					ValidateFunc: validation.StringIsBase64,
 				},
 			},
 
@@ -2856,7 +2856,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 			customCaTrustCertList := make([]interface{}, 0)
 			if props.SecurityProfile != nil {
-				customCaTrustCertList = helpers.FlattenStringSlice(props.SecurityProfile.CustomCATrustCertificates)
+				customCaTrustCertList = helpers.FlattenSlice(props.SecurityProfile.CustomCATrustCertificates)
 			}
 			if err := d.Set("custom_ca_trust_certificates_base64", customCaTrustCertList); err != nil {
 				return fmt.Errorf("setting `custom_ca_trust_certificates_base64`: %+v", err)
@@ -3308,7 +3308,7 @@ func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedCl
 	}
 
 	return []interface{}{map[string]interface{}{
-		"authorized_ip_ranges":                helpers.FlattenStringSlice(profile.AuthorizedIPRanges),
+		"authorized_ip_ranges":                helpers.FlattenSlice(profile.AuthorizedIPRanges),
 		"virtual_network_integration_enabled": pointer.From(profile.EnableVnetIntegration),
 		"subnet_id":                           pointer.From(profile.SubnetId),
 	}}
@@ -3898,9 +3898,9 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 		"network_mode":          networkMode,
 		"network_policy":        networkPolicy,
 		"pod_cidr":              podCidr,
-		"pod_cidrs":             helpers.FlattenStringSlice(profile.PodCidrs),
+		"pod_cidrs":             helpers.FlattenSlice(profile.PodCidrs),
 		"service_cidr":          serviceCidr,
-		"service_cidrs":         helpers.FlattenStringSlice(profile.ServiceCidrs),
+		"service_cidrs":         helpers.FlattenSlice(profile.ServiceCidrs),
 		"outbound_type":         outboundType,
 		"advanced_networking":   advancedNetworking,
 	}
@@ -3949,7 +3949,7 @@ func flattenKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(input *m
 	results := make([]interface{}, 0)
 
 	if profile := input.AadProfile; profile != nil {
-		adminGroupObjectIds := helpers.FlattenStringSlice(profile.AdminGroupObjectIDs)
+		adminGroupObjectIds := helpers.FlattenSlice(profile.AdminGroupObjectIDs)
 		results = append(results, map[string]interface{}{
 			"admin_group_object_ids": adminGroupObjectIds,
 			"tenant_id":              pointer.From(profile.TenantID),
@@ -4759,7 +4759,7 @@ func flattenKubernetesClusterIngressProfile(input *managedclusters.ManagedCluste
 	}
 
 	out := map[string]interface{}{}
-	out["dns_zone_ids"] = helpers.FlattenStringSlice(input.WebAppRouting.DnsZoneResourceIds)
+	out["dns_zone_ids"] = helpers.FlattenSlice(input.WebAppRouting.DnsZoneResourceIds)
 
 	webAppRoutingIdentity := []interface{}{}
 
@@ -4831,7 +4831,7 @@ func flattenKubernetesClusterAzureServiceMeshProfile(input *managedclusters.Serv
 	}
 
 	if input.Istio.Revisions != nil {
-		returnMap["revisions"] = helpers.FlattenStringSlice(input.Istio.Revisions)
+		returnMap["revisions"] = helpers.FlattenSlice(input.Istio.Revisions)
 	}
 
 	return []interface{}{returnMap}

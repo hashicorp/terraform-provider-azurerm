@@ -59,7 +59,7 @@ func (r NextGenerationFirewallVNetPanoramaResource) Arguments() map[string]*plug
 		"panorama_base64_config": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.IsBase64String,
+			ValidateFunc: validation.StringIsBase64,
 		},
 
 		"network_profile": schema.VnetNetworkProfileSchema(),

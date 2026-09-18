@@ -1421,7 +1421,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"user_data": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.IsBase64StringOrEmpty,
+			ValidateFunc: validation.StringIsBase64,
 		},
 
 		"vtpm_enabled": {

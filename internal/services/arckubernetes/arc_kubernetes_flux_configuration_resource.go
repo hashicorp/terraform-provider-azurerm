@@ -364,7 +364,7 @@ func (r ArcKubernetesFluxConfigurationResource) Arguments() map[string]*pluginsd
 					"secret_key_base64": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.IsBase64StringOrEmpty,
+						ValidateFunc: validation.StringIsBase64,
 						Sensitive:    true,
 						RequiredWith: []string{"bucket.0.access_key"},
 					},
@@ -432,7 +432,7 @@ func (r ArcKubernetesFluxConfigurationResource) Arguments() map[string]*pluginsd
 					"https_ca_cert_base64": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.IsBase64StringOrEmpty,
+						ValidateFunc: validation.StringIsBase64,
 						Sensitive:    true,
 						RequiredWith: []string{"git_repository.0.https_user"},
 					},
@@ -448,7 +448,7 @@ func (r ArcKubernetesFluxConfigurationResource) Arguments() map[string]*pluginsd
 					"https_key_base64": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.IsBase64StringOrEmpty,
+						ValidateFunc: validation.StringIsBase64,
 						Sensitive:    true,
 						RequiredWith: []string{"git_repository.0.https_user"},
 					},
@@ -463,7 +463,7 @@ func (r ArcKubernetesFluxConfigurationResource) Arguments() map[string]*pluginsd
 					"ssh_private_key_base64": {
 						Type:          pluginsdk.TypeString,
 						Optional:      true,
-						ValidateFunc:  validation.IsBase64StringOrEmpty,
+						ValidateFunc:  validation.StringIsBase64,
 						Sensitive:     true,
 						ConflictsWith: []string{"git_repository.0.https_user", "git_repository.0.local_auth_reference"},
 					},
@@ -471,7 +471,7 @@ func (r ArcKubernetesFluxConfigurationResource) Arguments() map[string]*pluginsd
 					"ssh_known_hosts_base64": {
 						Type:          pluginsdk.TypeString,
 						Optional:      true,
-						ValidateFunc:  validation.IsBase64StringOrEmpty,
+						ValidateFunc:  validation.StringIsBase64,
 						ConflictsWith: []string{"git_repository.0.https_user", "git_repository.0.local_auth_reference"},
 					},
 

@@ -495,7 +495,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					"validation_key": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.IsBase64String,
+						ValidateFunc: validation.StringIsBase64,
 						Sensitive:    true,
 					},
 				},

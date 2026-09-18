@@ -201,7 +201,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				Sensitive:    true,
-				ValidateFunc: validation.IsBase64StringOrEmpty,
+				ValidateFunc: validation.StringIsBase64,
 				ConflictsWith: []string{
 					"os_managed_disk_id",
 				},
@@ -430,7 +430,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			"user_data": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.IsBase64StringOrEmpty,
+				ValidateFunc: validation.StringIsBase64,
 			},
 
 			"zone": commonschema.ZoneSingleOptionalForceNew(),

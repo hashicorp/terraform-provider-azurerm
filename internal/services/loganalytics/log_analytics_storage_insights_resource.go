@@ -129,7 +129,7 @@ func resourceLogAnalyticsStorageInsightsRead(d *pluginsdk.ResourceData, meta int
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("blob_container_names", helpers.FlattenStringSlice(props.Containers))
+			d.Set("blob_container_names", helpers.FlattenSlice(props.Containers))
 
 			storageAccountIdStr := ""
 			if props.StorageAccount.Id != "" {
@@ -141,7 +141,7 @@ func resourceLogAnalyticsStorageInsightsRead(d *pluginsdk.ResourceData, meta int
 			}
 			d.Set("storage_account_id", storageAccountIdStr)
 
-			d.Set("table_names", helpers.FlattenStringSlice(props.Tables))
+			d.Set("table_names", helpers.FlattenSlice(props.Tables))
 		}
 	}
 
@@ -200,7 +200,7 @@ func resourceLogAnalyticsStorageInsightsSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
-			ValidateFunc: validation.IsBase64String,
+			ValidateFunc: validation.StringIsBase64,
 		},
 
 		"blob_container_names": {

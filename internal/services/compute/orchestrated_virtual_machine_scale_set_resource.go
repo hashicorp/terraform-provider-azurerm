@@ -326,7 +326,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Sensitive:    true,
-				ValidateFunc: validation.IsBase64StringOrEmpty,
+				ValidateFunc: validation.StringIsBase64,
 			},
 
 			"priority_mix": OrchestratedVirtualMachineScaleSetPriorityMixPolicySchema(),

@@ -72,7 +72,7 @@ func (r ArcResourceBridgeApplianceResource) Arguments() map[string]*schema.Schem
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.IsBase64String,
+			ValidateFunc: validation.StringIsBase64,
 		},
 
 		"tags": commonschema.Tags(),
