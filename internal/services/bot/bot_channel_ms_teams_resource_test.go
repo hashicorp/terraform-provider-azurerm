@@ -19,6 +19,16 @@ import (
 
 type BotChannelMsTeamsResource struct{}
 
+func TestAccBotChannelMsTeams_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_channel_ms_teams", "test")
+	r := BotChannelMsTeamsResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicConfig(data),
+		},
+	}, "")
+}
+
 func TestAccBotChannelMsTeams_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_ms_teams", "test")
 	r := BotChannelMsTeamsResource{}
