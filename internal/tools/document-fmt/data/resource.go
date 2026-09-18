@@ -60,10 +60,10 @@ func expectedResourceCodePath(fs afero.Fs, pattern string, name string, service 
 	shortNameWithoutService = strings.TrimPrefix(shortNameWithoutService, serviceBaseDir+"_")
 
 	parts := strings.Split(name, "_")
-	var accum string
+	var accum strings.Builder
 	for i, part := range parts {
-		accum += strings.ToLower(part)
-		if accum == cleanServiceName {
+		accum.WriteString(strings.ToLower(part))
+		if accum.String() == cleanServiceName {
 			matchedPrefix := strings.Join(parts[:i+1], "_") + "_"
 			shortNameWithoutService = strings.TrimPrefix(name, matchedPrefix)
 			break
