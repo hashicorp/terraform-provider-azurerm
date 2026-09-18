@@ -71,7 +71,7 @@ data "azurerm_cdn_frontdoor_custom_domain" "test" {
   profile_name        = azurerm_cdn_frontdoor_profile.test.name
   resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
 }
-`, CdnFrontDoorCustomDomainResource{}.complete(data))
+`, CdnFrontdoorCustomDomainResource{}.complete(data))
 }
 
 func (CdnFrontDoorCustomDomainDataSource) cipherSuites(data acceptance.TestData) string {
@@ -83,7 +83,7 @@ data "azurerm_cdn_frontdoor_custom_domain" "test" {
   profile_name        = azurerm_cdn_frontdoor_profile.test.name
   resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
 }
-`, CdnFrontDoorCustomDomainResource{}.cipherSuitesMixedWithTls12MinMultiple(data))
+`, CdnFrontdoorCustomDomainResource{}.cipherSuitesMixedWithTls12MinMultiple(data))
 }
 
 func (CdnFrontDoorCustomDomainDataSource) preCheck(t *testing.T) {
