@@ -210,7 +210,7 @@ resource "azurerm_container_connected_registry" "test" {
 
   # This is necessary to make the Terraform apply order works correctly.
   # Without CBD: azurerm_container_registry_token.client (destroy) -> azurerm_container_connected_registry.test (update)
-  # 			 (the 1st step wil fail as the token is under used by the connected registry)
+  # 			 (the 1st step will fail as the token is under used by the connected registry)
   # With CBD   : azurerm_container_connected_registry.test (update) -> azurerm_container_registry_token.client (destroy) 
   lifecycle {
     create_before_destroy = true

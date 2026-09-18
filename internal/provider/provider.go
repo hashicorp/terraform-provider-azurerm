@@ -350,7 +350,7 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 }
 
 // providerConfigure is used to configure the cloud environment and authentication.
-// To configure behavioral aspects of the provider, use the buildClient function instead.
+// To configure behavioural aspects of the provider, use the buildClient function instead.
 // This separation allows us to robustly test different authentication scenarios.
 func providerConfigure(p *schema.Provider, testName string) schema.ConfigureContextFunc {
 	return func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
@@ -461,7 +461,7 @@ func providerConfigure(p *schema.Provider, testName string) schema.ConfigureCont
 	}
 }
 
-// buildClient is used to configure behavioral aspects of the provider. To configure the
+// buildClient is used to configure behavioural aspects of the provider. To configure the
 // cloud environment and authentication-related settings, use the providerConfigure function.
 func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData, authConfig *auth.Credentials, testName string) (*clients.Client, diag.Diagnostics) {
 	providerRegistrations := d.Get("resource_provider_registrations").(string)

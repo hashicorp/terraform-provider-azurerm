@@ -206,7 +206,7 @@ func TestAccCosmosDBAccount_updateMongoDBVersionCapabilities(t *testing.T) {
 	})
 }
 
-func TestAccCosmosDBAccount_keyVaultUriUpdateConsistancy(t *testing.T) {
+func TestAccCosmosDBAccount_keyVaultUriUpdateConsistency(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
