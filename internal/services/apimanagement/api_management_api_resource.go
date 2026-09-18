@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/custompollers"
@@ -27,16 +28,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "resource_group_name,service_name:api_management_name" -compare-values "api_id:id"
+
+const azureApiManagementApiResourceName = "azurerm_api_management_api"
+
 func resourceApiManagementApi() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceApiManagementApiCreate,
 		Read:   resourceApiManagementApiRead,
 		Update: resourceApiManagementApiUpdate,
 		Delete: resourceApiManagementApiDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := api.ParseApiID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&api.ApiId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&api.ApiId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -379,7 +385,7 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{})
 			}
 		}
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_api", id.ID())
+			return tf.ImportAsExistsError(azureApiManagementApiResourceName, id.ID())
 		}
 	}
 
@@ -477,6 +483,9 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	if pollerType := custompollers.NewAPIManagementAPIPoller(client, id, result.HttpResponse); pollerType != nil {
 		poller := pollers.NewPoller(pollerType, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
@@ -706,11 +715,15 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourceApiManagementApiFlatten(d, id, resp.Model)
+}
+
+func resourceApiManagementApiFlatten(d *pluginsdk.ResourceData, id *api.ApiId, model *api.ApiContract) error {
 	d.Set("api_management_name", id.ServiceName)
 	d.Set("name", getApiName(id.ApiId))
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			apiType := string(pointer.From(props.Type))
 			if len(apiType) == 0 {
@@ -756,7 +769,7 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceApiManagementApiDelete(d *pluginsdk.ResourceData, meta interface{}) error {
