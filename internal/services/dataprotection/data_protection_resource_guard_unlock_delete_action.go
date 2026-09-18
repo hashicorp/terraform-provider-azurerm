@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package recoveryservices
+package dataprotection
 
 import (
 	"context"
@@ -19,24 +19,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection"
 )
 
-type ResourceGuardUnlockDeleteAction struct {
+type DataProtectionResourceGuardUnlockDeleteAction struct {
 	sdk.ActionMetadata
 }
 
-var _ sdk.Action = &ResourceGuardUnlockDeleteAction{}
+var _ sdk.Action = &DataProtectionResourceGuardUnlockDeleteAction{}
 
-func newResourceGuardUnlockDeleteAction() action.Action {
-	return &ResourceGuardUnlockDeleteAction{}
+func newDataProtectionResourceGuardUnlockDeleteAction() action.Action {
+	return &DataProtectionResourceGuardUnlockDeleteAction{}
 }
 
-type ResourceGuardUnlockDeleteActionModel struct {
+type DataProtectionResourceGuardUnlockDeleteActionModel struct {
 	ProtectedItemId types.String `tfsdk:"protected_item_id"`
 }
 
-func (a *ResourceGuardUnlockDeleteAction) Schema(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
+func (a *DataProtectionResourceGuardUnlockDeleteAction) Schema(_ context.Context, _ action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"protected_item_id": schema.StringAttribute{
@@ -53,12 +52,12 @@ func (a *ResourceGuardUnlockDeleteAction) Schema(_ context.Context, _ action.Sch
 	}
 }
 
-func (a *ResourceGuardUnlockDeleteAction) Metadata(_ context.Context, _ action.MetadataRequest, resp *action.MetadataResponse) {
-	resp.TypeName = "azurerm_resource_guard_unlock_delete"
+func (a *DataProtectionResourceGuardUnlockDeleteAction) Metadata(_ context.Context, _ action.MetadataRequest, resp *action.MetadataResponse) {
+	resp.TypeName = "azurerm_data_protection_resource_guard_unlock_delete"
 }
 
-func (a *ResourceGuardUnlockDeleteAction) Invoke(ctx context.Context, request action.InvokeRequest, resp *action.InvokeResponse) {
-	model := ResourceGuardUnlockDeleteActionModel{}
+func (a *DataProtectionResourceGuardUnlockDeleteAction) Invoke(ctx context.Context, request action.InvokeRequest, resp *action.InvokeResponse) {
+	model := DataProtectionResourceGuardUnlockDeleteActionModel{}
 	resp.Diagnostics.Append(request.Config.Get(ctx, &model)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -98,7 +97,7 @@ func (a *ResourceGuardUnlockDeleteAction) Invoke(ctx context.Context, request ac
 		var operationRequests []string
 		if proxy.Properties != nil && proxy.Properties.ResourceGuardOperationDetails != nil {
 			for _, detail := range *proxy.Properties.ResourceGuardOperationDetails {
-				if pointer.From(detail.VaultCriticalOperation) != dataprotection.GuardOperationDeleteProtectedItem {
+				if pointer.From(detail.VaultCriticalOperation) != GuardOperationDeleteProtectedItem {
 					continue
 				}
 				if pointer.From(detail.DefaultResourceRequest) == "" {
@@ -145,6 +144,6 @@ func (a *ResourceGuardUnlockDeleteAction) Invoke(ctx context.Context, request ac
 	resp.SendProgress(action.InvokeProgressEvent{Message: message})
 }
 
-func (a *ResourceGuardUnlockDeleteAction) Configure(ctx context.Context, request action.ConfigureRequest, resp *action.ConfigureResponse) {
+func (a *DataProtectionResourceGuardUnlockDeleteAction) Configure(ctx context.Context, request action.ConfigureRequest, resp *action.ConfigureResponse) {
 	a.Defaults(ctx, request, resp)
 }

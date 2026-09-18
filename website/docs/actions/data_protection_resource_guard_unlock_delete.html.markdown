@@ -1,12 +1,12 @@
 ---
-subcategory: "Recovery Services"
+subcategory: "DataProtection"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_resource_guard_unlock_delete"
+page_title: "Azure Resource Manager: azurerm_data_protection_resource_guard_unlock_delete"
 description: |-
   Unlocks deletion of a Recovery Services backup item protected by Resource Guard.
 ---
 
-# Action: azurerm_resource_guard_unlock_delete
+# Action: azurerm_data_protection_resource_guard_unlock_delete
 
 Unlocks deletion of a backup item protected by Resource Guard. Use this action before deleting the item to keep the vault's Resource Guard association in place. If deletion is not protected by Resource Guard, no unlock is needed and the action completes successfully.
 
@@ -14,7 +14,7 @@ Unlocks deletion of a backup item protected by Resource Guard. Use this action b
 
 ## Example Usage
 
-This example unlocks a VM backup immediately before Terraform deletes it. The `before_destroy` trigger requires Terraform 1.16 or later. `caller.id` supplies the ID of the backup item being deleted.
+This example unlocks a VM backup immediately before Terraform deletes it. Actions are supported in Terraform 1.14 and later, but this example requires Terraform 1.16 or later for `before_destroy`, `caller`, and `on_failure`. See the [Terraform 1.16 release notes](https://github.com/hashicorp/terraform/releases/tag/v1.16.0). `caller.id` supplies the ID of the backup item being deleted.
 
 The provider feature `vm_backup_stop_protection_and_retain_data_on_destroy` must be `false` for deletion. This action does not unlock operations that retain backup data.
 
@@ -24,7 +24,7 @@ resource "azurerm_recovery_services_vault_resource_guard_association" "example" 
   resource_guard_id = azurerm_data_protection_resource_guard.example.id
 }
 
-action "azurerm_resource_guard_unlock_delete" "example" {
+action "azurerm_data_protection_resource_guard_unlock_delete" "example" {
   config {
     protected_item_id = caller.id
   }
@@ -39,7 +39,7 @@ resource "azurerm_backup_protected_vm" "example" {
   lifecycle {
     action_trigger {
       events     = [before_destroy]
-      actions    = [action.azurerm_resource_guard_unlock_delete.example]
+      actions    = [action.azurerm_data_protection_resource_guard_unlock_delete.example]
       on_failure = halt
     }
   }
@@ -47,8 +47,6 @@ resource "azurerm_backup_protected_vm" "example" {
   depends_on = [azurerm_recovery_services_vault_resource_guard_association.example]
 }
 ```
-
-Keep the resource and action blocks in the configuration when running `terraform destroy`. To delete an instance during `terraform apply`, reduce its `count` or remove its `for_each` key. Removing the whole resource block also removes its [action trigger](https://developer.hashicorp.com/terraform/language/meta-arguments/lifecycle#action_trigger).
 
 ## Argument Reference
 

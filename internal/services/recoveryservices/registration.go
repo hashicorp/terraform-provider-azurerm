@@ -87,9 +87,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 }
 
 func (r Registration) Actions() []func() action.Action {
-	return []func() action.Action{
-		newResourceGuardUnlockDeleteAction,
-	}
+	return []func() action.Action{}
 }
 
 func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
