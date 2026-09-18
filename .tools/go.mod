@@ -5,11 +5,11 @@ go 1.26.6
 tool (
 	github.com/YakDriver/tfproviderdocs
 	github.com/apache/skywalking-eyes/cmd/license-eye
-	github.com/client9/misspell/cmd/misspell
 	github.com/golangci/golangci-lint/v2/cmd/golangci-lint
+	github.com/katbyte/actionlint/cmd/actionlint
 	github.com/katbyte/tctest
 	github.com/katbyte/terrafmt
-	github.com/rhysd/actionlint/cmd/actionlint
+	github.com/sreallymatt/changeloggy
 	golang.org/x/tools/cmd/goimports
 	gotest.tools/gotestsum
 	mvdan.cc/gofumpt
@@ -18,11 +18,17 @@ tool (
 require (
 	github.com/YakDriver/tfproviderdocs v0.26.0
 	github.com/apache/skywalking-eyes v0.9.0
-	github.com/client9/misspell v0.3.4
 	github.com/golangci/golangci-lint/v2 v2.13.2
+	// Fork of rhysd/actionlint, dormant upstream since April 2026. This is v1.7.12 plus two open
+	// upstream PRs we need: #732 (`$/` self-repository `uses:` syntax, which zizmor wants and
+	// upstream rejects as malformed) and #735 (go.yaml.in/yaml/v4 rc.6, so actionlint and
+	// golangci-lint can share it without a replace directive). Switch back to
+	// rhysd/actionlint if it starts releasing again; otherwise re-evaluate it and the other forks
+	// around mid-2027.
+	github.com/katbyte/actionlint v1.7.13
 	github.com/katbyte/tctest v1.3.3
 	github.com/katbyte/terrafmt v1.0.1
-	github.com/rhysd/actionlint v1.7.12
+	github.com/sreallymatt/changeloggy v0.1.0
 	golang.org/x/tools v0.50.0
 	gotest.tools/gotestsum v1.13.0
 	mvdan.cc/gofumpt v0.12.0
@@ -154,6 +160,7 @@ require (
 	github.com/gostaticanalysis/forcetypeassert v0.2.0 // indirect
 	github.com/gostaticanalysis/nilerr v0.1.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
+	github.com/hashicorp/go-azure-helpers v0.82.0 // indirect
 	github.com/hashicorp/go-hclog v1.6.3 // indirect
 	github.com/hashicorp/go-immutable-radix/v2 v2.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
@@ -266,7 +273,7 @@ require (
 	github.com/ykadowak/zerologlint v0.1.5 // indirect
 	github.com/yuin/goldmark v1.8.2 // indirect
 	github.com/yuin/goldmark-meta v1.1.0 // indirect
-	github.com/zclconf/go-cty v1.16.4 // indirect
+	github.com/zclconf/go-cty v1.18.1 // indirect
 	gitlab.com/bosi/decorder v0.4.2 // indirect
 	go-simpler.org/musttag v0.14.0 // indirect
 	go-simpler.org/sloglint v0.12.0 // indirect
@@ -293,9 +300,3 @@ require (
 	honnef.co/go/tools v0.8.1 // indirect
 	mvdan.cc/unparam v0.0.0-20260823230713-2fa3d841b0c8 // indirect
 )
-
-// golangci-lint v2.13+ (via gosec) needs go.yaml.in/yaml/v4 rc.6, whose API changes break the build of
-// actionlint v1.7.12, which is written against rc.3. Everything here still compiles against rc.3, so
-// pin it. Remove once https://github.com/rhysd/actionlint/pull/735 is merged and actionlint is bumped to
-// a release containing it.
-replace go.yaml.in/yaml/v4 => go.yaml.in/yaml/v4 v4.0.0-rc.3
