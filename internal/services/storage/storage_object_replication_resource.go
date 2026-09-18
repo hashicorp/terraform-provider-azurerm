@@ -107,9 +107,21 @@ func resourceStorageObjectReplication() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"priority_replication_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"source_object_replication_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+			},
+
+			"tags_replication_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"destination_object_replication_id": {
@@ -169,6 +181,12 @@ func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta inte
 			Metrics: &objectreplicationpolicyoperationgroup.ObjectReplicationPolicyPropertiesMetrics{
 				Enabled: pointer.To(d.Get("metrics_enabled").(bool)),
 			},
+			PriorityReplication: &objectreplicationpolicyoperationgroup.ObjectReplicationPolicyPropertiesPriorityReplication{
+				Enabled: pointer.To(d.Get("priority_replication_enabled").(bool)),
+			},
+			TagsReplication: &objectreplicationpolicyoperationgroup.ObjectReplicationPolicyPropertiesTagsReplication{
+				Enabled: pointer.To(d.Get("tags_replication_enabled").(bool)),
+			},
 		},
 	}
 
@@ -226,6 +244,12 @@ func resourceStorageObjectReplicationUpdate(d *pluginsdk.ResourceData, meta inte
 			Rules:              expandArmObjectReplicationRuleArray(d.Get("rules").(*pluginsdk.Set).List()),
 			Metrics: &objectreplicationpolicyoperationgroup.ObjectReplicationPolicyPropertiesMetrics{
 				Enabled: pointer.To(d.Get("metrics_enabled").(bool)),
+			},
+			PriorityReplication: &objectreplicationpolicyoperationgroup.ObjectReplicationPolicyPropertiesPriorityReplication{
+				Enabled: pointer.To(d.Get("priority_replication_enabled").(bool)),
+			},
+			TagsReplication: &objectreplicationpolicyoperationgroup.ObjectReplicationPolicyPropertiesTagsReplication{
+				Enabled: pointer.To(d.Get("tags_replication_enabled").(bool)),
 			},
 		},
 	}
@@ -296,6 +320,8 @@ func resourceStorageObjectReplicationRead(d *pluginsdk.ResourceData, meta interf
 	if model := srcResp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("metrics_enabled", props.Metrics != nil && pointer.From(props.Metrics.Enabled))
+			d.Set("priority_replication_enabled", props.PriorityReplication != nil && pointer.From(props.PriorityReplication.Enabled))
+			d.Set("tags_replication_enabled", props.TagsReplication != nil && pointer.From(props.TagsReplication.Enabled))
 		}
 	}
 
