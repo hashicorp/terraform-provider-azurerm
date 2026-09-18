@@ -108,7 +108,7 @@ The following arguments are supported:
 
 ~> **Note:** `target_network_id` is required when `network_interface` is specified.
 
-* `default_log_storage_account_id` - (Optional) The ID of the stroage account that should be used for logging during replication. 
+* `default_log_storage_account_id` - (Optional) The ID of the storage account that should be used for logging during replication. 
 
 ~> **Note:** Only standard types of storage accounts are allowed.
 
