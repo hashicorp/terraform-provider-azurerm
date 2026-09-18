@@ -6,13 +6,13 @@ package eventgrid
 import (
 	"fmt"
 	"log"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/eventsubscriptions"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -69,51 +69,51 @@ func resourceEventGridSystemTopicEventSubscription() *pluginsdk.Resource {
 			"expiration_time_utc": eventSubscriptionSchemaExpirationTimeUTC(),
 
 			"azure_function_endpoint": eventSubscriptionSchemaAzureFunctionEndpoint(
-				helpers.RemoveFromStringArray(
+				slices.DeleteFunc(
 					possibleSystemTopicEventSubscriptionEndpointTypes(),
-					string(AzureFunctionEndpoint),
+					func(s string) bool { return s == string(AzureFunctionEndpoint) },
 				),
 			),
 
 			"eventhub_id": eventSubscriptionSchemaEventHubEndpointID(
-				helpers.RemoveFromStringArray(
+				slices.DeleteFunc(
 					possibleSystemTopicEventSubscriptionEndpointTypes(),
-					string(EventHubID),
+					func(s string) bool { return s == string(EventHubID) },
 				),
 			),
 
 			"hybrid_connection_id": eventSubscriptionSchemaHybridConnectionEndpointID(
-				helpers.RemoveFromStringArray(
+				slices.DeleteFunc(
 					possibleSystemTopicEventSubscriptionEndpointTypes(),
-					string(HybridConnectionID),
+					func(s string) bool { return s == string(HybridConnectionID) },
 				),
 			),
 
 			"service_bus_queue_id": eventSubscriptionSchemaServiceBusQueueEndpointID(
-				helpers.RemoveFromStringArray(
+				slices.DeleteFunc(
 					possibleSystemTopicEventSubscriptionEndpointTypes(),
-					string(ServiceBusQueueID),
+					func(s string) bool { return s == string(ServiceBusQueueID) },
 				),
 			),
 
 			"service_bus_topic_id": eventSubscriptionSchemaServiceBusTopicEndpointID(
-				helpers.RemoveFromStringArray(
+				slices.DeleteFunc(
 					possibleSystemTopicEventSubscriptionEndpointTypes(),
-					string(ServiceBusTopicID),
+					func(s string) bool { return s == string(ServiceBusTopicID) },
 				),
 			),
 
 			"storage_queue_endpoint": eventSubscriptionSchemaStorageQueueEndpoint(
-				helpers.RemoveFromStringArray(
+				slices.DeleteFunc(
 					possibleSystemTopicEventSubscriptionEndpointTypes(),
-					string(StorageQueueEndpoint),
+					func(s string) bool { return s == string(StorageQueueEndpoint) },
 				),
 			),
 
 			"webhook_endpoint": eventSubscriptionSchemaWebHookEndpoint(
-				helpers.RemoveFromStringArray(
+				slices.DeleteFunc(
 					possibleSystemTopicEventSubscriptionEndpointTypes(),
-					string(WebHookEndpoint),
+					func(s string) bool { return s == string(WebHookEndpoint) },
 				),
 			),
 

@@ -17,10 +17,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -730,7 +730,7 @@ func FlattenOrchestratedVirtualMachineScaleSetOSProfile(input *virtualmachinesca
 		output["custom_data"] = *input.CustomData
 	} else {
 		// look up the current custom data
-		output["custom_data"] = helpers.Base64EncodeIfNot(d.Get("os_profile.0.custom_data").(string))
+		output["custom_data"] = base64.EncodeIfNot(d.Get("os_profile.0.custom_data").(string))
 	}
 
 	if winConfig := input.WindowsConfiguration; winConfig != nil {

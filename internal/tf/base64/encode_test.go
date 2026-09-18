@@ -1,14 +1,14 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package helpers
+package base64
 
 import (
-	"encoding/base64"
+	stdbase64 "encoding/base64"
 	"testing"
 )
 
-func TestBase64EncodeIfNot(t *testing.T) {
+func TestEncodeIfNot(t *testing.T) {
 	testCases := []struct {
 		name     string
 		input    string
@@ -17,12 +17,12 @@ func TestBase64EncodeIfNot(t *testing.T) {
 		{
 			name:     "plain text",
 			input:    "hello world",
-			expected: base64.StdEncoding.EncodeToString([]byte("hello world")),
+			expected: stdbase64.StdEncoding.EncodeToString([]byte("hello world")),
 		},
 		{
 			name:     "already base64 encoded",
-			input:    base64.StdEncoding.EncodeToString([]byte("hello world")),
-			expected: base64.StdEncoding.EncodeToString([]byte("hello world")),
+			input:    stdbase64.StdEncoding.EncodeToString([]byte("hello world")),
+			expected: stdbase64.StdEncoding.EncodeToString([]byte("hello world")),
 		},
 		{
 			name:     "empty string (valid base64)",
@@ -32,7 +32,7 @@ func TestBase64EncodeIfNot(t *testing.T) {
 		{
 			name:     "invalid base64 string",
 			input:    "this is not base64 !!!",
-			expected: base64.StdEncoding.EncodeToString([]byte("this is not base64 !!!")),
+			expected: stdbase64.StdEncoding.EncodeToString([]byte("this is not base64 !!!")),
 		},
 		{
 			name:     "valid base64 string that happens to be an English word",
@@ -43,7 +43,7 @@ func TestBase64EncodeIfNot(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual := Base64EncodeIfNot(tc.input)
+			actual := EncodeIfNot(tc.input)
 			if actual != tc.expected {
 				t.Fatalf("expected: %q, got: %q", tc.expected, actual)
 			}
@@ -59,7 +59,7 @@ func TestBase64IsEncoded(t *testing.T) {
 	}{
 		{
 			name:     "valid base64",
-			input:    base64.StdEncoding.EncodeToString([]byte("hello world")),
+			input:    stdbase64.StdEncoding.EncodeToString([]byte("hello world")),
 			expected: true,
 		},
 		{

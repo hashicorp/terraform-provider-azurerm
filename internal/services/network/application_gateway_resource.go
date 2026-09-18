@@ -25,13 +25,13 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationgateways"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -42,7 +42,7 @@ import (
 func base64EncodedStateFunc(v interface{}) string {
 	switch s := v.(type) {
 	case string:
-		return helpers.Base64EncodeIfNot(s)
+		return base64.EncodeIfNot(s)
 	default:
 		return ""
 	}
@@ -2323,7 +2323,7 @@ func expandApplicationGatewayTrustedRootCertificates(certs []interface{}) (*[]ap
 		case data != "" && kvsid != "":
 			return nil, fmt.Errorf("only one of `key_vault_secret_id` or `data` must be specified for the `trusted_root_certificate` block %q", name)
 		case data != "":
-			output.Properties.Data = pointer.To(helpers.Base64EncodeIfNot(data))
+			output.Properties.Data = pointer.To(base64.EncodeIfNot(data))
 		case kvsid != "":
 			output.Properties.KeyVaultSecretId = pointer.To(kvsid)
 		default:
@@ -4313,7 +4313,7 @@ func expandApplicationGatewaySslCertificates(d *pluginsdk.ResourceData) (*[]appl
 			return nil, fmt.Errorf("only one of `key_vault_secret_id` or `data` must be specified for the `ssl_certificate` block %q", name)
 		} else if data != "" {
 			// data must be base64 encoded
-			output.Properties.Data = pointer.To(helpers.Base64EncodeIfNot(data))
+			output.Properties.Data = pointer.To(base64.EncodeIfNot(data))
 
 			output.Properties.Password = pointer.To(password)
 		} else if kvsid != "" {
@@ -4374,7 +4374,7 @@ func flattenApplicationGatewaySslCertificates(input *[]applicationgateways.Appli
 
 				if name == existingName {
 					if data := existingCerts["data"]; data != nil {
-						output["data"] = helpers.Base64EncodeIfNot(data.(string))
+						output["data"] = base64.EncodeIfNot(data.(string))
 					}
 
 					if password := existingCerts["password"]; password != nil {
@@ -4408,7 +4408,7 @@ func expandApplicationGatewayTrustedClientCertificates(d *pluginsdk.ResourceData
 		// nolint gocritic
 		if data != "" {
 			// data must be base64 encoded
-			output.Properties.Data = pointer.To(helpers.Base64EncodeIfNot(data))
+			output.Properties.Data = pointer.To(base64.EncodeIfNot(data))
 		} else {
 			return nil, fmt.Errorf("`data` must be specified for the `trusted_client_certificate` block %q", name)
 		}
