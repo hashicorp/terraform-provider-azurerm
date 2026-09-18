@@ -614,8 +614,11 @@ func resourceVirtualNetworkGatewayConnectionUpdate(d *pluginsdk.ResourceData, me
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
+	// Only send the update if there are changes other than the shared key
+	if d.HasChangesExcept("shared_key") {
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
 	if d.HasChange("shared_key") {
