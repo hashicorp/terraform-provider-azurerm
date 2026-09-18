@@ -1168,7 +1168,7 @@ func flattenKubernetesAutomaticClusterKubeConfig(config kubernetes.KubeConfig) [
 			Host:                 cluster.Server,
 			Username:             name,
 			Password:             user.Token,
-			ClientCertificate:    user.ClientCertificteData,
+			ClientCertificate:    user.ClientCertificateData,
 			ClientKey:            user.ClientKeyData,
 			ClusterCACertificate: cluster.ClusterAuthorityData,
 		},

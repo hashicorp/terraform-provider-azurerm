@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	managmentGroupParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
-	managmentGroupValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
+	managementGroupParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
+	managementGroupValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -57,7 +57,7 @@ func resourceManagementGroupPolicyRemediation() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: managmentGroupValidate.ManagementGroupID,
+				ValidateFunc: managementGroupValidate.ManagementGroupID,
 			},
 
 			"policy_assignment_id": {
@@ -113,7 +113,7 @@ func resourceManagementGroupPolicyRemediationCreateUpdate(d *pluginsdk.ResourceD
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	managementID, err := managmentGroupParse.ManagementGroupID(d.Get("management_group_id").(string))
+	managementID, err := managementGroupParse.ManagementGroupID(d.Get("management_group_id").(string))
 	if err != nil {
 		return err
 	}
@@ -190,7 +190,7 @@ func resourceManagementGroupPolicyRemediationRead(d *pluginsdk.ResourceData, met
 	}
 
 	d.Set("name", id.RemediationName)
-	managementGroupID := managmentGroupParse.NewManagementGroupId(id.ManagementGroupId)
+	managementGroupID := managementGroupParse.NewManagementGroupId(id.ManagementGroupId)
 	d.Set("management_group_id", managementGroupID.ID())
 
 	if props := resp.Model.Properties; props != nil {

@@ -796,7 +796,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		virtualMachineProfile.ScheduledEventsProfile = ExpandOrchestratedVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
 	}
 
-	// Only inclued the virtual machine profile if this is not a legacy configuration
+	// Only include the virtual machine profile if this is not a legacy configuration
 	if !isLegacy {
 		if v, ok := d.GetOk("plan"); ok {
 			props.Plan = expandPlanVMSS(v.([]interface{}))
@@ -899,7 +899,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 					ImageReference: existing.Model.Properties.VirtualMachineProfile.StorageProfile.ImageReference,
 				},
 			},
-			// Currently not suppored in orchestrated VMSS
+			// Currently not supported in orchestrated VMSS
 			// if an upgrade policy's been configured previously (which it will have) it must be threaded through
 			// this doesn't matter for Manual - but breaks when updating anything on a Automatic and Rolling Mode Scale Set
 			// UpgradePolicy: existing.Properties.UpgradePolicy,

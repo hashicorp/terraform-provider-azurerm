@@ -180,7 +180,7 @@ func (StackHCILogicalNetworkResource) Arguments() map[string]*pluginsdk.Schema {
 									ForceNew: true,
 									ValidateFunc: validation.StringMatch(
 										regexp.MustCompile(`^[a-zA-Z0-9][\-\.\_a-zA-Z0-9]{0,78}[a-zA-Z0-9]$`),
-										"name must be between 2 and 80 characters and can only contain alphanumberic characters, hyphen, dot and underline",
+										"name must be between 2 and 80 characters and can only contain alphanumeric characters, hyphen, dot and underline",
 									),
 								},
 							},
