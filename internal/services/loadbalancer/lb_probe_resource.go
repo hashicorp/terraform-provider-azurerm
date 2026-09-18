@@ -4,6 +4,7 @@
 package loadbalancer
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -21,6 +23,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "load_balancer_name:loadbalancer_id,resource_group_name:loadbalancer_id,subscription_id:loadbalancer_id"
+
+const azureLoadBalancerProbeResourceName = "azurerm_lb_probe"
+
 func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceArmLoadBalancerProbeCreateUpdate,
@@ -28,15 +34,11 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 		Update: resourceArmLoadBalancerProbeCreateUpdate,
 		Delete: resourceArmLoadBalancerProbeDelete,
 
-		Importer: loadBalancerSubResourceImporter(func(input string) (*loadbalancers.LoadBalancerId, error) {
-			id, err := loadbalancers.ParseProbeID(input)
-			if err != nil {
-				return nil, err
-			}
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&loadbalancers.ProbeId{}),
+		},
 
-			lbId := loadbalancers.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroupName, id.LoadBalancerName)
-			return &lbId, nil
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentityThen(&loadbalancers.ProbeId{}, loadBalancerProbeResourceImporter),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -117,6 +119,18 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 	}
 }
 
+func loadBalancerProbeResourceImporter(_ context.Context, d *pluginsdk.ResourceData, _ interface{}) ([]*pluginsdk.ResourceData, error) {
+	id, err := loadbalancers.ParseProbeID(d.Id())
+	if err != nil {
+		return nil, err
+	}
+
+	lbId := loadbalancers.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroupName, id.LoadBalancerName)
+	d.Set("loadbalancer_id", lbId.ID())
+
+	return []*pluginsdk.ResourceData{d}, nil
+}
+
 func resourceArmLoadBalancerProbeCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -152,7 +166,7 @@ func resourceArmLoadBalancerProbeCreateUpdate(d *pluginsdk.ResourceData, meta in
 				if id.ProbeName == *existingProbe.Name {
 					if d.IsNewResource() {
 						if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-							return tf.ImportAsExistsError("azurerm_lb_probe", *existingProbe.Id)
+							return tf.ImportAsExistsError(azureLoadBalancerProbeResourceName, *existingProbe.Id)
 						}
 					}
 
@@ -164,7 +178,7 @@ func resourceArmLoadBalancerProbeCreateUpdate(d *pluginsdk.ResourceData, meta in
 			props.Probes = &probes
 
 			if d.IsNewResource() {
-				if err := client.CreateOrUpdateCallbackThenPoll(ctx, plbId, *model, sdk.SetIDCallback(meta, &id, d)); err != nil {
+				if err := client.CreateOrUpdateCallbackThenPoll(ctx, plbId, *model, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 					return fmt.Errorf("creating %s: %+v", id, err)
 				}
 				d.SetId(id.ID())
@@ -200,17 +214,25 @@ func resourceArmLoadBalancerProbeRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("retrieving %s: %+v", plbId, err)
 	}
 
+	var config *loadbalancers.Probe
 	if model := loadBalancer.Model; model != nil {
-		config, _, exists := FindLoadBalancerProbeByName(model, id.ProbeName)
+		var exists bool
+		config, _, exists = FindLoadBalancerProbeByName(model, id.ProbeName)
 		if !exists {
 			d.SetId("")
 			log.Printf("[INFO] Load Balancer Probe %q not found. Removing from state", id.ProbeName)
 			return nil
 		}
+	}
 
-		d.Set("name", config.Name)
+	return resourceArmLoadBalancerProbeFlatten(d, id, config)
+}
 
-		if props := config.Properties; props != nil {
+func resourceArmLoadBalancerProbeFlatten(d *pluginsdk.ResourceData, id *loadbalancers.ProbeId, model *loadbalancers.Probe) error {
+	d.Set("name", model.Name)
+
+	if model != nil {
+		if props := model.Properties; props != nil {
 			d.Set("interval_in_seconds", int(pointer.From(props.IntervalInSeconds)))
 			d.Set("number_of_probes", int(pointer.From(props.NumberOfProbes)))
 			d.Set("port", int(props.Port))
@@ -233,7 +255,7 @@ func resourceArmLoadBalancerProbeRead(d *pluginsdk.ResourceData, meta interface{
 			}
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceArmLoadBalancerProbeDelete(d *pluginsdk.ResourceData, meta interface{}) error {
