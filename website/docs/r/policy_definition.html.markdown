@@ -112,5 +112,5 @@ terraform import azurerm_policy_definition.examplePolicy /subscriptions/<SUBSCRI
 or
 
 ```shell
-terraform import azurerm_policy_definition.examplePolicy /providers/Microsoft.Management/managementgroups/<MANGAGEMENT_GROUP_ID>/providers/Microsoft.Authorization/policyDefinitions/<POLICY_NAME>
+terraform import azurerm_policy_definition.examplePolicy /providers/Microsoft.Management/managementgroups/<MANAGEMENT_GROUP_ID>/providers/Microsoft.Authorization/policyDefinitions/<POLICY_NAME>
 ```
