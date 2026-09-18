@@ -24,9 +24,9 @@ data "azurerm_trusted_signing_account" "example" {
 
 resource "azurerm_trusted_signing_certificate_profile" "example" {
   name                       = "example-profile"
-  trusted_signing_account_id = data.azurerm_trusted_signing_account.example.id
   identity_validation_id     = "00000000-0000-0000-0000-000000000000"
   profile_type               = "PrivateTrust"
+  trusted_signing_account_id = data.azurerm_trusted_signing_account.example.id
 }
 ```
 
@@ -36,11 +36,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Trusted Signing Certificate Profile. Must be between 5 and 100 characters, begin with a letter, end with a letter or digit, and contain only alphanumeric characters and non-consecutive hyphens. Changing this forces a new resource to be created.
 
-* `trusted_signing_account_id` - (Required) The ID of the Trusted Signing Account in which to create this certificate profile. Changing this forces a new resource to be created.
-
 * `identity_validation_id` - (Required) The ID of a completed identity validation in the same subscription as the Trusted Signing Account, used for the certificate subject name. Changing this forces a new resource to be created.
 
 * `profile_type` - (Required) The type of the certificate profile. Possible values are `PrivateTrust`, `PrivateTrustCIPolicy`, `PublicTrust`, `PublicTrustTest`, and `VBSEnclave`. Changing this forces a new resource to be created.
+
+* `trusted_signing_account_id` - (Required) The ID of the Trusted Signing Account in which to create this certificate profile. Changing this forces a new resource to be created.
 
 * `include_city` - (Optional) Whether to include the city (`L`) in the certificate subject name. Applicable only to `PrivateTrust` and `PrivateTrustCIPolicy` profiles. Defaults to `false`. Changing this forces a new resource to be created.
 
