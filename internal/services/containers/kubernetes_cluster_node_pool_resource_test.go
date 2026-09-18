@@ -1110,12 +1110,31 @@ func TestAccKubernetesClusterNodePool_windowsProfileOutboundNatEnabled(t *testin
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.windowsProfileOutboundNatEnabled(data),
+			Config: r.windowsProfileOutboundNat(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("windows_profile.0.outbound_nat_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("node_count").HasValue("1"),
 			),
 		},
-		data.ImportStep("windows_profile"),
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesClusterNodePool_windowsProfileOutboundNatDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.windowsProfileOutboundNat(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("windows_profile.0.outbound_nat_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("node_count").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -3532,7 +3551,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, currentKubernetesVersion)
 }
 
-func (KubernetesClusterNodePoolResource) windowsProfileOutboundNatEnabled(data acceptance.TestData) string {
+func (KubernetesClusterNodePoolResource) windowsProfileOutboundNat(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3568,22 +3587,27 @@ resource "azurerm_kubernetes_cluster" "test" {
     network_plugin = "azure"
     outbound_type  = "managedNATGateway"
   }
+  windows_profile {
+    admin_username = "azureuser"
+    admin_password = "Aa1!%[4]s"
+  }
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "user"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_D2s_v3"
+  node_count            = 1
   os_type               = "Windows"
   os_sku                = "Windows2022"
   windows_profile {
-    outbound_nat_enabled = true
+    outbound_nat_enabled = %[3]t
   }
   upgrade_settings {
     max_surge = "10%%"
   }
 }
-`, data.Locations.Primary, data.RandomInteger)
+`, data.Locations.Primary, data.RandomInteger, enabled, data.RandomString)
 }
 
 func (KubernetesClusterNodePoolResource) nodeIPTags(data acceptance.TestData) string {
