@@ -35,7 +35,36 @@ resource "azurerm_storage_mover_smb_mount_endpoint" "example" {
 
 ## Example Usage with Credentials
 
+This example uses an existing Key Vault. The identity running Terraform needs permission to create and read secrets in that vault.
+
 ```hcl
+variable "smb_username" {
+  type      = string
+  sensitive = true
+}
+
+variable "smb_password" {
+  type      = string
+  sensitive = true
+}
+
+data "azurerm_key_vault" "example" {
+  name                = "existing-key-vault"
+  resource_group_name = "existing-key-vault-resources"
+}
+
+resource "azurerm_key_vault_secret" "username" {
+  name         = "example-smb-username"
+  value        = var.smb_username
+  key_vault_id = data.azurerm_key_vault.example.id
+}
+
+resource "azurerm_key_vault_secret" "password" {
+  name         = "example-smb-password"
+  value        = var.smb_password
+  key_vault_id = data.azurerm_key_vault.example.id
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
