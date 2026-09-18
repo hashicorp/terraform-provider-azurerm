@@ -5,6 +5,7 @@ package containers_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -505,7 +506,7 @@ func TestAccKubernetesClusterNodePool_podIPAllocationModeOmitted(t *testing.T) {
 						return fmt.Errorf("reading omitted node-pool allocation mode: %+v", err)
 					}
 					if result.Model == nil || result.Model.Properties == nil {
-						return fmt.Errorf("reading omitted node-pool allocation mode: missing response properties")
+						return errors.New("reading omitted node-pool allocation mode: missing response properties")
 					}
 					mode := result.Model.Properties.PodIPAllocationMode
 					if actual := state.Attributes["pod_ip_allocation_mode"]; actual != pointer.FromEnum(mode) {
@@ -527,7 +528,7 @@ func TestAccKubernetesClusterNodePool_podIPAllocationModeOmitted(t *testing.T) {
 						return fmt.Errorf("reading omitted default-pool allocation mode: %+v", err)
 					}
 					if result.Model == nil || result.Model.Properties == nil || result.Model.Properties.AgentPoolProfiles == nil {
-						return fmt.Errorf("reading omitted default-pool allocation mode: missing agent-pool profiles")
+						return errors.New("reading omitted default-pool allocation mode: missing agent-pool profiles")
 					}
 					for _, pool := range *result.Model.Properties.AgentPoolProfiles {
 						if pool.Name == "default" {
@@ -539,7 +540,7 @@ func TestAccKubernetesClusterNodePool_podIPAllocationModeOmitted(t *testing.T) {
 							return nil
 						}
 					}
-					return fmt.Errorf("reading omitted default-pool allocation mode: default pool not found")
+					return errors.New("reading omitted default-pool allocation mode: default pool not found")
 				}, clusterResourceName),
 			),
 		},

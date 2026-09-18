@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
-	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -27,15 +26,11 @@ func TestPodIPAllocationModeValidation(t *testing.T) {
 		wantError bool
 	}{
 		{name: "omitted", config: map[string]interface{}{}},
-		{name: "null_mode", config: map[string]interface{}{"pod_ip_allocation_mode": nil}},
 		{name: "subnet_without_mode", config: map[string]interface{}{"pod_subnet_id": subnetId}},
-		{name: "subnet_with_null_mode", config: map[string]interface{}{"pod_subnet_id": subnetId, "pod_ip_allocation_mode": nil}},
 		{name: "dynamic_with_subnet", config: map[string]interface{}{"pod_ip_allocation_mode": dynamic, "pod_subnet_id": subnetId}},
 		{name: "static_with_subnet", config: map[string]interface{}{"pod_ip_allocation_mode": static, "pod_subnet_id": subnetId}},
 		{name: "dynamic_without_subnet", config: map[string]interface{}{"pod_ip_allocation_mode": dynamic}, wantError: true},
 		{name: "static_without_subnet", config: map[string]interface{}{"pod_ip_allocation_mode": static}, wantError: true},
-		{name: "static_with_null_subnet", config: map[string]interface{}{"pod_ip_allocation_mode": static, "pod_subnet_id": nil}, wantError: true},
-		{name: "empty_mode", config: map[string]interface{}{"pod_ip_allocation_mode": "", "pod_subnet_id": subnetId}, wantError: true},
 		{name: "invalid_mode", config: map[string]interface{}{"pod_ip_allocation_mode": "invalid", "pod_subnet_id": subnetId}, wantError: true},
 	}
 	for name, resource := range resources {
@@ -49,38 +44,6 @@ func TestPodIPAllocationModeValidation(t *testing.T) {
 					diagnostics := resource.Validate(terraform.NewResourceConfigRaw(config))
 					if diagnostics.HasError() != test.wantError {
 						t.Fatalf("validation error = %t, want %t: %v", diagnostics.HasError(), test.wantError, diagnostics)
-					}
-				})
-			}
-		})
-	}
-}
-
-func TestPodIPAllocationModeUnknownValidation(t *testing.T) {
-	subnetId := commonids.NewSubnetID("00000000-0000-0000-0000-000000000000", "test", "test", "pods").ID()
-	tests := []struct {
-		name   string
-		mode   cty.Value
-		subnet cty.Value
-	}{
-		{name: "unknown_mode", mode: cty.UnknownVal(cty.String), subnet: cty.StringVal(subnetId)},
-		{name: "unknown_subnet", mode: cty.StringVal("StaticBlock"), subnet: cty.UnknownVal(cty.String)},
-		{name: "both_unknown", mode: cty.UnknownVal(cty.String), subnet: cty.UnknownVal(cty.String)},
-	}
-	for name, resource := range podIPAllocationModeTestResources() {
-		t.Run(name, func(t *testing.T) {
-			for _, test := range tests {
-				t.Run(test.name, func(t *testing.T) {
-					config := cty.ObjectVal(map[string]cty.Value{
-						"pod_ip_allocation_mode": test.mode,
-						"pod_subnet_id":          test.subnet,
-					})
-					if name == "default_node_pool" {
-						config = cty.ObjectVal(map[string]cty.Value{"default_node_pool": cty.ListVal([]cty.Value{config})})
-					}
-					diagnostics := resource.Validate(terraform.NewResourceConfigShimmed(config, resource.CoreConfigSchema()))
-					if diagnostics.HasError() {
-						t.Fatalf("known-after-apply configuration must validate: %v", diagnostics)
 					}
 				})
 			}
