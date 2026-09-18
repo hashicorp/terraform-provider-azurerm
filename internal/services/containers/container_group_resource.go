@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2025-09-01/containerinstance"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -1496,7 +1495,7 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 		commands := probeConfig["exec"].([]interface{})
 		if len(commands) > 0 {
 			exec := containerinstance.ContainerExec{
-				Command: helpers.ExpandStringSlice(commands),
+				Command: pluginsdk.ExpandStringSlice(commands),
 			}
 			probe.Exec = &exec
 		}
