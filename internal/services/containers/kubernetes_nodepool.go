@@ -278,7 +278,7 @@ func schemaNodePoolSecurity() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		// Note: O+C because omitting this block preserves API-reported settings.
+		// NOTE: O+C omitting this block preserves API-reported settings.
 		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
