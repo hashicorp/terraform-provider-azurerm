@@ -28,7 +28,7 @@ require (
 	github.com/katbyte/actionlint v1.7.13
 	github.com/katbyte/tctest v1.3.3
 	github.com/katbyte/terrafmt v1.0.1
-	github.com/sreallymatt/changeloggy v0.1.0
+	github.com/sreallymatt/changeloggy v0.2.0
 	golang.org/x/tools v0.50.0
 	gotest.tools/gotestsum v1.13.0
 	mvdan.cc/gofumpt v0.12.0
