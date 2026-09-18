@@ -109,7 +109,11 @@ The following arguments are supported:
 
 * `admin_password` - (Optional) The Password which should be used for the local-administrator on this Virtual Machine. Changing this forces a new resource to be created.
 
-~> **Note:** This is required unless using an existing OS Managed Disk by specifying `os_managed_disk_id`.
+* `admin_password_wo` - (Optional, Write-Only) The write-only Password which should be used for the local-administrator on this Virtual Machine. This property should be used when sensitive values should not be stored in state. This requires Terraform `v1.11` or later.
+
+~> **Note:** One of `admin_password` or the `admin_password_wo`/`admin_password_wo_version` pair must be specified when not using an existing OS Managed Disk.
+
+* `admin_password_wo_version` - (Optional) An integer value used to trigger replacement when `admin_password_wo` changes. This property should be incremented when replacing the Virtual Machine with an updated `admin_password_wo`. Changing this forces a new resource to be created.
 
 * `admin_username` - (Optional) The username of the local administrator used for the Virtual Machine. Changing this forces a new resource to be created.
 
