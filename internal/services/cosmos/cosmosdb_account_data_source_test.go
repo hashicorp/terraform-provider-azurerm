@@ -79,6 +79,20 @@ func TestAccDataSourceCosmosDBAccount_mongoDBConnectionString(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceCosmosDBAccount_tableConnectionString(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountDataSourceResource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.table(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_table(data),
+			),
+		},
+	})
+}
+
 func (c CosmosDBAccountDataSourceResource) basic(data acceptance.TestData) string {
 	return c.dataConfig(CosmosDBAccountResource{}.basic(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelBoundedStaleness))
 }
@@ -93,6 +107,10 @@ func (c CosmosDBAccountDataSourceResource) globalDocumentDB(data acceptance.Test
 
 func (c CosmosDBAccountDataSourceResource) mongoDB(data acceptance.TestData) string {
 	return c.dataConfig(CosmosDBAccountResource{}.basicMongoDB(data, cosmosdb.DefaultConsistencyLevelStrong))
+}
+
+func (c CosmosDBAccountDataSourceResource) table(data acceptance.TestData) string {
+	return c.dataConfig(CosmosDBAccountResource{}.capabilities(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableTable"}))
 }
 
 func (c CosmosDBAccountDataSourceResource) dataConfig(baseConfig string) string {

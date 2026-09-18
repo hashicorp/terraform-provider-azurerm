@@ -248,6 +248,30 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
+
+			"primary_table_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_table_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"primary_readonly_table_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_readonly_table_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }

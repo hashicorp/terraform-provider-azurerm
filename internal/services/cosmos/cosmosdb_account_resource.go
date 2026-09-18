@@ -47,6 +47,10 @@ var connStringPropertyMap = map[string]string{
 	"Secondary MongoDB Connection String":           "secondary_mongodb_connection_string",
 	"Primary Read-Only MongoDB Connection String":   "primary_readonly_mongodb_connection_string",
 	"Secondary Read-Only MongoDB Connection String": "secondary_readonly_mongodb_connection_string",
+	"Primary Table Connection String":               "primary_table_connection_string",
+	"Secondary Table Connection String":             "secondary_table_connection_string",
+	"Primary Read-Only Table Connection String":     "primary_readonly_table_connection_string",
+	"Secondary Read-Only Table Connection String":   "secondary_readonly_table_connection_string",
 }
 
 type databaseAccountCapabilities string
@@ -732,6 +736,30 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"secondary_readonly_mongodb_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"primary_table_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_table_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"primary_readonly_table_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_readonly_table_connection_string": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,

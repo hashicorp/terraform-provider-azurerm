@@ -703,6 +703,21 @@ func TestAccCosmosDBAccount_capabilities_EnableTable(t *testing.T) {
 	testAccCosmosDBAccount_capabilitiesWith(t, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableTable"})
 }
 
+func TestAccCosmosDBAccount_tableConnectionStrings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.capabilities(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableTable"}),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_table(data),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCosmosDBAccount_capabilities_EnableServerless(t *testing.T) {
 	testAccCosmosDBAccount_capabilitiesWith(t, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableServerless"})
 }
@@ -2647,6 +2662,15 @@ func checkAccCosmosDBAccount_sql(data acceptance.TestData) acceptance.TestCheckF
 		check.That(data.ResourceName).Key("secondary_sql_connection_string").Exists(),
 		check.That(data.ResourceName).Key("primary_readonly_sql_connection_string").Exists(),
 		check.That(data.ResourceName).Key("secondary_readonly_sql_connection_string").Exists(),
+	)
+}
+
+func checkAccCosmosDBAccount_table(data acceptance.TestData) acceptance.TestCheckFunc {
+	return acceptance.ComposeTestCheckFunc(
+		check.That(data.ResourceName).Key("primary_table_connection_string").Exists(),
+		check.That(data.ResourceName).Key("secondary_table_connection_string").Exists(),
+		check.That(data.ResourceName).Key("primary_readonly_table_connection_string").Exists(),
+		check.That(data.ResourceName).Key("secondary_readonly_table_connection_string").Exists(),
 	)
 }
 
