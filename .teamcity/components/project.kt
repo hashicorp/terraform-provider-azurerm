@@ -1,3 +1,4 @@
+import jetbrains.buildServer.configs.kotlin.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.BuildType
 import jetbrains.buildServer.configs.kotlin.Project
 import jetbrains.buildServer.configs.kotlin.BuildTypeSettings
@@ -127,7 +128,12 @@ fun AcceptanceTestsBuildChain(providerName: String, environment: String, config:
         }
         
         type = BuildTypeSettings.Type.COMPOSITE
-        
+
+        vcs {
+            root(rootId = AbsoluteId(config.vcsRootId))
+            cleanCheckout = true
+        }
+
         // Trigger all builds nightly via this composite build
         var runNightlyEnv = runNightly.getOrDefault(environment, false)
         triggers {
