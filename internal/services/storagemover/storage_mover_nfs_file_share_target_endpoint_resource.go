@@ -34,8 +34,9 @@ type StorageMoverNfsFileShareTargetEndpointModel struct {
 type StorageMoverNfsFileShareTargetEndpointResource struct{}
 
 var (
-	_ sdk.ResourceWithUpdate   = StorageMoverNfsFileShareTargetEndpointResource{}
-	_ sdk.ResourceWithIdentity = StorageMoverNfsFileShareTargetEndpointResource{}
+	_ sdk.ResourceWithUpdate         = StorageMoverNfsFileShareTargetEndpointResource{}
+	_ sdk.ResourceWithIdentity       = StorageMoverNfsFileShareTargetEndpointResource{}
+	_ sdk.ResourceWithCustomImporter = StorageMoverNfsFileShareTargetEndpointResource{}
 )
 
 func (r StorageMoverNfsFileShareTargetEndpointResource) ResourceType() string {
@@ -48,6 +49,10 @@ func (r StorageMoverNfsFileShareTargetEndpointResource) ModelObject() interface{
 
 func (r StorageMoverNfsFileShareTargetEndpointResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return endpoints.ValidateEndpointID
+}
+
+func (r StorageMoverNfsFileShareTargetEndpointResource) CustomImporter() sdk.ResourceRunFunc {
+	return r.Read().Func
 }
 
 func (r StorageMoverNfsFileShareTargetEndpointResource) Identity() resourceids.ResourceId {
@@ -172,8 +177,8 @@ func (r StorageMoverNfsFileShareTargetEndpointResource) Update() sdk.ResourceFun
 			}
 
 			properties := resp.Model
-			if properties == nil {
-				return fmt.Errorf("retrieving %s: `model` was nil", *id)
+			if err := r.checkEndpointType(*id, properties); err != nil {
+				return err
 			}
 
 			if metadata.ResourceData.HasChange("description") {
@@ -218,6 +223,10 @@ func (r StorageMoverNfsFileShareTargetEndpointResource) Read() sdk.ResourceFunc 
 }
 
 func (r StorageMoverNfsFileShareTargetEndpointResource) flatten(metadata sdk.ResourceMetaData, id *endpoints.EndpointId, model *endpoints.Endpoint) error {
+	if err := r.checkEndpointType(*id, model); err != nil {
+		return err
+	}
+
 	state := StorageMoverNfsFileShareTargetEndpointModel{
 		Name:           id.EndpointName,
 		StorageMoverId: storagemovers.NewStorageMoverID(id.SubscriptionId, id.ResourceGroupName, id.StorageMoverName).ID(),
@@ -225,8 +234,12 @@ func (r StorageMoverNfsFileShareTargetEndpointResource) flatten(metadata sdk.Res
 
 	if model != nil {
 		if v, ok := model.Properties.(endpoints.AzureStorageNfsFileShareEndpointProperties); ok {
+			storageAccountId, err := commonids.ParseStorageAccountIDInsensitively(v.StorageAccountResourceId)
+			if err != nil {
+				return err
+			}
 			state.FileShareName = v.FileShareName
-			state.StorageAccountId = v.StorageAccountResourceId
+			state.StorageAccountId = storageAccountId.ID()
 			state.Description = pointer.From(v.Description)
 		}
 	}
@@ -249,6 +262,17 @@ func (r StorageMoverNfsFileShareTargetEndpointResource) Delete() sdk.ResourceFun
 				return err
 			}
 
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(existing.HttpResponse) {
+					return nil
+				}
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+			if err := r.checkEndpointType(*id, existing.Model); err != nil {
+				return err
+			}
+
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
@@ -256,4 +280,14 @@ func (r StorageMoverNfsFileShareTargetEndpointResource) Delete() sdk.ResourceFun
 			return nil
 		},
 	}
+}
+
+func (r StorageMoverNfsFileShareTargetEndpointResource) checkEndpointType(id endpoints.EndpointId, model *endpoints.Endpoint) error {
+	if model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if _, ok := model.Properties.(endpoints.AzureStorageNfsFileShareEndpointProperties); !ok {
+		return fmt.Errorf("retrieving %s: expected an NFS File Share endpoint, got %T", id, model.Properties)
+	}
+	return nil
 }
