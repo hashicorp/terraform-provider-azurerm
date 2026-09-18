@@ -18,7 +18,7 @@ This example unlocks a VM backup immediately before Terraform deletes it. The `b
 
 The provider feature `vm_backup_stop_protection_and_retain_data_on_destroy` must be `false` for deletion. This action does not unlock operations that retain backup data.
 
-```hcl
+```terraform
 resource "azurerm_recovery_services_vault_resource_guard_association" "example" {
   vault_id          = azurerm_recovery_services_vault.example.id
   resource_guard_id = azurerm_data_protection_resource_guard.example.id
@@ -52,6 +52,6 @@ Keep the resource and action blocks in the configuration when running `terraform
 
 ## Argument Reference
 
-This action supports the following argument:
+This action supports the following arguments:
 
 * `protected_item_id` - (Required) The ID of the Recovery Services protected item to unlock for deletion.
