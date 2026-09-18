@@ -4,10 +4,9 @@
 package network_test
 
 import (
-	"slices"
-
 	"context"
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"

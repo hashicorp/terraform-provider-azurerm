@@ -4,9 +4,8 @@
 package validate
 
 import (
-	"slices"
-
 	"fmt"
+	"slices"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"

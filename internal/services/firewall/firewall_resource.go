@@ -4,10 +4,9 @@
 package firewall
 
 import (
-	"slices"
-
 	"fmt"
 	"log"
+	"slices"
 	"strings"
 	"time"
 

@@ -4,9 +4,8 @@
 package network
 
 import (
-	"slices"
-
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 

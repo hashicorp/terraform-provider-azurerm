@@ -4,8 +4,6 @@
 package cosmos
 
 import (
-	"slices"
-
 	"bytes"
 	"context"
 	"fmt"
@@ -13,6 +11,7 @@ import (
 	"math"
 	"net/http"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 

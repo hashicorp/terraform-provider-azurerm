@@ -4,9 +4,8 @@
 package validate
 
 import (
-	"slices"
-
 	"fmt"
+	"slices"
 )
 
 // ValidateNetAppVolumeProtocolConversion validates protocol conversion requirements

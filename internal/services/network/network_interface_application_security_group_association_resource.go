@@ -4,10 +4,9 @@
 package network
 
 import (
-	"slices"
-
 	"fmt"
 	"log"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"

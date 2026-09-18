@@ -4,11 +4,10 @@
 package netapp
 
 import (
-	"slices"
-
 	"context"
 	"fmt"
 	"log"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
