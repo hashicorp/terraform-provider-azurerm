@@ -380,6 +380,8 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"windows_profile": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			// NOTE: O+C Azure can return profile settings when the block is omitted.
+			Computed: true,
 			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
@@ -1193,7 +1195,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta any) 
 			return fmt.Errorf("setting `upgrade_settings`: %+v", err)
 		}
 
-		if err := d.Set("windows_profile", flattenAgentPoolWindowsProfile(props.WindowsProfile, d.Get("windows_profile").([]interface{}))); err != nil {
+		if err := d.Set("windows_profile", flattenAgentPoolWindowsProfile(props.WindowsProfile)); err != nil {
 			return fmt.Errorf("setting `windows_profile`: %+v", err)
 		}
 
@@ -1727,13 +1729,8 @@ func expandAgentPoolWindowsProfile(input []any) *agentpools.AgentPoolWindowsProf
 	}
 }
 
-func flattenAgentPoolWindowsProfile(input *agentpools.AgentPoolWindowsProfile, config []any) []any {
+func flattenAgentPoolWindowsProfile(input *agentpools.AgentPoolWindowsProfile) []any {
 	if input == nil || input.DisableOutboundNat == nil {
-		return []any{}
-	}
-
-	// If API returns default value and user didn't set it, omit from state
-	if !*input.DisableOutboundNat && (len(config) == 0 || config[0] == nil) {
 		return []any{}
 	}
 
