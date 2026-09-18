@@ -4,6 +4,8 @@
 package network
 
 import (
+	"slices"
+
 	"fmt"
 	"strings"
 	"time"
@@ -86,7 +88,7 @@ func resourceIpGroupCidrCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	exists := false
-	if helpers.SliceContainsValue(*existing.Model.Properties.IPAddresses, cidr) {
+	if slices.Contains(*existing.Model.Properties.IPAddresses, cidr) {
 		exists = true
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			return tf.ImportAsExistsError("azurerm_ip_group_cidr", id.ID())
@@ -145,7 +147,7 @@ func resourceIpGroupCidrRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 	}
 
-	if !helpers.SliceContainsValue(pointer.From(resp.Model.Properties.IPAddresses), cidr) {
+	if !slices.Contains(pointer.From(resp.Model.Properties.IPAddresses), cidr) {
 		d.SetId("")
 		return nil
 	}

@@ -4,6 +4,8 @@
 package cosmos
 
 import (
+	"slices"
+
 	"bytes"
 	"context"
 	"fmt"
@@ -2106,12 +2108,12 @@ func checkCapabilitiesCanBeUpdated(kind string, oldCapabilities *[]cosmosdb.Capa
 		}
 
 		// first check if this is supported
-		if isSupported := helpers.SliceContainsValue(supportedKindsForCapability.([]string), strings.ToLower(kind)); !isSupported {
+		if isSupported := slices.Contains(supportedKindsForCapability.([]string), strings.ToLower(kind)); !isSupported {
 			return false
 		}
 
 		// then check if it can be added via an update
-		if !helpers.SliceContainsValue(canBeAddedCaps, strings.ToLower(*capability.Name)) {
+		if !slices.Contains(canBeAddedCaps, strings.ToLower(*capability.Name)) {
 			return false
 		}
 	}
@@ -2128,7 +2130,7 @@ func checkCapabilitiesCanBeUpdated(kind string, oldCapabilities *[]cosmosdb.Capa
 			continue
 		}
 
-		if !helpers.SliceContainsValue(canBeRemovedCaps, strings.ToLower(*capability.Name)) {
+		if !slices.Contains(canBeRemovedCaps, strings.ToLower(*capability.Name)) {
 			return false
 		}
 	}

@@ -4,6 +4,8 @@
 package keyvault
 
 import (
+	"slices"
+
 	"context"
 	"errors"
 	"fmt"
@@ -21,7 +23,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/deletedvaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/vaults"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -326,7 +327,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err != nil {
 			return err
 		}
-		if !helpers.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
+		if !slices.Contains(virtualNetworkNames, id.VirtualNetworkName) {
 			virtualNetworkNames = append(virtualNetworkNames, id.VirtualNetworkName)
 		}
 	}
@@ -463,7 +464,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 				return err
 			}
 
-			if !helpers.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
+			if !slices.Contains(virtualNetworkNames, id.VirtualNetworkName) {
 				virtualNetworkNames = append(virtualNetworkNames, id.VirtualNetworkName)
 			}
 		}
@@ -722,7 +723,7 @@ func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 						return err
 					}
 
-					if !helpers.SliceContainsValue(virtualNetworkNames, subnetId.VirtualNetworkName) {
+					if !slices.Contains(virtualNetworkNames, subnetId.VirtualNetworkName) {
 						virtualNetworkNames = append(virtualNetworkNames, subnetId.VirtualNetworkName)
 					}
 				}

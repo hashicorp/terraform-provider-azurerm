@@ -15,10 +15,3 @@ func RemoveFromStringArray(elements []string, remove string) []string {
 
 	return elements
 }
-
-// SliceContainsValue
-// Deprecated
-// use slices.Contains instead
-func SliceContainsValue(input []string, value string) bool {
-	return slices.Contains(input, value)
-}
