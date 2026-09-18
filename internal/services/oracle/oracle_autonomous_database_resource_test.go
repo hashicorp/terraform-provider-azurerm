@@ -59,7 +59,7 @@ func TestAdbsRegularResource_complete(t *testing.T) {
 	})
 }
 
-func TestAdbsRegularResource_update(t *testing.T) {
+func TestAdbsRegularResource_updateRegular(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularResource{}.ResourceType(), "test")
 	r := AdbsRegularResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -67,6 +67,7 @@ func TestAdbsRegularResource_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("maintenance_patch_level").HasValue("Regular"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -74,6 +75,7 @@ func TestAdbsRegularResource_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("maintenance_patch_level").HasValue("Early"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -173,7 +175,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   auto_scaling_for_storage_enabled = false
   mtls_connection_required         = true
   data_storage_size_in_tbs         = 1
-  db_workload                      = "APEX"
+  db_workload                      = "OLTP"
   admin_password                   = "TestPass#2024#"
   db_version                       = "19c"
   character_set                    = "AL32UTF8"
@@ -245,6 +247,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   backup_retention_period_in_days  = 30
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = false
+  maintenance_patch_level          = "Early"
   mtls_connection_required         = true
   data_storage_size_in_tbs         = 1
   db_workload                      = "OLTP"
