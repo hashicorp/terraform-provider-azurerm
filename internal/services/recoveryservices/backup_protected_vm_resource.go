@@ -52,34 +52,11 @@ func resourceRecoveryServicesBackupProtectedVM() *pluginsdk.Resource {
 
 		Schema: resourceRecoveryServicesBackupProtectedVMSchema(),
 
-		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			// Removing the associated VM preserves the backup; changing to another VM requires replacement.
-			pluginsdk.ForceNewIfChange("source_vm_id", func(ctx context.Context, old, new, meta interface{}) bool {
-				return new.(string) != "" && old.(string) != new.(string)
-			}),
-			func(ctx context.Context, diff *pluginsdk.ResourceDiff, meta interface{}) error {
-				if diff.Id() == "" || !diff.HasChange("protection_state") || !diff.NewValueKnown("protection_state") {
-					return nil
-				}
-
-				// The previous protection state only constrains updates to the same backup item.
-				for _, field := range []string{"resource_group_name", "recovery_vault_name", "source_vm_id"} {
-					if !diff.NewValueKnown(field) || (diff.HasChange(field) && diff.Get(field) != "") {
-						return nil
-					}
-				}
-
-				oldState, newState := diff.GetChange("protection_state")
-				// Resume protection before switching between retention modes.
-				// https://learn.microsoft.com/en-us/azure/backup/backup-azure-vm-backup-faq#how-to-modify-retention-period-for-stopped-backups
-				if (oldState == string(protecteditems.ProtectionStateBackupsSuspended) && newState == string(protecteditems.ProtectionStateProtectionStopped)) ||
-					(oldState == string(protecteditems.ProtectionStateProtectionStopped) && newState == string(protecteditems.ProtectionStateBackupsSuspended)) {
-					return fmt.Errorf("`protection_state` cannot change directly from %q to %q; set it to `Protected` and apply to resume protection first", oldState, newState)
-				}
-
-				return nil
-			},
-		),
+		// It's possible to remove the associated vm from the protected backup so we'll only ForceNew this attribute if it's
+		// changing to something other than empty.
+		CustomizeDiff: pluginsdk.ForceNewIfChange("source_vm_id", func(ctx context.Context, old, new, meta interface{}) bool {
+			return new.(string) != "" && old.(string) != new.(string)
+		}),
 	}
 }
 
@@ -314,7 +291,6 @@ func resourceRecoveryServicesBackupProtectedVMUpdate(d *pluginsdk.ResourceData, 
 
 func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
-
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -323,20 +299,20 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	existing, err := client.Get(ctx, *id, protecteditems.GetOperationOptions{})
-	if err != nil {
-		if response.WasNotFound(existing.HttpResponse) {
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
-	}
-
 	features := meta.(*clients.Client).Features.RecoveryService
 
 	if features.VMBackupStopProtectionAndRetainDataOnDestroy || features.VMBackupSuspendProtectionAndRetainDataOnDestroy {
 		log.Printf("[DEBUG] Retaining Data and Stopping Protection for %s", id)
+
+		existing, err := client.Get(ctx, *id, protecteditems.GetOperationOptions{})
+		if err != nil {
+			if response.WasNotFound(existing.HttpResponse) {
+				d.SetId("")
+				return nil
+			}
+
+			return fmt.Errorf("retrieving %s: %+v", *id, err)
+		}
 
 		desiredState := protecteditems.ProtectionStateProtectionStopped
 		if features.VMBackupSuspendProtectionAndRetainDataOnDestroy {

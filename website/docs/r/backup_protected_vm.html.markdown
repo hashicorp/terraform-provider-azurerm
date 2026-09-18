@@ -10,10 +10,6 @@ description: |-
 
 Manages an Azure Backup Protected Virtual Machine.
 
-!> **Note:** Destroying this resource deletes the backup item according to the vault's soft-delete settings. To retain data, enable [`vm_backup_stop_protection_and_retain_data_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#recovery_service).
-
-~> **Note:** If Resource Guard protects deletion of the backup item, use the [`azurerm_resource_guard_unlock_delete`](../actions/resource_guard_unlock_delete.html) action to unlock it before deletion. See the action documentation for a `before_destroy` example and permission requirements.
-
 ## Example Usage
 
 ```hcl
@@ -79,8 +75,6 @@ The following arguments are supported:
 * `include_disk_luns` - (Optional) A list of Disks' Logical Unit Numbers (LUN) to be included for VM Protection.
 
 * `protection_state` - (Optional) Specifies Protection state of the backup. Possible values are `Protected`, `BackupsSuspended`, and `ProtectionStopped`.
-
-~> **Note:** To switch between `BackupsSuspended` and `ProtectionStopped`, first set this to `Protected` and apply to resume protection.
 
 ~> **Note:** `protection_state` cannot be set to `BackupsSuspended` unless the `azurerm_recovery_services_vault` has `immutability` set to `Unlocked` or `Locked`.
 
