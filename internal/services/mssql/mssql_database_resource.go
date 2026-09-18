@@ -81,7 +81,7 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 				// enclave_type cannot be removed once it has been set
 				// but can be changed between VBS and Default...
 				// this Diff will not work until 4.0 when we remove
-				// the computed property from the field scheam.
+				// the computed property from the field schema.
 				if old.(string) != "" && new.(string) == "" {
 					return true
 				}
