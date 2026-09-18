@@ -379,6 +379,10 @@ A `default_node_pool` block supports the following:
 
 * `vm_size` - (Optional) The size of the Virtual Machine, such as `Standard_DS2_v2`. `temporary_name_for_rotation` must be specified when attempting a resize.
 
+* `artifact_streaming_enabled` - (Optional) Whether artifact streaming is enabled for the default node pool. Defaults to `false`.
+
+-> **Note:** Artifact streaming requires a supported Linux AMD64 node image (Ubuntu or Azure Linux) and Kubernetes version `1.25` or later. To stream images, use an integrated Premium Azure Container Registry with artifact streaming enabled. Windows, ARM64 and Azure Container Linux node images are not supported. Disabling streaming on existing nodes takes effect after a node image upgrade. See the [Azure documentation](https://learn.microsoft.com/azure/aks/artifact-streaming) for image and registry requirements.
+
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group within which this AKS Cluster should be created. Changing this forces a new resource to be created.
 
 * `auto_scaling_enabled` - (Optional) Should [the Kubernetes Auto Scaler](https://docs.microsoft.com/azure/aks/cluster-autoscaler) be enabled for this Node Pool?

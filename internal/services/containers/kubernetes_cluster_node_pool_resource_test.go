@@ -25,6 +25,30 @@ import (
 
 type KubernetesClusterNodePoolResource struct{}
 
+func TestAccKubernetesClusterNodePool_artifactStreaming(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.artifactStreaming(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("artifact_streaming_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.artifactStreaming(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("artifact_streaming_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesClusterNodePool_autoScale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
@@ -2834,6 +2858,29 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (r KubernetesClusterNodePoolResource) artifactStreaming(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                       = "artifact"
+  kubernetes_cluster_id      = azurerm_kubernetes_cluster.test.id
+  vm_size                    = "Standard_D2s_v3"
+  node_count                 = 1
+  os_sku                     = "AzureLinux"
+  artifact_streaming_enabled = %t
+
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+}
+`, r.templateConfig(data), enabled)
 }
 
 func (KubernetesClusterNodePoolResource) templateVirtualNetworkConfig(data acceptance.TestData) string {

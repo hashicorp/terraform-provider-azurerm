@@ -77,6 +77,11 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ValidateFunc: capacityreservationgroups.ValidateCapacityReservationGroupID,
 					},
 
+					"artifact_streaming_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+
 					"kubelet_config": schemaNodePoolKubeletConfig(),
 
 					"linux_os_config": schemaNodePoolLinuxOSConfig(),
@@ -707,6 +712,11 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 		},
 	}
 
+	if artifactStreaming := defaultCluster.ArtifactStreamingProfile; artifactStreaming != nil {
+		agentpool.Properties.ArtifactStreamingProfile = &agentpools.AgentPoolArtifactStreamingProfile{
+			Enabled: artifactStreaming.Enabled,
+		}
+	}
 	if osDisktypeNodePool := defaultCluster.OsDiskType; osDisktypeNodePool != nil {
 		osDisktype := agentpools.OSDiskType(string(*osDisktypeNodePool))
 		agentpool.Properties.OsDiskType = &osDisktype
@@ -868,6 +878,12 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		// // TODO: support these in time
 		// ScaleSetEvictionPolicy: "",
 		// ScaleSetPriority:       "",
+	}
+
+	if enabled := raw["artifact_streaming_enabled"].(bool); enabled || (!d.IsNewResource() && d.HasChange("default_node_pool.0.artifact_streaming_enabled")) {
+		profile.ArtifactStreamingProfile = &managedclusters.AgentPoolArtifactStreamingProfile{
+			Enabled: pointer.To(enabled),
+		}
 	}
 
 	zones := zones.ExpandUntyped(raw["zones"].(*schema.Set).List())
@@ -1332,7 +1348,13 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 
 	networkProfile := flattenClusterPoolNetworkProfile(agentPool.NetworkProfile)
 
+	artifactStreamingEnabled := false
+	if agentPool.ArtifactStreamingProfile != nil {
+		artifactStreamingEnabled = pointer.From(agentPool.ArtifactStreamingProfile.Enabled)
+	}
+
 	out := map[string]interface{}{
+		"artifact_streaming_enabled":    artifactStreamingEnabled,
 		"auto_scaling_enabled":          enableAutoScaling,
 		"fips_enabled":                  enableFIPS,
 		"gpu_instance":                  gpuInstanceProfile,

@@ -72,6 +72,10 @@ The following arguments are supported:
 
 ---
 
+* `artifact_streaming_enabled` - (Optional) Whether `artifact streaming` is enabled. Defaults to `false`.
+
+-> **Note:** Artifact streaming requires a supported Linux AMD64 node image (Ubuntu or Azure Linux) and Kubernetes version `1.25` or later. To stream images, use an integrated Premium Azure Container Registry with artifact streaming enabled. Windows, ARM64 and Azure Container Linux node images are not supported. Disabling streaming on existing nodes takes effect after a node image upgrade. See the [Azure documentation](https://learn.microsoft.com/azure/aks/artifact-streaming) for image and registry requirements.
+
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group where this Node Pool should exist. Changing this forces a new resource to be created.
 
 * `auto_scaling_enabled` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/azure/aks/cluster-autoscaler).
