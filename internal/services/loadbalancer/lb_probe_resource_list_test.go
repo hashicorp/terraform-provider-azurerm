@@ -84,7 +84,7 @@ resource "azurerm_lb_probe" "test" {
   count = 3
 
   loadbalancer_id = azurerm_lb.test.id
-  name            = "probe-%d-${count.index}"
+  name            = "acctestprobe-%d-${count.index}"
   port            = 22
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
