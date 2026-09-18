@@ -258,7 +258,7 @@ func (r NextGenerationFirewallVNetPanoramaResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.FirewallsGet(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("retreiving %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			firewall := *existing.Model
