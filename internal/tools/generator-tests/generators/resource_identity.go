@@ -21,7 +21,7 @@ import (
 
 var (
 	cwd, _          = os.Getwd()
-	riOutputFileFmt = "/%s_resource_identity_gen_test.go"
+	riOutputFileFmt = "%s_resource_identity_gen_test.go"
 )
 
 type ResourceIdentityCommand struct {
@@ -410,12 +410,12 @@ func (d *resourceIdentityData) exec() error {
 	var outputFilename string
 	if isRefactoredSubpackage(cwd) {
 		outputFilename = "resource_identity_gen_test.go"
-		legacyPath := filepath.Join(cwd, fmt.Sprintf("%s_resource_identity_gen_test.go", d.ResourceName))
+		legacyPath := filepath.Join(cwd, fmt.Sprintf(riOutputFileFmt, d.ResourceName))
 		if _, err := os.Stat(legacyPath); err == nil {
 			_ = os.Remove(legacyPath)
 		}
 	} else {
-		outputFilename = fmt.Sprintf("%s_resource_identity_gen_test.go", d.ResourceName)
+		outputFilename = fmt.Sprintf(riOutputFileFmt, d.ResourceName)
 	}
 	outputPath := filepath.Join(cwd, outputFilename)
 
