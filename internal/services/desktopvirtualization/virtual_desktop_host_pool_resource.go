@@ -4,6 +4,7 @@
 package desktopvirtualization
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -48,6 +49,15 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.HostPoolV0ToV1{},
 		}),
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) error {
+			if d.Get("type").(string) == string(hostpool.HostPoolTypePooled) {
+				loadBalancerType := d.Get("load_balancer_type").(string)
+				if loadBalancerType == string(hostpool.LoadBalancerTypePersistent) || loadBalancerType == string(hostpool.LoadBalancerTypeMultiplePersistent) {
+					return fmt.Errorf("`type` must be \"Personal\" when `load_balancer_type` is \"Persistent\" or \"MultiplePersistent\"")
+				}
+			}
+			return nil
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -72,13 +82,9 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 			},
 
 			"load_balancer_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(hostpool.LoadBalancerTypeBreadthFirst),
-					string(hostpool.LoadBalancerTypeDepthFirst),
-					string(hostpool.LoadBalancerTypePersistent),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(hostpool.PossibleValuesForLoadBalancerType(), false),
 			},
 
 			"friendly_name": {
