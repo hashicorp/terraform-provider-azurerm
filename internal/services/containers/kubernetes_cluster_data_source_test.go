@@ -347,6 +347,7 @@ func TestAccDataSourceKubernetesCluster_addOnProfileAzurePolicy(t *testing.T) {
 }
 
 func TestAccDataSourceKubernetesCluster_addOnProfileRouting(t *testing.T) {
+	t.Skip("skipped due to removal of support - Error: The HTTPApplicationRouting add-on can no longer be enabled on new clusters. Please use the Application Routing Add-on instead")
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 

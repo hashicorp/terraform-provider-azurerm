@@ -3270,6 +3270,7 @@ func expandKubernetesClusterAPIAccessProfile(d *pluginsdk.ResourceData) *managed
 	}
 
 	apiAccessProfile := &managedclusters.ManagedClusterAPIServerAccessProfile{
+		AuthorizedIPRanges:             new(make([]string, 0)),
 		EnablePrivateCluster:           &enablePrivateCluster,
 		EnablePrivateClusterPublicFQDN: pointer.To(d.Get("private_cluster_public_fqdn_enabled").(bool)),
 		DisableRunCommand:              pointer.To(!d.Get("run_command_enabled").(bool)),
