@@ -425,9 +425,9 @@ A `default_node_pool` block supports the following:
 
 * `os_disk_type` - (Optional) The type of disk which should be used for the Operating System. Possible values are `Ephemeral` and `Managed`. Defaults to `Managed`. `temporary_name_for_rotation` must be specified when attempting a change.
 
-* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureContainerLinux`, `AzureLinux`, `AzureLinux3`, `Ubuntu`, `Ubuntu2204`, `Ubuntu2404`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` when os_type=Linux or `Windows2019` if os_type=Windows (`Windows2022` Kubernetes ≥1.33). Changing between `AzureLinux`, `AzureLinux3`, `Ubuntu`, `Ubuntu2204` and `Ubuntu2404` does not replace the resource; otherwise `temporary_name_for_rotation` must be specified when attempting a change.
+* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureContainerLinux`, `AzureLinux`, `AzureLinux3`, `Ubuntu`, `Ubuntu2204`, `Ubuntu2404`, `Windows2019`, and `Windows2022`. If not specified, the default is `Ubuntu` when os_type=Linux or `Windows2019` if os_type=Windows (`Windows2022` Kubernetes ≥1.33). Changing between `AzureLinux`, `AzureLinux3`, `Ubuntu`, `Ubuntu2204`, and `Ubuntu2404` does not replace the resource; otherwise `temporary_name_for_rotation` must be specified when attempting a change.
 
-~> **Note:** `AzureContainerLinux` requires Kubernetes version 1.34 or later, a supported Generation 2 VM size, and `node_os_upgrade_channel` set to `NodeImage` or `None`. AKS enables Secure Boot and vTPM for this OS SKU. Artifact streaming, Pod Sandboxing and confidential VMs are not supported. See the [Azure Container Linux limitations](https://learn.microsoft.com/azure/aks/create-node-pools#limitations).
+~> **Note:** `AzureContainerLinux` requires Kubernetes version 1.34 or later, a supported Generation 2 VM size, and `node_os_upgrade_channel` set to `NodeImage` or `None`. AKS enables Secure Boot and vTPM for this OS SKU. Artifact streaming, Pod Sandboxing, and confidential VMs are not supported. See the [Azure Container Linux limitations](https://learn.microsoft.com/azure/aks/create-node-pools#limitations).
 
 -> **Note:** `Windows2019` is deprecated and not supported for Kubernetes version ≥1.33.
 
