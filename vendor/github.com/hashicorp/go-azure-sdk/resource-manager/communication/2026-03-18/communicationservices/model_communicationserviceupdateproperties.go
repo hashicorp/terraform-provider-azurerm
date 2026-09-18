@@ -4,5 +4,7 @@ package communicationservices
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type CommunicationServiceUpdateProperties struct {
-	LinkedDomains *[]string `json:"linkedDomains,omitempty"`
+	DisableLocalAuth    *bool                `json:"disableLocalAuth,omitempty"`
+	LinkedDomains       *[]string            `json:"linkedDomains,omitempty"`
+	PublicNetworkAccess *PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 }
