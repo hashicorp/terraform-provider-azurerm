@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -62,7 +62,7 @@ func (d MsSqlManagedInstanceDataSource) Arguments() map[string]*pluginsdk.Schema
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
-			ValidateFunc: validate.ValidateMsSqlServerName,
+			ValidateFunc: validate.ValidateMsSqlManagedInstanceServerName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
