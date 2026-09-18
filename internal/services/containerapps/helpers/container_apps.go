@@ -54,7 +54,7 @@ func ContainerAppRegistrySchema() *pluginsdk.Schema {
 				"identity": {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Description: "ID of the System or User Managed Identity used to pull images from the Container Registry",
+					Description: "The Managed Identity to use to pull images from the Container Registry. Possible values are `System`, `system-environment`, and the Resource ID of a User Assigned Managed Identity.",
 				},
 			},
 		},
@@ -88,7 +88,7 @@ func ContainerAppRegistrySchemaComputed() *pluginsdk.Schema {
 				"identity": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "ID of the System or User Managed Identity used to pull images from the Container Registry",
+					Description: "The Managed Identity used to pull images from the Container Registry. Possible values are `System`, `system-environment`, and the Resource ID of a User Assigned Managed Identity.",
 				},
 			},
 		},
