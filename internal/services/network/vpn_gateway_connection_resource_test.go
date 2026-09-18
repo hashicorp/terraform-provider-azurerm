@@ -6,6 +6,7 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -306,6 +307,42 @@ func TestAccVpnGatewayConnection_updateToWriteOnlySharedKey(t *testing.T) {
 				Check:  check.That(data.ResourceName).ExistsInAzure(r),
 			},
 			data.ImportStep("vpn_link.0.shared_key"),
+		},
+	})
+}
+
+func TestAccVpnGatewayConnection_sharedKeyConflictError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_vpn_gateway_connection", "test")
+	r := VPNGatewayConnectionResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config:      r.sharedKeyConflictError(data),
+				ExpectError: regexp.MustCompile("`vpn_link.0.shared_key` cannot be set at the same time with `vpn_link.0.shared_key_wo`"),
+			},
+		},
+	})
+}
+
+func TestAccVpnGatewayConnection_sharedKeyWoRequiredError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_vpn_gateway_connection", "test")
+	r := VPNGatewayConnectionResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config:      r.sharedKeyWoRequiredError(data),
+				ExpectError: regexp.MustCompile("both `vpn_link.0.shared_key_wo` and `vpn_link.0.shared_key_wo_version` should be set at the same time"),
+			},
 		},
 	})
 }
@@ -963,4 +1000,46 @@ resource "azurerm_vpn_gateway_connection" "test" {
   }
 }
 `, r.template(data), acceptance.WriteOnlyKeyVaultSecretTemplate(data, secret), data.RandomInteger, version)
+}
+
+func (r VPNGatewayConnectionResource) sharedKeyConflictError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+%s
+
+resource "azurerm_vpn_gateway_connection" "test" {
+  name               = "acctest-VpnGwConn-%[3]d"
+  vpn_gateway_id     = azurerm_vpn_gateway.test.id
+  remote_vpn_site_id = azurerm_vpn_site.test.id
+
+  vpn_link {
+    name                  = "link1"
+    vpn_site_link_id      = azurerm_vpn_site.test.link[0].id
+    shared_key            = "a-secret-from-kv"
+    shared_key_wo         = ephemeral.azurerm_key_vault_secret.test.value
+    shared_key_wo_version = 1
+  }
+}
+`, r.template(data), acceptance.WriteOnlyKeyVaultSecretTemplate(data, "a-secret-from-kv"), data.RandomInteger)
+}
+
+func (r VPNGatewayConnectionResource) sharedKeyWoRequiredError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+%s
+
+resource "azurerm_vpn_gateway_connection" "test" {
+  name               = "acctest-VpnGwConn-%[3]d"
+  vpn_gateway_id     = azurerm_vpn_gateway.test.id
+  remote_vpn_site_id = azurerm_vpn_site.test.id
+
+  vpn_link {
+    name             = "link1"
+    vpn_site_link_id = azurerm_vpn_site.test.link[0].id
+    shared_key_wo    = ephemeral.azurerm_key_vault_secret.test.value
+  }
+}
+`, r.template(data), acceptance.WriteOnlyKeyVaultSecretTemplate(data, "a-secret-from-kv"), data.RandomInteger)
 }
