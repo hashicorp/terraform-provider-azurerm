@@ -198,10 +198,8 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"database_edition": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// NOTE: O+C The service can assign a database edition when one is not specified.
-			Computed:     true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForDatabaseEditionType(), false),
 		},
@@ -262,6 +260,10 @@ func (AutonomousDatabaseRegularResource) CustomizeDiff() sdk.ResourceFunc {
 
 			if model.LicenseModel != string(autonomousdatabases.LicenseModelBringYourOwnLicense) && model.DatabaseEdition != "" {
 				return fmt.Errorf("`database_edition` can only be specified when `license_model` is `%s`", autonomousdatabases.LicenseModelBringYourOwnLicense)
+			}
+
+			if model.LicenseModel == string(autonomousdatabases.LicenseModelBringYourOwnLicense) && model.DatabaseEdition == "" {
+				return fmt.Errorf("`database_edition` must be specified when `license_model` is `%s`", autonomousdatabases.LicenseModelBringYourOwnLicense)
 			}
 
 			return nil
