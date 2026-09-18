@@ -113,13 +113,13 @@ func dataSourceVnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("guid", props.ResourceGuid)
 
 			if as := props.AddressSpace; as != nil {
-				if err := d.Set("address_space", helpers.FlattenStringSlice(as.AddressPrefixes)); err != nil {
+				if err := d.Set("address_space", helpers.FlattenSlice(as.AddressPrefixes)); err != nil {
 					return fmt.Errorf("setting `address_space`: %v", err)
 				}
 			}
 
 			if options := props.DhcpOptions; options != nil {
-				if err := d.Set("dns_servers", helpers.FlattenStringSlice(options.DnsServers)); err != nil {
+				if err := d.Set("dns_servers", helpers.FlattenSlice(options.DnsServers)); err != nil {
 					return fmt.Errorf("setting `dns_servers`: %v", err)
 				}
 			}

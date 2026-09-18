@@ -907,7 +907,7 @@ func flattenCustomDnsConfigs(customDnsConfigs *[]privateendpoints.CustomDnsConfi
 	for _, item := range *customDnsConfigs {
 		results = append(results, map[string]interface{}{
 			"fqdn":         item.Fqdn,
-			"ip_addresses": helpers.FlattenStringSlice(item.IPAddresses),
+			"ip_addresses": helpers.FlattenSlice(item.IPAddresses),
 		})
 	}
 
@@ -927,7 +927,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 
 			if props := item.Properties; props != nil {
 				if v := props.GroupIds; v != nil {
-					subResourceNames = helpers.FlattenStringSlice(v)
+					subResourceNames = helpers.FlattenSlice(v)
 				}
 				if props.PrivateLinkServiceId != nil {
 					privateConnectionId = *props.PrivateLinkServiceId
@@ -958,7 +958,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 
 			if props := item.Properties; props != nil {
 				if v := props.GroupIds; v != nil {
-					subResourceNames = helpers.FlattenStringSlice(v)
+					subResourceNames = helpers.FlattenSlice(v)
 				}
 				if props.PrivateLinkServiceId != nil {
 					privateConnectionId = *props.PrivateLinkServiceId

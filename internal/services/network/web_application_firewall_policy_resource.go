@@ -1179,7 +1179,7 @@ func flattenWebApplicationFirewallPolicyMatchCondition(input []webapplicationfir
 				transforms = append(transforms, string(trans))
 			}
 		}
-		v["match_values"] = helpers.FlattenStringSlice(pointer.To(item.MatchValues))
+		v["match_values"] = helpers.FlattenSlice(pointer.To(item.MatchValues))
 		v["match_variables"] = flattenWebApplicationFirewallPolicyMatchVariable(item.MatchVariables)
 		if negationCondition := item.NegationConditon; negationCondition != nil {
 			v["negation_condition"] = *negationCondition

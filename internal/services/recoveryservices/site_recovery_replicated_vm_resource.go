@@ -1244,7 +1244,7 @@ func flattenSiteRecoveryReplicatedVMIPConfig(ipConfigs *[]replicationprotectedit
 				"failover_test_public_ip_address_id": pointer.From(ipConfig.TfoPublicIPAddressId),
 			}
 			if ipConfig.RecoveryLBBackendAddressPoolIds != nil {
-				output["recovery_load_balancer_backend_address_pool_ids"] = helpers.FlattenStringSlice(ipConfig.RecoveryLBBackendAddressPoolIds)
+				output["recovery_load_balancer_backend_address_pool_ids"] = helpers.FlattenSlice(ipConfig.RecoveryLBBackendAddressPoolIds)
 			}
 			outputs = append(outputs, output)
 		}

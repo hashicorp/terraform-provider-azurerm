@@ -473,10 +473,10 @@ func flattenIotSecurityDeviceGroupAllowRule(input *[]security.BasicAllowlistCust
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"connection_from_ips_not_allowed": helpers.FlattenStringSlice(connectionFromIPsNotAllowed),
-			"connection_to_ips_not_allowed":   helpers.FlattenStringSlice(connectionToIPsNotAllowed),
-			"local_users_not_allowed":         helpers.FlattenStringSlice(localUsersNotAllowed),
-			"processes_not_allowed":           helpers.FlattenStringSlice(processesNotAllowed),
+			"connection_from_ips_not_allowed": helpers.FlattenSlice(connectionFromIPsNotAllowed),
+			"connection_to_ips_not_allowed":   helpers.FlattenSlice(connectionToIPsNotAllowed),
+			"local_users_not_allowed":         helpers.FlattenSlice(localUsersNotAllowed),
+			"processes_not_allowed":           helpers.FlattenSlice(processesNotAllowed),
 		},
 	}
 }

@@ -205,7 +205,7 @@ func dataSourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, me
 			d.Set("time_window", schedule.TimeWindowInMinutes)
 		}
 
-		d.Set("authorized_resource_ids", helpers.FlattenStringSlice(props.Source.AuthorizedResources))
+		d.Set("authorized_resource_ids", helpers.FlattenSlice(props.Source.AuthorizedResources))
 		d.Set("data_source_id", props.Source.DataSourceId)
 		d.Set("query", props.Source.Query)
 		d.Set("query_type", string(pointer.From(props.Source.QueryType)))

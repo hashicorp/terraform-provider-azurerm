@@ -140,7 +140,7 @@ func resourceDataProtectionResourceGuardRead(d *pluginsdk.ResourceData, meta int
 		d.Set("location", location.Normalize(model.Location))
 
 		props := model.Properties
-		d.Set("vault_critical_operation_exclusion_list", helpers.FlattenStringSlice(props.VaultCriticalOperationExclusionList))
+		d.Set("vault_critical_operation_exclusion_list", helpers.FlattenSlice(props.VaultCriticalOperationExclusionList))
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err

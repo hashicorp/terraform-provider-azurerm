@@ -201,7 +201,7 @@ func resourceDataFactoryManagedPrivateEndpointRead(d *pluginsdk.ResourceData, me
 		props := model.Properties
 		d.Set("target_resource_id", props.PrivateLinkResourceId)
 		d.Set("subresource_name", props.GroupId)
-		d.Set("fqdns", helpers.FlattenStringSlice(props.Fqdns))
+		d.Set("fqdns", helpers.FlattenSlice(props.Fqdns))
 	}
 
 	return nil

@@ -51,20 +51,20 @@ func flattenConsumptionBudgetNotifications(input *map[string]budgets.Notificatio
 
 		var emails []interface{}
 		if v := n.ContactEmails; v != nil {
-			emails = helpers.FlattenStringSlice(&v)
+			emails = helpers.FlattenSlice(&v)
 		}
 		block["contact_emails"] = emails
 
 		if scope != "management_group_id" {
 			var roles []interface{}
 			if v := n.ContactRoles; v != nil {
-				roles = helpers.FlattenStringSlice(v)
+				roles = helpers.FlattenSlice(v)
 			}
 			block["contact_roles"] = roles
 
 			var groups []interface{}
 			if v := n.ContactGroups; v != nil {
-				groups = helpers.FlattenStringSlice(v)
+				groups = helpers.FlattenSlice(v)
 			}
 			block["contact_groups"] = groups
 		}
@@ -80,7 +80,7 @@ func flattenConsumptionBudgetComparisonExpression(input *budgets.BudgetCompariso
 
 	consumptionBudgetComparisonExpression["name"] = input.Name
 	consumptionBudgetComparisonExpression["operator"] = input.Operator
-	consumptionBudgetComparisonExpression["values"] = helpers.FlattenStringSlice(&input.Values)
+	consumptionBudgetComparisonExpression["values"] = helpers.FlattenSlice(&input.Values)
 
 	return &consumptionBudgetComparisonExpression
 }

@@ -461,21 +461,21 @@ func flattenCosmosMongoCollectionIndex(input *[]cosmosdb.MongoIndex, accountIsVe
 			switch key {
 			// As `DocumentDBDefaultIndex` and `_id` cannot be updated, so they would be moved into `system_indexes`.
 			case "_id":
-				systemIndex["keys"] = helpers.FlattenStringSlice(v.Key.Keys)
+				systemIndex["keys"] = helpers.FlattenSlice(v.Key.Keys)
 				// The system index `_id` is always unique but api returns nil and it would be converted to `false` by zero-value. So it has to be manually set as `true`.
 				systemIndex["unique"] = true
 
 				systemIndexes = append(systemIndexes, systemIndex)
 
 				if accountIsVersion36 {
-					index["keys"] = helpers.FlattenStringSlice(v.Key.Keys)
+					index["keys"] = helpers.FlattenSlice(v.Key.Keys)
 					index["unique"] = true
 					indexes = append(indexes, index)
 				}
 
 			case "DocumentDBDefaultIndex":
 				// Updating system index `DocumentDBDefaultIndex` is not a supported scenario.
-				systemIndex["keys"] = helpers.FlattenStringSlice(v.Key.Keys)
+				systemIndex["keys"] = helpers.FlattenSlice(v.Key.Keys)
 
 				isUnique := false
 				if v.Options != nil && v.Options.Unique != nil {
@@ -491,7 +491,7 @@ func flattenCosmosMongoCollectionIndex(input *[]cosmosdb.MongoIndex, accountIsVe
 				}
 			default:
 				// The other settable indexes would be set in `index`
-				index["keys"] = helpers.FlattenStringSlice(v.Key.Keys)
+				index["keys"] = helpers.FlattenSlice(v.Key.Keys)
 
 				isUnique := false
 				if v.Options != nil && v.Options.Unique != nil {

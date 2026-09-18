@@ -230,7 +230,7 @@ func resourceFirewallPolicySetFlatten(d *pluginsdk.ResourceData, id *firewallpol
 			var privateIPRanges []interface{}
 			var isAutoLearnPrivateRangeEnabled bool
 			if props.Snat != nil {
-				privateIPRanges = helpers.FlattenStringSlice(props.Snat.PrivateRanges)
+				privateIPRanges = helpers.FlattenSlice(props.Snat.PrivateRanges)
 				isAutoLearnPrivateRangeEnabled = pointer.From(props.Snat.AutoLearnPrivateRanges) == firewallpolicies.AutoLearnPrivateRangesModeEnabled
 			}
 			if err := d.Set("private_ip_ranges", privateIPRanges); err != nil {
@@ -448,8 +448,8 @@ func flattenFirewallPolicyThreatIntelWhitelist(input *firewallpolicies.FirewallP
 
 	return []interface{}{
 		map[string]interface{}{
-			"ip_addresses": helpers.FlattenStringSlice(input.IPAddresses),
-			"fqdns":        helpers.FlattenStringSlice(input.Fqdns),
+			"ip_addresses": helpers.FlattenSlice(input.IPAddresses),
+			"fqdns":        helpers.FlattenSlice(input.Fqdns),
 		},
 	}
 }
@@ -461,7 +461,7 @@ func flattenFirewallPolicyDNSSetting(input *firewallpolicies.DnsSettings) []inte
 
 	return []interface{}{
 		map[string]interface{}{
-			"servers":       helpers.FlattenStringSlice(input.Servers),
+			"servers":       helpers.FlattenSlice(input.Servers),
 			"proxy_enabled": pointer.From(input.EnableProxy),
 		},
 	}

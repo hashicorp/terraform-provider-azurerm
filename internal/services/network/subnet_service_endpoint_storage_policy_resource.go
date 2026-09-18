@@ -295,7 +295,7 @@ func flattenServiceEndpointPolicyDefinitions(input *[]serviceendpointpolicies.Se
 			if b.Description != nil {
 				description = *b.Description
 			}
-			serviceResource = helpers.FlattenStringSlice(b.ServiceResources)
+			serviceResource = helpers.FlattenSlice(b.ServiceResources)
 			if b.Service != nil {
 				service = *b.Service
 			}

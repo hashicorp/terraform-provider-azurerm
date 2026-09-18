@@ -220,7 +220,7 @@ func resourceKustoIotHubDataConnectionRead(d *pluginsdk.ResourceData, meta inter
 				d.Set("data_format", string(pointer.From(props.DataFormat)))
 				d.Set("database_routing_type", string(pointer.From(props.DatabaseRouting)))
 				d.Set("shared_access_policy_name", props.SharedAccessPolicyName)
-				d.Set("event_system_properties", helpers.FlattenStringSlice(props.EventSystemProperties))
+				d.Set("event_system_properties", helpers.FlattenSlice(props.EventSystemProperties))
 				d.Set("retrieval_start_date", pointer.From(props.RetrievalStartDate))
 			}
 		}

@@ -108,7 +108,7 @@ func dataSourceKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceDa
 
 		if props := model.Properties; props != nil {
 			d.Set("tenant_id", pointer.From(props.TenantId))
-			d.Set("admin_object_ids", helpers.FlattenStringSlice(props.InitialAdminObjectIds))
+			d.Set("admin_object_ids", helpers.FlattenSlice(props.InitialAdminObjectIds))
 			d.Set("hsm_uri", props.HsmUri)
 			d.Set("purge_protection_enabled", props.EnablePurgeProtection)
 			d.Set("soft_delete_retention_days", props.SoftDeleteRetentionInDays)

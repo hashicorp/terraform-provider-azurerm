@@ -603,9 +603,9 @@ func flattenFhirCorsConfiguration(corsConfig *fhirservices.FhirServiceCorsConfig
 	return []interface{}{
 		map[string]interface{}{
 			"credentials_allowed": pointer.From(corsConfig.AllowCredentials),
-			"allowed_headers":     helpers.FlattenStringSlice(corsConfig.Headers),
-			"allowed_methods":     helpers.FlattenStringSlice(corsConfig.Methods),
-			"allowed_origins":     helpers.FlattenStringSlice(corsConfig.Origins),
+			"allowed_headers":     helpers.FlattenSlice(corsConfig.Headers),
+			"allowed_methods":     helpers.FlattenSlice(corsConfig.Methods),
+			"allowed_origins":     helpers.FlattenSlice(corsConfig.Origins),
 			"max_age_in_seconds":  maxAge,
 		},
 	}

@@ -302,7 +302,7 @@ func setRemediationProperties(d *pluginsdk.ResourceData, prop *remediations.Reme
 	}
 	locations := []interface{}{}
 	if filters := prop.Filters; filters != nil {
-		locations = helpers.FlattenStringSlice(filters.Locations)
+		locations = helpers.FlattenSlice(filters.Locations)
 	}
 	if err := d.Set("location_filters", locations); err != nil {
 		return fmt.Errorf("setting `location_filters`: %+v", err)

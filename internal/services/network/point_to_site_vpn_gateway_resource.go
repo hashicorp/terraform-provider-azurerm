@@ -317,7 +317,7 @@ func resourcePointToSiteVPNGatewayRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
-			d.Set("dns_servers", helpers.FlattenStringSlice(props.CustomDnsServers))
+			d.Set("dns_servers", helpers.FlattenSlice(props.CustomDnsServers))
 			if err := d.Set("connection_configuration", flattenPointToSiteVPNGatewayConnectionConfiguration(props.P2SConnectionConfigurations)); err != nil {
 				return fmt.Errorf("setting `connection_configuration`: %+v", err)
 			}
@@ -538,7 +538,7 @@ func flattenPointToSiteVPNGatewayConnectionRouteConfigurationPropagatedRouteTabl
 	return []interface{}{
 		map[string]interface{}{
 			"ids":    ids,
-			"labels": helpers.FlattenStringSlice(input.Labels),
+			"labels": helpers.FlattenSlice(input.Labels),
 		},
 	}
 }

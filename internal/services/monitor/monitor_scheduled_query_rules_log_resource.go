@@ -236,7 +236,7 @@ func resourceMonitorScheduledQueryRulesLogRead(d *pluginsdk.ResourceData, meta i
 		}
 
 		if props.Source.AuthorizedResources != nil {
-			d.Set("authorized_resource_ids", helpers.FlattenStringSlice(props.Source.AuthorizedResources))
+			d.Set("authorized_resource_ids", helpers.FlattenSlice(props.Source.AuthorizedResources))
 		}
 
 		d.Set("data_source_id", props.Source.DataSourceId)

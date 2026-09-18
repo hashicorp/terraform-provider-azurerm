@@ -178,7 +178,7 @@ func resourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta inter
 
 	if resp.Model != nil {
 		if props := resp.Model.Properties; props != nil {
-			d.Set("assignable_scopes", helpers.FlattenStringSlice(props.AssignableScopes))
+			d.Set("assignable_scopes", helpers.FlattenSlice(props.AssignableScopes))
 			d.Set("name", props.RoleName)
 			d.Set("type", pointer.FromEnum(props.Type))
 
@@ -284,7 +284,7 @@ func flattenSqlRoleDefinitionPermissions(input *[]rbacs.Permission) []interface{
 
 	for _, item := range *input {
 		results = append(results, map[string]interface{}{
-			"data_actions": helpers.FlattenStringSlice(item.DataActions),
+			"data_actions": helpers.FlattenSlice(item.DataActions),
 		})
 	}
 

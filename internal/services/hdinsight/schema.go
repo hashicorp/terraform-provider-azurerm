@@ -1875,11 +1875,11 @@ func flattenHDInsightSecurityProfile(input *clusters.SecurityProfile, d *plugins
 	return []interface{}{
 		map[string]interface{}{
 			"aadds_resource_id":       pointer.From(input.AaddsResourceId),
-			"cluster_users_group_dns": helpers.FlattenStringSlice(input.ClusterUsersGroupDNs),
+			"cluster_users_group_dns": helpers.FlattenSlice(input.ClusterUsersGroupDNs),
 			"domain_name":             pointer.From(input.Domain),
 			"domain_username":         pointer.From(input.DomainUsername),
 			"domain_user_password":    d.Get("security_profile.0.domain_user_password"),
-			"ldaps_urls":              helpers.FlattenStringSlice(input.LdapsURLs),
+			"ldaps_urls":              helpers.FlattenSlice(input.LdapsURLs),
 			"msi_resource_id":         pointer.From(input.MsiResourceId),
 		},
 	}

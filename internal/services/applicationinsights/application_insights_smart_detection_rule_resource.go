@@ -153,7 +153,7 @@ func resourceApplicationInsightsSmartDetectionRuleRead(d *pluginsdk.ResourceData
 		d.Set("name", model.Name)
 		d.Set("enabled", model.Enabled)
 		d.Set("send_emails_to_subscription_owners", model.SendEmailsToSubscriptionOwners)
-		d.Set("additional_email_recipients", helpers.FlattenStringSlice(model.CustomEmails))
+		d.Set("additional_email_recipients", helpers.FlattenSlice(model.CustomEmails))
 	}
 	return nil
 }

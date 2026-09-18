@@ -521,7 +521,7 @@ func resourceMonitorActivityLogAlertFlatten(d *pluginsdk.ResourceData, id *activ
 
 			var scopes []interface{}
 			if props.Scopes != nil {
-				scopes = helpers.FlattenStringSlice(&props.Scopes)
+				scopes = helpers.FlattenSlice(&props.Scopes)
 			}
 			if err := d.Set("scopes", scopes); err != nil {
 				return fmt.Errorf("setting `scopes`: %+v", err)

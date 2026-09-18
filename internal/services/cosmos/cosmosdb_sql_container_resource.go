@@ -338,7 +338,7 @@ func resourceCosmosDbSQLContainerRead(d *pluginsdk.ResourceData, meta interface{
 			if res := props.Resource; res != nil {
 				if pk := res.PartitionKey; pk != nil {
 					d.Set("partition_key_kind", pointer.FromEnum(pk.Kind))
-					d.Set("partition_key_paths", helpers.FlattenStringSlice(pk.Paths))
+					d.Set("partition_key_paths", helpers.FlattenSlice(pk.Paths))
 					d.Set("partition_key_version", pk.Version)
 				}
 

@@ -395,7 +395,7 @@ func flattenVpnSiteAddressSpace(input *virtualwans.AddressSpace) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
-	return helpers.FlattenStringSlice(input.AddressPrefixes)
+	return helpers.FlattenSlice(input.AddressPrefixes)
 }
 
 func expandVpnSiteLinks(input []interface{}) *[]virtualwans.VpnSiteLink {

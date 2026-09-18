@@ -631,7 +631,7 @@ func flattenCdnFrontDoorRouteCacheConfiguration(input *routes.AfdRouteCacheConfi
 	contentTypesToCompress := make([]interface{}, 0)
 	if v := input.CompressionSettings; v != nil {
 		compressionEnabled = pointer.From(v.IsCompressionEnabled)
-		contentTypesToCompress = helpers.FlattenStringSlice(v.ContentTypesToCompress)
+		contentTypesToCompress = helpers.FlattenSlice(v.ContentTypesToCompress)
 	}
 
 	return []interface{}{

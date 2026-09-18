@@ -165,7 +165,7 @@ func resourceVmwareClusterRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	if model := resp.Model; model != nil {
 		d.Set("cluster_node_count", model.Properties.ClusterSize)
 		d.Set("cluster_number", model.Properties.ClusterId)
-		d.Set("hosts", helpers.FlattenStringSlice(model.Properties.Hosts))
+		d.Set("hosts", helpers.FlattenSlice(model.Properties.Hosts))
 		d.Set("sku_name", model.Sku.Name)
 	}
 

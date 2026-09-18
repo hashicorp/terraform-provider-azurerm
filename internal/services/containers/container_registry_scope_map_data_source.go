@@ -77,7 +77,7 @@ func dataSourceContainerRegistryScopeMapRead(d *pluginsdk.ResourceData, meta int
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("description", pointer.From(props.Description))
-			d.Set("actions", helpers.FlattenStringSlice(&props.Actions))
+			d.Set("actions", helpers.FlattenSlice(&props.Actions))
 		}
 	}
 	return nil

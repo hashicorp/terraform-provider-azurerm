@@ -1135,7 +1135,7 @@ func flattenSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerPr
 
 	label := pointer.From(gitProperty.Label)
 
-	searchPaths := helpers.FlattenStringSlice(gitProperty.SearchPaths)
+	searchPaths := helpers.FlattenSlice(gitProperty.SearchPaths)
 
 	httpBasicAuth := make([]interface{}, 0)
 	if gitProperty.Username != nil && gitProperty.Password != nil {
@@ -1232,8 +1232,8 @@ func flattenSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepos
 			oldGitPatternRepository = gpr.(map[string]interface{})
 		}
 
-		pattern := helpers.FlattenStringSlice(item.Pattern)
-		searchPaths := helpers.FlattenStringSlice(item.SearchPaths)
+		pattern := helpers.FlattenSlice(item.Pattern)
+		searchPaths := helpers.FlattenSlice(item.SearchPaths)
 
 		httpBasicAuth := []interface{}{}
 		if item.Username != nil && item.Password != nil {
@@ -1347,7 +1347,7 @@ func flattenSpringCloudNetwork(input *appplatform.NetworkProfile) []interface{} 
 	}
 	if input.ServiceCidr != nil {
 		cidrs := strings.Split(*input.ServiceCidr, ",")
-		cidrRanges = helpers.FlattenStringSlice(&cidrs)
+		cidrRanges = helpers.FlattenSlice(&cidrs)
 	}
 	if input.ServiceRuntimeNetworkResourceGroup != nil {
 		serviceRuntimeNetworkResourceGroup = *input.ServiceRuntimeNetworkResourceGroup
@@ -1389,7 +1389,7 @@ func flattenOutboundPublicIPAddresses(input *appplatform.NetworkProfile) []inter
 		return []interface{}{}
 	}
 
-	return helpers.FlattenStringSlice(input.OutboundIPs.PublicIPs)
+	return helpers.FlattenSlice(input.OutboundIPs.PublicIPs)
 }
 
 func flattenRequiredTraffic(input *appplatform.NetworkProfile) []interface{} {
@@ -1409,8 +1409,8 @@ func flattenRequiredTraffic(input *appplatform.NetworkProfile) []interface{} {
 		result = append(result, map[string]interface{}{
 			"protocol":     protocol,
 			"port":         port,
-			"ip_addresses": helpers.FlattenStringSlice(v.Ips),
-			"fqdns":        helpers.FlattenStringSlice(v.Fqdns),
+			"ip_addresses": helpers.FlattenSlice(v.Ips),
+			"fqdns":        helpers.FlattenSlice(v.Fqdns),
 			"direction":    string(v.Direction),
 		})
 	}

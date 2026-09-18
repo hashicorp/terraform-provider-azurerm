@@ -591,19 +591,19 @@ func flattenUpstreamSettings(upstreamSettings *signalr.ServerlessUpstreamSetting
 		categoryPattern := make([]interface{}, 0)
 		if settings.CategoryPattern != nil {
 			categoryPatterns := strings.Split(*settings.CategoryPattern, ",")
-			categoryPattern = helpers.FlattenStringSlice(&categoryPatterns)
+			categoryPattern = helpers.FlattenSlice(&categoryPatterns)
 		}
 
 		eventPattern := make([]interface{}, 0)
 		if settings.EventPattern != nil {
 			eventPatterns := strings.Split(*settings.EventPattern, ",")
-			eventPattern = helpers.FlattenStringSlice(&eventPatterns)
+			eventPattern = helpers.FlattenSlice(&eventPatterns)
 		}
 
 		hubPattern := make([]interface{}, 0)
 		if settings.HubPattern != nil {
 			hubPatterns := strings.Split(*settings.HubPattern, ",")
-			hubPattern = helpers.FlattenStringSlice(&hubPatterns)
+			hubPattern = helpers.FlattenSlice(&hubPatterns)
 		}
 
 		var managedIdentityId string

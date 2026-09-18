@@ -432,7 +432,7 @@ func flattenExpressRouteConnectionPropagatedRouteTable(input *expressrouteconnec
 
 	labels := make([]interface{}, 0)
 	if input.Labels != nil {
-		labels = helpers.FlattenStringSlice(input.Labels)
+		labels = helpers.FlattenSlice(input.Labels)
 	}
 
 	routeTableIds := make([]interface{}, 0)

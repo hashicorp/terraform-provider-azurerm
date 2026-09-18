@@ -296,8 +296,8 @@ func resourceSpringCloudContainerDeploymentRead(d *pluginsdk.ResourceData, meta 
 			if container := source.CustomContainer; container != nil {
 				d.Set("server", container.Server)
 				d.Set("image", container.ContainerImage)
-				d.Set("arguments", helpers.FlattenStringSlice(container.Args))
-				d.Set("commands", helpers.FlattenStringSlice(container.Command))
+				d.Set("arguments", helpers.FlattenSlice(container.Args))
+				d.Set("commands", helpers.FlattenSlice(container.Command))
 				d.Set("language_framework", container.LanguageFramework)
 			}
 		}

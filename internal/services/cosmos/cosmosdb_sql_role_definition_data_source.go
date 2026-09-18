@@ -102,7 +102,7 @@ func dataSourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta int
 
 	if resp.Model != nil {
 		if props := resp.Model.Properties; props != nil {
-			d.Set("assignable_scopes", helpers.FlattenStringSlice(props.AssignableScopes))
+			d.Set("assignable_scopes", helpers.FlattenSlice(props.AssignableScopes))
 			d.Set("name", props.RoleName)
 			d.Set("type", pointer.FromEnum(props.Type))
 

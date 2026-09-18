@@ -327,7 +327,7 @@ func flattenWebpubsubPublicNetwork(input *webpubsub.NetworkACL) []interface{} {
 			allowRequestTypes = append(allowRequestTypes, string(item))
 		}
 	}
-	allow := helpers.FlattenStringSlice(&allowRequestTypes)
+	allow := helpers.FlattenSlice(&allowRequestTypes)
 
 	deniedRequestTypes := make([]string, 0)
 	if input.Deny != nil {
@@ -335,7 +335,7 @@ func flattenWebpubsubPublicNetwork(input *webpubsub.NetworkACL) []interface{} {
 			deniedRequestTypes = append(deniedRequestTypes, string(item))
 		}
 	}
-	deny := helpers.FlattenStringSlice(&deniedRequestTypes)
+	deny := helpers.FlattenSlice(&deniedRequestTypes)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -416,7 +416,7 @@ func flattenWebpubsubPrivateEndpoint(input *[]webpubsub.PrivateEndpointACL, priv
 						allowedRequestTypes = append(allowedRequestTypes, string(item))
 					}
 				}
-				allow := helpers.FlattenStringSlice(&allowedRequestTypes)
+				allow := helpers.FlattenSlice(&allowedRequestTypes)
 
 				deniedRequestTypes := make([]string, 0)
 				if item.Deny != nil {
@@ -424,7 +424,7 @@ func flattenWebpubsubPrivateEndpoint(input *[]webpubsub.PrivateEndpointACL, priv
 						deniedRequestTypes = append(deniedRequestTypes, string(item))
 					}
 				}
-				deny := helpers.FlattenStringSlice(&deniedRequestTypes)
+				deny := helpers.FlattenSlice(&deniedRequestTypes)
 
 				results = append(results, map[string]interface{}{
 					"id":                    *props.PrivateEndpoint.Id,

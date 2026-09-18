@@ -356,7 +356,7 @@ func flattenVirtualNetworkGatewayDataSourceVpnClientConfig(cfg *virtualnetworkga
 	flat := make(map[string]interface{})
 
 	if pool := cfg.VpnClientAddressPool; pool != nil {
-		flat["address_space"] = helpers.FlattenStringSlice(pool.AddressPrefixes)
+		flat["address_space"] = helpers.FlattenSlice(pool.AddressPrefixes)
 	} else {
 		flat["address_space"] = []interface{}{}
 	}

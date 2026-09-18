@@ -497,28 +497,28 @@ func flattenEventSubscriptionAdvancedFilter(input *eventsubscriptions.EventSubsc
 			v := helpers.FlattenSlice(f.Values)
 			numberNotIn = append(numberNotIn, flattenValues(f.Key, &v))
 		case eventsubscriptions.StringBeginsWithAdvancedFilter:
-			v := helpers.FlattenStringSlice(f.Values)
+			v := helpers.FlattenSlice(f.Values)
 			stringBeginsWith = append(stringBeginsWith, flattenValues(f.Key, &v))
 		case eventsubscriptions.StringNotBeginsWithAdvancedFilter:
-			v := helpers.FlattenStringSlice(f.Values)
+			v := helpers.FlattenSlice(f.Values)
 			stringNotBeginsWith = append(stringNotBeginsWith, flattenValues(f.Key, &v))
 		case eventsubscriptions.StringEndsWithAdvancedFilter:
-			v := helpers.FlattenStringSlice(f.Values)
+			v := helpers.FlattenSlice(f.Values)
 			stringEndsWith = append(stringEndsWith, flattenValues(f.Key, &v))
 		case eventsubscriptions.StringNotEndsWithAdvancedFilter:
-			v := helpers.FlattenStringSlice(f.Values)
+			v := helpers.FlattenSlice(f.Values)
 			stringNotEndsWith = append(stringNotEndsWith, flattenValues(f.Key, &v))
 		case eventsubscriptions.StringContainsAdvancedFilter:
-			v := helpers.FlattenStringSlice(f.Values)
+			v := helpers.FlattenSlice(f.Values)
 			stringContains = append(stringContains, flattenValues(f.Key, &v))
 		case eventsubscriptions.StringNotContainsAdvancedFilter:
-			v := helpers.FlattenStringSlice(f.Values)
+			v := helpers.FlattenSlice(f.Values)
 			stringNotContains = append(stringNotContains, flattenValues(f.Key, &v))
 		case eventsubscriptions.StringInAdvancedFilter:
-			v := helpers.FlattenStringSlice(f.Values)
+			v := helpers.FlattenSlice(f.Values)
 			stringIn = append(stringIn, flattenValues(f.Key, &v))
 		case eventsubscriptions.StringNotInAdvancedFilter:
-			v := helpers.FlattenStringSlice(f.Values)
+			v := helpers.FlattenSlice(f.Values)
 			stringNotIn = append(stringNotIn, flattenValues(f.Key, &v))
 		case eventsubscriptions.NumberInRangeAdvancedFilter:
 			v := helpers.FlattenFloatRangeSlice(f.Values)

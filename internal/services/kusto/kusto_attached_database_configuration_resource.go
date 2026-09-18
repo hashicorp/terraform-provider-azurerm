@@ -357,14 +357,14 @@ func flattenAttachedDatabaseConfigurationTableLevelSharingProperties(input *atta
 
 	return []interface{}{
 		map[string]interface{}{
-			"external_tables_to_exclude":    helpers.FlattenStringSlice(input.ExternalTablesToExclude),
-			"external_tables_to_include":    helpers.FlattenStringSlice(input.ExternalTablesToInclude),
-			"functions_to_exclude":          helpers.FlattenStringSlice(input.FunctionsToExclude),
-			"functions_to_include":          helpers.FlattenStringSlice(input.FunctionsToInclude),
-			"materialized_views_to_exclude": helpers.FlattenStringSlice(input.MaterializedViewsToExclude),
-			"materialized_views_to_include": helpers.FlattenStringSlice(input.MaterializedViewsToInclude),
-			"tables_to_exclude":             helpers.FlattenStringSlice(input.TablesToExclude),
-			"tables_to_include":             helpers.FlattenStringSlice(input.TablesToInclude),
+			"external_tables_to_exclude":    helpers.FlattenSlice(input.ExternalTablesToExclude),
+			"external_tables_to_include":    helpers.FlattenSlice(input.ExternalTablesToInclude),
+			"functions_to_exclude":          helpers.FlattenSlice(input.FunctionsToExclude),
+			"functions_to_include":          helpers.FlattenSlice(input.FunctionsToInclude),
+			"materialized_views_to_exclude": helpers.FlattenSlice(input.MaterializedViewsToExclude),
+			"materialized_views_to_include": helpers.FlattenSlice(input.MaterializedViewsToInclude),
+			"tables_to_exclude":             helpers.FlattenSlice(input.TablesToExclude),
+			"tables_to_include":             helpers.FlattenSlice(input.TablesToInclude),
 		},
 	}
 }

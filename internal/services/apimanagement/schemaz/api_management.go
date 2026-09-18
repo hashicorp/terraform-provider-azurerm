@@ -320,7 +320,7 @@ func FlattenApiManagementOperationParameterContract(input *[]apioperation.Parame
 		output["type"] = v.Type
 		output["required"] = pointer.From(v.Required)
 		output["default_value"] = pointer.From(v.DefaultValue)
-		output["values"] = pluginsdk.NewSet(pluginsdk.HashString, helpers.FlattenStringSlice(v.Values))
+		output["values"] = pluginsdk.NewSet(pluginsdk.HashString, helpers.FlattenSlice(v.Values))
 
 		if v.Examples != nil {
 			example, err := FlattenApiManagementOperationParameterExampleContract(*v.Examples)

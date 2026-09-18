@@ -475,9 +475,9 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *kv.CertificatePolicy) 
 		sanOutputs := make([]interface{}, 0)
 		if san := props.SubjectAlternativeNames; san != nil {
 			sanOutputs = append(sanOutputs, map[string]interface{}{
-				"emails":    helpers.FlattenStringSlice(san.Emails),
-				"dns_names": helpers.FlattenStringSlice(san.DNSNames),
-				"upns":      helpers.FlattenStringSlice(san.Upns),
+				"emails":    helpers.FlattenSlice(san.Emails),
+				"dns_names": helpers.FlattenSlice(san.DNSNames),
+				"upns":      helpers.FlattenSlice(san.Upns),
 			})
 		}
 
@@ -486,7 +486,7 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *kv.CertificatePolicy) 
 				"key_usage":                 usages,
 				"subject":                   subject,
 				"validity_in_months":        validityInMonths,
-				"extended_key_usage":        helpers.FlattenStringSlice(props.Ekus),
+				"extended_key_usage":        helpers.FlattenSlice(props.Ekus),
 				"subject_alternative_names": sanOutputs,
 			},
 		}

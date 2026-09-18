@@ -491,9 +491,9 @@ func flattenVPNGatewayIPConfigurationBgpPeeringAddress(input virtualwans.IPConfi
 	return []interface{}{
 		map[string]interface{}{
 			"ip_configuration_id": pointer.From(input.IPconfigurationId),
-			"custom_ips":          helpers.FlattenStringSlice(input.CustomBgpIPAddresses),
-			"default_ips":         helpers.FlattenStringSlice(input.DefaultBgpIPAddresses),
-			"tunnel_ips":          helpers.FlattenStringSlice(input.TunnelIPAddresses),
+			"custom_ips":          helpers.FlattenSlice(input.CustomBgpIPAddresses),
+			"default_ips":         helpers.FlattenSlice(input.DefaultBgpIPAddresses),
+			"tunnel_ips":          helpers.FlattenSlice(input.TunnelIPAddresses),
 		},
 	}
 }

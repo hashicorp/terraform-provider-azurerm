@@ -377,7 +377,7 @@ func flattenObjectReplicationRules(input *[]objectreplicationpolicyoperationgrou
 
 		var prefix []interface{}
 		if item.Filters != nil && item.Filters.PrefixMatch != nil {
-			prefix = helpers.FlattenStringSlice(item.Filters.PrefixMatch)
+			prefix = helpers.FlattenSlice(item.Filters.PrefixMatch)
 		}
 
 		v := map[string]interface{}{

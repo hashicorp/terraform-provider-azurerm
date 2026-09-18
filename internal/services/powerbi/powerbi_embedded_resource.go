@@ -167,7 +167,7 @@ func resourcePowerBIEmbeddedRead(d *pluginsdk.ResourceData, meta interface{}) er
 			if props.Administration != nil {
 				adminMembers = props.Administration.Members
 			}
-			if err := d.Set("administrators", helpers.FlattenStringSlice(adminMembers)); err != nil {
+			if err := d.Set("administrators", helpers.FlattenSlice(adminMembers)); err != nil {
 				return fmt.Errorf("setting `administration`: %+v", err)
 			}
 

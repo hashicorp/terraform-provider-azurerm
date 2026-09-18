@@ -801,7 +801,7 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("node_resource_group_id", nodeResourceGroupId.ID())
 
 			if accessProfile := props.ApiServerAccessProfile; accessProfile != nil {
-				if err := d.Set("api_server_authorized_ip_ranges", helpers.FlattenStringSlice(accessProfile.AuthorizedIPRanges)); err != nil {
+				if err := d.Set("api_server_authorized_ip_ranges", helpers.FlattenSlice(accessProfile.AuthorizedIPRanges)); err != nil {
 					return fmt.Errorf("setting `api_server_authorized_ip_ranges`: %+v", err)
 				}
 
@@ -1273,7 +1273,7 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]managedcluster
 func flattenKubernetesClusterDataSourceAzureActiveDirectoryRoleBasedAccessControl(input *managedclusters.ManagedClusterProperties) []interface{} {
 	results := make([]interface{}, 0)
 	if profile := input.AadProfile; profile != nil {
-		adminGroupObjectIds := helpers.FlattenStringSlice(profile.AdminGroupObjectIDs)
+		adminGroupObjectIds := helpers.FlattenSlice(profile.AdminGroupObjectIDs)
 
 		azureRbacEnabled := pointer.From(profile.EnableAzureRBAC)
 

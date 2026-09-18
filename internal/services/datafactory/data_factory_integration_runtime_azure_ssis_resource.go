@@ -1076,7 +1076,7 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisVnetIntegration(vnetProperties
 			"vnet_id":     pointer.From(vnetProperties.VNetId),
 			"subnet_id":   pointer.From(vnetProperties.SubnetId),
 			"subnet_name": pointer.From(vnetProperties.Subnet),
-			"public_ips":  helpers.FlattenStringSlice(vnetProperties.PublicIPs),
+			"public_ips":  helpers.FlattenSlice(vnetProperties.PublicIPs),
 		},
 	}
 }

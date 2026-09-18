@@ -436,7 +436,7 @@ func flattenCdnFrontDoorSecurityPolicyResource(input securitypolicies.SecurityPo
 
 			associations = append(associations, map[string]interface{}{
 				"domain":            domain,
-				"patterns_to_match": helpers.FlattenStringSlice(item.PatternsToMatch),
+				"patterns_to_match": helpers.FlattenSlice(item.PatternsToMatch),
 			})
 		}
 	}

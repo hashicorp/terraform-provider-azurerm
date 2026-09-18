@@ -1703,7 +1703,7 @@ func flattenIoTHubFallbackRoute(input *devices.RoutingProperties) []interface{} 
 		output["source"] = *source
 	}
 
-	output["endpoint_names"] = helpers.FlattenStringSlice(route.EndpointNames)
+	output["endpoint_names"] = helpers.FlattenSlice(route.EndpointNames)
 
 	return []interface{}{output}
 }

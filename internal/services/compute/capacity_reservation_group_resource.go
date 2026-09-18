@@ -137,7 +137,7 @@ func resourceCapacityReservationGroupFlatten(d *pluginsdk.ResourceData, id *capa
 
 	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
-		d.Set("zones", helpers.FlattenStringSlice(model.Zones))
+		d.Set("zones", helpers.FlattenSlice(model.Zones))
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return fmt.Errorf("setting `tags`: %+v", err)
 		}

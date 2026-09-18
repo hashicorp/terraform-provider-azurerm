@@ -245,7 +245,7 @@ func resourceVirtualHubRouteTableRead(d *pluginsdk.ResourceData, meta interface{
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("labels", helpers.FlattenStringSlice(props.Labels))
+			d.Set("labels", helpers.FlattenSlice(props.Labels))
 
 			if err := d.Set("route", flattenVirtualHubRouteTableHubRoutes(props.Routes)); err != nil {
 				return fmt.Errorf("setting `route`: %+v", err)
@@ -305,7 +305,7 @@ func flattenVirtualHubRouteTableHubRoutes(input *[]virtualwans.HubRoute) []inter
 	for _, item := range *input {
 		v := map[string]interface{}{
 			"name":              item.Name,
-			"destinations":      helpers.FlattenStringSlice(&item.Destinations),
+			"destinations":      helpers.FlattenSlice(&item.Destinations),
 			"destinations_type": item.DestinationType,
 			"next_hop":          item.NextHop,
 			"next_hop_type":     item.NextHopType,

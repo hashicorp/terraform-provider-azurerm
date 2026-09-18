@@ -377,7 +377,7 @@ func resourceIotSecuritySolutionRead(d *pluginsdk.ResourceData, meta interface{}
 	if prop := resp.IoTSecuritySolutionProperties; prop != nil {
 		d.Set("enabled", prop.Status == security.SolutionStatusEnabled)
 		d.Set("display_name", prop.DisplayName)
-		d.Set("iothub_ids", helpers.FlattenStringSlice(prop.IotHubs))
+		d.Set("iothub_ids", helpers.FlattenSlice(prop.IotHubs))
 		d.Set("log_analytics_workspace_id", prop.Workspace)
 		d.Set("log_unmasked_ips_enabled", prop.UnmaskedIPLoggingStatus == security.UnmaskedIPLoggingStatusEnabled)
 		if err := d.Set("events_to_export", flattenIotSecuritySolutionExport(prop.Export)); err != nil {
@@ -388,7 +388,7 @@ func resourceIotSecuritySolutionRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 		if prop.UserDefinedResources != nil {
 			d.Set("query_for_resources", prop.UserDefinedResources.Query)
-			d.Set("query_subscription_ids", helpers.FlattenStringSlice(prop.UserDefinedResources.QuerySubscriptions))
+			d.Set("query_subscription_ids", helpers.FlattenSlice(prop.UserDefinedResources.QuerySubscriptions))
 		}
 		if err := d.Set("additional_workspace", flattenIotSecuritySolutionAdditionalWorkspace(prop.AdditionalWorkspaces)); err != nil {
 			return fmt.Errorf("setting `additional_workspace`: %+v", err)
@@ -517,7 +517,7 @@ func flattenIotSecuritySolutionAdditionalWorkspace(input *[]security.AdditionalW
 		for _, item := range *item.DataTypes {
 			rawDataTypes = append(rawDataTypes, string(item))
 		}
-		dataTypes := helpers.FlattenStringSlice(&rawDataTypes)
+		dataTypes := helpers.FlattenSlice(&rawDataTypes)
 
 		results = append(results, map[string]interface{}{
 			"data_types":   dataTypes,
@@ -538,7 +538,7 @@ func flattenIotSecuritySolutionDisabledDataSources(input *[]security.DataSource)
 		results = append(results, string(v))
 	}
 
-	return helpers.FlattenStringSlice(&results)
+	return helpers.FlattenSlice(&results)
 }
 
 func getRecommendationSchemaMap() map[security.RecommendationType]string {

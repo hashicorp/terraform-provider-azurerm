@@ -348,7 +348,7 @@ func flattenLighthouseDefinitionAuthorization(input []registrationdefinitions.Au
 			"role_definition_id":            item.RoleDefinitionId,
 			"principal_id":                  item.PrincipalId,
 			"principal_display_name":        pointer.From(item.PrincipalIdDisplayName),
-			"delegated_role_definition_ids": helpers.FlattenStringSlice(item.DelegatedRoleDefinitionIds),
+			"delegated_role_definition_ids": helpers.FlattenSlice(item.DelegatedRoleDefinitionIds),
 		})
 	}
 

@@ -125,11 +125,6 @@ func ExpandInt64Slice(input []interface{}) *[]int64 {
 	return ExpandSlice(input, func(i int) int64 { return int64(i) }, true)
 }
 
-// FlattenStringSlice converts a pointer to a slice of strings into a slice of interface{}.
-func FlattenStringSlice(input *[]string) []interface{} {
-	return FlattenSlice(input)
-}
-
 // FlattenFloatRangeSlice converts a pointer to a slice of float64 slices into a slice of interface{} slices.
 func FlattenFloatRangeSlice(input *[][]float64) [][]interface{} {
 	result := make([][]interface{}, 0)

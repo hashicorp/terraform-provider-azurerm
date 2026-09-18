@@ -1314,7 +1314,7 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 
 			d.Set("network_acl_bypass_for_azure_services", pointer.From(props.NetworkAclBypass) == cosmosdb.NetworkAclBypassAzureServices)
-			d.Set("network_acl_bypass_ids", helpers.FlattenStringSlice(props.NetworkAclBypassResourceIds))
+			d.Set("network_acl_bypass_ids", helpers.FlattenSlice(props.NetworkAclBypassResourceIds))
 			d.Set("local_authentication_enabled", !pointer.From(props.DisableLocalAuth))
 
 			policy, err := flattenCosmosdbAccountBackup(props.BackupPolicy)
@@ -2008,7 +2008,7 @@ func flattenCosmosdbAccountDatabasesToRestore(input *[]cosmosdb.DatabaseRestoreR
 		databaseName := pointer.From(item.DatabaseName)
 
 		results = append(results, map[string]interface{}{
-			"collection_names": helpers.FlattenStringSlice(item.CollectionNames),
+			"collection_names": helpers.FlattenSlice(item.CollectionNames),
 			"name":             databaseName,
 		})
 	}
@@ -2023,7 +2023,7 @@ func flattenCosmosdbAccountGremlinDatabasesToRestore(input *[]cosmosdb.GremlinDa
 
 	for _, item := range *input {
 		results = append(results, map[string]interface{}{
-			"graph_names": helpers.FlattenStringSlice(item.GraphNames),
+			"graph_names": helpers.FlattenSlice(item.GraphNames),
 			"name":        pointer.From(item.DatabaseName),
 		})
 	}

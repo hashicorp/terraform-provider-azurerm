@@ -486,9 +486,9 @@ func flattenCorsConfig(input *service.ServiceCorsConfigurationInfo) []interface{
 	return []interface{}{
 		map[string]interface{}{
 			"allow_credentials":  pointer.From(input.AllowCredentials),
-			"allowed_headers":    helpers.FlattenStringSlice(input.Headers),
-			"allowed_methods":    helpers.FlattenStringSlice(input.Methods),
-			"allowed_origins":    helpers.FlattenStringSlice(input.Origins),
+			"allowed_headers":    helpers.FlattenSlice(input.Headers),
+			"allowed_methods":    helpers.FlattenSlice(input.Methods),
+			"allowed_origins":    helpers.FlattenSlice(input.Origins),
 			"max_age_in_seconds": maxAge,
 		},
 	}

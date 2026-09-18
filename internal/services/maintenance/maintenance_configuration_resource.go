@@ -555,15 +555,15 @@ func flattenMaintenanceConfigurationInstallPatchesWindows(input *maintenanceconf
 		output := make(map[string]interface{})
 
 		if classificationsToInclude := v.ClassificationsToInclude; classificationsToInclude != nil {
-			output["classifications_to_include"] = helpers.FlattenStringSlice(classificationsToInclude)
+			output["classifications_to_include"] = helpers.FlattenSlice(classificationsToInclude)
 		}
 
 		if kbNumbersToExclude := v.KbNumbersToExclude; kbNumbersToExclude != nil {
-			output["kb_numbers_to_exclude"] = helpers.FlattenStringSlice(kbNumbersToExclude)
+			output["kb_numbers_to_exclude"] = helpers.FlattenSlice(kbNumbersToExclude)
 		}
 
 		if kbNumbersToInclude := v.KbNumbersToInclude; kbNumbersToInclude != nil {
-			output["kb_numbers_to_include"] = helpers.FlattenStringSlice(kbNumbersToInclude)
+			output["kb_numbers_to_include"] = helpers.FlattenSlice(kbNumbersToInclude)
 		}
 
 		results = append(results, output)
@@ -600,15 +600,15 @@ func flattenMaintenanceConfigurationInstallPatchesLinux(input *maintenanceconfig
 	if input != nil {
 		classificationsToInclude := make([]interface{}, 0)
 		if input.ClassificationsToInclude != nil {
-			classificationsToInclude = helpers.FlattenStringSlice(input.ClassificationsToInclude)
+			classificationsToInclude = helpers.FlattenSlice(input.ClassificationsToInclude)
 		}
 		packageNamesMaskToExclude := make([]interface{}, 0)
 		if input.PackageNameMasksToExclude != nil {
-			packageNamesMaskToExclude = helpers.FlattenStringSlice(input.PackageNameMasksToExclude)
+			packageNamesMaskToExclude = helpers.FlattenSlice(input.PackageNameMasksToExclude)
 		}
 		packageNamesMaskToInclude := make([]interface{}, 0)
 		if input.PackageNameMasksToInclude != nil {
-			packageNamesMaskToInclude = helpers.FlattenStringSlice(input.PackageNameMasksToInclude)
+			packageNamesMaskToInclude = helpers.FlattenSlice(input.PackageNameMasksToInclude)
 		}
 
 		results = append(results, map[string]interface{}{

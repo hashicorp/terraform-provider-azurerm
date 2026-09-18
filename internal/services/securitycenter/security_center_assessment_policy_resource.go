@@ -230,7 +230,7 @@ func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, me
 					categories = append(categories, string(item))
 				}
 			}
-			d.Set("categories", helpers.FlattenStringSlice(&categories))
+			d.Set("categories", helpers.FlattenSlice(&categories))
 
 			threats := make([]string, 0)
 			if props.Threats != nil {
@@ -238,7 +238,7 @@ func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, me
 					threats = append(threats, string(item))
 				}
 			}
-			d.Set("threats", helpers.FlattenStringSlice(&threats))
+			d.Set("threats", helpers.FlattenSlice(&threats))
 		}
 	}
 

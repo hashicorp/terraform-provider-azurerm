@@ -490,7 +490,7 @@ func flattenIntegrationAccountBatchConfigurationRecurrenceSchedule(input *integr
 		for _, item := range *input.WeekDays {
 			weekDaysCast = append(weekDaysCast, string(item))
 		}
-		weekDays = helpers.FlattenStringSlice(&weekDaysCast)
+		weekDays = helpers.FlattenSlice(&weekDaysCast)
 	}
 
 	return []interface{}{

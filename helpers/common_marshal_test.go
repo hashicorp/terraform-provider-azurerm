@@ -97,20 +97,6 @@ func TestExpandInt64Slice(t *testing.T) {
 	}
 }
 
-func TestFlattenStringSlice(t *testing.T) {
-	expected := []interface{}{"a", "b"}
-	actual := FlattenStringSlice(pointer.To([]string{"a", "b"}))
-
-	if !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("expected: %v, got: %v", expected, actual)
-	}
-
-	actualNil := FlattenStringSlice(nil)
-	if !reflect.DeepEqual(actualNil, []interface{}{}) {
-		t.Fatalf("expected empty slice for nil, got: %v", actualNil)
-	}
-}
-
 func TestFlattenFloatRangeSlice(t *testing.T) {
 	expected := [][]interface{}{{1.1, 2.2}, {3.3, 4.4}}
 	actual := FlattenFloatRangeSlice(pointer.To([][]float64{{1.1, 2.2}, {3.3, 4.4}}))

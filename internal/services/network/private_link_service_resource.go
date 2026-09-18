@@ -360,7 +360,7 @@ func resourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{})
 
 			var autoApprovalSub []interface{}
 			if autoApproval := props.AutoApproval; autoApproval != nil {
-				autoApprovalSub = helpers.FlattenStringSlice(autoApproval.Subscriptions)
+				autoApprovalSub = helpers.FlattenSlice(autoApproval.Subscriptions)
 			}
 			if err := d.Set("auto_approval_subscription_ids", autoApprovalSub); err != nil {
 				return fmt.Errorf("setting `auto_approval_subscription_ids`: %+v", err)
@@ -368,13 +368,13 @@ func resourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{})
 
 			var subscriptions []interface{}
 			if visibility := props.Visibility; visibility != nil {
-				subscriptions = helpers.FlattenStringSlice(visibility.Subscriptions)
+				subscriptions = helpers.FlattenSlice(visibility.Subscriptions)
 			}
 			if err := d.Set("visibility_subscription_ids", subscriptions); err != nil {
 				return fmt.Errorf("setting `visibility_subscription_ids`: %+v", err)
 			}
 
-			if err := d.Set("fqdns", helpers.FlattenStringSlice(props.Fqdns)); err != nil {
+			if err := d.Set("fqdns", helpers.FlattenSlice(props.Fqdns)); err != nil {
 				return fmt.Errorf("setting `fqdns`: %+v", err)
 			}
 

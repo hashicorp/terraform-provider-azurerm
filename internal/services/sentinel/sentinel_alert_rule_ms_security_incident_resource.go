@@ -224,10 +224,10 @@ func resourceSentinelAlertRuleMsSecurityIncidentRead(d *pluginsdk.ResourceData, 
 				d.Set("enabled", prop.Enabled)
 				d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
 
-				if err := d.Set("display_name_filter", helpers.FlattenStringSlice(prop.DisplayNamesFilter)); err != nil {
+				if err := d.Set("display_name_filter", helpers.FlattenSlice(prop.DisplayNamesFilter)); err != nil {
 					return fmt.Errorf(`setting "display_name_filter": %+v`, err)
 				}
-				if err := d.Set("display_name_exclude_filter", helpers.FlattenStringSlice(prop.DisplayNamesExcludeFilter)); err != nil {
+				if err := d.Set("display_name_exclude_filter", helpers.FlattenSlice(prop.DisplayNamesExcludeFilter)); err != nil {
 					return fmt.Errorf(`setting "display_name_exclude_filter": %+v`, err)
 				}
 				if err := d.Set("severity_filter", flattenAlertRuleMsSecurityIncidentSeverityFilter(prop.SeveritiesFilter)); err != nil {

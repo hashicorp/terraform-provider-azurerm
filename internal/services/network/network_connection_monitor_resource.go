@@ -1009,7 +1009,7 @@ func flattenNetworkConnectionMonitorHTTPConfiguration(input *connectionmonitors.
 			"port":                     pointer.From(input.Port),
 			"prefer_https":             pointer.From(input.PreferHTTPS),
 			"request_header":           flattenNetworkConnectionMonitorHTTPHeader(input.RequestHeaders),
-			"valid_status_code_ranges": helpers.FlattenStringSlice(input.ValidStatusCodeRanges),
+			"valid_status_code_ranges": helpers.FlattenSlice(input.ValidStatusCodeRanges),
 		},
 	}
 }

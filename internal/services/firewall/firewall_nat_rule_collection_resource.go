@@ -461,16 +461,16 @@ func flattenFirewallNatRuleCollectionRules(rules *[]azurefirewalls.AzureFirewall
 			output["translated_port"] = *rule.TranslatedPort
 		}
 		if rule.SourceAddresses != nil {
-			output["source_addresses"] = helpers.FlattenStringSlice(rule.SourceAddresses)
+			output["source_addresses"] = helpers.FlattenSlice(rule.SourceAddresses)
 		}
 		if rule.SourceIPGroups != nil {
-			output["source_ip_groups"] = helpers.FlattenStringSlice(rule.SourceIPGroups)
+			output["source_ip_groups"] = helpers.FlattenSlice(rule.SourceIPGroups)
 		}
 		if rule.DestinationAddresses != nil {
-			output["destination_addresses"] = helpers.FlattenStringSlice(rule.DestinationAddresses)
+			output["destination_addresses"] = helpers.FlattenSlice(rule.DestinationAddresses)
 		}
 		if rule.DestinationPorts != nil {
-			output["destination_ports"] = helpers.FlattenStringSlice(rule.DestinationPorts)
+			output["destination_ports"] = helpers.FlattenSlice(rule.DestinationPorts)
 		}
 		protocols := make([]string, 0)
 		if rule.Protocols != nil {
@@ -478,7 +478,7 @@ func flattenFirewallNatRuleCollectionRules(rules *[]azurefirewalls.AzureFirewall
 				protocols = append(protocols, string(protocol))
 			}
 		}
-		output["protocols"] = helpers.FlattenStringSlice(&protocols)
+		output["protocols"] = helpers.FlattenSlice(&protocols)
 		outputs = append(outputs, output)
 	}
 	return outputs

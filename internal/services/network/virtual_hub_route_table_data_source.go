@@ -118,7 +118,7 @@ func dataSourceVirtualHubRouteTableRead(d *pluginsdk.ResourceData, meta interfac
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("labels", helpers.FlattenStringSlice(props.Labels))
+			d.Set("labels", helpers.FlattenSlice(props.Labels))
 
 			if err := d.Set("route", flattenVirtualHubRouteTableHubRoutes(props.Routes)); err != nil {
 				return fmt.Errorf("setting `route`: %+v", err)

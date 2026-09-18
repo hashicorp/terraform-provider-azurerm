@@ -245,7 +245,7 @@ func flattenAzureRMPolicySetDefinitionPolicyDefinitionsTrack1(input *[]policy.De
 			"policy_definition_id": policyDefinitionID,
 			"parameter_values":     parameterValues,
 			"reference_id":         policyDefinitionReference,
-			"policy_group_names":   helpers.FlattenStringSlice(definition.GroupNames),
+			"policy_group_names":   helpers.FlattenSlice(definition.GroupNames),
 		})
 	}
 	return result, nil

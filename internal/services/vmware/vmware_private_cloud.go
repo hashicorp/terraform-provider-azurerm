@@ -18,7 +18,7 @@ func flattenPrivateCloudManagementCluster(input *privateclouds.CommonClusterProp
 		map[string]interface{}{
 			"size":  input.ClusterSize,
 			"id":    input.ClusterId,
-			"hosts": helpers.FlattenStringSlice(input.Hosts),
+			"hosts": helpers.FlattenSlice(input.Hosts),
 		},
 	}
 }

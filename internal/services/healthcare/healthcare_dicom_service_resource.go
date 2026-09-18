@@ -597,17 +597,17 @@ func flattenDicomServiceCorsConfiguration(input *dicomservices.CorsConfiguration
 	output["allow_credentials"] = pointer.From(input.AllowCredentials)
 
 	if input.Headers != nil {
-		output["allowed_headers"] = helpers.FlattenStringSlice(input.Headers)
+		output["allowed_headers"] = helpers.FlattenSlice(input.Headers)
 	}
 
 	output["max_age_in_seconds"] = pointer.From(input.MaxAge)
 
 	if input.Methods != nil {
-		output["allowed_methods"] = helpers.FlattenStringSlice(input.Methods)
+		output["allowed_methods"] = helpers.FlattenSlice(input.Methods)
 	}
 
 	if input.Origins != nil {
-		output["allowed_origins"] = helpers.FlattenStringSlice(input.Origins)
+		output["allowed_origins"] = helpers.FlattenSlice(input.Origins)
 	}
 
 	return append(outputList, output)

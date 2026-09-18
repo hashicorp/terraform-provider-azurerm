@@ -128,7 +128,7 @@ func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 					d.Set("address_prefixes", []string{})
 				}
 			} else {
-				d.Set("address_prefixes", helpers.FlattenStringSlice(props.AddressPrefixes))
+				d.Set("address_prefixes", helpers.FlattenSlice(props.AddressPrefixes))
 			}
 
 			defaultOutboundAccessEnabled := true

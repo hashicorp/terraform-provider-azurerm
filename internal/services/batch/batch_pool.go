@@ -1220,7 +1220,7 @@ func flattenBatchPoolNetworkConfiguration(input *pool.NetworkConfiguration) []in
 	publicIPAddressIds := make([]interface{}, 0)
 	publicAddressProvisioningType := ""
 	if config := input.PublicIPAddressConfiguration; config != nil {
-		publicIPAddressIds = helpers.FlattenStringSlice(config.IPAddressIds)
+		publicIPAddressIds = helpers.FlattenSlice(config.IPAddressIds)
 		if config.Provision != nil {
 			publicAddressProvisioningType = string(*config.Provision)
 		}

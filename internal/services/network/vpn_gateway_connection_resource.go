@@ -733,7 +733,7 @@ func flattenVpnGatewayConnectionPropagatedRouteTable(input *virtualwans.Propagat
 
 	labels := make([]interface{}, 0)
 	if input.Labels != nil {
-		labels = helpers.FlattenStringSlice(input.Labels)
+		labels = helpers.FlattenSlice(input.Labels)
 	}
 
 	routeTableIds := make([]interface{}, 0)
@@ -777,8 +777,8 @@ func flattenVpnGatewayConnectionTrafficSelectorPolicy(input *[]virtualwans.Traff
 
 	for _, item := range *input {
 		results = append(results, map[string]interface{}{
-			"local_address_ranges":  helpers.FlattenStringSlice(&item.LocalAddressRanges),
-			"remote_address_ranges": helpers.FlattenStringSlice(&item.RemoteAddressRanges),
+			"local_address_ranges":  helpers.FlattenSlice(&item.LocalAddressRanges),
+			"remote_address_ranges": helpers.FlattenSlice(&item.RemoteAddressRanges),
 		})
 	}
 

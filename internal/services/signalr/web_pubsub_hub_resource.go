@@ -315,7 +315,7 @@ func flattenEventHandler(input *[]webpubsub.EventHandler) []interface{} {
 	for _, item := range *input {
 		sysEvents := make([]interface{}, 0)
 		if item.SystemEvents != nil {
-			sysEvents = helpers.FlattenStringSlice(item.SystemEvents)
+			sysEvents = helpers.FlattenSlice(item.SystemEvents)
 		}
 
 		authBlock := make([]interface{}, 0)
@@ -390,7 +390,7 @@ func flattenEventListener(listener *[]webpubsub.EventListener) []interface{} {
 			eventNameFilter := item.Filter.(webpubsub.EventNameFilter)
 			userNameFilterList := make([]interface{}, 0)
 			if eventNameFilter.SystemEvents != nil {
-				listenerBlock["system_event_name_filter"] = helpers.FlattenStringSlice(eventNameFilter.SystemEvents)
+				listenerBlock["system_event_name_filter"] = helpers.FlattenSlice(eventNameFilter.SystemEvents)
 			}
 			if eventNameFilter.UserEventPattern != nil && *eventNameFilter.UserEventPattern != "" {
 				v := strings.SplitSeq(*eventNameFilter.UserEventPattern, ",")

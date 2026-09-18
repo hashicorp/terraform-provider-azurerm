@@ -329,7 +329,7 @@ func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta
 			d.Set("automatic_upgrade_enabled", props.EnableAutomaticUpgrade)
 			d.Set("force_update_tag", props.ForceUpdateTag)
 			d.Set("protected_settings_from_key_vault", flattenProtectedSettingsFromKeyVaultOldVMSSExtension(props.ProtectedSettingsFromKeyVault))
-			d.Set("provision_after_extensions", helpers.FlattenStringSlice(props.ProvisionAfterExtensions))
+			d.Set("provision_after_extensions", helpers.FlattenSlice(props.ProvisionAfterExtensions))
 			d.Set("publisher", props.Publisher)
 			d.Set("type", props.Type)
 			d.Set("type_handler_version", props.TypeHandlerVersion)

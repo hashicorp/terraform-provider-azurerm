@@ -354,12 +354,12 @@ func flattenBlobInventoryPolicyFilter(input *blobinventorypolicies.BlobInventory
 
 	return []interface{}{
 		map[string]interface{}{
-			"blob_types":            helpers.FlattenStringSlice(input.BlobTypes),
+			"blob_types":            helpers.FlattenSlice(input.BlobTypes),
 			"include_blob_versions": pointer.From(input.IncludeBlobVersions),
 			"include_deleted":       pointer.From(input.IncludeDeleted),
 			"include_snapshots":     pointer.From(input.IncludeSnapshots),
-			"prefix_match":          helpers.FlattenStringSlice(input.PrefixMatch),
-			"exclude_prefixes":      helpers.FlattenStringSlice(input.ExcludePrefix),
+			"prefix_match":          helpers.FlattenSlice(input.PrefixMatch),
+			"exclude_prefixes":      helpers.FlattenSlice(input.ExcludePrefix),
 		},
 	}
 }

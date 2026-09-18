@@ -449,16 +449,16 @@ func flattenFirewallApplicationRuleCollectionRules(rules *[]azurefirewalls.Azure
 			output["description"] = *ruleDescription
 		}
 		if ruleSourceAddresses := rule.SourceAddresses; ruleSourceAddresses != nil {
-			output["source_addresses"] = helpers.FlattenStringSlice(ruleSourceAddresses)
+			output["source_addresses"] = helpers.FlattenSlice(ruleSourceAddresses)
 		}
 		if ruleSourceIpGroups := rule.SourceIPGroups; ruleSourceIpGroups != nil {
-			output["source_ip_groups"] = helpers.FlattenStringSlice(ruleSourceIpGroups)
+			output["source_ip_groups"] = helpers.FlattenSlice(ruleSourceIpGroups)
 		}
 		if ruleFqdnTags := rule.FqdnTags; ruleFqdnTags != nil {
-			output["fqdn_tags"] = helpers.FlattenStringSlice(ruleFqdnTags)
+			output["fqdn_tags"] = helpers.FlattenSlice(ruleFqdnTags)
 		}
 		if ruleTargetFqdns := rule.TargetFqdns; ruleTargetFqdns != nil {
-			output["target_fqdns"] = helpers.FlattenStringSlice(ruleTargetFqdns)
+			output["target_fqdns"] = helpers.FlattenSlice(ruleTargetFqdns)
 		}
 		protocols := make([]map[string]interface{}, 0)
 		if ruleProtocols := rule.Protocols; ruleProtocols != nil {

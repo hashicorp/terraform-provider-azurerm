@@ -107,7 +107,7 @@ func FlattenArmCdnEndpointConditionRequestURI(input cdn.BasicDeliveryRuleConditi
 		}
 
 		if params.MatchValues != nil {
-			matchValues = helpers.FlattenStringSlice(params.MatchValues)
+			matchValues = helpers.FlattenSlice(params.MatchValues)
 		}
 
 		if params.Transforms != nil {

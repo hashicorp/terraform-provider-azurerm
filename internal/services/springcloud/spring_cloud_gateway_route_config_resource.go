@@ -292,10 +292,10 @@ func resourceSpringCloudGatewayRouteConfigRead(d *pluginsdk.ResourceData, meta i
 		}
 
 		if props.Filters != nil {
-			d.Set("filters", helpers.FlattenStringSlice(props.Filters))
+			d.Set("filters", helpers.FlattenSlice(props.Filters))
 		}
 		if props.Predicates != nil {
-			d.Set("predicates", helpers.FlattenStringSlice(props.Predicates))
+			d.Set("predicates", helpers.FlattenSlice(props.Predicates))
 		}
 		d.Set("sso_validation_enabled", props.SsoEnabled)
 	}
@@ -353,14 +353,14 @@ func flattenGatewayRouteConfigGatewayAPIRouteArray(input *[]appplatform.GatewayA
 	for _, item := range *input {
 		results = append(results, map[string]interface{}{
 			"description":            pointer.From(item.Description),
-			"filters":                helpers.FlattenStringSlice(item.Filters),
+			"filters":                helpers.FlattenSlice(item.Filters),
 			"order":                  pointer.From(item.Order),
-			"predicates":             helpers.FlattenStringSlice(item.Predicates),
+			"predicates":             helpers.FlattenSlice(item.Predicates),
 			"sso_validation_enabled": pointer.From(item.SsoEnabled),
 			"title":                  pointer.From(item.Title),
 			"token_relay":            pointer.From(item.TokenRelay),
 			"uri":                    pointer.From(item.URI),
-			"classification_tags":    helpers.FlattenStringSlice(item.Tags),
+			"classification_tags":    helpers.FlattenSlice(item.Tags),
 		})
 	}
 	return results

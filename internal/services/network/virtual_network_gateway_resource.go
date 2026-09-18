@@ -1391,9 +1391,9 @@ func flattenVirtualNetworkGatewayBgpPeeringAddresses(input *[]virtualnetworkgate
 
 		output = append(output, map[string]interface{}{
 			"ip_configuration_name": ipConfigName,
-			"apipa_addresses":       helpers.FlattenStringSlice(e.CustomBgpIPAddresses),
-			"default_addresses":     helpers.FlattenStringSlice(e.DefaultBgpIPAddresses),
-			"tunnel_ip_addresses":   helpers.FlattenStringSlice(e.TunnelIPAddresses),
+			"apipa_addresses":       helpers.FlattenSlice(e.CustomBgpIPAddresses),
+			"default_addresses":     helpers.FlattenSlice(e.DefaultBgpIPAddresses),
+			"tunnel_ip_addresses":   helpers.FlattenSlice(e.TunnelIPAddresses),
 		})
 	}
 
@@ -1451,7 +1451,7 @@ func flattenVirtualNetworkGatewayVpnClientConfig(cfg *virtualnetworkgateways.Vpn
 	flat["virtual_network_gateway_client_connection"] = connection
 
 	if pool := cfg.VpnClientAddressPool; pool != nil {
-		flat["address_space"] = helpers.FlattenStringSlice(pool.AddressPrefixes)
+		flat["address_space"] = helpers.FlattenSlice(pool.AddressPrefixes)
 	} else {
 		flat["address_space"] = []interface{}{}
 	}
@@ -1591,7 +1591,7 @@ func flattenVirtualNetworkGatewayAddressSpace(input *virtualnetworkgateways.Addr
 
 	return []interface{}{
 		map[string]interface{}{
-			"address_prefixes": helpers.FlattenStringSlice(input.AddressPrefixes),
+			"address_prefixes": helpers.FlattenSlice(input.AddressPrefixes),
 		},
 	}
 }

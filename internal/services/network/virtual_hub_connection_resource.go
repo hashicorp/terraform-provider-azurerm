@@ -490,7 +490,7 @@ func flattenVirtualHubConnectionPropagatedRouteTable(input *virtualwans.Propagat
 
 	labels := make([]interface{}, 0)
 	if input.Labels != nil {
-		labels = helpers.FlattenStringSlice(input.Labels)
+		labels = helpers.FlattenSlice(input.Labels)
 	}
 
 	routeTableIds := make([]interface{}, 0)
@@ -515,7 +515,7 @@ func flattenVirtualHubConnectionVnetStaticRoute(input *virtualwans.VnetRoute) []
 	for _, item := range *input.StaticRoutes {
 		addressPrefixes := make([]interface{}, 0)
 		if item.AddressPrefixes != nil {
-			addressPrefixes = helpers.FlattenStringSlice(item.AddressPrefixes)
+			addressPrefixes = helpers.FlattenSlice(item.AddressPrefixes)
 		}
 
 		v := map[string]interface{}{
