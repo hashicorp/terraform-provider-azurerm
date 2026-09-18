@@ -1933,7 +1933,7 @@ resource "azurerm_container_group" "test" {
       timeout_seconds       = 5
     }
 
-    commands = ["/bin/sh", "-c", "node /usr/src/app/index.js & (sleep 5; touch /tmp/healthy); wait"]
+    commands = ["/bin/sh", "-c", "(sleep 5; touch /tmp/healthy) & exec node /usr/src/app/index.js"]
   }
 
   diagnostics {
