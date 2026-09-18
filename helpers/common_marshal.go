@@ -130,17 +130,12 @@ func FlattenStringSlice(input *[]string) []interface{} {
 	return FlattenSlice(input)
 }
 
-// FlattenFloatSlice converts a pointer to a slice of float64s into a slice of interface{}.
-func FlattenFloatSlice(input *[]float64) []interface{} {
-	return FlattenSlice(input)
-}
-
 // FlattenFloatRangeSlice converts a pointer to a slice of float64 slices into a slice of interface{} slices.
 func FlattenFloatRangeSlice(input *[][]float64) [][]interface{} {
 	result := make([][]interface{}, 0)
 	if input != nil {
 		for _, item := range *input {
-			result = append(result, FlattenFloatSlice(&item))
+			result = append(result, FlattenSlice(&item))
 		}
 	}
 	return result
@@ -170,16 +165,6 @@ func FlattenPtrMapStringString(input *map[string]string) map[string]interface{} 
 		result[k] = v
 	}
 	return result
-}
-
-// FlattenInt32Slice converts a pointer to a slice of int32s into a slice of interface{}.
-func FlattenInt32Slice(input *[]int32) []interface{} {
-	return FlattenSlice(input)
-}
-
-// FlattenInt64Slice converts a pointer to a slice of int64s into a slice of interface{}.
-func FlattenInt64Slice(input *[]int64) []interface{} {
-	return FlattenSlice(input)
 }
 
 // ExpandStringSliceWithDelimiter converts an interface slice to a delimited string pointer.

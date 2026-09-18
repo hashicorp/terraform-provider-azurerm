@@ -4497,7 +4497,7 @@ func flattenKubernetesClusterMaintenanceConfigurationTimeInWeeks(input *[]mainte
 		}
 		results = append(results, map[string]interface{}{
 			"day":   day,
-			"hours": helpers.FlattenInt64Slice(item.HourSlots),
+			"hours": helpers.FlattenSlice(item.HourSlots),
 		})
 	}
 	return results

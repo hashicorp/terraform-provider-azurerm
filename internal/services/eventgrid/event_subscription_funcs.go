@@ -491,10 +491,10 @@ func flattenEventSubscriptionAdvancedFilter(input *eventsubscriptions.EventSubsc
 		case eventsubscriptions.NumberLessThanOrEqualsAdvancedFilter:
 			numberLessThanOrEquals = append(numberLessThanOrEquals, flattenValue(f.Key, pointer.To(interface{}(f.Value))))
 		case eventsubscriptions.NumberInAdvancedFilter:
-			v := helpers.FlattenFloatSlice(f.Values)
+			v := helpers.FlattenSlice(f.Values)
 			numberIn = append(numberIn, flattenValues(f.Key, &v))
 		case eventsubscriptions.NumberNotInAdvancedFilter:
-			v := helpers.FlattenFloatSlice(f.Values)
+			v := helpers.FlattenSlice(f.Values)
 			numberNotIn = append(numberNotIn, flattenValues(f.Key, &v))
 		case eventsubscriptions.StringBeginsWithAdvancedFilter:
 			v := helpers.FlattenStringSlice(f.Values)

@@ -213,11 +213,11 @@ func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, me
 
 				if v := vm.ExtendedProperties; v != nil && v.DiskExclusionProperties != nil {
 					if *v.DiskExclusionProperties.IsInclusionList {
-						if err := d.Set("include_disk_luns", helpers.FlattenInt64Slice(v.DiskExclusionProperties.DiskLunList)); err != nil {
+						if err := d.Set("include_disk_luns", helpers.FlattenSlice(v.DiskExclusionProperties.DiskLunList)); err != nil {
 							return fmt.Errorf("setting include_disk_luns: %+v", err)
 						}
 					} else {
-						if err := d.Set("exclude_disk_luns", helpers.FlattenInt64Slice(v.DiskExclusionProperties.DiskLunList)); err != nil {
+						if err := d.Set("exclude_disk_luns", helpers.FlattenSlice(v.DiskExclusionProperties.DiskLunList)); err != nil {
 							return fmt.Errorf("setting exclude_disk_luns: %+v", err)
 						}
 					}

@@ -573,10 +573,10 @@ func flattenDataFactorySchedule(schedule *datafactory.RecurrenceSchedule) []inte
 	}
 	value := make(map[string]interface{})
 	if schedule.Minutes != nil {
-		value["minutes"] = helpers.FlattenInt32Slice(schedule.Minutes)
+		value["minutes"] = helpers.FlattenSlice(schedule.Minutes)
 	}
 	if schedule.Hours != nil {
-		value["hours"] = helpers.FlattenInt32Slice(schedule.Hours)
+		value["hours"] = helpers.FlattenSlice(schedule.Hours)
 	}
 	if schedule.WeekDays != nil {
 		weekDays := make([]interface{}, 0)
@@ -586,7 +586,7 @@ func flattenDataFactorySchedule(schedule *datafactory.RecurrenceSchedule) []inte
 		value["days_of_week"] = weekDays
 	}
 	if schedule.MonthDays != nil {
-		value["days_of_month"] = helpers.FlattenInt32Slice(schedule.MonthDays)
+		value["days_of_month"] = helpers.FlattenSlice(schedule.MonthDays)
 	}
 	if schedule.MonthlyOccurrences != nil {
 		monthlyOccurrences := make([]interface{}, 0)

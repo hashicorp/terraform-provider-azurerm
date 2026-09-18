@@ -495,9 +495,9 @@ func flattenIntegrationAccountBatchConfigurationRecurrenceSchedule(input *integr
 
 	return []interface{}{
 		map[string]interface{}{
-			"hours":      helpers.FlattenInt64Slice(input.Hours),
-			"minutes":    helpers.FlattenInt64Slice(input.Minutes),
-			"month_days": helpers.FlattenInt64Slice(input.MonthDays),
+			"hours":      helpers.FlattenSlice(input.Hours),
+			"minutes":    helpers.FlattenSlice(input.Minutes),
+			"month_days": helpers.FlattenSlice(input.MonthDays),
 			"monthly":    flattenIntegrationAccountBatchConfigurationRecurrenceScheduleOccurrence(input.MonthlyOccurrences),
 			"week_days":  weekDays,
 		},

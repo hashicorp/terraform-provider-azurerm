@@ -111,20 +111,6 @@ func TestFlattenStringSlice(t *testing.T) {
 	}
 }
 
-func TestFlattenFloatSlice(t *testing.T) {
-	expected := []interface{}{1.1, 2.2}
-	actual := FlattenFloatSlice(pointer.To([]float64{1.1, 2.2}))
-
-	if !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("expected: %v, got: %v", expected, actual)
-	}
-
-	actualNil := FlattenFloatSlice(nil)
-	if !reflect.DeepEqual(actualNil, []interface{}{}) {
-		t.Fatalf("expected empty slice for nil, got: %v", actualNil)
-	}
-}
-
 func TestFlattenFloatRangeSlice(t *testing.T) {
 	expected := [][]interface{}{{1.1, 2.2}, {3.3, 4.4}}
 	actual := FlattenFloatRangeSlice(pointer.To([][]float64{{1.1, 2.2}, {3.3, 4.4}}))
@@ -173,34 +159,6 @@ func TestFlattenPtrMapStringString(t *testing.T) {
 	actualNil := FlattenPtrMapStringString(nil)
 	if !reflect.DeepEqual(actualNil, map[string]interface{}{}) {
 		t.Fatalf("expected empty map for nil, got: %v", actualNil)
-	}
-}
-
-func TestFlattenInt32Slice(t *testing.T) {
-	expected := []interface{}{int32(1), int32(2)}
-	actual := FlattenInt32Slice(pointer.To([]int32{1, 2}))
-
-	if !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("expected: %v, got: %v", expected, actual)
-	}
-
-	actualNil := FlattenInt32Slice(nil)
-	if !reflect.DeepEqual(actualNil, []interface{}{}) {
-		t.Fatalf("expected empty slice for nil, got: %v", actualNil)
-	}
-}
-
-func TestFlattenInt64Slice(t *testing.T) {
-	expected := []interface{}{int64(1), int64(2)}
-	actual := FlattenInt64Slice(pointer.To([]int64{1, 2}))
-
-	if !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("expected: %v, got: %v", expected, actual)
-	}
-
-	actualNil := FlattenInt64Slice(nil)
-	if !reflect.DeepEqual(actualNil, []interface{}{}) {
-		t.Fatalf("expected empty slice for nil, got: %v", actualNil)
 	}
 }
 
