@@ -272,9 +272,13 @@ func resourceStorageAccountNetworkRulesRead(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceStorageAccountNetworkRulesFlatten(d, id, resp.Model)
+}
+
+func resourceStorageAccountNetworkRulesFlatten(d *pluginsdk.ResourceData, id *commonids.StorageAccountId, model *storageaccounts.StorageAccount) error {
 	d.Set("storage_account_id", d.Id())
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			if rules := props.NetworkAcls; rules != nil {
 				if err := d.Set("ip_rules", pluginsdk.NewSet(pluginsdk.HashString, flattenAccountNetworkRuleIPRules(rules.IPRules))); err != nil {
