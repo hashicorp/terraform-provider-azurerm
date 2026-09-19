@@ -74,21 +74,27 @@ The following arguments are supported:
 
 * `application_group_id` - (Required) Resource ID for a Virtual Desktop Application Group to associate with the Virtual Desktop Application. Changing this forces a new resource to be created.
 
-* `friendly_name` - (Optional) Option to set a friendly name for the Virtual Desktop Application.
-
-* `description` - (Optional) Option to set a description for the Virtual Desktop Application.
-
-* `path` - (Required) The file path location of the app on the Virtual Desktop OS.
-
 * `command_line_argument_policy` - (Required) Specifies whether this published application can be launched with command line arguments provided by the client, command line arguments specified at publish time, or no command line arguments at all. Possible values include: `DoNotAllow`, `Allow`, `Require`.
+
+* `application_type` - (Optional) Resource type of the Virtual Desktop Application. Possible values include: `InBuilt`, `MsixApplication`.
 
 * `command_line_arguments` - (Optional) Command Line Arguments for Virtual Desktop Application.
 
-* `show_in_portal` - (Optional) Specifies whether to show the RemoteApp program in the RD Web Access server.
+* `description` - (Optional) Option to set a description for the Virtual Desktop Application.
+
+* `friendly_name` - (Optional) Option to set a friendly name for the Virtual Desktop Application.
+
+* `icon_index` - (Optional) The index of the icon you wish to use.
 
 * `icon_path` - (Optional) Specifies the path for an icon which will be used for this Virtual Desktop Application.
 
-* `icon_index` - (Optional) The index of the icon you wish to use.
+* `msix_package_application_id` - (Optional) The package application Id for MSIX applications.
+
+* `msix_package_family_name` - (Optional) The package family name for MSIX applications.
+
+* `path` - (Optional) The file path location of the app on the Virtual Desktop OS.
+
+* `show_in_portal` - (Optional) Specifies whether to show the RemoteApp program in the RD Web Access server.
 
 ## Attributes Reference
 
