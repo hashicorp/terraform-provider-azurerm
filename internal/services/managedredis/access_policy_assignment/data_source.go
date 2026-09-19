@@ -1,0 +1,87 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
+package access_policy_assignment
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+)
+
+type DataSource struct{}
+
+var _ sdk.DataSource = DataSource{}
+
+type DataSourceModel struct {
+	ManagedRedisName string `tfschema:"managed_redis_name"`
+	ResourceGroup    string `tfschema:"resource_group_name"`
+	ObjectID         string `tfschema:"object_id"`
+}
+
+func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"object_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.IsUUID,
+		},
+
+		"managed_redis_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.ManagedRedisClusterName,
+		},
+
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+	}
+}
+
+func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
+}
+
+func (r DataSource) ModelObject() interface{} {
+	return &DataSourceModel{}
+}
+
+func (r DataSource) ResourceType() string {
+	return "azurerm_managed_redis_access_policy_assignment"
+}
+
+func (r DataSource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var state DataSourceModel
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			client := metadata.Client.ManagedRedis.DatabaseClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
+			id := databases.NewAccessPolicyAssignmentID(subscriptionId, state.ResourceGroup, state.ManagedRedisName, defaultDatabaseName, state.ObjectID)
+
+			resp, err := client.AccessPolicyAssignmentGet(ctx, id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("%s was not found", id)
+				}
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+
+			return metadata.Encode(&state)
+		},
+	}
+}
