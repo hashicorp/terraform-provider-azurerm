@@ -96,6 +96,10 @@ The following arguments are supported:
 
 ~> **Note:** FIPS support is in Public Preview - more information and details on how to opt into the Preview can be found in [this article](https://docs.microsoft.com/azure/aks/use-multiple-node-pools#add-a-fips-enabled-node-pool-preview).
 
+* `gateway_public_ip_prefix_size` - (Optional) The size of the public IP prefix for the node pool. Valid values are between `28` and `31`.
+
+-> **Note:** `gateway_public_ip_prefix_size` can only be configured when `mode` is set to `Gateway`.
+
 * `gpu_instance` - (Optional) Specifies the GPU MIG instance profile for supported GPU VM SKU. The allowed values are `MIG1g`, `MIG2g`, `MIG3g`, `MIG4g` and `MIG7g`. Changing this forces a new resource to be created.
 
 * `gpu_driver` - (Optional) Specifies whether to install the GPU Driver for the nodes. Possible values are `Install` and `None`. Changing this forces a new resource to be created.
@@ -104,7 +108,9 @@ The following arguments are supported:
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this property requires specifying `temporary_name_for_rotation`.
 
-* `mode` - (Optional) Should this Node Pool be used for System or User resources? Possible values are `System` and `User`. Defaults to `User`.
+* `mode` - (Optional) Specifies the mode of the Node Pool. Possible values are `System`, `User` and `Gateway`.
+
+-> **Note:** `Gateway` mode creates a node pool configured to host static egress gateways. For more information about this feature, see [the Azure documentation](https://learn.microsoft.com/rest/api/aks/agent-pools/create-or-update?view=rest-aks-2025-07-01&tabs=HTTP#agentpoolgatewayprofile).
 
 * `node_network_profile` - (Optional) A `node_network_profile` block as documented below.
 
