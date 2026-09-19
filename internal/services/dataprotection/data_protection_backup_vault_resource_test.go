@@ -166,6 +166,34 @@ func TestAccDataProtectionBackupVault_updateIdentity(t *testing.T) {
 	})
 }
 
+func TestAccDataProtectionBackupVault_datastoreTypeOperationalStore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_vault", "test")
+	r := DataProtectionBackupVaultResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.datastoreType(data, "OperationalStore"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDataProtectionBackupVault_datastoreTypeArchiveStore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_vault", "test")
+	r := DataProtectionBackupVaultResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.datastoreType(data, "ArchiveStore"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r DataProtectionBackupVaultResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := backupvaultresources.ParseBackupVaultID(state.ID)
 	if err != nil {
@@ -385,4 +413,19 @@ resource "azurerm_data_protection_backup_vault" "test" {
   redundancy          = "ZoneRedundant"
 }
 `, template, data.RandomInteger)
+}
+
+func (r DataProtectionBackupVaultResource) datastoreType(data acceptance.TestData, datastoreType string) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_protection_backup_vault" "test" {
+  name                = "acctest-bv-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  datastore_type      = "%s"
+  redundancy          = "LocallyRedundant"
+}
+`, template, data.RandomInteger, datastoreType)
 }
