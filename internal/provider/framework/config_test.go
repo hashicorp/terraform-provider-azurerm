@@ -192,6 +192,10 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 		t.Errorf("expected postgresql.restart_server_on_configuration_value_change to be true")
 	}
 
+	if features.PostgresqlFlexibleServerVirtualEndpoint.RecreateResourceAfterFailover {
+		t.Errorf("expected postgresql_flexible_server_virtual_endpoint.recreate_resource_after_failover to be false")
+	}
+
 	if features.MachineLearning.PurgeSoftDeletedWorkspaceOnDestroy {
 		t.Errorf("expected machine_learning.PurgeSoftDeletedWorkspaceOnDestroy to be false")
 	}
@@ -320,6 +324,11 @@ func defaultFeaturesList() types.List {
 	})
 	postgresqlFlexibleServerList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(PostgresqlFlexibleServerAttributes), []attr.Value{postgresqlFlexibleServer})
 
+	postgresqlFlexibleServerVirtualEndpoint, _ := basetypes.NewObjectValueFrom(context.Background(), PostgresqlFlexibleServerVirtualEndpointAttributes, map[string]attr.Value{
+		"recreate_resource_after_failover": basetypes.NewBoolNull(),
+	})
+	postgresqlFlexibleServerVirtualEndpointList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(PostgresqlFlexibleServerVirtualEndpointAttributes), []attr.Value{postgresqlFlexibleServerVirtualEndpoint})
+
 	machineLearning, _ := basetypes.NewObjectValueFrom(context.Background(), MachineLearningAttributes, map[string]attr.Value{
 		"purge_soft_deleted_workspace_on_destroy": basetypes.NewBoolNull(),
 	})
@@ -382,12 +391,13 @@ func defaultFeaturesList() types.List {
 		"storage":                    storageList,
 		"subscription":               subscriptionList,
 		"postgresql_flexible_server": postgresqlFlexibleServerList,
-		"machine_learning":           machineLearningList,
-		"recovery_service":           recoveryServicesList,
-		"recovery_services_vaults":   recoveryServicesVaultsList,
-		"netapp":                     netappList,
-		"databricks_workspace":       databricksWorkspaceList,
-		"servicebus":                 servicebusList,
+		"postgresql_flexible_server_virtual_endpoint": postgresqlFlexibleServerVirtualEndpointList,
+		"machine_learning":                            machineLearningList,
+		"recovery_service":                            recoveryServicesList,
+		"recovery_services_vaults":                    recoveryServicesVaultsList,
+		"netapp":                                      netappList,
+		"databricks_workspace":                        databricksWorkspaceList,
+		"servicebus":                                  servicebusList,
 	})
 
 	fmt.Printf("%+v", d)
