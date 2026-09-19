@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/subscriptions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/topics"
@@ -27,6 +28,34 @@ func dataSourceServiceBusSubscription() *pluginsdk.Resource {
 			"name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
+			},
+
+			"client_scoped_subscription_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"client_scoped_subscription": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"client_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"is_client_scoped_subscription_shareable": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"is_client_scoped_subscription_durable": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"topic_id": {
@@ -84,6 +113,11 @@ func dataSourceServiceBusSubscription() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"status": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -130,13 +164,10 @@ func dataSourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("requires_session", props.RequiresSession)
 			d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
 			d.Set("forward_to", props.ForwardTo)
-
-			maxDeliveryCount := 0
-			if props.MaxDeliveryCount != nil {
-				maxDeliveryCount = int(*props.MaxDeliveryCount)
-			}
-
-			d.Set("max_delivery_count", maxDeliveryCount)
+			d.Set("client_scoped_subscription_enabled", props.IsClientAffine)
+			d.Set("client_scoped_subscription", flattenServiceBusNamespaceClientScopedSubscription(props.ClientAffineProperties))
+			d.Set("status", pointer.FromEnum(props.Status))
+			d.Set("max_delivery_count", int(pointer.From(props.MaxDeliveryCount)))
 		}
 	}
 
