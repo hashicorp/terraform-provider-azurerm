@@ -23,10 +23,11 @@ var _ sdk.DataSource = KubernetesFleetManagerDataSource{}
 type KubernetesFleetManagerDataSource struct{}
 
 type KubernetesFleetManagerDataSourceModel struct {
-	Location          string                 `tfschema:"location"`
-	Name              string                 `tfschema:"name"`
-	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	Tags              map[string]interface{} `tfschema:"tags"`
+	Location          string                   `tfschema:"location"`
+	Name              string                   `tfschema:"name"`
+	ResourceGroupName string                   `tfschema:"resource_group_name"`
+	HubProfile        []FleetManagerHubProfile `tfschema:"hub_profile"`
+	Tags              map[string]interface{}   `tfschema:"tags"`
 }
 
 func (KubernetesFleetManagerDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -42,6 +43,58 @@ func (KubernetesFleetManagerDataSource) Arguments() map[string]*pluginsdk.Schema
 
 func (KubernetesFleetManagerDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"hub_profile": {
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"agent_profile": {
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"subnet_id": {
+									Computed: true,
+									Type:     pluginsdk.TypeString,
+								},
+								"virtual_machine_size": {
+									Computed: true,
+									Type:     pluginsdk.TypeString,
+								},
+							},
+						},
+						Type: pluginsdk.TypeList,
+					},
+					"api_server_access_profile": {
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"enable_private_cluster": {
+									Computed: true,
+									Type:     pluginsdk.TypeBool,
+								},
+							},
+						},
+						Type: pluginsdk.TypeList,
+					},
+					"dns_prefix": {
+						Computed: true,
+						Type:     pluginsdk.TypeString,
+					},
+					"fqdn": {
+						Computed: true,
+						Type:     pluginsdk.TypeString,
+					},
+					"kubernetes_version": {
+						Computed: true,
+						Type:     pluginsdk.TypeString,
+					},
+					"portal_fqdn": {
+						Computed: true,
+						Type:     pluginsdk.TypeString,
+					},
+				},
+			},
+			Type: pluginsdk.TypeList,
+		},
 		"location": commonschema.LocationComputed(),
 		"tags":     commonschema.TagsDataSource(),
 	}
@@ -81,11 +134,28 @@ func (KubernetesFleetManagerDataSource) Read() sdk.ResourceFunc {
 			metadata.SetID(id)
 
 			if model := resp.Model; model != nil {
-				state.Location = location.Normalize(model.Location)
-				state.Tags = tags.Flatten(model.Tags)
+				if err := mapFleetToKubernetesFleetManagerDataSourceModel(*model, &state); err != nil {
+					return err
+				}
 			}
 
 			return metadata.Encode(&state)
 		},
 	}
+}
+
+func mapFleetToKubernetesFleetManagerDataSourceModel(input fleets.Fleet, output *KubernetesFleetManagerDataSourceModel) error {
+	output.Location = location.Normalize(input.Location)
+	output.Tags = tags.Flatten(input.Tags)
+
+	if input.Properties == nil {
+		input.Properties = &fleets.FleetProperties{}
+	}
+
+	hubProfile, err := flattenFleetManagerHubProfile(input.Properties.HubProfile)
+	if err != nil {
+		return err
+	}
+	output.HubProfile = hubProfile
+	return nil
 }

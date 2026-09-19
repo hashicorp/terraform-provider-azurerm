@@ -37,9 +37,41 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Kubernetes Fleet Manager.
 
+* `hub_profile` - A `hub_profile` block as defined below.
+
 * `location` - The Azure Region where the Kubernetes Fleet Manager exists.
 
 * `tags` - A mapping of tags assigned to the Kubernetes Fleet Manager.
+
+---
+
+An `agent_profile` block exports the following:
+
+* `subnet_id` - The ID of the subnet which the Fleet hub node will join on startup. This is empty when no custom subnet is configured.
+
+* `virtual_machine_size` - The virtual machine size of the Fleet hub.
+
+---
+
+An `api_server_access_profile` block exports the following:
+
+* `enable_private_cluster` - Whether the Fleet hub is a private cluster.
+
+---
+
+A `hub_profile` block exports the following:
+
+* `agent_profile` - An `agent_profile` block as defined above.
+
+* `api_server_access_profile` - An `api_server_access_profile` block as defined above.
+
+* `dns_prefix` - DNS prefix used to create the FQDN for the Fleet hub. This can be empty when Azure generates an FQDN without a configured DNS prefix.
+
+* `fqdn` - The FQDN of the Fleet hub.
+
+* `kubernetes_version` - The Kubernetes version of the Fleet hub.
+
+* `portal_fqdn` - The Azure Portal FQDN of the Fleet hub.
 
 ## Timeouts
 
