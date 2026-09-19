@@ -148,6 +148,7 @@ func FlattenContainerAppRegistries(input *[]containerapps.RegistryCredentials) [
 }
 
 type Ingress struct {
+	AdditionalPortMappings []IngressPortMapping    `tfschema:"additional_port_mapping"`
 	AllowInsecure          bool                    `tfschema:"allow_insecure_connections"`
 	CustomDomains          []CustomDomain          `tfschema:"custom_domain"`
 	IsExternal             bool                    `tfschema:"external_enabled"`
@@ -159,6 +160,12 @@ type Ingress struct {
 	IpSecurityRestrictions []IpSecurityRestriction `tfschema:"ip_security_restriction"`
 	ClientCertificateMode  string                  `tfschema:"client_certificate_mode"`
 	Cors                   []Cors                  `tfschema:"cors"`
+}
+
+type IngressPortMapping struct {
+	External    bool  `tfschema:"external_enabled"`
+	TargetPort  int64 `tfschema:"target_port"`
+	ExposedPort int64 `tfschema:"exposed_port"`
 }
 
 type Cors struct {
@@ -177,6 +184,8 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
+				"additional_port_mapping": ContainerAppIngressAdditionalPortMapping(),
+
 				"allow_insecure_connections": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
@@ -291,6 +300,8 @@ func ContainerAppIngressSchemaComputed() *pluginsdk.Schema {
 		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
+				"additional_port_mapping": ContainerAppIngressAdditionalPortMappingComputed(),
+
 				"allow_insecure_connections": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
@@ -396,6 +407,7 @@ func ExpandContainerAppIngress(input []Ingress, appName string) *containerapps.I
 
 	ingress := input[0]
 	result := &containerapps.Ingress{
+		AdditionalPortMappings: expandContainerAppIngressAdditionalPortMappings(ingress.AdditionalPortMappings),
 		AllowInsecure:          pointer.To(ingress.AllowInsecure),
 		CustomDomains:          expandContainerAppIngressCustomDomain(ingress.CustomDomains),
 		External:               pointer.To(ingress.IsExternal),
@@ -464,6 +476,7 @@ func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []
 
 	ingress := *input
 	result := Ingress{
+		AdditionalPortMappings: flattenContainerAppIngressAdditionalPortMappings(ingress.AdditionalPortMappings),
 		AllowInsecure:          pointer.From(ingress.AllowInsecure),
 		CustomDomains:          flattenContainerAppIngressCustomDomain(ingress.CustomDomains),
 		IsExternal:             pointer.From(ingress.External),
@@ -565,6 +578,43 @@ func flattenContainerAppIngressCustomDomain(input *[]containerapps.CustomDomain)
 	return result
 }
 
+func expandContainerAppIngressAdditionalPortMappings(input []IngressPortMapping) *[]containerapps.IngressPortMapping {
+	// The Update operation is a PATCH, so an empty slice is sent rather than nil to ensure removed port mappings are deleted
+	result := make([]containerapps.IngressPortMapping, 0)
+
+	for _, v := range input {
+		mapping := containerapps.IngressPortMapping{
+			External:   v.External,
+			TargetPort: v.TargetPort,
+		}
+
+		if v.ExposedPort != 0 {
+			mapping.ExposedPort = pointer.To(v.ExposedPort)
+		}
+
+		result = append(result, mapping)
+	}
+
+	return &result
+}
+
+func flattenContainerAppIngressAdditionalPortMappings(input *[]containerapps.IngressPortMapping) []IngressPortMapping {
+	if input == nil {
+		return []IngressPortMapping{}
+	}
+
+	result := make([]IngressPortMapping, 0)
+	for _, v := range *input {
+		result = append(result, IngressPortMapping{
+			ExposedPort: pointer.From(v.ExposedPort),
+			External:    v.External,
+			TargetPort:  v.TargetPort,
+		})
+	}
+
+	return result
+}
+
 func flattenContainerAppIngressIpSecurityRestrictions(input *[]containerapps.IPSecurityRestrictionRule) []IpSecurityRestriction {
 	if input == nil {
 		return []IpSecurityRestriction{}
@@ -597,6 +647,66 @@ type IpSecurityRestriction struct {
 	Description    string `tfschema:"description"`
 	IpAddressRange string `tfschema:"ip_address_range"`
 	Name           string `tfschema:"name"`
+}
+
+func ContainerAppIngressAdditionalPortMapping() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"external_enabled": {
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					Description: "Is the port mapping accessible from outside the Container App Environment.",
+				},
+
+				"target_port": {
+					Type:         pluginsdk.TypeInt,
+					Required:     true,
+					ValidateFunc: validation.IntBetween(1, 65535),
+					Description:  "The target port on the container for the additional Ingress traffic.",
+				},
+
+				"exposed_port": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.IntBetween(1, 65535),
+					Description:  "The exposed port on the container for the additional Ingress traffic. Defaults to `target_port` if not set.",
+				},
+			},
+		},
+	}
+}
+
+func ContainerAppIngressAdditionalPortMappingComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"external_enabled": {
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
+					Description: "Is the port mapping accessible from outside the Container App Environment.",
+				},
+
+				"target_port": {
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
+					Description: "The target port on the container for the additional Ingress traffic.",
+				},
+
+				"exposed_port": {
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
+					Description: "The exposed port on the container for the additional Ingress traffic.",
+				},
+			},
+		},
+	}
 }
 
 func ContainerAppIngressIpSecurityRestriction() *pluginsdk.Schema {
