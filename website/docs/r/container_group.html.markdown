@@ -157,9 +157,11 @@ A `container` block supports:
 
 * `memory` - (Required) The required memory of the containers in GB. Changing this forces a new resource to be created.
 
-* `cpu_limit` - (Optional) The upper limit of the number of CPU cores of the containers.
+* `config_map` - (Optional) The config map of the Container.
 
-* `memory_limit` - (Optional) The upper limit of the memory of the containers in GB.
+* `cpu_limit` - (Optional) The upper limit of the number of CPU cores of the containers. Changing this forces a new resource to be created.
+
+* `memory_limit` - (Optional) The upper limit of the memory of the containers in GB. Changing this forces a new resource to be created.
 
 * `ports` - (Optional) A set of public ports for the container. Changing this forces a new resource to be created. Set as documented in the `ports` block below.
 
