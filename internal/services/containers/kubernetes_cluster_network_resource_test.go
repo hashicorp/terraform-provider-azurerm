@@ -1137,12 +1137,26 @@ func TestAccKubernetesCluster_clusterPoolNetworkProfileUpdate(t *testing.T) {
 func TestAccKubernetesCluster_apiServerVnetIntegration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+	config := r.apiServerVnetIntegrationConfig(data)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.apiServerVnetIntegrationConfig(data),
+			Config: strings.Replace(config, "  api_server_access_profile {", "  api_server_access_profile {\n    authorized_ip_ranges = [\"8.8.8.8/32\"]", 1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("api_server_access_profile.0.authorized_ip_ranges.#").HasValue("1"),
+				check.That(data.ResourceName).Key("api_server_access_profile.0.virtual_network_integration_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("api_server_access_profile.0.subnet_id").MatchesOtherKey(check.That("azurerm_subnet.test").Key("id")),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: config,
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("api_server_access_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("api_server_access_profile.0.authorized_ip_ranges.#").HasValue("0"),
+				check.That(data.ResourceName).Key("api_server_access_profile.0.virtual_network_integration_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("api_server_access_profile.0.subnet_id").MatchesOtherKey(check.That("azurerm_subnet.test").Key("id")),
 			),
 		},
 		data.ImportStep(),

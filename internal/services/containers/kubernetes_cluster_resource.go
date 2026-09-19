@@ -2142,8 +2142,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	if d.HasChanges("run_command_enabled", "private_cluster_public_fqdn_enabled", "api_server_access_profile") {
 		updateCluster = true
-
-		existing.Model.Properties.ApiServerAccessProfile = expandKubernetesClusterAPIAccessProfile(d)
+		existing.Model.Properties.ApiServerAccessProfile = expandKubernetesClusterAPIAccessProfileUpdate(d)
 	}
 
 	if d.HasChange("auto_scaler_profile") {
@@ -2868,7 +2867,8 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			runCommandEnabled := true
 			privateDnsZoneId := ""
 
-			if err := d.Set("api_server_access_profile", flattenKubernetesClusterAPIAccessProfile(props.ApiServerAccessProfile)); err != nil {
+			apiServerProfileConfigured := len(d.Get("api_server_access_profile").([]interface{})) > 0
+			if err := d.Set("api_server_access_profile", flattenKubernetesClusterAPIAccessProfile(props.ApiServerAccessProfile, apiServerProfileConfigured)); err != nil {
 				return fmt.Errorf("setting `api_server_access_profile`: %+v", err)
 			}
 			if accessProfile := props.ApiServerAccessProfile; accessProfile != nil {
@@ -3298,20 +3298,45 @@ func expandKubernetesClusterAPIAccessProfile(d *pluginsdk.ResourceData) *managed
 	return apiAccessProfile
 }
 
-func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedClusterAPIServerAccessProfile) []interface{} {
+func expandKubernetesClusterAPIAccessProfileUpdate(d *pluginsdk.ResourceData) *managedclusters.ManagedClusterAPIServerAccessProfile {
+	profile := expandKubernetesClusterAPIAccessProfile(d)
+	if d.HasChange("api_server_access_profile") {
+		oldProfileRaw, newProfileRaw := d.GetChange("api_server_access_profile")
+		oldProfile := oldProfileRaw.([]interface{})
+		newProfile := newProfileRaw.([]interface{})
+		if len(oldProfile) > 0 && len(newProfile) == 0 {
+			profile.AuthorizedIPRanges = pointer.To([]string{})
+		}
+	}
+	if d.HasChange("api_server_access_profile.0.authorized_ip_ranges") {
+		oldRangesRaw, newRangesRaw := d.GetChange("api_server_access_profile.0.authorized_ip_ranges")
+		oldRanges := oldRangesRaw.(*pluginsdk.Set)
+		newRanges := newRangesRaw.(*pluginsdk.Set)
+		if oldRanges.Len() > 0 && newRanges.Len() == 0 {
+			profile.AuthorizedIPRanges = pointer.To([]string{})
+		}
+	}
+	return profile
+}
+
+func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedClusterAPIServerAccessProfile, preserveEmptyProfile bool) []interface{} {
 	if profile == nil {
-		return []interface{}{}
+		profile = &managedclusters.ManagedClusterAPIServerAccessProfile{}
 	}
 
-	// API access profile can be managed by other properties, only return it if one of the properties has been set
-	if profile.AuthorizedIPRanges == nil && profile.EnableVnetIntegration == nil && profile.SubnetId == nil {
+	authorizedIPRanges := helpers.FlattenStringSlice(profile.AuthorizedIPRanges)
+	enableVnetIntegration := pointer.From(profile.EnableVnetIntegration)
+	subnetId := pointer.From(profile.SubnetId)
+
+	// Preserve a configured empty block, but do not recreate a removed block from API defaults.
+	if !preserveEmptyProfile && len(authorizedIPRanges) == 0 && !enableVnetIntegration && subnetId == "" {
 		return []interface{}{}
 	}
 
 	return []interface{}{map[string]interface{}{
-		"authorized_ip_ranges":                helpers.FlattenStringSlice(profile.AuthorizedIPRanges),
-		"virtual_network_integration_enabled": pointer.From(profile.EnableVnetIntegration),
-		"subnet_id":                           pointer.From(profile.SubnetId),
+		"authorized_ip_ranges":                authorizedIPRanges,
+		"virtual_network_integration_enabled": enableVnetIntegration,
+		"subnet_id":                           subnetId,
 	}}
 }
 
