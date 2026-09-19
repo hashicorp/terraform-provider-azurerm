@@ -9,8 +9,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/disasterrecoveryconfigs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/armdisasterrecoveries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/disasterrecoveryconfigs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -76,7 +77,8 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 }
 
 func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.DisasterRecoveryConfigsClient
+	client := meta.(*clients.Client).ServiceBus.ArmDisasterRecoveriesClient
+	authRuleClient := meta.(*clients.Client).ServiceBus.DisasterRecoveryConfigsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -84,7 +86,7 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resour
 	var resourceGroup string
 	var namespaceName string
 	if v, ok := d.Get("namespace_id").(string); ok && v != "" {
-		namespaceId, err := disasterrecoveryconfigs.ParseNamespaceID(v)
+		namespaceId, err := armdisasterrecoveries.ParseNamespaceID(v)
 		if err != nil {
 			return fmt.Errorf("parsing namespace ID %q: %+v", v, err)
 		}
@@ -92,8 +94,8 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resour
 		namespaceName = namespaceId.NamespaceName
 	}
 
-	id := disasterrecoveryconfigs.NewDisasterRecoveryConfigID(subscriptionId, resourceGroup, namespaceName, d.Get("name").(string))
-	resp, err := client.Get(ctx, id)
+	id := armdisasterrecoveries.NewDisasterRecoveryConfigID(subscriptionId, resourceGroup, namespaceName, d.Get("name").(string))
+	resp, err := client.DisasterRecoveryConfigsGet(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
@@ -121,7 +123,7 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resour
 		authRuleId = *ruleId
 	}
 
-	keys, err := client.ListKeys(ctx, authRuleId)
+	keys, err := authRuleClient.ListKeys(ctx, authRuleId)
 	if err != nil {
 		log.Printf("[WARN] listing default keys for %s: %+v", id, err)
 	} else {

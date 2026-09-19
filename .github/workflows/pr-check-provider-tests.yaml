@@ -17,12 +17,12 @@ on:
 
 permissions:
   contents: read
-  id-token: write
-  issues: write
-  pull-requests: write
 
 jobs:
   secrets-check:
+    permissions:
+      contents: read
+      id-token: write
     runs-on: ubuntu-latest
     outputs:
       available: "${{ steps.check-secrets.outputs.available }}"
@@ -38,12 +38,17 @@ jobs:
           fi
 
   provider-tests:
+    permissions:
+      contents: read
+      id-token: write
     runs-on: custom-linux-large
     needs: [secrets-check]
     if: needs.secrets-check.outputs.available == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
 
       - name: Install Go
         uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
@@ -95,12 +100,18 @@ jobs:
   save-artifacts-on-fail:
     needs: provider-tests
     if: ${{ failure() }}
-    uses: ./.github/workflows/pr-save-artifacts.yaml
+    uses: $/.github/workflows/pr-save-artifacts.yaml
   comment-on-fail:
     needs: provider-tests
     if: ${{ failure() }}
-    uses: ./.github/workflows/pr-comment-failure.yaml
+    uses: $/.github/workflows/pr-comment-failure.yaml
+    permissions:
+      issues: write
+      pull-requests: write
   comment-outdated-on-pass:
     needs: provider-tests
     if: ${{ success() }}
-    uses: ./.github/workflows/pr-comment-failure-outdated.yaml
+    uses: $/.github/workflows/pr-comment-failure-outdated.yaml
+    permissions:
+      issues: write
+      pull-requests: write
