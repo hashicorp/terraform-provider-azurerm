@@ -72,9 +72,14 @@ func TestDatabaseSkuName(t *testing.T) {
 			valid: true,
 		},
 		{
-			name:  "Valid Free",
+			name:  "Invalid Free",
 			input: "Free",
-			valid: true,
+			valid: false,
+		},
+		{
+			name:  "Invalid Free lower case",
+			input: "free",
+			valid: false,
 		},
 		{
 			name:  "Valid Basic",
