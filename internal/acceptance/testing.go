@@ -16,6 +16,8 @@ import (
 )
 
 func PreCheck(t *testing.T) {
+	skipIfGracefulStopRequested(t)
+
 	variables := []string{
 		"ARM_CLIENT_ID",
 		"ARM_CLIENT_SECRET",
