@@ -49,6 +49,29 @@ var connStringPropertyMap = map[string]string{
 	"Secondary Read-Only MongoDB Connection String": "secondary_readonly_mongodb_connection_string",
 }
 
+// tableConnectionStringAttribute returns the attribute a Table API connection string belongs
+// to, or an empty string for any other type. Unlike connStringPropertyMap above, which matches
+// on the free-text `description`, the Table entries are matched on the typed `type` and
+// `keyKind` fields returned by `listConnectionStrings`.
+func tableConnectionStringAttribute(input cosmosdb.DatabaseAccountConnectionString) string {
+	if pointer.From(input.Type) != cosmosdb.TypeTable {
+		return ""
+	}
+
+	switch pointer.From(input.KeyKind) {
+	case cosmosdb.KindPrimary:
+		return "primary_table_connection_string"
+	case cosmosdb.KindSecondary:
+		return "secondary_table_connection_string"
+	case cosmosdb.KindPrimaryReadonly:
+		return "primary_readonly_table_connection_string"
+	case cosmosdb.KindSecondaryReadonly:
+		return "secondary_readonly_table_connection_string"
+	}
+
+	return ""
+}
+
 type databaseAccountCapabilities string
 
 const (
@@ -737,6 +760,30 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
+			"primary_table_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_table_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"primary_readonly_table_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_readonly_table_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -1384,6 +1431,10 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 				for i, v := range *connStringResp.Model.ConnectionStrings {
 					connStrings[i] = *v.ConnectionString
 					if propertyName, propertyExists := connStringPropertyMap[*v.Description]; propertyExists {
+						d.Set(propertyName, v.ConnectionString) // lintignore:R001
+					}
+
+					if propertyName := tableConnectionStringAttribute(v); propertyName != "" {
 						d.Set(propertyName, v.ConnectionString) // lintignore:R001
 					}
 				}
