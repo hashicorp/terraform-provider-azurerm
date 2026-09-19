@@ -394,6 +394,11 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 										Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module_key` resources will be restored, instead of creating new ones",
 										Optional:    true,
 									},
+
+									"set_value_wo_version_on_import": schema.BoolAttribute{
+										Description: "When enabled `value_wo_version` of `azurerm_key_vault_secret` resources will be set to 1 on import",
+										Optional:    true,
+									},
 								},
 							},
 						},
