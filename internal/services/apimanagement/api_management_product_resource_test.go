@@ -125,7 +125,7 @@ func TestAccApiManagementProduct_subscriptionsLimit(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("approval_required").HasValue("false"),
 				check.That(data.ResourceName).Key("subscription_required").HasValue("true"),
-				check.That(data.ResourceName).Key("subscriptions_limit").HasValue("0"),
+				check.That(data.ResourceName).Key("subscriptions_limit").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -352,7 +352,7 @@ resource "azurerm_api_management_product" "test" {
   display_name          = "Test Product"
   subscription_required = true
   approval_required     = false
-  subscriptions_limit   = 0
+  subscriptions_limit   = 1
   published             = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
