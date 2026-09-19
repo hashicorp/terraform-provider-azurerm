@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-10-15/cosmosdb"
 	mariadbServers "github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/privatednszonegroups"
