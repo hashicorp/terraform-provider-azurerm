@@ -4,6 +4,7 @@
 package loadbalancer
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -23,6 +25,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "load_balancer_name:loadbalancer_id,resource_group_name:loadbalancer_id,subscription_id:loadbalancer_id"
+
 func resourceArmLoadBalancerRule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceArmLoadBalancerRuleCreateUpdate,
@@ -30,15 +34,11 @@ func resourceArmLoadBalancerRule() *pluginsdk.Resource {
 		Update: resourceArmLoadBalancerRuleCreateUpdate,
 		Delete: resourceArmLoadBalancerRuleDelete,
 
-		Importer: loadBalancerSubResourceImporter(func(input string) (*loadbalancers.LoadBalancerId, error) {
-			id, err := loadbalancers.ParseLoadBalancingRuleID(input)
-			if err != nil {
-				return nil, err
-			}
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&loadbalancers.LoadBalancingRuleId{}),
+		},
 
-			lbId := loadbalancers.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroupName, id.LoadBalancerName)
-			return &lbId, nil
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentityThen(&loadbalancers.LoadBalancingRuleId{}, loadBalancerRuleResourceImporter),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -49,6 +49,17 @@ func resourceArmLoadBalancerRule() *pluginsdk.Resource {
 
 		Schema: resourceArmLoadBalancerRuleSchema(),
 	}
+}
+
+func loadBalancerRuleResourceImporter(_ context.Context, d *pluginsdk.ResourceData, _ interface{}) ([]*pluginsdk.ResourceData, error) {
+	id, err := loadbalancers.ParseLoadBalancingRuleID(d.Id())
+	if err != nil {
+		return nil, err
+	}
+	lbId := loadbalancers.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroupName, id.LoadBalancerName)
+	d.Set("loadbalancer_id", lbId.ID())
+
+	return []*pluginsdk.ResourceData{d}, nil
 }
 
 func resourceArmLoadBalancerRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -114,6 +125,9 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
 	} else {
 		if err := client.CreateOrUpdateThenPoll(ctx, plbId, *loadBalancer.Model); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
@@ -144,7 +158,11 @@ func resourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving %s: %+v", plbId, err)
 	}
 
-	if model := loadBalancer.Model; model != nil {
+	return resourceArmLoadBalancerRuleFlatten(d, id, loadBalancer.Model)
+}
+
+func resourceArmLoadBalancerRuleFlatten(d *pluginsdk.ResourceData, id *loadbalancers.LoadBalancingRuleId, model *loadbalancers.LoadBalancer) error {
+	if model != nil {
 		config, _, exists := FindLoadBalancerRuleByName(model, id.LoadBalancingRuleName)
 		if !exists {
 			d.SetId("")
@@ -214,7 +232,7 @@ func resourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("probe_id", probeId)
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceArmLoadBalancerRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
