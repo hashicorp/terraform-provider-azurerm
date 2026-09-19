@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeterassociations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeterprofiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-05-01/applicationgateways"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -21,7 +22,8 @@ import (
 type Client struct {
 	*network_2025_01_01.Client
 
-	BastionHostsClient *bastionhosts.BastionHostsClient
+	ApplicationGateways *applicationgateways.ApplicationGatewaysClient
+	BastionHostsClient  *bastionhosts.BastionHostsClient
 	// VMSS Data Source requires the Network Interfaces and VMSSPublicIpAddresses client from `2023-09-01` for the `ListVirtualMachineScaleSetVMNetworkInterfacesComplete` method
 	NetworkInterfacesClient                    *networkinterfaces.NetworkInterfacesClient
 	NetworkSecurityPerimeterAccessRulesClient  *networksecurityperimeteraccessrules.NetworkSecurityPerimeterAccessRulesClient
@@ -32,6 +34,12 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
+	applicationGateways, err := applicationgateways.NewApplicationGatewaysClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Application Gateways Client: %+v", err)
+	}
+	o.Configure(applicationGateways.Client, o.Authorizers.ResourceManager)
+
 	BastionHostsClient, err := bastionhosts.NewBastionHostsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Bastion Client: %+v", err)
@@ -82,6 +90,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 
 	return &Client{
+		ApplicationGateways:                        applicationGateways,
 		BastionHostsClient:                         BastionHostsClient,
 		NetworkInterfacesClient:                    NetworkInterfacesClient,
 		NetworkSecurityPerimeterAccessRulesClient:  NetworkSecurityPerimeterAccessRulesClient,

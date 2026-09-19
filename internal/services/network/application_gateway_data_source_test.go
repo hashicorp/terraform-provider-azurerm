@@ -75,6 +75,7 @@ func TestAccApplicationGatewayDataSource_sslProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("http_listener.0.protocol").Exists(),
 				check.That(data.ResourceName).Key("request_routing_rule.0.priority").Exists(),
 				check.That(data.ResourceName).Key("request_routing_rule.0.rule_type").Exists(),
+				check.That(data.ResourceName).Key("ssl_profile.0.verify_client_auth_mode").HasValue("Passthrough"),
 				check.That(data.ResourceName).Key("ssl_profile.0.verify_client_certificate_revocation").Exists(),
 				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.policy_type").Exists(),
 				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.policy_name").Exists(),
