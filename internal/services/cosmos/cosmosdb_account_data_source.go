@@ -427,6 +427,10 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 					if propertyName, propertyExists := connStringPropertyMap[*v.Description]; propertyExists {
 						d.Set(propertyName, v.ConnectionString) // lintignore:R001
 					}
+
+					if propertyName := tableConnectionStringAttribute(v); propertyName != "" {
+						d.Set(propertyName, v.ConnectionString) // lintignore:R001
+					}
 				}
 			}
 		}
