@@ -6,27 +6,32 @@ package eventhub_test
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
 )
 
-func TestAccEventHub_resourceIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_event_hub", "test")
-	r := EventHubResource{}
+func TestAccEventhub_resourceIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	r := EventhubResource{}
 
 	checkedFields := map[string]struct{}{
-		"subscription_id": {},
+		"name":                {},
+		"namespace_name":      {},
+		"resource_group_name": {},
+		"subscription_id":     {},
 	}
 
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
-			Config: r.basic(data, 2),
+			Config: r.standard(data),
 			ConfigStateChecks: []statecheck.StateCheck{
-				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_event_hub.test", checkedFields),
-				statecheck.ExpectIdentityValue("azurerm_event_hub.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_eventhub.test", checkedFields),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_eventhub.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_eventhub.test", tfjsonpath.New("namespace_name"), tfjsonpath.New("namespace_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_eventhub.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("namespace_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_eventhub.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("namespace_id")),
 			},
 		},
 		data.ImportBlockWithResourceIdentityStep(false),
