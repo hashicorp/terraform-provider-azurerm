@@ -352,7 +352,7 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 			model := existing.Model
 
 			if model.Properties == nil {
-				return fmt.Errorf("retreiving properties for %s for update: %+v", *id, err)
+				return fmt.Errorf("retrieving properties for %s for update: %+v", *id, err)
 			}
 
 			if model.Properties.Configuration == nil {

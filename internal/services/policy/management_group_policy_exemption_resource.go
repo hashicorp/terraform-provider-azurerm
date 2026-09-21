@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	managmentGroupParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
+	managementGroupParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	managementGroupValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
@@ -112,7 +112,7 @@ func resourceManagementGroupPolicyExemptionCreateUpdate(d *pluginsdk.ResourceDat
 
 	id := parse.NewResourcePolicyExemptionId(d.Get("management_group_id").(string), d.Get("name").(string))
 
-	managementGroupId, err := managmentGroupParse.ManagementGroupID(id.ResourceId)
+	managementGroupId, err := managementGroupParse.ManagementGroupID(id.ResourceId)
 	if err != nil {
 		return err
 	}
@@ -184,7 +184,7 @@ func resourceManagementGroupPolicyExemptionRead(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("reading Policy Exemption: %+v", err)
 	}
 
-	managementGroupId, err := managmentGroupParse.ManagementGroupID(id.ResourceId)
+	managementGroupId, err := managementGroupParse.ManagementGroupID(id.ResourceId)
 	if err != nil {
 		return err
 	}
@@ -236,7 +236,7 @@ func resourceManagementGroupPolicyExemptionDelete(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("reading Policy Exemption: %+v", err)
 	}
 
-	managementGroupId, err := managmentGroupParse.ManagementGroupID(id.ResourceId)
+	managementGroupId, err := managementGroupParse.ManagementGroupID(id.ResourceId)
 	if err != nil {
 		return err
 	}

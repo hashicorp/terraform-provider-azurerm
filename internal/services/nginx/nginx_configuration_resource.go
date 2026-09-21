@@ -204,7 +204,7 @@ func (m ConfigurationResource) Create() sdk.ResourceFunc {
 				existing, err := client.ConfigurationsGet(ctx, id)
 				if !response.WasNotFound(existing.HttpResponse) {
 					if err != nil {
-						return fmt.Errorf("retreiving %s: %v", id, err)
+						return fmt.Errorf("retrieving %s: %v", id, err)
 					}
 					return metadata.ResourceRequiresImport(m.ResourceType(), id)
 				}
