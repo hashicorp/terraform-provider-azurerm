@@ -205,7 +205,7 @@ func expandVirtualMachineScaleSetGalleryApplication(input []interface{}) *[]virt
 
 func flattenVirtualMachineScaleSetGalleryApplication(input *[]virtualmachinescalesets.VMGalleryApplication) []interface{} {
 	if len(*input) == 0 {
-		return nil
+		return []interface{}{}
 	}
 
 	out := make([]interface{}, 0)
@@ -247,14 +247,10 @@ func VirtualMachineScaleSetScaleInPolicySchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"rule": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault),
-						string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesNewestVM),
-						string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesOldestVM),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault),
+					ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForVirtualMachineScaleSetScaleInRules(), false),
 				},
 
 				"force_deletion_enabled": {
@@ -308,7 +304,7 @@ func VirtualMachineScaleSetSpotRestorePolicySchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -347,7 +343,7 @@ func ExpandVirtualMachineScaleSetSpotRestorePolicy(input []interface{}) *virtual
 
 func FlattenVirtualMachineScaleSetSpotRestorePolicy(input *virtualmachinescalesets.SpotRestorePolicy) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	return []interface{}{
@@ -502,13 +498,10 @@ func virtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema {
 				},
 
 				"version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(virtualmachinescalesets.IPVersionIPvFour),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachinescalesets.IPVersionIPvFour),
-						string(virtualmachinescalesets.IPVersionIPvSix),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(virtualmachinescalesets.IPVersionIPvFour),
+					ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForIPVersion(), false),
 				},
 			},
 		},
@@ -599,7 +592,7 @@ func virtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema {
 				"idle_timeout_in_minutes": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(4, 32),
 				},
 				"ip_tag": {
@@ -625,14 +618,11 @@ func virtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema {
 					},
 				},
 				"version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ForceNew: true,
-					Default:  string(virtualmachinescalesets.IPVersionIPvFour),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachinescalesets.IPVersionIPvFour),
-						string(virtualmachinescalesets.IPVersionIPvSix),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					Default:      string(virtualmachinescalesets.IPVersionIPvFour),
+					ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForIPVersion(), false),
 				},
 				// TODO: preview feature
 				// $ az feature register --namespace Microsoft.Network --name AllowBringYourOwnPublicIpAddress
@@ -1121,13 +1111,9 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 				},
 
 				"caching": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachinescalesets.CachingTypesNone),
-						string(virtualmachinescalesets.CachingTypesReadOnly),
-						string(virtualmachinescalesets.CachingTypesReadWrite),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForCachingTypes(), false),
 				},
 
 				"create_option": {
@@ -1163,17 +1149,9 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 				},
 
 				"storage_account_type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachinescalesets.StorageAccountTypesPremiumLRS),
-						string(virtualmachinescalesets.StorageAccountTypesPremiumVTwoLRS),
-						string(virtualmachinescalesets.StorageAccountTypesPremiumZRS),
-						string(virtualmachinescalesets.StorageAccountTypesStandardLRS),
-						string(virtualmachinescalesets.StorageAccountTypesStandardSSDLRS),
-						string(virtualmachinescalesets.StorageAccountTypesStandardSSDZRS),
-						string(virtualmachinescalesets.StorageAccountTypesUltraSSDLRS),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForStorageAccountTypes(), false),
 				},
 
 				"write_accelerator_enabled": {
@@ -1186,14 +1164,16 @@ func VirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntAtLeast(1),
-					Computed:     true,
+					// Note: O+C because Azure assigns IOPS based on disk size when not specified
+					Computed: true,
 				},
 
 				"disk_mbps_read_write": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntAtLeast(1),
-					Computed:     true,
+					// Note: O+C because Azure assigns throughput based on disk size when not specified
+					Computed: true,
 				},
 			},
 		},
@@ -1319,13 +1299,9 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"caching": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(virtualmachinescalesets.CachingTypesNone),
-						string(virtualmachinescalesets.CachingTypesReadOnly),
-						string(virtualmachinescalesets.CachingTypesReadWrite),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForCachingTypes(), false),
 				},
 				"storage_account_type": {
 					Type:     pluginsdk.TypeString,
@@ -1351,22 +1327,17 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"option": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								ForceNew: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(virtualmachinescalesets.DiffDiskOptionsLocal),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ForceNew:     true,
+								ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForDiffDiskOptions(), false),
 							},
 							"placement": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								ForceNew: true,
-								Default:  string(virtualmachinescalesets.DiffDiskPlacementCacheDisk),
-								ValidateFunc: validation.StringInSlice([]string{
-									string(virtualmachinescalesets.DiffDiskPlacementCacheDisk),
-									string(virtualmachinescalesets.DiffDiskPlacementResourceDisk),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ForceNew:     true,
+								Default:      string(virtualmachinescalesets.DiffDiskPlacementCacheDisk),
+								ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForDiffDiskPlacement(), false),
 							},
 						},
 					},
@@ -1384,8 +1355,9 @@ func VirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 				},
 
 				"disk_size_gb": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					// Note: O+C because Azure computes disk size when not specified
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(0, 4095),
 				},
@@ -1716,7 +1688,7 @@ func VirtualMachineScaleSetTerminationNotificationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1741,13 +1713,11 @@ func ExpandVirtualMachineScaleSetScheduledEventsProfile(input []interface{}) *vi
 	}
 
 	raw := input[0].(map[string]interface{})
-	enabled := raw["enabled"].(bool)
-	timeout := raw["timeout"].(string)
 
 	return &virtualmachinescalesets.ScheduledEventsProfile{
 		TerminateNotificationProfile: &virtualmachinescalesets.TerminateNotificationProfile{
-			Enable:           &enabled,
-			NotBeforeTimeout: &timeout,
+			Enable:           pointer.To(raw["enabled"].(bool)),
+			NotBeforeTimeout: pointer.To(raw["timeout"].(string)),
 		},
 	}
 }
@@ -1778,7 +1748,7 @@ func VirtualMachineScaleSetAutomaticRepairsPolicySchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1786,17 +1756,17 @@ func VirtualMachineScaleSetAutomaticRepairsPolicySchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeBool,
 					Required: true,
 				},
-				// NOTE: O+C 'grace_period' and 'action' will always return a value once they've been set.
 				"grace_period": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					// NOTE: O+C 'grace_period' and 'action' will always return a value once they've been set.
 					Computed:     true,
 					ValidateFunc: azValidate.ISO8601DurationBetween("PT10M", "PT90M"),
 				},
 				"action": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForRepairAction(), false),
 				},
 			},
@@ -1842,7 +1812,7 @@ func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {

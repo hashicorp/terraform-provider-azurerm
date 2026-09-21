@@ -89,7 +89,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								// There's an issue with API that if parallelism is omitted, it's always set to `0` instead of being computed dynamically.
-								// To workaround this, mark it as Required which is also consistent with portal behavior.
+								// To workaround this, mark it as Required which is also consistent with portal behaviour.
 								// Relevant GH issue: https://github.com/Azure/azure-rest-api-specs/issues/40986
 								"parallelism": {
 									Type:         pluginsdk.TypeInt,
@@ -117,14 +117,10 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"kind": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ForceNew: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(pools.AzureDevOpsPermissionTypeCreatorOnly),
-										string(pools.AzureDevOpsPermissionTypeInherit),
-										string(pools.AzureDevOpsPermissionTypeSpecificAccounts),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForAzureDevOpsPermissionType(), false),
 								},
 
 								"administrator_account": {

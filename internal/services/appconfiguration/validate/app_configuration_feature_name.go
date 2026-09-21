@@ -16,11 +16,11 @@ func AppConfigurationFeatureName(input interface{}, key string) ([]string, []err
 		return nil, []error{fmt.Errorf("expected type of %q to be string", key)}
 	}
 
-	if idx := strings.Index(v, "%"); idx != -1 {
+	if found := strings.Contains(v, "%"); found {
 		return nil, []error{fmt.Errorf(`character "%%" is not allowed in %q`, key)}
 	}
 
-	if idx := strings.Index(v, ":"); idx != -1 {
+	if found := strings.Contains(v, ":"); found {
 		return nil, []error{fmt.Errorf(`character ":" is not allowed in %q`, key)}
 	}
 
@@ -33,7 +33,7 @@ func AppConfigurationFeatureKey(input interface{}, key string) ([]string, []erro
 		return nil, []error{fmt.Errorf("expected type of %q to be string", key)}
 	}
 
-	if idx := strings.Index(v, "%"); idx != -1 {
+	if found := strings.Contains(v, "%"); found {
 		return nil, []error{fmt.Errorf(`character "%%" is not allowed in %q`, key)}
 	}
 

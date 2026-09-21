@@ -65,15 +65,10 @@ func resourceVirtualWan() *pluginsdk.Resource {
 			},
 
 			"office365_local_breakout_category": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualwans.OfficeTrafficCategoryAll),
-					string(virtualwans.OfficeTrafficCategoryNone),
-					string(virtualwans.OfficeTrafficCategoryOptimize),
-					string(virtualwans.OfficeTrafficCategoryOptimizeAndAllow),
-				}, false),
-				Default: string(virtualwans.OfficeTrafficCategoryNone),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForOfficeTrafficCategory(), false),
+				Default:      string(virtualwans.OfficeTrafficCategoryNone),
 			},
 
 			"type": {

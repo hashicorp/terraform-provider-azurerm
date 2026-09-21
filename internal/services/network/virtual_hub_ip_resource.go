@@ -80,13 +80,10 @@ func resourceVirtualHubIP() *pluginsdk.Resource {
 			},
 
 			"private_ip_allocation_method": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  virtualwans.IPAllocationMethodDynamic,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualwans.IPAllocationMethodDynamic),
-					string(virtualwans.IPAllocationMethodStatic),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      virtualwans.IPAllocationMethodDynamic,
+				ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForIPAllocationMethod(), false),
 			},
 		},
 	}

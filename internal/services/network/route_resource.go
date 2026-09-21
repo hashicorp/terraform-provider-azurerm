@@ -69,15 +69,9 @@ func resourceRoute() *pluginsdk.Resource {
 			},
 
 			"next_hop_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(routes.RouteNextHopTypeVirtualNetworkGateway),
-					string(routes.RouteNextHopTypeVnetLocal),
-					string(routes.RouteNextHopTypeInternet),
-					string(routes.RouteNextHopTypeVirtualAppliance),
-					string(routes.RouteNextHopTypeNone),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(routes.PossibleValuesForRouteNextHopType(), false),
 			},
 
 			"next_hop_in_ip_address": {
