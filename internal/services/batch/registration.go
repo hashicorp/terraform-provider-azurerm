@@ -7,10 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/batch_account"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/batch_application"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/batch_job"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/batch_pool"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/application"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/job"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/pool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -40,18 +40,18 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_batch_account":     batch_account.DataSource(),
-		"azurerm_batch_application": batch_application.DataSource(),
-		"azurerm_batch_pool":        batch_pool.DataSource(),
+		"azurerm_batch_account":     account.DataSource(),
+		"azurerm_batch_application": application.DataSource(),
+		"azurerm_batch_pool":        pool.DataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_batch_account":     batch_account.Resource(),
-		"azurerm_batch_application": batch_application.Resource(),
-		"azurerm_batch_pool":        batch_pool.Resource(),
+		"azurerm_batch_account":     account.Resource(),
+		"azurerm_batch_application": application.Resource(),
+		"azurerm_batch_pool":        pool.Resource(),
 	}
 }
 
@@ -61,7 +61,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		batch_job.Resource{},
+		job.Resource{},
 	}
 }
 
@@ -83,7 +83,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
-		batch_account.ListResource{},
-		batch_application.ListResource{},
+		account.ListResource{},
+		application.ListResource{},
 	}
 }

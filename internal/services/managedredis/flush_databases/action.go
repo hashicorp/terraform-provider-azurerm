@@ -28,10 +28,6 @@ func Action() action.Action {
 	return &flushDatabasesAction{}
 }
 
-func New() action.Action {
-	return Action()
-}
-
 type ActionModel struct {
 	ManagedRedisDatabaseId types.String   `tfsdk:"managed_redis_database_id"`
 	LinkedDatabaseIds      []types.String `tfsdk:"linked_database_ids"`
