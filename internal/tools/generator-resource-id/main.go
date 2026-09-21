@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package main
@@ -338,7 +338,7 @@ type ResourceIdGenerator struct {
 
 func (id ResourceIdGenerator) Code() string {
 	return fmt.Sprintf(`
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -581,7 +581,7 @@ func (id ResourceIdGenerator) TestCode() string {
 	}
 
 	return fmt.Sprintf(`
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package parse%s
@@ -930,7 +930,7 @@ func (id ResourceIdGenerator) testCodeForParserInsensitive() string {
 
 func (id ResourceIdGenerator) ValidatorCode() string {
 	return fmt.Sprintf(`
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -1007,7 +1007,7 @@ func (id ResourceIdGenerator) ValidatorTestCode() string {
 
 	if id.TestPackageSuffix == "" {
 		return fmt.Sprintf(`
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -1035,7 +1035,7 @@ import "testing"
 `, id.TypeName, testCasesStr, id.lintIgnoreAT003())
 	}
 
-	return fmt.Sprintf(`// Copyright IBM Corp. 2014, 2025
+	return fmt.Sprintf(`// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate%[1]s
