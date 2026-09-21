@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"net/netip"
 	"regexp"
 	"strings"
 	"time"
@@ -25,7 +26,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/serviceendpointpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/subnets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ipampools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -63,6 +64,8 @@ func resourceVirtualNetwork() *pluginsdk.Resource {
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.VirtualNetworkId{}),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(virtualNetworkCustomizeDiff),
 	}
 }
 
@@ -339,12 +342,22 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(virtualnetworks.PossibleValuesForPrivateEndpointVNetPolicies(), false),
 		},
 
+		"summarized_gateway_prefixes": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.IsCIDR,
+			},
+		},
+
 		"tags": commonschema.Tags(),
 	}
 }
 
 func resourceVirtualNetworkCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VirtualNetworks
+	client := meta.(*clients.Client).Network.VirtualNetworksClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -424,7 +437,7 @@ func resourceVirtualNetworkCreate(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VirtualNetworks
+	client := meta.(*clients.Client).Network.VirtualNetworksClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -499,6 +512,14 @@ func resourceVirtualNetworkFlatten(d *pluginsdk.ResourceData, id commonids.Virtu
 			if err := d.Set("bgp_community", bgpCommunity); err != nil {
 				return fmt.Errorf("setting `bgp_community`: %+v", err)
 			}
+
+			if summarizedGatewayPrefixes := props.SummarizedGatewayPrefixes; summarizedGatewayPrefixes != nil {
+				if addressPrefixes := summarizedGatewayPrefixes.AddressPrefixes; addressPrefixes != nil {
+					if err := d.Set("summarized_gateway_prefixes", addressPrefixes); err != nil {
+						return fmt.Errorf("setting `summarized_gateway_prefixes`: %+v", err)
+					}
+				}
+			}
 		}
 
 		if err := tags.FlattenAndSet(d, vnet.Tags); err != nil {
@@ -510,7 +531,7 @@ func resourceVirtualNetworkFlatten(d *pluginsdk.ResourceData, id commonids.Virtu
 }
 
 func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VirtualNetworks
+	client := meta.(*clients.Client).Network.VirtualNetworksClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -625,6 +646,16 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		payload.Properties.PrivateEndpointVNetPolicies = pointer.ToEnum[virtualnetworks.PrivateEndpointVNetPolicies](d.Get("private_endpoint_vnet_policies").(string))
 	}
 
+	if d.HasChange("summarized_gateway_prefixes") {
+		if summarizedGatewayPrefixes, ok := d.GetOk("summarized_gateway_prefixes"); ok {
+			payload.Properties.SummarizedGatewayPrefixes = &virtualnetworks.AddressSpace{
+				AddressPrefixes: pointer.To(expandVirtualNetworkSummarizedGatewayAddressPrefixes(summarizedGatewayPrefixes.([]interface{}))),
+			}
+		} else {
+			payload.Properties.SummarizedGatewayPrefixes = nil
+		}
+	}
+
 	if d.HasChange("tags") {
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
@@ -659,7 +690,7 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(virtualnetworks.ProvisioningStateUpdating)},
 		Target:     []string{string(virtualnetworks.ProvisioningStateSucceeded)},
-		Refresh:    VirtualNetworkProvisioningStateRefreshFunc(ctx, meta.(*clients.Client).Network.VirtualNetworks, *id),
+		Refresh:    VirtualNetworkProvisioningStateRefreshFunc(ctx, meta.(*clients.Client).Network.VirtualNetworksClient, *id),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(timeout),
 	}
@@ -672,7 +703,7 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func resourceVirtualNetworkDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VirtualNetworks
+	client := meta.(*clients.Client).Network.VirtualNetworksClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -935,6 +966,12 @@ func expandVirtualNetworkProperties(ctx context.Context, client virtualnetworks.
 		properties.BgpCommunities = &virtualnetworks.VirtualNetworkBgpCommunities{VirtualNetworkCommunity: v.(string)}
 	}
 
+	if summarizedGatewayPrefixes, ok := d.GetOk("summarized_gateway_prefixes"); ok {
+		properties.SummarizedGatewayPrefixes = &virtualnetworks.AddressSpace{
+			AddressPrefixes: pointer.To(expandVirtualNetworkSummarizedGatewayAddressPrefixes(summarizedGatewayPrefixes.([]interface{}))),
+		}
+	}
+
 	return properties, &routeTables, nil
 }
 
@@ -962,6 +999,15 @@ func expandVirtualNetworkIPAddressPool(input []interface{}) *[]virtualnetworks.I
 	}
 
 	return &outputs
+}
+
+func expandVirtualNetworkSummarizedGatewayAddressPrefixes(inputs []interface{}) []string {
+	addressPrefixes := make([]string, 0)
+	for _, input := range inputs {
+		addressPrefixes = append(addressPrefixes, input.(string))
+	}
+
+	return addressPrefixes
 }
 
 func flattenVirtualNetworkIPAddressPool(input *[]virtualnetworks.IPamPoolPrefixAllocation) []interface{} {
@@ -1304,4 +1350,44 @@ func VirtualNetworkProvisioningStateRefreshFunc(ctx context.Context, client *vir
 		}
 		return res, "", fmt.Errorf("polling for %s: %+v", id, err)
 	}
+}
+
+func checkPrefixOverlap(prefixes []netip.Prefix) error {
+	for i := 0; i < len(prefixes)-1; i++ {
+		for j := i + 1; j < len(prefixes); j++ {
+			if prefixes[i].Overlaps(prefixes[j]) {
+				return fmt.Errorf("address space of `summarized_gateway_prefixes` property, `%s` overlaps with `%s`, address space overlapping is not allowed", prefixes[i], prefixes[j])
+			}
+		}
+	}
+
+	return nil
+}
+
+func virtualNetworkCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+	if rawSummarizedGatewayPrefixes, ok := d.GetOk("summarized_gateway_prefixes"); ok {
+		// Check if `summarized_gateway_prefixes` list of prefixes overlap with each other according to portal
+		summarizedGatewayPrefixes := rawSummarizedGatewayPrefixes.([]interface{})
+		ipv4Prefixes := make([]netip.Prefix, 0)
+		ipv6Prefixes := make([]netip.Prefix, 0)
+
+		for _, summarizedGatewayPrefix := range summarizedGatewayPrefixes {
+			prefix, _ := netip.ParsePrefix(summarizedGatewayPrefix.(string))
+			if prefix.Addr().Is4() {
+				ipv4Prefixes = append(ipv4Prefixes, prefix)
+			} else {
+				ipv6Prefixes = append(ipv6Prefixes, prefix)
+			}
+		}
+
+		if err := checkPrefixOverlap(ipv4Prefixes); err != nil {
+			return err
+		}
+
+		if err := checkPrefixOverlap(ipv6Prefixes); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
