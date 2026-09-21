@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
@@ -15,6 +17,13 @@ func TestAccKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 	config := r.apiServerAuthorizedIPRangesConfig(data, `["8.8.8.8/32", "8.8.4.4/32", "8.8.2.0/24"]`)
+	// API defaults cannot distinguish a removed block from a retained empty block.
+	emptyProfileImport := data.ImportBlockWithIDStep(true)
+	emptyProfileImport.ImportPlanChecks = resource.ImportPlanChecks{
+		PreApply: []plancheck.PlanCheck{
+			plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
+		},
+	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -41,6 +50,7 @@ func TestAccKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 				check.That(data.ResourceName).Key("api_server_access_profile.0.authorized_ip_ranges.#").HasValue("0"),
 			),
 		},
+		emptyProfileImport,
 		{
 			Config: config,
 			Check: acceptance.ComposeTestCheckFunc(
@@ -54,6 +64,7 @@ func TestAccKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 				check.That(data.ResourceName).Key("api_server_access_profile.0.authorized_ip_ranges.#").HasValue("0"),
 			),
 		},
+		emptyProfileImport,
 		{
 			Config: config,
 			Check: acceptance.ComposeTestCheckFunc(
