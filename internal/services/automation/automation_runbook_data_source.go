@@ -310,7 +310,7 @@ func (d AutomationRunbookDataSource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			state.JobSchedule = FlattenAutomationRunbookJobScheduleDataSource(jsMap)
+			state.JobSchedule = flattenAutomationRunbookJobScheduleDataSource(jsMap)
 
 			if contentResp.Model != nil {
 				state.Content = string(pointer.From(contentResp.Model))
