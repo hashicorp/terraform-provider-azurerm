@@ -42,6 +42,11 @@ func TestKubernetesFleetAutoUpgradeProfileRead(t *testing.T) {
 			status: http.StatusOK,
 		},
 		{
+			name:   "null optional properties",
+			body:   `{"properties":{"channel":"Stable","nodeImageSelection":null,"updateStrategyId":null,"disabled":null}}`,
+			status: http.StatusOK,
+		},
+		{
 			name:      "missing properties",
 			body:      `{}`,
 			status:    http.StatusOK,
