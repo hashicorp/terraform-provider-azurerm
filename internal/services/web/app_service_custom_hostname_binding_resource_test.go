@@ -122,7 +122,7 @@ provider "azurerm" {
 
 resource "azurerm_app_service_custom_hostname_binding" "test" {
   hostname            = trimsuffix(azurerm_dns_cname_record.test.fqdn, ".")
-  app_service_name    = azurerm_app_service.test.name
+  app_service_name    = azurerm_windows_web_app.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
 `, r.template(data))
@@ -149,7 +149,7 @@ resource "azurerm_dns_cname_record" "test2" {
   zone_name           = data.azurerm_dns_zone.test.name
   resource_group_name = data.azurerm_dns_zone.test.resource_group_name
   ttl                 = 300
-  record              = azurerm_app_service.test.default_site_hostname
+  record              = azurerm_windows_web_app.test.default_hostname
 }
 
 resource "azurerm_dns_txt_record" "test2" {
@@ -159,13 +159,13 @@ resource "azurerm_dns_txt_record" "test2" {
   ttl                 = 300
 
   record {
-    value = azurerm_app_service.test.custom_domain_verification_id
+    value = azurerm_windows_web_app.test.custom_domain_verification_id
   }
 }
 
 resource "azurerm_app_service_custom_hostname_binding" "test2" {
   hostname            = trimsuffix(azurerm_dns_cname_record.test2.fqdn, ".")
-  app_service_name    = azurerm_app_service.test.name
+  app_service_name    = azurerm_windows_web_app.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
 `, r.basicConfig(data), data.RandomStringOfLength(7))
@@ -245,7 +245,7 @@ resource "azurerm_app_service_certificate" "test" {
 
 resource "azurerm_app_service_custom_hostname_binding" "test" {
   hostname            = trimsuffix(azurerm_dns_cname_record.test.fqdn, ".")
-  app_service_name    = azurerm_app_service.test.name
+  app_service_name    = azurerm_windows_web_app.test.name
   resource_group_name = azurerm_resource_group.test.name
   ssl_state           = "SniEnabled"
   thumbprint          = azurerm_app_service_certificate.test.thumbprint
@@ -260,22 +260,21 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_service_plan" "test" {
   name                = "acctestASP-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
+  os_type             = "Windows"
+  sku_name            = "S1"
 }
 
-resource "azurerm_app_service" "test" {
+resource "azurerm_windows_web_app" "test" {
   name                = "acctestAS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  app_service_plan_id = azurerm_app_service_plan.test.id
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
 }
 
 data "azurerm_dns_zone" "test" {
@@ -288,7 +287,7 @@ resource "azurerm_dns_cname_record" "test" {
   zone_name           = data.azurerm_dns_zone.test.name
   resource_group_name = data.azurerm_dns_zone.test.resource_group_name
   ttl                 = 300
-  record              = azurerm_app_service.test.default_site_hostname
+  record              = azurerm_windows_web_app.test.default_hostname
 }
 
 resource "azurerm_dns_txt_record" "test" {
@@ -298,7 +297,7 @@ resource "azurerm_dns_txt_record" "test" {
   ttl                 = 300
 
   record {
-    value = azurerm_app_service.test.custom_domain_verification_id
+    value = azurerm_windows_web_app.test.custom_domain_verification_id
   }
 }
 `, data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_TEST_DNS_ZONE"), os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP"), data.RandomString)
