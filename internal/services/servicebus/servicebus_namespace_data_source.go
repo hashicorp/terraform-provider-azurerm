@@ -220,11 +220,9 @@ func dataSourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface
 				d.Set("customer_managed_key", customerManagedKey)
 			}
 
-			localAuthEnabled := !pointer.From(props.DisableLocalAuth)
-			d.Set("local_auth_enabled", localAuthEnabled)
+			d.Set("local_auth_enabled", !pointer.From(props.DisableLocalAuth))
 
-			publicNetworkAccess := pointer.From(props.PublicNetworkAccess) != namespaces.PublicNetworkAccessDisabled
-			d.Set("public_network_access_enabled", publicNetworkAccess)
+			d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) != namespaces.PublicNetworkAccessDisabled)
 
 			d.Set("minimum_tls_version", pointer.FromEnum(props.MinimumTlsVersion))
 
