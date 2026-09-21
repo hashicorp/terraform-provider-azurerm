@@ -361,7 +361,7 @@ A `registry` block exports the following:
 
 * `server` - The FQDN for the Container Registry.
 
-* `identity` - The Managed Identity used when pulling from the Container Registry. `System` and `system-environment` refer to the Container App's and Container App Environment's System Assigned Managed Identities, respectively. User Assigned Managed Identities are referenced by Resource ID.
+* `identity` - The Managed Identity used to pull images from the Container Registry. `System` and `system-environment` refer to the Container App's and Container App Environment's System Assigned Managed Identities, respectively. User Assigned Managed Identities are referenced by Resource ID.
 
 * `password_secret_name` - The name of the Secret Reference containing the password value for the user on the Container Registry.
 
