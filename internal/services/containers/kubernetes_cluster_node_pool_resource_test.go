@@ -1088,10 +1088,29 @@ func TestAccKubernetesClusterNodePool_windowsProfileOutboundNatEnabled(t *testin
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.windowsProfileOutboundNat(data, true),
+			Config: r.windowsProfileOutboundNat(data, pointer.To(true), ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("windows_profile.0.outbound_nat_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("node_count").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.windowsProfileOutboundNat(data, nil, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("windows_profile.0.outbound_nat_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("node_count").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.windowsProfileOutboundNat(data, nil, "prod"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("windows_profile.0.outbound_nat_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("tags.Environment").HasValue("prod"),
 				check.That(data.ResourceName).Key("node_count").HasValue("1"),
 			),
 		},
@@ -1105,10 +1124,29 @@ func TestAccKubernetesClusterNodePool_windowsProfileOutboundNatDisabled(t *testi
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.windowsProfileOutboundNat(data, false),
+			Config: r.windowsProfileOutboundNat(data, pointer.To(false), ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("windows_profile.0.outbound_nat_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("node_count").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.windowsProfileOutboundNat(data, nil, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("windows_profile.0.outbound_nat_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("node_count").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.windowsProfileOutboundNat(data, nil, "prod"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("windows_profile.0.outbound_nat_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("tags.Environment").HasValue("prod"),
 				check.That(data.ResourceName).Key("node_count").HasValue("1"),
 			),
 		},
@@ -3412,7 +3450,24 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, currentKubernetesVersion)
 }
 
-func (KubernetesClusterNodePoolResource) windowsProfileOutboundNat(data acceptance.TestData, enabled bool) string {
+func (KubernetesClusterNodePoolResource) windowsProfileOutboundNat(data acceptance.TestData, enabled *bool, tagValue string) string {
+	windowsProfile := ""
+	if enabled != nil {
+		windowsProfile = fmt.Sprintf(`
+  windows_profile {
+    outbound_nat_enabled = %t
+  }
+`, *enabled)
+	}
+	tags := ""
+	if tagValue != "" {
+		tags = fmt.Sprintf(`
+  tags = {
+    Environment = %q
+  }
+`, tagValue)
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3450,7 +3505,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
   windows_profile {
     admin_username = "azureuser"
-    admin_password = "Aa1!%[4]s"
+    admin_password = "P@55W0rd1234!%[5]s"
   }
 }
 
@@ -3461,14 +3516,13 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
   os_type               = "Windows"
   os_sku                = "Windows2022"
-  windows_profile {
-    outbound_nat_enabled = %[3]t
-  }
+%[3]s
+%[4]s
   upgrade_settings {
     max_surge = "10%%"
   }
 }
-`, data.Locations.Primary, data.RandomInteger, enabled, data.RandomString)
+`, data.Locations.Primary, data.RandomInteger, windowsProfile, tags, data.RandomString)
 }
 
 func (KubernetesClusterNodePoolResource) nodeIPTags(data acceptance.TestData) string {
