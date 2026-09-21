@@ -31,7 +31,7 @@ type DataProtectionBackupVaultResourceGuardAssociationModel struct {
 	DataProtectionResourceGuardId string `tfschema:"data_protection_resource_guard_id"`
 }
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_vault_resource_guard_association -service-package-name dataprotection -compare-values "subscription_id:data_protection_backup_vault_id,resource_group_name:data_protection_backup_vault_id,backup_vault_name:data_protection_backup_vault_id" -known-values "name:DppResourceGuardProxy"
+//go:generate env GOFILE= go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_vault_resource_guard_association -service-package-name dataprotection -compare-values "subscription_id:data_protection_backup_vault_id,resource_group_name:data_protection_backup_vault_id,backup_vault_name:data_protection_backup_vault_id" -known-values "name:DppResourceGuardProxy"
 
 type DataProtectionBackupVaultResourceGuardAssociationResource struct{}
 
