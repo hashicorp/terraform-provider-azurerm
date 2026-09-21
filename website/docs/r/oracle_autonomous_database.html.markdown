@@ -95,9 +95,9 @@ The following arguments are supported:
 
 -> **Note:** for more information see [Create Long-Term Backups on Autonomous Database](https://docs.oracle.com/en/cloud/paas/autonomous-database/serverless/adbsb/backup-long-term.html#GUID-BD76E02E-AEB0-4450-A6AB-5C9EB1F4EAD0)
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Autonomous Database.
-
 * `maintenance_patch_level` - (Optional) The maintenance patch level for the Autonomous Database. Defaults to `Regular`. Possible values are `Early` and `Regular`.
+
+* `tags` - (Optional) A mapping of tags which should be assigned to the Autonomous Database.
 
 ---
 

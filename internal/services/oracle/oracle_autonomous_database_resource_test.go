@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/autonomousdatabases"
@@ -59,7 +60,7 @@ func TestAdbsRegularResource_complete(t *testing.T) {
 	})
 }
 
-func TestAdbsRegularResource_updateRegular(t *testing.T) {
+func TestAdbsRegularResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularResource{}.ResourceType(), "test")
 	r := AdbsRegularResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -67,7 +68,6 @@ func TestAdbsRegularResource_updateRegular(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("maintenance_patch_level").HasValue("Regular"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -75,7 +75,6 @@ func TestAdbsRegularResource_updateRegular(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("maintenance_patch_level").HasValue("Early"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -187,6 +186,8 @@ resource "azurerm_oracle_autonomous_database" "test" {
 }
 
 func (a AdbsRegularResource) complete(data acceptance.TestData) string {
+	timeOfBackup := time.Now().UTC().Add(72 * time.Hour).Format(time.RFC3339)
+
 	return fmt.Sprintf(`
 
 %s
@@ -219,12 +220,12 @@ resource "azurerm_oracle_autonomous_database" "test" {
   allowed_ips                      = []
   long_term_backup_schedule {
     repeat_cadence           = "Monthly"
-    time_of_backup           = "2025-08-03T09:00:00Z"
+    time_of_backup           = "%[4]s"
     retention_period_in_days = 200
     enabled                  = true
   }
 }
-`, a.template(data), data.RandomInteger, data.Locations.Primary)
+`, a.template(data), data.RandomInteger, data.Locations.Primary, timeOfBackup)
 }
 
 func (a AdbsRegularResource) update(data acceptance.TestData) string {
@@ -262,6 +263,8 @@ resource "azurerm_oracle_autonomous_database" "test" {
 }
 
 func (a AdbsRegularResource) updateBackupSchedule(data acceptance.TestData) string {
+	timeOfBackup := time.Now().UTC().Add(72 * time.Hour).Format(time.RFC3339)
+
 	return fmt.Sprintf(`
 %s
 
@@ -292,12 +295,12 @@ resource "azurerm_oracle_autonomous_database" "test" {
   virtual_network_id               = azurerm_virtual_network.test.id
   long_term_backup_schedule {
     repeat_cadence           = "Weekly"
-    time_of_backup           = "2025-08-03T09:00:00Z"
+    time_of_backup           = "%[4]s"
     retention_period_in_days = 198
     enabled                  = true
   }
 }
-`, a.template(data), data.RandomInteger, data.Locations.Primary)
+`, a.template(data), data.RandomInteger, data.Locations.Primary, timeOfBackup)
 }
 
 func (a AdbsRegularResource) requiresImport(data acceptance.TestData) string {

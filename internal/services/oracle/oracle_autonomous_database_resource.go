@@ -189,7 +189,7 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		"maintenance_patch_level": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Default:      "Regular",
+			Default:      autonomousdatabases.AutonomousMaintenanceScheduleTypeRegular,
 			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForAutonomousMaintenanceScheduleType(), false),
 		},
 
@@ -276,29 +276,28 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 			}
 
 			properties := &autonomousdatabases.AutonomousDatabaseProperties{
-				AdminPassword:                  pointer.To(model.AdminPassword),
-				BackupRetentionPeriodInDays:    pointer.To(model.BackupRetentionPeriodInDays),
-				CharacterSet:                   pointer.To(model.CharacterSet),
-				ComputeCount:                   pointer.To(model.ComputeCount),
-				ComputeModel:                   pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
-				DataBaseType:                   "Regular",
-				DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTbs),
-				DbWorkload:                     pointer.To(autonomousdatabases.WorkloadType(model.DbWorkload)),
-				DbVersion:                      pointer.To(model.DbVersion),
-				DisplayName:                    pointer.To(model.DisplayName),
-				IsAutoScalingEnabled:           pointer.To(model.AutoScalingEnabled),
-				IsAutoScalingForStorageEnabled: pointer.To(model.AutoScalingForStorageEnabled),
-				IsMtlsConnectionRequired:       pointer.To(model.MtlsConnectionRequired),
-				LicenseModel:                   pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
-				NcharacterSet:                  pointer.To(model.NationalCharacterSet),
-				WhitelistedIPs:                 pointer.To(model.AllowedIps),
+				AdminPassword:                     pointer.To(model.AdminPassword),
+				BackupRetentionPeriodInDays:       pointer.To(model.BackupRetentionPeriodInDays),
+				CharacterSet:                      pointer.To(model.CharacterSet),
+				ComputeCount:                      pointer.To(model.ComputeCount),
+				ComputeModel:                      pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
+				DataBaseType:                      "Regular",
+				DataStorageSizeInTbs:              pointer.To(model.DataStorageSizeInTbs),
+				DbWorkload:                        pointer.To(autonomousdatabases.WorkloadType(model.DbWorkload)),
+				DbVersion:                         pointer.To(model.DbVersion),
+				DisplayName:                       pointer.To(model.DisplayName),
+				IsAutoScalingEnabled:              pointer.To(model.AutoScalingEnabled),
+				IsAutoScalingForStorageEnabled:    pointer.To(model.AutoScalingForStorageEnabled),
+				IsMtlsConnectionRequired:          pointer.To(model.MtlsConnectionRequired),
+				LicenseModel:                      pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
+				NcharacterSet:                     pointer.To(model.NationalCharacterSet),
+				AutonomousMaintenanceScheduleType: pointer.ToEnum[autonomousdatabases.AutonomousMaintenanceScheduleType](model.MaintenancePatchLevel),
+				WhitelistedIPs:                    pointer.To(model.AllowedIps),
 			}
 
 			if len(model.CustomerContacts) > 0 {
 				properties.CustomerContacts = pointer.To(expandAdbsCustomerContacts(model.CustomerContacts))
 			}
-
-			properties.AutonomousMaintenanceScheduleType = pointer.To(autonomousdatabases.AutonomousMaintenanceScheduleType(model.MaintenancePatchLevel))
 
 			if model.SubnetId != "" {
 				properties.SubnetId = pointer.To(model.SubnetId)
@@ -391,9 +390,10 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 			}
 
 			if needsMaintenancePatchLevelUpdate {
+				// The service returns AUTONOMOUS_DATABASE_UPDATE_FAILED when this value is included with general property updates.
 				maintenancePatchLevelUpdate := autonomousdatabases.AutonomousDatabaseUpdate{
 					Properties: &autonomousdatabases.AutonomousDatabaseUpdateProperties{
-						AutonomousMaintenanceScheduleType: pointer.To(autonomousdatabases.AutonomousMaintenanceScheduleType(model.MaintenancePatchLevel)),
+						AutonomousMaintenanceScheduleType: pointer.ToEnum[autonomousdatabases.AutonomousMaintenanceScheduleType](model.MaintenancePatchLevel),
 					},
 				}
 
