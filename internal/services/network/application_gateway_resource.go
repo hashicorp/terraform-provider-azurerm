@@ -26,7 +26,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationgateways"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -189,7 +188,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"port": {
 							Type:         pluginsdk.TypeInt,
 							Required:     true,
-							ValidateFunc: validate.PortNumber,
+							ValidateFunc: validation.IsPortNumber,
 						},
 
 						"protocol": {
@@ -319,7 +318,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"port": {
 							Type:         pluginsdk.TypeInt,
 							Required:     true,
-							ValidateFunc: validate.PortNumber,
+							ValidateFunc: validation.IsPortNumber,
 						},
 
 						"protocol": {
@@ -444,7 +443,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"port": {
 							Type:         pluginsdk.TypeInt,
 							Required:     true,
-							ValidateFunc: validate.PortNumber,
+							ValidateFunc: validation.IsPortNumber,
 						},
 
 						"id": {
@@ -1161,7 +1160,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"port": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							ValidateFunc: validate.PortNumber,
+							ValidateFunc: validation.IsPortNumber,
 						},
 
 						"proxy_protocol_header_enabled": {

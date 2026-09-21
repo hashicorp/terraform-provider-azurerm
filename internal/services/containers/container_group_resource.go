@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2025-09-01/containerinstance"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -190,7 +189,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.PortNumber,
+							ValidateFunc: validation.IsPortNumber,
 						},
 
 						"protocol": {
@@ -315,7 +314,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeInt,
 										Optional:     true,
 										ForceNew:     true,
-										ValidateFunc: validate.PortNumber,
+										ValidateFunc: validation.IsPortNumber,
 									},
 
 									"protocol": {

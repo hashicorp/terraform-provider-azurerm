@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/extensions"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -382,7 +381,7 @@ func SchemaHDInsightsHttpsEndpoints() *pluginsdk.Schema {
 				"destination_port": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					ValidateFunc: azValidate.PortNumber,
+					ValidateFunc: validation.IsPortNumber,
 				},
 
 				"disable_gateway_auth": {

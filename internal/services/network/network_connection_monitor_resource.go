@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -226,7 +225,7 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 								"port": {
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
-									ValidateFunc: validate.PortNumber,
+									ValidateFunc: validation.IsPortNumber,
 								},
 
 								"prefer_https": {
@@ -319,7 +318,7 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 								"port": {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
-									ValidateFunc: validate.PortNumber,
+									ValidateFunc: validation.IsPortNumber,
 								},
 
 								"trace_route_enabled": {

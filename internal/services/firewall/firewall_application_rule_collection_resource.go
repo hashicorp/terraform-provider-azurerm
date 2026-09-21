@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
@@ -119,7 +118,7 @@ func resourceFirewallApplicationRuleCollection() *pluginsdk.Resource {
 									"port": {
 										Type:         pluginsdk.TypeInt,
 										Required:     true,
-										ValidateFunc: validate.PortNumber,
+										ValidateFunc: validation.IsPortNumber,
 									},
 								},
 							},
