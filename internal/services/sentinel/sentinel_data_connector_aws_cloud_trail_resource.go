@@ -9,16 +9,15 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/dataconnectors"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	securityinsight "github.com/jackofallops/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 func resourceSentinelDataConnectorAwsCloudTrail() *pluginsdk.Resource {
@@ -28,7 +27,7 @@ func resourceSentinelDataConnectorAwsCloudTrail() *pluginsdk.Resource {
 		Update: resourceSentinelDataConnectorAwsCloudTrailCreateUpdate,
 		Delete: resourceSentinelDataConnectorAwsCloudTrailDelete,
 
-		Importer: importDataConnectorUntyped(securityinsight.DataConnectorKindAmazonWebServicesCloudTrail),
+		Importer: importDataConnectorUntyped(dataconnectors.DataConnectorKindAmazonWebServicesCloudTrail),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -71,48 +70,52 @@ func resourceSentinelDataConnectorAwsCloudTrailCreateUpdate(d *pluginsdk.Resourc
 		return err
 	}
 	name := d.Get("name").(string)
-	id := parse.NewDataConnectorID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, name)
+	id := dataconnectors.NewDataConnectorID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, name)
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, name)
+			resp, err := client.Get(ctx, id)
 			if err != nil {
-				if !utils.ResponseWasNotFound(resp.Response) {
+				if !response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)
 				}
 			}
 
-			if !utils.ResponseWasNotFound(resp.Response) {
+			if !response.WasNotFound(resp.HttpResponse) {
 				return tf.ImportAsExistsError("azurerm_sentinel_data_connector_aws_cloud_trail", id.ID())
 			}
 		}
 	}
 
-	param := securityinsight.AwsCloudTrailDataConnector{
+	param := dataconnectors.AwsCloudTrailDataConnector{
 		Name: &name,
-		AwsCloudTrailDataConnectorProperties: &securityinsight.AwsCloudTrailDataConnectorProperties{
+		Properties: &dataconnectors.AwsCloudTrailDataConnectorProperties{
 			AwsRoleArn: pointer.To(d.Get("aws_role_arn").(string)),
-			DataTypes: &securityinsight.AwsCloudTrailDataConnectorDataTypes{
-				Logs: &securityinsight.AwsCloudTrailDataConnectorDataTypesLogs{
-					State: securityinsight.DataTypeStateEnabled,
+			DataTypes: dataconnectors.AwsCloudTrailDataConnectorDataTypes{
+				Logs: dataconnectors.DataConnectorDataTypeCommon{
+					State: dataconnectors.DataTypeStateEnabled,
 				},
 			},
 		},
-		Kind: securityinsight.KindBasicDataConnectorKindAmazonWebServicesCloudTrail,
+		Kind: dataconnectors.DataConnectorKindAmazonWebServicesCloudTrail,
 	}
 
 	if !d.IsNewResource() {
-		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, name)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
-		if _, ok := resp.Value.(securityinsight.AwsCloudTrailDataConnector); !ok {
+		if resp.Model == nil {
+			return fmt.Errorf("retrieving %s: `model` was nil", id)
+		}
+
+		if _, ok := resp.Model.(dataconnectors.AwsCloudTrailDataConnector); !ok {
 			return fmt.Errorf("%s was not an AWS Cloud Trail Data Connector", id)
 		}
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, param); err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id, param); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -126,15 +129,14 @@ func resourceSentinelDataConnectorAwsCloudTrailRead(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataConnectorID(d.Id())
+	id, err := dataconnectors.ParseDataConnectorID(d.Id())
 	if err != nil {
 		return err
 	}
-	workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
@@ -143,15 +145,19 @@ func resourceSentinelDataConnectorAwsCloudTrailRead(d *pluginsdk.ResourceData, m
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	dc, ok := resp.Value.(securityinsight.AwsCloudTrailDataConnector)
+	if resp.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	dc, ok := resp.Model.(dataconnectors.AwsCloudTrailDataConnector)
 	if !ok {
 		return fmt.Errorf("%s was not an AWS Cloud Trail Data Connector", id)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("log_analytics_workspace_id", workspaceId.ID())
-	if prop := dc.AwsCloudTrailDataConnectorProperties; prop != nil {
-		d.Set("aws_role_arn", prop.AwsRoleArn)
+	d.Set("name", id.DataConnectorId)
+	d.Set("log_analytics_workspace_id", workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID())
+	if props := dc.Properties; props != nil {
+		d.Set("aws_role_arn", props.AwsRoleArn)
 	}
 
 	return nil
@@ -162,12 +168,12 @@ func resourceSentinelDataConnectorAwsCloudTrailDelete(d *pluginsdk.ResourceData,
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataConnectorID(d.Id())
+	id, err := dataconnectors.ParseDataConnectorID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err = client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
+	if _, err = client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

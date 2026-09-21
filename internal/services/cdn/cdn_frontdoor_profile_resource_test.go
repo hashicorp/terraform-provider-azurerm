@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -34,7 +34,7 @@ func TestAccCdnFrontDoorProfile_basic(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorProfileWithSystemIdentity_basic(t *testing.T) {
+func TestAccCdnFrontDoorProfile_withSystemIdentity_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
 	r := CdnFrontDoorProfileResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -48,7 +48,7 @@ func TestAccCdnFrontDoorProfileWithSystemIdentity_basic(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorProfileWithUserIdentity_basic(t *testing.T) {
+func TestAccCdnFrontDoorProfile_withUserIdentity_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
 	r := CdnFrontDoorProfileResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -62,7 +62,7 @@ func TestAccCdnFrontDoorProfileWithUserIdentity_basic(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorProfileWithSystemAndUserIdentity_basic(t *testing.T) {
+func TestAccCdnFrontDoorProfile_withSystemAndUserIdentity_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
 	r := CdnFrontDoorProfileResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

@@ -6,6 +6,7 @@ package netapp
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -14,9 +15,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/backups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/backupvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/backups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/backupvaults"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
@@ -182,43 +184,17 @@ func (r NetAppBackupVaultResource) Read() sdk.ResourceFunc {
 }
 
 func waitForBackupDeletion(ctx context.Context, client *backups.BackupsClient, id backups.BackupId) error {
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
-	}
-	stateConf := &pluginsdk.StateChangeConf{
-		ContinuousTargetOccurence: 5,
-		Delay:                     5 * time.Second,
-		MinTimeout:                5 * time.Second,
-		Pending:                   []string{"200", "202"},
-		Target:                    []string{"404"},
-		Refresh:                   netappBackupStateRefreshFunc(ctx, client, id),
-		Timeout:                   time.Until(deadline),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(5, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, id)
+		return resp.HttpResponse, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:         5 * time.Second,
+		TargetStatusCode: pointer.To(http.StatusNotFound),
+	})
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
 	}
-
 	return nil
-}
-
-func netappBackupStateRefreshFunc(ctx context.Context, client *backups.BackupsClient, id backups.BackupId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(res.HttpResponse) {
-				return nil, "", fmt.Errorf("retrieving %s: %s", id, err)
-			}
-		}
-
-		statusCode := "dropped connection"
-		if res.HttpResponse != nil {
-			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
-		}
-
-		return res, statusCode, nil
-	}
 }
 
 func (r NetAppBackupVaultResource) Delete() sdk.ResourceFunc {
@@ -234,7 +210,7 @@ func (r NetAppBackupVaultResource) Delete() sdk.ResourceFunc {
 			}
 
 			// Attempt to delete backup vault with retries
-			for retries := 0; retries < 5; retries++ {
+			for range 5 {
 				// Delete backups
 				if err := deleteBackupsFromVault(ctx, id, backupClient, metadata.Client.Features.NetApp.DeleteBackupsOnBackupVaultDestroy); err != nil {
 					return err
@@ -353,7 +329,7 @@ func deleteBackupsFromVault(ctx context.Context, id *backupvaults.BackupVaultId,
 
 func retryBackupDelete(ctx context.Context, client *backups.BackupsClient, id backups.BackupId, retryAttempts, retryIntervalSec int) error {
 	var lastErr error
-	for attempt := 0; attempt < retryAttempts; attempt++ {
+	for range retryAttempts {
 		if err := client.DeleteThenPoll(ctx, id); err == nil {
 			if err := waitForBackupDeletion(ctx, client, id); err != nil {
 				return fmt.Errorf("waiting for deletion of %s: %w", id.ID(), err)

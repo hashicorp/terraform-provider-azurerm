@@ -264,31 +264,11 @@ func flattenAzureRmDnsSrvRecords(records *[]recordsets.SrvRecord) []map[string]i
 
 	if records != nil {
 		for _, record := range *records {
-			port := int64(0)
-			if record.Port != nil {
-				port = *record.Port
-			}
-
-			priority := int64(0)
-			if record.Priority != nil {
-				priority = *record.Priority
-			}
-
-			target := ""
-			if record.Target != nil {
-				target = *record.Target
-			}
-
-			weight := int64(0)
-			if record.Weight != nil {
-				weight = *record.Weight
-			}
-
 			results = append(results, map[string]interface{}{
-				"port":     port,
-				"priority": priority,
-				"target":   target,
-				"weight":   weight,
+				"port":     pointer.From(record.Port),
+				"priority": pointer.From(record.Priority),
+				"target":   pointer.From(record.Target),
+				"weight":   pointer.From(record.Weight),
 			})
 		}
 	}
@@ -302,16 +282,12 @@ func expandAzureRmDnsSrvRecords(d *pluginsdk.ResourceData) *[]recordsets.SrvReco
 
 	for _, v := range recordStrings {
 		record := v.(map[string]interface{})
-		priority := int64(record["priority"].(int))
-		weight := int64(record["weight"].(int))
-		port := int64(record["port"].(int))
-		target := record["target"].(string)
 
 		records = append(records, recordsets.SrvRecord{
-			Priority: &priority,
-			Weight:   &weight,
-			Port:     &port,
-			Target:   &target,
+			Priority: pointer.To(int64(record["priority"].(int))),
+			Weight:   pointer.To(int64(record["weight"].(int))),
+			Port:     pointer.To(int64(record["port"].(int))),
+			Target:   pointer.To(record["target"].(string)),
 		})
 	}
 
@@ -322,10 +298,10 @@ func resourceDnsSrvRecordHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%d-", m["priority"].(int)))
-		buf.WriteString(fmt.Sprintf("%d-", m["weight"].(int)))
-		buf.WriteString(fmt.Sprintf("%d-", m["port"].(int)))
-		buf.WriteString(fmt.Sprintf("%s-", m["target"].(string)))
+		fmt.Fprintf(&buf, "%d-", m["priority"].(int))
+		fmt.Fprintf(&buf, "%d-", m["weight"].(int))
+		fmt.Fprintf(&buf, "%d-", m["port"].(int))
+		fmt.Fprintf(&buf, "%s-", m["target"].(string))
 	}
 
 	return pluginsdk.HashString(buf.String())

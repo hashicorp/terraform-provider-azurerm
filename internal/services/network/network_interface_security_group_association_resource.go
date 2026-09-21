@@ -8,8 +8,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -18,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -66,16 +65,16 @@ func resourceNetworkInterfaceSecurityGroupAssociationCreate(d *pluginsdk.Resourc
 		return err
 	}
 
-	locks.ByName(nicId.NetworkInterfaceName, networkInterfaceResourceName)
-	defer locks.UnlockByName(nicId.NetworkInterfaceName, networkInterfaceResourceName)
+	locks.ByID(nicId.ID())
+	defer locks.UnlockByID(nicId.ID())
 
 	nsgId, err := networksecuritygroups.ParseNetworkSecurityGroupID(d.Get("network_security_group_id").(string))
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(nsgId.NetworkSecurityGroupName, networkSecurityGroupResourceName)
-	defer locks.UnlockByName(nsgId.NetworkSecurityGroupName, networkSecurityGroupResourceName)
+	locks.ByID(nsgId.ID())
+	defer locks.UnlockByID(nsgId.ID())
 
 	read, err := client.Get(ctx, *nicId, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
@@ -160,8 +159,8 @@ func resourceNetworkInterfaceSecurityGroupAssociationDelete(d *pluginsdk.Resourc
 		return err
 	}
 
-	locks.ByName(id.First.NetworkInterfaceName, networkInterfaceResourceName)
-	defer locks.UnlockByName(id.First.NetworkInterfaceName, networkInterfaceResourceName)
+	locks.ByID(id.First.ID())
+	defer locks.UnlockByID(id.First.ID())
 
 	read, err := client.Get(ctx, *id.First, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {

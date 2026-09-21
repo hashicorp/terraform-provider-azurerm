@@ -8,8 +8,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -20,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressroutegateways"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -86,8 +85,6 @@ func resourceExpressRouteGatewayCreate(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Println("[INFO] preparing arguments for ExpressRoute Gateway creation.")
-
 	id := expressroutegateways.NewExpressRouteGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
@@ -145,8 +142,6 @@ func resourceExpressRouteGatewayUpdate(d *pluginsdk.ResourceData, meta interface
 	connectionsClient := meta.(*clients.Client).Network.ExpressRouteConnections
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Println("[INFO] preparing arguments for ExpressRoute Gateway update.")
 
 	id, err := expressroutegateways.ParseExpressRouteGatewayID(d.Id())
 	if err != nil {

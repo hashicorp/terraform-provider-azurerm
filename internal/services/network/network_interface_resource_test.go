@@ -419,8 +419,7 @@ func (NetworkInterfaceResource) Destroy(ctx context.Context, client *clients.Cli
 		return nil, err
 	}
 
-	err = client.Network.NetworkInterfaces.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.Network.NetworkInterfaces.DeleteThenPoll(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
@@ -446,7 +445,7 @@ resource "azurerm_network_interface" "test" {
 }
 
 func (r NetworkInterfaceResource) auxiliaryNone(data acceptance.TestData) string {
-	// Auxiliary Mode Nic is enabled in specific regions (https://learn.microsoft.com/en-us/azure/networking/nva-accelerated-connections#supported-regions) for now
+	// Auxiliary Mode Nic is enabled in specific regions (https://learn.microsoft.com/azure/networking/nva-accelerated-connections#supported-regions) for now
 	// To not affect other testcases of `Network`, hard-code to that for now
 	data.Locations.Primary = "westus"
 
@@ -473,7 +472,7 @@ resource "azurerm_network_interface" "test" {
 }
 
 func (r NetworkInterfaceResource) auxiliaryAcceleratedConnections(data acceptance.TestData) string {
-	// Auxiliary Mode Nic is enabled in specific regions (https://learn.microsoft.com/en-us/azure/networking/nva-accelerated-connections#supported-regions) for now
+	// Auxiliary Mode Nic is enabled in specific regions (https://learn.microsoft.com/azure/networking/nva-accelerated-connections#supported-regions) for now
 	// To not affect other testcases of `Network`, hard-code to that for now
 	data.Locations.Primary = "westus"
 

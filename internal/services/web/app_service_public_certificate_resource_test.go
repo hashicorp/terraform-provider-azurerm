@@ -76,27 +76,26 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_service_plan" "test" {
   name                = "acctestpubcert-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
+  os_type             = "Windows"
+  sku_name            = "S1"
 }
 
-resource "azurerm_app_service" "test" {
+resource "azurerm_windows_web_app" "test" {
   name                = "acctestpubcert-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  app_service_plan_id = azurerm_app_service_plan.test.id
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
 }
 
 resource "azurerm_app_service_public_certificate" "test" {
   resource_group_name  = azurerm_resource_group.test.name
-  app_service_name     = azurerm_app_service.test.name
+  app_service_name     = azurerm_windows_web_app.test.name
   certificate_name     = "acctestpubcert-%d"
   certificate_location = "Unknown"
   blob                 = filebase64("testdata/app_service_public_certificate.cer")
@@ -123,29 +122,28 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_service_plan" "test" {
   name                = "acctestpubcert-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
+  os_type             = "Windows"
+  sku_name            = "S1"
 }
 
-resource "azurerm_function_app" "test" {
+resource "azurerm_windows_function_app" "test" {
   name                       = "acctestpubcert-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+  service_plan_id            = azurerm_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
 }
 
 resource "azurerm_app_service_public_certificate" "test" {
   resource_group_name  = azurerm_resource_group.test.name
-  app_service_name     = azurerm_function_app.test.name
+  app_service_name     = azurerm_windows_function_app.test.name
   certificate_name     = "acctestpubcert-%d"
   certificate_location = "Unknown"
   blob                 = filebase64("testdata/app_service_public_certificate.cer")

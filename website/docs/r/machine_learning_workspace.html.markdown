@@ -33,11 +33,12 @@ resource "azurerm_application_insights" "example" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                = "workspaceexamplekeyvault"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "workspaceexamplekeyvault"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 }
 
 resource "azurerm_storage_account" "example" {
@@ -90,12 +91,13 @@ resource "azurerm_application_insights" "example" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                     = "workspaceexamplekeyvault"
-  location                 = azurerm_resource_group.example.location
-  resource_group_name      = azurerm_resource_group.example.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "premium"
-  purge_protection_enabled = true
+  name                       = "workspaceexamplekeyvault"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
+  purge_protection_enabled   = true
 }
 resource "azurerm_key_vault_access_policy" "example" {
   key_vault_id = azurerm_key_vault.example.id
@@ -192,12 +194,13 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                     = "example-keyvalut"
-  location                 = azurerm_resource_group.example.location
-  resource_group_name      = azurerm_resource_group.example.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "premium"
-  purge_protection_enabled = true
+  name                       = "example-keyvalut"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
+  purge_protection_enabled   = true
 }
 
 resource "azurerm_user_assigned_identity" "example" {
@@ -385,6 +388,8 @@ The following arguments are supported:
 * `primary_user_assigned_identity` - (Optional) The user assigned identity id that represents the workspace identity.
 
 * `v1_legacy_mode_enabled` - (Optional) Enable V1 API features, enabling `v1_legacy_mode` may prevent you from using features provided by the v2 API. Defaults to `false`.
+
+* `storage_account_access_type` - (Optional) The access type for the system storage account. Possible values are `AccessKey` and `Identity`. Defaults to `AccessKey`.
 
 * `sku_name` - (Optional) SKU/edition of the Machine Learning Workspace, possible values are `Free`, `Basic`, `Standard` and `Premium`. Defaults to `Basic`.
 

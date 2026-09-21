@@ -19,11 +19,11 @@ func convert(source, target any) (reflect.Value, reflect.Value, diag.Diagnostics
 	sourceVal := reflect.ValueOf(source)
 	targetVal := reflect.ValueOf(target)
 
-	if sourceVal.Kind() == reflect.Ptr {
+	if sourceVal.Kind() == reflect.Pointer {
 		sourceVal = sourceVal.Elem()
 	}
 
-	if kind := targetVal.Kind(); kind != reflect.Ptr {
+	if kind := targetVal.Kind(); kind != reflect.Pointer {
 		diags.AddError("convert", fmt.Sprintf("target (%T): %s is not a pointer", target, kind))
 		return reflect.Value{}, reflect.Value{}, diags
 	}

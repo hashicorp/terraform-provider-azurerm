@@ -41,15 +41,13 @@ func ExpandAutomationJobSchedule(input []interface{}, runBookName string) (*map[
 		if v, ok := js["parameters"]; ok {
 			jsParameters := make(map[string]string)
 			for k, v := range v.(map[string]interface{}) {
-				value := v.(string)
-				jsParameters[k] = value
+				jsParameters[k] = v.(string)
 			}
 			jobScheduleCreateParameters.Properties.Parameters = &jsParameters
 		}
 
 		if v, ok := js["run_on"]; ok && v.(string) != "" {
-			value := v.(string)
-			jobScheduleCreateParameters.Properties.RunOn = &value
+			jobScheduleCreateParameters.Properties.RunOn = pointer.To(v.(string))
 		}
 		res[ResourceAutomationJobScheduleDigest(jobScheduleCreateParameters.Properties)] = jobScheduleCreateParameters
 	}
@@ -116,7 +114,7 @@ func ResourceAutomationJobScheduleDigest(v interface{}) string {
 		runOn = pointer.From(pointer.From(job.Runbook).Name)
 		paramString = pointer.From(job.Parameters)
 	}
-	buf.WriteString(fmt.Sprintf("%s-%s-", scheduleName, runOn))
+	fmt.Fprintf(&buf, "%s-%s-", scheduleName, runOn)
 
 	keys := make([]string, 0, len(paramString))
 	for k := range paramString {
@@ -125,7 +123,7 @@ func ResourceAutomationJobScheduleDigest(v interface{}) string {
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		buf.WriteString(fmt.Sprintf("%s:%v;", strings.ToLower(k), paramString[k]))
+		fmt.Fprintf(&buf, "%s:%v;", strings.ToLower(k), paramString[k])
 	}
 	return buf.String()
 }

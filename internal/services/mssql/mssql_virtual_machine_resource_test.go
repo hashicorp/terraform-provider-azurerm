@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -98,36 +97,6 @@ func TestAccMsSqlVirtualMachine_autoBackup(t *testing.T) {
 			"auto_backup.0.storage_blob_endpoint"),
 		{
 			Config: r.withAutoBackupAutoSchedule(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("auto_backup.0.encryption_password",
-			"auto_backup.0.storage_account_access_key",
-			"auto_backup.0.storage_blob_endpoint"),
-	})
-}
-
-func TestAccMsSqlVirtualMachine_autoBackup_AndDeprecatedEncryptionEnabled(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("Skipping since `encryption_enabled` is deprecated and will be removed in 5.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
-	r := MssqlVirtualMachineResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.withAutoBackupAutoSchedule_AndDeprecatedEncryptionEnabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("auto_backup.0.encryption_password",
-			"auto_backup.0.storage_account_access_key",
-			"auto_backup.0.storage_blob_endpoint"),
-		{
-			Config: r.withAutoBackupManualSchedule_AndDeprecatedEncryptionEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -738,69 +707,6 @@ resource "azurerm_mssql_virtual_machine" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r MssqlVirtualMachineResource) withAutoBackupAutoSchedule_AndDeprecatedEncryptionEnabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_storage_account" "test" {
-  name                     = "unlikely23exst2acct%[2]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
-  sql_license_type   = "PAYG"
-
-  auto_backup {
-    encryption_enabled              = true # <--- This property is deprecated
-    encryption_password             = "P@55w0rD!!%[2]s"
-    retention_period_in_days        = 23
-    storage_blob_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
-    storage_account_access_key      = azurerm_storage_account.test.primary_access_key
-    system_databases_backup_enabled = false
-  }
-}
-`, r.template(data), data.RandomString)
-}
-
-func (r MssqlVirtualMachineResource) withAutoBackupManualSchedule_AndDeprecatedEncryptionEnabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_storage_account" "test" {
-  name                     = "unlikely23exst2acct%[2]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_mssql_virtual_machine" "test" {
-  virtual_machine_id = azurerm_virtual_machine.test.id
-  sql_license_type   = "PAYG"
-
-  auto_backup {
-    encryption_enabled              = true # <--- This property is deprecated
-    encryption_password             = "P@55w0rD!!%[2]s"
-    retention_period_in_days        = 14
-    storage_blob_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
-    storage_account_access_key      = azurerm_storage_account.test.primary_access_key
-    system_databases_backup_enabled = true
-
-    manual_schedule {
-      full_backup_frequency           = "Daily"
-      full_backup_start_hour          = 3
-      full_backup_window_in_hours     = 4
-      log_backup_frequency_in_minutes = 60
-    }
-  }
-}
-`, r.template(data), data.RandomString)
-}
-
 func (r MssqlVirtualMachineResource) withKeyVault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -808,10 +714,11 @@ func (r MssqlVirtualMachineResource) withKeyVault(data acceptance.TestData) stri
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest-%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  name                       = "acctest-%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
 
   sku_name = "standard"
 
@@ -865,7 +772,7 @@ resource "azuread_service_principal" "test" {
 }
 
 resource "azuread_application_password" "test" {
-  application_id = azuread_application.test.object_id
+  application_id = azuread_application.test.id
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {
@@ -888,10 +795,11 @@ func (r MssqlVirtualMachineResource) withKeyVaultUpdated(data acceptance.TestDat
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest-%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  name                       = "acctest-%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
 
   sku_name = "standard"
 
@@ -945,7 +853,7 @@ resource "azuread_service_principal" "test" {
 }
 
 resource "azuread_application_password" "test" {
-  application_object_id = azuread_application.test.object_id
+  application_id = azuread_application.test.id
 }
 
 resource "azurerm_mssql_virtual_machine" "test" {

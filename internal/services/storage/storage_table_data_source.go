@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -22,11 +23,11 @@ type storageTableDataSource struct{}
 var _ sdk.DataSource = storageTableDataSource{}
 
 type TableDataSourceModel struct {
-	Name               string     `tfschema:"name"`
-	StorageAccountName string     `tfschema:"storage_account_name"`
-	ACL                []ACLModel `tfschema:"acl"`
-	Id                 string     `tfschema:"id"`
-	ResourceManagerId  string     `tfschema:"resource_manager_id"`
+	Name              string     `tfschema:"name"`
+	StorageAccountId  string     `tfschema:"storage_account_id"`
+	ACL               []ACLModel `tfschema:"acl"`
+	Id                string     `tfschema:"id"`
+	ResourceManagerId string     `tfschema:"resource_manager_id"`
 }
 
 type ACLModel struct {
@@ -48,10 +49,10 @@ func (k storageTableDataSource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.StorageTableName,
 		},
 
-		"storage_account_name": {
+		"storage_account_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.StorageAccountName,
+			ValidateFunc: commonids.ValidateStorageAccountID,
 		},
 	}
 }
@@ -123,12 +124,22 @@ func (k storageTableDataSource) Read() sdk.ResourceFunc {
 
 			storageClient := metadata.Client.Storage
 
-			account, err := storageClient.FindAccount(ctx, metadata.Client.Account.SubscriptionId, model.StorageAccountName)
+			var accountName string
+			var account *client.AccountDetails
+			var err error
+
+			storageAccountId, err := commonids.ParseStorageAccountID(model.StorageAccountId)
 			if err != nil {
-				return fmt.Errorf("retrieving Storage Account %q for Table %q: %v", model.StorageAccountName, model.Name, err)
+				return fmt.Errorf("parsing storage_account_id: %v", err)
 			}
+			accountName = storageAccountId.StorageAccountName
+			account, err = storageClient.GetAccount(ctx, *storageAccountId)
+			if err != nil {
+				return fmt.Errorf("retrieving Storage Account %q for Table %q: %v", accountName, model.Name, err)
+			}
+
 			if account == nil {
-				return fmt.Errorf("locating Storage Account %q for Table %q", model.StorageAccountName, model.Name)
+				return fmt.Errorf("locating Storage Account %q for Table %q", accountName, model.Name)
 			}
 
 			// Determine the table endpoint, so we can build a data plane ID
@@ -145,7 +156,7 @@ func (k storageTableDataSource) Read() sdk.ResourceFunc {
 
 			id := tables.NewTableID(*accountId, model.Name)
 
-			aclClient, err := storageClient.TablesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth())
+			aclClient, err := storageClient.TablesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 			if err != nil {
 				return fmt.Errorf("building Tables Client: %v", err)
 			}
@@ -159,7 +170,8 @@ func (k storageTableDataSource) Read() sdk.ResourceFunc {
 
 			resourceManagerId := parse.NewStorageTableResourceManagerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, account.StorageAccountId.StorageAccountName, "default", model.Name)
 			model.ResourceManagerId = resourceManagerId.ID()
-			metadata.SetID(id)
+
+			metadata.SetID(resourceManagerId)
 
 			return metadata.Encode(&model)
 		},

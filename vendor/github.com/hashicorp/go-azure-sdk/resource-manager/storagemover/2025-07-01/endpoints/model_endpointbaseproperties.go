@@ -27,9 +27,9 @@ func (s BaseEndpointBasePropertiesImpl) EndpointBaseProperties() BaseEndpointBas
 
 var _ EndpointBaseProperties = RawEndpointBasePropertiesImpl{}
 
-// RawEndpointBasePropertiesImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawEndpointBasePropertiesImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawEndpointBasePropertiesImpl struct {
 	endpointBaseProperties BaseEndpointBasePropertiesImpl
 	Type                   string
@@ -38,6 +38,10 @@ type RawEndpointBasePropertiesImpl struct {
 
 func (s RawEndpointBasePropertiesImpl) EndpointBaseProperties() BaseEndpointBasePropertiesImpl {
 	return s.endpointBaseProperties
+}
+
+func (s RawEndpointBasePropertiesImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalEndpointBasePropertiesImplementation(input []byte) (EndpointBaseProperties, error) {
