@@ -25,6 +25,8 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity -parent-id "storage_account_id"
 
+const azurermStorageAccountNetworkRulesResource = "azurerm_storage_account_network_rules"
+
 func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceStorageAccountNetworkRulesCreate,

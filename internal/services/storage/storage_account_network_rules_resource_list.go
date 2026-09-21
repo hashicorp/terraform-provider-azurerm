@@ -5,6 +5,7 @@ package storage
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -21,7 +22,7 @@ type StorageAccountNetworkRulesListResource struct{}
 var _ sdk.FrameworkListWrappedResource = new(StorageAccountNetworkRulesListResource)
 
 func (StorageAccountNetworkRulesListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = "azurerm_storage_account_network_rules"
+	response.TypeName = azurermStorageAccountNetworkRulesResource
 }
 
 func (StorageAccountNetworkRulesListResource) ResourceFunc() *pluginsdk.Resource {
@@ -55,7 +56,7 @@ func (StorageAccountNetworkRulesListResource) List(ctx context.Context, request 
 	default:
 		resp, err := client.ListComplete(ctx, commonids.NewSubscriptionID(subscriptionID))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, "listing azurerm_storage_account_network_rules", err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing %s", azurermStorageAccountNetworkRulesResource), err)
 			return
 		}
 		results = resp.Items
@@ -69,13 +70,13 @@ func (StorageAccountNetworkRulesListResource) List(ctx context.Context, request 
 			rd := resourceStorageAccountNetworkRules().Data(&terraform.InstanceState{})
 			id, err := commonids.ParseStorageAccountIDInsensitively(pointer.From(item.Id))
 			if err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing azurerm_storage_account_network_rules ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing %s ID", azurermStorageAccountNetworkRulesResource), err)
 				return
 			}
 			rd.SetId(id.ID())
 
 			if err := resourceStorageAccountNetworkRulesFlatten(rd, id, &item); err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "encoding azurerm_storage_account_network_rules resource data", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding %s resource data", azurermStorageAccountNetworkRulesResource), err)
 				return
 			}
 
