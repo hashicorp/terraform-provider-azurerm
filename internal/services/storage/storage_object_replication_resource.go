@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/objectreplicationpolicyoperationgroup"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -20,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // TODO: @tombuildsstuff: this wants a state migration to move the ID to `{id1}|{id2}` to match other resources
@@ -339,7 +339,7 @@ func expandArmObjectReplicationRuleArray(input []interface{}) *[]objectreplicati
 		}
 
 		if f, ok := v["filter_out_blobs_with_prefix"]; ok {
-			result.Filters.PrefixMatch = utils.ExpandStringSlice(f.(*pluginsdk.Set).List())
+			result.Filters.PrefixMatch = helpers.ExpandStringSlice(f.(*pluginsdk.Set).List())
 		}
 
 		results = append(results, result)
@@ -368,10 +368,7 @@ func flattenObjectReplicationRules(input *[]objectreplicationpolicyoperationgrou
 		destinationContainer := item.DestinationContainer
 		sourceContainer := item.SourceContainer
 
-		var ruleId string
-		if item.RuleId != nil {
-			ruleId = *item.RuleId
-		}
+		ruleId := pointer.From(item.RuleId)
 
 		var minCreationTime string
 		if item.Filters != nil && item.Filters.MinCreationTime != nil {
@@ -380,7 +377,7 @@ func flattenObjectReplicationRules(input *[]objectreplicationpolicyoperationgrou
 
 		var prefix []interface{}
 		if item.Filters != nil && item.Filters.PrefixMatch != nil {
-			prefix = utils.FlattenStringSlice(item.Filters.PrefixMatch)
+			prefix = helpers.FlattenStringSlice(item.Filters.PrefixMatch)
 		}
 
 		v := map[string]interface{}{

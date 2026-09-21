@@ -241,8 +241,7 @@ func (WebApplicationFirewallPolicyV0ToV1) Schema() map[string]*pluginsdk.Schema 
 func (WebApplicationFirewallPolicyV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		log.Printf("[Debug] start upgrade web application firewall policy id")
-		oldID := rawState["id"].(string)
-		if newID, err := normalizeWebAppFirewallPolicyID(oldID); err != nil {
+		if newID, err := normalizeWebAppFirewallPolicyID(rawState["id"].(string)); err != nil {
 			return nil, err
 		} else if newID != nil {
 			rawState["id"] = *newID

@@ -19,7 +19,7 @@ import (
 
 type NetworkManagerResource struct{}
 
-func TestAccNetworkManager(t *testing.T) {
+func TestAccNetworkManager_sequential(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// Azure only being happy about provisioning one securityAdmin network manager per subscription at once
 	// (which our test suite can't easily work around)
@@ -133,10 +133,8 @@ func TestAccNetworkManager(t *testing.T) {
 	}
 
 	for group, m := range testCases {
-		m := m
 		t.Run(group, func(t *testing.T) {
 			for name, tc := range m {
-				tc := tc
 				t.Run(name, func(t *testing.T) {
 					tc(t)
 				})

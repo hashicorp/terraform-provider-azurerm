@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -196,8 +196,7 @@ func (r LoadBalancerNatPool) Destroy(ctx context.Context, client *clients.Client
 	}
 	lb.Model.Properties.InboundNatPools = &inboundNatPools
 
-	err = client.LoadBalancers.LoadBalancersClient.CreateOrUpdateThenPoll(ctx, plbId, *lb.Model)
-	if err != nil {
+	if err = client.LoadBalancers.LoadBalancersClient.CreateOrUpdateThenPoll(ctx, plbId, *lb.Model); err != nil {
 		return nil, fmt.Errorf("updating Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
 	}
 	return pointer.To(true), nil

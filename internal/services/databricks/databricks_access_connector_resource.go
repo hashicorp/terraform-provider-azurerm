@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name databricks_access_connector -service-package-name databricks -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 type AccessConnectorResource struct{}
 

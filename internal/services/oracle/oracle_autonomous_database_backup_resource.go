@@ -123,7 +123,7 @@ func (r AutonomousDatabaseBackupResource) Create() sdk.ResourceFunc {
 				Name: pointer.To(model.Name),
 				Properties: &autonomousdatabasebackups.AutonomousDatabaseBackupProperties{
 					RetentionPeriodInDays: pointer.To(model.RetentionPeriodInDays),
-					BackupType:            pointer.To(autonomousdatabasebackups.AutonomousDatabaseBackupType(model.Type)),
+					BackupType:            pointer.ToEnum[autonomousdatabasebackups.AutonomousDatabaseBackupType](model.Type),
 				},
 			}
 
@@ -161,8 +161,7 @@ func (r AutonomousDatabaseBackupResource) Read() sdk.ResourceFunc {
 			}
 
 			if backup == nil {
-				err := metadata.MarkAsGone(id)
-				if err != nil {
+				if err := metadata.MarkAsGone(id); err != nil {
 					return err
 				}
 				return nil

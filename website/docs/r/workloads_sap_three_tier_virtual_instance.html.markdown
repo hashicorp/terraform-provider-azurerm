@@ -337,7 +337,7 @@ The following arguments are supported:
 
 A `disk_volume_configuration` block supports the following:
 
-* `volume_name` - (Required) Specifies the volumn name of the database disk. Possible values are `backup`, `hana/data`, `hana/log`, `hana/shared`, `os` and `usr/sap`. Changing this forces a new resource to be created.
+* `volume_name` - (Required) Specifies the volume name of the database disk. Possible values are `backup`, `hana/data`, `hana/log`, `hana/shared`, `os` and `usr/sap`. Changing this forces a new resource to be created.
 
 * `number_of_disks` - (Required) The total number of disks required for the concerned volume. Possible values are at least `1`. Changing this forces a new resource to be created.
 
