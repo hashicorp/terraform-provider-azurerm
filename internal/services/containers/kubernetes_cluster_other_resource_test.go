@@ -1256,6 +1256,7 @@ func TestAccKubernetesCluster_defaultNodePoolMessageOfTheDay(t *testing.T) {
 			Config: r.defaultNodePoolMessageOfTheDay(data, "Welcome to the initial AKS cluster!"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.message_of_the_day").HasValue("Welcome to the initial AKS cluster!"),
 			),
 		},
 		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
@@ -1263,6 +1264,23 @@ func TestAccKubernetesCluster_defaultNodePoolMessageOfTheDay(t *testing.T) {
 			Config: r.defaultNodePoolMessageOfTheDay(data, "Updated message for the AKS cluster!"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.message_of_the_day").HasValue("Updated message for the AKS cluster!"),
+			),
+		},
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
+		{
+			Config: r.defaultNodePoolMessageOfTheDay(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.message_of_the_day").HasValue(""),
+			),
+		},
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
+		{
+			Config: r.defaultNodePoolMessageOfTheDay(data, "Welcome to the initial AKS cluster!"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.message_of_the_day").HasValue("Welcome to the initial AKS cluster!"),
 			),
 		},
 		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
@@ -4089,7 +4107,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     name                        = "default"
     node_count                  = 1
     vm_size                     = "Standard_DS2_v2"
-    message_of_the_day          = "%[3]s"
+    message_of_the_day           = %[3]q
     temporary_name_for_rotation = "temp"
     upgrade_settings {
       max_surge = "10%%"
