@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package containers_test
 
 // NOTE: this file is generated - manual changes will be overwritten.
@@ -9,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/trustedaccess"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/trustedaccess"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"

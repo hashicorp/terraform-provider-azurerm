@@ -44,8 +44,8 @@ func RuleActionUrlRedirectQueryString() pluginsdk.SchemaValidateFunc {
 		}
 
 		kvre := regexp.MustCompile("^[^?&]+=[^?&]+$")
-		kvs := strings.Split(querystring, "&")
-		for _, kv := range kvs {
+		kvs := strings.SplitSeq(querystring, "&")
+		for kv := range kvs {
 			if len(kv) > 0 && !kvre.MatchString(kv) {
 				return nil, []error{errors.New("the Url Query String must be in <key>=<value> format and separated by an ampersand")}
 			}

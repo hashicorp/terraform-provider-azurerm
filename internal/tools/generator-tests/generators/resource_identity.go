@@ -186,8 +186,8 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 		}
 	} else if len(d.IdentityProperties) > 0 {
 		d.PropertyNameMap = map[string]string{}
-		propertiesList := strings.Split(d.IdentityProperties, ",")
-		for _, property := range propertiesList {
+		propertiesList := strings.SplitSeq(d.IdentityProperties, ",")
+		for property := range propertiesList {
 			v := strings.Split(property, ":")
 			switch len(v) {
 			case 1:
@@ -203,9 +203,9 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 
 	if len(d.CompareValues) > 0 {
 		d.CompareValueMap = make(map[string]string)
-		kv := strings.Split(d.CompareValues, ",")
+		kv := strings.SplitSeq(d.CompareValues, ",")
 
-		for _, v := range kv {
+		for v := range kv {
 			vParts := strings.Split(v, ":")
 			if len(vParts) != 2 {
 				errors = append(errors, fmt.Errorf("invalid property format in compare-values: '%s'", v))
@@ -357,9 +357,9 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 
 	if len(d.KnownValues) > 0 {
 		d.KnownValueMap = make(map[string]string)
-		kv := strings.Split(d.KnownValues, ",")
+		kv := strings.SplitSeq(d.KnownValues, ",")
 
-		for _, v := range kv {
+		for v := range kv {
 			vParts := strings.Split(v, ":")
 			if len(vParts) != 2 {
 				errors = append(errors, fmt.Errorf("invalid property format in known-values: '%s'", v))

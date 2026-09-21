@@ -9,8 +9,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -107,7 +107,7 @@ func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
-		"max_message_size_in_kilobytes": {
+		"max_message_size_in_kilobytes": { // azignore:AZS006 - named `maximum_message_size_in_kb` in the data source to follow new naming conventions
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
 			// NOTE: O+C this gets a variable default based on the sku and can be updated without issues
