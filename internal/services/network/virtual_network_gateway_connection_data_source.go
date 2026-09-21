@@ -57,8 +57,7 @@ func dataSourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_bgp": {
+			"bgp_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -234,7 +233,7 @@ func dataSourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, me
 		props := model.Properties
 
 		d.Set("authorization_key", props.AuthorizationKey)
-		d.Set("enable_bgp", props.EnableBgp)
+		d.Set("bgp_enabled", props.EnableBgp)
 		d.Set("ingress_bytes_transferred", props.IngressBytesTransferred)
 		d.Set("egress_bytes_transferred", props.EgressBytesTransferred)
 		d.Set("use_policy_based_traffic_selectors", props.UsePolicyBasedTrafficSelectors)
@@ -268,13 +267,11 @@ func dataSourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, me
 
 		d.Set("resource_guid", props.ResourceGuid)
 
-		ipsecPoliciesSettingsFlat := flattenVirtualNetworkGatewayConnectionDataSourceIpsecPolicies(props.IPsecPolicies)
-		if err := d.Set("ipsec_policy", ipsecPoliciesSettingsFlat); err != nil {
+		if err := d.Set("ipsec_policy", flattenVirtualNetworkGatewayConnectionDataSourceIpsecPolicies(props.IPsecPolicies)); err != nil {
 			return fmt.Errorf("setting `ipsec_policy`: %+v", err)
 		}
 
-		trafficSelectorsPolicyFlat := flattenVirtualNetworkGatewayConnectionDataSourcePolicyTrafficSelectors(props.TrafficSelectorPolicies)
-		if err := d.Set("traffic_selector_policy", trafficSelectorsPolicyFlat); err != nil {
+		if err := d.Set("traffic_selector_policy", flattenVirtualNetworkGatewayConnectionDataSourcePolicyTrafficSelectors(props.TrafficSelectorPolicies)); err != nil {
 			return fmt.Errorf("setting `traffic_selector_policy`: %+v", err)
 		}
 	}

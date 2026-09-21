@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/tokens"
@@ -83,11 +84,7 @@ func dataSourceContainerRegistryTokenRead(d *pluginsdk.ResourceData, meta interf
 			}
 			d.Set("enabled", status)
 
-			scopeMapId := ""
-			if v := props.ScopeMapId; v != nil {
-				scopeMapId = *v
-			}
-			d.Set("scope_map_id", scopeMapId)
+			d.Set("scope_map_id", pointer.From(props.ScopeMapId))
 		}
 	}
 

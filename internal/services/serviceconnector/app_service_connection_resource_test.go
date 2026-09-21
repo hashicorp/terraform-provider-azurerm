@@ -35,7 +35,7 @@ func (r ServiceConnectorAppServiceResource) Exists(ctx context.Context, client *
 	return pointer.To(true), nil
 }
 
-func TestAccServiceConnectorAppServiceCosmosdb_basic(t *testing.T) {
+func TestAccServiceConnectorAppService_cosmosdbBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_connection", "test")
 	r := ServiceConnectorAppServiceResource{}
 
@@ -50,7 +50,7 @@ func TestAccServiceConnectorAppServiceCosmosdb_basic(t *testing.T) {
 	})
 }
 
-func TestAccServiceConnectorAppServiceCosmosdb_secretAuth(t *testing.T) {
+func TestAccServiceConnectorAppService_cosmosdbSecretAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_connection", "test")
 	r := ServiceConnectorAppServiceResource{}
 
@@ -65,7 +65,7 @@ func TestAccServiceConnectorAppServiceCosmosdb_secretAuth(t *testing.T) {
 	})
 }
 
-func TestAccServiceConnectorAppServiceCosmosdb_servicePrincipalSecretAuth(t *testing.T) {
+func TestAccServiceConnectorAppService_cosmosdbServicePrincipalSecretAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_connection", "test")
 	r := ServiceConnectorAppServiceResource{}
 
@@ -80,7 +80,7 @@ func TestAccServiceConnectorAppServiceCosmosdb_servicePrincipalSecretAuth(t *tes
 	})
 }
 
-func TestAccServiceConnectorAppServiceCosmosdb_userAssignedIdentity(t *testing.T) {
+func TestAccServiceConnectorAppService_cosmosdbUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_connection", "test")
 	r := ServiceConnectorAppServiceResource{}
 
@@ -95,7 +95,7 @@ func TestAccServiceConnectorAppServiceCosmosdb_userAssignedIdentity(t *testing.T
 	})
 }
 
-func TestAccServiceConnectorAppServiceStorageBlob_basic(t *testing.T) {
+func TestAccServiceConnectorAppService_storageBlobBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_connection", "test")
 	r := ServiceConnectorAppServiceResource{}
 
@@ -110,7 +110,7 @@ func TestAccServiceConnectorAppServiceStorageBlob_basic(t *testing.T) {
 	})
 }
 
-func TestAccServiceConnectorAppServiceStorageBlob_secretStore(t *testing.T) {
+func TestAccServiceConnectorAppService_storageBlobSecretStore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_connection", "test")
 	r := ServiceConnectorAppServiceResource{}
 
@@ -450,7 +450,9 @@ resource "azurerm_subnet" "test1" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
-  service_endpoints    = ["Microsoft.AzureCosmosDB"]
+  service_endpoint {
+    service = "Microsoft.AzureCosmosDB"
+  }
 
   delegation {
     name = "delegation"

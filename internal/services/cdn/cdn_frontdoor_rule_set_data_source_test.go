@@ -5,6 +5,7 @@ package cdn_test
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -41,6 +42,18 @@ func TestAccCdnFrontDoorRuleSetDataSource_basic_attachedRoute(t *testing.T) {
 	})
 }
 
+func TestAccCdnFrontDoorRuleSetDataSource_batchRuleSet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_rule_set", "test")
+	d := CdnFrontDoorRuleSetDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config:      d.batchRuleSet(data),
+			ExpectError: regexp.MustCompile("was provisioned using batch mode, and cannot be read by this data source"),
+		},
+	})
+}
+
 func (CdnFrontDoorRuleSetDataSource) basic(data acceptance.TestData, attachRoute bool) string {
 	return fmt.Sprintf(`
 %s
@@ -51,4 +64,16 @@ data "azurerm_cdn_frontdoor_rule_set" "test" {
   resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
 }
 `, CdnFrontDoorRuleSetResource{}.complete(data, attachRoute))
+}
+
+func (CdnFrontDoorRuleSetDataSource) batchRuleSet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+data "azurerm_cdn_frontdoor_rule_set" "test" {
+  name                = azurerm_cdn_frontdoor_batch_rule_set.test.name
+  profile_name        = azurerm_cdn_frontdoor_profile.test.name
+  resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
+}
+`, CdnFrontdoorBatchRuleSetResource{}.complete(data))
 }

@@ -1,10 +1,13 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package azuresdkhacks
 
 import (
 	"github.com/Azure/go-autorest/autorest"
 )
 
-// TODO 4.0: check if it could be removed on 4.0
+// TODO 6.0: check if this workaround can be removed
 // workaround for https://github.com/Azure/azure-rest-api-specs/issues/22572
 // the swagger lack definition of `certificateCreateOptions`.
 

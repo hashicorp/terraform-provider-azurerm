@@ -10,7 +10,7 @@ description: |-
 
 Manages a Bot Channels Registration.
 
-~> **Note:** Bot Channels Registration has been [deprecated by Azure](https://learn.microsoft.com/en-us/azure/bot-service/bot-service-resources-faq-azure?view=azure-bot-service-4.0#why-are-web-app-bot-and-bot-channel-registration-being-deprecated). New implementations should use the [`azurerm_bot_service_azure_bot`](./bot_service_azure_bot.html.markdown) resource.
+~> **Note:** Bot Channels Registration has been [deprecated by Azure](https://learn.microsoft.com/azure/bot-service/bot-service-resources-faq-azure?view=azure-bot-service-4.0#why-are-web-app-bot-and-bot-channel-registration-being-deprecated). New implementations should use the [`azurerm_bot_service_azure_bot`](./bot_service_azure_bot.html.markdown) resource.
 
 ## Example Usage
 
@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `microsoft_app_id` - (Required) The Microsoft Application ID for the Bot Channels Registration. Changing this forces a new resource to be created.
 
-* `microsoft_app_type` - (Optional) The Microsoft Application Type for the Bot Channels Registration. Possible values are `MultiTenant`, `SingleTenant` and `UserAssignedMSI`. Changing this forces a new resource to be created.
+* `microsoft_app_type` - (Required) The Microsoft Application Type for the Bot Channels Registration. Possible values are `MultiTenant`, `SingleTenant` and `UserAssignedMSI`. Changing this forces a new resource to be created.
 
 ~> **Note:** Creation of `azurerm_bot_channels_registration` resources using the `MultiTenant` type is no longer supported by Azure, existing resources can continue using this type.
 

@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -67,20 +66,6 @@ func TestAccManagedDisk_zeroGbFromPlatformImage(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 			ExpectNonEmptyPlan: true, // since the `disk_size_gb` will have changed
-		},
-	})
-}
-
-func TestAccManagedDisk_import(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
-	r := ManagedDiskResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.importConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
 		},
 	})
 }
@@ -1055,235 +1040,6 @@ resource "azurerm_managed_disk" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ManagedDiskResource) importConfig(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_network_interface" "test" {
-  name                = "acctestnic-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  ip_configuration {
-    name                          = "testconfiguration1"
-    subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Dynamic"
-  }
-}
-
-# NOTE: using the legacy vm resource since this test requires an unmanaged disk
-resource "azurerm_virtual_machine" "test" {
-  name                          = "acctestvm-%[1]d"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  network_interface_ids         = [azurerm_network_interface.test.id]
-  vm_size                       = "Standard_F2"
-  delete_os_disk_on_termination = true
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-
-  storage_os_disk {
-    name          = "myosdisk1"
-    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-  }
-
-  os_profile {
-    computer_name  = "acctestvm-%[1]d"
-    admin_username = "testadmin"
-    admin_password = "Password1234!"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  allow_nested_items_to_be_public = true
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
-  container_access_type = "private"
-}
-
-resource "azurerm_managed_disk" "test" {
-  name                 = "acctestd-%[1]d"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_type = "Standard_LRS"
-  create_option        = "Import"
-  source_uri           = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-  storage_account_id   = azurerm_storage_account.test.id
-  disk_size_gb         = "45"
-
-  tags = {
-    environment = "acctest"
-  }
-
-  depends_on = [
-    azurerm_virtual_machine.test,
-  ]
-}
-`, data.RandomInteger, data.Locations.Primary)
-	}
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvn-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_network_interface" "test" {
-  name                = "acctestnic-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  ip_configuration {
-    name                          = "testconfiguration1"
-    subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Dynamic"
-  }
-}
-
-# NOTE: using the legacy vm resource since this test requires an unmanaged disk
-resource "azurerm_virtual_machine" "test" {
-  name                          = "acctestvm-%[1]d"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  network_interface_ids         = [azurerm_network_interface.test.id]
-  vm_size                       = "Standard_F2"
-  delete_os_disk_on_termination = true
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-
-  storage_os_disk {
-    name          = "myosdisk1"
-    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-  }
-
-  os_profile {
-    computer_name  = "acctestvm-%[1]d"
-    admin_username = "testadmin"
-    admin_password = "Password1234!"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_id    = azurerm_storage_account.test.id
-  container_access_type = "private"
-}
-
-resource "azurerm_managed_disk" "test" {
-  name                 = "acctestd-%[1]d"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_type = "Standard_LRS"
-  create_option        = "Import"
-  source_uri           = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-  storage_account_id   = azurerm_storage_account.test.id
-  disk_size_gb         = "45"
-
-  tags = {
-    environment = "acctest"
-  }
-
-  depends_on = [
-    azurerm_virtual_machine.test,
-  ]
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
 func (ManagedDiskResource) copy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1803,12 +1559,12 @@ provider "azurerm" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_key_vault" "test" {
-  name                        = "acctestkv%s"
+  name                        = "acctestkv%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   rbac_authorization_enabled  = false
@@ -1858,7 +1614,7 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_disk_encryption_set" "test" {
-  name                = "acctestdes-%d"
+  name                = "acctestdes-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   key_vault_key_id    = azurerm_key_vault_key.test.id
@@ -1887,7 +1643,7 @@ resource "azurerm_role_assignment" "disk-encryption-read-keyvault" {
   role_definition_name = "Reader"
   principal_id         = azurerm_disk_encryption_set.test.identity.0.principal_id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r ManagedDiskResource) diskEncryptionSetEncrypted(data acceptance.TestData) string {
@@ -2101,6 +1857,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     offer     = "0001-com-ubuntu-server-jammy"
     sku       = "22_04-lts"
     version   = "latest"
+  }
+
+  additional_capabilities {
+    ultra_ssd_enabled = true
   }
 }
 
@@ -2419,12 +2179,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_managed_disk" "test" {
-  name                  = "acctestd-%d"
+  name                  = "acctestd-%[1]d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   storage_account_type  = "Standard_LRS"
@@ -2438,7 +2198,7 @@ resource "azurerm_managed_disk" "test" {
     cost-center = "ops"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (ManagedDiskResource) networkPolicy_update(data acceptance.TestData) string {
@@ -2448,12 +2208,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_managed_disk" "test" {
-  name                  = "acctestd-%d"
+  name                  = "acctestd-%[1]d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   storage_account_type  = "Standard_LRS"
@@ -2467,7 +2227,7 @@ resource "azurerm_managed_disk" "test" {
     cost-center = "ops"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (ManagedDiskResource) networkPolicy_create_withAllowPrivate(data acceptance.TestData) string {
@@ -2477,12 +2237,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_disk_access" "test" {
-  name                = "accda%d"
+  name                = "accda%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -2492,7 +2252,7 @@ resource "azurerm_disk_access" "test" {
 }
 
 resource "azurerm_managed_disk" "test" {
-  name                  = "acctestd-%d"
+  name                  = "acctestd-%[1]d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   storage_account_type  = "Standard_LRS"
@@ -2507,7 +2267,7 @@ resource "azurerm_managed_disk" "test" {
     cost-center = "ops"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (ManagedDiskResource) networkPolicy_update_withAllowPrivate(data acceptance.TestData) string {
@@ -2517,12 +2277,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_disk_access" "test" {
-  name                = "accda%d"
+  name                = "accda%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -2532,7 +2292,7 @@ resource "azurerm_disk_access" "test" {
 }
 
 resource "azurerm_disk_access" "test2" {
-  name                = "acctest2%d"
+  name                = "acctest2%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -2542,7 +2302,7 @@ resource "azurerm_disk_access" "test2" {
 }
 
 resource "azurerm_managed_disk" "test" {
-  name                  = "acctestd-%d"
+  name                  = "acctestd-%[1]d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   storage_account_type  = "Standard_LRS"
@@ -2557,7 +2317,7 @@ resource "azurerm_managed_disk" "test" {
     cost-center = "ops"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (ManagedDiskResource) publicNetworkAccessDefault(data acceptance.TestData) string {
@@ -2692,8 +2452,8 @@ provider "azurerm" {
 data "azurerm_platform_image" "test" {
   location  = "%s"
   publisher = "Canonical"
-  offer     = "0001-com-ubuntu-server-jammy"
-  sku       = "22_04-lts-gen2"
+  offer     = "0001-com-ubuntu-confidential-vm-focal"
+  sku       = "20_04-lts-cvm"
 }
 
 resource "azurerm_resource_group" "test" {

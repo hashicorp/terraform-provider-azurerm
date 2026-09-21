@@ -4,20 +4,11 @@
 package validate
 
 import (
-	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func SqlVirtualMachineLoginUserName(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
-	}
-
-	if !regexp.MustCompile(`^[^\\/"\[\]:|<>+=;,?* .]{2,128}$`).MatchString(v) {
-		errors = append(errors, fmt.Errorf("%v cannot contain special characters '\\/\"[]:|<>+=;,?* .'", k))
-	}
-
-	return warnings, errors
+func SqlVirtualMachineLoginUserName(i interface{}, k string) ([]string, []error) {
+	return validation.StringMatch(regexp.MustCompile(`^[^\\/"\[\]:|<>+=;,?* .]{2,128}$`), "cannot contain special characters '\\/\"[]:|<>+=;,?* .'")(i, k)
 }

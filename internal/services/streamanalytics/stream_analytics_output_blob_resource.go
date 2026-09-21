@@ -181,8 +181,8 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 					DateFormat:         pointer.To(dateFormat),
 					PathPattern:        pointer.To(pathPattern),
 					TimeFormat:         pointer.To(timeFormat),
-					AuthenticationMode: pointer.To(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
-					BlobWriteMode:      pointer.To(outputs.BlobWriteMode(d.Get("blob_write_mode").(string))),
+					AuthenticationMode: pointer.ToEnum[outputs.AuthenticationMode](d.Get("authentication_mode").(string)),
+					BlobWriteMode:      pointer.ToEnum[outputs.BlobWriteMode](d.Get("blob_write_mode").(string)),
 				},
 			},
 			Serialization: serialization,
@@ -250,29 +250,13 @@ func resourceStreamAnalyticsOutputBlobRead(d *pluginsdk.ResourceData, meta inter
 				return fmt.Errorf("converting %s to a Blob Output", *id)
 			}
 
-			dateFormat := ""
-			if v := output.Properties.DateFormat; v != nil {
-				dateFormat = *v
-			}
-			d.Set("date_format", dateFormat)
+			d.Set("date_format", pointer.From(output.Properties.DateFormat))
 
-			pathPattern := ""
-			if v := output.Properties.PathPattern; v != nil {
-				pathPattern = *v
-			}
-			d.Set("path_pattern", pathPattern)
+			d.Set("path_pattern", pointer.From(output.Properties.PathPattern))
 
-			containerName := ""
-			if v := output.Properties.Container; v != nil {
-				containerName = *v
-			}
-			d.Set("storage_container_name", containerName)
+			d.Set("storage_container_name", pointer.From(output.Properties.Container))
 
-			timeFormat := ""
-			if v := output.Properties.TimeFormat; v != nil {
-				timeFormat = *v
-			}
-			d.Set("time_format", timeFormat)
+			d.Set("time_format", pointer.From(output.Properties.TimeFormat))
 
 			authenticationMode := ""
 			if v := output.Properties.AuthenticationMode; v != nil {

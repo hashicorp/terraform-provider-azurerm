@@ -95,8 +95,7 @@ func (p ParseResourceIDFunction) Run(ctx context.Context, request function.RunRe
 		return
 	}
 
-	err = idType.FromParseResult(*parsed)
-	if err != nil {
+	if err = idType.FromParseResult(*parsed); err != nil {
 		response.Error = function.NewFuncError(fmt.Sprintf("Expanding Parsed Resource ID Error: %s", err))
 		return
 	}

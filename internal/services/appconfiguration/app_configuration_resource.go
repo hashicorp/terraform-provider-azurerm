@@ -348,7 +348,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		},
 		Properties: &configurationstores.ConfigurationStoreProperties{
 			DataPlaneProxy: &configurationstores.DataPlaneProxyProperties{
-				AuthenticationMode:    pointer.To(configurationstores.AuthenticationMode(d.Get("data_plane_proxy_authentication_mode").(string))),
+				AuthenticationMode:    pointer.ToEnum[configurationstores.AuthenticationMode](d.Get("data_plane_proxy_authentication_mode").(string)),
 				PrivateLinkDelegation: &privLinkDelegation,
 			},
 			EnablePurgeProtection: pointer.To(d.Get("purge_protection_enabled").(bool)),
@@ -363,8 +363,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if recoverSoftDeleted {
-		t := configurationstores.CreateModeRecover
-		parameters.Properties.CreateMode = &t
+		parameters.Properties.CreateMode = pointer.To(configurationstores.CreateModeRecover)
 	}
 
 	publicNetworkAccessValue, publicNetworkAccessNotEmpty := d.GetOk("public_network_access")
@@ -462,7 +461,7 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if props.DataPlaneProxy == nil {
 			props.DataPlaneProxy = &configurationstores.DataPlaneProxyProperties{}
 		}
-		props.DataPlaneProxy.AuthenticationMode = pointer.To(configurationstores.AuthenticationMode(d.Get("data_plane_proxy_authentication_mode").(string)))
+		props.DataPlaneProxy.AuthenticationMode = pointer.ToEnum[configurationstores.AuthenticationMode](d.Get("data_plane_proxy_authentication_mode").(string))
 	}
 
 	if d.HasChange("data_plane_proxy_private_link_delegation_enabled") {
@@ -513,10 +512,7 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		newValue := d.Get("purge_protection_enabled").(bool)
-		oldValue := false
-		if existing.Model.Properties.EnablePurgeProtection != nil {
-			oldValue = *existing.Model.Properties.EnablePurgeProtection
-		}
+		oldValue := pointer.From(existing.Model.Properties.EnablePurgeProtection)
 
 		if oldValue && !newValue {
 			return fmt.Errorf("updating %s: once Purge Protection has been Enabled it's not possible to disable it", *id)
@@ -641,11 +637,7 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 			d.Set("local_auth_enabled", localAuthEnabled)
 
-			purgeProtectionEnabled := false
-			if props.EnablePurgeProtection != nil {
-				purgeProtectionEnabled = *props.EnablePurgeProtection
-			}
-			d.Set("purge_protection_enabled", purgeProtectionEnabled)
+			d.Set("purge_protection_enabled", pointer.From(props.EnablePurgeProtection))
 
 			softDeleteRetentionDays := 0
 			if props.SoftDeleteRetentionInDays != nil {
@@ -715,10 +707,7 @@ func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %q: `properties` was nil", *id)
 	}
 
-	purgeProtectionEnabled := false
-	if ppe := existing.Model.Properties.EnablePurgeProtection; ppe != nil {
-		purgeProtectionEnabled = *ppe
-	}
+	purgeProtectionEnabled := pointer.From(existing.Model.Properties.EnablePurgeProtection)
 	softDeleteEnabled := false
 	if sde := existing.Model.Properties.SoftDeleteRetentionInDays; sde != nil && *sde > 0 {
 		softDeleteEnabled = true
@@ -918,27 +907,11 @@ func flattenAppConfigurationAccessKeys(values []configurationstores.ApiKey) flat
 }
 
 func flattenAppConfigurationAccessKey(input configurationstores.ApiKey) []interface{} {
-	connectionString := ""
-
-	if input.ConnectionString != nil {
-		connectionString = *input.ConnectionString
-	}
-
-	id := ""
-	if input.Id != nil {
-		id = *input.Id
-	}
-
-	secret := ""
-	if input.Value != nil {
-		secret = *input.Value
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"connection_string": connectionString,
-			"id":                id,
-			"secret":            secret,
+			"connection_string": pointer.From(input.ConnectionString),
+			"id":                pointer.From(input.Id),
+			"secret":            pointer.From(input.Value),
 		},
 	}
 }
@@ -953,8 +926,7 @@ func parsePublicNetworkAccess(input string) *configurationstores.PublicNetworkAc
 	}
 
 	// otherwise presume it's an undefined value and best-effort it
-	out := configurationstores.PublicNetworkAccess(input)
-	return &out
+	return pointer.ToEnum[configurationstores.PublicNetworkAccess](input)
 }
 
 func userIsMissingNecessaryPermission(name, location string) string {

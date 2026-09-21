@@ -149,11 +149,7 @@ func (r ClusterResource) Read() sdk.ResourceFunc {
 				state.Location = *model.Location
 				state.Tags = tags.Flatten(model.Tags)
 
-				var capacity int64
-				if v := model.Sku.Capacity; v != nil {
-					capacity = *v
-				}
-				state.StreamingCapacity = capacity
+				state.StreamingCapacity = pointer.From(model.Sku.Capacity)
 			}
 
 			return metadata.Encode(&state)
@@ -196,7 +192,7 @@ func (r ClusterResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			if metadata.ResourceData.HasChange("streaming_capacity") || metadata.ResourceData.HasChange("tags") {
+			if metadata.ResourceData.HasChanges("streaming_capacity", "tags") {
 				props := clusters.Cluster{
 					Sku: &clusters.ClusterSku{
 						Capacity: pointer.To(state.StreamingCapacity),
