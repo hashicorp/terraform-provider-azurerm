@@ -4107,7 +4107,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     name                        = "default"
     node_count                  = 1
     vm_size                     = "Standard_DS2_v2"
-    message_of_the_day           = %[3]q
+    message_of_the_day          = %[3]q
     temporary_name_for_rotation = "temp"
     upgrade_settings {
       max_surge = "10%%"
