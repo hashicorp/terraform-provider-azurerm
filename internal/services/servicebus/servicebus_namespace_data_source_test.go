@@ -58,22 +58,6 @@ func TestAccDataSourceServiceBusNamespace_premium(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceServiceBusNamespace_identity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_namespace", "test")
-	r := ServiceBusNamespaceDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.identity(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
-			),
-		},
-	})
-}
-
 func TestAccDataSourceServiceBusNamespace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_namespace", "test")
 	r := ServiceBusNamespaceDataSource{}
@@ -82,34 +66,12 @@ func TestAccDataSourceServiceBusNamespace_complete(t *testing.T) {
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
 				check.That(data.ResourceName).Key("local_auth_enabled").HasValue("false"),
-			),
-		},
-	})
-}
-
-func TestAccDataSourceServiceBusNamespace_publicNetworkAccess(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_namespace", "test")
-	r := ServiceBusNamespaceDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.publicNetworkAccess(data),
-			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
-			),
-		},
-	})
-}
-
-func TestAccDataSourceServiceBusNamespace_networkRuleSet(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_namespace", "test")
-	r := ServiceBusNamespaceDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.networkRuleSet(data),
-			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.2"),
 				check.That(data.ResourceName).Key("network_rule_set.#").HasValue("1"),
 			),
 		},
@@ -152,48 +114,41 @@ data "azurerm_servicebus_namespace" "test" {
 `, ServicebusNamespaceResource{}.premium(data))
 }
 
-func (ServiceBusNamespaceDataSource) identity(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_servicebus_namespace" "test" {
-  name                = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-}
-`, ServicebusNamespaceResource{}.identitySystemAssigned(data))
-}
-
 func (ServiceBusNamespaceDataSource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                           = "acctestservicebusnamespace-%[1]d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+  sku                            = "Premium"
+  capacity                       = 1
+  local_auth_enabled             = false
+  public_network_access_enabled  = false
+  minimum_tls_version            = "1.2"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_rule_set {
+    public_network_access_enabled = false
+  }
+}
 
 data "azurerm_servicebus_namespace" "test" {
   name                = azurerm_servicebus_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, ServicebusNamespaceResource{}.complete(data))
-}
-
-func (ServiceBusNamespaceDataSource) publicNetworkAccess(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_servicebus_namespace" "test" {
-  name                = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-}
-`, ServicebusNamespaceResource{}.publicNetworkAccessUpdate(data))
-}
-
-func (ServiceBusNamespaceDataSource) networkRuleSet(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_servicebus_namespace" "test" {
-  name                = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-}
-`, ServicebusNamespaceResource{}.networkRuleSet(data))
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (ServiceBusNamespaceDataSource) customerManagedKey(data acceptance.TestData) string {
