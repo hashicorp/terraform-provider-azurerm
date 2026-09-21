@@ -4,6 +4,7 @@
 package containers
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -26,6 +27,7 @@ func TestAgentPoolWindowsProfileImportPlan(t *testing.T) {
 		{name: "explicit_disabled", apiDisabled: true, configured: pointer.To(false)},
 		{name: "empty_block", emptyBlock: true},
 		{name: "omitted_tag_update", updateTags: true},
+		{name: "omitted_disabled_tag_update", apiDisabled: true, updateTags: true},
 		{name: "enable_requires_replacement", apiDisabled: true, configured: pointer.To(true), replacement: true},
 		{name: "disable_requires_replacement", configured: pointer.To(false), replacement: true},
 	} {
@@ -74,6 +76,16 @@ func TestAgentPoolWindowsProfileImportPlan(t *testing.T) {
 			}
 			if !test.replacement && !test.updateTags && diff != nil && !diff.Empty() {
 				t.Fatalf("imported Windows profile has a nonempty plan: %#v", diff)
+			}
+			if test.updateTags {
+				if diff == nil || diff.Attributes["tags.Environment"] == nil || diff.Attributes["tags.Environment"].New != "prod" {
+					t.Fatalf("expected the tag update in the plan: %#v", diff)
+				}
+				for name := range diff.Attributes {
+					if !strings.HasPrefix(name, "tags.") {
+						t.Fatalf("omitted Windows profile changed during a tag update: %s", name)
+					}
+				}
 			}
 		})
 	}
