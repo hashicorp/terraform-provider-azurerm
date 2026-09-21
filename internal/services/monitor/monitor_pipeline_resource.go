@@ -1006,12 +1006,28 @@ func (r MonitorPipelineResource) Update() sdk.ResourceFunc {
 				payload.Properties.Exporters = expandPipelineAzureMonitorWorkspaceLogExporters(model.AzureMonitorWorkspaceLogExporter)
 			}
 
-			if metadata.ResourceData.HasChanges("batch_processor", "microsoft_common_security_log_processor", "microsoft_syslog_processor", "transform_language_processor") {
-				payload.Properties.Processors = expandPipelineProcessors(model)
+			batchProcessorChanged := metadata.ResourceData.HasChange("batch_processor")
+			microsoftCommonSecurityLogProcessorChanged := metadata.ResourceData.HasChange("microsoft_common_security_log_processor")
+			microsoftSyslogProcessorChanged := metadata.ResourceData.HasChange("microsoft_syslog_processor")
+			transformLanguageProcessorChanged := metadata.ResourceData.HasChange("transform_language_processor")
+			if batchProcessorChanged || microsoftCommonSecurityLogProcessorChanged || microsoftSyslogProcessorChanged || transformLanguageProcessorChanged {
+				changedTypes := map[pipelinegroups.ProcessorType]bool{
+					pipelinegroups.ProcessorTypeBatch:                      batchProcessorChanged,
+					pipelinegroups.ProcessorTypeMicrosoftCommonSecurityLog: microsoftCommonSecurityLogProcessorChanged,
+					pipelinegroups.ProcessorTypeMicrosoftSyslog:            microsoftSyslogProcessorChanged,
+					pipelinegroups.ProcessorTypeTransformLanguage:          transformLanguageProcessorChanged,
+				}
+				payload.Properties.Processors = mergePipelineProcessors(payload.Properties.Processors, expandPipelineProcessors(model), changedTypes)
 			}
 
-			if metadata.ResourceData.HasChanges("otlp_receiver", "syslog_receiver") {
-				payload.Properties.Receivers = expandPipelineReceivers(model)
+			otlpReceiverChanged := metadata.ResourceData.HasChange("otlp_receiver")
+			syslogReceiverChanged := metadata.ResourceData.HasChange("syslog_receiver")
+			if otlpReceiverChanged || syslogReceiverChanged {
+				changedTypes := map[pipelinegroups.ReceiverType]bool{
+					pipelinegroups.ReceiverTypeOTLP:   otlpReceiverChanged,
+					pipelinegroups.ReceiverTypeSyslog: syslogReceiverChanged,
+				}
+				payload.Properties.Receivers = mergePipelineReceivers(payload.Properties.Receivers, expandPipelineReceivers(model), changedTypes)
 			}
 
 			if metadata.ResourceData.HasChange("replicas") {
@@ -1331,6 +1347,21 @@ func expandPipelineProcessors(input MonitorPipelineResourceModel) []pipelinegrou
 	return output
 }
 
+func mergePipelineProcessors(existing, configured []pipelinegroups.Processor, changedTypes map[pipelinegroups.ProcessorType]bool) []pipelinegroups.Processor {
+	output := make([]pipelinegroups.Processor, 0, len(existing)+len(configured))
+	for _, processor := range existing {
+		if !changedTypes[processor.Type] {
+			output = append(output, processor)
+		}
+	}
+	for _, processor := range configured {
+		if changedTypes[processor.Type] {
+			output = append(output, processor)
+		}
+	}
+	return output
+}
+
 func flattenPipelineProcessors(input []pipelinegroups.Processor, output *MonitorPipelineResourceModel) {
 	for _, v := range input {
 		switch v.Type {
@@ -1385,6 +1416,21 @@ func expandPipelineReceivers(input MonitorPipelineResourceModel) []pipelinegroup
 		})
 	}
 
+	return output
+}
+
+func mergePipelineReceivers(existing, configured []pipelinegroups.Receiver, changedTypes map[pipelinegroups.ReceiverType]bool) []pipelinegroups.Receiver {
+	output := make([]pipelinegroups.Receiver, 0, len(existing)+len(configured))
+	for _, receiver := range existing {
+		if !changedTypes[receiver.Type] {
+			output = append(output, receiver)
+		}
+	}
+	for _, receiver := range configured {
+		if changedTypes[receiver.Type] {
+			output = append(output, receiver)
+		}
+	}
 	return output
 }
 
