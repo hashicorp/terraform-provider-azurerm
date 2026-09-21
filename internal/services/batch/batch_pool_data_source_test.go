@@ -50,6 +50,23 @@ func TestAccBatchPoolDataSource_complete(t *testing.T) {
 	})
 }
 
+func TestAccBatchPoolDataSource_extended(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_batch_pool", "test")
+	r := BatchPoolDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.extended(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("extensions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("target_node_communication_mode").HasValue("Simplified"),
+			),
+		},
+	})
+}
+
 func (BatchPoolDataSource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -170,102 +187,85 @@ data "azurerm_batch_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString)
 }
 
-func (BatchPoolDataSource) identity(data acceptance.TestData) string {
+func (BatchPoolDataSource) extended(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-  %s
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-batch-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "testaccloganalytics%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.ubuntu 22.04"
+  vm_size             = "STANDARD_A1_V2"
+
+  target_node_communication_mode = "Simplified"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  extensions {
+    name                       = "OmsAgentForLinux"
+    publisher                  = "Microsoft.EnterpriseCloud.Monitoring"
+    settings_json              = jsonencode({ "workspaceId" = "${azurerm_log_analytics_workspace.test.id}", "skipDockerProviderInstall" = true })
+    protected_settings         = jsonencode({ "workspaceKey" = "${azurerm_log_analytics_workspace.test.primary_shared_key}" })
+    type                       = "OmsAgentForLinux"
+    type_handler_version       = "1.17"
+    auto_upgrade_minor_version = true
+    automatic_upgrade_enabled  = true
+  }
+
+  security_profile {
+    host_encryption_enabled = false
+    security_type           = "trustedLaunch"
+    secure_boot_enabled     = true
+    vtpm_enabled            = false
+  }
+
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+
 data "azurerm_batch_pool" "test" {
   name                = azurerm_batch_pool.test.name
   account_name        = azurerm_batch_pool.test.account_name
   resource_group_name = azurerm_batch_pool.test.resource_group_name
 }
-  `, BatchPoolResource{}.identity(data))
-}
-
-func (BatchPoolDataSource) extensions(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-  %s
-data "azurerm_batch_pool" "test" {
-  name                = azurerm_batch_pool.test.name
-  account_name        = azurerm_batch_pool.test.account_name
-  resource_group_name = azurerm_batch_pool.test.resource_group_name
-}
-  `, BatchPoolResource{}.extensions(data))
-}
-
-func (BatchPoolDataSource) securityProfile(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-  %s
-data "azurerm_batch_pool" "test" {
-  name                = azurerm_batch_pool.test.name
-  account_name        = azurerm_batch_pool.test.account_name
-  resource_group_name = azurerm_batch_pool.test.resource_group_name
-}
-  `, BatchPoolResource{}.securityProfileWithUEFISettings(data))
-}
-
-func (BatchPoolDataSource) targetNodeCommunicationMode(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-  %s
-data "azurerm_batch_pool" "test" {
-  name                = azurerm_batch_pool.test.name
-  account_name        = azurerm_batch_pool.test.account_name
-  resource_group_name = azurerm_batch_pool.test.resource_group_name
-}
-  `, BatchPoolResource{}.targetNodeCommunicationMode(data, "Simplified"))
-}
-
-func TestAccBatchPoolDataSource_identity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_batch_pool", "test")
-	r := BatchPoolDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.identity(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
-			),
-		},
-	})
-}
-
-func TestAccBatchPoolDataSource_extensions(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_batch_pool", "test")
-	r := BatchPoolDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.extensions(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("extensions.#").HasValue("1"),
-			),
-		},
-	})
-}
-
-func TestAccBatchPoolDataSource_securityProfile(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_batch_pool", "test")
-	r := BatchPoolDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.securityProfile(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("security_profile.#").HasValue("1"),
-			),
-		},
-	})
-}
-
-func TestAccBatchPoolDataSource_targetNodeCommunicationMode(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_batch_pool", "test")
-	r := BatchPoolDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.targetNodeCommunicationMode(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("target_node_communication_mode").HasValue("Simplified"),
-			),
-		},
-	})
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 }
