@@ -46,7 +46,6 @@ output "traffic_routing_method" {
 
 * `profile_status` - The status of the profile.
 
-
 * `traffic_routing_method` - Specifies the algorithm used to route traffic.
 
 * `traffic_view_enabled` - Indicates whether Traffic View is enabled for the Traffic Manager profile.
