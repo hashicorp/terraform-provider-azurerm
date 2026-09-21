@@ -10,7 +10,7 @@ description: |-
 
 Sets a PostgreSQL Configuration value on a Azure PostgreSQL Flexible Server.
 
-~> **Note:** Changes to static server parameters will automatically trigger Azure Flex Server restart. This behavior can be disabled in the provider `features` block by setting the `restart_server_on_configuration_value_change` field to `false` within the `postgresql_flexible_server` block.
+~> **Note:** Changes to static server parameters will automatically trigger Azure Flex Server restart. This behaviour can be disabled in the provider `features` block by setting the `restart_server_on_configuration_value_change` field to `false` within the `postgresql_flexible_server` block.
 
 ## Example Usage
 

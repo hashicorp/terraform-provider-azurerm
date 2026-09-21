@@ -852,7 +852,7 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				d.Set("logical_sector_size", creationData.LogicalSectorSize)
 			}
 
-			// imageReference is returned as well when galleryImageRefernece is used, only check imageReference when galleryImageReference is not returned
+			// imageReference is returned as well when galleryImageReference is used, only check imageReference when galleryImageReference is not returned
 			galleryImageReferenceId := ""
 			imageReferenceId := ""
 			if galleryImageReference := creationData.GalleryImageReference; galleryImageReference != nil && galleryImageReference.Id != nil {
