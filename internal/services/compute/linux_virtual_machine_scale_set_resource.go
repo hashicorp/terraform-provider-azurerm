@@ -101,7 +101,7 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 					}
 				}
 
-				if diff.Get("capacity_reservation_group_id").(string) != "" {
+				if !diff.GetRawConfig().GetAttr("capacity_reservation_group_id").IsNull() {
 					if diff.Get("single_placement_group").(bool) {
 						return errors.New("`single_placement_group` must be set to `false` when `capacity_reservation_group_id` is specified")
 					}
