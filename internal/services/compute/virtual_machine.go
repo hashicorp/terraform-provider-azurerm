@@ -640,21 +640,22 @@ func virtualMachineSizePropertiesSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		// NOTE: O+C the Azure API returns the effective vCPU values derived from the VM size even when these are not configured, and they cannot be unset once applied, so this block and its properties are Optional and Computed to avoid a persistent diff
 		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"vcpu_available": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					// NOTE: O+C because Azure API returns the value even it's not configured.
 					Computed:     true,
 					ValidateFunc: validation.IntPositive,
 				},
 
 				"vcpu_per_core": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					// NOTE: O+C because Azure API returns the value even it's not configured.
 					Computed:     true,
 					ValidateFunc: validation.IntPositive,
 				},
