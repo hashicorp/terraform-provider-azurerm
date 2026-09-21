@@ -62,9 +62,20 @@ func (c AppPlatformClient) ConfigurationServicesValidateResource(ctx context.Con
 
 // ConfigurationServicesValidateResourceThenPoll performs ConfigurationServicesValidateResource then polls until it's completed
 func (c AppPlatformClient) ConfigurationServicesValidateResourceThenPoll(ctx context.Context, id ConfigurationServiceId, input ConfigurationServiceResource) error {
+	return c.ConfigurationServicesValidateResourceCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ConfigurationServicesValidateResourceCallbackThenPoll performs ConfigurationServicesValidateResource, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) ConfigurationServicesValidateResourceCallbackThenPoll(ctx context.Context, id ConfigurationServiceId, input ConfigurationServiceResource, callback func() error) error {
 	result, err := c.ConfigurationServicesValidateResource(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ConfigurationServicesValidateResource: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -57,9 +57,20 @@ func (c AppPlatformClient) GatewaysRestart(ctx context.Context, id GatewayId) (r
 
 // GatewaysRestartThenPoll performs GatewaysRestart then polls until it's completed
 func (c AppPlatformClient) GatewaysRestartThenPoll(ctx context.Context, id GatewayId) error {
+	return c.GatewaysRestartCallbackThenPoll(ctx, id, nil)
+}
+
+// GatewaysRestartCallbackThenPoll performs GatewaysRestart, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) GatewaysRestartCallbackThenPoll(ctx context.Context, id GatewayId, callback func() error) error {
 	result, err := c.GatewaysRestart(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing GatewaysRestart: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

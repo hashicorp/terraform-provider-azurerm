@@ -17,12 +17,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespacesauthorizationrule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespacesauthorizationrule"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -32,7 +32,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name servicebus_namespace -service-package-name servicebus -properties "name,resource_group_name"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 // Default Authorization Rule/Policy created by Azure, used to populate the
 // default connection strings and keys
@@ -42,7 +42,7 @@ var (
 )
 
 func resourceServiceBusNamespace() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceServiceBusNamespaceCreate,
 		Read:   resourceServiceBusNamespaceRead,
 		Update: resourceServiceBusNamespaceUpdate,
@@ -81,13 +81,9 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(namespaces.SkuNameBasic),
-					string(namespaces.SkuNameStandard),
-					string(namespaces.SkuNamePremium),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForSkuName(), false),
 			},
 
 			"capacity": {
@@ -150,6 +146,7 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 				Default:  string(namespaces.TlsVersionOnePointTwo),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(namespaces.TlsVersionOnePointTwo),
+					string(namespaces.TlsVersionOnePointThree),
 				}, false),
 			},
 
@@ -180,18 +177,15 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 			"network_rule_set": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"default_action": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(namespaces.DefaultActionAllow),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(namespaces.DefaultActionAllow),
-								string(namespaces.DefaultActionDeny),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(namespaces.DefaultActionAllow),
+							ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForDefaultAction(), false),
 						},
 
 						"public_network_access_enabled": {
@@ -266,21 +260,6 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 			pluginsdk.CustomizeDiffShim(servicebusTLSVersionDiff),
 		),
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(namespaces.TlsVersionOnePointTwo),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(namespaces.TlsVersionOnePointZero),
-				string(namespaces.TlsVersionOnePointOne),
-				string(namespaces.TlsVersionOnePointTwo),
-			}, false),
-		}
-	}
-
-	return resource
 }
 
 func resourceServiceBusNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -295,15 +274,17 @@ func resourceServiceBusNamespaceCreate(d *pluginsdk.ResourceData, meta interface
 
 	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_servicebus_namespace", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_servicebus_namespace", id.ID())
+		}
 	}
 
 	identity, err := expandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
@@ -316,13 +297,12 @@ func resourceServiceBusNamespaceCreate(d *pluginsdk.ResourceData, meta interface
 		publicNetworkEnabled = namespaces.PublicNetworkAccessDisabled
 	}
 
-	s := namespaces.SkuTier(sku)
 	parameters := namespaces.SBNamespace{
 		Location: location,
 		Identity: identity,
 		Sku: &namespaces.SBSku{
 			Name: namespaces.SkuName(sku),
-			Tier: &s,
+			Tier: pointer.ToEnum[namespaces.SkuTier](sku),
 		},
 		Properties: &namespaces.SBNamespaceProperties{
 			Encryption:          expandServiceBusNamespaceEncryption(d.Get("customer_managed_key").([]interface{})),
@@ -333,8 +313,7 @@ func resourceServiceBusNamespaceCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if tlsValue := d.Get("minimum_tls_version").(string); tlsValue != "" {
-		minimumTls := namespaces.TlsVersion(tlsValue)
-		parameters.Properties.MinimumTlsVersion = &minimumTls
+		parameters.Properties.MinimumTlsVersion = pointer.ToEnum[namespaces.TlsVersion](tlsValue)
 	}
 
 	if capacity := d.Get("capacity"); capacity != nil {
@@ -357,10 +336,9 @@ func resourceServiceBusNamespaceCreate(d *pluginsdk.ResourceData, meta interface
 		parameters.Properties.PremiumMessagingPartitions = pointer.To(int64(premiumMessagingUnit.(int)))
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
 	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
 		return err
@@ -389,7 +367,7 @@ func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if existing.Model == nil {
-		return fmt.Errorf("retrieving  %s: `model` was nil", *id)
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
 	}
 	if existing.Model.Properties == nil {
 		return fmt.Errorf("retrieving %s: `model.Properties` was nil", *id)
@@ -415,10 +393,9 @@ func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if d.HasChange("sku") {
 		sku := d.Get("sku").(string)
-		s := namespaces.SkuTier(sku)
 		payload.Sku = &namespaces.SBSku{
 			Name: namespaces.SkuName(sku),
-			Tier: &s,
+			Tier: pointer.ToEnum[namespaces.SkuTier](sku),
 		}
 	}
 
@@ -435,7 +412,7 @@ func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("minimum_tls_version") {
-		payload.Properties.MinimumTlsVersion = pointer.To(namespaces.TlsVersion(d.Get("minimum_tls_version").(string)))
+		payload.Properties.MinimumTlsVersion = pointer.ToEnum[namespaces.TlsVersion](d.Get("minimum_tls_version").(string))
 	}
 
 	if d.HasChange("capacity") {
@@ -612,10 +589,9 @@ func expandServiceBusNamespaceEncryption(input []interface{}) *namespaces.Encryp
 	}
 	v := input[0].(map[string]interface{})
 	keyId, _ := keyvault.ParseNestedItemID(v["key_vault_key_id"].(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
-	keySource := namespaces.KeySourceMicrosoftPointKeyVault
 
 	encryption := namespaces.Encryption{
-		KeySource:                       &keySource,
+		KeySource:                       pointer.To(namespaces.KeySourceMicrosoftPointKeyVault),
 		RequireInfrastructureEncryption: pointer.To(v["infrastructure_encryption_enabled"].(bool)),
 	}
 
@@ -734,14 +710,12 @@ func createNetworkRuleSetForNamespace(ctx context.Context, client *namespaces.Na
 		return fmt.Errorf(" The `default_action` of `network_rule_set` can only be set to `Allow` if no `ip_rules` or `network_rules` is set")
 	}
 
-	publicNetworkAccess := namespaces.PublicNetworkAccessFlag(publicNetworkAcc)
-
 	parameters := namespaces.NetworkRuleSet{
 		Properties: &namespaces.NetworkRuleSetProperties{
 			DefaultAction:               &defaultAction,
 			VirtualNetworkRules:         vnetRule,
 			IPRules:                     ipRule,
-			PublicNetworkAccess:         &publicNetworkAccess,
+			PublicNetworkAccess:         pointer.ToEnum[namespaces.PublicNetworkAccessFlag](publicNetworkAcc),
 			TrustedServiceAccessEnabled: pointer.To(item["trusted_services_allowed"].(bool)),
 		},
 	}
@@ -754,10 +728,9 @@ func createNetworkRuleSetForNamespace(ctx context.Context, client *namespaces.Na
 }
 
 func resetNetworkRuleSetForNamespace(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) error {
-	defaultAction := namespaces.DefaultActionAllow
 	parameters := namespaces.NetworkRuleSet{
 		Properties: &namespaces.NetworkRuleSetProperties{
-			DefaultAction: &defaultAction,
+			DefaultAction: pointer.To(namespaces.DefaultActionAllow),
 		},
 	}
 
@@ -778,17 +751,12 @@ func flattenServiceBusNamespaceNetworkRuleSet(networkRuleSet namespaces.NetworkR
 		publicNetworkAccess = *v
 	}
 
-	trustedServiceEnabled := false
-	if networkRuleSet.TrustedServiceAccessEnabled != nil {
-		trustedServiceEnabled = *networkRuleSet.TrustedServiceAccessEnabled
-	}
-
 	networkRules := flattenServiceBusNamespaceVirtualNetworkRules(networkRuleSet.VirtualNetworkRules)
 	ipRules := flattenServiceBusNamespaceIPRules(networkRuleSet.IPRules)
 
 	return []interface{}{map[string]interface{}{
 		"default_action":                defaultAction,
-		"trusted_services_allowed":      trustedServiceEnabled,
+		"trusted_services_allowed":      pointer.From(networkRuleSet.TrustedServiceAccessEnabled),
 		"public_network_access_enabled": publicNetworkAccess == namespaces.PublicNetworkAccessFlagEnabled,
 		"network_rules":                 pluginsdk.NewSet(networkRuleHash, networkRules),
 		"ip_rules":                      ipRules,
@@ -834,14 +802,9 @@ func flattenServiceBusNamespaceVirtualNetworkRules(input *[]namespaces.NWRuleSet
 			subnetId = v.Subnet.Id
 		}
 
-		ignore := false
-		if v.IgnoreMissingVnetServiceEndpoint != nil {
-			ignore = *v.IgnoreMissingVnetServiceEndpoint
-		}
-
 		result = append(result, map[string]interface{}{
 			"subnet_id":                            subnetId,
-			"ignore_missing_vnet_service_endpoint": ignore,
+			"ignore_missing_vnet_service_endpoint": pointer.From(v.IgnoreMissingVnetServiceEndpoint),
 		})
 	}
 
@@ -853,12 +816,11 @@ func expandServiceBusNamespaceIPRules(input []interface{}) *[]namespaces.NWRuleS
 		return nil
 	}
 
-	action := namespaces.NetworkRuleIPActionAllow
 	result := make([]namespaces.NWRuleSetIPRules, 0, len(input))
 	for _, v := range input {
 		result = append(result, namespaces.NWRuleSetIPRules{
 			IPMask: pointer.To(v.(string)),
-			Action: &action,
+			Action: pointer.To(namespaces.NetworkRuleIPActionAllow),
 		})
 	}
 

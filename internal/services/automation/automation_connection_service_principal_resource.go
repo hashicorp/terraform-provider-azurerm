@@ -95,15 +95,17 @@ func resourceAutomationConnectionServicePrincipalCreate(d *pluginsdk.ResourceDat
 
 	id := connection.NewConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_automation_connection_service_principal", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_automation_connection_service_principal", id.ID())
+		}
 	}
 
 	parameters := connection.ConnectionCreateOrUpdateParameters{
@@ -215,11 +217,7 @@ func resourceAutomationConnectionServicePrincipalRead(d *pluginsdk.ResourceData,
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			description := ""
-			if props.Description != nil {
-				description = *props.Description
-			}
-			d.Set("description", description)
+			d.Set("description", pointer.From(props.Description))
 
 			if props.FieldDefinitionValues != nil {
 				fieldDefinitionValues := *props.FieldDefinitionValues

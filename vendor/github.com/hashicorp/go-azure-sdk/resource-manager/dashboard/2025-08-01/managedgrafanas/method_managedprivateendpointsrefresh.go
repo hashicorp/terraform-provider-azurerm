@@ -57,9 +57,20 @@ func (c ManagedGrafanasClient) ManagedPrivateEndpointsRefresh(ctx context.Contex
 
 // ManagedPrivateEndpointsRefreshThenPoll performs ManagedPrivateEndpointsRefresh then polls until it's completed
 func (c ManagedGrafanasClient) ManagedPrivateEndpointsRefreshThenPoll(ctx context.Context, id GrafanaId) error {
+	return c.ManagedPrivateEndpointsRefreshCallbackThenPoll(ctx, id, nil)
+}
+
+// ManagedPrivateEndpointsRefreshCallbackThenPoll performs ManagedPrivateEndpointsRefresh, runs the optional callback function, then polls until it's completed
+func (c ManagedGrafanasClient) ManagedPrivateEndpointsRefreshCallbackThenPoll(ctx context.Context, id GrafanaId, callback func() error) error {
 	result, err := c.ManagedPrivateEndpointsRefresh(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ManagedPrivateEndpointsRefresh: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

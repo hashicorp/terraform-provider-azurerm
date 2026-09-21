@@ -36,7 +36,7 @@ func NewSegmentNotSpecifiedError(id ResourceId, segmentName string, parseResult 
 
 // Error returns a detailed error message highlighting the issues found when parsing this Resource ID Segment.
 func (e SegmentNotSpecifiedError) Error() string {
-	expectedId := buildExpectedResourceId(e.resourceId.Segments())
+	expectedId := BuildExpectedResourceId(e.resourceId.Segments())
 	position := findPositionOfSegment(e.segmentName, e.resourceId.Segments())
 	if position == nil {
 		return fmt.Sprintf("internal-error: couldn't determine the position for segment %q", e.segmentName)

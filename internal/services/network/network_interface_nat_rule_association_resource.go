@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -117,11 +118,15 @@ func resourceNetworkInterfaceNatRuleAssociationCreate(d *pluginsdk.ResourceData,
 	rules := make([]networkinterfaces.InboundNatRule, 0)
 
 	// first double-check it doesn't exist
+	exists := false
 	if ipConfigProps.LoadBalancerInboundNatRules != nil {
 		for _, existingRule := range *ipConfigProps.LoadBalancerInboundNatRules {
 			if ruleId := existingRule.Id; ruleId != nil {
 				if *ruleId == natRuleId.ID() {
-					return tf.ImportAsExistsError("azurerm_network_interface_nat_rule_association", id.ID())
+					exists = true
+					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError("azurerm_network_interface_nat_rule_association", id.ID())
+					}
 				}
 
 				rules = append(rules, existingRule)
@@ -132,12 +137,14 @@ func resourceNetworkInterfaceNatRuleAssociationCreate(d *pluginsdk.ResourceData,
 	rule := networkinterfaces.InboundNatRule{
 		Id: pointer.To(natRuleId.ID()),
 	}
-	rules = append(rules, rule)
+	if !exists {
+		rules = append(rules, rule)
+	}
 	ipConfigProps.LoadBalancerInboundNatRules = &rules
 
 	props.IPConfigurations = updateNetworkInterfaceIPConfiguration(*config, props.IPConfigurations)
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *networkInterfaceId, *read.Model); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, *networkInterfaceId, *read.Model, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("updating NAT Rule Association for %s: %+v", networkInterfaceId, err)
 	}
 

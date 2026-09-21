@@ -161,7 +161,7 @@ resource "azurerm_databricks_workspace" "test" {
   name                = "acctest-ws-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "standard"
+  sku                 = "premium"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

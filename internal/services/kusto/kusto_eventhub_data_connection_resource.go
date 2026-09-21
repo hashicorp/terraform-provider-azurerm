@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/dataconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
@@ -92,7 +93,7 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 			"event_system_properties": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -147,7 +148,7 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 			"retrieval_start_date": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 		},
@@ -162,15 +163,17 @@ func resourceKustoEventHubDataConnectionCreate(d *pluginsdk.ResourceData, meta i
 
 	id := dataconnections.NewDataConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("database_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(resp.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_kusto_eventhub_data_connection", id.ID())
+		if !response.WasNotFound(resp.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_kusto_eventhub_data_connection", id.ID())
+		}
 	}
 
 	location := location.Normalize(d.Get("location").(string))
@@ -184,15 +187,12 @@ func resourceKustoEventHubDataConnectionCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if databaseRouting, ok := d.GetOk("database_routing_type"); ok {
-		dbRouting := dataconnections.DatabaseRouting(databaseRouting.(string))
-		dataConnection1.Properties.DatabaseRouting = &dbRouting
+		dataConnection1.Properties.DatabaseRouting = pointer.ToEnum[dataconnections.DatabaseRouting](databaseRouting.(string))
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, dataConnection1)
-	if err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, dataConnection1, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
 
 	return resourceKustoEventHubDataConnectionRead(d, meta)
@@ -303,8 +303,7 @@ func resourceKustoEventHubDataConnectionUpdate(d *pluginsdk.ResourceData, meta i
 		Properties: props,
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, *id, dataConnection)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, dataConnection); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -321,8 +320,7 @@ func resourceKustoEventHubDataConnectionDelete(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.DataConnectionName, id.ResourceGroupName, id.ClusterName, id.DatabaseName, err)
 	}
 
@@ -349,13 +347,11 @@ func expandKustoEventHubDataConnectionProperties(d *pluginsdk.ResourceData) *dat
 	}
 
 	if df, ok := d.GetOk("data_format"); ok {
-		dataFormat := dataconnections.EventHubDataFormat(df.(string))
-		eventHubConnectionProperties.DataFormat = &dataFormat
+		eventHubConnectionProperties.DataFormat = pointer.ToEnum[dataconnections.EventHubDataFormat](df.(string))
 	}
 
 	if compression, ok := d.GetOk("compression"); ok {
-		comp := dataconnections.Compression(compression.(string))
-		eventHubConnectionProperties.Compression = &comp
+		eventHubConnectionProperties.Compression = pointer.ToEnum[dataconnections.Compression](compression.(string))
 	}
 
 	if eventSystemProperties, ok := d.GetOk("event_system_properties"); ok {

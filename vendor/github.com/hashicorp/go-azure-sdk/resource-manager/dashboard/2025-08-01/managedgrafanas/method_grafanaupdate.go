@@ -62,9 +62,20 @@ func (c ManagedGrafanasClient) GrafanaUpdate(ctx context.Context, id GrafanaId, 
 
 // GrafanaUpdateThenPoll performs GrafanaUpdate then polls until it's completed
 func (c ManagedGrafanasClient) GrafanaUpdateThenPoll(ctx context.Context, id GrafanaId, input ManagedGrafanaUpdateParameters) error {
+	return c.GrafanaUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// GrafanaUpdateCallbackThenPoll performs GrafanaUpdate, runs the optional callback function, then polls until it's completed
+func (c ManagedGrafanasClient) GrafanaUpdateCallbackThenPoll(ctx context.Context, id GrafanaId, input ManagedGrafanaUpdateParameters, callback func() error) error {
 	result, err := c.GrafanaUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing GrafanaUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

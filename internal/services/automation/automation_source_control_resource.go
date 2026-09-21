@@ -96,13 +96,9 @@ func (m SourceControlResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"source_control_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(sourcecontrol.SourceTypeVsoGit),
-				string(sourcecontrol.SourceTypeVsoTfvc),
-				string(sourcecontrol.SourceTypeGitHub),
-			}, true),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(sourcecontrol.PossibleValuesForSourceType(), true),
 		},
 
 		"description": {
@@ -130,12 +126,9 @@ func (m SourceControlResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"token_type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(sourcecontrol.TokenTypeOauth),
-							string(sourcecontrol.TokenTypePersonalAccessToken),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(sourcecontrol.PossibleValuesForTokenType(), false),
 					},
 				},
 			},
@@ -158,26 +151,27 @@ func (m SourceControlResource) ResourceType() string {
 func (m SourceControlResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Automation.SourceControl
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Automation.SourceControl
 
 			var model SourceControlModel
-			if err := meta.Decode(&model); err != nil {
+			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			subscriptionID := meta.Client.Account.SubscriptionId
+			subscriptionID := metadata.Client.Account.SubscriptionId
 			accountID, _ := sourcecontrol.ParseAutomationAccountID(model.AutomationAccountID)
 			id := sourcecontrol.NewSourceControlID(subscriptionID, accountID.ResourceGroupName, accountID.AutomationAccountName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if !response.WasNotFound(existing.HttpResponse) {
-				if err != nil {
-					return fmt.Errorf("retrieving %s: %v", id, err)
-				}
-				return meta.ResourceRequiresImport(m.ResourceType(), id)
-			}
 
-			sourceType := sourcecontrol.SourceType(model.SourceType)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					if err != nil {
+						return fmt.Errorf("retrieving %s: %v", id, err)
+					}
+					return metadata.ResourceRequiresImport(m.ResourceType(), id)
+				}
+			}
 
 			var param sourcecontrol.SourceControlCreateOrUpdateParameters
 			param.Properties = sourcecontrol.SourceControlCreateOrUpdateProperties{
@@ -187,24 +181,23 @@ func (m SourceControlResource) Create() sdk.ResourceFunc {
 				FolderPath:     pointer.To(model.FolderPath),
 				PublishRunbook: pointer.To(model.PublishRunbook),
 				RepoURL:        pointer.To(model.RepoURL),
-				SourceType:     &sourceType,
+				SourceType:     pointer.ToEnum[sourcecontrol.SourceType](model.SourceType),
 			}
 
 			param.Properties.SecurityToken = &sourcecontrol.SourceControlSecurityTokenProperties{}
 			if len(model.SecurityToken) > 0 {
 				token := model.SecurityToken[0]
-				tokenType := sourcecontrol.TokenType(token.TokenType)
-				param.Properties.SecurityToken.TokenType = &tokenType
+				param.Properties.SecurityToken.TokenType = pointer.ToEnum[sourcecontrol.TokenType](token.TokenType)
 				param.Properties.SecurityToken.AccessToken = pointer.To(token.Token)
 				if token.RefreshToken != "" {
 					param.Properties.SecurityToken.RefreshToken = pointer.To(token.RefreshToken)
 				}
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id, param); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
-			meta.SetID(id)
+			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -295,12 +288,11 @@ func (m SourceControlResource) Update() sdk.ResourceFunc {
 				prop.Description = pointer.To(model.Description)
 			}
 
-			tokenType := sourcecontrol.TokenType(model.SecurityToken[0].TokenType)
 			if meta.ResourceData.HasChange("security") {
 				prop.SecurityToken = &sourcecontrol.SourceControlSecurityTokenProperties{
 					AccessToken:  pointer.To(model.SecurityToken[0].TokenType),
 					RefreshToken: pointer.To(model.SecurityToken[0].RefreshToken),
-					TokenType:    &tokenType,
+					TokenType:    pointer.ToEnum[sourcecontrol.TokenType](model.SecurityToken[0].TokenType),
 				}
 			}
 			upd.Properties = prop
@@ -321,7 +313,6 @@ func (m SourceControlResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			meta.Logger.Infof("deleting %s", *id)
 			client := meta.Client.Automation.SourceControl
 			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", *id, err)

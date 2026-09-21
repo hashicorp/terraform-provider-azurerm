@@ -3,7 +3,7 @@
 
 package signalr
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name web_pubsub_socketio -service-package-name signalr -properties "name,resource_group_name"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 import (
 	"context"
@@ -288,13 +288,15 @@ func (w WebPubSubSocketIOResource) Create() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError(w.ResourceType(), id.ID())
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError(w.ResourceType(), id.ID())
+				}
 			}
 
 			expandedIdentity, err := identity.ExpandSystemOrUserAssignedMapFromModel(config.Identity)
@@ -322,14 +324,14 @@ func (w WebPubSubSocketIOResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(config.Tags),
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
 			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
 				return err
 			}
+
 			return nil
 		},
 	}
@@ -479,7 +481,12 @@ func (w WebPubSubSocketIOResource) Update() sdk.ResourceFunc {
 				payload.Identity = expandedIdentity
 			}
 
-			if rd.HasChanges("live_trace_enabled", "live_trace_connectivity_logs_enabled", "live_trace_http_request_logs_enabled", "live_trace_messaging_logs_enabled") {
+			if rd.HasChanges(
+				"live_trace_enabled",
+				"live_trace_connectivity_logs_enabled",
+				"live_trace_http_request_logs_enabled",
+				"live_trace_messaging_logs_enabled",
+			) {
 				props.LiveTraceConfiguration = expandLiveTraceConfigFromModel(config)
 			}
 

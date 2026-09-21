@@ -128,9 +128,15 @@ func resourceAppServiceCertificateBindingCreate(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("retrieving %s: `model` was nil", id.First)
 	}
 
+	if binding.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id.First)
+	}
+
 	props := binding.Model.Properties
-	if props != nil && props.Thumbprint != nil && *props.Thumbprint == *thumbprint {
-		return tf.ImportAsExistsError("azurerm_app_service_certificate_binding", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		if props.Thumbprint != nil && *props.Thumbprint == *thumbprint {
+			return tf.ImportAsExistsError("azurerm_app_service_certificate_binding", id.ID())
+		}
 	}
 
 	locks.ByName(id.First.SiteName, appServiceHostnameBindingResourceName)

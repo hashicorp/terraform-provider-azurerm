@@ -125,12 +125,14 @@ func (r DataCollectionEndpointResource) Create() sdk.ResourceFunc {
 
 			id := datacollectionendpoints.NewDataCollectionEndpointID(subscriptionId, state.ResourceGroupName, state.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			input := datacollectionendpoints.DataCollectionEndpointResource{
@@ -166,7 +168,6 @@ func (r DataCollectionEndpointResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("retrieving %s", *id)
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -301,8 +302,7 @@ func expandDataCollectionEndpointKind(input string) *datacollectionendpoints.Kno
 		return nil
 	}
 
-	result := datacollectionendpoints.KnownDataCollectionEndpointResourceKind(input)
-	return &result
+	return pointer.ToEnum[datacollectionendpoints.KnownDataCollectionEndpointResourceKind](input)
 }
 
 func expandDataCollectionEndpointPublicNetworkAccess(input bool) *datacollectionendpoints.KnownPublicNetworkAccessOptions {

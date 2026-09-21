@@ -62,9 +62,20 @@ func (c CosmosDBClient) CassandraResourcesCreateUpdateCassandraKeyspace(ctx cont
 
 // CassandraResourcesCreateUpdateCassandraKeyspaceThenPoll performs CassandraResourcesCreateUpdateCassandraKeyspace then polls until it's completed
 func (c CosmosDBClient) CassandraResourcesCreateUpdateCassandraKeyspaceThenPoll(ctx context.Context, id CassandraKeyspaceId, input CassandraKeyspaceCreateUpdateParameters) error {
+	return c.CassandraResourcesCreateUpdateCassandraKeyspaceCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CassandraResourcesCreateUpdateCassandraKeyspaceCallbackThenPoll performs CassandraResourcesCreateUpdateCassandraKeyspace, runs the optional callback function, then polls until it's completed
+func (c CosmosDBClient) CassandraResourcesCreateUpdateCassandraKeyspaceCallbackThenPoll(ctx context.Context, id CassandraKeyspaceId, input CassandraKeyspaceCreateUpdateParameters, callback func() error) error {
 	result, err := c.CassandraResourcesCreateUpdateCassandraKeyspace(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CassandraResourcesCreateUpdateCassandraKeyspace: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

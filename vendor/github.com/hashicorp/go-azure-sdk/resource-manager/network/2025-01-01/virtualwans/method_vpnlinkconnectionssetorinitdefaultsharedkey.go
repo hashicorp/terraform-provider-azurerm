@@ -62,9 +62,20 @@ func (c VirtualWANsClient) VpnLinkConnectionsSetOrInitDefaultSharedKey(ctx conte
 
 // VpnLinkConnectionsSetOrInitDefaultSharedKeyThenPoll performs VpnLinkConnectionsSetOrInitDefaultSharedKey then polls until it's completed
 func (c VirtualWANsClient) VpnLinkConnectionsSetOrInitDefaultSharedKeyThenPoll(ctx context.Context, id VpnLinkConnectionId, input ConnectionSharedKeyResult) error {
+	return c.VpnLinkConnectionsSetOrInitDefaultSharedKeyCallbackThenPoll(ctx, id, input, nil)
+}
+
+// VpnLinkConnectionsSetOrInitDefaultSharedKeyCallbackThenPoll performs VpnLinkConnectionsSetOrInitDefaultSharedKey, runs the optional callback function, then polls until it's completed
+func (c VirtualWANsClient) VpnLinkConnectionsSetOrInitDefaultSharedKeyCallbackThenPoll(ctx context.Context, id VpnLinkConnectionId, input ConnectionSharedKeyResult, callback func() error) error {
 	result, err := c.VpnLinkConnectionsSetOrInitDefaultSharedKey(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing VpnLinkConnectionsSetOrInitDefaultSharedKey: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

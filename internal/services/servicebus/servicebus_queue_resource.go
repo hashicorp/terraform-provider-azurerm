@@ -11,8 +11,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/queues"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/queues"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -135,7 +135,7 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IntAtLeast(1),
 		},
 
-		"max_message_size_in_kilobytes": {
+		"max_message_size_in_kilobytes": { // azignore:AZS006 - named `maximum_message_size_in_kb` in the data source to follow new naming conventions
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
 			// NOTE: O+C this gets a variable default based on the sku and can be updated without issues
@@ -197,15 +197,17 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	id := queues.NewQueueID(namespaceId.SubscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_servicebus_queue", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_servicebus_queue", id.ID())
+			}
 		}
 	}
 
@@ -314,7 +316,7 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		if isPremiumNamespacePartitioned && !enablePartitioning {
 			return fmt.Errorf("non-partitioned entities are not allowed in partitioned namespace")
 		} else if !isPremiumNamespacePartitioned && enablePartitioning {
-			return fmt.Errorf("the parent premium namespace is not partitioned and the partitioning for premium namespace is only available at the namepsace creation")
+			return fmt.Errorf("the parent premium namespace is not partitioned and the partitioning for premium namespace is only available at the namespace creation")
 		}
 	}
 
@@ -330,7 +332,9 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	if !d.IsNewResource() {
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	} else {
 		// wait for property update, api issue is being tracked:https://github.com/Azure/azure-rest-api-specs/issues/21445
 		log.Printf("[DEBUG] Waiting for %s status to become ready", id)
 		deadline, ok := ctx.Deadline()
@@ -351,7 +355,6 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	d.SetId(id.ID())
 	return resourceServiceBusQueueRead(d, meta)
 }
 

@@ -57,9 +57,20 @@ func (c ServerStopClient) ServersStop(ctx context.Context, id FlexibleServerId) 
 
 // ServersStopThenPoll performs ServersStop then polls until it's completed
 func (c ServerStopClient) ServersStopThenPoll(ctx context.Context, id FlexibleServerId) error {
+	return c.ServersStopCallbackThenPoll(ctx, id, nil)
+}
+
+// ServersStopCallbackThenPoll performs ServersStop, runs the optional callback function, then polls until it's completed
+func (c ServerStopClient) ServersStopCallbackThenPoll(ctx context.Context, id FlexibleServerId, callback func() error) error {
 	result, err := c.ServersStop(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ServersStop: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

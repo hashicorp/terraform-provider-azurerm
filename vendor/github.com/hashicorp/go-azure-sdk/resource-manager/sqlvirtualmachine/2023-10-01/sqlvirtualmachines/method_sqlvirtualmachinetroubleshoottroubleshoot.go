@@ -62,9 +62,20 @@ func (c SqlVirtualMachinesClient) SqlVirtualMachineTroubleshootTroubleshoot(ctx 
 
 // SqlVirtualMachineTroubleshootTroubleshootThenPoll performs SqlVirtualMachineTroubleshootTroubleshoot then polls until it's completed
 func (c SqlVirtualMachinesClient) SqlVirtualMachineTroubleshootTroubleshootThenPoll(ctx context.Context, id SqlVirtualMachineId, input SqlVMTroubleshooting) error {
+	return c.SqlVirtualMachineTroubleshootTroubleshootCallbackThenPoll(ctx, id, input, nil)
+}
+
+// SqlVirtualMachineTroubleshootTroubleshootCallbackThenPoll performs SqlVirtualMachineTroubleshootTroubleshoot, runs the optional callback function, then polls until it's completed
+func (c SqlVirtualMachinesClient) SqlVirtualMachineTroubleshootTroubleshootCallbackThenPoll(ctx context.Context, id SqlVirtualMachineId, input SqlVMTroubleshooting, callback func() error) error {
 	result, err := c.SqlVirtualMachineTroubleshootTroubleshoot(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing SqlVirtualMachineTroubleshootTroubleshoot: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

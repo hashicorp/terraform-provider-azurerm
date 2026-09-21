@@ -90,12 +90,9 @@ func (r StorageMoverJobDefinitionResource) Arguments() map[string]*pluginsdk.Sch
 		},
 
 		"copy_mode": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(jobdefinitions.CopyModeMirror),
-				string(jobdefinitions.CopyModeAdditive),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(jobdefinitions.PossibleValuesForCopyMode(), false),
 		},
 
 		"source_sub_path": {
@@ -146,13 +143,16 @@ func (r StorageMoverJobDefinitionResource) Create() sdk.ResourceFunc {
 			}
 
 			id := jobdefinitions.NewJobDefinitionID(projectId.SubscriptionId, projectId.ResourceGroupName, projectId.StorageMoverName, projectId.ProjectName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := jobdefinitions.JobDefinition{

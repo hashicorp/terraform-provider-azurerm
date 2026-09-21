@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	validate2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -100,7 +101,7 @@ func resourceContainerRegistryAgentPoolCreate(d *pluginsdk.ResourceData, meta in
 
 	id := agentpools.NewAgentPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("container_registry_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -129,7 +130,7 @@ func resourceContainerRegistryAgentPoolCreate(d *pluginsdk.ResourceData, meta in
 		parameters.Properties.VirtualNetworkSubnetResourceId = pointer.To(v.(string))
 	}
 
-	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -192,23 +193,9 @@ func resourceContainerRegistryAgentPoolRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
-			count := int64(0)
-			if v := props.Count; v != nil {
-				count = *v
-			}
-			d.Set("instance_count", count)
-
-			tier := ""
-			if v := props.Tier; v != nil {
-				tier = *v
-			}
-			d.Set("tier", tier)
-
-			virtualNetworkSubnetId := ""
-			if v := props.VirtualNetworkSubnetResourceId; v != nil {
-				virtualNetworkSubnetId = *v
-			}
-			d.Set("virtual_network_subnet_id", virtualNetworkSubnetId)
+			d.Set("instance_count", pointer.From(props.Count))
+			d.Set("tier", pointer.From(props.Tier))
+			d.Set("virtual_network_subnet_id", pointer.From(props.VirtualNetworkSubnetResourceId))
 		}
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err

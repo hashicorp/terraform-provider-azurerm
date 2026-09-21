@@ -83,12 +83,9 @@ func (r MsSqlVirtualMachineGroupResource) Arguments() map[string]*pluginsdk.Sche
 		},
 
 		"sql_image_sku": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(sqlvirtualmachinegroups.SqlVMGroupImageSkuDeveloper),
-				string(sqlvirtualmachinegroups.SqlVMGroupImageSkuEnterprise),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(sqlvirtualmachinegroups.PossibleValuesForSqlVMGroupImageSku(), false),
 		},
 
 		"wsfc_domain_profile": {
@@ -98,13 +95,10 @@ func (r MsSqlVirtualMachineGroupResource) Arguments() map[string]*pluginsdk.Sche
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"cluster_subnet_type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(sqlvirtualmachinegroups.ClusterSubnetTypeMultiSubnet),
-							string(sqlvirtualmachinegroups.ClusterSubnetTypeSingleSubnet),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringInSlice(sqlvirtualmachinegroups.PossibleValuesForClusterSubnetType(), false),
 					},
 
 					"fqdn": {
@@ -181,20 +175,22 @@ func (r MsSqlVirtualMachineGroupResource) Create() sdk.ResourceFunc {
 
 			id := sqlvirtualmachinegroups.NewSqlVirtualMachineGroupID(subscriptionId, model.ResourceGroup, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := sqlvirtualmachinegroups.SqlVirtualMachineGroup{
 				Properties: &sqlvirtualmachinegroups.SqlVirtualMachineGroupProperties{
 					SqlImageOffer:     pointer.To(model.SqlImageOffer),
-					SqlImageSku:       pointer.To(sqlvirtualmachinegroups.SqlVMGroupImageSku(model.SqlImageSku)),
+					SqlImageSku:       pointer.ToEnum[sqlvirtualmachinegroups.SqlVMGroupImageSku](model.SqlImageSku),
 					WsfcDomainProfile: expandMsSqlVirtualMachineGroupWsfcDomainProfile(model.WsfcDomainProfile),
 				},
 
@@ -202,7 +198,7 @@ func (r MsSqlVirtualMachineGroupResource) Create() sdk.ResourceFunc {
 				Tags:     pointer.To(model.Tags),
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -283,7 +279,7 @@ func (r MsSqlVirtualMachineGroupResource) Update() sdk.ResourceFunc {
 			parameters := sqlvirtualmachinegroups.SqlVirtualMachineGroup{
 				Properties: &sqlvirtualmachinegroups.SqlVirtualMachineGroupProperties{
 					SqlImageOffer:     pointer.To(model.SqlImageOffer),
-					SqlImageSku:       pointer.To(sqlvirtualmachinegroups.SqlVMGroupImageSku(model.SqlImageSku)),
+					SqlImageSku:       pointer.ToEnum[sqlvirtualmachinegroups.SqlVMGroupImageSku](model.SqlImageSku),
 					WsfcDomainProfile: expandMsSqlVirtualMachineGroupWsfcDomainProfile(model.WsfcDomainProfile),
 				},
 
@@ -325,7 +321,7 @@ func expandMsSqlVirtualMachineGroupWsfcDomainProfile(wsfcDomainProfile []WsfcDom
 	}
 
 	result := sqlvirtualmachinegroups.WsfcDomainProfile{
-		ClusterSubnetType:        pointer.To(sqlvirtualmachinegroups.ClusterSubnetType(wsfcDomainProfile[0].ClusterSubnetType)),
+		ClusterSubnetType:        pointer.ToEnum[sqlvirtualmachinegroups.ClusterSubnetType](wsfcDomainProfile[0].ClusterSubnetType),
 		DomainFqdn:               pointer.To(wsfcDomainProfile[0].Fqdn),
 		OuPath:                   pointer.To(wsfcDomainProfile[0].OrganizationalUnitPath),
 		ClusterBootstrapAccount:  pointer.To(wsfcDomainProfile[0].ClusterBootstrapAccountName),

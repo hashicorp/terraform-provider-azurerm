@@ -63,9 +63,20 @@ func (c VirtualWANsClient) VpnConnectionsStartPacketCapture(ctx context.Context,
 
 // VpnConnectionsStartPacketCaptureThenPoll performs VpnConnectionsStartPacketCapture then polls until it's completed
 func (c VirtualWANsClient) VpnConnectionsStartPacketCaptureThenPoll(ctx context.Context, id commonids.VPNConnectionId, input VpnConnectionPacketCaptureStartParameters) error {
+	return c.VpnConnectionsStartPacketCaptureCallbackThenPoll(ctx, id, input, nil)
+}
+
+// VpnConnectionsStartPacketCaptureCallbackThenPoll performs VpnConnectionsStartPacketCapture, runs the optional callback function, then polls until it's completed
+func (c VirtualWANsClient) VpnConnectionsStartPacketCaptureCallbackThenPoll(ctx context.Context, id commonids.VPNConnectionId, input VpnConnectionPacketCaptureStartParameters, callback func() error) error {
 	result, err := c.VpnConnectionsStartPacketCapture(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing VpnConnectionsStartPacketCapture: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

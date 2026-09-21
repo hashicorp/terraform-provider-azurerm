@@ -25,6 +25,8 @@ func TestAccDataSourceLogAnalyticsWorkspace_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("sku").HasValue("PerGB2018"),
 				check.That(data.ResourceName).Key("retention_in_days").HasValue("30"),
 				check.That(data.ResourceName).Key("daily_quota_gb").HasValue("-1"),
+				check.That(data.ResourceName).Key("internet_ingestion_access_type").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("internet_query_access_type").HasValue("Enabled"),
 			),
 		},
 	})

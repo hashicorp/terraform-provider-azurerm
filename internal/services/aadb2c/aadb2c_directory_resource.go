@@ -66,29 +66,23 @@ func (r AadB2cDirectoryResource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "Country code of the B2C tenant. See https://aka.ms/B2CDataResidency for valid country codes.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"data_residency_location": {
-			Description: "Location in which the B2C tenant is hosted and data resides. See https://aka.ms/B2CDataResidency for more information.",
-			Type:        pluginsdk.TypeString,
-			Required:    true,
-			ForceNew:    true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(tenants.LocationAsiaPacific),
-				string(tenants.LocationAustralia),
-				string(tenants.LocationEurope),
-				string(tenants.LocationGlobal),
-				string(tenants.LocationUnitedStates),
-			}, false),
+			Description:  "Location in which the B2C tenant is hosted and data resides. See https://aka.ms/B2CDataResidency for more information.",
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(tenants.PossibleValuesForLocation(), false),
 		},
 
 		"display_name": {
 			Description:  "The initial display name of the B2C tenant.",
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Optional:     true, // azignore:AZS007 - pre-existing violation
 			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -152,13 +146,15 @@ func (r AadB2cDirectoryResource) Create() sdk.ResourceFunc {
 
 			id := tenants.NewB2CDirectoryID(subscriptionId, model.ResourceGroup, model.DomainName)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			availabilityResult, err := client.CheckNameAvailability(ctx, commonids.NewSubscriptionID(subscriptionId), tenants.CheckNameAvailabilityRequest{
@@ -197,7 +193,7 @@ func (r AadB2cDirectoryResource) Create() sdk.ResourceFunc {
 				Tags: &model.Tags,
 			}
 
-			if err := client.CreateThenPoll(ctx, id, properties); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, properties, metadata.SetIDCallback(&id)); err != nil {
 				return err
 			}
 

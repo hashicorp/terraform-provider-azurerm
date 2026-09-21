@@ -24,7 +24,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name dedicated_host_group -service-package-name compute -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
+
+const azureDedicatedHostGroupResourceName = "azurerm_dedicated_host_group"
 
 func resourceDedicatedHostGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -85,7 +87,8 @@ func resourceDedicatedHostGroupCreate(d *pluginsdk.ResourceData, meta interface{
 	defer cancel()
 
 	id := commonids.NewDedicatedHostGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id, dedicatedhostgroups.DefaultGetOperationOptions())
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -150,10 +153,14 @@ func resourceDedicatedHostGroupRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceDedicatedHostGroupFlatten(d, id, resp.Model)
+}
+
+func resourceDedicatedHostGroupFlatten(d *pluginsdk.ResourceData, id *commonids.DedicatedHostGroupId, model *dedicatedhostgroups.DedicatedHostGroup) error {
 	d.Set("name", id.HostGroupName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
 		zone := ""

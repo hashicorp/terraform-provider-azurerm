@@ -99,22 +99,25 @@ func (m Python3PackageResource) ResourceType() string {
 func (m Python3PackageResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Automation.Python3Package
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Automation.Python3Package
 
 			var model Python3PackageModel
-			if err := meta.Decode(&model); err != nil {
+			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			subscriptionID := meta.Client.Account.SubscriptionId
+			subscriptionID := metadata.Client.Account.SubscriptionId
 			id := python3package.NewPython3PackageID(subscriptionID, model.ResourceGroupName, model.AutomationAccountName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if !response.WasNotFound(existing.HttpResponse) {
-				if err != nil {
-					return fmt.Errorf("retrieving %s: %v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					if err != nil {
+						return fmt.Errorf("retrieving %s: %v", id, err)
+					}
+					return metadata.ResourceRequiresImport(m.ResourceType(), id)
 				}
-				return meta.ResourceRequiresImport(m.ResourceType(), id)
 			}
 
 			req := python3package.PythonPackageCreateParameters{}
@@ -136,11 +139,11 @@ func (m Python3PackageResource) Create() sdk.ResourceFunc {
 			}
 			req.Tags = &model.Tags
 
-			if _, err = client.CreateOrUpdate(ctx, id, req); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, req); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
-			meta.SetID(id)
+			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -242,7 +245,6 @@ func (m Python3PackageResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			meta.Logger.Infof("deleting %s", id)
 			client := meta.Client.Automation.Python3Package
 			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)

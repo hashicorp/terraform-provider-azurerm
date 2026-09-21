@@ -62,9 +62,20 @@ func (c NetworkWatchersClient) CheckConnectivity(ctx context.Context, id Network
 
 // CheckConnectivityThenPoll performs CheckConnectivity then polls until it's completed
 func (c NetworkWatchersClient) CheckConnectivityThenPoll(ctx context.Context, id NetworkWatcherId, input ConnectivityParameters) error {
+	return c.CheckConnectivityCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CheckConnectivityCallbackThenPoll performs CheckConnectivity, runs the optional callback function, then polls until it's completed
+func (c NetworkWatchersClient) CheckConnectivityCallbackThenPoll(ctx context.Context, id NetworkWatcherId, input ConnectivityParameters, callback func() error) error {
 	result, err := c.CheckConnectivity(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CheckConnectivity: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

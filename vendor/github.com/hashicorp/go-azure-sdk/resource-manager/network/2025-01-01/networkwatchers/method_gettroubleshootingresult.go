@@ -62,9 +62,20 @@ func (c NetworkWatchersClient) GetTroubleshootingResult(ctx context.Context, id 
 
 // GetTroubleshootingResultThenPoll performs GetTroubleshootingResult then polls until it's completed
 func (c NetworkWatchersClient) GetTroubleshootingResultThenPoll(ctx context.Context, id NetworkWatcherId, input QueryTroubleshootingParameters) error {
+	return c.GetTroubleshootingResultCallbackThenPoll(ctx, id, input, nil)
+}
+
+// GetTroubleshootingResultCallbackThenPoll performs GetTroubleshootingResult, runs the optional callback function, then polls until it's completed
+func (c NetworkWatchersClient) GetTroubleshootingResultCallbackThenPoll(ctx context.Context, id NetworkWatcherId, input QueryTroubleshootingParameters, callback func() error) error {
 	result, err := c.GetTroubleshootingResult(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing GetTroubleshootingResult: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

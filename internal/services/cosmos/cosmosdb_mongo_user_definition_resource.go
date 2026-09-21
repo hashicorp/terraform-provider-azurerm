@@ -100,13 +100,15 @@ func (r CosmosDbMongoUserDefinitionResource) Create() sdk.ResourceFunc {
 			locks.ByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 			defer locks.UnlockByName(id.DatabaseAccountName, CosmosDbAccountResourceName)
 
-			existing, err := client.MongoDBResourcesGetMongoUserDefinition(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.MongoDBResourcesGetMongoUserDefinition(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := mongorbacs.MongoUserDefinitionCreateUpdateParameters{
@@ -119,7 +121,7 @@ func (r CosmosDbMongoUserDefinitionResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.MongoDBResourcesCreateUpdateMongoUserDefinitionThenPoll(ctx, id, properties); err != nil {
+			if err := client.MongoDBResourcesCreateUpdateMongoUserDefinitionCallbackThenPoll(ctx, id, properties, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

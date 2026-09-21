@@ -11,14 +11,14 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/util"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var (
 	docRDir             string
 	resourceFilePathMap map[string]string
-	file2Reosurce       = map[string]string{}
+	file2Resource       = map[string]string{}
 	once                sync.Once
 )
 
@@ -47,8 +47,8 @@ func getMappingPath(resourceName string) (res string) {
 				fullPath := path.Join(ResourceDir(), en.Name())
 				name := fileResource(fullPath)
 				tmpMap[name] = fullPath
-				if _, ok := file2Reosurce[fullPath]; !ok {
-					file2Reosurce[fullPath] = name
+				if _, ok := file2Resource[fullPath]; !ok {
+					file2Resource[fullPath] = name
 				}
 			}
 			resourceFilePathMap = tmpMap
@@ -70,7 +70,7 @@ func fileResource(path string) string {
 }
 
 func docDir() string {
-	file, _ := util.FuncFileLine(utils.ExpandStringSlice)
+	file, _ := util.FuncFileLine(helpers.ExpandStringSlice)
 	return path.Join(path.Dir(path.Dir(file)), "website", "docs")
 }
 

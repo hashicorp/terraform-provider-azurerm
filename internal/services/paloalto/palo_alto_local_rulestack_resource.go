@@ -149,14 +149,16 @@ func (r LocalRuleStack) Create() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			existing, err := client.LocalRulestacksGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.LocalRulestacksGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			secServices := localrulestacks.SecurityServices{
@@ -197,10 +199,9 @@ func (r LocalRuleStack) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err = client.LocalRulestacksCreateOrUpdateThenPoll(ctx, id, localRuleStack); err != nil {
+			if err := client.LocalRulestacksCreateOrUpdateCallbackThenPoll(ctx, id, localRuleStack, metadata.SetIDCallback(&id)); err != nil {
 				return err
 			}
-
 			metadata.SetID(id)
 
 			return nil

@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -33,7 +32,7 @@ type SpringCloudElasticApplicationPerformanceMonitoringModel struct {
 type SpringCloudElasticApplicationPerformanceMonitoringResource struct{}
 
 func (s SpringCloudElasticApplicationPerformanceMonitoringResource) DeprecationMessage() string {
-	return features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_elastic_application_performance_monitoring` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.")
+	return "Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_elastic_application_performance_monitoring` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."
 }
 
 var (
@@ -114,12 +113,14 @@ func (s SpringCloudElasticApplicationPerformanceMonitoringResource) Create() sdk
 			}
 			id := appplatform.NewApmID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
-			existing, err := client.ApmsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(s.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.ApmsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(s.ResourceType(), id)
+				}
 			}
 
 			resource := appplatform.ApmResource{
@@ -133,19 +134,17 @@ func (s SpringCloudElasticApplicationPerformanceMonitoringResource) Create() sdk
 					Secrets: pointer.To(map[string]string{}),
 				},
 			}
-			err = client.ApmsCreateOrUpdateThenPoll(ctx, id, resource)
-			if err != nil {
+
+			if err := client.ApmsCreateOrUpdateCallbackThenPoll(ctx, id, resource, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
 
 			if model.GloballyEnabled {
 				apmReference := appplatform.ApmReference{
 					ResourceId: id.ID(),
 				}
-				err = client.ServicesEnableApmGloballyThenPoll(ctx, *springId, apmReference)
-				if err != nil {
+				if err = client.ServicesEnableApmGloballyThenPoll(ctx, *springId, apmReference); err != nil {
 					return fmt.Errorf("enabling %s globally: %+v", id, err)
 				}
 			}
@@ -203,8 +202,7 @@ func (s SpringCloudElasticApplicationPerformanceMonitoringResource) Update() sdk
 				Properties: properties,
 			}
 
-			err = client.ApmsCreateOrUpdateThenPoll(ctx, *id, resource)
-			if err != nil {
+			if err = client.ApmsCreateOrUpdateThenPoll(ctx, *id, resource); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -214,13 +212,11 @@ func (s SpringCloudElasticApplicationPerformanceMonitoringResource) Update() sdk
 				}
 				springId := commonids.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroupName, id.SpringName)
 				if model.GloballyEnabled {
-					err := client.ServicesEnableApmGloballyThenPoll(ctx, springId, apmReference)
-					if err != nil {
+					if err := client.ServicesEnableApmGloballyThenPoll(ctx, springId, apmReference); err != nil {
 						return fmt.Errorf("enabling %s globally: %+v", id, err)
 					}
 				} else {
-					err := client.ServicesDisableApmGloballyThenPoll(ctx, springId, apmReference)
-					if err != nil {
+					if err := client.ServicesDisableApmGloballyThenPoll(ctx, springId, apmReference); err != nil {
 						return fmt.Errorf("disabling %s globally: %+v", id, err)
 					}
 				}
@@ -311,8 +307,7 @@ func (s SpringCloudElasticApplicationPerformanceMonitoringResource) Delete() sdk
 				return err
 			}
 
-			err = client.ApmsDeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.ApmsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

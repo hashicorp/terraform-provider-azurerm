@@ -9,11 +9,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/rules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/subscriptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/subscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -62,12 +61,9 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"filter_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(subscriptions.FilterTypeSqlFilter),
-				string(subscriptions.FilterTypeCorrelationFilter),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(rules.PossibleValuesForFilterType(), false),
 		},
 
 		"action": {
@@ -78,7 +74,7 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 		"sql_filter": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validate.SqlFilter,
+			ValidateFunc: validation.StringLenBetween(1, 1024),
 		},
 
 		// Reserved for future use, currently hard-coded to 20
@@ -186,16 +182,15 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 
 func resourceServiceBusSubscriptionRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionRulesClient
-	subscriptionClient := meta.(*clients.Client).ServiceBus.SubscriptionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	filterType := d.Get("filter_type").(string)
 
-	var id subscriptions.RuleId
+	var id rules.RuleId
 	if subscriptionIdLit := d.Get("subscription_id").(string); subscriptionIdLit != "" {
 		subscriptionId, _ := rules.ParseSubscriptions2ID(subscriptionIdLit)
-		id = subscriptions.NewRuleID(
+		id = rules.NewRuleID(
 			subscriptionId.SubscriptionId,
 			subscriptionId.ResourceGroupName,
 			subscriptionId.NamespaceName,
@@ -206,22 +201,23 @@ func resourceServiceBusSubscriptionRuleCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	if d.IsNewResource() {
-		existing, err := subscriptionClient.RulesGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_servicebus_subscription_rule", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_servicebus_subscription_rule", id.ID())
+			}
 		}
 	}
 
-	filter := rules.FilterType(filterType)
 	rule := rules.Rule{
 		Properties: &rules.Ruleproperties{
-			FilterType: &filter,
+			FilterType: pointer.ToEnum[rules.FilterType](filterType),
 		},
 	}
 
@@ -256,21 +252,24 @@ func resourceServiceBusSubscriptionRuleCreateUpdate(d *pluginsdk.ResourceData, m
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	return resourceServiceBusSubscriptionRuleRead(d, meta)
 }
 
 func resourceServiceBusSubscriptionRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.SubscriptionsClient
+	client := meta.(*clients.Client).ServiceBus.SubscriptionRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := subscriptions.ParseRuleID(d.Id())
+	id, err := rules.ParseRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.RulesGet(ctx, *id)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
@@ -393,7 +392,7 @@ func expandAzureRmServiceBusCorrelationFilter(d *pluginsdk.ResourceData) (*rules
 	return &correlationFilter, nil
 }
 
-func flattenAzureRmServiceBusCorrelationFilter(input *subscriptions.CorrelationFilter) []interface{} {
+func flattenAzureRmServiceBusCorrelationFilter(input *rules.CorrelationFilter) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}

@@ -19,8 +19,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	networkpoller "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
@@ -48,7 +48,7 @@ func resourceAppServiceVirtualNetworkSwiftConnection() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AppServiceID,
+				ValidateFunc: validation.AsGeneratedID(commonids.ParseAppServiceIDInsensitively),
 			},
 			"subnet_id": {
 				Type:         pluginsdk.TypeString,
@@ -75,13 +75,15 @@ func resourceAppServiceVirtualNetworkSwiftConnectionCreate(d *pluginsdk.Resource
 		return err
 	}
 
-	existing, err := client.GetSwiftVirtualNetworkConnection(ctx, *appID)
-	if err != nil {
-		return fmt.Errorf("checking for presence of Swift Network Connection for %s: %w", appID, err)
-	}
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetSwiftVirtualNetworkConnection(ctx, *appID)
+		if err != nil {
+			return fmt.Errorf("checking for presence of Swift Network Connection for %s: %w", appID, err)
+		}
 
-	if existing.Model != nil && existing.Model.Properties != nil && pointer.From(existing.Model.Properties.SubnetResourceId) != "" {
-		return tf.ImportAsExistsError("azurerm_app_service_virtual_network_swift_connection", pointer.From(existing.Model.Properties.SubnetResourceId))
+		if existing.Model != nil && existing.Model.Properties != nil && pointer.From(existing.Model.Properties.SubnetResourceId) != "" {
+			return tf.ImportAsExistsError("azurerm_app_service_virtual_network_swift_connection", pointer.From(existing.Model.Properties.SubnetResourceId))
+		}
 	}
 
 	locks.ByName(subnetID.VirtualNetworkName, network.VirtualNetworkResourceName)
@@ -120,6 +122,7 @@ func resourceAppServiceVirtualNetworkSwiftConnectionCreate(d *pluginsdk.Resource
 		return err
 	}
 
+	// TODO: migrate to a typed resource ID
 	d.SetId(swiftVirtualNetworkId.ID())
 
 	return resourceAppServiceVirtualNetworkSwiftConnectionRead(d, meta)

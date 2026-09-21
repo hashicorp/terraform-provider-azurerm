@@ -91,9 +91,20 @@ func (c WebAppsClient) MigrateStorage(ctx context.Context, id commonids.AppServi
 
 // MigrateStorageThenPoll performs MigrateStorage then polls until it's completed
 func (c WebAppsClient) MigrateStorageThenPoll(ctx context.Context, id commonids.AppServiceId, input StorageMigrationOptions, options MigrateStorageOperationOptions) error {
+	return c.MigrateStorageCallbackThenPoll(ctx, id, input, options, nil)
+}
+
+// MigrateStorageCallbackThenPoll performs MigrateStorage, runs the optional callback function, then polls until it's completed
+func (c WebAppsClient) MigrateStorageCallbackThenPoll(ctx context.Context, id commonids.AppServiceId, input StorageMigrationOptions, options MigrateStorageOperationOptions, callback func() error) error {
 	result, err := c.MigrateStorage(ctx, id, input, options)
 	if err != nil {
 		return fmt.Errorf("performing MigrateStorage: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

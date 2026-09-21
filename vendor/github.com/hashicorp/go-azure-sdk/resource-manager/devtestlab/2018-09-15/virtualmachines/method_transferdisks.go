@@ -57,9 +57,20 @@ func (c VirtualMachinesClient) TransferDisks(ctx context.Context, id VirtualMach
 
 // TransferDisksThenPoll performs TransferDisks then polls until it's completed
 func (c VirtualMachinesClient) TransferDisksThenPoll(ctx context.Context, id VirtualMachineId) error {
+	return c.TransferDisksCallbackThenPoll(ctx, id, nil)
+}
+
+// TransferDisksCallbackThenPoll performs TransferDisks, runs the optional callback function, then polls until it's completed
+func (c VirtualMachinesClient) TransferDisksCallbackThenPoll(ctx context.Context, id VirtualMachineId, callback func() error) error {
 	result, err := c.TransferDisks(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing TransferDisks: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

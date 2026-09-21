@@ -95,9 +95,20 @@ func (c StreamingJobsClient) CreateOrReplace(ctx context.Context, id StreamingJo
 
 // CreateOrReplaceThenPoll performs CreateOrReplace then polls until it's completed
 func (c StreamingJobsClient) CreateOrReplaceThenPoll(ctx context.Context, id StreamingJobId, input StreamingJob, options CreateOrReplaceOperationOptions) error {
+	return c.CreateOrReplaceCallbackThenPoll(ctx, id, input, options, nil)
+}
+
+// CreateOrReplaceCallbackThenPoll performs CreateOrReplace, runs the optional callback function, then polls until it's completed
+func (c StreamingJobsClient) CreateOrReplaceCallbackThenPoll(ctx context.Context, id StreamingJobId, input StreamingJob, options CreateOrReplaceOperationOptions, callback func() error) error {
 	result, err := c.CreateOrReplace(ctx, id, input, options)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrReplace: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

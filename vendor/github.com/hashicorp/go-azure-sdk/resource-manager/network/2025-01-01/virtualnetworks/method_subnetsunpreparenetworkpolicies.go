@@ -62,9 +62,20 @@ func (c VirtualNetworksClient) SubnetsUnprepareNetworkPolicies(ctx context.Conte
 
 // SubnetsUnprepareNetworkPoliciesThenPoll performs SubnetsUnprepareNetworkPolicies then polls until it's completed
 func (c VirtualNetworksClient) SubnetsUnprepareNetworkPoliciesThenPoll(ctx context.Context, id commonids.SubnetId, input UnprepareNetworkPoliciesRequest) error {
+	return c.SubnetsUnprepareNetworkPoliciesCallbackThenPoll(ctx, id, input, nil)
+}
+
+// SubnetsUnprepareNetworkPoliciesCallbackThenPoll performs SubnetsUnprepareNetworkPolicies, runs the optional callback function, then polls until it's completed
+func (c VirtualNetworksClient) SubnetsUnprepareNetworkPoliciesCallbackThenPoll(ctx context.Context, id commonids.SubnetId, input UnprepareNetworkPoliciesRequest, callback func() error) error {
 	result, err := c.SubnetsUnprepareNetworkPolicies(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing SubnetsUnprepareNetworkPolicies: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

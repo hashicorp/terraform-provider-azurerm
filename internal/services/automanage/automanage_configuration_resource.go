@@ -89,7 +89,7 @@ type SchedulePolicyConfiguration struct {
 	SchedulePolicyType   string   `tfschema:"schedule_policy_type"`
 }
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name automanage_configuration -service-package-name automanage -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 type AutoManageConfigurationResource struct{}
 
@@ -482,13 +482,16 @@ func (r AutoManageConfigurationResource) Create() sdk.ResourceFunc {
 			}
 
 			id := configurationprofiles.NewConfigurationProfileID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := configurationprofiles.ConfigurationProfile{
@@ -750,7 +753,7 @@ func expandConfigurationProfile(model ConfigurationModel) *interface{} {
 
 func flattenAntiMalwareConfig(configMap map[string]interface{}) []AntimalwareConfiguration {
 	if val, ok := configMap["Antimalware/Enable"]; !ok || (val == nil) {
-		return nil
+		return []AntimalwareConfiguration{}
 	}
 
 	antimalware := make([]AntimalwareConfiguration, 1)
@@ -803,7 +806,7 @@ func flattenAntiMalwareConfig(configMap map[string]interface{}) []AntimalwareCon
 
 func flattenAzureSecurityBaselineConfig(configMap map[string]interface{}) []AzureSecurityBaselineConfiguration {
 	if val, ok := configMap["AzureSecurityBaseline/Enable"]; !ok || (val == nil) {
-		return nil
+		return []AzureSecurityBaselineConfiguration{}
 	}
 
 	azureSecurityBaseline := make([]AzureSecurityBaselineConfiguration, 1)
@@ -818,7 +821,7 @@ func flattenAzureSecurityBaselineConfig(configMap map[string]interface{}) []Azur
 
 func flattenBackupConfig(configMap map[string]interface{}) []BackupConfiguration {
 	if val, ok := configMap["Backup/Enable"]; !ok || (val == nil) {
-		return nil
+		return []BackupConfiguration{}
 	}
 
 	backup := make([]BackupConfiguration, 1)

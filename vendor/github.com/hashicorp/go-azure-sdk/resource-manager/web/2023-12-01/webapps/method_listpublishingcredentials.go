@@ -58,9 +58,20 @@ func (c WebAppsClient) ListPublishingCredentials(ctx context.Context, id commoni
 
 // ListPublishingCredentialsThenPoll performs ListPublishingCredentials then polls until it's completed
 func (c WebAppsClient) ListPublishingCredentialsThenPoll(ctx context.Context, id commonids.AppServiceId) error {
+	return c.ListPublishingCredentialsCallbackThenPoll(ctx, id, nil)
+}
+
+// ListPublishingCredentialsCallbackThenPoll performs ListPublishingCredentials, runs the optional callback function, then polls until it's completed
+func (c WebAppsClient) ListPublishingCredentialsCallbackThenPoll(ctx context.Context, id commonids.AppServiceId, callback func() error) error {
 	result, err := c.ListPublishingCredentials(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ListPublishingCredentials: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -62,9 +62,20 @@ func (c NetworkWatchersClient) ListAvailableProviders(ctx context.Context, id Ne
 
 // ListAvailableProvidersThenPoll performs ListAvailableProviders then polls until it's completed
 func (c NetworkWatchersClient) ListAvailableProvidersThenPoll(ctx context.Context, id NetworkWatcherId, input AvailableProvidersListParameters) error {
+	return c.ListAvailableProvidersCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ListAvailableProvidersCallbackThenPoll performs ListAvailableProviders, runs the optional callback function, then polls until it's completed
+func (c NetworkWatchersClient) ListAvailableProvidersCallbackThenPoll(ctx context.Context, id NetworkWatcherId, input AvailableProvidersListParameters, callback func() error) error {
 	result, err := c.ListAvailableProviders(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ListAvailableProviders: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

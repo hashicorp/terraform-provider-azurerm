@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/managedcassandras"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -150,14 +151,16 @@ func resourceCassandraClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 	name := d.Get("name").(string)
 	id := managedcassandras.NewCassandraClusterID(subscriptionId, resourceGroupName, name)
 
-	existing, err := client.CassandraClustersGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.CassandraClustersGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_cluster", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_cluster", id.ID())
+		}
 	}
 
 	expandedIdentity, err := expandCassandraClusterIdentity(d.Get("identity").([]interface{}))
@@ -193,8 +196,7 @@ func resourceCassandraClusterCreate(d *pluginsdk.ResourceData, meta interface{})
 		body.Properties.ExternalSeedNodes = expandCassandraClusterExternalSeedNode(v.([]interface{}))
 	}
 
-	err = client.CassandraClustersCreateUpdateThenPoll(ctx, id, body)
-	if err != nil {
+	if err = client.CassandraClustersCreateUpdateCallbackThenPoll(ctx, id, body, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %q: %+v", id, err)
 	}
 
@@ -230,24 +232,22 @@ func resourceCassandraClusterRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
-			if res := props; res != nil {
-				d.Set("delegated_management_subnet_id", props.DelegatedManagementSubnetId)
-				d.Set("authentication_method", string(pointer.From(props.AuthenticationMethod)))
-				d.Set("repair_enabled", props.RepairEnabled)
-				d.Set("version", props.CassandraVersion)
-				d.Set("hours_between_backups", props.HoursBetweenBackups)
+			d.Set("delegated_management_subnet_id", props.DelegatedManagementSubnetId)
+			d.Set("authentication_method", string(pointer.From(props.AuthenticationMethod)))
+			d.Set("repair_enabled", props.RepairEnabled)
+			d.Set("version", props.CassandraVersion)
+			d.Set("hours_between_backups", props.HoursBetweenBackups)
 
-				if err := d.Set("client_certificate_pems", flattenCassandraClusterCertificate(props.ClientCertificates)); err != nil {
-					return fmt.Errorf("setting `client_certificate_pems`: %+v", err)
-				}
+			if err := d.Set("client_certificate_pems", flattenCassandraClusterCertificate(props.ClientCertificates)); err != nil {
+				return fmt.Errorf("setting `client_certificate_pems`: %+v", err)
+			}
 
-				if err := d.Set("external_gossip_certificate_pems", flattenCassandraClusterCertificate(props.ExternalGossipCertificates)); err != nil {
-					return fmt.Errorf("setting `external_gossip_certificate_pems`: %+v", err)
-				}
+			if err := d.Set("external_gossip_certificate_pems", flattenCassandraClusterCertificate(props.ExternalGossipCertificates)); err != nil {
+				return fmt.Errorf("setting `external_gossip_certificate_pems`: %+v", err)
+			}
 
-				if err := d.Set("external_seed_node_ip_addresses", flattenCassandraClusterExternalSeedNode(props.ExternalSeedNodes)); err != nil {
-					return fmt.Errorf("setting `external_seed_node_ip_addresses`: %+v", err)
-				}
+			if err := d.Set("external_seed_node_ip_addresses", flattenCassandraClusterExternalSeedNode(props.ExternalSeedNodes)); err != nil {
+				return fmt.Errorf("setting `external_seed_node_ip_addresses`: %+v", err)
 			}
 		}
 
@@ -311,8 +311,7 @@ func resourceCassandraClusterUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	// Though there is update method but Service API complains it isn't implemented
-	err = client.CassandraClustersCreateUpdateThenPoll(ctx, id, body)
-	if err != nil {
+	if err = client.CassandraClustersCreateUpdateThenPoll(ctx, id, body); err != nil {
 		return fmt.Errorf("updating %q: %+v", id, err)
 	}
 
@@ -346,8 +345,7 @@ func resourceCassandraClusterDelete(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	err = client.CassandraClustersDeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.CassandraClustersDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %q: %+v", id, err)
 	}
 
@@ -414,12 +412,7 @@ func flattenCassandraClusterCertificate(input *[]managedcassandras.Certificate) 
 	}
 
 	for _, item := range *input {
-		var pem string
-		if item.Pem != nil {
-			pem = *item.Pem
-		}
-
-		results = append(results, pem)
+		results = append(results, pointer.From(item.Pem))
 	}
 
 	return results
@@ -432,12 +425,7 @@ func flattenCassandraClusterExternalSeedNode(input *[]managedcassandras.SeedNode
 	}
 
 	for _, item := range *input {
-		var ipAddress string
-		if item.IPAddress != nil {
-			ipAddress = *item.IPAddress
-		}
-
-		results = append(results, ipAddress)
+		results = append(results, pointer.From(item.IPAddress))
 	}
 
 	return results

@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -91,14 +92,16 @@ func resourceWebPubsubSharedPrivateLinkServiceCreateUpdate(d *pluginsdk.Resource
 	id := webpubsub.NewSharedPrivateLinkResourceID(subscriptionId, webPubSubId.ResourceGroupName, webPubSubId.WebPubSubName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.SharedPrivateLinkResourcesGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %q: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.SharedPrivateLinkResourcesGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %q: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_web_pubsub_shared_private_link_resource", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_web_pubsub_shared_private_link_resource", id.ID())
+			}
 		}
 	}
 
@@ -114,11 +117,16 @@ func resourceWebPubsubSharedPrivateLinkServiceCreateUpdate(d *pluginsdk.Resource
 		parameters.Properties.RequestMessage = pointer.To(requestMessage)
 	}
 
-	if err := client.SharedPrivateLinkResourcesCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-		return err
+	if d.IsNewResource() {
+		if err := client.SharedPrivateLinkResourcesCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %w", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.SharedPrivateLinkResourcesCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			return fmt.Errorf("updating %s: %w", id, err)
+		}
 	}
-
-	d.SetId(id.ID())
 
 	return resourceWebPubsubSharedPrivateLinkServiceRead(d, meta)
 }

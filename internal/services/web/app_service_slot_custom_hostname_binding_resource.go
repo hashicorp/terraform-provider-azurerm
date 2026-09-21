@@ -7,11 +7,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -54,7 +53,7 @@ func resourceAppServiceSlotCustomHostnameBinding() *pluginsdk.Resource {
 			"ssl_state": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(webapps.SslStateIPBasedEnabled),
@@ -65,7 +64,7 @@ func resourceAppServiceSlotCustomHostnameBinding() *pluginsdk.Resource {
 			"thumbprint": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -97,15 +96,17 @@ func resourceAppServiceSlotCustomHostnameBindingCreate(d *pluginsdk.ResourceData
 	locks.ByName(id.HostNameBindingName, appServiceSlotCustomHostnameBindingResourceName)
 	defer locks.UnlockByName(id.HostNameBindingName, appServiceSlotCustomHostnameBindingResourceName)
 
-	existing, err := client.GetHostNameBindingSlot(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.GetHostNameBindingSlot(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_app_service_slot_custom_hostname_binding", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_app_service_slot_custom_hostname_binding", id.ID())
+		}
 	}
 
 	payload := webapps.HostNameBinding{

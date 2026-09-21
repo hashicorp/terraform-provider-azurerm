@@ -109,8 +109,7 @@ func dataSourceKeyVaultCertificatesRead(d *pluginsdk.ResourceData, meta interfac
 
 				names = append(names, nestedItem.Name)
 				certs = append(certs, expandCertificate(nestedItem.Name, v))
-				err = certificateList.NextWithContext(ctx)
-				if err != nil {
+				if err = certificateList.NextWithContext(ctx); err != nil {
 					return fmt.Errorf("retrieving next page of Certificates from %s: %+v", *keyVaultId, err)
 				}
 			}

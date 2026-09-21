@@ -56,15 +56,17 @@ func resourcePortalTenantConfigurationCreateUpdate(d *pluginsdk.ResourceData, me
 	// since this is an operation on a Tenant (which doesn't expose any configurable values).
 	id := parse.NewPortalTenantConfigurationID("default")
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_portal_tenant_configuration", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_portal_tenant_configuration", id.ID())
+			}
 		}
 	}
 
@@ -78,7 +80,9 @@ func resourcePortalTenantConfigurationCreateUpdate(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	return resourcePortalTenantConfigurationRead(d, meta)
 }

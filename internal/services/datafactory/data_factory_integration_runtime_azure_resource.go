@@ -88,14 +88,10 @@ func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
 			},
 
 			"compute_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(integrationruntimes.DataFlowComputeTypeGeneral),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(integrationruntimes.DataFlowComputeTypeGeneral),
-					string(integrationruntimes.DataFlowComputeTypeComputeOptimized),
-					string(integrationruntimes.DataFlowComputeTypeMemoryOptimized),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(integrationruntimes.DataFlowComputeTypeGeneral),
+				ValidateFunc: validation.StringInSlice(integrationruntimes.PossibleValuesForDataFlowComputeType(), false),
 			},
 
 			"core_count": {
@@ -158,13 +154,15 @@ func resourceDataFactoryIntegrationRuntimeAzureCreate(d *pluginsdk.ResourceData,
 
 	id := integrationruntimes.NewIntegrationRuntimeID(dataFactoryId.SubscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id, integrationruntimes.DefaultGetOperationOptions())
-	if err != nil && !response.WasNotFound(existing.HttpResponse) {
-		return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-	}
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, integrationruntimes.DefaultGetOperationOptions())
+		if err != nil && !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_data_factory_integration_runtime_azure", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_data_factory_integration_runtime_azure", id.ID())
+		}
 	}
 
 	managedIntegrationRuntime := integrationruntimes.ManagedIntegrationRuntime{
@@ -211,8 +209,7 @@ func resourceDataFactoryIntegrationRuntimeAzureCreate(d *pluginsdk.ResourceData,
 	if ttl := d.Get("interactive_authoring_time_to_live_in_minutes").(int); ttl != 0 {
 		// Interactive Authoring/Query can only be modified once the integration runtime is online
 		poller := pollers.NewPoller(custompollers.NewDataFactoryIntegrationRuntimeStatusPoller(client, id), time.Second*5, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-		err := poller.PollUntilDone(ctx)
-		if err != nil {
+		if err := poller.PollUntilDone(ctx); err != nil {
 			return fmt.Errorf("waiting for state change of %s: %+v", id, err)
 		}
 

@@ -62,9 +62,20 @@ func (c AppPlatformClient) DeploymentsEnableRemoteDebugging(ctx context.Context,
 
 // DeploymentsEnableRemoteDebuggingThenPoll performs DeploymentsEnableRemoteDebugging then polls until it's completed
 func (c AppPlatformClient) DeploymentsEnableRemoteDebuggingThenPoll(ctx context.Context, id DeploymentId, input RemoteDebuggingPayload) error {
+	return c.DeploymentsEnableRemoteDebuggingCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DeploymentsEnableRemoteDebuggingCallbackThenPoll performs DeploymentsEnableRemoteDebugging, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) DeploymentsEnableRemoteDebuggingCallbackThenPoll(ctx context.Context, id DeploymentId, input RemoteDebuggingPayload, callback func() error) error {
 	result, err := c.DeploymentsEnableRemoteDebugging(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DeploymentsEnableRemoteDebugging: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

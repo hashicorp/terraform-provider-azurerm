@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -86,7 +86,7 @@ func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 				DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
 					// vault_id: ID of the parent resource; must share the same subscription ID as this backup instance.
 					// Suppress diff if snapshot_subscription_id matches this backup instance's subscription.
-					_, planVaultId := d.GetChange("vault_id")
+					planVaultId := d.Get("vault_id")
 					vaultId, err := backupvaultresources.ParseBackupVaultID(planVaultId.(string))
 					if err != nil {
 						return false
@@ -121,14 +121,16 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 	id := backupinstanceresources.NewBackupInstanceID(subscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, name)
 
 	if d.IsNewResource() {
-		existing, err := client.BackupInstancesGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing DataProtection BackupInstance (%q): %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.BackupInstancesGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing DataProtection BackupInstance (%q): %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_data_protection_backup_instance_disk", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_data_protection_backup_instance_disk", id.ID())
+			}
 		}
 	}
 
@@ -146,7 +148,7 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 	if v := d.Get("snapshot_subscription_id").(string); v != "" {
 		snapshotSubscriptionId = v
 	}
-	snapshotResourceGroupId := resourceParse.NewResourceGroupID(snapshotSubscriptionId, d.Get("snapshot_resource_group_name").(string))
+	snapshotResourceGroupId := commonids.NewResourceGroupID(snapshotSubscriptionId, d.Get("snapshot_resource_group_name").(string))
 
 	parameters := backupinstanceresources.BackupInstanceResource{
 		Properties: &backupinstanceresources.BackupInstance{
@@ -174,8 +176,19 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 		},
 	}
 
-	if err := client.BackupInstancesCreateOrUpdateThenPoll(ctx, id, parameters, backupinstanceresources.DefaultBackupInstancesCreateOrUpdateOperationOptions()); err != nil {
-		return fmt.Errorf("creating/updating DataProtection BackupInstance (%q): %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.BackupInstancesCreateOrUpdateCallbackThenPoll(ctx, id, parameters, backupinstanceresources.DefaultBackupInstancesCreateOrUpdateOperationOptions(), sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating DataProtection BackupInstance (%q): %+v", id, err)
+		}
+
+		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
+	} else {
+		if err := client.BackupInstancesCreateOrUpdateThenPoll(ctx, id, parameters, backupinstanceresources.DefaultBackupInstancesCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("updating DataProtection BackupInstance (%q): %+v", id, err)
+		}
 	}
 
 	deadline, ok := ctx.Deadline()
@@ -194,10 +207,6 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 		return fmt.Errorf("waiting for BackupInstance(%q) policy protection to be completed: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-		return err
-	}
 	return resourceDataProtectionBackupInstanceDiskRead(d, meta)
 }
 
@@ -235,11 +244,11 @@ func resourceDataProtectionBackupInstanceDiskRead(d *schema.ResourceData, meta i
 				parameter := (*props.PolicyInfo.PolicyParameters.DataStoreParametersList)[0].(backupinstanceresources.AzureOperationalStoreParameters)
 
 				if parameter.ResourceGroupId != nil {
-					resourceGroupId, err := resourceParse.ResourceGroupIDInsensitively(*parameter.ResourceGroupId)
+					resourceGroupId, err := commonids.ParseResourceGroupIDInsensitively(*parameter.ResourceGroupId)
 					if err != nil {
 						return err
 					}
-					d.Set("snapshot_resource_group_name", resourceGroupId.ResourceGroup)
+					d.Set("snapshot_resource_group_name", resourceGroupId.ResourceGroupName)
 					d.Set("snapshot_subscription_id", resourceGroupId.SubscriptionId)
 				}
 			}
@@ -258,8 +267,7 @@ func resourceDataProtectionBackupInstanceDiskDelete(d *schema.ResourceData, meta
 		return err
 	}
 
-	err = client.BackupInstancesDeleteThenPoll(ctx, *id, backupinstanceresources.DefaultBackupInstancesDeleteOperationOptions())
-	if err != nil {
+	if err = client.BackupInstancesDeleteThenPoll(ctx, *id, backupinstanceresources.DefaultBackupInstancesDeleteOperationOptions()); err != nil {
 		return fmt.Errorf("deleting DataProtection BackupInstance (%q): %+v", id, err)
 	}
 

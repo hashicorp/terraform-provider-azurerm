@@ -109,15 +109,17 @@ func resourceDnsARecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	id := recordsets.NewRecordTypeID(subscriptionId, resGroup, zoneName, recordsets.RecordTypeA, name)
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_dns_a_record", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_dns_a_record", id.ID())
+			}
 		}
 	}
 
@@ -222,9 +224,8 @@ func expandAzureRmDnsARecords(input []interface{}) *[]recordsets.ARecord {
 	records := make([]recordsets.ARecord, len(input))
 
 	for i, v := range input {
-		ipv4 := v.(string)
 		records[i] = recordsets.ARecord{
-			IPv4Address: &ipv4,
+			IPv4Address: pointer.To(v.(string)),
 		}
 	}
 

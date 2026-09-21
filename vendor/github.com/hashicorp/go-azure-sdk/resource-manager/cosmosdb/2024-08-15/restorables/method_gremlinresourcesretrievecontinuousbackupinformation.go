@@ -62,9 +62,20 @@ func (c RestorablesClient) GremlinResourcesRetrieveContinuousBackupInformation(c
 
 // GremlinResourcesRetrieveContinuousBackupInformationThenPoll performs GremlinResourcesRetrieveContinuousBackupInformation then polls until it's completed
 func (c RestorablesClient) GremlinResourcesRetrieveContinuousBackupInformationThenPoll(ctx context.Context, id GraphId, input ContinuousBackupRestoreLocation) error {
+	return c.GremlinResourcesRetrieveContinuousBackupInformationCallbackThenPoll(ctx, id, input, nil)
+}
+
+// GremlinResourcesRetrieveContinuousBackupInformationCallbackThenPoll performs GremlinResourcesRetrieveContinuousBackupInformation, runs the optional callback function, then polls until it's completed
+func (c RestorablesClient) GremlinResourcesRetrieveContinuousBackupInformationCallbackThenPoll(ctx context.Context, id GraphId, input ContinuousBackupRestoreLocation, callback func() error) error {
 	result, err := c.GremlinResourcesRetrieveContinuousBackupInformation(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing GremlinResourcesRetrieveContinuousBackupInformation: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

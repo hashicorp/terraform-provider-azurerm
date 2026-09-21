@@ -943,12 +943,14 @@ func (r DataCollectionRuleResource) Create() sdk.ResourceFunc {
 
 			id := datacollectionrules.NewDataCollectionRuleID(subscriptionId, state.ResourceGroupName, state.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			dataSources, err := expandDataCollectionRuleDataSources(state.DataSources)
@@ -1166,8 +1168,7 @@ func expandDataCollectionRuleKind(input string) *datacollectionrules.KnownDataCo
 		return nil
 	}
 
-	result := datacollectionrules.KnownDataCollectionRuleResourceKind(input)
-	return &result
+	return pointer.ToEnum[datacollectionrules.KnownDataCollectionRuleResourceKind](input)
 }
 
 func expandDataCollectionRuleDataFlows(input []DataFlow) *[]datacollectionrules.DataFlow {
@@ -1665,10 +1666,9 @@ func expandDataCollectionRuleStreamDeclarations(input []StreamDeclaration) *map[
 	for _, v := range input {
 		columns := make([]datacollectionrules.ColumnDefinition, 0)
 		for _, column := range v.Column {
-			columnType := datacollectionrules.KnownColumnDefinitionType(column.Type)
 			columns = append(columns, datacollectionrules.ColumnDefinition{
 				Name: pointer.To(column.Name),
-				Type: &columnType,
+				Type: pointer.ToEnum[datacollectionrules.KnownColumnDefinitionType](column.Type),
 			})
 		}
 

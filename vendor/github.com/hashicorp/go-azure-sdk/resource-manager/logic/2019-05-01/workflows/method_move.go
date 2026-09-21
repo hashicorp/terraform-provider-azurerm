@@ -61,9 +61,20 @@ func (c WorkflowsClient) Move(ctx context.Context, id WorkflowId, input Workflow
 
 // MoveThenPoll performs Move then polls until it's completed
 func (c WorkflowsClient) MoveThenPoll(ctx context.Context, id WorkflowId, input WorkflowReference) error {
+	return c.MoveCallbackThenPoll(ctx, id, input, nil)
+}
+
+// MoveCallbackThenPoll performs Move, runs the optional callback function, then polls until it's completed
+func (c WorkflowsClient) MoveCallbackThenPoll(ctx context.Context, id WorkflowId, input WorkflowReference, callback func() error) error {
 	result, err := c.Move(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Move: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

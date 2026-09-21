@@ -159,7 +159,7 @@ func (t PipelineResource) appendVariableActivityNameIs(expected string) func(inp
 	}
 }
 
-func (PipelineResource) basic(data acceptance.TestData) string {
+func (PipelineResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -176,35 +176,30 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_pipeline" "test" {
-  name            = "acctest%d"
-  data_factory_id = azurerm_data_factory.test.id
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (PipelineResource) complete(data acceptance.TestData) string {
+func (r PipelineResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdfv2%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
+%[1]s
 
 resource "azurerm_data_factory_pipeline" "test" {
-  name            = "acctest%d"
+  name            = "acctest%[2]d"
   data_factory_id = azurerm_data_factory.test.id
-  annotations     = ["test1", "test2", "test3"]
-  description     = "test description"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r PipelineResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_data_factory_pipeline" "test" {
+  name                           = "acctest%[2]d"
+  data_factory_id                = azurerm_data_factory.test.id
+  annotations                    = ["test1", "test2", "test3"]
+  description                    = "test description"
+  monitor_metrics_after_duration = "00:01:00"
 
   parameters = {
     test = "testparameter"
@@ -268,31 +263,19 @@ resource "azurerm_data_factory_pipeline" "test" {
 ]
 JSON
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (PipelineResource) update(data acceptance.TestData) string {
+func (r PipelineResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdfv2%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
+%[1]s
 
 resource "azurerm_data_factory_pipeline" "test" {
-  name            = "acctest%d"
-  data_factory_id = azurerm_data_factory.test.id
-  annotations     = ["test1", "test2"]
-  description     = "updated description"
+  name                           = "acctest%[2]d"
+  data_factory_id                = azurerm_data_factory.test.id
+  annotations                    = ["test1", "test2"]
+  description                    = "updated description"
+  monitor_metrics_after_duration = "00:02:00"
 
   parameters = {
     test  = "testparameter"
@@ -330,28 +313,15 @@ resource "azurerm_data_factory_pipeline" "test" {
 ]
 JSON
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (PipelineResource) activities(data acceptance.TestData) string {
+func (r PipelineResource) activities(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdfv2%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
+%[1]s
 
 resource "azurerm_data_factory_pipeline" "test" {
-  name            = "acctest%d"
+  name            = "acctest%[2]d"
   data_factory_id = azurerm_data_factory.test.id
   variables = {
     "bob" = "item1"
@@ -371,10 +341,10 @@ resource "azurerm_data_factory_pipeline" "test" {
 ]
 JSON
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (PipelineResource) webActivityHeaders(data acceptance.TestData, withHeader bool) string {
+func (r PipelineResource) webActivityHeaders(data acceptance.TestData, withHeader bool) string {
 	headerBlock := `
       "headers": {
         "authorization": {
@@ -389,23 +359,10 @@ func (PipelineResource) webActivityHeaders(data acceptance.TestData, withHeader 
 	}
 
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdfv2%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
+%[1]s
 
 resource "azurerm_data_factory_pipeline" "test" {
-  name            = "acctest%d"
+  name            = "acctest%[2]d"
   data_factory_id = azurerm_data_factory.test.id
   variables = {
     "bob" = "item1"
@@ -418,7 +375,7 @@ resource "azurerm_data_factory_pipeline" "test" {
     "dependsOn": [],
     "userProperties": [],
     "typeProperties": {
-    %s
+    %[3]s
 	  "url": "https://test.com",
 	  "method": "POST"
     }
@@ -426,28 +383,15 @@ resource "azurerm_data_factory_pipeline" "test" {
 ]
 JSON
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, headerBlock)
+`, r.template(data), data.RandomInteger, headerBlock)
 }
 
-func (PipelineResource) activitiesUpdated(data acceptance.TestData) string {
+func (r PipelineResource) activitiesUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdfv2%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
+%[1]s
 
 resource "azurerm_data_factory_pipeline" "test" {
-  name            = "acctest%d"
+  name            = "acctest%[2]d"
   data_factory_id = azurerm_data_factory.test.id
   variables = {
     "bob" = "item1"
@@ -467,5 +411,5 @@ resource "azurerm_data_factory_pipeline" "test" {
 ]
 JSON
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }

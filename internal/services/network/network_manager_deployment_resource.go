@@ -13,9 +13,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -76,7 +78,7 @@ func (r ManagerDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		// TODO: look at removing this workaround in v4.0, see https://github.com/hashicorp/terraform-provider-azurerm/pull/20451#discussion_r1179646861 (manicminer)
+		// TODO: look at removing this workaround for v6.0, see https://github.com/hashicorp/terraform-provider-azurerm/pull/20451#discussion_r1179646861 (manicminer)
 		"triggers": {
 			Type:     pluginsdk.TypeMap,
 			Optional: true,
@@ -126,8 +128,10 @@ func (r ManagerDeploymentResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("unexpected null model of %s", *id)
 			}
 
-			if !response.WasNotFound(resp.HttpResponse) && resp.Model.Value != nil && len(*resp.Model.Value) != 0 && *(*resp.Model.Value)[0].ConfigurationIds != nil && len(*(*resp.Model.Value)[0].ConfigurationIds) != 0 {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				if !response.WasNotFound(resp.HttpResponse) && resp.Model.Value != nil && len(*resp.Model.Value) != 0 && *(*resp.Model.Value)[0].ConfigurationIds != nil && len(*(*resp.Model.Value)[0].ConfigurationIds) != 0 {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			input := networkmanagers.NetworkManagerCommit{
@@ -136,17 +140,18 @@ func (r ManagerDeploymentResource) Create() sdk.ResourceFunc {
 				CommitType:       networkmanagers.ConfigurationType(state.ScopeAccess),
 			}
 
+			// The API has an issue where it may return an async operation URL that is invalid, breaking the default LRO poller
 			if _, err := client.NetworkManagerCommitsPost(ctx, *networkManagerId, input); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
+			if metadata.Client.Features.PersistIDOnCreateBeforePollingForCompletion {
+				metadata.SetID(id)
 			}
 
-			if err = resourceManagerDeploymentWaitForFinished(ctx, client, id, time.Until(deadline)); err != nil {
-				return err
+			poller := pollers.NewPoller(custompollers.NewNetworkManagerDeploymentPoller(client, *id), time.Second*10, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)

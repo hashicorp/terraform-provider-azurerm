@@ -3,7 +3,7 @@
 
 package communication
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name communication_service -service-package-name communication -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 import (
 	"context"
@@ -69,11 +69,9 @@ func (CommunicationServiceResource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"data_location": {
-			Type: pluginsdk.TypeString,
-			// TODO: should this become Required and remove the default in 4.0?
-			Optional: true,
+			Type:     pluginsdk.TypeString,
+			Required: true,
 			ForceNew: true,
-			Default:  "United States",
 			ValidateFunc: validation.StringInSlice([]string{
 				"Africa",
 				"Asia Pacific",
@@ -155,12 +153,14 @@ func (r CommunicationServiceResource) Create() sdk.ResourceFunc {
 
 			id := communicationservices.NewCommunicationServiceID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			param := communicationservices.CommunicationServiceResource{
@@ -172,7 +172,7 @@ func (r CommunicationServiceResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(model.Tags),
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

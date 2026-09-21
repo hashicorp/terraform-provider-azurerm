@@ -33,7 +33,7 @@ func NewNumberOfSegmentsDidntMatchError(id ResourceId, parseResult ParseResult) 
 
 // Error returns a detailed error message highlighting the issues found when parsing this Resource ID Segment.
 func (e NumberOfSegmentsDidntMatchError) Error() string {
-	expectedId := buildExpectedResourceId(e.resourceId.Segments())
+	expectedId := BuildExpectedResourceId(e.resourceId.Segments())
 
 	description, err := descriptionForSegments(e.resourceId.Segments())
 	if err != nil {

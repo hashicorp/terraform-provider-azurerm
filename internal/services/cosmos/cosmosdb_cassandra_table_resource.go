@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -75,7 +76,7 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 			"throughput": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validate.CosmosThroughput,
 			},
 
@@ -97,12 +98,14 @@ func resourceCosmosDbCassandraTableCreate(d *pluginsdk.ResourceData, meta interf
 
 	id := cosmosdb.NewCassandraKeyspaceTableID(meta.(*clients.Client).Account.SubscriptionId, keyspaceId.ResourceGroupName, keyspaceId.DatabaseAccountName, keyspaceId.CassandraKeyspaceName, d.Get("name").(string))
 
-	existing, err := client.CassandraResourcesGetCassandraTable(ctx, id)
-	if !response.WasNotFound(existing.HttpResponse) {
-		if err != nil {
-			return fmt.Errorf("checking for presence of existing %+v: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.CassandraResourcesGetCassandraTable(ctx, id)
+		if !response.WasNotFound(existing.HttpResponse) {
+			if err != nil {
+				return fmt.Errorf("checking for presence of existing %+v: %+v", id, err)
+			}
+			return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_table", id.ID())
 		}
-		return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_table", id.ID())
 	}
 
 	table := cosmosdb.CassandraTableCreateUpdateParameters{
@@ -133,7 +136,7 @@ func resourceCosmosDbCassandraTableCreate(d *pluginsdk.ResourceData, meta interf
 		table.Properties.Options.AutoScaleSettings = common.ExpandCosmosDbAutoscaleSettings(d)
 	}
 
-	if err := client.CassandraResourcesCreateUpdateCassandraTableThenPoll(ctx, id, table); err != nil {
+	if err := client.CassandraResourcesCreateUpdateCassandraTableCallbackThenPoll(ctx, id, table, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -359,20 +362,14 @@ func flattenTableSchema(input *cosmosdb.CassandraSchema) []interface{} {
 
 func flattenTableSchemaColumns(input *[]cosmosdb.Column) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	columns := make([]interface{}, 0)
 
 	for _, v := range *input {
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
-		typeStr := ""
-		if v.Type != nil {
-			typeStr = *v.Type
-		}
+		name := pointer.From(v.Name)
+		typeStr := pointer.From(v.Type)
 		columns = append(columns, map[string]interface{}{
 			"name": name,
 			"type": typeStr,
@@ -384,18 +381,14 @@ func flattenTableSchemaColumns(input *[]cosmosdb.Column) []interface{} {
 
 func flattenTableSchemaPartitionKeys(input *[]cosmosdb.CassandraPartitionKey) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	keys := make([]interface{}, 0)
 
 	for _, v := range *input {
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
 		keys = append(keys, map[string]interface{}{
-			"name": name,
+			"name": pointer.From(v.Name),
 		})
 	}
 
@@ -404,20 +397,14 @@ func flattenTableSchemaPartitionKeys(input *[]cosmosdb.CassandraPartitionKey) []
 
 func flattenTableSchemaClusterKeys(input *[]cosmosdb.ClusterKey) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	keys := make([]interface{}, 0)
 
 	for _, v := range *input {
-		name := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
-		orderBy := ""
-		if v.OrderBy != nil {
-			orderBy = *v.OrderBy
-		}
+		name := pointer.From(v.Name)
+		orderBy := pointer.From(v.OrderBy)
 		keys = append(keys, map[string]interface{}{
 			"name":     name,
 			"order_by": orderBy,

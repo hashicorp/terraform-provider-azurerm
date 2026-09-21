@@ -19,16 +19,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name analysis_services_server -service-package-name analysisservices -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
+
+const analysisServicesServerResourceName = "azurerm_analysis_services_server"
 
 func resourceAnalysisServicesServer() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceAnalysisServicesServerCreate,
 		Read:   resourceAnalysisServicesServerRead,
 		Update: resourceAnalysisServicesServerUpdate,
@@ -116,13 +119,10 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 			},
 
 			"querypool_connection_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(servers.ConnectionModeAll),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(servers.ConnectionModeAll),
-					string(servers.ConnectionModeReadOnly),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(servers.ConnectionModeAll),
+				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForConnectionMode(), false),
 			},
 
 			"backup_blob_container_uri": {
@@ -140,8 +140,6 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	return resource
 }
 
 func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -152,15 +150,17 @@ func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interf
 
 	id := servers.NewServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	server, err := client.GetDetails(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(server.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		server, err := client.GetDetails(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(server.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(server.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_analysis_services_server", id.ID())
+		if !response.WasNotFound(server.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_analysis_services_server", id.ID())
+		}
 	}
 
 	analysisServicesServer := servers.AnalysisServicesServer{
@@ -176,14 +176,14 @@ func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	if querypoolConnectionMode, ok := d.GetOk("querypool_connection_mode"); ok {
-		analysisServicesServer.Properties.QuerypoolConnectionMode = pointer.To(servers.ConnectionMode(querypoolConnectionMode.(string)))
+		analysisServicesServer.Properties.QuerypoolConnectionMode = pointer.ToEnum[servers.ConnectionMode](querypoolConnectionMode.(string))
 	}
 
 	if containerUri, ok := d.GetOk("backup_blob_container_uri"); ok {
 		analysisServicesServer.Properties.BackupBlobContainerUri = pointer.To(containerUri.(string))
 	}
 
-	if err := client.CreateThenPoll(ctx, id, analysisServicesServer); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, analysisServicesServer, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -215,10 +215,14 @@ func resourceAnalysisServicesServerRead(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceAnalysisServicesServerFlatten(d, id, server.Model)
+}
+
+func resourceAnalysisServicesServerFlatten(d *pluginsdk.ResourceData, id *servers.ServerId, model *servers.AnalysisServicesServer) error {
 	d.Set("name", id.ServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := server.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 		d.Set("sku", model.Sku.Name)
 
@@ -298,7 +302,7 @@ func resourceAnalysisServicesServerUpdate(d *pluginsdk.ResourceData, meta interf
 		Properties: &servers.AnalysisServicesServerMutableProperties{
 			AsAdministrators:        expandAnalysisServicesServerAdminUsers(d),
 			IPV4FirewallSettings:    expandAnalysisServicesServerFirewallSettings(d),
-			QuerypoolConnectionMode: pointer.To(servers.ConnectionMode(d.Get("querypool_connection_mode").(string))),
+			QuerypoolConnectionMode: pointer.ToEnum[servers.ConnectionMode](d.Get("querypool_connection_mode").(string)),
 		},
 	}
 
@@ -419,8 +423,8 @@ func hashAnalysisServicesServerIPv4FirewallRule(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 
-	buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["name"].(string))))
-	buf.WriteString(fmt.Sprintf("%s-", m["range_start"].(string)))
+	fmt.Fprintf(&buf, "%s-", strings.ToLower(m["name"].(string)))
+	fmt.Fprintf(&buf, "%s-", m["range_start"].(string))
 	buf.WriteString(m["range_end"].(string))
 
 	return pluginsdk.HashString(buf.String())

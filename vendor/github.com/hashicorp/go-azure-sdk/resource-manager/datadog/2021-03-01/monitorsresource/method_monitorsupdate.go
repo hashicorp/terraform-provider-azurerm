@@ -62,9 +62,20 @@ func (c MonitorsResourceClient) MonitorsUpdate(ctx context.Context, id MonitorId
 
 // MonitorsUpdateThenPoll performs MonitorsUpdate then polls until it's completed
 func (c MonitorsResourceClient) MonitorsUpdateThenPoll(ctx context.Context, id MonitorId, input DatadogMonitorResourceUpdateParameters) error {
+	return c.MonitorsUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// MonitorsUpdateCallbackThenPoll performs MonitorsUpdate, runs the optional callback function, then polls until it's completed
+func (c MonitorsResourceClient) MonitorsUpdateCallbackThenPoll(ctx context.Context, id MonitorId, input DatadogMonitorResourceUpdateParameters, callback func() error) error {
 	result, err := c.MonitorsUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing MonitorsUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -10,7 +10,7 @@ description: |-
 Terraform supports a number of different methods for authenticating to Azure:
 
 - [Authenticating to Azure using the Azure CLI](azure_cli.html)
-* [Authenticating to Azure using Managed Service Identity](managed_service_identity.html)
+- [Authenticating to Azure using Managed Service Identity](managed_service_identity.html)
 - [Authenticating to Azure using a Service Principal and a Client Certificate](service_principal_client_certificate.html)
 - [Authenticating to Azure using a Service Principal and a Client Secret](service_principal_client_secret.html)
 - [Authenticating to Azure using OpenID Connect](service_principal_oidc.html)
@@ -22,7 +22,7 @@ We recommend using a service principal or a managed identity when running Terraf
 
 ## What is AKS Workload Identity?
 
-[AKS Workload Identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview) can be used to authenticate to services that support Azure Active Directory (Azure AD) authentication when running in Azure Kubernetes Service clusters.
+[AKS Workload Identity](https://learn.microsoft.com/azure/aks/workload-identity-overview) can be used to authenticate to services that support Azure Active Directory (Azure AD) authentication when running in Azure Kubernetes Service clusters.
 
 When a service account and pod are configured to use AKS Workload Identity, a federated identity token is injected into the pod at run-time, along with environment variables to use that identity.
 
@@ -108,7 +108,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=4.1.0"
+      version = "=5.0.0"
     }
   }
 }
@@ -130,7 +130,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=4.1.0"
+      version = "=5.0.0"
     }
   }
 }

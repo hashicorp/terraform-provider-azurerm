@@ -62,9 +62,20 @@ func (c NetworkVirtualAppliancesClient) InboundSecurityRuleCreateOrUpdate(ctx co
 
 // InboundSecurityRuleCreateOrUpdateThenPoll performs InboundSecurityRuleCreateOrUpdate then polls until it's completed
 func (c NetworkVirtualAppliancesClient) InboundSecurityRuleCreateOrUpdateThenPoll(ctx context.Context, id InboundSecurityRuleId, input InboundSecurityRule) error {
+	return c.InboundSecurityRuleCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// InboundSecurityRuleCreateOrUpdateCallbackThenPoll performs InboundSecurityRuleCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c NetworkVirtualAppliancesClient) InboundSecurityRuleCreateOrUpdateCallbackThenPoll(ctx context.Context, id InboundSecurityRuleId, input InboundSecurityRule, callback func() error) error {
 	result, err := c.InboundSecurityRuleCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing InboundSecurityRuleCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -60,12 +60,9 @@ func resourceStorageEncryptionScope() *pluginsdk.Resource {
 			},
 
 			"source": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(encryptionscopes.EncryptionScopeSourceMicrosoftPointKeyVault),
-					string(encryptionscopes.EncryptionScopeSourceMicrosoftPointStorage),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(encryptionscopes.PossibleValuesForEncryptionScopeSource(), false),
 			},
 
 			"key_vault_key_id": {
@@ -94,15 +91,18 @@ func resourceStorageEncryptionScopeCreate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	id := encryptionscopes.NewEncryptionScopeID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of an existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of an existing %s: %+v", id, err)
+			}
 		}
-	}
-	if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.State != nil {
-		if *existing.Model.Properties.State == encryptionscopes.EncryptionScopeStateEnabled {
-			return tf.ImportAsExistsError("azurerm_storage_encryption_scope", id.ID())
+		if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.State != nil {
+			if *existing.Model.Properties.State == encryptionscopes.EncryptionScopeStateEnabled {
+				return tf.ImportAsExistsError("azurerm_storage_encryption_scope", id.ID())
+			}
 		}
 	}
 
@@ -114,7 +114,7 @@ func resourceStorageEncryptionScopeCreate(d *pluginsdk.ResourceData, meta interf
 
 	payload := encryptionscopes.EncryptionScope{
 		Properties: &encryptionscopes.EncryptionScopeProperties{
-			Source: pointer.To(encryptionscopes.EncryptionScopeSource(d.Get("source").(string))),
+			Source: pointer.ToEnum[encryptionscopes.EncryptionScopeSource](d.Get("source").(string)),
 			State:  pointer.To(encryptionscopes.EncryptionScopeStateEnabled),
 			KeyVaultProperties: &encryptionscopes.EncryptionScopeKeyVaultProperties{
 				KeyUri: pointer.To(d.Get("key_vault_key_id").(string)),
@@ -172,7 +172,7 @@ func resourceStorageEncryptionScopeUpdate(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 	if d.HasChange("source") {
-		payload.Properties.Source = pointer.To(encryptionscopes.EncryptionScopeSource(d.Get("source").(string)))
+		payload.Properties.Source = pointer.ToEnum[encryptionscopes.EncryptionScopeSource](d.Get("source").(string))
 	}
 
 	if _, err := client.Patch(ctx, *id, *payload); err != nil {

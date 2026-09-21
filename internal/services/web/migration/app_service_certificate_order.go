@@ -155,9 +155,7 @@ func (AppServiceCertificateOrderResourceV0ToV1) UpgradeFunc() pluginsdk.StateUpg
 		}
 
 		appServiceCertOrderId := appservicecertificateorders.NewCertificateOrderID(oldId.SubscriptionId, oldId.ResourceGroup, oldId.CertificateOrderName)
-		newId := appServiceCertOrderId.ID()
-
-		rawState["id"] = newId
+		rawState["id"] = appServiceCertOrderId.ID()
 		return rawState, nil
 	}
 }

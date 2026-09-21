@@ -16,8 +16,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskaccesses"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/custompoller"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -67,6 +70,7 @@ func resourceSnapshot() *pluginsdk.Resource {
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(snapshots.DiskCreateOptionCopy),
+					string(snapshots.DiskCreateOptionCopyStart),
 					string(snapshots.DiskCreateOptionImport),
 				}, false),
 			},
@@ -122,6 +126,7 @@ func resourceSnapshot() *pluginsdk.Resource {
 			"disk_size_gb": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
+				// Note: O+C because Azure computes disk size when not specified
 				Computed: true,
 			},
 
@@ -156,15 +161,17 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	t := d.Get("tags").(map[string]interface{})
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_snapshot", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_snapshot", id.ID())
+			}
 		}
 	}
 
@@ -192,7 +199,7 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if v, ok := d.GetOk("network_access_policy"); ok {
-		properties.Properties.NetworkAccessPolicy = pointer.To(snapshots.NetworkAccessPolicy(v.(string)))
+		properties.Properties.NetworkAccessPolicy = pointer.ToEnum[snapshots.NetworkAccessPolicy](v.(string))
 	}
 
 	if v, ok := d.GetOk("disk_access_id"); ok {
@@ -211,11 +218,31 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	properties.Properties.EncryptionSettingsCollection = expandSnapshotDiskEncryptionSettings(d.Get("encryption_settings").([]interface{}))
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, properties, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
 
-	d.SetId(id.ID())
+		// When `create_option` is `CopyStart` the API returns as soon as the copy
+		// operation has been initiated, however the resulting snapshot is not usable
+		// until the background copy has completed. Wait for `CompletionPercent` to
+		// reach 100 so that downstream resources (e.g. `azurerm_managed_disk`) don't
+		// consume an incomplete snapshot.
+		if createOption == string(snapshots.DiskCreateOptionCopyStart) {
+			log.Printf("[DEBUG] Waiting for the copy of %s to complete", id)
+
+			pollerType := custompoller.NewSnapshotCopyStartPoller(client, id)
+			poller := pollers.NewPoller(pollerType, 30*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for the copy of %s to complete: %+v", id, err)
+			}
+		}
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
+	}
 
 	return resourceSnapshotRead(d, meta)
 }
@@ -275,11 +302,7 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 
-			incrementalEnabled := false
-			if props.Incremental != nil {
-				incrementalEnabled = *props.Incremental
-			}
-			d.Set("incremental_enabled", incrementalEnabled)
+			d.Set("incremental_enabled", pointer.From(props.Incremental))
 
 			trustedLaunchEnabled := false
 			if securityProfile := props.SecurityProfile; securityProfile != nil && securityProfile.SecurityType != nil {
