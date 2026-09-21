@@ -147,7 +147,7 @@ func dataSourcePublicIPRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		skuName := ""
 		if sku := model.Sku; sku != nil {
 			skuName = string(pointer.From(sku.Name))
-			d.Set("sku_tier", string(pointer.FromEnum(sku.Tier)))
+			d.Set("sku_tier", pointer.FromEnum(sku.Tier))
 		}
 		d.Set("sku", skuName)
 
