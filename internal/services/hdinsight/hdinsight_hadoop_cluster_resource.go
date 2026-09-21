@@ -6,6 +6,7 @@ package hdinsight
 import (
 	"fmt"
 	"log"
+	"maps"
 	"strings"
 	"time"
 
@@ -32,10 +33,8 @@ import (
 // NOTE: this isn't a recommended way of building resources in Terraform
 // this pattern is used to work around a generic but pedantic API endpoint
 var hdInsightHadoopClusterHeadNodeDefinition = HDInsightNodeDefinition{
-	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         2,
 	MaxInstanceCount:         pointer.To(2),
-	CanSpecifyDisks:          false,
 	FixedMinInstanceCount:    pointer.To(int64(1)),
 	FixedTargetInstanceCount: pointer.To(int64(2)),
 }
@@ -43,16 +42,13 @@ var hdInsightHadoopClusterHeadNodeDefinition = HDInsightNodeDefinition{
 var hdInsightHadoopClusterWorkerNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
-	CanSpecifyDisks:         false,
 	CanAutoScaleByCapacity:  true,
 	CanAutoScaleOnSchedule:  true,
 }
 
 var hdInsightHadoopClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
-	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
 	MaxInstanceCount:         pointer.To(3),
-	CanSpecifyDisks:          false,
 	FixedMinInstanceCount:    pointer.To(int64(1)),
 	FixedTargetInstanceCount: pointer.To(int64(3)),
 }
@@ -228,9 +224,7 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta interf
 
 	metastoresRaw := d.Get("metastores").([]interface{})
 	metastores := expandHDInsightsMetastore(metastoresRaw)
-	for k, v := range metastores {
-		configurations[k] = v
-	}
+	maps.Copy(configurations, metastores)
 
 	networkPropertiesRaw := d.Get("network").([]interface{})
 	networkProperties := ExpandHDInsightsNetwork(networkPropertiesRaw)
@@ -477,10 +471,8 @@ func resourceHDInsightHadoopClusterRead(d *pluginsdk.ResourceData, meta interfac
 				return fmt.Errorf("flattening `roles`: %+v", err)
 			}
 
-			httpEndpoint := findHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
-			d.Set("https_endpoint", httpEndpoint)
-			sshEndpoint := findHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
-			d.Set("ssh_endpoint", sshEndpoint)
+			d.Set("https_endpoint", findHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints))
+			d.Set("ssh_endpoint", findHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints))
 
 			if err := d.Set("security_profile", flattenHDInsightSecurityProfile(props.SecurityProfile, d)); err != nil {
 				return fmt.Errorf("setting `security_profile`: %+v", err)
@@ -629,14 +621,13 @@ func expandHDInsightApplicationEdgeNodeHttpsEndpoints(input []interface{}) *[]ap
 	for _, v := range input {
 		val := v.(map[string]interface{})
 
-		accessModes := val["access_modes"].([]string)
 		destinationPort := val["destination_port"].(int64)
 		disableGatewayAuth := val["disable_gateway_auth"].(bool)
 		privateIpAddress := val["private_ip_address"].(string)
 		subDomainSuffix := val["sub_domain_suffix"].(string)
 
 		endPoint := applications.ApplicationGetHTTPSEndpoint{
-			AccessModes:        &accessModes,
+			AccessModes:        pointer.To(val["access_modes"].([]string)),
 			DestinationPort:    pointer.To(destinationPort),
 			PrivateIPAddress:   pointer.To(privateIpAddress),
 			SubDomainSuffix:    pointer.To(subDomainSuffix),

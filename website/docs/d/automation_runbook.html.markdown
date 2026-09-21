@@ -66,7 +66,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-The `publish_content_link` block supports the following:
+The `publish_content_link` block exports the following:
 
 * `uri` -  The URI of the runbook content.
 

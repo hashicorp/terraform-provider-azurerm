@@ -54,14 +54,10 @@ func resourceVirtualHubSecurityPartnerProvider() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"security_provider_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(securitypartnerproviders.SecurityProviderNameZScaler),
-					string(securitypartnerproviders.SecurityProviderNameIBoss),
-					string(securitypartnerproviders.SecurityProviderNameCheckpoint),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(securitypartnerproviders.PossibleValuesForSecurityProviderName(), false),
 			},
 
 			"virtual_hub_id": {

@@ -56,7 +56,7 @@ func policyDefinitionReferenceSchema() *pluginsdk.Schema {
 				"reference_id": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 				},
 
 				"policy_group_names": {

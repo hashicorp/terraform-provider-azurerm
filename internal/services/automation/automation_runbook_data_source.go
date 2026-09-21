@@ -363,7 +363,7 @@ func contentLinkSchemaDataSource() *pluginsdk.Schema {
 	}
 }
 
-func FlattenAutomationRunbookJobScheduleDataSource(jsMap map[uuid.UUID]jobschedule.JobScheduleProperties) []AutomationRunbookJobScheduleDataSourceModel {
+func flattenAutomationRunbookJobScheduleDataSource(jsMap map[uuid.UUID]jobschedule.JobScheduleProperties) []AutomationRunbookJobScheduleDataSourceModel {
 	results := make([]AutomationRunbookJobScheduleDataSourceModel, 0)
 
 	for jsId, js := range jsMap {

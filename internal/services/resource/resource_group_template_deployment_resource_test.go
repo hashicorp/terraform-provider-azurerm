@@ -9,10 +9,10 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/deployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -325,12 +325,12 @@ func TestAccResourceGroupTemplateDeployment_outputReference(t *testing.T) {
 }
 
 func (t ResourceGroupTemplateDeploymentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ResourceGroupTemplateDeploymentID(state.ID)
+	id, err := deployments.ParseResourceGroupProviderDeploymentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Resource.LegacyDeploymentsClient.Get(ctx, id.ResourceGroup, id.DeploymentName)
+	resp, err := clients.Resource.LegacyDeploymentsClient.Get(ctx, id.ResourceGroupName, id.DeploymentName)
 	if err != nil {
 		return nil, fmt.Errorf("reading Management Lock (%s): %+v", id, err)
 	}

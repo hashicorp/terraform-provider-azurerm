@@ -83,12 +83,9 @@ func (r MsSqlVirtualMachineGroupResource) Arguments() map[string]*pluginsdk.Sche
 		},
 
 		"sql_image_sku": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(sqlvirtualmachinegroups.SqlVMGroupImageSkuDeveloper),
-				string(sqlvirtualmachinegroups.SqlVMGroupImageSkuEnterprise),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(sqlvirtualmachinegroups.PossibleValuesForSqlVMGroupImageSku(), false),
 		},
 
 		"wsfc_domain_profile": {
@@ -98,13 +95,10 @@ func (r MsSqlVirtualMachineGroupResource) Arguments() map[string]*pluginsdk.Sche
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"cluster_subnet_type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(sqlvirtualmachinegroups.ClusterSubnetTypeMultiSubnet),
-							string(sqlvirtualmachinegroups.ClusterSubnetTypeSingleSubnet),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringInSlice(sqlvirtualmachinegroups.PossibleValuesForClusterSubnetType(), false),
 					},
 
 					"fqdn": {

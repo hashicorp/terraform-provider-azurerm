@@ -97,12 +97,9 @@ func resourceElasticsearch() *pluginsdk.Resource {
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"action": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(rules.TagActionExclude),
-											string(rules.TagActionInclude),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForTagAction(), false),
 									},
 								},
 							},
@@ -361,9 +358,8 @@ func expandTagRule(input []interface{}) *rules.LogRules {
 	for _, v := range raw["filtering_tag"].([]interface{}) {
 		item := v.(map[string]interface{})
 
-		action := rules.TagAction(item["action"].(string))
 		filteringTags = append(filteringTags, rules.FilteringTag{
-			Action: &action,
+			Action: pointer.ToEnum[rules.TagAction](item["action"].(string)),
 			Name:   pointer.To(item["name"].(string)),
 			Value:  pointer.To(item["value"].(string)),
 		})
