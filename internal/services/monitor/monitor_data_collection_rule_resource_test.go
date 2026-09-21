@@ -119,7 +119,7 @@ func TestAccMonitorDataCollectionRule_requiresImport(t *testing.T) {
 
 func TestAccMonitorDataCollectionRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
-	// https://learn.microsoft.com/en-us/azure/azure-monitor/logs/ingest-logs-event-hub#supported-regions
+	// https://learn.microsoft.com/azure/azure-monitor/logs/ingest-logs-event-hub#supported-regions
 	data.Locations.Primary = "westeurope"
 	r := MonitorDataCollectionRuleResource{}
 
@@ -157,7 +157,7 @@ func TestAccMonitorDataCollectionRule_update(t *testing.T) {
 
 func TestAccMonitorDataCollectionRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
-	// https://learn.microsoft.com/en-us/azure/azure-monitor/logs/ingest-logs-event-hub#supported-regions
+	// https://learn.microsoft.com/azure/azure-monitor/logs/ingest-logs-event-hub#supported-regions
 	data.Locations.Primary = "westeurope"
 	r := MonitorDataCollectionRuleResource{}
 

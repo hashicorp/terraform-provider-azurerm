@@ -89,12 +89,9 @@ func (r ContainerAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"template": helpers.ContainerTemplateSchema(),
 
 		"revision_mode": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(containerapps.ActiveRevisionsModeSingle),
-				string(containerapps.ActiveRevisionsModeMultiple),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForActiveRevisionsMode(), false),
 		},
 
 		"ingress": helpers.ContainerAppIngressSchema(),
@@ -355,7 +352,7 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 			model := existing.Model
 
 			if model.Properties == nil {
-				return fmt.Errorf("retreiving properties for %s for update: %+v", *id, err)
+				return fmt.Errorf("retrieving properties for %s for update: %+v", *id, err)
 			}
 
 			if model.Properties.Configuration == nil {
