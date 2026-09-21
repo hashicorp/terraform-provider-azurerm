@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -160,6 +159,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctestsqlserver%[2]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
@@ -240,17 +240,6 @@ resource "azurerm_mssql_server_transparent_data_encryption" "test" {
 }
 
 func (r MsSqlServerTransparentDataEncryptionResource) managedHSM(data acceptance.TestData, keyResourceLabel string) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_mssql_server_transparent_data_encryption" "test" {
-  server_id          = azurerm_mssql_server.test.id
-  managed_hsm_key_id = azurerm_key_vault_managed_hardware_security_module_key.%[2]s.versioned_id
-}
-`, r.withManagedHSM(data), keyResourceLabel)
-	}
-
 	return fmt.Sprintf(`
 %s
 
@@ -332,6 +321,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctest%[2]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7

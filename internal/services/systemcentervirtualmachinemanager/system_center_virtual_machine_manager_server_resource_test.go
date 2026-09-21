@@ -19,7 +19,7 @@ import (
 
 type SystemCenterVirtualMachineManagerServerResource struct{}
 
-func TestAccSystemCenterVirtualMachineManagerServerSequential(t *testing.T) {
+func TestAccSystemCenterVirtualMachineManagerServer_sequential(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests because only one System Center Virtual Machine Manager Server can be onboarded at a time on a given Custom Location
 
 	if os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID") == "" || os.Getenv("ARM_TEST_FQDN") == "" || os.Getenv("ARM_TEST_PORT") == "" || os.Getenv("ARM_TEST_USERNAME") == "" || os.Getenv("ARM_TEST_PASSWORD") == "" {
@@ -28,10 +28,11 @@ func TestAccSystemCenterVirtualMachineManagerServerSequential(t *testing.T) {
 
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"scvmmServer": {
-			"basic":          testAccSystemCenterVirtualMachineManagerServer_basic,
-			"requiresImport": testAccSystemCenterVirtualMachineManagerServer_requiresImport,
-			"complete":       testAccSystemCenterVirtualMachineManagerServer_complete,
-			"update":         testAccSystemCenterVirtualMachineManagerServer_update,
+			"basic":            testAccSystemCenterVirtualMachineManagerServer_basic,
+			"requiresImport":   testAccSystemCenterVirtualMachineManagerServer_requiresImport,
+			"complete":         testAccSystemCenterVirtualMachineManagerServer_complete,
+			"update":           testAccSystemCenterVirtualMachineManagerServer_update,
+			"resourceIdentity": testAccSystemCenterVirtualMachineManagerServer_resourceIdentity,
 		},
 	})
 }

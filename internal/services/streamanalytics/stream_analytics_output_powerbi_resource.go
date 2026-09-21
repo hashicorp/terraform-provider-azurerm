@@ -137,8 +137,8 @@ func (r OutputPowerBIResource) Create() sdk.ResourceFunc {
 				Table:              pointer.To(model.Table),
 				GroupId:            pointer.To(model.GroupID),
 				GroupName:          pointer.To(model.GroupName),
-				RefreshToken:       pointer.To("someRefreshToken"),                // A valid refresh token is currently only obtainable via the Azure Portal. Put a dummy string value here when creating the data source and then going to the Azure Portal to authenticate the data source which will update this property with a valid refresh token.
-				AuthenticationMode: pointer.To(outputs.AuthenticationMode("Msi")), // Set authentication mode as "Msi" here since other modes requires params obtainable from portal only.
+				RefreshToken:       pointer.To("someRefreshToken"),                    // A valid refresh token is currently only obtainable via the Azure Portal. Put a dummy string value here when creating the data source and then going to the Azure Portal to authenticate the data source which will update this property with a valid refresh token.
+				AuthenticationMode: pointer.ToEnum[outputs.AuthenticationMode]("Msi"), // Set authentication mode as "Msi" here since other modes requires params obtainable from portal only.
 			}
 
 			if model.TokenUserDisplayName != "" {
@@ -275,29 +275,13 @@ func (r OutputPowerBIResource) Read() sdk.ResourceFunc {
 						StreamAnalyticsJob: streamingJobId.ID(),
 					}
 
-					dataset := ""
-					if v := output.Properties.Dataset; v != nil {
-						dataset = *v
-					}
-					state.DataSet = dataset
+					state.DataSet = pointer.From(output.Properties.Dataset)
 
-					table := ""
-					if v := output.Properties.Table; v != nil {
-						table = *v
-					}
-					state.Table = table
+					state.Table = pointer.From(output.Properties.Table)
 
-					groupId := ""
-					if v := output.Properties.GroupId; v != nil {
-						groupId = *v
-					}
-					state.GroupID = groupId
+					state.GroupID = pointer.From(output.Properties.GroupId)
 
-					groupName := ""
-					if v := output.Properties.GroupName; v != nil {
-						groupName = *v
-					}
-					state.GroupName = groupName
+					state.GroupName = pointer.From(output.Properties.GroupName)
 
 					state.TokenUserDisplayName = metadata.ResourceData.Get("token_user_display_name").(string)
 					state.TokenUserPrincipalName = metadata.ResourceData.Get("token_user_principal_name").(string)

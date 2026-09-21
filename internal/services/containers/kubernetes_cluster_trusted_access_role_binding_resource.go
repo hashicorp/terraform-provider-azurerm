@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package containers
 
 // NOTE: this file is generated - manual changes will be overwritten.
@@ -10,7 +13,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/trustedaccess"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/trustedaccess"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -215,15 +218,13 @@ func (r KubernetesClusterTrustedAccessRoleBindingResource) mapTrustedAccessRoleB
 }
 
 func (r KubernetesClusterTrustedAccessRoleBindingResource) mapKubernetesClusterTrustedAccessRoleBindingResourceSchemaToTrustedAccessRoleBindingProperties(input KubernetesClusterTrustedAccessRoleBindingResourceSchema, output *trustedaccess.TrustedAccessRoleBindingProperties) {
-	roles := append([]string{}, input.Roles...)
-	output.Roles = roles
+	output.Roles = append([]string{}, input.Roles...)
 
 	output.SourceResourceId = input.SourceResourceId
 }
 
 func (r KubernetesClusterTrustedAccessRoleBindingResource) mapTrustedAccessRoleBindingPropertiesToKubernetesClusterTrustedAccessRoleBindingResourceSchema(input trustedaccess.TrustedAccessRoleBindingProperties, output *KubernetesClusterTrustedAccessRoleBindingResourceSchema) {
-	roles := append([]string{}, input.Roles...)
-	output.Roles = roles
+	output.Roles = append([]string{}, input.Roles...)
 
 	output.SourceResourceId = input.SourceResourceId
 }

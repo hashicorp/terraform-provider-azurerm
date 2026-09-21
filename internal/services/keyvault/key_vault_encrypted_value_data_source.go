@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
@@ -33,7 +32,7 @@ type EncryptedValueDataSourceModel struct {
 }
 
 func (EncryptedValueDataSource) Arguments() map[string]*schema.Schema {
-	args := map[string]*schema.Schema{
+	return map[string]*schema.Schema{
 		"key_vault_key_id": {
 			Type:         schema.TypeString,
 			Required:     true,
@@ -59,12 +58,6 @@ func (EncryptedValueDataSource) Arguments() map[string]*schema.Schema {
 			Sensitive: true,
 		},
 	}
-
-	if !features.FivePointOh() {
-		args["key_vault_key_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
-	}
-
-	return args
 }
 
 func (EncryptedValueDataSource) Attributes() map[string]*schema.Schema {

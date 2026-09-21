@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -115,12 +116,7 @@ func dataSourceArmApplicationInsightsRead(d *pluginsdk.ResourceData, meta interf
 				retentionInDays = int(*props.RetentionInDays)
 			}
 			d.Set("retention_in_days", retentionInDays)
-
-			workspaceId := ""
-			if props.WorkspaceResourceId != nil {
-				workspaceId = *props.WorkspaceResourceId
-			}
-			d.Set("workspace_id", workspaceId)
+			d.Set("workspace_id", pointer.From(props.WorkspaceResourceId))
 		}
 	}
 	return nil

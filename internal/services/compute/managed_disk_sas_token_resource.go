@@ -53,7 +53,7 @@ func resourceManagedDiskSasToken() *pluginsdk.Resource {
 				ValidateFunc: commonids.ValidateManagedDiskID,
 			},
 
-			// unable to provide upper value of 4294967295 as it's not comptabile with 32-bit (overflow errors)
+			// unable to provide upper value of 4294967295 as it's not compatible with 32-bit (overflow errors)
 			"duration_in_seconds": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
@@ -183,8 +183,7 @@ func resourceManagedDiskSasTokenDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	err = client.RevokeAccessThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.RevokeAccessThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("revoking access to %s: %+v", *id, err)
 	}
 

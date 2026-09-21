@@ -101,7 +101,7 @@ func TestAccPrivateDnsTxtRecord_withTags(t *testing.T) {
 	})
 }
 
-func (t PrivateDnsTxtRecordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PrivateDnsTxtRecordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := privatedns.ParseRecordTypeID(state.ID)
 	if err != nil {
 		return nil, err
@@ -109,7 +109,7 @@ func (t PrivateDnsTxtRecordResource) Exists(ctx context.Context, clients *client
 
 	resp, err := clients.PrivateDns.RecordSetsClient.RecordSetsGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Private DNS TXT Record (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil
@@ -122,19 +122,18 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-prvdns-%d"
-  location = "%s"
+  name     = "acctestRG-prvdns-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_private_dns_zone" "test" {
-  name                = "testzone%d.com"
+  name                = "testzone%[1]d.com"
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_txt_record" "test" {
-  name                = "testacctxt%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
+  name                = "testacctxt%[1]d"
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
 
   record {
@@ -145,17 +144,16 @@ resource "azurerm_private_dns_txt_record" "test" {
     value = "A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r PrivateDnsTxtRecordResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_private_dns_txt_record" "import" {
   name                = azurerm_private_dns_txt_record.test.name
-  resource_group_name = azurerm_private_dns_txt_record.test.resource_group_name
-  zone_name           = azurerm_private_dns_txt_record.test.zone_name
+  private_dns_zone_id = azurerm_private_dns_txt_record.test.private_dns_zone_id
   ttl                 = 300
 
   record {
@@ -176,19 +174,18 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-prvdns-%d"
-  location = "%s"
+  name     = "acctestRG-prvdns-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_private_dns_zone" "test" {
-  name                = "testzone%d.com"
+  name                = "testzone%[1]d.com"
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_txt_record" "test" {
-  name                = "testacctxt%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
+  name                = "testacctxt%[1]d"
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
 
   record {
@@ -203,7 +200,7 @@ resource "azurerm_private_dns_txt_record" "test" {
     value = "I'm a record too'"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (PrivateDnsTxtRecordResource) withTags(data acceptance.TestData) string {
@@ -213,19 +210,18 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-prvdns-%d"
-  location = "%s"
+  name     = "acctestRG-prvdns-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_private_dns_zone" "test" {
-  name                = "testzone%d.com"
+  name                = "testzone%[1]d.com"
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_txt_record" "test" {
-  name                = "test%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
+  name                = "test%[1]d"
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
 
   record {
@@ -241,7 +237,7 @@ resource "azurerm_private_dns_txt_record" "test" {
     cost_center = "MSFT"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (PrivateDnsTxtRecordResource) withTagsUpdate(data acceptance.TestData) string {
@@ -251,19 +247,18 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-prvdns-%d"
-  location = "%s"
+  name     = "acctestRG-prvdns-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_private_dns_zone" "test" {
-  name                = "testzone%d.com"
+  name                = "testzone%[1]d.com"
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_txt_record" "test" {
-  name                = "test%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
+  name                = "test%[1]d"
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
 
   record {
@@ -278,5 +273,5 @@ resource "azurerm_private_dns_txt_record" "test" {
     environment = "staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
