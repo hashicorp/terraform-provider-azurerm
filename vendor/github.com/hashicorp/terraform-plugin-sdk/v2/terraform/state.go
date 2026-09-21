@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2019, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package terraform
@@ -693,7 +693,7 @@ func (s *State) String() string {
 			continue
 		}
 
-		buf.WriteString(fmt.Sprintf("module.%s:\n", strings.Join(m.Path[1:], ".")))
+		fmt.Fprintf(&buf, "module.%s:\n", strings.Join(m.Path[1:], "."))
 
 		s := bufio.NewScanner(strings.NewReader(mStr))
 		for s.Scan() {
@@ -702,7 +702,7 @@ func (s *State) String() string {
 				text = "  " + text
 			}
 
-			buf.WriteString(fmt.Sprintf("%s\n", text))
+			fmt.Fprintf(&buf, "%s\n", text)
 		}
 	}
 
@@ -984,10 +984,10 @@ func (m *ModuleState) String() string {
 			deposedStr = fmt.Sprintf(" (%d deposed)", len(rs.Deposed))
 		}
 
-		buf.WriteString(fmt.Sprintf("%s:%s%s\n", k, taintStr, deposedStr))
-		buf.WriteString(fmt.Sprintf("  ID = %s\n", id))
+		fmt.Fprintf(&buf, "%s:%s%s\n", k, taintStr, deposedStr)
+		fmt.Fprintf(&buf, "  ID = %s\n", id)
 		if rs.Provider != "" {
-			buf.WriteString(fmt.Sprintf("  provider = %s\n", rs.Provider))
+			fmt.Fprintf(&buf, "  provider = %s\n", rs.Provider)
 		}
 
 		var attributes map[string]string
@@ -1007,7 +1007,7 @@ func (m *ModuleState) String() string {
 
 		for _, ak := range attrKeys {
 			av := attributes[ak]
-			buf.WriteString(fmt.Sprintf("  %s = %s\n", ak, av))
+			fmt.Fprintf(&buf, "  %s = %s\n", ak, av)
 		}
 
 		for idx, t := range rs.Deposed {
@@ -1015,13 +1015,13 @@ func (m *ModuleState) String() string {
 			if t.Tainted {
 				taintStr = " (tainted)"
 			}
-			buf.WriteString(fmt.Sprintf("  Deposed ID %d = %s%s\n", idx+1, t.ID, taintStr))
+			fmt.Fprintf(&buf, "  Deposed ID %d = %s%s\n", idx+1, t.ID, taintStr)
 		}
 
 		if len(rs.Dependencies) > 0 {
 			buf.WriteString("\n  Dependencies:\n")
 			for _, dep := range rs.Dependencies {
-				buf.WriteString(fmt.Sprintf("    %s\n", dep))
+				fmt.Fprintf(&buf, "    %s\n", dep)
 			}
 		}
 	}
@@ -1040,9 +1040,9 @@ func (m *ModuleState) String() string {
 			v := m.Outputs[k]
 			switch vTyped := v.Value.(type) {
 			case string:
-				buf.WriteString(fmt.Sprintf("%s = %s\n", k, vTyped))
+				fmt.Fprintf(&buf, "%s = %s\n", k, vTyped)
 			case []interface{}:
-				buf.WriteString(fmt.Sprintf("%s = %s\n", k, vTyped))
+				fmt.Fprintf(&buf, "%s = %s\n", k, vTyped)
 			case map[string]interface{}:
 				var mapKeys []string
 				for key := range vTyped {
@@ -1053,11 +1053,11 @@ func (m *ModuleState) String() string {
 				var mapBuf bytes.Buffer
 				mapBuf.WriteString("{")
 				for _, key := range mapKeys {
-					mapBuf.WriteString(fmt.Sprintf("%s:%s ", key, vTyped[key]))
+					fmt.Fprintf(&mapBuf, "%s:%s ", key, vTyped[key])
 				}
 				mapBuf.WriteString("}")
 
-				buf.WriteString(fmt.Sprintf("%s = %s\n", k, mapBuf.String()))
+				fmt.Fprintf(&buf, "%s = %s\n", k, mapBuf.String())
 			}
 		}
 	}
@@ -1285,7 +1285,7 @@ func (s *ResourceState) String() string {
 	defer s.Unlock()
 
 	var buf bytes.Buffer
-	buf.WriteString(fmt.Sprintf("Type = %s", s.Type))
+	fmt.Fprintf(&buf, "Type = %s", s.Type)
 	return buf.String()
 }
 
@@ -1546,7 +1546,7 @@ func (s *InstanceState) String() string {
 		return notCreated
 	}
 
-	buf.WriteString(fmt.Sprintf("ID = %s\n", s.ID))
+	fmt.Fprintf(&buf, "ID = %s\n", s.ID)
 
 	attributes := s.Attributes
 	attrKeys := make([]string, 0, len(attributes))
@@ -1561,12 +1561,12 @@ func (s *InstanceState) String() string {
 
 	for _, ak := range attrKeys {
 		av := attributes[ak]
-		buf.WriteString(fmt.Sprintf("%s = %s\n", ak, av))
+		fmt.Fprintf(&buf, "%s = %s\n", ak, av)
 	}
 
 	// TODO: add identity
 
-	buf.WriteString(fmt.Sprintf("Tainted = %t\n", s.Tainted))
+	fmt.Fprintf(&buf, "Tainted = %t\n", s.Tainted)
 
 	return buf.String()
 }

@@ -9,32 +9,32 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkinterfaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	lbvalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name network_interface -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 var networkInterfaceResourceName = "azurerm_network_interface"
 
 func resourceNetworkInterface() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceNetworkInterfaceCreate,
 		Read:   resourceNetworkInterfaceRead,
 		Update: resourceNetworkInterfaceUpdate,
@@ -85,26 +85,21 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 						"private_ip_address": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							// Note: O+C because Azure assigns a private IP from the subnet when not specified
 							Computed: true,
 						},
 
 						"private_ip_address_version": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(networkinterfaces.IPVersionIPvFour),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(networkinterfaces.IPVersionIPvFour),
-								string(networkinterfaces.IPVersionIPvSix),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(networkinterfaces.IPVersionIPvFour),
+							ValidateFunc: validation.StringInSlice(networkinterfaces.PossibleValuesForIPVersion(), false),
 						},
 
 						"private_ip_address_allocation": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(networkinterfaces.IPAllocationMethodDynamic),
-								string(networkinterfaces.IPAllocationMethodStatic),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(networkinterfaces.PossibleValuesForIPAllocationMethod(), false),
 						},
 
 						"public_ip_address_id": {
@@ -116,14 +111,14 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 						"primary": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 						},
 
 						"gateway_load_balancer_frontend_ip_configuration_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
-							ValidateFunc: lbvalidate.LoadBalancerFrontendIpConfigurationID,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
+							ValidateFunc: validation.AsGeneratedID(loadbalancers.ParseFrontendIPConfigurationIDInsensitively),
 						},
 					},
 				},
@@ -131,16 +126,25 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 
 			// Optional
 			"auxiliary_mode": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice(networkinterfaces.PossibleValuesForNetworkInterfaceAuxiliaryMode(), false),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(networkinterfaces.NetworkInterfaceAuxiliaryModeAcceleratedConnections),
+					string(networkinterfaces.NetworkInterfaceAuxiliaryModeFloating),
+					string(networkinterfaces.NetworkInterfaceAuxiliaryModeMaxConnections),
+				}, false),
 				RequiredWith: []string{"auxiliary_sku"},
 			},
 
 			"auxiliary_sku": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice(networkinterfaces.PossibleValuesForNetworkInterfaceAuxiliarySku(), false),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(networkinterfaces.NetworkInterfaceAuxiliarySkuAEight),
+					string(networkinterfaces.NetworkInterfaceAuxiliarySkuAFour),
+					string(networkinterfaces.NetworkInterfaceAuxiliarySkuAOne),
+					string(networkinterfaces.NetworkInterfaceAuxiliarySkuATwo),
+				}, false),
 				RequiredWith: []string{"auxiliary_mode"},
 			},
 
@@ -213,6 +217,24 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.SixPointOh() {
+		r.Schema["auxiliary_mode"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(networkinterfaces.PossibleValuesForNetworkInterfaceAuxiliaryMode(), false),
+			RequiredWith: []string{"auxiliary_sku"},
+		}
+
+		r.Schema["auxiliary_sku"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(networkinterfaces.PossibleValuesForNetworkInterfaceAuxiliarySku(), false),
+			RequiredWith: []string{"auxiliary_mode"},
+		}
+	}
+
+	return r
 }
 
 func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -250,11 +272,11 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{})
 	defer locks.UnlockByName(id.NetworkInterfaceName, networkInterfaceResourceName)
 
 	if auxiliaryMode, hasAuxiliaryMode := d.GetOk("auxiliary_mode"); hasAuxiliaryMode {
-		properties.AuxiliaryMode = pointer.To(networkinterfaces.NetworkInterfaceAuxiliaryMode(auxiliaryMode.(string)))
+		properties.AuxiliaryMode = pointer.ToEnum[networkinterfaces.NetworkInterfaceAuxiliaryMode](auxiliaryMode.(string))
 	}
 
 	if auxiliarySku, hasAuxiliarySku := d.GetOk("auxiliary_sku"); hasAuxiliarySku {
-		properties.AuxiliarySku = pointer.To(networkinterfaces.NetworkInterfaceAuxiliarySku(auxiliarySku.(string)))
+		properties.AuxiliarySku = pointer.ToEnum[networkinterfaces.NetworkInterfaceAuxiliarySku](auxiliarySku.(string))
 	}
 
 	dns, hasDns := d.GetOk("dns_servers")
@@ -300,8 +322,7 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		Tags:             tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	err = client.CreateOrUpdateCallbackThenPoll(ctx, id, iface, sdk.SetIDAndIdentityCallback(meta, &id, d))
-	if err != nil {
+	if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, iface, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -354,7 +375,7 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	if d.HasChange("auxiliary_mode") {
 		propsOtherThanTagsUpdated = true
 		if auxiliaryMode := d.Get("auxiliary_mode").(string); auxiliaryMode != "" {
-			payload.Properties.AuxiliaryMode = pointer.To(networkinterfaces.NetworkInterfaceAuxiliaryMode(auxiliaryMode))
+			payload.Properties.AuxiliaryMode = pointer.ToEnum[networkinterfaces.NetworkInterfaceAuxiliaryMode](auxiliaryMode)
 		} else {
 			payload.Properties.AuxiliaryMode = nil
 		}
@@ -363,7 +384,7 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	if d.HasChange("auxiliary_sku") {
 		propsOtherThanTagsUpdated = true
 		if auxiliarySku := d.Get("auxiliary_sku").(string); auxiliarySku != "" {
-			payload.Properties.AuxiliarySku = pointer.To(networkinterfaces.NetworkInterfaceAuxiliarySku(auxiliarySku))
+			payload.Properties.AuxiliarySku = pointer.ToEnum[networkinterfaces.NetworkInterfaceAuxiliarySku](auxiliarySku)
 		} else {
 			payload.Properties.AuxiliarySku = nil
 		}
@@ -419,8 +440,7 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if propsOtherThanTagsUpdated || !attachedToPrivateEndpoint {
-		err = client.CreateOrUpdateThenPoll(ctx, *id, *payload)
-		if err != nil {
+		if err = client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 			return fmt.Errorf("updating %s: %+v", *id, err)
 		}
 	}
@@ -577,8 +597,7 @@ func resourceNetworkInterfaceDelete(d *pluginsdk.ResourceData, meta interface{})
 	lockingDetails.lock()
 	defer lockingDetails.unlock()
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
@@ -595,9 +614,8 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]networkinte
 		privateIpAllocationMethod := data["private_ip_address_allocation"].(string)
 		privateIpAddressVersion := networkinterfaces.IPVersion(data["private_ip_address_version"].(string))
 
-		allocationMethod := networkinterfaces.IPAllocationMethod(privateIpAllocationMethod)
 		properties := networkinterfaces.NetworkInterfaceIPConfigurationPropertiesFormat{
-			PrivateIPAllocationMethod: &allocationMethod,
+			PrivateIPAllocationMethod: pointer.ToEnum[networkinterfaces.IPAllocationMethod](privateIpAllocationMethod),
 			PrivateIPAddressVersion:   &privateIpAddressVersion,
 		}
 
@@ -629,9 +647,8 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]networkinte
 			properties.GatewayLoadBalancer = &networkinterfaces.SubResource{Id: &v}
 		}
 
-		name := data["name"].(string)
 		ipConfigs = append(ipConfigs, networkinterfaces.NetworkInterfaceIPConfiguration{
-			Name:       &name,
+			Name:       pointer.To(data["name"].(string)),
 			Properties: &properties,
 		})
 	}
@@ -663,19 +680,9 @@ func flattenNetworkInterfaceIPConfigurations(input *[]networkinterfaces.NetworkI
 	for _, ipConfig := range *input {
 		props := ipConfig.Properties
 
-		name := ""
-		if ipConfig.Name != nil {
-			name = *ipConfig.Name
-		}
-
 		subnetId := ""
 		if props.Subnet != nil && props.Subnet.Id != nil {
 			subnetId = *props.Subnet.Id
-		}
-
-		privateIPAddress := ""
-		if props.PrivateIPAddress != nil {
-			privateIPAddress = *props.PrivateIPAddress
 		}
 
 		privateIPAllocationMethod := ""
@@ -693,20 +700,15 @@ func flattenNetworkInterfaceIPConfigurations(input *[]networkinterfaces.NetworkI
 			publicIPAddressId = *props.PublicIPAddress.Id
 		}
 
-		primary := false
-		if props.Primary != nil {
-			primary = *props.Primary
-		}
-
 		gatewayLBFrontendIPConfigId := ""
 		if props.GatewayLoadBalancer != nil && props.GatewayLoadBalancer.Id != nil {
 			gatewayLBFrontendIPConfigId = *props.GatewayLoadBalancer.Id
 		}
 
 		result = append(result, map[string]interface{}{
-			"name":                          name,
-			"primary":                       primary,
-			"private_ip_address":            privateIPAddress,
+			"name":                          pointer.From(ipConfig.Name),
+			"primary":                       pointer.From(props.Primary),
+			"private_ip_address":            pointer.From(props.PrivateIPAddress),
 			"private_ip_address_allocation": privateIPAllocationMethod,
 			"private_ip_address_version":    privateIPAddressVersion,
 			"public_ip_address_id":          publicIPAddressId,

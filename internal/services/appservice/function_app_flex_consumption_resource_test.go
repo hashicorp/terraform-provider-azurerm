@@ -1968,7 +1968,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestblobforfc"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -2013,7 +2013,7 @@ resource "azurerm_service_plan" "test" {
   os_type             = "Linux"
   sku_name            = "FC1"
 }
-`, data.RandomInteger, "eastus2", data.RandomString, data.RandomInteger) // location needs to be hardcoded for the moment because flex isn't available in all regions yet and appservice already has location overrides in TC
+	`, data.RandomInteger, "eastus2", data.RandomString, data.RandomInteger) // location needs to be hardcoded for the moment because flex isn't available in all regions yet and appservice already has location overrides in TC
 }
 
 func (FunctionAppFlexConsumptionResource) templateEnabledAiDetector(data acceptance.TestData) string {
@@ -2040,7 +2040,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestblobforfc"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -2085,5 +2085,5 @@ resource "azurerm_service_plan" "test" {
   os_type             = "Linux"
   sku_name            = "FC1"
 }
-`, data.RandomInteger, "eastus2", data.RandomString, data.RandomInteger) // location needs to be hardcoded for the moment because flex isn't available in all regions yet and appservice already has location overrides in TC
+	`, data.RandomInteger, "eastus2", data.RandomString, data.RandomInteger) // location needs to be hardcoded for the moment because flex isn't available in all regions yet and appservice already has location overrides in TC
 }

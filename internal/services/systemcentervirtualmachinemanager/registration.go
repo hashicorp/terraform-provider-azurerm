@@ -40,13 +40,13 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		SystemCenterVirtualMachineManagerAvailabilitySetResource{},
 		SystemCenterVirtualMachineManagerCloudResource{},
 		SystemCenterVirtualMachineManagerServerResource{},
-		SystemCenterVirtualMachineManagerAvailabilitySetResource{},
-		SystemCenterVirtualMachineManagerVirtualMachineInstanceResource{},
-		SystemCenterVirtualMachineManagerVirtualNetworkResource{},
-		SystemCenterVirtualMachineManagerVirtualMachineTemplateResource{},
 		SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResource{},
+		SystemCenterVirtualMachineManagerVirtualMachineInstanceResource{},
+		SystemCenterVirtualMachineManagerVirtualMachineTemplateResource{},
+		SystemCenterVirtualMachineManagerVirtualNetworkResource{},
 	}
 }
 
@@ -67,5 +67,11 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		SystemCenterVirtualMachineManagerAvailabilitySetListResource{},
+		SystemCenterVirtualMachineManagerCloudListResource{},
+		SystemCenterVirtualMachineManagerServerListResource{},
+		SystemCenterVirtualMachineManagerVirtualMachineTemplateListResource{},
+		SystemCenterVirtualMachineManagerVirtualNetworkListResource{},
+	}
 }

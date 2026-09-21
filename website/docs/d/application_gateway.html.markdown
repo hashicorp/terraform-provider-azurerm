@@ -37,8 +37,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Application Gateway.
 
-* `authentication_certificate` - One or more `authentication_certificate` blocks as defined below.
-
 * `autoscale_configuration` - An `autoscale_configuration` block as defined below.
 
 * `backend` - One or more `backend` blocks as defined below.
@@ -107,14 +105,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-An `authentication_certificate` block exports the following:
-
-* `id` - The ID of the Authentication Certificate.
-
-* `name` - The Name of the Authentication Certificate in use.
-
----
-
 A `trusted_root_certificate` block exports the following:
 
 * `id` - The ID of the Trusted Root Certificate in use.
@@ -122,14 +112,6 @@ A `trusted_root_certificate` block exports the following:
 * `name` - The Name of the Trusted Root Certificate in use.
 
 * `key_vault_secret_id` - The Secret ID of (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault.
-
----
-
-A `authentication_certificate` block, within the `backend_http_settings` block exports the following:
-
-* `id` - The ID of the Authentication Certificate.
-
-* `name` - The name of the Authentication Certificate.
 
 ---
 
@@ -174,8 +156,6 @@ A `backend_http_settings` block exports the following:
 * `id` - The ID of the Backend HTTP Settings Configuration.
 
 * `affinity_cookie_name` - The name of the affinity cookie.
-
-* `authentication_certificate` - One or more `authentication_certificate` blocks as defined below.
 
 * `certificate_chain_validation_enabled` - Whether certificate chain and expiry validation on the backend HTTPS servers is enabled.
 
@@ -559,7 +539,7 @@ A `ssl_profile` block exports the following:
 
 * `trusted_client_certificate_names` - The name of the Trusted Client Certificate that will be used to authenticate requests from clients.
 
-* `verify_client_cert_issuer_dn` - Will the client certificate issuer DN be verified?
+* `verify_client_certificate_issuer_dn` - Will the client certificate issuer DN be verified?
 
 * `verify_client_certificate_revocation` - The method used to check client certificate revocation status.
 

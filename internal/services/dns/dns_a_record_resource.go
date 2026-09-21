@@ -224,9 +224,8 @@ func expandAzureRmDnsARecords(input []interface{}) *[]recordsets.ARecord {
 	records := make([]recordsets.ARecord, len(input))
 
 	for i, v := range input {
-		ipv4 := v.(string)
 		records[i] = recordsets.ARecord{
-			IPv4Address: &ipv4,
+			IPv4Address: pointer.To(v.(string)),
 		}
 	}
 

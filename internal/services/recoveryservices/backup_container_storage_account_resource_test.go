@@ -62,8 +62,6 @@ resource "azurerm_recovery_services_vault" "testvlt" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
-
-  soft_delete_enabled = true
 }
 
 resource "azurerm_storage_account" "test" {

@@ -25,9 +25,9 @@ func (s BaseContainerRegistryCredentialsImpl) ContainerRegistryCredentials() Bas
 
 var _ ContainerRegistryCredentials = RawContainerRegistryCredentialsImpl{}
 
-// RawContainerRegistryCredentialsImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawContainerRegistryCredentialsImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawContainerRegistryCredentialsImpl struct {
 	containerRegistryCredentials BaseContainerRegistryCredentialsImpl
 	Type                         string
@@ -36,6 +36,10 @@ type RawContainerRegistryCredentialsImpl struct {
 
 func (s RawContainerRegistryCredentialsImpl) ContainerRegistryCredentials() BaseContainerRegistryCredentialsImpl {
 	return s.containerRegistryCredentials
+}
+
+func (s RawContainerRegistryCredentialsImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalContainerRegistryCredentialsImplementation(input []byte) (ContainerRegistryCredentials, error) {

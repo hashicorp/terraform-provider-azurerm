@@ -16,7 +16,7 @@ import (
 )
 
 // workaround for https://github.com/hashicorp/go-azure-sdk/issues/492
-// TODO4.0: check if this could be removed.
+// TODO 6.0: check if this could be removed.
 // the method has been re-written to read `nextLink`
 
 type MachinesClient struct {

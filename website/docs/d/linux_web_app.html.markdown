@@ -163,8 +163,6 @@ An `application_stack` block exports the following:
 
 * `python_version` - The version of Python in use.
 
-* `ruby_version` - The version of Ruby in use.
-
 ---
 
 A `auth_settings` block exports the following:

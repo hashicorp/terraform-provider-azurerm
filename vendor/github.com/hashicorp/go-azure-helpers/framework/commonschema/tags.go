@@ -6,6 +6,7 @@ package commonschema
 import (
 	"context"
 
+	"github.com/hashicorp/go-azure-helpers/framework/convert"
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
 	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -13,13 +14,12 @@ import (
 	resourceschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 func TagsResourceAttribute(ctx context.Context) resourceschema.MapAttribute {
 	return resourceschema.MapAttribute{
 		CustomType:          typehelpers.NewMapTypeOf[types.String](ctx),
-		ElementType:         basetypes.StringType{},
+		ElementType:         types.StringType,
 		Optional:            true,
 		Description:         "A map of tags to be assigned to the resource",
 		MarkdownDescription: "A map of tags to be assigned to the resource",
@@ -32,30 +32,32 @@ func TagsResourceAttribute(ctx context.Context) resourceschema.MapAttribute {
 func TagsDataSourceAttribute(ctx context.Context) datasourceschema.MapAttribute {
 	return datasourceschema.MapAttribute{
 		CustomType:          typehelpers.NewMapTypeOf[types.String](ctx),
-		ElementType:         basetypes.StringType{},
+		ElementType:         types.StringType,
 		Optional:            true,
 		Description:         "A map of tags assigned to the resource",
 		MarkdownDescription: "A map of tags assigned to the resource",
-		Validators: []validator.Map{
-			mapvalidator.SizeAtLeast(1),
-		},
 	}
 }
 
-func ExpandTags(input types.Map) (result *map[string]string, diags diag.Diagnostics) {
+func ExpandTags(ctx context.Context, input typehelpers.MapValueOf[types.String], diags *diag.Diagnostics) *map[string]string {
 	if input.IsNull() || input.IsUnknown() {
-		return
+		return nil
 	}
 
-	diags = input.ElementsAs(context.Background(), &result, false)
+	result := make(map[string]string)
 
-	return
+	convert.Expand(ctx, input, &result, diags)
+
+	return &result
 }
 
-func FlattenTags(tags *map[string]string) (result basetypes.MapValue, diags diag.Diagnostics) {
+func FlattenTags(ctx context.Context, tags *map[string]string, diags *diag.Diagnostics) typehelpers.MapValueOf[types.String] {
+	result := typehelpers.NewMapValueOfNull[types.String](ctx)
 	if tags == nil {
-		return basetypes.NewMapNull(basetypes.StringType{}), nil
+		return result
 	}
 
-	return types.MapValueFrom(context.Background(), basetypes.StringType{}, tags)
+	convert.Flatten(ctx, tags, &result, diags)
+
+	return result
 }
