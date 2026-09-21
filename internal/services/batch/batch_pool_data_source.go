@@ -864,9 +864,7 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 							extension["name"] = item.Name
 							extension["publisher"] = item.Publisher
 							extension["type"] = item.Type
-							if item.TypeHandlerVersion != nil {
-								extension["type_handler_version"] = *item.TypeHandlerVersion
-							}
+							extension["type_handler_version"] = pointer.From(item.TypeHandlerVersion)
 							extension["auto_upgrade_minor_version"] = pointer.From(item.AutoUpgradeMinorVersion)
 							extension["automatic_upgrade_enabled"] = pointer.From(item.EnableAutomaticUpgrade)
 
