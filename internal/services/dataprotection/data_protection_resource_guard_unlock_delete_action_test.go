@@ -16,7 +16,7 @@ import (
 )
 
 // before_destroy, caller, and on_failure require Terraform 1.16.
-// TODO:  terraform-plugin-testing release
+// TODO:  terraform-plugin-testing release, tracked by https://github.com/hashicorp/terraform-plugin-testing/pull/685
 var terraformVersion1_16_0 = version.Must(version.NewVersion("1.16.0"))
 
 type DataProtectionResourceGuardUnlockDeleteAction struct{}
