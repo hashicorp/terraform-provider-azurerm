@@ -14,7 +14,7 @@ Unlocks deletion of a backup item protected by Resource Guard. Use this action b
 
 ## Example Usage
 
-This example unlocks a VM backup immediately before Terraform deletes it. Actions are supported in Terraform 1.14 and later, but this example requires Terraform 1.16 or later for `before_destroy`, `caller`, and `on_failure`. See the [Terraform 1.16 release notes](https://github.com/hashicorp/terraform/releases/tag/v1.16.0). `caller.id` supplies the ID of the backup item being deleted.
+This example unlocks a VM backup immediately before Terraform deletes it. `caller.id` supplies the ID of the backup item being deleted. Terraform 1.16 or later is required for `before_destroy`, `caller`, and `on_failure` features.
 
 The provider feature `vm_backup_stop_protection_and_retain_data_on_destroy` must be `false` for deletion. This action does not unlock operations that retain backup data.
 

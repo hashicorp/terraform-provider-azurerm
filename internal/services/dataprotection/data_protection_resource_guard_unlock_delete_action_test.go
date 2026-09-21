@@ -34,12 +34,10 @@ func TestAccDataProtectionResourceGuardUnlockDeleteAction_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: a.basic(data),
-				Check:  nil, // TODO
 			},
 			{
 				Config:  a.basic(data),
 				Destroy: true,
-				Check:   nil, // TODO
 			},
 		},
 	})
@@ -58,12 +56,10 @@ func TestAccDataProtectionResourceGuardUnlockDeleteAction_withoutGuard(t *testin
 		Steps: []resource.TestStep{
 			{
 				Config: a.withoutGuard(data),
-				Check:  nil, // TODO
 			},
 			{
 				Config:  a.withoutGuard(data),
 				Destroy: true,
-				Check:   nil, // TODO
 			},
 		},
 	})
