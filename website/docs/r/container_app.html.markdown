@@ -476,7 +476,7 @@ A `registry` block supports the following:
 
 The authentication details must also be supplied, `identity` and `username`/`password_secret_name` are mutually exclusive.
 
-* `identity` - (Optional) The Managed Identity to use when pulling from the Container Registry. Possible values are `System` to use the Container App's System Assigned Identity, `system-environment` to use the Container App Environment's System Assigned Identity, or the Resource ID of a User Assigned Managed Identity.
+* `identity` - (Optional) The Managed Identity to use when pulling from the Container Registry. `System` and `system-environment` refer to the Container App's and Container App Environment's System Assigned Managed Identities, respectively. User Assigned Managed Identities are referenced by Resource ID.
 
 ~> **Note:** The Resource ID must be of a User Assigned Managed identity defined in an `identity` block.
 
