@@ -78,6 +78,7 @@ The following attributes are exported:
 * `container_configuration` - The container configuration used in the pool's VMs.
 
 ---
+---
 
 An `identity` block exports the following:
 
