@@ -867,14 +867,11 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 							if item.TypeHandlerVersion != nil {
 								extension["type_handler_version"] = *item.TypeHandlerVersion
 							}
-							if item.AutoUpgradeMinorVersion != nil {
-								extension["auto_upgrade_minor_version"] = *item.AutoUpgradeMinorVersion
-							}
-							if item.EnableAutomaticUpgrade != nil {
-								extension["automatic_upgrade_enabled"] = *item.EnableAutomaticUpgrade
-							}
+							extension["auto_upgrade_minor_version"] = pointer.From(item.AutoUpgradeMinorVersion)
+							extension["automatic_upgrade_enabled"] = pointer.From(item.EnableAutomaticUpgrade)
+
 							if item.Settings != nil {
-								settingValue, err := json.Marshal((*item.Settings).(map[string]interface{}))
+								settingValue, err := json.Marshal((*item.Settings))
 								if err != nil {
 									return fmt.Errorf("flattening `settings_json`: %+v", err)
 								}
