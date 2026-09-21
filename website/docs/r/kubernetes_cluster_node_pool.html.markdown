@@ -310,7 +310,7 @@ A `sysctl_config` block supports the following:
 
 A `upgrade_settings` block supports the following:
 
-* `drain_timeout_in_minutes` - (Optional) The amount of time in minutes to wait on eviction of pods and graceful termination per node. This eviction wait time honors waiting on pod disruption budgets. If this time is exceeded, the upgrade fails. Unsetting this after configuring it will force a new resource to be created.
+* `drain_timeout_in_minutes` - (Optional) The amount of time in minutes to wait on eviction of pods and graceful termination per node. This eviction wait time honours waiting on pod disruption budgets. If this time is exceeded, the upgrade fails. Unsetting this after configuring it will force a new resource to be created.
 
 * `node_soak_duration_in_minutes` - (Optional) The amount of time in minutes to wait after draining a node and before reimaging and moving on to next node.
 
@@ -359,4 +359,4 @@ terraform import azurerm_kubernetes_cluster_node_pool.pool1 /subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerService` - 2025-10-01
+* `Microsoft.ContainerService` - 2026-05-01

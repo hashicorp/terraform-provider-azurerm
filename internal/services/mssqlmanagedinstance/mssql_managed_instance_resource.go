@@ -666,7 +666,7 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 
 				if aadAdminExists {
 					// Before deleting an AAD admin, it is necessary to disable `AzureADOnlyAuthentication` first, as deleting an AAD admin when `AzureADOnlyAuthentication` feature is enabled is not supported.
-					// Use `CreateOrUpdateThenPoll` instead of `DeleteThenPoll`, because the actual deletion behavior of the API is not to really delete the record, but to update `AzureADOnlyAuthentication` to false. Therefore, using `DeleteThenPoll` will cause pull till done to never end until it times out.
+					// Use `CreateOrUpdateThenPoll` instead of `DeleteThenPoll`, because the actual deletion behaviour of the API is not to really delete the record, but to update `AzureADOnlyAuthentication` to false. Therefore, using `DeleteThenPoll` will cause pull till done to never end until it times out.
 					aadAuthOnlyParams := managedinstanceazureadonlyauthentications.ManagedInstanceAzureADOnlyAuthentication{
 						Properties: &managedinstanceazureadonlyauthentications.ManagedInstanceAzureADOnlyAuthProperties{},
 					}
