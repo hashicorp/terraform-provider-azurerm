@@ -138,13 +138,7 @@ func (r DataProtectionBackupVaultResourceGuardAssociationResource) Read() sdk.Re
 				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
 
-			state := flattenDataProtectionBackupVaultResourceGuardAssociation(*id, resp.Model)
-
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-				return err
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, *id, resp.Model)
 		},
 	}
 }
@@ -188,29 +182,19 @@ func (r DataProtectionBackupVaultResourceGuardAssociationResource) Delete() sdk.
 	}
 }
 
-func flattenDataProtectionBackupVaultResourceGuardAssociation(id resourceguardproxy.BackupResourceGuardProxyId, input *resourceguardproxy.ResourceGuardProxyBaseResource) DataProtectionBackupVaultResourceGuardAssociationModel {
+func (DataProtectionBackupVaultResourceGuardAssociationResource) flatten(metadata sdk.ResourceMetaData, id resourceguardproxy.BackupResourceGuardProxyId, model *resourceguardproxy.ResourceGuardProxyBaseResource) error {
 	vaultId := backupvaultresources.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
 	state := DataProtectionBackupVaultResourceGuardAssociationModel{
 		DataProtectionBackupVaultId: vaultId.ID(),
 	}
 
-	if input != nil && input.Properties != nil {
-		state.DataProtectionResourceGuardId = pointer.From(input.Properties.ResourceGuardResourceId)
+	if model != nil && model.Properties != nil {
+		state.DataProtectionResourceGuardId = pointer.From(model.Properties.ResourceGuardResourceId)
 	}
 
-	return state
-}
-
-func setDataProtectionBackupVaultResourceGuardAssociationResourceData(d *pluginsdk.ResourceData, id resourceguardproxy.BackupResourceGuardProxyId, input *resourceguardproxy.ResourceGuardProxyBaseResource) error {
-	state := flattenDataProtectionBackupVaultResourceGuardAssociation(id, input)
-
-	if err := d.Set("data_protection_backup_vault_id", state.DataProtectionBackupVaultId); err != nil {
-		return fmt.Errorf("setting `data_protection_backup_vault_id`: %+v", err)
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+		return err
 	}
 
-	if err := d.Set("data_protection_resource_guard_id", state.DataProtectionResourceGuardId); err != nil {
-		return fmt.Errorf("setting `data_protection_resource_guard_id`: %+v", err)
-	}
-
-	return pluginsdk.SetResourceIdentityData(d, &id)
+	return metadata.Encode(&state)
 }

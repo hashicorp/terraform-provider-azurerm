@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -75,6 +74,8 @@ func (r DataProtectionBackupVaultResourceGuardAssociationListResource) List(ctx 
 		return
 	}
 
+	association := DataProtectionBackupVaultResourceGuardAssociationResource{}
+
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, proxy := range resp.Items {
 			result := request.NewListResult(ctx)
@@ -86,15 +87,15 @@ func (r DataProtectionBackupVaultResourceGuardAssociationListResource) List(ctx 
 				return
 			}
 
-			rd := r.ResourceFunc().Data(&terraform.InstanceState{})
-			rd.SetId(id.ID())
+			rmd := sdk.NewResourceMetaData(metadata.Client, association)
+			rmd.SetID(id)
 
-			if err := setDataProtectionBackupVaultResourceGuardAssociationResourceData(rd, *id, &proxy); err != nil {
+			if err := association.flatten(rmd, *id, &proxy); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", dataProtectionBackupVaultResourceGuardAssociationResourceType), err)
 				return
 			}
 
-			sdk.EncodeListResult(ctx, rd, &result)
+			sdk.EncodeListResult(ctx, rmd.ResourceData, &result)
 			if result.Diagnostics.HasError() {
 				push(result)
 				return
