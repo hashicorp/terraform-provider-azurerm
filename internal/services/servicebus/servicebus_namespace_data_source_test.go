@@ -126,14 +126,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-  name                           = "acctestservicebusnamespace-%[1]d"
-  location                       = azurerm_resource_group.test.location
-  resource_group_name            = azurerm_resource_group.test.name
-  sku                            = "Premium"
-  capacity                       = 1
-  local_auth_enabled             = false
-  public_network_access_enabled  = false
-  minimum_tls_version            = "1.2"
+  name                          = "acctestservicebusnamespace-%[1]d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  sku                           = "Premium"
+  capacity                      = 1
+  local_auth_enabled            = false
+  public_network_access_enabled = false
+  minimum_tls_version           = "1.2"
 
   identity {
     type = "SystemAssigned"
