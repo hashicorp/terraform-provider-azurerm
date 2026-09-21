@@ -1,23 +1,14 @@
 #!/bin/bash
+# Copyright IBM Corp. 2014, 2025
+# SPDX-License-Identifier: MPL-2.0
 
-# Installs kubectl if missing, and works around a cert-manager extension issue: its
-# default ClusterIssuers reference "*-current"-suffixed CA secrets that nothing creates
-# automatically, which otherwise leaves the pipeline controller's own TLS certificate stuck
-# "Issuing" forever and the pipelineGroups ARM resource stuck at provisioningState "Creating".
-#
-# Also creates the Kubernetes prerequisites the pipeline group's tlsConfigurations and
-# persistent volume reference: the mTLS secrets and an Azure Files-backed PersistentVolume.
-#
-# KUBECONFIG and the other environment variables below are supplied by the calling
-# local-exec provisioner's environment.
-
-set -e
+set -euo pipefail
 
 mkdir -p "$HOME/go/bin"
 export PATH="$HOME/go/bin:$PATH"
 
 command -v kubectl >/dev/null || (
-  curl -sL -o "$HOME/go/bin/kubectl" "https://dl.k8s.io/release/$(curl -sL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+  curl -fsSL -o "$HOME/go/bin/kubectl" "https://dl.k8s.io/release/$(curl -fsSL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
   chmod +x "$HOME/go/bin/kubectl"
 )
 
@@ -26,7 +17,7 @@ kubectl wait --for=condition=Ready certificate/arc-amp-client-root-ca -n cert-ma
 
 for pair in 'arc-amp-root-ca arc-amp-root-ca-current' 'arc-amp-client-root-ca arc-amp-client-root-ca-current'; do
   set -- $pair
-  kubectl get secret -n cert-manager "$1" -o json | python3 -c "import json,sys; d=json.load(sys.stdin); d['metadata']={'name':'$2','namespace':'cert-manager'}; print(json.dumps(d))" | kubectl apply -f -
+  kubectl get secret -n cert-manager "$1" -o json | python3 -c "import json,sys; data=json.load(sys.stdin); data['metadata']={'name':'$2','namespace':'cert-manager'}; print(json.dumps(data))" | kubectl apply -f -
 done
 
 kubectl create namespace "$PIPELINE_NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
@@ -49,4 +40,3 @@ kubectl create secret generic azure-file-secret \
   --dry-run=client -o yaml | kubectl apply -f -
 
 kubectl apply -f "$PIPELINE_PERSISTENT_VOLUME_CONFIG"
-
