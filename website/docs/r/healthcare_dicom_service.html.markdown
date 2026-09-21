@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `cors` - (Optional) A `cors` block as defined below.
 
-* `encryption_key_url` - (Optional) The URL of the key to use for encryption as part of the customer-managed key encryption settings. For more details, refer to the [Azure Customer-Managed Keys Overview](https://learn.microsoft.com/en-us/azure/storage/common/customer-managed-keys-overview).
+* `encryption_key_url` - (Optional) The URL of the key to use for encryption as part of the customer-managed key encryption settings. For more details, refer to the [Azure Customer-Managed Keys Overview](https://learn.microsoft.com/azure/storage/common/customer-managed-keys-overview).
 
 * `identity` - (Optional) An `identity` block as defined below.
 

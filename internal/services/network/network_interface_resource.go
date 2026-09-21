@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/edgezones"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -34,7 +35,7 @@ import (
 var networkInterfaceResourceName = "azurerm_network_interface"
 
 func resourceNetworkInterface() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceNetworkInterfaceCreate,
 		Read:   resourceNetworkInterfaceRead,
 		Update: resourceNetworkInterfaceUpdate,
@@ -126,16 +127,25 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 
 			// Optional
 			"auxiliary_mode": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice(networkinterfaces.PossibleValuesForNetworkInterfaceAuxiliaryMode(), false),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(networkinterfaces.NetworkInterfaceAuxiliaryModeAcceleratedConnections),
+					string(networkinterfaces.NetworkInterfaceAuxiliaryModeFloating),
+					string(networkinterfaces.NetworkInterfaceAuxiliaryModeMaxConnections),
+				}, false),
 				RequiredWith: []string{"auxiliary_sku"},
 			},
 
 			"auxiliary_sku": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice(networkinterfaces.PossibleValuesForNetworkInterfaceAuxiliarySku(), false),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(networkinterfaces.NetworkInterfaceAuxiliarySkuAEight),
+					string(networkinterfaces.NetworkInterfaceAuxiliarySkuAFour),
+					string(networkinterfaces.NetworkInterfaceAuxiliarySkuAOne),
+					string(networkinterfaces.NetworkInterfaceAuxiliarySkuATwo),
+				}, false),
 				RequiredWith: []string{"auxiliary_mode"},
 			},
 
@@ -208,6 +218,24 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.SixPointOh() {
+		r.Schema["auxiliary_mode"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(networkinterfaces.PossibleValuesForNetworkInterfaceAuxiliaryMode(), false),
+			RequiredWith: []string{"auxiliary_sku"},
+		}
+
+		r.Schema["auxiliary_sku"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(networkinterfaces.PossibleValuesForNetworkInterfaceAuxiliarySku(), false),
+			RequiredWith: []string{"auxiliary_mode"},
+		}
+	}
+
+	return r
 }
 
 func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
