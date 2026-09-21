@@ -921,7 +921,7 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 				existing.Model.Tags = &model.Tags
 			}
 
-			// Due to the fact that the service doesn't honor explicitly set to null fields in the PATCH request,
+			// Due to the fact that the service doesn't honour explicitly set to null fields in the PATCH request,
 			// we can not use PATCH (i.e. the Update) here.
 			if err := client.CreateThenPoll(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)

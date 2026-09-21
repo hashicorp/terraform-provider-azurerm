@@ -1126,7 +1126,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					// Don't do the check for create case.
 					if accountKind != "" {
 						if accountKind != string(storageaccounts.KindStorage) && changedKind != string(storageaccounts.KindStorageVTwo) {
-							log.Printf("[DEBUG] recreate storage account, could't be migrated from %q to %q", accountKind, changedKind)
+							log.Printf("[DEBUG] recreate storage account, couldn't be migrated from %q to %q", accountKind, changedKind)
 							d.ForceNew("account_kind")
 						} else {
 							log.Printf("[DEBUG] storage account can be upgraded from %q to %q", accountKind, changedKind)
@@ -1808,7 +1808,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	// Followings are updates to the sub-services
+	// Following are updates to the sub-services
 	supportLevel := availableFunctionalityForAccount(accountKind, accountTier, replicationType)
 
 	if d.HasChange("blob_properties") {

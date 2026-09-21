@@ -24,14 +24,17 @@ jobs:
     steps:
       - name: Strike through fixed failure and clean up
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          WORKFLOW_NAME: ${{ inputs.check_name || github.workflow }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         with:
           result-encoding: string
           retries: 3
           script: |
-            const workflowName = '${{ inputs.check_name || github.workflow }}';
-            const sha = '${{ github.event.pull_request.head.sha }}';
+            const workflowName = process.env.WORKFLOW_NAME;
+            const sha = process.env.HEAD_SHA;
             const shortSha = sha.substring(0, 7);
-            const prNumber = ${{ github.event.number }};
+            const prNumber = context.issue.number;
 
             console.log(`=== Comment Cleanup: "${workflowName}" ===`);
             console.log(`PR #${prNumber}, commit ${shortSha} (${sha})`);

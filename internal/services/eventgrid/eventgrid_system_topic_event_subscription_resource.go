@@ -164,7 +164,7 @@ func resourceEventGridSystemTopicEventSubscriptionCreateUpdate(d *pluginsdk.Reso
 
 	destination := expandEventSubscriptionDestination(d)
 	if destination == nil {
-		return fmt.Errorf("one of the following endpoint types must be specificed to create an EventGrid System Topic Event Subscription: %q", possibleSystemTopicEventSubscriptionEndpointTypes())
+		return fmt.Errorf("one of the following endpoint types must be specified to create an EventGrid System Topic Event Subscription: %q", possibleSystemTopicEventSubscriptionEndpointTypes())
 	}
 
 	filter, err := expandEventSubscriptionFilter(d)
