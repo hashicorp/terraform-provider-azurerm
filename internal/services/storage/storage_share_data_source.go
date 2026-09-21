@@ -132,7 +132,7 @@ func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) err
 				enabledProtocols = *props.EnabledProtocols
 			}
 			d.Set("enabled_protocol", string(enabledProtocols))
-			d.Set("access_tier", string(pointer.From(props.AccessTier)))
+			d.Set("access_tier", pointer.FromEnum(props.AccessTier))
 			d.Set("acl", flattenStorageShareACLs(pointer.From(props.SignedIdentifiers)))
 			d.Set("metadata", FlattenMetaData(pointer.From(props.Metadata)))
 		}
