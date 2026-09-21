@@ -212,9 +212,8 @@ func expandAzureRmPrivateDnsAaaaRecords(d *pluginsdk.ResourceData) *[]privatedns
 	records := make([]privatedns.AaaaRecord, len(recordStrings))
 
 	for i, v := range recordStrings {
-		ipv6 := v.(string)
 		records[i] = privatedns.AaaaRecord{
-			IPv6Address: &ipv6,
+			IPv6Address: pointer.To(v.(string)),
 		}
 	}
 

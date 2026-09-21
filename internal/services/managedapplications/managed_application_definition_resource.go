@@ -60,14 +60,10 @@ func resourceManagedApplicationDefinition() *pluginsdk.Resource {
 			},
 
 			"lock_level": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(applicationdefinitions.ApplicationLockLevelCanNotDelete),
-					string(applicationdefinitions.ApplicationLockLevelNone),
-					string(applicationdefinitions.ApplicationLockLevelReadOnly),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(applicationdefinitions.PossibleValuesForApplicationLockLevel(), false),
 			},
 
 			"authorization": {

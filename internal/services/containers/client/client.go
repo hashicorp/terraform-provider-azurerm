@@ -16,12 +16,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-03-01/fleetupdatestrategies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-03-01/updateruns"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/deploymentsafeguards"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/trustedaccess"
-	managedclusters20260401Client "github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-04-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/trustedaccess"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2024-11-01/extensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2025-04-01/fluxconfiguration"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -42,7 +41,6 @@ type Client struct {
 	FleetUpdateRunsClient                       *updateruns.UpdateRunsClient
 	FleetUpdateStrategiesClient                 *fleetupdatestrategies.FleetUpdateStrategiesClient
 	KubernetesClustersClient                    *managedclusters.ManagedClustersClient
-	KubernetesClustersClient_v2026_04_01        *managedclusters20260401Client.ManagedClustersClient
 	KubernetesExtensionsClient                  *extensions.ExtensionsClient
 	KubernetesFluxConfigurationClient           *fluxconfiguration.FluxConfigurationClient
 	MaintenanceConfigurationsClient             *maintenanceconfigurations.MaintenanceConfigurationsClient
@@ -115,12 +113,6 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(kubernetesClustersClient.Client, o.Authorizers.ResourceManager)
 
-	kubernetesClustersClient_v2026_04_01, err := managedclusters20260401Client.NewManagedClustersClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building Kubernetes Clusters Client: %+v", err)
-	}
-	o.Configure(kubernetesClustersClient_v2026_04_01.Client, o.Authorizers.ResourceManager)
-
 	kubernetesExtensionsClient, err := extensions.NewExtensionsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building KubernetesExtensions Client: %+v", err)
@@ -175,7 +167,6 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 		FleetUpdateRunsClient:                       fleetUpdateRunsClient,
 		FleetUpdateStrategiesClient:                 fleetUpdateStrategiesClient,
 		KubernetesClustersClient:                    kubernetesClustersClient,
-		KubernetesClustersClient_v2026_04_01:        kubernetesClustersClient_v2026_04_01,
 		KubernetesExtensionsClient:                  kubernetesExtensionsClient,
 		KubernetesFluxConfigurationClient:           fluxConfigurationClient,
 		MaintenanceConfigurationsClient:             maintenanceConfigurationsClient,
