@@ -45,7 +45,7 @@ The following arguments are supported:
 
 -> **Note:** When `ip_version` is set to `IPv6`, `custom_ip_prefix_id` must reference a regional (child) range rather than a global (parent) range. For more details on creating a Public IP Prefix from a custom IP prefix, see [here](https://learn.microsoft.com/azure/virtual-network/ip-services/manage-custom-ip-address-prefix#create-a-public-ip-prefix-from-a-custom-ip-prefix).
 
-* `sku` - (Optional) The SKU of the Public IP Prefix. Possible values are `Standard` and `StandardV2`. Defaults to `Standard`. Changing between `Standard` and `StandardV2` updates the resource in-place.
+* `sku` - (Optional) The SKU of the Public IP Prefix. Possible values are `Standard` and `StandardV2`. Defaults to `Standard`.
 
 * `sku_tier` - (Optional) The SKU Tier that should be used for the Public IP Prefix. Possible values are `Regional` and `Global`. Defaults to `Regional`. Changing this forces a new resource to be created.
 
