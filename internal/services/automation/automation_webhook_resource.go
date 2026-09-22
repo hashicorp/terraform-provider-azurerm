@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceAutomationWebhook() *pluginsdk.Resource {
@@ -116,15 +115,17 @@ func resourceAutomationWebhookCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	id := webhook.NewWebHookID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
 
-	if resp.Model != nil && resp.Model.Id != nil && *resp.Model.Id != "" {
-		return tf.ImportAsExistsError("azurerm_automation_webhook", *resp.Model.Id)
+		if resp.Model != nil && resp.Model.Id != nil && *resp.Model.Id != "" {
+			return tf.ImportAsExistsError("azurerm_automation_webhook", *resp.Model.Id)
+		}
 	}
 
 	parameters := webhook.WebhookCreateOrUpdateParameters{
@@ -252,7 +253,7 @@ func resourceAutomationWebhookRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 			d.Set("run_on_worker_group", props.RunOn)
 
-			if err = d.Set("parameters", utils.FlattenPtrMapStringString(props.Parameters)); err != nil {
+			if err = d.Set("parameters", pluginsdk.FlattenPtrMapStringString(props.Parameters)); err != nil {
 				return err
 			}
 		}

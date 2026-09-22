@@ -6,7 +6,6 @@ package containers
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -17,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-07-01/credentialsets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -27,7 +25,7 @@ var _ sdk.Resource = ContainerRegistryCredentialSetResource{}
 type ContainerRegistryCredentialSetResource struct{}
 
 func (ContainerRegistryCredentialSetResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:        pluginsdk.TypeString,
 			Required:    true,
@@ -68,13 +66,6 @@ func (ContainerRegistryCredentialSetResource) Arguments() map[string]*pluginsdk.
 		// https://github.com/Azure/azure-rest-api-specs/issues/32154
 		"identity": commonschema.SystemAssignedIdentityRequired(),
 	}
-
-	if !features.FivePointOh() {
-		args["authentication_credentials"].Elem.(*pluginsdk.Resource).Schema["username_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeAny)
-		args["authentication_credentials"].Elem.(*pluginsdk.Resource).Schema["password_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeAny)
-	}
-
-	return args
 }
 
 func (ContainerRegistryCredentialSetResource) Attributes() map[string]*pluginsdk.Schema {
@@ -114,25 +105,26 @@ func (r ContainerRegistryCredentialSetResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			log.Printf("[INFO] preparing arguments for Container Registry Credential Set creation.")
-
 			registryId, err := registries.ParseRegistryID(config.ContainerRegistryId)
 			if err != nil {
 				return err
 			}
 
-			id := credentialsets.NewCredentialSetID(subscriptionId,
+			id := credentialsets.NewCredentialSetID(
+				subscriptionId,
 				registryId.ResourceGroupName,
 				registryId.RegistryName,
 				config.Name,
 			)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			identityExpanded, err := identity.ExpandSystemAssignedFromModel(config.Identity)
@@ -149,7 +141,7 @@ func (r ContainerRegistryCredentialSetResource) Create() sdk.ResourceFunc {
 				Identity: identityExpanded,
 			}
 
-			if err := client.CreateThenPoll(ctx, id, param); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, param, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

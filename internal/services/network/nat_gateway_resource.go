@@ -20,13 +20,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name nat_gateway -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 var natGatewayResourceName = "azurerm_nat_gateway"
 
@@ -126,14 +127,16 @@ func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	locks.ByName(id.NatGatewayName, natGatewayResourceName)
 	defer locks.UnlockByName(id.NatGatewayName, natGatewayResourceName)
 
-	resp, err := client.Get(ctx, id, natgateways.DefaultGetOperationOptions())
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		resp, err := client.Get(ctx, id, natgateways.DefaultGetOperationOptions())
+		if err != nil {
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if resp.Model != nil && resp.Model.Id != nil && *resp.Model.Id != "" {
-		return tf.ImportAsExistsError("azurerm_nat_gateway", id.ID())
+		if resp.Model != nil && resp.Model.Id != nil && *resp.Model.Id != "" {
+			return tf.ImportAsExistsError("azurerm_nat_gateway", id.ID())
+		}
 	}
 
 	parameters := natgateways.NatGateway{
@@ -142,7 +145,7 @@ func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 			IdleTimeoutInMinutes: pointer.To(int64(d.Get("idle_timeout_in_minutes").(int))),
 		},
 		Sku: &natgateways.NatGatewaySku{
-			Name: pointer.To(natgateways.NatGatewaySkuName(d.Get("sku_name").(string))),
+			Name: pointer.ToEnum[natgateways.NatGatewaySkuName](d.Get("sku_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -152,7 +155,7 @@ func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		parameters.Zones = &zones
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -213,7 +216,7 @@ func resourceNatGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	if d.HasChange("sku_name") {
 		payload.Sku = &natgateways.NatGatewaySku{
-			Name: pointer.To(natgateways.NatGatewaySkuName(d.Get("sku_name").(string))),
+			Name: pointer.ToEnum[natgateways.NatGatewaySkuName](d.Get("sku_name").(string)),
 		}
 	}
 

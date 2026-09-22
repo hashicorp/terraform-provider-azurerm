@@ -63,9 +63,20 @@ func (c GuestAgentsClient) GuestAgentCreate(ctx context.Context, id commonids.Sc
 
 // GuestAgentCreateThenPoll performs GuestAgentCreate then polls until it's completed
 func (c GuestAgentsClient) GuestAgentCreateThenPoll(ctx context.Context, id commonids.ScopeId, input GuestAgent) error {
+	return c.GuestAgentCreateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// GuestAgentCreateCallbackThenPoll performs GuestAgentCreate, runs the optional callback function, then polls until it's completed
+func (c GuestAgentsClient) GuestAgentCreateCallbackThenPoll(ctx context.Context, id commonids.ScopeId, input GuestAgent, callback func() error) error {
 	result, err := c.GuestAgentCreate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing GuestAgentCreate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

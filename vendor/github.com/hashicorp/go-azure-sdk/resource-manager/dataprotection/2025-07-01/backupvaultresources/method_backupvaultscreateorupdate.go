@@ -91,9 +91,20 @@ func (c BackupVaultResourcesClient) BackupVaultsCreateOrUpdate(ctx context.Conte
 
 // BackupVaultsCreateOrUpdateThenPoll performs BackupVaultsCreateOrUpdate then polls until it's completed
 func (c BackupVaultResourcesClient) BackupVaultsCreateOrUpdateThenPoll(ctx context.Context, id BackupVaultId, input BackupVaultResource, options BackupVaultsCreateOrUpdateOperationOptions) error {
+	return c.BackupVaultsCreateOrUpdateCallbackThenPoll(ctx, id, input, options, nil)
+}
+
+// BackupVaultsCreateOrUpdateCallbackThenPoll performs BackupVaultsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c BackupVaultResourcesClient) BackupVaultsCreateOrUpdateCallbackThenPoll(ctx context.Context, id BackupVaultId, input BackupVaultResource, options BackupVaultsCreateOrUpdateOperationOptions, callback func() error) error {
 	result, err := c.BackupVaultsCreateOrUpdate(ctx, id, input, options)
 	if err != nil {
 		return fmt.Errorf("performing BackupVaultsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

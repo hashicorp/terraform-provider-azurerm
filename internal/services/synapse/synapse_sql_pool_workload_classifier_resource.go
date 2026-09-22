@@ -11,6 +11,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSynapseSQLPoolWorkloadClassifier() *pluginsdk.Resource {
@@ -118,14 +118,16 @@ func resourceSynapseSQLPoolWorkloadClassifierCreateUpdate(d *pluginsdk.ResourceD
 	id := parse.NewSqlPoolWorkloadClassifierID(workloadGroupId.SubscriptionId, workloadGroupId.ResourceGroup, workloadGroupId.WorkspaceName, workloadGroupId.SqlPoolName, workloadGroupId.WorkloadGroupName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.SqlPoolName, id.WorkloadGroupName, id.WorkloadClassifierName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %q: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.SqlPoolName, id.WorkloadGroupName, id.WorkloadClassifierName)
+			if err != nil {
+				if !response.WasNotFound(existing.Response.Response) {
+					return fmt.Errorf("checking for existing %q: %+v", id, err)
+				}
 			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_synapse_sql_pool_workload_classifier", id.ID())
+			if !response.WasNotFound(existing.Response.Response) {
+				return tf.ImportAsExistsError("azurerm_synapse_sql_pool_workload_classifier", id.ID())
+			}
 		}
 	}
 
@@ -144,11 +146,14 @@ func resourceSynapseSQLPoolWorkloadClassifierCreateUpdate(d *pluginsdk.ResourceD
 		return fmt.Errorf("creating/updating %q: %+v", id, err)
 	}
 
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceSynapseSQLPoolWorkloadClassifierRead(d, meta)
 }
 
@@ -164,7 +169,7 @@ func resourceSynapseSQLPoolWorkloadClassifierRead(d *pluginsdk.ResourceData, met
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.SqlPoolName, id.WorkloadGroupName, id.WorkloadClassifierName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] synapse %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil

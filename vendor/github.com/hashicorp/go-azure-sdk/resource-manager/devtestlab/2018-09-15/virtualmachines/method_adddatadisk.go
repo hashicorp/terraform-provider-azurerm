@@ -61,9 +61,20 @@ func (c VirtualMachinesClient) AddDataDisk(ctx context.Context, id VirtualMachin
 
 // AddDataDiskThenPoll performs AddDataDisk then polls until it's completed
 func (c VirtualMachinesClient) AddDataDiskThenPoll(ctx context.Context, id VirtualMachineId, input DataDiskProperties) error {
+	return c.AddDataDiskCallbackThenPoll(ctx, id, input, nil)
+}
+
+// AddDataDiskCallbackThenPoll performs AddDataDisk, runs the optional callback function, then polls until it's completed
+func (c VirtualMachinesClient) AddDataDiskCallbackThenPoll(ctx context.Context, id VirtualMachineId, input DataDiskProperties, callback func() error) error {
 	result, err := c.AddDataDisk(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing AddDataDisk: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

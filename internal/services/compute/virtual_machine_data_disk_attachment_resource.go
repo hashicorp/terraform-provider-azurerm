@@ -108,13 +108,9 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 			},
 
 			"caching": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachines.CachingTypesNone),
-					string(virtualmachines.CachingTypesReadOnly),
-					string(virtualmachines.CachingTypesReadWrite),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForCachingTypes(), false),
 			},
 
 			"create_option": {
@@ -187,12 +183,12 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 
 	expandedDisk := virtualmachines.DataDisk{
 		Name:         pointer.To(name),
-		Caching:      pointer.To(virtualmachines.CachingTypes(caching)),
+		Caching:      pointer.ToEnum[virtualmachines.CachingTypes](caching),
 		CreateOption: createOption,
 		Lun:          int64(lun),
 		ManagedDisk: &virtualmachines.ManagedDiskParameters{
 			Id:                 pointer.To(managedDiskId),
-			StorageAccountType: pointer.To(virtualmachines.StorageAccountTypes(*managedDisk.Sku.Name)),
+			StorageAccountType: pointer.ToEnum[virtualmachines.StorageAccountTypes](string(*managedDisk.Sku.Name)),
 		},
 		WriteAcceleratorEnabled: pointer.To(writeAcceleratorEnabled),
 	}
@@ -217,11 +213,13 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if d.IsNewResource() {
-		if existingIndex != -1 {
-			return tf.ImportAsExistsError("azurerm_virtual_machine_data_disk_attachment", resourceId)
-		}
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			if existingIndex != -1 {
+				return tf.ImportAsExistsError("azurerm_virtual_machine_data_disk_attachment", resourceId)
+			}
 
-		disks = append(disks, expandedDisk)
+			disks = append(disks, expandedDisk)
+		}
 	} else {
 		if existingIndex == -1 {
 			return fmt.Errorf("unable to find Disk %q attached to Virtual Machine %q ", name, parsedVirtualMachineId.String())
@@ -242,6 +240,7 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 	// if there's too many disks we get a 409 back with:
 	//   `The maximum number of data disks allowed to be attached to a VM of this size is 1.`
 	// which we're intentionally not wrapping, since the errors good.
+	// TODO: implement `CallbackThenPoll` on Create, requires updated resource ID implementing `resourceids.ResourceId`
 	if err := client.CreateOrUpdateThenPoll(ctx, *parsedVirtualMachineId, *virtualMachine.Model, virtualmachines.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("updating %s with Disk %q: %+v", parsedVirtualMachineId, name, err)
 	}

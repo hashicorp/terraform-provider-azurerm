@@ -105,7 +105,8 @@ func (c DataPlaneClient) GetKeyValuesResponder(resp *http.Response) (result KeyV
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
+		autorest.ByClosing(),
+	)
 	result.Response = autorest.Response{Response: resp}
 	return
 }

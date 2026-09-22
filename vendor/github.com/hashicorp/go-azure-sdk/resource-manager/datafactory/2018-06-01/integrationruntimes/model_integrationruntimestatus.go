@@ -27,9 +27,9 @@ func (s BaseIntegrationRuntimeStatusImpl) IntegrationRuntimeStatus() BaseIntegra
 
 var _ IntegrationRuntimeStatus = RawIntegrationRuntimeStatusImpl{}
 
-// RawIntegrationRuntimeStatusImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawIntegrationRuntimeStatusImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawIntegrationRuntimeStatusImpl struct {
 	integrationRuntimeStatus BaseIntegrationRuntimeStatusImpl
 	Type                     string
@@ -38,6 +38,10 @@ type RawIntegrationRuntimeStatusImpl struct {
 
 func (s RawIntegrationRuntimeStatusImpl) IntegrationRuntimeStatus() BaseIntegrationRuntimeStatusImpl {
 	return s.integrationRuntimeStatus
+}
+
+func (s RawIntegrationRuntimeStatusImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalIntegrationRuntimeStatusImplementation(input []byte) (IntegrationRuntimeStatus, error) {

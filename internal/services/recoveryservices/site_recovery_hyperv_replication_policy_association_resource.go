@@ -23,7 +23,7 @@ import (
 const TargetContainerIdAzure = "Microsoft Azure"
 
 // we only support replicate to Azure as backup to customer-managed sites is being deprecated.
-// https://learn.microsoft.com/en-us/azure/site-recovery/site-to-site-deprecation
+// https://learn.microsoft.com/azure/site-recovery/site-to-site-deprecation
 
 type HyperVReplicationPolicyAssociationModel struct {
 	Name     string `tfschema:"name"`
@@ -112,7 +112,7 @@ func (h HyperVReplicationPolicyAssociationResource) Create() sdk.ResourceFunc {
 					ProviderSpecificInput:       replicationprotectioncontainermappings.BaseReplicationProviderSpecificContainerMappingInputImpl{},
 				},
 			}
-			if err := client.CreateThenPoll(ctx, id, param); err != nil {
+			if err := client.CreateCallbackThenPoll(ctx, id, param, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

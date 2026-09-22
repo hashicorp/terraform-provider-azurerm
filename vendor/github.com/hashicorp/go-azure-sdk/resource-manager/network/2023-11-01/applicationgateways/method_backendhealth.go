@@ -87,9 +87,20 @@ func (c ApplicationGatewaysClient) BackendHealth(ctx context.Context, id Applica
 
 // BackendHealthThenPoll performs BackendHealth then polls until it's completed
 func (c ApplicationGatewaysClient) BackendHealthThenPoll(ctx context.Context, id ApplicationGatewayId, options BackendHealthOperationOptions) error {
+	return c.BackendHealthCallbackThenPoll(ctx, id, options, nil)
+}
+
+// BackendHealthCallbackThenPoll performs BackendHealth, runs the optional callback function, then polls until it's completed
+func (c ApplicationGatewaysClient) BackendHealthCallbackThenPoll(ctx context.Context, id ApplicationGatewayId, options BackendHealthOperationOptions, callback func() error) error {
 	result, err := c.BackendHealth(ctx, id, options)
 	if err != nil {
 		return fmt.Errorf("performing BackendHealth: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

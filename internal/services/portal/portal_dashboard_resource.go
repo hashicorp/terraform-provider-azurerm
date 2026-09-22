@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourcePortalDashboard() *pluginsdk.Resource {
@@ -59,7 +58,7 @@ func resourcePortalDashboard() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.DashboardProperties,
-				StateFunc:    utils.NormalizeJson,
+				StateFunc:    pluginsdk.NormalizeJson,
 			},
 		},
 	}
@@ -72,16 +71,19 @@ func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	defer cancel()
 
 	id := dashboard.NewDashboardID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
-			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_portal_dashboard", id.ID())
+	if d.IsNewResource() {
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+				}
+			}
+
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_portal_dashboard", id.ID())
+			}
 		}
 	}
 
@@ -103,7 +105,10 @@ func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("creating/updating %s %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	return resourcePortalDashboardRead(d, meta)
 }
 

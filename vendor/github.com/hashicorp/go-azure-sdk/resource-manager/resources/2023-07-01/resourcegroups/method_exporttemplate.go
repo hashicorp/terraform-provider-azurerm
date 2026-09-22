@@ -63,9 +63,20 @@ func (c ResourceGroupsClient) ExportTemplate(ctx context.Context, id commonids.R
 
 // ExportTemplateThenPoll performs ExportTemplate then polls until it's completed
 func (c ResourceGroupsClient) ExportTemplateThenPoll(ctx context.Context, id commonids.ResourceGroupId, input ExportTemplateRequest) error {
+	return c.ExportTemplateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ExportTemplateCallbackThenPoll performs ExportTemplate, runs the optional callback function, then polls until it's completed
+func (c ResourceGroupsClient) ExportTemplateCallbackThenPoll(ctx context.Context, id commonids.ResourceGroupId, input ExportTemplateRequest, callback func() error) error {
 	result, err := c.ExportTemplate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ExportTemplate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

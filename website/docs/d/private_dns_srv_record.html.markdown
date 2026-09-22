@@ -15,10 +15,10 @@ Use this data source to access information about an existing Private DNS SRV Rec
 ## Example Usage
 
 ```hcl
-resource "azurerm_private_dns_srv_record" "example" {
-  name                = "test"
-  zone_name           = "test-zone"
-  resource_group_name = "test-rg"
+data "azurerm_private_dns_srv_record" "example" {
+  name                = "example"
+  zone_name           = "example-zone"
+  resource_group_name = "example-rg"
 }
 
 output "private_dns_srv_record_id" {

@@ -62,9 +62,20 @@ func (c PreRulesResourcesClient) PreRulesCreateOrUpdate(ctx context.Context, id 
 
 // PreRulesCreateOrUpdateThenPoll performs PreRulesCreateOrUpdate then polls until it's completed
 func (c PreRulesResourcesClient) PreRulesCreateOrUpdateThenPoll(ctx context.Context, id PreRuleId, input PreRulesResource) error {
+	return c.PreRulesCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// PreRulesCreateOrUpdateCallbackThenPoll performs PreRulesCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c PreRulesResourcesClient) PreRulesCreateOrUpdateCallbackThenPoll(ctx context.Context, id PreRuleId, input PreRulesResource, callback func() error) error {
 	result, err := c.PreRulesCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing PreRulesCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

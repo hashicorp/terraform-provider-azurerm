@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -88,7 +87,7 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Arguments() map[strin
 			MaxItems: 5,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: azValidate.ISO8601RepeatingTime,
+				ValidateFunc: validation.ISO8601RepeatingTime,
 			},
 		},
 
@@ -96,7 +95,7 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Arguments() map[strin
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: azValidate.ISO8601Duration,
+			ValidateFunc: validation.ISO8601Duration,
 		},
 
 		"retention_rule": {
@@ -116,7 +115,7 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Arguments() map[strin
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: azValidate.ISO8601Duration,
+						ValidateFunc: validation.ISO8601Duration,
 					},
 
 					"absolute_criteria": {
@@ -207,15 +206,17 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Create() sdk.Resource
 			vaultId, _ := basebackuppolicyresources.ParseBackupVaultID(model.DataProtectionBackupVaultId)
 			id := basebackuppolicyresources.NewBackupPolicyID(subscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, model.Name)
 
-			existing, err := client.BackupPoliciesGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.BackupPoliciesGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			policyRules := make([]basebackuppolicyresources.BasePolicyRule, 0)
@@ -383,7 +384,6 @@ func expandBackupPolicyDataLakeStorageTaggingCriteria(input []BackupPolicyDataLa
 
 	for i, item := range input {
 		result := basebackuppolicyresources.TaggingCriteria{
-			IsDefault:       false,
 			Criteria:        expandBackupPolicyDataLakeStorageRetentionRuleCriteria(item),
 			TaggingPriority: int64(i + 1),
 			TagInfo: basebackuppolicyresources.RetentionTag{
@@ -509,13 +509,13 @@ func flattenBackupPolicyDataLakeStorageCriteriaIntoRule(input *[]basebackuppolic
 	for _, item := range pointer.From(input) {
 		if criteria, ok := item.(basebackuppolicyresources.ScheduleBasedBackupCriteria); ok {
 			if criteria.AbsoluteCriteria != nil && len(pointer.From(criteria.AbsoluteCriteria)) > 0 {
-				rule.AbsoluteCriteria = string((pointer.From(criteria.AbsoluteCriteria))[0])
+				rule.AbsoluteCriteria = string(pointer.From(criteria.AbsoluteCriteria)[0])
 			}
 
 			if criteria.DaysOfTheWeek != nil {
 				daysOfWeek := make([]string, 0)
 				for _, item := range pointer.From(criteria.DaysOfTheWeek) {
-					daysOfWeek = append(daysOfWeek, (string)(item))
+					daysOfWeek = append(daysOfWeek, string(item))
 				}
 				rule.DaysOfWeek = daysOfWeek
 			}
@@ -523,7 +523,7 @@ func flattenBackupPolicyDataLakeStorageCriteriaIntoRule(input *[]basebackuppolic
 			if criteria.MonthsOfYear != nil {
 				monthsOfYear := make([]string, 0)
 				for _, item := range pointer.From(criteria.MonthsOfYear) {
-					monthsOfYear = append(monthsOfYear, (string)(item))
+					monthsOfYear = append(monthsOfYear, string(item))
 				}
 				rule.MonthsOfYear = monthsOfYear
 			}
@@ -531,7 +531,7 @@ func flattenBackupPolicyDataLakeStorageCriteriaIntoRule(input *[]basebackuppolic
 			if criteria.WeeksOfTheMonth != nil {
 				weeksOfMonth := make([]string, 0)
 				for _, item := range pointer.From(criteria.WeeksOfTheMonth) {
-					weeksOfMonth = append(weeksOfMonth, (string)(item))
+					weeksOfMonth = append(weeksOfMonth, string(item))
 				}
 				rule.WeeksOfMonth = weeksOfMonth
 			}

@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -81,7 +80,7 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) IDValidationFunc() 
 }
 
 func (r DataProtectionBackupPolicyKubernatesClusterResource) Arguments() map[string]*pluginsdk.Schema {
-	arguments := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -138,7 +137,7 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Arguments() map[str
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
-									ValidateFunc: validate.ISO8601Duration,
+									ValidateFunc: validation.ISO8601Duration,
 								},
 							},
 						},
@@ -171,7 +170,8 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Arguments() map[str
 									Optional: true,
 									ForceNew: true,
 									ValidateFunc: validation.StringInSlice(
-										basebackuppolicyresources.PossibleValuesForAbsoluteMarker(), false),
+										basebackuppolicyresources.PossibleValuesForAbsoluteMarker(), false,
+									),
 								},
 
 								"days_of_week": {
@@ -242,7 +242,7 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Arguments() map[str
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
-									ValidateFunc: validate.ISO8601Duration,
+									ValidateFunc: validation.ISO8601Duration,
 								},
 							},
 						},
@@ -264,7 +264,6 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Arguments() map[str
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
-	return arguments
 }
 
 func (r DataProtectionBackupPolicyKubernatesClusterResource) Attributes() map[string]*pluginsdk.Schema {
@@ -284,15 +283,18 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Create() sdk.Resour
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := basebackuppolicyresources.NewBackupPolicyID(subscriptionId, model.ResourceGroupName, model.VaultName, model.Name)
-			existing, err := client.BackupPoliciesGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for existing %s: %+v", id, err)
-				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.BackupPoliciesGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for existing %s: %+v", id, err)
+					}
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			taggingCriteria, err := expandBackupPolicyKubernetesClusterTaggingCriteriaArray(model.RetentionRule)
@@ -315,7 +317,7 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Create() sdk.Resour
 			}
 
 			if _, err := client.BackupPoliciesCreateOrUpdate(ctx, id, parameters); err != nil {
-				return fmt.Errorf("creating/updating DataProtection BackupPolicy (%q): %+v", id, err)
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -461,7 +463,6 @@ func expandBackupPolicyKubernetesClusterLifeCycle(input []LifeCycle) []basebacku
 func expandBackupPolicyKubernetesClusterTaggingCriteriaArray(input []RetentionRule) (*[]basebackuppolicyresources.TaggingCriteria, error) {
 	results := []basebackuppolicyresources.TaggingCriteria{
 		{
-			Criteria:        nil,
 			IsDefault:       true,
 			TaggingPriority: 99,
 			TagInfo: basebackuppolicyresources.RetentionTag{
@@ -472,7 +473,6 @@ func expandBackupPolicyKubernetesClusterTaggingCriteriaArray(input []RetentionRu
 	}
 	for _, item := range input {
 		result := basebackuppolicyresources.TaggingCriteria{
-			IsDefault:       false,
 			TaggingPriority: item.Priority,
 			TagInfo: basebackuppolicyresources.RetentionTag{
 				Id:      pointer.To(item.Name + "_"),
@@ -529,7 +529,6 @@ func expandBackupPolicyKubernetesClusterCriteriaArray(input []Criteria) (*[]base
 
 		results = append(results, basebackuppolicyresources.ScheduleBasedBackupCriteria{
 			AbsoluteCriteria: &absoluteCriteria,
-			DaysOfMonth:      nil,
 			DaysOfTheWeek:    &daysOfWeek,
 			MonthsOfYear:     &monthsOfYear,
 			ScheduleTimes:    pointer.To(item.ScheduledBackupTimes),
@@ -577,11 +576,11 @@ func flattenBackupPolicyKubernetesClusterRetentionRules(input *[]basebackuppolic
 		return results
 	}
 
-	var taggingCriterias []basebackuppolicyresources.TaggingCriteria
+	var taggingCriteriaList []basebackuppolicyresources.TaggingCriteria
 	for _, item := range *input {
 		if backupRule, ok := item.(basebackuppolicyresources.AzureBackupRule); ok {
 			if trigger, ok := backupRule.Trigger.(basebackuppolicyresources.ScheduleBasedTriggerContext); ok {
-				taggingCriterias = trigger.TaggingCriteria
+				taggingCriteriaList = trigger.TaggingCriteria
 			}
 		}
 	}
@@ -593,7 +592,7 @@ func flattenBackupPolicyKubernetesClusterRetentionRules(input *[]basebackuppolic
 			var taggingCriteria []Criteria
 			if retentionRule.IsDefault == nil || !*retentionRule.IsDefault {
 				name = retentionRule.Name
-				for _, criteria := range taggingCriterias {
+				for _, criteria := range taggingCriteriaList {
 					if strings.EqualFold(criteria.TagInfo.TagName, name) {
 						taggingPriority = criteria.TaggingPriority
 						taggingCriteria = flattenBackupPolicyKubernetesClusterBackupCriteriaArray(criteria.Criteria)
@@ -656,21 +655,21 @@ func flattenBackupPolicyKubernetesClusterBackupCriteriaArray(input *[]basebackup
 			if criteria.DaysOfTheWeek != nil {
 				daysOfWeek = make([]string, 0)
 				for _, item := range *criteria.DaysOfTheWeek {
-					daysOfWeek = append(daysOfWeek, (string)(item))
+					daysOfWeek = append(daysOfWeek, string(item))
 				}
 			}
 			var monthsOfYear []string
 			if criteria.MonthsOfYear != nil {
 				monthsOfYear = make([]string, 0)
 				for _, item := range *criteria.MonthsOfYear {
-					monthsOfYear = append(monthsOfYear, (string)(item))
+					monthsOfYear = append(monthsOfYear, string(item))
 				}
 			}
 			var weeksOfMonth []string
 			if criteria.WeeksOfTheMonth != nil {
 				weeksOfMonth = make([]string, 0)
 				for _, item := range *criteria.WeeksOfTheMonth {
-					weeksOfMonth = append(weeksOfMonth, (string)(item))
+					weeksOfMonth = append(weeksOfMonth, string(item))
 				}
 			}
 			var scheduleTimes []string

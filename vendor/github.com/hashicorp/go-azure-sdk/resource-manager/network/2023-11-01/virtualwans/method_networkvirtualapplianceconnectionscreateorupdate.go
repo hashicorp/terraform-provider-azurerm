@@ -62,9 +62,20 @@ func (c VirtualWANsClient) NetworkVirtualApplianceConnectionsCreateOrUpdate(ctx 
 
 // NetworkVirtualApplianceConnectionsCreateOrUpdateThenPoll performs NetworkVirtualApplianceConnectionsCreateOrUpdate then polls until it's completed
 func (c VirtualWANsClient) NetworkVirtualApplianceConnectionsCreateOrUpdateThenPoll(ctx context.Context, id NetworkVirtualApplianceConnectionId, input NetworkVirtualApplianceConnection) error {
+	return c.NetworkVirtualApplianceConnectionsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// NetworkVirtualApplianceConnectionsCreateOrUpdateCallbackThenPoll performs NetworkVirtualApplianceConnectionsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c VirtualWANsClient) NetworkVirtualApplianceConnectionsCreateOrUpdateCallbackThenPoll(ctx context.Context, id NetworkVirtualApplianceConnectionId, input NetworkVirtualApplianceConnection, callback func() error) error {
 	result, err := c.NetworkVirtualApplianceConnectionsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing NetworkVirtualApplianceConnectionsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -86,6 +86,8 @@ The following arguments are supported:
 
 * `client_certificate_exclusion_paths` - (Optional) Paths to exclude when using client certificates, separated by ;
 
+~> **Note:** TLS 1.3 and HTTP 2.0 don't support TLS renegotiation. These protocols will not work if your app is configured with client certificate settings that use TLS renegotiation. Either set `client_certificate_enabled` to `false`, or set `client_certificate_mode` to `Optional` or `Required` and remove all `client_certificate_exclusion_paths`.
+
 * `connection_string` - (Optional) a `connection_string` block as detailed below.
 
 * `content_share_force_disabled` - (Optional) Force disable the content share settings.
@@ -93,6 +95,8 @@ The following arguments are supported:
 * `daily_memory_time_quota` - (Optional) The amount of memory in gigabyte-seconds that your application is allowed to consume per day. Setting this value only affects function apps in Consumption Plans. Defaults to `0`.
 
 * `enabled` - (Optional) Is the Linux Function App Slot enabled. Defaults to `true`.
+
+* `end_to_end_tls_encryption_enabled` - (Optional) Whether to enable end-to-end TLS encryption. Defaults to `false`.
 
 * `ftp_publish_basic_authentication_enabled` - (Optional) Are the default FTP Basic Authentication publishing credentials enabled. Defaults to `true`.
 
@@ -128,11 +132,11 @@ The following arguments are supported:
 
 * `virtual_network_backup_restore_enabled` - (Optional) Whether backup and restore operations over the linked virtual network are enabled. Defaults to `false`.
 
-* `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Function App Slot for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
+* `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Function App Slot for [regional virtual network integration](https://docs.microsoft.com/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
 
 ~> **Note:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simultaneously. If the virtual network is set via the resource `app_service_virtual_network_swift_connection` then `ignore_changes` should be used in the function app slot configuration.
 
-~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
+~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/azure/app-service/overview-vnet-integration#permissions)
 
 * `vnet_image_pull_enabled` - (Optional) Specifies whether traffic for the image pull should be routed over virtual network. Defaults to `false`.
 
@@ -254,7 +258,7 @@ An `active_directory_v2` block supports the following:
 
 * `tenant_auth_endpoint` - (Required) The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/{tenant-guid}/v2.0/`
 
-~> **Note:** [Here](https://learn.microsoft.com/en-us/entra/identity-platform/authentication-national-cloud#microsoft-entra-authentication-endpoints) is a list of possible authentication endpoints based on the cloud environment. [Here](https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-provider-aad?tabs=workforce-tenant) is more information to better understand how to configure authentication for Azure App Service or Azure Functions.
+~> **Note:** [Here](https://learn.microsoft.com/entra/identity-platform/authentication-national-cloud#microsoft-entra-authentication-endpoints) is a list of possible authentication endpoints based on the cloud environment. [Here](https://learn.microsoft.com/azure/app-service/configure-authentication-provider-aad?tabs=workforce-tenant) is more information to better understand how to configure authentication for Azure App Service or Azure Functions.
 
 * `client_secret_setting_name` - (Optional) The App Setting name that contains the client secret of the Client.
 
@@ -511,6 +515,8 @@ A `site_config` block supports the following:
 * `scm_ip_restriction_default_action` - (Optional) The Default action for traffic that does not match any `scm_ip_restriction` rule. possible values include `Allow` and `Deny`. Defaults to `Allow`.
 
 * `scm_minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, `1.2` and `1.3`. Defaults to `1.2`.
+
+* `minimum_tls_cipher_suite` - (Optional) The configures the minimum cipher suite of TLS required for SSL requests. Possible values include: `TLS_AES_128_GCM_SHA256`,`TLS_AES_256_GCM_SHA384"`,`TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256"`,`TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"`,`TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"`,`TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"`,`TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256"`,`TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"`,`TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA"`,`TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384"`,`TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"`, `TLS_RSA_WITH_AES_128_CBC_SHA"`,`TLS_RSA_WITH_AES_128_CBC_SHA256"`,`TLS_RSA_WITH_AES_128_GCM_SHA256"`,`TLS_RSA_WITH_AES_256_CBC_SHA"`,`TLS_RSA_WITH_AES_256_CBC_SHA256"`,`TLS_RSA_WITH_AES_256_GCM_SHA384"`.
 
 * `scm_type` - The SCM Type in use by the Linux Function App.
 

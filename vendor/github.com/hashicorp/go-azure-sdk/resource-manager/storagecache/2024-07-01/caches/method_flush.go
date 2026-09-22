@@ -58,9 +58,20 @@ func (c CachesClient) Flush(ctx context.Context, id CacheId) (result FlushOperat
 
 // FlushThenPoll performs Flush then polls until it's completed
 func (c CachesClient) FlushThenPoll(ctx context.Context, id CacheId) error {
+	return c.FlushCallbackThenPoll(ctx, id, nil)
+}
+
+// FlushCallbackThenPoll performs Flush, runs the optional callback function, then polls until it's completed
+func (c CachesClient) FlushCallbackThenPoll(ctx context.Context, id CacheId, callback func() error) error {
 	result, err := c.Flush(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Flush: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

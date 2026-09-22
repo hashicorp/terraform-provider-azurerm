@@ -4,16 +4,11 @@
 package validate
 
 import (
-	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ContainerRegistryWebhookServiceUri(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-	if !regexp.MustCompile(`^https?://[^\s]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"%q must start with http:// or https:// and must not contain whitespaces: %q", k, value))
-	}
-
-	return warnings, errors
+func ContainerRegistryWebhookServiceUri(v interface{}, k string) ([]string, []error) {
+	return validation.StringMatch(regexp.MustCompile(`^https?://[^\s]+$`), "must start with http:// or https:// and must not contain whitespaces")(v, k)
 }

@@ -19,9 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-// @tombuildsstuff: in 4.0 consider inlining this within the `azurerm_datadog_monitors` resource
-// since this appears to be a 1:1 with it (given the name defaults to `default`)
-
 func resourceDatadogTagRules() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceDatadogTagRulesCreate,
@@ -144,14 +141,17 @@ func resourceDatadogTagRulesCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	id := rules.NewTagRuleID(monitorId.SubscriptionId, monitorId.ResourceGroupName, monitorId.MonitorName, d.Get("name").(string))
-	existing, err := client.TagRulesGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for an existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.TagRulesGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for an existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) && !isDefaultSettings(existing.Model) {
-		return tf.ImportAsExistsError("azurerm_datadog_monitor_tag_rule", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) && !isDefaultSettings(existing.Model) {
+			return tf.ImportAsExistsError("azurerm_datadog_monitor_tag_rule", id.ID())
+		}
 	}
 
 	payload := rules.MonitoringTagRules{
@@ -295,7 +295,7 @@ func expandFilteringTag(input []interface{}) *[]rules.FilteringTag {
 		filteringTags = append(filteringTags, rules.FilteringTag{
 			Name:   pointer.To(config["name"].(string)),
 			Value:  pointer.To(config["value"].(string)),
-			Action: pointer.To(rules.TagAction(config["action"].(string))),
+			Action: pointer.ToEnum[rules.TagAction](config["action"].(string)),
 		})
 	}
 
@@ -306,26 +306,11 @@ func flattenLogRules(input *rules.LogRules) []interface{} {
 	results := make([]interface{}, 0)
 
 	if input != nil {
-		aadLogEnabled := false
-		if input.SendAadLogs != nil {
-			aadLogEnabled = *input.SendAadLogs
-		}
-
-		subscriptionLogEnabled := false
-		if input.SendSubscriptionLogs != nil {
-			subscriptionLogEnabled = *input.SendSubscriptionLogs
-		}
-
-		resourceLogEnabled := false
-		if input.SendResourceLogs != nil {
-			resourceLogEnabled = *input.SendResourceLogs
-		}
-
 		results = append(results, map[string]interface{}{
-			"aad_log_enabled":          aadLogEnabled,
+			"aad_log_enabled":          pointer.From(input.SendAadLogs),
 			"filter":                   flattenFilteringTags(input.FilteringTags),
-			"resource_log_enabled":     resourceLogEnabled,
-			"subscription_log_enabled": subscriptionLogEnabled,
+			"resource_log_enabled":     pointer.From(input.SendResourceLogs),
+			"subscription_log_enabled": pointer.From(input.SendSubscriptionLogs),
 		})
 	}
 
@@ -352,18 +337,10 @@ func flattenFilteringTags(input *[]rules.FilteringTag) []interface{} {
 			if filteringTagRules.Action != nil {
 				action = string(*filteringTagRules.Action)
 			}
-			name := ""
-			if filteringTagRules.Name != nil {
-				name = *filteringTagRules.Name
-			}
-			value := ""
-			if filteringTagRules.Value != nil {
-				value = *filteringTagRules.Value
-			}
 			results = append(results, map[string]interface{}{
 				"action": action,
-				"name":   name,
-				"value":  value,
+				"name":   pointer.From(filteringTagRules.Name),
+				"value":  pointer.From(filteringTagRules.Value),
 			})
 		}
 	}
@@ -381,11 +358,9 @@ func isDefaultSettings(input *rules.MonitoringTagRules) bool {
 
 	logRules := input.Properties.LogRules
 	metricRules := input.Properties.MetricRules
-	result := (logRules.SendAadLogs != nil && !*logRules.SendAadLogs) &&
+	return (logRules.SendAadLogs != nil && !*logRules.SendAadLogs) &&
 		(logRules.SendSubscriptionLogs != nil && !*logRules.SendSubscriptionLogs) &&
 		(logRules.SendResourceLogs != nil && !*logRules.SendResourceLogs) &&
 		(logRules.FilteringTags != nil && len(*logRules.FilteringTags) == 0) &&
 		(metricRules.FilteringTags != nil && len(*metricRules.FilteringTags) == 0)
-
-	return result
 }

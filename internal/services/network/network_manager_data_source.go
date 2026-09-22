@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagerDataSource struct{}
@@ -161,7 +160,7 @@ func (r ManagerDataSource) Read() sdk.ResourceFunc {
 				ResourceGroupName: id.ResourceGroupName,
 				ScopeAccesses:     ScopeAccesses,
 				Scope:             scope,
-				Tags:              utils.FlattenPtrMapStringString(existing.Model.Tags),
+				Tags:              pluginsdk.FlattenPtrMapStringString(existing.Model.Tags),
 			}
 
 			metadata.SetID(id)

@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -67,6 +66,7 @@ type LinuxWebAppModel struct {
 	PublishingDeployBasicAuthEnabled   bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
 	PublishingFTPBasicAuthEnabled      bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
 	SiteCredentials                    []helpers.SiteCredential                   `tfschema:"site_credential"`
+	EndToEndTLSEncryptionEnabled       bool                                       `tfschema:"end_to_end_tls_encryption_enabled"`
 	VnetImagePullEnabled               bool                                       `tfschema:"vnet_image_pull_enabled"`
 }
 
@@ -165,6 +165,12 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
+		"end_to_end_tls_encryption_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
 		"vnet_image_pull_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -176,7 +182,7 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"key_vault_reference_identity_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		},
 
@@ -209,7 +215,7 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"zip_deploy_file": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
 			Description:  "The local path and filename of the Zip packaged application to deploy to this Linux Web App. **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
 		},
@@ -296,13 +302,15 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 
 			id := commonids.NewAppServiceID(subscriptionId, webApp.ResourceGroup, webApp.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Linux %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing Linux %s: %+v", id, err)
+				}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			availabilityRequest := resourceproviders.ResourceNameAvailabilityRequest{
@@ -378,16 +386,17 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				Identity: expandedIdentity,
 				Tags:     pointer.To(webApp.Tags),
 				Properties: &webapps.SiteProperties{
-					ServerFarmId:             pointer.To(webApp.ServicePlanId),
-					Enabled:                  pointer.To(webApp.Enabled),
-					HTTPSOnly:                pointer.To(webApp.HttpsOnly),
-					SiteConfig:               siteConfig,
-					ClientAffinityEnabled:    pointer.To(webApp.ClientAffinityEnabled),
-					ClientCertEnabled:        pointer.To(webApp.ClientCertEnabled),
-					ClientCertMode:           pointer.To(webapps.ClientCertMode(webApp.ClientCertMode)),
-					VnetBackupRestoreEnabled: pointer.To(webApp.VirtualNetworkBackupRestoreEnabled),
-					VnetImagePullEnabled:     pointer.To(webApp.VnetImagePullEnabled),
-					VnetRouteAllEnabled:      siteConfig.VnetRouteAllEnabled,
+					ServerFarmId:              pointer.To(webApp.ServicePlanId),
+					Enabled:                   pointer.To(webApp.Enabled),
+					HTTPSOnly:                 pointer.To(webApp.HttpsOnly),
+					SiteConfig:                siteConfig,
+					ClientAffinityEnabled:     pointer.To(webApp.ClientAffinityEnabled),
+					ClientCertEnabled:         pointer.To(webApp.ClientCertEnabled),
+					ClientCertMode:            pointer.ToEnum[webapps.ClientCertMode](webApp.ClientCertMode),
+					VnetBackupRestoreEnabled:  pointer.To(webApp.VirtualNetworkBackupRestoreEnabled),
+					VnetImagePullEnabled:      pointer.To(webApp.VnetImagePullEnabled),
+					VnetRouteAllEnabled:       siteConfig.VnetRouteAllEnabled,
+					EndToEndEncryptionEnabled: pointer.To(webApp.EndToEndTLSEncryptionEnabled),
 				},
 			}
 			pna := helpers.PublicNetworkAccessEnabled
@@ -411,7 +420,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				siteEnvelope.Properties.ClientCertExclusionPaths = pointer.To(webApp.ClientCertExclusionPaths)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, siteEnvelope); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, siteEnvelope, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating Linux %s: %+v", id, err)
 			}
 
@@ -496,9 +505,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 
 			if !webApp.PublishingDeployBasicAuthEnabled {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{},
 				}
 				if _, err := client.UpdateScmAllowed(ctx, id, sitePolicy); err != nil {
 					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
@@ -507,9 +514,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 
 			if !webApp.PublishingFTPBasicAuthEnabled {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{},
 				}
 				if _, err := client.UpdateFtpAllowed(ctx, id, sitePolicy); err != nil {
 					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
@@ -643,6 +648,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 					state.PossibleOutboundIPAddressList = strings.Split(pointer.From(props.PossibleOutboundIPAddresses), ",")
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
+					state.EndToEndTLSEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
 					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmId))
 					if err != nil {
@@ -651,7 +657,7 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 					state.ServicePlanId = servicePlanId.ID()
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-						hostingEnvId, err := parse.AppServiceEnvironmentIDInsensitively(*hostingEnv.Id)
+						hostingEnvId, err := commonids.ParseAppServiceEnvironmentIDInsensitively(*hostingEnv.Id)
 						if err != nil {
 							return err
 						}
@@ -716,7 +722,6 @@ func (r LinuxWebAppResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting %s", *id)
 			delOptions := webapps.DeleteOperationOptions{
 				DeleteEmptyServerFarm: pointer.To(false),
 				DeleteMetrics:         pointer.To(false),
@@ -803,7 +808,7 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				model.Properties.ClientCertEnabled = pointer.To(state.ClientCertEnabled)
 			}
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
-				model.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(state.ClientCertMode))
+				model.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](state.ClientCertMode)
 			}
 			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
 				model.Properties.ClientCertExclusionPaths = pointer.To(state.ClientCertExclusionPaths)
@@ -846,6 +851,10 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("virtual_network_backup_restore_enabled") {
 				model.Properties.VnetBackupRestoreEnabled = pointer.To(state.VirtualNetworkBackupRestoreEnabled)
+			}
+
+			if metadata.ResourceData.HasChange("end_to_end_tls_encryption_enabled") {
+				model.Properties.EndToEndEncryptionEnabled = pointer.To(state.EndToEndTLSEncryptionEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") {
@@ -1083,7 +1092,7 @@ func (r LinuxWebAppResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 				if aspModel := asp.Model; aspModel != nil {
 					if aspModel.Properties != nil && aspModel.Properties.HostingEnvironmentProfile != nil &&
-						aspModel.Properties.HostingEnvironmentProfile.Id != nil && *(aspModel.Properties.HostingEnvironmentProfile.Id) != "" && !newValue.(bool) {
+						aspModel.Properties.HostingEnvironmentProfile.Id != nil && *aspModel.Properties.HostingEnvironmentProfile.Id != "" && !newValue.(bool) {
 						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
 					}
 				}

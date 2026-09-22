@@ -270,13 +270,16 @@ func (r AlertPrometheusRuleGroupResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.Monitor.AlertPrometheusRuleGroupClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := prometheusrulegroups.NewPrometheusRuleGroupID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.PrometheusRuleGroupsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.PrometheusRuleGroupsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := prometheusrulegroups.PrometheusRuleGroupResource{
@@ -492,16 +495,14 @@ func flattenPrometheusRuleModel(inputList *[]prometheusrulegroups.PrometheusRule
 			Expression: input.Expression,
 		}
 
-		actionsValue := flattenPrometheusRuleGroupActionModel(input.Actions)
-		output.Action = actionsValue
+		output.Action = flattenPrometheusRuleGroupActionModel(input.Actions)
 		output.Alert = pointer.From(input.Alert)
 		output.Annotations = pointer.From(input.Annotations)
 		output.Enabled = pointer.From(input.Enabled)
 		output.For = pointer.From(input.For)
 		output.Labels = pointer.From(input.Labels)
 		output.Record = pointer.From(input.Record)
-		resolveConfigurationValue := flattenPrometheusRuleAlertResolutionModel(input.ResolveConfiguration)
-		output.AlertResolution = resolveConfigurationValue
+		output.AlertResolution = flattenPrometheusRuleAlertResolutionModel(input.ResolveConfiguration)
 		output.Severity = pointer.From(input.Severity)
 		outputList = append(outputList, output)
 	}

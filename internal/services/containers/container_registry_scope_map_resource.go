@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/scopemaps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceContainerRegistryScopeMap() *pluginsdk.Resource {
@@ -84,7 +84,7 @@ func resourceContainerRegistryScopeMapCreate(d *pluginsdk.ResourceData, meta int
 
 	id := scopemaps.NewScopeMapID(subscriptionId, d.Get("resource_group_name").(string), d.Get("container_registry_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -100,11 +100,11 @@ func resourceContainerRegistryScopeMapCreate(d *pluginsdk.ResourceData, meta int
 	parameters := scopemaps.ScopeMap{
 		Properties: &scopemaps.ScopeMapProperties{
 			Description: pointer.To(d.Get("description").(string)),
-			Actions:     pointer.From(utils.ExpandStringSlice(d.Get("actions").([]interface{}))),
+			Actions:     pointer.From(pluginsdk.ExpandStringSlice(d.Get("actions").([]interface{}))),
 		},
 	}
 
-	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -118,7 +118,6 @@ func resourceContainerRegistryScopeMapUpdate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Container Registry scope map update.")
 	id, err := scopemaps.ParseScopeMapID(d.Id())
 	if err != nil {
 		return err
@@ -127,7 +126,7 @@ func resourceContainerRegistryScopeMapUpdate(d *pluginsdk.ResourceData, meta int
 	parameters := scopemaps.ScopeMapUpdateParameters{
 		Properties: &scopemaps.ScopeMapPropertiesUpdateParameters{
 			Description: pointer.To(d.Get("description").(string)),
-			Actions:     utils.ExpandStringSlice(d.Get("actions").([]interface{})),
+			Actions:     pluginsdk.ExpandStringSlice(d.Get("actions").([]interface{})),
 		},
 	}
 
@@ -167,12 +166,8 @@ func resourceContainerRegistryScopeMapRead(d *pluginsdk.ResourceData, meta inter
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			description := ""
-			if v := props.Description; v != nil {
-				description = *v
-			}
-			d.Set("description", description)
-			d.Set("actions", utils.FlattenStringSlice(&props.Actions))
+			d.Set("description", pointer.From(props.Description))
+			d.Set("actions", pluginsdk.FlattenSlice(&props.Actions))
 		}
 	}
 	return nil

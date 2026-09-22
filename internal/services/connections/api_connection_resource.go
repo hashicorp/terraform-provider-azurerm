@@ -24,7 +24,7 @@ import (
 )
 
 func resourceApiConnection() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceApiConnectionCreate,
 		Read:   resourceApiConnectionRead,
 		Update: resourceApiConnectionUpdate,
@@ -81,8 +81,6 @@ func resourceApiConnection() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	return resource
 }
 
 func resourceApiConnectionCreate(d *schema.ResourceData, meta interface{}) error {
@@ -92,14 +90,17 @@ func resourceApiConnectionCreate(d *schema.ResourceData, meta interface{}) error
 	defer cancel()
 
 	id := connections.NewConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_api_connection", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_api_connection", id.ID())
+		}
 	}
 
 	managedAppId, err := managedapis.ParseManagedApiID(d.Get("managed_api_id").(string))

@@ -382,7 +382,7 @@ A `scale` block supports the following:
 
 * `polling_interval_in_seconds` - (Optional) Interval to check each event source in seconds.
 
-* `rules` - (Optional) A `rules` block as defined below.
+* `rules` - (Optional) One or more `rules` blocks as defined below.
 
 ---
 
@@ -394,7 +394,9 @@ A `rules` block supports the following:
 
 * `metadata` - (Required) Metadata properties to describe the scale rule.
 
-* `authentication` - (Optional) A `authentication` block as defined below.
+* `authentication` - (Optional) One or more `authentication` blocks as defined below.
+
+* `identity_id` - (Optional) The ID of the identity used to authenticate with the scale rule backend. This can either be the Resource ID of a User Assigned Identity, or `System` for the System Assigned Identity.
 
 ---
 

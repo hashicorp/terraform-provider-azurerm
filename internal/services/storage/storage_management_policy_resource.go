@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -95,7 +94,7 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 												"name": {
 													Type:         pluginsdk.TypeString,
 													Required:     true,
-													ValidateFunc: validate.StorageBlobIndexTagName,
+													ValidateFunc: validation.StringLenBetween(1, 128),
 												},
 
 												"operation": {
@@ -110,7 +109,7 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 												"value": {
 													Type:         pluginsdk.TypeString,
 													Required:     true,
-													ValidateFunc: validate.StorageBlobIndexTagValue,
+													ValidateFunc: validation.StringLenBetween(0, 256),
 												},
 											},
 										},
@@ -316,18 +315,20 @@ func resourceStorageManagementPolicyCreateOrUpdate(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	// The name of the Storage Account Management Policy. It should always be 'default' (from https://docs.microsoft.com/en-us/rest/api/storagerp/managementpolicies/createorupdate)
+	// The name of the Storage Account Management Policy. It should always be 'default' (from https://docs.microsoft.com/rest/api/storagerp/managementpolicies/createorupdate)
 	mgmtPolicyId := parse.NewStorageAccountManagementPolicyID(rid.SubscriptionId, rid.ResourceGroupName, rid.StorageAccountName, "default")
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, *rid)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", mgmtPolicyId, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, *rid)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", mgmtPolicyId, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_storage_management_policy", mgmtPolicyId.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_storage_management_policy", mgmtPolicyId.ID())
+			}
 		}
 	}
 
@@ -818,8 +819,8 @@ func flattenStorageManagementPolicyRules(armRules []managementpolicies.Managemen
 			}
 		}
 
-		armActionSnaphost := armAction.Snapshot
-		if armActionSnaphost != nil {
+		armActionSnapshot := armAction.Snapshot
+		if armActionSnapshot != nil {
 			var (
 				deleteAfterCreation        = -1
 				archiveAfterCreation       = -1
@@ -827,21 +828,21 @@ func flattenStorageManagementPolicyRules(armRules []managementpolicies.Managemen
 				coolAfterCreation          = -1
 				tierToColdSinceCreate      = -1
 			)
-			if armActionSnaphost.Delete != nil {
-				deleteAfterCreation = int(armActionSnaphost.Delete.DaysAfterCreationGreaterThan)
+			if armActionSnapshot.Delete != nil {
+				deleteAfterCreation = int(armActionSnapshot.Delete.DaysAfterCreationGreaterThan)
 			}
-			if armActionSnaphost.TierToArchive != nil {
-				archiveAfterCreation = int(armActionSnaphost.TierToArchive.DaysAfterCreationGreaterThan)
+			if armActionSnapshot.TierToArchive != nil {
+				archiveAfterCreation = int(armActionSnapshot.TierToArchive.DaysAfterCreationGreaterThan)
 
-				if v := armActionSnaphost.TierToArchive.DaysAfterLastTierChangeGreaterThan; v != nil {
+				if v := armActionSnapshot.TierToArchive.DaysAfterLastTierChangeGreaterThan; v != nil {
 					archiveAfterLastTierChange = int(*v)
 				}
 			}
-			if armActionSnaphost.TierToCold != nil {
-				tierToColdSinceCreate = int(armActionSnaphost.TierToCold.DaysAfterCreationGreaterThan)
+			if armActionSnapshot.TierToCold != nil {
+				tierToColdSinceCreate = int(armActionSnapshot.TierToCold.DaysAfterCreationGreaterThan)
 			}
-			if armActionSnaphost.TierToCool != nil {
-				coolAfterCreation = int(armActionSnaphost.TierToCool.DaysAfterCreationGreaterThan)
+			if armActionSnapshot.TierToCool != nil {
+				coolAfterCreation = int(armActionSnapshot.TierToCool.DaysAfterCreationGreaterThan)
 			}
 			action["snapshot"] = []interface{}{map[string]interface{}{
 				"delete_after_days_since_creation_greater_than":                  deleteAfterCreation,

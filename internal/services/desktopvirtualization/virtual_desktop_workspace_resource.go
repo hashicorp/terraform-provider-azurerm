@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/workspace"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/workspace"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -26,12 +26,12 @@ import (
 
 var workspaceResourceType = "azurerm_virtual_desktop_workspace"
 
-func resourceArmDesktopVirtualizationWorkspace() *pluginsdk.Resource {
+func resourceVirtualDesktopWorkspace() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmDesktopVirtualizationWorkspaceCreateUpdate,
-		Read:   resourceArmDesktopVirtualizationWorkspaceRead,
-		Update: resourceArmDesktopVirtualizationWorkspaceCreateUpdate,
-		Delete: resourceArmDesktopVirtualizationWorkspaceDelete,
+		Create: resourceVirtualDesktopWorkspaceCreateUpdate,
+		Read:   resourceVirtualDesktopWorkspaceRead,
+		Update: resourceVirtualDesktopWorkspaceCreateUpdate,
+		Delete: resourceVirtualDesktopWorkspaceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -85,25 +85,25 @@ func resourceArmDesktopVirtualizationWorkspace() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmDesktopVirtualizationWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Virtual Desktop Workspace create/update")
-
 	id := workspace.NewWorkspaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_virtual_desktop_workspace", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_virtual_desktop_workspace", id.ID())
+			}
 		}
 	}
 
@@ -133,10 +133,10 @@ func resourceArmDesktopVirtualizationWorkspaceCreateUpdate(d *pluginsdk.Resource
 
 	d.SetId(id.ID())
 
-	return resourceArmDesktopVirtualizationWorkspaceRead(d, meta)
+	return resourceVirtualDesktopWorkspaceRead(d, meta)
 }
 
-func resourceArmDesktopVirtualizationWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -181,7 +181,7 @@ func resourceArmDesktopVirtualizationWorkspaceRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceArmDesktopVirtualizationWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
 
 	id, err := workspace.ParseWorkspaceID(d.Id())

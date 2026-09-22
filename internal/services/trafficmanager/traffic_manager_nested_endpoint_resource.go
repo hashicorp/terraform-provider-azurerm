@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/trafficmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
@@ -128,7 +127,7 @@ func resourceNestedEndpoint() *pluginsdk.Resource {
 			"endpoint_location": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				StateFunc:        location.StateFunc,
 				DiffSuppressFunc: location.DiffSuppressFunc,
 			},
@@ -148,12 +147,12 @@ func resourceNestedEndpoint() *pluginsdk.Resource {
 						"first": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azValidate.IPv4Address,
+							ValidateFunc: validation.IsIPv4Address,
 						},
 						"last": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: azValidate.IPv4Address,
+							ValidateFunc: validation.IsIPv4Address,
 						},
 						"scope": {
 							Type:         pluginsdk.TypeInt,
@@ -180,15 +179,17 @@ func resourceNestedEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	id := trafficmanagers.NewEndpointTypeID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.TrafficManagerProfileName, trafficmanagers.EndpointTypeNestedEndpoints, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.EndpointsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.EndpointsGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_traffic_manager_nested_endpoint", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_traffic_manager_nested_endpoint", id.ID())
+			}
 		}
 	}
 
@@ -244,7 +245,10 @@ func resourceNestedEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	return resourceNestedEndpointRead(d, meta)
 }
 

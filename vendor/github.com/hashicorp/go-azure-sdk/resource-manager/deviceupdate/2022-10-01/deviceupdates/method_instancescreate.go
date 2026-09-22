@@ -61,9 +61,20 @@ func (c DeviceupdatesClient) InstancesCreate(ctx context.Context, id InstanceId,
 
 // InstancesCreateThenPoll performs InstancesCreate then polls until it's completed
 func (c DeviceupdatesClient) InstancesCreateThenPoll(ctx context.Context, id InstanceId, input Instance) error {
+	return c.InstancesCreateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// InstancesCreateCallbackThenPoll performs InstancesCreate, runs the optional callback function, then polls until it's completed
+func (c DeviceupdatesClient) InstancesCreateCallbackThenPoll(ctx context.Context, id InstanceId, input Instance, callback func() error) error {
 	result, err := c.InstancesCreate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing InstancesCreate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

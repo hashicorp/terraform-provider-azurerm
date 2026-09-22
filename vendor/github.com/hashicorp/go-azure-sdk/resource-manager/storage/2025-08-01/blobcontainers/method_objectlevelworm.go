@@ -58,9 +58,20 @@ func (c BlobContainersClient) ObjectLevelWorm(ctx context.Context, id commonids.
 
 // ObjectLevelWormThenPoll performs ObjectLevelWorm then polls until it's completed
 func (c BlobContainersClient) ObjectLevelWormThenPoll(ctx context.Context, id commonids.StorageContainerId) error {
+	return c.ObjectLevelWormCallbackThenPoll(ctx, id, nil)
+}
+
+// ObjectLevelWormCallbackThenPoll performs ObjectLevelWorm, runs the optional callback function, then polls until it's completed
+func (c BlobContainersClient) ObjectLevelWormCallbackThenPoll(ctx context.Context, id commonids.StorageContainerId, callback func() error) error {
 	result, err := c.ObjectLevelWorm(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ObjectLevelWorm: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

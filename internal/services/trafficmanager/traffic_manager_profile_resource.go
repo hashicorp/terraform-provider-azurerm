@@ -6,7 +6,6 @@ package trafficmanager
 import (
 	"errors"
 	"fmt"
-	"log"
 	"math"
 	"strconv"
 	"strings"
@@ -27,7 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name traffic_manager_profile -service-package-name trafficmanager -properties "name,resource_group_name" -test-params "Geographic" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -test-params "Geographic"
 
 const azureTrafficManagerProfileResourceName = "azurerm_traffic_manager_profile"
 
@@ -62,16 +61,9 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"traffic_routing_method": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(profiles.TrafficRoutingMethodGeographic),
-					string(profiles.TrafficRoutingMethodWeighted),
-					string(profiles.TrafficRoutingMethodPerformance),
-					string(profiles.TrafficRoutingMethodPriority),
-					string(profiles.TrafficRoutingMethodSubnet),
-					string(profiles.TrafficRoutingMethodMultiValue),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(profiles.PossibleValuesForTrafficRoutingMethod(), false),
 			},
 
 			"dns_config": {
@@ -128,13 +120,9 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 						},
 
 						"protocol": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(profiles.MonitorProtocolHTTP),
-								string(profiles.MonitorProtocolHTTPS),
-								string(profiles.MonitorProtocolTCP),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(profiles.PossibleValuesForMonitorProtocol(), false),
 						},
 
 						"port": {
@@ -173,16 +161,13 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 			},
 
 			"profile_status": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(profiles.ProfileStatusEnabled),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(profiles.ProfileStatusEnabled),
-					string(profiles.ProfileStatusDisabled),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(profiles.ProfileStatusEnabled),
+				ValidateFunc: validation.StringInSlice(profiles.PossibleValuesForProfileStatus(), false),
 			},
 
-			"max_return": {
+			"max_return": { // azignore:AZS006 - named `maximum_return` in the data source to follow new naming conventions
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(1, 8),
@@ -209,18 +194,19 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Traffic Manager Profile creation.")
-
 	id := profiles.NewTrafficManagerProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s", id)
-		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_traffic_manager_profile", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s", id)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_traffic_manager_profile", id.ID())
+		}
 	}
 
 	trafficRoutingMethod := profiles.TrafficRoutingMethod(d.Get("traffic_routing_method").(string))
@@ -242,8 +228,7 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if status, ok := d.GetOk("profile_status"); ok {
-		profileStatus := profiles.ProfileStatus(status.(string))
-		profile.Properties.ProfileStatus = &profileStatus
+		profile.Properties.ProfileStatus = pointer.ToEnum[profiles.ProfileStatus](status.(string))
 	}
 
 	trafficRoutingMethodPtr := profile.Properties.TrafficRoutingMethod
@@ -408,9 +393,8 @@ func expandArmTrafficManagerMonitorConfig(d *pluginsdk.ResourceData) *profiles.M
 
 	customHeaders := expandArmTrafficManagerCustomHeadersConfig(monitor["custom_header"].([]interface{}))
 
-	protocol := profiles.MonitorProtocol(monitor["protocol"].(string))
 	cfg := profiles.MonitorConfig{
-		Protocol:                  &protocol,
+		Protocol:                  pointer.ToEnum[profiles.MonitorProtocol](monitor["protocol"].(string)),
 		CustomHeaders:             customHeaders,
 		Port:                      pointer.To(int64(monitor["port"].(int))),
 		Path:                      pointer.To(monitor["path"].(string)),
@@ -479,12 +463,9 @@ func expandArmTrafficManagerDNSConfig(d *pluginsdk.ResourceData) *profiles.DnsCo
 	dnsSets := d.Get("dns_config").([]interface{})
 	dns := dnsSets[0].(map[string]interface{})
 
-	name := dns["relative_name"].(string)
-	ttl := int64(dns["ttl"].(int))
-
 	return &profiles.DnsConfig{
-		RelativeName: &name,
-		Ttl:          &ttl,
+		RelativeName: pointer.To(dns["relative_name"].(string)),
+		Ttl:          pointer.To(int64(dns["ttl"].(int))),
 	}
 }
 

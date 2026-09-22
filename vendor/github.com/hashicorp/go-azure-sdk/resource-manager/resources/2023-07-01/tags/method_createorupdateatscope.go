@@ -63,9 +63,20 @@ func (c TagsClient) CreateOrUpdateAtScope(ctx context.Context, id commonids.Scop
 
 // CreateOrUpdateAtScopeThenPoll performs CreateOrUpdateAtScope then polls until it's completed
 func (c TagsClient) CreateOrUpdateAtScopeThenPoll(ctx context.Context, id commonids.ScopeId, input TagsResource) error {
+	return c.CreateOrUpdateAtScopeCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateOrUpdateAtScopeCallbackThenPoll performs CreateOrUpdateAtScope, runs the optional callback function, then polls until it's completed
+func (c TagsClient) CreateOrUpdateAtScopeCallbackThenPoll(ctx context.Context, id commonids.ScopeId, input TagsResource, callback func() error) error {
 	result, err := c.CreateOrUpdateAtScope(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdateAtScope: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

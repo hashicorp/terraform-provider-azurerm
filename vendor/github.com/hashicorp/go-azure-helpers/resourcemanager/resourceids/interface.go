@@ -65,6 +65,9 @@ const (
 
 	// DataPlaneBaseURISegmentType specifies that this Segment is a Data Plane Endpoint URI for a resource type
 	DataPlaneBaseURISegmentType SegmentType = "DataPlane"
+
+	// ResourceIDSegmentType specifies that this Segment is a complete Resource ID
+	ResourceIDSegmentType SegmentType = "ResourceID"
 )
 
 // ConstantSegment is a helper which returns a Segment for a Constant
@@ -139,6 +142,16 @@ func DataPlaneBaseURISegment(name, exampleValue string) Segment {
 	return Segment{
 		Name:         name,
 		Type:         DataPlaneBaseURISegmentType,
+		ExampleValue: exampleValue,
+	}
+}
+
+// ResourceIDSegment is a helper which returns a Segment for a ResourceID
+// This is used by the Composite Resource ID
+func ResourceIDSegment(name, exampleValue string) Segment {
+	return Segment{
+		Name:         name,
+		Type:         ResourceIDSegmentType,
 		ExampleValue: exampleValue,
 	}
 }

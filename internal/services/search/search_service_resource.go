@@ -20,8 +20,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/querykeys"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -64,17 +64,9 @@ func resourceSearchService() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(services.SkuNameFree),
-					string(services.SkuNameBasic),
-					string(services.SkuNameStandard),
-					string(services.SkuNameStandardTwo),
-					string(services.SkuNameStandardThree),
-					string(services.SkuNameStorageOptimizedLOne),
-					string(services.SkuNameStorageOptimizedLTwo),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(services.PossibleValuesForSkuName(), false),
 			},
 
 			"replica_count": {
@@ -105,23 +97,17 @@ func resourceSearchService() *pluginsdk.Resource {
 			},
 
 			"authentication_failure_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(services.AadAuthFailureModeHTTPFourZeroOneWithBearerChallenge),
-					string(services.AadAuthFailureModeHTTPFourZeroThree),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(services.PossibleValuesForAadAuthFailureMode(), false),
 			},
 
 			"hosting_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(services.HostingModeDefault),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(services.HostingModeDefault),
-					string(services.HostingModeHighDensity),
-				}, true),
+				Type:                  pluginsdk.TypeString,
+				Optional:              true,
+				ForceNew:              true,
+				Default:               string(services.HostingModeDefault),
+				ValidateFunc:          validation.StringInSlice(services.PossibleValuesForHostingMode(), true),
 				DiffSuppressFunc:      suppress.CaseDifference, // Breaking change introduced in https://github.com/Azure/azure-rest-api-specs/pull/37579 that changed the case of the Enum value
 				DiffSuppressOnRefresh: true,
 			},
@@ -194,20 +180,17 @@ func resourceSearchService() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.Any(
-						validate.IPv4Address,
-						validate.CIDR,
+						validation.IsIPv4Address,
+						validation.IsCIDRIPv4,
 					),
 				},
 			},
 
 			"network_rule_bypass_option": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(services.SearchBypassAzureServices),
-					string(services.SearchBypassNone),
-				}, false),
-				Default: string(services.SearchBypassNone),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(services.PossibleValuesForSearchBypass(), false),
+				Default:      string(services.SearchBypassNone),
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -225,13 +208,15 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	id := services.NewSearchServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id, services.GetOperationOptions{})
-	if err != nil && !response.WasNotFound(existing.HttpResponse) {
-		return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-	}
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id, services.GetOperationOptions{})
+		if err != nil && !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_search_service", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_search_service", id.ID())
+		}
 	}
 
 	publicNetworkAccess := services.PublicNetworkAccessEnabled
@@ -303,7 +288,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		// API & RBAC Mode..
 		authenticationOptions = pointer.To(services.DataPlaneAuthOptions{
 			AadOrApiKey: pointer.To(services.DataPlaneAadOrApiKeyAuthOption{
-				AadAuthFailureMode: pointer.To(services.AadAuthFailureMode(authenticationFailureMode)),
+				AadAuthFailureMode: pointer.ToEnum[services.AadAuthFailureMode](authenticationFailureMode),
 			}),
 		})
 	}
@@ -349,11 +334,9 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		payload.Identity = expandedIdentity
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, payload, services.CreateOrUpdateOperationOptions{})
-	if err != nil {
+	if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, services.CreateOrUpdateOperationOptions{}, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-
 	d.SetId(id.ID())
 
 	return resourceSearchServiceRead(d, meta)
@@ -579,7 +562,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			partitionCount := 1         // Default
 			replicaCount := 1           // Default
 			publicNetworkAccess := true // publicNetworkAccess defaults to true...
-			cmkEnforcement := false     // cmkEnforcment defaults to false...
+			cmkEnforcement := false     // cmkEnforcement defaults to false...
 			endpoint := ""
 			hostingMode := services.HostingModeDefault
 			localAuthEnabled := true
@@ -733,11 +716,11 @@ func validateSearchServiceSKUUpdate(ctx context.Context, diff *pluginsdk.Resourc
 		// Free and Storage optimized SKUs are not included as they're not part of the Basic->Standard upgrade path
 	}
 
-	oldLevel, oldExists := skuHierarchy[oldSku]
-	newLevel, newExists := skuHierarchy[newSku]
+	_, oldExists := skuHierarchy[oldSku]
+	_, newExists := skuHierarchy[newSku]
 
-	// If it's not a valid upgrade, force recreation instead of blocking the change
-	if !oldExists || !newExists || newLevel <= oldLevel {
+	// If it's not a valid upgrade (upgrades between basic and standard skus), force recreation instead of blocking the change
+	if !oldExists || !newExists {
 		return diff.ForceNew("sku")
 	}
 

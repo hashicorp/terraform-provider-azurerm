@@ -62,9 +62,20 @@ func (c ReplicationProtectedItemsClient) UpdateMobilityService(ctx context.Conte
 
 // UpdateMobilityServiceThenPoll performs UpdateMobilityService then polls until it's completed
 func (c ReplicationProtectedItemsClient) UpdateMobilityServiceThenPoll(ctx context.Context, id ReplicationProtectedItemId, input UpdateMobilityServiceRequest) error {
+	return c.UpdateMobilityServiceCallbackThenPoll(ctx, id, input, nil)
+}
+
+// UpdateMobilityServiceCallbackThenPoll performs UpdateMobilityService, runs the optional callback function, then polls until it's completed
+func (c ReplicationProtectedItemsClient) UpdateMobilityServiceCallbackThenPoll(ctx context.Context, id ReplicationProtectedItemId, input UpdateMobilityServiceRequest, callback func() error) error {
 	result, err := c.UpdateMobilityService(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing UpdateMobilityService: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

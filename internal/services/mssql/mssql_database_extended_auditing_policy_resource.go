@@ -5,13 +5,12 @@ package mssql
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/blobauditing"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/blobauditing"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -53,7 +52,7 @@ func resourceMsSqlDatabaseExtendedAuditingPolicy() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"storage_endpoint": {
+			"blob_storage_endpoint": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsURLWithHTTPS,
@@ -93,30 +92,30 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resour
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for MsSql Database Extended Auditing Policy creation.")
-
 	dbId, err := commonids.ParseSqlDatabaseID(d.Get("database_id").(string))
 	if err != nil {
 		return err
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.ExtendedDatabaseBlobAuditingPoliciesGet(ctx, *dbId)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for the presence of existing %s: %+v", dbId, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.ExtendedDatabaseBlobAuditingPoliciesGet(ctx, *dbId)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for the presence of existing %s: %+v", dbId, err)
+				}
 			}
-		}
 
-		// if state is not disabled, we should import it.
-		if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" && existing.Model.Properties != nil && existing.Model.Properties.State != blobauditing.BlobAuditingPolicyStateDisabled {
-			return tf.ImportAsExistsError("azurerm_mssql_database_extended_auditing_policy", *existing.Model.Id)
+			// if state is not disabled, we should import it.
+			if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" && existing.Model.Properties != nil && existing.Model.Properties.State != blobauditing.BlobAuditingPolicyStateDisabled {
+				return tf.ImportAsExistsError("azurerm_mssql_database_extended_auditing_policy", *existing.Model.Id)
+			}
 		}
 	}
 
 	params := blobauditing.ExtendedDatabaseBlobAuditingPolicy{
 		Properties: &blobauditing.ExtendedDatabaseBlobAuditingPolicyProperties{
-			StorageEndpoint:             pointer.To(d.Get("storage_endpoint").(string)),
+			StorageEndpoint:             pointer.To(d.Get("blob_storage_endpoint").(string)),
 			IsStorageSecondaryKeyInUse:  pointer.To(d.Get("storage_account_access_key_is_secondary").(bool)),
 			RetentionDays:               pointer.To(int64(d.Get("retention_in_days").(int))),
 			IsAzureMonitorTargetEnabled: pointer.To(d.Get("log_monitoring_enabled").(bool)),
@@ -183,7 +182,7 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, 
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("storage_endpoint", props.StorageEndpoint)
+			d.Set("blob_storage_endpoint", props.StorageEndpoint)
 			d.Set("storage_account_access_key_is_secondary", props.IsStorageSecondaryKeyInUse)
 			d.Set("retention_in_days", props.RetentionDays)
 			d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)

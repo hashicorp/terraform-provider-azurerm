@@ -134,8 +134,6 @@ The following arguments are supported:
 
 ---
 
-* `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks as defined below.
-
 * `autoscale_configuration` - (Optional) An `autoscale_configuration` block as defined below.
 
 * `backend` - (Optional) One or more `backend` blocks as defined below.
@@ -206,14 +204,6 @@ The following arguments are supported:
 
 ---
 
-An `authentication_certificate` block supports the following:
-
-* `name` - (Required) The Name of the Authentication Certificate to use.
-
-* `data` - (Required) The contents of the Authentication Certificate which should be used.
-
----
-
 A `trusted_root_certificate` block supports the following:
 
 * `name` - (Required) The Name of the Trusted Root Certificate to use.
@@ -272,7 +262,7 @@ A `backend_http_settings` block supports the following:
  
 * `affinity_cookie_name` - (Optional) The name of the affinity cookie.
 
-* `authentication_certificate` - (Optional) One or more `authentication_certificate_backend` blocks as defined below.
+* `certificate_chain_validation_enabled` - (Optional) Whether to validate the certificate chain and expiry on the backend HTTPS servers. Defaults to `true`.
 
 * `connection_draining` - (Optional) A `connection_draining` block as defined below.
 
@@ -288,13 +278,13 @@ A `backend_http_settings` block supports the following:
 
 * `request_timeout` - (Optional) The request timeout in seconds, which must be between 1 and 86400 seconds. Defaults to `30`.
 
+* `sni_name` - (Optional) The Server Name Indication (SNI) hostname to send to the backend servers. 
+
+~> **Note:** `sni_name` can only be set when `sni_validation_enabled` is set to `true`.
+
+* `sni_validation_enabled` - (Optional) Whether to enable Server Name Indication (SNI) validation on the backend HTTPS servers. Defaults to `true`.
+
 * `trusted_root_certificate_names` - (Optional) A list of `trusted_root_certificate` names.
-
----
-
-A `authentication_certificate_backend` block, within the `backend_http_settings` block supports the following:
-
-* `name` - (Required) The name of the Authentication Certificate.
 
 ---
 

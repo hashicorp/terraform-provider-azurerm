@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package azuresdkhacks
 
 import (
@@ -52,7 +55,8 @@ func (c VaultCertificatesClient) preparerForCreate(ctx context.Context, id vault
 		autorest.WithBaseURL(c.baseUri),
 		autorest.WithPath(id.ID()),
 		autorest.WithJSON(input),
-		autorest.WithQueryParameters(queryParameters))
+		autorest.WithQueryParameters(queryParameters),
+	)
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
@@ -63,7 +67,8 @@ func (c VaultCertificatesClient) responderForCreate(resp *http.Response) (result
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Model),
-		autorest.ByClosing())
+		autorest.ByClosing(),
+	)
 	result.HttpResponse = resp
 
 	return

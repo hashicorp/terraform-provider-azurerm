@@ -62,9 +62,20 @@ func (c ClustersClient) AddCalloutPolicies(ctx context.Context, id commonids.Kus
 
 // AddCalloutPoliciesThenPoll performs AddCalloutPolicies then polls until it's completed
 func (c ClustersClient) AddCalloutPoliciesThenPoll(ctx context.Context, id commonids.KustoClusterId, input CalloutPoliciesList) error {
+	return c.AddCalloutPoliciesCallbackThenPoll(ctx, id, input, nil)
+}
+
+// AddCalloutPoliciesCallbackThenPoll performs AddCalloutPolicies, runs the optional callback function, then polls until it's completed
+func (c ClustersClient) AddCalloutPoliciesCallbackThenPoll(ctx context.Context, id commonids.KustoClusterId, input CalloutPoliciesList, callback func() error) error {
 	result, err := c.AddCalloutPolicies(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing AddCalloutPolicies: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

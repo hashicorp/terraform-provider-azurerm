@@ -11,19 +11,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceArmLoadBalancerNatRuleCreateUpdate,
 		Read:   resourceArmLoadBalancerNatRuleRead,
 		Update: resourceArmLoadBalancerNatRuleCreateUpdate,
@@ -76,14 +75,14 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			"frontend_port": {
 				Type:          pluginsdk.TypeInt,
 				Optional:      true,
-				ValidateFunc:  validate.PortNumberOrZero,
+				ValidateFunc:  validation.IsPortNumberOrZero,
 				ConflictsWith: []string{"frontend_port_start", "frontend_port_end", "backend_address_pool_id"},
 			},
 
 			"backend_port": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ValidateFunc: validate.PortNumberOrZero,
+				ValidateFunc: validation.IsPortNumberOrZero,
 			},
 
 			"frontend_ip_configuration_name": {
@@ -95,7 +94,7 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			"floating_ip_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"tcp_reset_enabled": {
@@ -114,7 +113,7 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			"frontend_port_start": {
 				Type:          pluginsdk.TypeInt,
 				Optional:      true,
-				ValidateFunc:  validate.PortNumber,
+				ValidateFunc:  validation.IsPortNumber,
 				RequiredWith:  []string{"backend_address_pool_id", "frontend_port_end"},
 				ConflictsWith: []string{"frontend_port"},
 			},
@@ -122,7 +121,7 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			"frontend_port_end": {
 				Type:          pluginsdk.TypeInt,
 				Optional:      true,
-				ValidateFunc:  validate.PortNumber,
+				ValidateFunc:  validation.IsPortNumber,
 				RequiredWith:  []string{"backend_address_pool_id", "frontend_port_start"},
 				ConflictsWith: []string{"frontend_port"},
 			},
@@ -145,36 +144,6 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["enable_floating_ip"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"floating_ip_enabled"},
-			Deprecated:    "This field is deprecated in favour of `floating_ip_enabled` and will be removed in version 5.0 of the provider.",
-		}
-		resource.Schema["floating_ip_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true,
-		}
-
-		resource.Schema["enable_tcp_reset"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"tcp_reset_enabled"},
-			Deprecated:    "This field is deprecated in favour of `tcp_reset_enabled` and will be removed in version 5.0 of the provider.",
-		}
-		resource.Schema["tcp_reset_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true,
-		}
-	}
-
-	return resource
 }
 
 func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -218,7 +187,9 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 			if exists {
 				if id.InboundNatRuleName == *existingNatRule.Name {
 					if d.IsNewResource() {
-						return tf.ImportAsExistsError("azurerm_lb_nat_rule", *existingNatRule.Id)
+						if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+							return tf.ImportAsExistsError("azurerm_lb_nat_rule", *existingNatRule.Id)
+						}
 					}
 
 					// this nat rule is being updated/reapplied remove old copy from the slice
@@ -228,13 +199,18 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 			props.InboundNatRules = &natRules
 
-			err := client.CreateOrUpdateThenPoll(ctx, plbId, *model)
-			if err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
+			if d.IsNewResource() {
+				if err := client.CreateOrUpdateCallbackThenPoll(ctx, plbId, *model, sdk.SetIDCallback(meta, &id, d)); err != nil {
+					return fmt.Errorf("creating %s: %+v", id, err)
+				}
+				d.SetId(id.ID())
+			} else {
+				if err := client.CreateOrUpdateThenPoll(ctx, plbId, *model); err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
+				}
 			}
 		}
 	}
-	d.SetId(id.ID())
 
 	return resourceArmLoadBalancerNatRuleRead(d, meta)
 }
@@ -280,11 +256,6 @@ func resourceArmLoadBalancerNatRuleRead(d *pluginsdk.ResourceData, meta interfac
 			d.Set("backend_port", pointer.From(props.BackendPort))
 			d.Set("floating_ip_enabled", pointer.From(props.EnableFloatingIP))
 			d.Set("tcp_reset_enabled", pointer.From(props.EnableTcpReset))
-
-			if !features.FivePointOh() {
-				d.Set("enable_floating_ip", pointer.From(props.EnableFloatingIP))
-				d.Set("enable_tcp_reset", pointer.From(props.EnableTcpReset))
-			}
 
 			frontendIPConfigName := ""
 			frontendIPConfigID := ""
@@ -348,8 +319,7 @@ func resourceArmLoadBalancerNatRuleDelete(d *pluginsdk.ResourceData, meta interf
 			natRules = append(natRules[:index], natRules[index+1:]...)
 			props.InboundNatRules = &natRules
 
-			err := client.CreateOrUpdateThenPoll(ctx, plbId, *model)
-			if err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, plbId, *model); err != nil {
 				return fmt.Errorf("Creating/Updating %s: %+v", *id, err)
 			}
 		}
@@ -359,20 +329,10 @@ func resourceArmLoadBalancerNatRuleDelete(d *pluginsdk.ResourceData, meta interf
 
 func expandAzureRmLoadBalancerNatRule(d *pluginsdk.ResourceData, lb *loadbalancers.LoadBalancer, loadBalancerId loadbalancers.LoadBalancerId) (*loadbalancers.InboundNatRule, error) {
 	properties := loadbalancers.InboundNatRulePropertiesFormat{
-		Protocol:         pointer.To(loadbalancers.TransportProtocol(d.Get("protocol").(string))),
+		Protocol:         pointer.ToEnum[loadbalancers.TransportProtocol](d.Get("protocol").(string)),
 		BackendPort:      pointer.To(int64(d.Get("backend_port").(int))),
 		EnableFloatingIP: pointer.To(d.Get("floating_ip_enabled").(bool)),
 		EnableTcpReset:   pointer.To(d.Get("tcp_reset_enabled").(bool)),
-	}
-
-	if !features.FivePointOh() {
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "enable_floating_ip") {
-			properties.EnableFloatingIP = pointer.To(d.Get("enable_floating_ip").(bool))
-		}
-
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "enable_tcp_reset") {
-			properties.EnableTcpReset = pointer.To(d.Get("enable_tcp_reset").(bool))
-		}
 	}
 
 	backendAddressPoolSet, frontendPort := false, false

@@ -14,9 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/capacitypools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/volumegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
@@ -232,9 +232,10 @@ func (r NetAppVolumeGroupSAPHanaResource) Arguments() map[string]*pluginsdk.Sche
 					},
 
 					"network_features": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true, // O+C - This is Optional/Computed because the service team is changing network features on the backend to upgrade everyone from Basic to Standard and there is a feature that allows customers to change network features from portal but not the API. This could cause drift that forces data loss that we want to avoid
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						// Note: O+C because the service team is changing network features on the backend to upgrade everyone from Basic to Standard and there is a feature that allows customers to change network features from portal but not the API. This could cause drift that forces data loss that we want to avoid
+						Computed:     true,
 						ValidateFunc: validation.StringInSlice(volumegroups.PossibleValuesForNetworkFeatures(), false),
 					},
 
@@ -283,7 +284,8 @@ func (r NetAppVolumeGroupSAPHanaResource) Arguments() map[string]*pluginsdk.Sche
 					"data_protection_snapshot_policy": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Computed: true, // O+C - Adding this because Terraform is not being able to build proper deletion graph, it is trying to delete the snapshot policy before the volume because this is in a deeper level within the schema inside an array of volumes
+						// Note: O+C Adding this because Terraform is not being able to build proper deletion graph, it is trying to delete the snapshot policy before the volume because this is in a deeper level within the schema inside an array of volumes
+						Computed: true,
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
@@ -297,18 +299,20 @@ func (r NetAppVolumeGroupSAPHanaResource) Arguments() map[string]*pluginsdk.Sche
 					},
 
 					"encryption_key_source": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ForceNew:     true,
-						Computed:     true, // O+C - This is computed/optional since there is a feature coming up that will allow customers to change the encryption key source from portal but not the API. This could cause drift if configuration is not updated
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						// Note: O+C since there is a feature coming up that will allow customers to change the encryption key source from portal but not the API. This could cause drift if configuration is not updated
+						Computed:     true,
 						ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForEncryptionKeySource(), false),
 					},
 
 					"key_vault_private_endpoint_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ForceNew:     true,
-						Computed:     true, // O+C - This is computed/optional since there is a feature coming up that will allow customers to change the encryption key source from portal but not the API (tied to encryption_key_source). This could cause drift if configuration is not updated
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						// Note: O+C since there is a feature coming up that will allow customers to change the encryption key source from portal but not the API (tied to encryption_key_source). This could cause drift if configuration is not updated
+						Computed:     true,
 						ValidateFunc: azure.ValidateResourceID,
 					},
 				},
@@ -400,14 +404,15 @@ func (r NetAppVolumeGroupSAPHanaResource) Create() sdk.ResourceFunc {
 
 			id := volumegroups.NewVolumeGroupID(subscriptionId, model.ResourceGroupName, model.AccountName, model.Name)
 
-			metadata.Logger.Infof("Import check for %s", id)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			volumeList, err := expandNetAppVolumeGroupSAPHanaVolumes(model.Volumes)
@@ -432,9 +437,10 @@ func (r NetAppVolumeGroupSAPHanaResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err = client.CreateThenPoll(ctx, id, parameters); err != nil {
+			if err = client.CreateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+			metadata.SetID(id)
 
 			// Waiting for volume group be completely provisioned
 			if err := waitForVolumeGroupCreateOrUpdate(ctx, client, id); err != nil {
@@ -445,8 +451,6 @@ func (r NetAppVolumeGroupSAPHanaResource) Create() sdk.ResourceFunc {
 			if err := authorizeVolumeReplication(ctx, volumeList, volumeClient, subscriptionId, model.ResourceGroupName, model.AccountName); err != nil {
 				return err
 			}
-
-			metadata.SetID(id)
 
 			return nil
 		},
@@ -464,13 +468,10 @@ func (r NetAppVolumeGroupSAPHanaResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppVolumeGroupSAPHanaModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
-
-			metadata.Logger.Infof("Updating %s", id)
 
 			if metadata.ResourceData.HasChange("volume") {
 				// Iterating over each volume and performing individual patch
@@ -503,7 +504,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Update() sdk.ResourceFunc {
 							exportPolicyRuleRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.export_policy_rule", volumeItem)).([]interface{})
 
 							// Validating export policy rules
-							volumeProtocolRaw := (metadata.ResourceData.Get(fmt.Sprintf("%v.protocols", volumeItem)).([]interface{}))[0]
+							volumeProtocolRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.protocols", volumeItem)).([]interface{})[0]
 							volumeProtocol := volumeProtocolRaw.(string)
 
 							errors := make([]error, 0)
@@ -533,8 +534,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Update() sdk.ResourceFunc {
 								}
 							}
 
-							exportPolicyRule := expandNetAppVolumeGroupVolumeExportPolicyRulePatchWithProtocolConversion(exportPolicyRuleRaw, protocolOverride)
-							update.Properties.ExportPolicy = exportPolicyRule
+							update.Properties.ExportPolicy = expandNetAppVolumeGroupVolumeExportPolicyRulePatchWithProtocolConversion(exportPolicyRuleRaw, protocolOverride)
 						}
 
 						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.protocols", volumeItem)) {
@@ -602,7 +602,6 @@ func (r NetAppVolumeGroupSAPHanaResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppVolumeGroupSAPHanaModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)

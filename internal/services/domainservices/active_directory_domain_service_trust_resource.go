@@ -125,19 +125,27 @@ func (r DomainServiceTrustResource) Create() sdk.ResourceFunc {
 					}
 				}
 			}
+
+			exists := false
 			for _, setting := range existingTrusts {
 				if setting.FriendlyName != nil && *setting.FriendlyName == id.TrustName {
-					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+					exists = true
+					if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return metadata.ResourceRequiresImport(r.ResourceType(), id)
+					}
 				}
 			}
 
-			existingTrusts = append(existingTrusts, domainservices.ForestTrust{
-				TrustedDomainFqdn: pointer.To(plan.TrustedDomainFqdn),
-				TrustDirection:    pointer.To("Inbound"),
-				FriendlyName:      pointer.To(id.TrustName),
-				RemoteDnsIPs:      pointer.To(strings.Join(plan.TrustedDomainDnsIPs, ",")),
-				TrustPassword:     pointer.To(plan.Password),
-			})
+			if !exists {
+				existingTrusts = append(existingTrusts, domainservices.ForestTrust{
+					TrustedDomainFqdn: pointer.To(plan.TrustedDomainFqdn),
+					TrustDirection:    pointer.To("Inbound"),
+					FriendlyName:      pointer.To(id.TrustName),
+					RemoteDnsIPs:      pointer.To(strings.Join(plan.TrustedDomainDnsIPs, ",")),
+					TrustPassword:     pointer.To(plan.Password),
+				})
+			}
+
 			params := domainservices.DomainService{
 				Properties: &domainservices.DomainServiceProperties{
 					ResourceForestSettings: &domainservices.ResourceForestSettings{
@@ -146,6 +154,7 @@ func (r DomainServiceTrustResource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
 			if err := client.UpdateThenPoll(ctx, idsdk, params); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -195,9 +204,8 @@ func (r DomainServiceTrustResource) Read() sdk.ResourceFunc {
 			}
 			var trust *domainservices.ForestTrust
 			for _, setting := range existingTrusts {
-				existingTrust := setting
 				if setting.FriendlyName != nil && *setting.FriendlyName == id.TrustName {
-					trust = &existingTrust
+					trust = pointer.To(setting)
 				}
 			}
 			if trust == nil {

@@ -10,14 +10,16 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/ipfirewallrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSynapseFirewallRule() *pluginsdk.Resource {
@@ -28,8 +30,13 @@ func resourceSynapseFirewallRule() *pluginsdk.Resource {
 		Delete: resourceSynapseFirewallRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FirewallRuleID(id)
+			_, err := ipfirewallrules.ParseFirewallRuleID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SynapseFirewallRuleV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -51,7 +58,7 @@ func resourceSynapseFirewallRule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.WorkspaceID,
+				ValidateFunc: validation.AsGeneratedID(workspaces.ParseWorkspaceIDInsensitively),
 			},
 
 			"start_ip_address": {
@@ -74,22 +81,26 @@ func resourceSynapseFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	workspaceId, err := parse.WorkspaceID(d.Get("synapse_workspace_id").(string))
+	// todo 6.0 - move to the case-sensitive parser when validation.AsGeneratedID is removed: this parses a config
+	// value which the paired AsGeneratedID validator accepts with legacy casing, and configs cannot be migrated.
+	workspaceId, err := workspaces.ParseWorkspaceIDInsensitively(d.Get("synapse_workspace_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewFirewallRuleID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, d.Get("name").(string))
+	id := ipfirewallrules.NewFirewallRuleID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroupName, id.WorkspaceName, id.FirewallRuleName)
+			if err != nil {
+				if !response.WasNotFound(existing.Response.Response) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_synapse_firewall_rule", id.ID())
+			if !response.WasNotFound(existing.Response.Response) {
+				return tf.ImportAsExistsError("azurerm_synapse_firewall_rule", id.ID())
+			}
 		}
 	}
 
@@ -100,10 +111,13 @@ func resourceSynapseFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, parameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.WorkspaceName, id.FirewallRuleName, parameters)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
+
+	d.SetId(id.ID())
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting on creation/update of %s: %+v", id, err)
 	}
@@ -120,7 +134,7 @@ func resourceSynapseFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 		Pending: []string{string(synapse.ProvisioningStateProvisioning)},
 		Target:  []string{string(synapse.ProvisioningStateSucceeded)},
 		Refresh: func() (result interface{}, state string, err error) {
-			resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+			resp, err := client.Get(ctx, id.ResourceGroupName, id.WorkspaceName, id.FirewallRuleName)
 			if err != nil {
 				return nil, "Error", err
 			}
@@ -135,7 +149,6 @@ func resourceSynapseFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("waiting for %s to be ready", id)
 	}
 
-	d.SetId(id.ID())
 	return resourceSynapseFirewallRuleRead(d, meta)
 }
 
@@ -144,25 +157,24 @@ func resourceSynapseFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FirewallRuleID(d.Id())
+	id, err := ipfirewallrules.ParseFirewallRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.WorkspaceName, id.FirewallRuleName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] Error reading Synapse Firewall Rule %q - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("reading Synapse Firewall Rule %q (Workspace %q / Resource Group %q): %+v", id.Name, id.WorkspaceName, id.ResourceGroup, err)
+		return fmt.Errorf("reading Synapse Firewall Rule %q (Workspace %q / Resource Group %q): %+v", id.FirewallRuleName, id.WorkspaceName, id.ResourceGroupName, err)
 	}
 
-	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID()
-	d.Set("name", id.Name)
-	d.Set("synapse_workspace_id", workspaceId)
+	d.Set("name", id.FirewallRuleName)
+	d.Set("synapse_workspace_id", workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID())
 
 	if props := resp.IPFirewallRuleProperties; props != nil {
 		d.Set("start_ip_address", props.StartIPAddress)
@@ -177,12 +189,12 @@ func resourceSynapseFirewallRuleDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FirewallRuleID(d.Id())
+	id, err := ipfirewallrules.ParseFirewallRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.WorkspaceName, id.FirewallRuleName)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}

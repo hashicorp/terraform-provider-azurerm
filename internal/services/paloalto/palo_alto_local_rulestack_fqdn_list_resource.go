@@ -107,15 +107,17 @@ func (r LocalRulestackFQDNList) Create() sdk.ResourceFunc {
 
 			id := fqdnlistlocalrulestack.NewLocalRulestackFqdnListID(rulestackId.SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, model.Name)
 
-			existing, err := client.FqdnListLocalRulestackGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.FqdnListLocalRulestackGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			props := fqdnlistlocalrulestack.FqdnObject{
@@ -238,7 +240,7 @@ func (r LocalRulestackFQDNList) Update() sdk.ResourceFunc {
 
 			existing, err := client.FqdnListLocalRulestackGet(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("retreiving %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			fqdnList := *existing.Model

@@ -62,9 +62,20 @@ func (c DeploymentsClient) WhatIfAtTenantScope(ctx context.Context, id Deploymen
 
 // WhatIfAtTenantScopeThenPoll performs WhatIfAtTenantScope then polls until it's completed
 func (c DeploymentsClient) WhatIfAtTenantScopeThenPoll(ctx context.Context, id DeploymentId, input ScopedDeploymentWhatIf) error {
+	return c.WhatIfAtTenantScopeCallbackThenPoll(ctx, id, input, nil)
+}
+
+// WhatIfAtTenantScopeCallbackThenPoll performs WhatIfAtTenantScope, runs the optional callback function, then polls until it's completed
+func (c DeploymentsClient) WhatIfAtTenantScopeCallbackThenPoll(ctx context.Context, id DeploymentId, input ScopedDeploymentWhatIf, callback func() error) error {
 	result, err := c.WhatIfAtTenantScope(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing WhatIfAtTenantScope: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

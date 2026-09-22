@@ -105,7 +105,8 @@ func TestAccDataSourceStorageAccountBlobContainerSas_noPermissions(t *testing.T)
 		{
 			Config: StorageAccountBlobContainerSASDataSource{}.noPermissions(data, startDate, endDate),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("sas").Exists()),
+				check.That(data.ResourceName).Key("sas").Exists(),
+			),
 		},
 	})
 }
@@ -132,7 +133,7 @@ resource "azurerm_storage_account" "storage" {
 
 resource "azurerm_storage_container" "container" {
   name                  = "sas-test"
-  storage_account_name  = azurerm_storage_account.storage.name
+  storage_account_id    = azurerm_storage_account.storage.id
   container_access_type = "private"
 }
 
@@ -169,7 +170,7 @@ data "azurerm_storage_account_blob_container_sas" "test" {
   content_language    = "en-US"
   content_type        = "application/json"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, startDate, endDate)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, startDate, endDate)
 }
 
 func (d StorageAccountBlobContainerSASDataSource) partial(data acceptance.TestData, startDate string, endDate string) string {
@@ -194,7 +195,7 @@ resource "azurerm_storage_account" "storage" {
 
 resource "azurerm_storage_container" "container" {
   name                  = "sas-test"
-  storage_account_name  = azurerm_storage_account.storage.name
+  storage_account_id    = azurerm_storage_account.storage.id
   container_access_type = "private"
 }
 
@@ -223,7 +224,7 @@ data "azurerm_storage_account_blob_container_sas" "test" {
   content_language    = "en-US"
   content_type        = "application/json"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, startDate, endDate)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, startDate, endDate)
 }
 
 func (d StorageAccountBlobContainerSASDataSource) noPermissions(data acceptance.TestData, startDate string, endDate string) string {
@@ -248,7 +249,7 @@ resource "azurerm_storage_account" "storage" {
 
 resource "azurerm_storage_container" "container" {
   name                  = "sas-test"
-  storage_account_name  = azurerm_storage_account.storage.name
+  storage_account_id    = azurerm_storage_account.storage.id
   container_access_type = "private"
 }
 
@@ -268,7 +269,7 @@ data "azurerm_storage_account_blob_container_sas" "test" {
   content_language    = "en-US"
   content_type        = "application/json"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, startDate, endDate)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, startDate, endDate)
 }
 
 func TestAccDataSourceStorageAccountBlobContainerSas_permissionsString(t *testing.T) {

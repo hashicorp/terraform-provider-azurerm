@@ -58,9 +58,20 @@ func (c ReplicationRecoveryPlansClient) Reprotect(ctx context.Context, id Replic
 
 // ReprotectThenPoll performs Reprotect then polls until it's completed
 func (c ReplicationRecoveryPlansClient) ReprotectThenPoll(ctx context.Context, id ReplicationRecoveryPlanId) error {
+	return c.ReprotectCallbackThenPoll(ctx, id, nil)
+}
+
+// ReprotectCallbackThenPoll performs Reprotect, runs the optional callback function, then polls until it's completed
+func (c ReplicationRecoveryPlansClient) ReprotectCallbackThenPoll(ctx context.Context, id ReplicationRecoveryPlanId, callback func() error) error {
 	result, err := c.Reprotect(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Reprotect: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

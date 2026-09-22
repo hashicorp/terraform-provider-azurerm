@@ -95,7 +95,7 @@ A `proxy` block supports the following:
 
 * `url` - (Required) The URL of the proxy server.
 
-* `username` - (Required) The username to connect to the proxy server.
+* `username` - (Optional) The username to connect to the proxy server.
 
 ---
 
@@ -141,7 +141,7 @@ A `circuit_breaker_rule` block supports the following:
 
 * `failure_condition` - (Required) A `failure_condition` block as defined below.
 
-* `accept_retry_after_enabled` - (Optional) Specifies whether the circuit breaker should honor `Retry-After` requests. Defaults to `false`.
+* `accept_retry_after_enabled` - (Optional) Specifies whether the circuit breaker should honour `Retry-After` requests. Defaults to `false`.
 
 ---
 

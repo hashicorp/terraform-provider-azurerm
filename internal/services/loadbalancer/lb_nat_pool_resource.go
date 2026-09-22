@@ -11,9 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
@@ -76,19 +75,19 @@ func resourceArmLoadBalancerNatPool() *pluginsdk.Resource {
 			"frontend_port_start": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ValidateFunc: validate.PortNumber,
+				ValidateFunc: validation.IsPortNumber,
 			},
 
 			"frontend_port_end": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ValidateFunc: validate.PortNumber,
+				ValidateFunc: validation.IsPortNumber,
 			},
 
 			"backend_port": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ValidateFunc: validate.PortNumber,
+				ValidateFunc: validation.IsPortNumber,
 			},
 
 			"frontend_ip_configuration_name": {
@@ -165,7 +164,9 @@ func resourceArmLoadBalancerNatPoolCreateUpdate(d *pluginsdk.ResourceData, meta 
 		if exists {
 			if id.InboundNatPoolName == *existingNatPool.Name {
 				if d.IsNewResource() {
-					return tf.ImportAsExistsError("azurerm_lb_nat_pool", *existingNatPool.Id)
+					if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return tf.ImportAsExistsError("azurerm_lb_nat_pool", *existingNatPool.Id)
+					}
 				}
 
 				// this pool is being updated/reapplied remove old copy from the slice
@@ -175,13 +176,15 @@ func resourceArmLoadBalancerNatPoolCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 		model.Properties.InboundNatPools = &natPools
 
-		err = client.CreateOrUpdateThenPoll(ctx, plbId, *model)
-		if err != nil {
+		// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
+		if err = client.CreateOrUpdateThenPoll(ctx, plbId, *model); err != nil {
 			return fmt.Errorf("creating/updating %s : %+v", id, err)
 		}
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
 	return resourceArmLoadBalancerNatPoolRead(d, meta)
 }
@@ -282,8 +285,7 @@ func resourceArmLoadBalancerNatPoolDelete(d *pluginsdk.ResourceData, meta interf
 			natPools = append(natPools[:index], natPools[index+1:]...)
 			props.InboundNatPools = &natPools
 
-			err := client.CreateOrUpdateThenPoll(ctx, plbId, *model)
-			if err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, plbId, *model); err != nil {
 				return fmt.Errorf("updating Load Balancer %q (Resource Group %q) for Nat Pool %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.InboundNatPoolName, err)
 			}
 		}

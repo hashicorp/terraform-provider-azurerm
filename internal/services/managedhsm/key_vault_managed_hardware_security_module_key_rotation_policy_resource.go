@@ -11,11 +11,13 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	validate2 "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -53,14 +55,14 @@ func (r KeyVaultMHSMKeyRotationPolicyResource) Arguments() map[string]*pluginsdk
 		"expire_after": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate2.ISO8601DurationBetween("P28D", "P100Y"),
+			ValidateFunc: validation.ISO8601DurationBetween("P28D", "P100Y"),
 		},
 
 		// notify not supported in HSM Key, only rotate is supported
 		"time_after_creation": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validate2.ISO8601DurationBetween("P28D", "P100Y"),
+			ValidateFunc: validation.ISO8601DurationBetween("P28D", "P100Y"),
 			ExactlyOneOf: []string{
 				"time_after_creation",
 				"time_before_expiry",
@@ -70,7 +72,7 @@ func (r KeyVaultMHSMKeyRotationPolicyResource) Arguments() map[string]*pluginsdk
 		"time_before_expiry": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validate2.ISO8601Duration,
+			ValidateFunc: validation.ISO8601Duration,
 			ExactlyOneOf: []string{
 				"time_after_creation",
 				"time_before_expiry",
@@ -122,9 +124,11 @@ func (r KeyVaultMHSMKeyRotationPolicyResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if respPolicy.Attributes != nil && respPolicy.Attributes.ExpiryTime != nil {
-				if respPolicy.LifetimeActions != nil && len(*respPolicy.LifetimeActions) > 0 {
-					return metadata.ResourceRequiresImport(r.ResourceType(), keyID)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				if respPolicy.Attributes != nil && respPolicy.Attributes.ExpiryTime != nil {
+					if respPolicy.LifetimeActions != nil && len(*respPolicy.LifetimeActions) > 0 {
+						return metadata.ResourceRequiresImport(r.ResourceType(), keyID)
+					}
 				}
 			}
 
@@ -188,8 +192,20 @@ func (r KeyVaultMHSMKeyRotationPolicyResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			if _, err := client.UpdateKeyRotationPolicy(ctx, id.BaseUri(), id.KeyName, expandKeyRotationPolicy(config)); err != nil {
+			resp, err := client.UpdateKeyRotationPolicy(ctx, id.BaseUri(), id.KeyName, expandKeyRotationPolicy(config))
+			if err != nil {
 				return fmt.Errorf("updating HSM Key Rotation Policy for Key %q: %v", id, err)
+			}
+
+			// Managed HSM serves the data plane from multiple partitions; a read immediately after an update
+			// may be routed to a stale replica, so we poll until the read-back `updated` timestamp matches
+			// the write response to ensure consistency before the framework performs its read
+			if resp.Attributes != nil && resp.Attributes.Updated != nil {
+				pollerType := custompollers.NewKeyRotationPolicyUpdatePoller(metadata.Client.ManagedHSMs.DataPlaneKeysClient, id.BaseUri(), id.KeyName, *resp.Attributes.Updated)
+				poller := pollers.NewPoller(pollerType, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+				if err := poller.PollUntilDone(ctx); err != nil {
+					return fmt.Errorf("waiting for key rotation policy for %q to propagate: %+v", id, err)
+				}
 			}
 
 			return nil

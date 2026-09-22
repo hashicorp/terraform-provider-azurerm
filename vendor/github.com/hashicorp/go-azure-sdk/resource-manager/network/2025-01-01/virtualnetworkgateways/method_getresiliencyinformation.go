@@ -87,9 +87,20 @@ func (c VirtualNetworkGatewaysClient) GetResiliencyInformation(ctx context.Conte
 
 // GetResiliencyInformationThenPoll performs GetResiliencyInformation then polls until it's completed
 func (c VirtualNetworkGatewaysClient) GetResiliencyInformationThenPoll(ctx context.Context, id VirtualNetworkGatewayId, options GetResiliencyInformationOperationOptions) error {
+	return c.GetResiliencyInformationCallbackThenPoll(ctx, id, options, nil)
+}
+
+// GetResiliencyInformationCallbackThenPoll performs GetResiliencyInformation, runs the optional callback function, then polls until it's completed
+func (c VirtualNetworkGatewaysClient) GetResiliencyInformationCallbackThenPoll(ctx context.Context, id VirtualNetworkGatewayId, options GetResiliencyInformationOperationOptions, callback func() error) error {
 	result, err := c.GetResiliencyInformation(ctx, id, options)
 	if err != nil {
 		return fmt.Errorf("performing GetResiliencyInformation: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

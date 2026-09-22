@@ -61,9 +61,20 @@ func (c CachesClient) StopPrimingJob(ctx context.Context, id CacheId, input Prim
 
 // StopPrimingJobThenPoll performs StopPrimingJob then polls until it's completed
 func (c CachesClient) StopPrimingJobThenPoll(ctx context.Context, id CacheId, input PrimingJobIdParameter) error {
+	return c.StopPrimingJobCallbackThenPoll(ctx, id, input, nil)
+}
+
+// StopPrimingJobCallbackThenPoll performs StopPrimingJob, runs the optional callback function, then polls until it's completed
+func (c CachesClient) StopPrimingJobCallbackThenPoll(ctx context.Context, id CacheId, input PrimingJobIdParameter, callback func() error) error {
 	result, err := c.StopPrimingJob(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing StopPrimingJob: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

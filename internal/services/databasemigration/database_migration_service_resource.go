@@ -18,13 +18,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name database_migration_service -service-package-name databasemigration -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceDatabaseMigrationService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -70,7 +71,7 @@ func resourceDatabaseMigrationService() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					// No const defined in go sdk, the literal listed below is derived from the response of listskus endpoint.
-					// See: https://docs.microsoft.com/en-us/rest/api/datamigration/resourceskus/listskus
+					// See: https://docs.microsoft.com/rest/api/datamigration/resourceskus/listskus
 					"Premium_4vCores",
 					"Standard_1vCores",
 					"Standard_2vCores",
@@ -90,7 +91,7 @@ func resourceDatabaseMigrationServiceCreate(d *pluginsdk.ResourceData, meta inte
 	defer cancel()
 
 	id := serviceresource.NewServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.ServicesGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -116,7 +117,7 @@ func resourceDatabaseMigrationServiceCreate(d *pluginsdk.ResourceData, meta inte
 		parameters.Tags = tags.Expand(t.(map[string]interface{}))
 	}
 
-	if err := client.ServicesCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.ServicesCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

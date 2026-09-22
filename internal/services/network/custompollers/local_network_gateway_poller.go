@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package custompollers
@@ -6,9 +6,9 @@ package custompollers
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/localnetworkgateways"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
@@ -19,17 +19,6 @@ type localNetworkGatewayPoller struct {
 	client *localnetworkgateways.LocalNetworkGatewaysClient
 	id     localnetworkgateways.LocalNetworkGatewayId
 }
-
-var (
-	pollingSuccess = pollers.PollResult{
-		Status:       pollers.PollingStatusSucceeded,
-		PollInterval: 10 * time.Second,
-	}
-	pollingInProgress = pollers.PollResult{
-		Status:       pollers.PollingStatusInProgress,
-		PollInterval: 10 * time.Second,
-	}
-)
 
 func NewLocalNetworkGatewayPoller(client *localnetworkgateways.LocalNetworkGatewaysClient, id localnetworkgateways.LocalNetworkGatewayId) *localNetworkGatewayPoller {
 	return &localNetworkGatewayPoller{
@@ -44,13 +33,17 @@ func (p localNetworkGatewayPoller) Poll(ctx context.Context) (*pollers.PollResul
 		return nil, fmt.Errorf("retrieving %s: %+v", p.id, err)
 	}
 
+	pollingResult := pollers.PollResult{
+		Status:       pollers.PollingStatusInProgress,
+		PollInterval: 10 * time.Second,
+	}
+
 	if resp.Model != nil {
-		if provisioningStatus := resp.Model.Properties.ProvisioningState; provisioningStatus != nil {
-			if !strings.EqualFold(string(*provisioningStatus), string(pollingSuccess.Status)) {
-				return &pollingInProgress, nil
-			}
+		if pointer.From(resp.Model.Properties.ProvisioningState) == localnetworkgateways.ProvisioningStateSucceeded {
+			pollingResult.Status = pollers.PollingStatusSucceeded
+			return &pollingResult, nil
 		}
 	}
 
-	return &pollingSuccess, nil
+	return &pollingResult, nil
 }

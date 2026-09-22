@@ -91,7 +91,8 @@ func (r PrivateDNSResolverVirtualNetworkLinkDataSource) Read() sdk.ResourceFunc 
 				dnsForwardingRulesetId.SubscriptionId,
 				dnsForwardingRulesetId.ResourceGroupName,
 				dnsForwardingRulesetId.DnsForwardingRulesetName,
-				state.Name)
+				state.Name,
+			)
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)

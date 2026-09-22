@@ -88,8 +88,8 @@ func dataSourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta int
 
 		props := model.Properties
 		if len(props.StorageSettings) > 0 {
-			d.Set("datastore_type", string(pointer.From((props.StorageSettings)[0].DatastoreType)))
-			d.Set("redundancy", string(pointer.From((props.StorageSettings)[0].Type)))
+			d.Set("datastore_type", string(pointer.From(props.StorageSettings[0].DatastoreType)))
+			d.Set("redundancy", string(pointer.From(props.StorageSettings[0].Type)))
 		}
 
 		identity, err := dataSourceFlattenBackupVaultDppIdentityDetails(model.Identity)

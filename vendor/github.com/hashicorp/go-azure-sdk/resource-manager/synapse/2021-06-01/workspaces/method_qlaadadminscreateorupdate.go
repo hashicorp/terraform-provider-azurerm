@@ -62,9 +62,20 @@ func (c WorkspacesClient) QlAadAdminsCreateOrUpdate(ctx context.Context, id Work
 
 // QlAadAdminsCreateOrUpdateThenPoll performs QlAadAdminsCreateOrUpdate then polls until it's completed
 func (c WorkspacesClient) QlAadAdminsCreateOrUpdateThenPoll(ctx context.Context, id WorkspaceId, input WorkspaceAadAdminInfo) error {
+	return c.QlAadAdminsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// QlAadAdminsCreateOrUpdateCallbackThenPoll performs QlAadAdminsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c WorkspacesClient) QlAadAdminsCreateOrUpdateCallbackThenPoll(ctx context.Context, id WorkspaceId, input WorkspaceAadAdminInfo, callback func() error) error {
 	result, err := c.QlAadAdminsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing QlAadAdminsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

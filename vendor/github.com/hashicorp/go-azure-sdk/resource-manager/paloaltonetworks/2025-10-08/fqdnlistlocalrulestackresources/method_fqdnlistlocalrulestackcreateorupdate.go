@@ -62,9 +62,20 @@ func (c FqdnListLocalRulestackResourcesClient) FqdnListLocalRulestackCreateOrUpd
 
 // FqdnListLocalRulestackCreateOrUpdateThenPoll performs FqdnListLocalRulestackCreateOrUpdate then polls until it's completed
 func (c FqdnListLocalRulestackResourcesClient) FqdnListLocalRulestackCreateOrUpdateThenPoll(ctx context.Context, id LocalRulestackFqdnListId, input FqdnListLocalRulestackResource) error {
+	return c.FqdnListLocalRulestackCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// FqdnListLocalRulestackCreateOrUpdateCallbackThenPoll performs FqdnListLocalRulestackCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c FqdnListLocalRulestackResourcesClient) FqdnListLocalRulestackCreateOrUpdateCallbackThenPoll(ctx context.Context, id LocalRulestackFqdnListId, input FqdnListLocalRulestackResource, callback func() error) error {
 	result, err := c.FqdnListLocalRulestackCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing FqdnListLocalRulestackCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

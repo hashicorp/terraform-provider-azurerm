@@ -63,9 +63,20 @@ func (c GallerySharingUpdateClient) GallerySharingProfileUpdate(ctx context.Cont
 
 // GallerySharingProfileUpdateThenPoll performs GallerySharingProfileUpdate then polls until it's completed
 func (c GallerySharingUpdateClient) GallerySharingProfileUpdateThenPoll(ctx context.Context, id commonids.SharedImageGalleryId, input SharingUpdate) error {
+	return c.GallerySharingProfileUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// GallerySharingProfileUpdateCallbackThenPoll performs GallerySharingProfileUpdate, runs the optional callback function, then polls until it's completed
+func (c GallerySharingUpdateClient) GallerySharingProfileUpdateCallbackThenPoll(ctx context.Context, id commonids.SharedImageGalleryId, input SharingUpdate, callback func() error) error {
 	result, err := c.GallerySharingProfileUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing GallerySharingProfileUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -11,16 +11,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/servers"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -63,24 +61,6 @@ func TestAccMsSqlServer_complete(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"),
-	})
-}
-
-func TestAccMsSqlServer_minimumTLSVersionDisabled(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skipf("The service require minimum TLS version to be 1.2+, skip the `disabled` testing.")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MssqlServerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicWithMinimumTLSVersionDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -419,19 +399,17 @@ func TestAccMsSqlServer_updateToWriteOnlyPassword(t *testing.T) {
 }
 
 func (MssqlServerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ServerID(state.ID)
+	id, err := commonids.ParseSqlServerID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.Name)
-
-	resp, err := client.MSSQL.ServersClient.Get(ctx, serverId, servers.DefaultGetOperationOptions())
+	resp, err := client.MSSQL.ServersClient.Get(ctx, *id, servers.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return nil, fmt.Errorf("SQL Server %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
+			return nil, fmt.Errorf("SQL Server %q (Resource Group %q) does not exist", id.ServerName, id.ResourceGroupName)
 		}
-		return nil, fmt.Errorf("reading SQL Server %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("reading SQL Server %q (Resource Group %q): %v", id.ServerName, id.ResourceGroupName, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil
@@ -467,26 +445,6 @@ resource "azurerm_mssql_server" "test" {
   administrator_login_password = "thisIsKat11"
 
   outbound_network_restriction_enabled = true
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r MssqlServerResource) basicWithMinimumTLSVersionDisabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_mssql_server" "test" {
-  name                         = "acctestsqlserver%[2]d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  version                      = "12.0"
-  administrator_login          = "missadministrator"
-  administrator_login_password = "thisIsKat11"
-  minimum_tls_version          = "Disabled"
-
-  identity {
-    type = "SystemAssigned"
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -964,6 +922,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctest%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = azurerm_user_assigned_identity.test.tenant_id
   soft_delete_retention_days  = 7
@@ -1042,6 +1001,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctest%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = azurerm_user_assigned_identity.test.tenant_id
   soft_delete_retention_days  = 7
@@ -1116,6 +1076,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctest%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = azurerm_user_assigned_identity.test.tenant_id
   soft_delete_retention_days  = 7

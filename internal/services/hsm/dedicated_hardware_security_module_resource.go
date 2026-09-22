@@ -17,8 +17,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hardwaresecuritymodules/2021-11-30/dedicatedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -57,18 +57,10 @@ func resourceDedicatedHardwareSecurityModule() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(dedicatedhsms.SkuNameSafeNetLunaNetworkHSMASevenNineZero),
-					string(dedicatedhsms.SkuNamePayShieldOneZeroKLMKOneCPSSixZero),
-					string(dedicatedhsms.SkuNamePayShieldOneZeroKLMKOneCPSTwoFiveZero),
-					string(dedicatedhsms.SkuNamePayShieldOneZeroKLMKOneCPSTwoFiveZeroZero),
-					string(dedicatedhsms.SkuNamePayShieldOneZeroKLMKTwoCPSSixZero),
-					string(dedicatedhsms.SkuNamePayShieldOneZeroKLMKTwoCPSTwoFiveZero),
-					string(dedicatedhsms.SkuNamePayShieldOneZeroKLMKTwoCPSTwoFiveZeroZero),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(dedicatedhsms.PossibleValuesForSkuName(), false),
 			},
 
 			"network_profile": {
@@ -83,7 +75,7 @@ func resourceDedicatedHardwareSecurityModule() *pluginsdk.Resource {
 							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: azValidate.IPv4Address,
+								ValidateFunc: validation.IsIPv4Address,
 							},
 						},
 
@@ -109,7 +101,7 @@ func resourceDedicatedHardwareSecurityModule() *pluginsdk.Resource {
 							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: azValidate.IPv4Address,
+								ValidateFunc: validation.IsIPv4Address,
 							},
 						},
 
@@ -147,14 +139,17 @@ func resourceDedicatedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, me
 	defer cancel()
 
 	id := dedicatedhsms.NewDedicatedHSMID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.DedicatedHsmGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.DedicatedHsmGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_dedicated_hardware_security_module", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_dedicated_hardware_security_module", id.ID())
+		}
 	}
 
 	skuName := dedicatedhsms.SkuName(d.Get("sku_name").(string))
@@ -187,7 +182,7 @@ func resourceDedicatedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, me
 		}
 	}
 
-	if err := client.DedicatedHsmCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.DedicatedHsmCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

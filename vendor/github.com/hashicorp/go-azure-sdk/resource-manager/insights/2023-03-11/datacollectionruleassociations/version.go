@@ -8,3 +8,7 @@ const defaultApiVersion = "2023-03-11"
 func userAgent() string {
 	return "hashicorp/go-azure-sdk/datacollectionruleassociations/2023-03-11"
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}

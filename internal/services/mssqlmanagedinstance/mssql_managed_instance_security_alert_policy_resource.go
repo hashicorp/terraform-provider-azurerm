@@ -116,8 +116,6 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyCreate(d *pluginsdk.Resource
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for managed instance security alert policy creation.")
-
 	alertPolicy := expandManagedServerSecurityAlertPolicy(d)
 
 	managedInstanceId := commonids.NewSqlManagedInstanceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("managed_instance_name").(string))
@@ -229,8 +227,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyUpdate(d *pluginsdk.Resource
 		payload.Properties.StorageEndpoint = nil
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, managedInstanceId, *payload)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, managedInstanceId, *payload); err != nil {
 		return fmt.Errorf("updating managed instance security alert policy: %v", err)
 	}
 
@@ -243,8 +240,6 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyRead(d *pluginsdk.ResourceDa
 	client := meta.(*clients.Client).MSSQLManagedInstance.ManagedInstanceServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	log.Printf("[INFO] reading managed instance security alert policy")
 
 	id, err := parse.ManagedInstancesSecurityAlertPolicyID(d.Id())
 	if err != nil {
@@ -332,8 +327,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyDelete(d *pluginsdk.Resource
 		},
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, managedInstanceId, disabledPolicy)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, managedInstanceId, disabledPolicy); err != nil {
 		return fmt.Errorf("updating managed instance security alert policy: %v", err)
 	}
 

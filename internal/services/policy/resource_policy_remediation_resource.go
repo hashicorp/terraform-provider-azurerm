@@ -22,15 +22,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceArmResourcePolicyRemediation() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
-		Create: resourceArmResourcePolicyRemediationCreateUpdate,
-		Read:   resourceArmResourcePolicyRemediationRead,
-		Update: resourceArmResourcePolicyRemediationCreateUpdate,
-		Delete: resourceArmResourcePolicyRemediationDelete,
+func resourceResourcePolicyRemediation() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceResourcePolicyRemediationCreateUpdate,
+		Read:   resourceResourcePolicyRemediationRead,
+		Update: resourceResourcePolicyRemediationCreateUpdate,
+		Delete: resourceResourcePolicyRemediationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ResourcePolicyRemediationID(id)
@@ -104,21 +103,16 @@ func resourceArmResourcePolicyRemediation() *pluginsdk.Resource {
 			},
 
 			"resource_discovery_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(remediations.ResourceDiscoveryModeExistingNonCompliant),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(remediations.ResourceDiscoveryModeExistingNonCompliant),
-					string(remediations.ResourceDiscoveryModeReEvaluateCompliance),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(remediations.ResourceDiscoveryModeExistingNonCompliant),
+				ValidateFunc: validation.StringInSlice(remediations.PossibleValuesForResourceDiscoveryMode(), false),
 			},
 		},
 	}
-
-	return resource
 }
 
-func resourceArmResourcePolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourcePolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -128,14 +122,16 @@ func resourceArmResourcePolicyRemediationCreateUpdate(d *pluginsdk.ResourceData,
 	id := remediations.NewScopedRemediationID(resourceId, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.GetAtResource(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.GetAtResource(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
+				}
 			}
-		}
-		if existing.Model != nil {
-			return tf.ImportAsExistsError("azurerm_resource_policy_remediation", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_resource_policy_remediation", id.ID())
+			}
 		}
 	}
 
@@ -147,12 +143,14 @@ func resourceArmResourcePolicyRemediationCreateUpdate(d *pluginsdk.ResourceData,
 		return fmt.Errorf("creating/updating %s: %+v", id.ID(), err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
 
-	return resourceArmResourcePolicyRemediationRead(d, meta)
+	return resourceResourcePolicyRemediationRead(d, meta)
 }
 
-func resourceArmResourcePolicyRemediationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourcePolicyRemediationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -177,7 +175,7 @@ func resourceArmResourcePolicyRemediationRead(d *pluginsdk.ResourceData, meta in
 	return setRemediationProperties(d, resp.Model.Properties)
 }
 
-func resourceArmResourcePolicyRemediationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourcePolicyRemediationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -197,7 +195,8 @@ func resourceArmResourcePolicyRemediationDelete(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if err := waitForRemediationToDelete(ctx,
+	if err := waitForRemediationToDelete(
+		ctx,
 		existing.Model.Properties,
 		id.ID(),
 		d.Timeout(pluginsdk.TimeoutDelete),
@@ -244,7 +243,7 @@ func waitForRemediationToDelete(ctx context.Context,
 		return nil
 	}
 	if mode := prop.ResourceDiscoveryMode; mode != nil && *mode == remediations.ResourceDiscoveryModeReEvaluateCompliance {
-		// Remediation can only be canceld when it is in "Evaluating" or "Accepted" status, otherwise, API might raise error (e.g. canceling a "Completed" remediation returns 400).
+		// Remediation can only be canceled when it is in "Evaluating" or "Accepted" status, otherwise, API might raise error (e.g. canceling a "Completed" remediation returns 400).
 		if state := prop.ProvisioningState; state != nil && (*state == "Evaluating" || *state == "Accepted") {
 			log.Printf("[DEBUG] cancelling the remediation first before deleting it when `resource_discovery_mode` is set to `ReEvaluateCompliance`")
 			if err := cancelFunc(); err != nil {
@@ -274,7 +273,7 @@ func waitForRemediationToDelete(ctx context.Context,
 func readRemediationProperties(d *pluginsdk.ResourceData) (prop *remediations.RemediationProperties) {
 	prop = &remediations.RemediationProperties{
 		Filters: &remediations.RemediationFilters{
-			Locations: utils.ExpandStringSlice(d.Get("location_filters").([]interface{})),
+			Locations: pluginsdk.ExpandStringSlice(d.Get("location_filters").([]interface{})),
 		},
 		PolicyAssignmentId:          pointer.To(d.Get("policy_assignment_id").(string)),
 		PolicyDefinitionReferenceId: pointer.To(d.Get("policy_definition_reference_id").(string)),
@@ -302,7 +301,7 @@ func setRemediationProperties(d *pluginsdk.ResourceData, prop *remediations.Reme
 	}
 	locations := []interface{}{}
 	if filters := prop.Filters; filters != nil {
-		locations = utils.FlattenStringSlice(filters.Locations)
+		locations = pluginsdk.FlattenSlice(filters.Locations)
 	}
 	if err := d.Set("location_filters", locations); err != nil {
 		return fmt.Errorf("setting `location_filters`: %+v", err)

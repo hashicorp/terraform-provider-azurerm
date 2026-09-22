@@ -180,7 +180,7 @@ func (StackHCILogicalNetworkResource) Arguments() map[string]*pluginsdk.Schema {
 									ForceNew: true,
 									ValidateFunc: validation.StringMatch(
 										regexp.MustCompile(`^[a-zA-Z0-9][\-\.\_a-zA-Z0-9]{0,78}[a-zA-Z0-9]$`),
-										"name must be between 2 and 80 characters and can only contain alphanumberic characters, hyphen, dot and underline",
+										"name must be between 2 and 80 characters and can only contain alphanumeric characters, hyphen, dot and underline",
 									),
 								},
 							},
@@ -219,12 +219,14 @@ func (r StackHCILogicalNetworkResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := logicalnetworks.NewLogicalNetworkID(subscriptionId, config.ResourceGroupName, config.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			payload := logicalnetworks.LogicalNetworks{
@@ -244,7 +246,7 @@ func (r StackHCILogicalNetworkResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("performing create %s: %+v", id, err)
 			}
 
@@ -376,7 +378,7 @@ func expandStackHCILogicalNetworkSubnet(input []StackHCISubnetModel) *[]logicaln
 		results = append(results, logicalnetworks.Subnet{
 			Properties: &logicalnetworks.SubnetPropertiesFormat{
 				AddressPrefix:      pointer.To(v.AddressPrefix),
-				IPAllocationMethod: pointer.To(logicalnetworks.IPAllocationMethodEnum(v.IpAllocationMethod)),
+				IPAllocationMethod: pointer.ToEnum[logicalnetworks.IPAllocationMethodEnum](v.IpAllocationMethod),
 				IPPools:            expandStackHCILogicalNetworkIPPool(v.IpPool),
 				RouteTable:         expandStackHCILogicalNetworkRouteTable(v.Route),
 				Vlan:               pointer.To(v.VlanId),

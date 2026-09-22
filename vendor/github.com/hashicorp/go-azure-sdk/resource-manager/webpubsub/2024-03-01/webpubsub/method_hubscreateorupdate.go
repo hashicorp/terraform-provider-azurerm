@@ -62,9 +62,20 @@ func (c WebPubSubClient) HubsCreateOrUpdate(ctx context.Context, id HubId, input
 
 // HubsCreateOrUpdateThenPoll performs HubsCreateOrUpdate then polls until it's completed
 func (c WebPubSubClient) HubsCreateOrUpdateThenPoll(ctx context.Context, id HubId, input WebPubSubHub) error {
+	return c.HubsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// HubsCreateOrUpdateCallbackThenPoll performs HubsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c WebPubSubClient) HubsCreateOrUpdateCallbackThenPoll(ctx context.Context, id HubId, input WebPubSubHub, callback func() error) error {
 	result, err := c.HubsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing HubsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

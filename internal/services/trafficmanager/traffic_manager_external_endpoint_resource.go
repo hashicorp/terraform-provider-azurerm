@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/trafficmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
@@ -117,7 +116,7 @@ func resourceExternalEndpoint() *pluginsdk.Resource {
 			"endpoint_location": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				StateFunc:        location.StateFunc,
 				DiffSuppressFunc: location.DiffSuppressFunc,
 			},
@@ -137,12 +136,12 @@ func resourceExternalEndpoint() *pluginsdk.Resource {
 						"first": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azValidate.IPv4Address,
+							ValidateFunc: validation.IsIPv4Address,
 						},
 						"last": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: azValidate.IPv4Address,
+							ValidateFunc: validation.IsIPv4Address,
 						},
 						"scope": {
 							Type:         pluginsdk.TypeInt,
@@ -168,15 +167,17 @@ func resourceExternalEndpointCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	id := trafficmanagers.NewEndpointTypeID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.TrafficManagerProfileName, trafficmanagers.EndpointTypeExternalEndpoints, d.Get("name").(string))
 
-	existing, err := client.EndpointsGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.EndpointsGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_traffic_manager_external_endpoint", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_traffic_manager_external_endpoint", id.ID())
+		}
 	}
 
 	status := trafficmanagers.EndpointStatusEnabled
@@ -222,7 +223,7 @@ func resourceExternalEndpointCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if _, err := client.EndpointsCreateOrUpdate(ctx, id, params); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

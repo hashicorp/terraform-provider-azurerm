@@ -108,15 +108,17 @@ func resourceLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate(d *plug
 
 	id := datasources.NewDataSourceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("workspace_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("failed to check for existing Windows Performance Counter %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("failed to check for existing Windows Performance Counter %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_log_analytics_datasource_windows_performance_counter", id.ID())
+			if !response.WasNotFound(resp.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_log_analytics_datasource_windows_performance_counter", id.ID())
+			}
 		}
 	}
 
@@ -134,7 +136,10 @@ func resourceLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate(d *plug
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	return resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead(d, meta)
 }
 
