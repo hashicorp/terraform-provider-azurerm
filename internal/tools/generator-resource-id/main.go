@@ -16,8 +16,10 @@ import (
 	"strings"
 	"unicode"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
 var packagesUsingAlias = map[string]struct{}{
@@ -218,7 +220,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 			toCamelCase := func(input string) string {
 				// lazy but it works
 				out := make([]rune, 0)
-				for i, char := range azure.TitleCase(input) {
+				for i, char := range cases.Title(language.English, cases.NoLower).String(input) {
 					if i == 0 {
 						out = append(out, unicode.ToLower(char))
 						continue
@@ -231,7 +233,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 
 			rewritten := fmt.Sprintf("%sName", key)
 			segment := ResourceIdSegment{
-				FieldName:    azure.TitleCase(rewritten),
+				FieldName:    cases.Title(language.English, cases.NoLower).String(rewritten),
 				ArgumentName: toCamelCase(rewritten),
 				SegmentKey:   key,
 				SegmentValue: value,
@@ -276,7 +278,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 				} else {
 					// remove {Thing}s and make that {Thing}Name
 					rewritten = fmt.Sprintf("%sName", key)
-					segment.FieldName = azure.TitleCase(rewritten)
+					segment.FieldName = cases.Title(language.English, cases.NoLower).String(rewritten)
 					segment.ArgumentName = toCamelCase(rewritten)
 				}
 			}
