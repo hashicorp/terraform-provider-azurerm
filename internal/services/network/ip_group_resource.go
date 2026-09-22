@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/firewallpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ipgroups"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -140,7 +139,7 @@ func resourceIpGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		Name:     &id.IpGroupName,
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &ipgroups.IPGroupPropertiesFormat{
-			IPAddresses: helpers.ExpandStringSlice(ipAddresses),
+			IPAddresses: pluginsdk.ExpandStringSlice(ipAddresses),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -271,7 +270,7 @@ func resourceIpGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	payload := existing.Model
 
 	if d.HasChange("cidrs") {
-		payload.Properties.IPAddresses = helpers.ExpandStringSlice(d.Get("cidrs").(*pluginsdk.Set).List())
+		payload.Properties.IPAddresses = pluginsdk.ExpandStringSlice(d.Get("cidrs").(*pluginsdk.Set).List())
 	}
 
 	if d.HasChange("tags") {
