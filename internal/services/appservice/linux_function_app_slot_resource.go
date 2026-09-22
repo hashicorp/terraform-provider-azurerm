@@ -382,6 +382,16 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving parent Linux %s: %+v", *functionAppId, err)
 			}
 
+			if functionApp.Model == nil || functionApp.Model.Properties == nil {
+				return fmt.Errorf("retrieving parent Linux %s: site properties were nil", *functionAppId)
+			}
+			if pointer.From(functionApp.Model.Properties.ManagedEnvironmentId) != "" {
+				return fmt.Errorf("deployment slots are not supported for Linux %s hosted on a Container Apps Environment", *functionAppId)
+			}
+			if pointer.From(functionApp.Model.Properties.ServerFarmId) == "" {
+				return fmt.Errorf("determining Service Plan ID for parent Linux %s: Service Plan ID was empty", *functionAppId)
+			}
+
 			var servicePlanId *commonids.AppServicePlanId
 			servicePlanId, err = commonids.ParseAppServicePlanIDInsensitively(*functionApp.Model.Properties.ServerFarmId)
 			if err != nil {

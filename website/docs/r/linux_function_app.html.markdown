@@ -112,6 +112,14 @@ The following arguments are supported:
 
 -> **Note:** `public_network_access_enabled` cannot be configured when `container_app_environment_id` is specified. Public network access must be configured on the Container App Environment.
 
+-> **Note:** Container Apps-hosted Function App names must contain at most 32 lowercase letters, digits or hyphens, start with a letter, end with a letter or digit, and must not contain consecutive hyphens.
+
+-> **Note:** When `container_app_environment_id` is specified, the supported `site_config` settings are `application_stack.docker`, `application_insights_key`, `application_insights_connection_string`, `container_registry_use_managed_identity`, `container_registry_managed_identity_client_id`, `elastic_instance_minimum` (minimum replicas) and `app_scale_limit` (maximum replicas). Other `site_config` settings cannot be explicitly configured. Their App Service schema defaults are not sent to Azure.
+
+-> **Note:** `enabled`, `https_only`, `client_certificate_enabled`, `client_certificate_mode`, `client_certificate_exclusion_paths`, `daily_memory_time_quota`, `vnet_image_pull_enabled`, `virtual_network_backup_restore_enabled` and `virtual_network_subnet_id` cannot be configured in this hosting mode. Networking is managed by the Container App Environment.
+
+-> **Note:** This resource does not support the App Service `auth_settings`, `auth_settings_v2`, `backup`, `connection_string`, `sticky_settings`, `storage_account`, `zip_deploy_file`, `ftp_publish_basic_authentication_enabled` or `webdeploy_publish_basic_authentication_enabled` settings for Container Apps-hosted Function Apps. Use `app_settings` for application connection strings. Deployment slots and publishing credentials are not exposed in this hosting mode. Defaults retained in state for inapplicable App Service settings do not describe Container Apps security or networking configuration.
+
 * `service_plan_id` - (Optional) The ID of the App Service Plan within which to create this Function App.
 
 -> **Note:** Exactly one of `container_app_environment_id` or `service_plan_id` must be specified.

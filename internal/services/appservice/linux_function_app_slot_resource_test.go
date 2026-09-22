@@ -6,6 +6,7 @@ package appservice_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -84,6 +85,18 @@ func TestAccLinuxFunctionAppSlot_basicStandardPlan(t *testing.T) {
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxFunctionAppSlot_containerAppEnvironmentParentShouldFail(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.containerAppEnvironmentParent(data),
+			ExpectError: regexp.MustCompile("(?s)deployment slots are not supported for Linux .* hosted on a Container Apps Environment"),
+		},
 	})
 }
 
@@ -3431,6 +3444,21 @@ resource "azurerm_linux_function_app" "test" {
   site_config {}
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, planSku, additionalConfig)
+}
+
+func (LinuxFunctionAppSlotResource) containerAppEnvironmentParent(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "staging"
+  function_app_id            = azurerm_linux_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+}
+`, LinuxFunctionAppResource{}.containerAppEnvironment(data, "first"))
 }
 
 func (LinuxFunctionAppSlotResource) templateExtraStorageAccount(data acceptance.TestData, planSku string) string {

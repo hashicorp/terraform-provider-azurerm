@@ -60,8 +60,8 @@ func (p *FunctionAppContainerCreateOrUpdatePoller) Poll(ctx context.Context) (*p
 	}
 
 	p.pollInterval = functionAppContainerPollingInterval(response.Response)
-	if response.Response.StatusCode == http.StatusAccepted {
-		if location := response.Response.Header.Get("Location"); location != "" {
+	if response.StatusCode == http.StatusAccepted {
+		if location := response.Header.Get("Location"); location != "" {
 			pollingURL, err := functionAppContainerPollingURL(response.Response)
 			if err != nil {
 				return nil, err

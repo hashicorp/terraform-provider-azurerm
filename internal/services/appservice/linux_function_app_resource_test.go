@@ -1461,6 +1461,7 @@ func TestAccLinuxFunctionApp_containerAppEnvironment(t *testing.T) {
 				),
 				check.That(data.ResourceName).Key("kind").MatchesRegex(regexp.MustCompile(`(^|,)azurecontainerapps(,|$)`)),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("first"),
+				check.That(data.ResourceName).Key("app_settings.ACCEPTANCE_TEST").HasValue("first"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -1473,6 +1474,7 @@ func TestAccLinuxFunctionApp_containerAppEnvironment(t *testing.T) {
 				),
 				check.That(data.ResourceName).Key("kind").MatchesRegex(regexp.MustCompile(`(^|,)azurecontainerapps(,|$)`)),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("second"),
+				check.That(data.ResourceName).Key("app_settings.ACCEPTANCE_TEST").HasValue("second"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -3237,7 +3239,7 @@ resource "azurerm_container_app_environment" "test" {
 }
 
 resource "azurerm_linux_function_app" "test" {
-  name                         = "acctest-LFA-CA-%[1]d"
+  name                         = "acctest-ca-%[1]d"
   location                     = azurerm_resource_group.test.location
   resource_group_name          = azurerm_resource_group.test.name
   container_app_environment_id = azurerm_container_app_environment.test.id
@@ -3245,7 +3247,14 @@ resource "azurerm_linux_function_app" "test" {
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
+  app_settings = {
+    ACCEPTANCE_TEST = %[4]q
+  }
+
   site_config {
+    app_scale_limit          = 10
+    elastic_instance_minimum = 0
+
     application_stack {
       docker {
         registry_url = "https://mcr.microsoft.com"
@@ -3256,7 +3265,7 @@ resource "azurerm_linux_function_app" "test" {
   }
 
   tags = {
-    environment = %q
+    environment = %[4]q
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, environmentTag)
