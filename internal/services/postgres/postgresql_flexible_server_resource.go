@@ -24,7 +24,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/go-cty/cty"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -486,7 +485,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 						}
 					}
 
-					return fmt.Errorf("invalid 'storage_tier' %q for defined 'storage_mb' size '%d', expected one of [%s]", newTier, newMb, azure.QuotedStringSlice(*storageTiers.ValidTiers))
+					return fmt.Errorf("invalid 'storage_tier' %q for defined 'storage_mb' size '%d', expected one of %q", newTier, newMb, *storageTiers.ValidTiers)
 				}
 
 				return nil
