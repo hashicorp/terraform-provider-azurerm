@@ -39,6 +39,11 @@ func dataSourceResourceGroup() *pluginsdk.Resource {
 }
 
 func dataSourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	// Quick verification of the actual value provided by the SDK
+	// This should be `5m` when not overridden and `10s` when set in TF config as: `timeouts { read = "10s" }`
+	// however without the fix, the returned timeout is `20m` (SDK default)
+	return fmt.Errorf("timeout: %v", d.Timeout(pluginsdk.TimeoutRead).String())
+
 	client := meta.(*clients.Client).Resource.ResourceGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
