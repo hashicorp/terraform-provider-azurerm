@@ -27,7 +27,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ipampools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworks"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -538,7 +537,7 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			if payload.Properties.AddressSpace == nil {
 				payload.Properties.AddressSpace = &virtualnetworks.AddressSpace{}
 			}
-			payload.Properties.AddressSpace.AddressPrefixes = helpers.ExpandStringSlice(v)
+			payload.Properties.AddressSpace.AddressPrefixes = pluginsdk.ExpandStringSlice(v)
 		} else {
 			payload.Properties.AddressSpace.AddressPrefixes = nil
 		}
@@ -597,7 +596,7 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			payload.Properties.DhcpOptions = &virtualnetworks.DhcpOptions{}
 		}
 
-		payload.Properties.DhcpOptions.DnsServers = helpers.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
+		payload.Properties.DhcpOptions.DnsServers = pluginsdk.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
 	}
 
 	if d.HasChange("flow_timeout_in_minutes") {
@@ -888,14 +887,14 @@ func expandVirtualNetworkProperties(ctx context.Context, client virtualnetworks.
 	properties := &virtualnetworks.VirtualNetworkPropertiesFormat{
 		AddressSpace: &virtualnetworks.AddressSpace{},
 		DhcpOptions: &virtualnetworks.DhcpOptions{
-			DnsServers: helpers.ExpandStringSlice(d.Get("dns_servers").([]interface{})),
+			DnsServers: pluginsdk.ExpandStringSlice(d.Get("dns_servers").([]interface{})),
 		},
 		PrivateEndpointVNetPolicies: pointer.ToEnum[virtualnetworks.PrivateEndpointVNetPolicies](d.Get("private_endpoint_vnet_policies").(string)),
 		Subnets:                     &subnets,
 	}
 
 	if v, ok := d.GetOk("address_space"); ok {
-		properties.AddressSpace.AddressPrefixes = helpers.ExpandStringSlice(v.(*pluginsdk.Set).List())
+		properties.AddressSpace.AddressPrefixes = pluginsdk.ExpandStringSlice(v.(*pluginsdk.Set).List())
 	}
 
 	if v, ok := d.GetOk("ddos_protection_plan"); ok {
