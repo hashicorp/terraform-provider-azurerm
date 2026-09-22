@@ -21,7 +21,7 @@ func expandEncryption(e []any) *batchaccount.EncryptionProperties {
 	encryptionProperty := batchaccount.EncryptionProperties{
 		KeySource: pointer.To(batchaccount.KeySourceMicrosoftPointKeyVault),
 		KeyVaultProperties: &batchaccount.KeyVaultProperties{
-			KeyIdentifier: pointer.To(v["key_vault_key_id"].(string)),
+			KeyIdentifier: new(v["key_vault_key_id"].(string)),
 		},
 	}
 
@@ -71,6 +71,6 @@ func expandBatchAccountEndpointAccessProfile(input []any) *batchaccount.Endpoint
 
 	return &batchaccount.EndpointAccessProfile{
 		DefaultAction: batchaccount.EndpointAccessDefaultAction(accessProfile["default_action"].(string)),
-		IPRules:       pointer.To(ipRules),
+		IPRules:       new(ipRules),
 	}
 }

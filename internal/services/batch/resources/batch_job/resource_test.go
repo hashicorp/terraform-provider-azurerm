@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/data-plane/batch/2022-01-01-15-0/jobs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -114,7 +113,7 @@ func (r BatchJobResource) Exists(ctx context.Context, clients *clients.Client, s
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return pointer.To(resp.Model != nil), nil
+	return new(resp.Model != nil), nil
 }
 
 func (r BatchJobResource) basic(data acceptance.TestData) string {

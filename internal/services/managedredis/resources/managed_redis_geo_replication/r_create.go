@@ -10,7 +10,6 @@ import (
 
 	svchelpers "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/helpers"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
@@ -53,7 +52,7 @@ func expandLinkedDatabases(dbIds []string) *[]databases.LinkedDatabase {
 	result := make([]databases.LinkedDatabase, 0, len(dbIds))
 	for _, id := range dbIds {
 		result = append(result, databases.LinkedDatabase{
-			Id: pointer.To(id),
+			Id: new(id),
 		})
 	}
 	return &result

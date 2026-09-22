@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/advisor/2023-01-01/suppressions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -39,14 +38,14 @@ func (r Resource) Create() sdk.ResourceFunc {
 			}
 
 			param := suppressions.SuppressionContract{
-				Name: pointer.To(model.Name),
+				Name: new(model.Name),
 				Properties: &suppressions.SuppressionProperties{
-					SuppressionId: pointer.To(model.SuppressionID),
+					SuppressionId: new(model.SuppressionID),
 				},
 			}
 
 			if model.TTL != "" {
-				param.Properties.Ttl = pointer.To(model.TTL)
+				param.Properties.Ttl = new(model.TTL)
 			}
 
 			if _, err := client.Create(ctx, id, param); err != nil {

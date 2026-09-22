@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
@@ -56,11 +55,11 @@ func (r Resource) Create() sdk.ResourceFunc {
 			}
 
 			createInput := databases.AccessPolicyAssignment{
-				Name: pointer.To(model.ObjectID),
+				Name: new(model.ObjectID),
 				Properties: &databases.AccessPolicyAssignmentProperties{
 					AccessPolicyName: "default",
 					User: databases.AccessPolicyAssignmentPropertiesUser{
-						ObjectId: pointer.To(model.ObjectID),
+						ObjectId: new(model.ObjectID),
 					},
 				},
 			}

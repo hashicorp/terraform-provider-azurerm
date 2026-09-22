@@ -6,7 +6,6 @@ package batch_application
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/application"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -41,9 +40,9 @@ func resourceBatchApplicationCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	parameters := application.Application{
 		Properties: &application.ApplicationProperties{
-			AllowUpdates:   pointer.To(allowUpdates),
-			DefaultVersion: pointer.To(defaultVersion),
-			DisplayName:    pointer.To(displayName),
+			AllowUpdates:   new(allowUpdates),
+			DefaultVersion: new(defaultVersion),
+			DisplayName:    new(displayName),
 		},
 	}
 

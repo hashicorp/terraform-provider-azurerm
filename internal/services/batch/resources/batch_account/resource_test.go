@@ -9,7 +9,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -342,7 +341,7 @@ func (t BatchAccountResource) Exists(ctx context.Context, clients *clients.Clien
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return pointer.To(resp.Model != nil), nil
+	return new(resp.Model != nil), nil
 }
 
 func (BatchAccountResource) basic(data acceptance.TestData) string {

@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/data-plane/batch/2022-01-01-15-0/jobs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
@@ -55,9 +54,9 @@ func (r Resource) Create() sdk.ResourceFunc {
 			params := jobs.JobAddParameter{
 				Id:          model.Name,
 				DisplayName: &model.DisplayName,
-				Priority:    pointer.To(model.Priority),
+				Priority:    new(model.Priority),
 				Constraints: &jobs.JobConstraints{
-					MaxTaskRetryCount: pointer.To(model.TaskRetryMaximum),
+					MaxTaskRetryCount: new(model.TaskRetryMaximum),
 				},
 				CommonEnvironmentSettings: r.expandEnvironmentSettings(model.CommonEnvironmentProperties),
 				PoolInfo: jobs.PoolInformation{
@@ -85,7 +84,7 @@ func (r Resource) expandEnvironmentSettings(input map[string]string) *[]jobs.Env
 	for k, v := range input {
 		m = append(m, jobs.EnvironmentSetting{
 			Name:  k,
-			Value: pointer.To(v),
+			Value: new(v),
 		})
 	}
 	return &m

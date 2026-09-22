@@ -9,7 +9,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -313,7 +312,7 @@ func (r ManagedRedisResource) Exists(ctx context.Context, client *clients.Client
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return pointer.To(resp.Model != nil), nil
+	return new(resp.Model != nil), nil
 }
 
 func (r ManagedRedisResource) basic(data acceptance.TestData) string {

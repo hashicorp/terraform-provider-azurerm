@@ -58,14 +58,14 @@ func (r Resource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("priority") {
-				payload.Priority = pointer.To(config.Priority)
+				payload.Priority = new(config.Priority)
 			}
 
 			if metadata.ResourceData.HasChange("task_retry_maximum") {
 				if payload.Constraints == nil {
 					payload.Constraints = new(jobs.JobConstraints)
 				}
-				payload.Constraints.MaxTaskRetryCount = pointer.To(config.TaskRetryMaximum)
+				payload.Constraints.MaxTaskRetryCount = new(config.TaskRetryMaximum)
 			}
 
 			if _, err := client.JobUpdate(ctx, idSDK, payload, jobs.DefaultJobUpdateOperationOptions()); err != nil {

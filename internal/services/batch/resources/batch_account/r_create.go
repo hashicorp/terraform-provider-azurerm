@@ -113,7 +113,7 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 	nodeIdentity := d.Get("storage_account_node_identity").(string)
 	if nodeIdentity != "" {
 		parameters.Properties.AutoStorage.NodeIdentityReference = &batchaccount.ComputeNodeIdentityReference{
-			ResourceId: pointer.To(nodeIdentity),
+			ResourceId: new(nodeIdentity),
 		}
 	}
 

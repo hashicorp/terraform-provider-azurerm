@@ -93,5 +93,5 @@ func toClusterId(dbIdStr string) (*redisenterprise.RedisEnterpriseId, error) {
 	if err != nil {
 		return nil, err
 	}
-	return pointer.To(redisenterprise.NewRedisEnterpriseID(dbId.SubscriptionId, dbId.ResourceGroupName, dbId.RedisEnterpriseName)), nil
+	return new(redisenterprise.NewRedisEnterpriseID(dbId.SubscriptionId, dbId.ResourceGroupName, dbId.RedisEnterpriseName)), nil
 }

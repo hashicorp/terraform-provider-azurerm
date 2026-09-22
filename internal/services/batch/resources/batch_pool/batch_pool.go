@@ -444,23 +444,23 @@ func ExpandBatchPoolImageReference(list []any) (*pool.ImageReference, error) {
 	imageRef := &pool.ImageReference{}
 
 	if storageImageRef["id"] != nil && storageImageRef["id"] != "" {
-		imageRef.Id = pointer.To(storageImageRef["id"].(string))
+		imageRef.Id = new(storageImageRef["id"].(string))
 	}
 
 	if storageImageRef["offer"] != nil && storageImageRef["offer"] != "" {
-		imageRef.Offer = pointer.To(storageImageRef["offer"].(string))
+		imageRef.Offer = new(storageImageRef["offer"].(string))
 	}
 
 	if storageImageRef["publisher"] != nil && storageImageRef["publisher"] != "" {
-		imageRef.Publisher = pointer.To(storageImageRef["publisher"].(string))
+		imageRef.Publisher = new(storageImageRef["publisher"].(string))
 	}
 
 	if storageImageRef["sku"] != nil && storageImageRef["sku"] != "" {
-		imageRef.Sku = pointer.To(storageImageRef["sku"].(string))
+		imageRef.Sku = new(storageImageRef["sku"].(string))
 	}
 
 	if storageImageRef["version"] != nil && storageImageRef["version"] != "" {
-		imageRef.Version = pointer.To(storageImageRef["version"].(string))
+		imageRef.Version = new(storageImageRef["version"].(string))
 	}
 
 	return imageRef, nil
@@ -510,17 +510,17 @@ func expandBatchPoolContainerRegistry(ref map[string]any) (*pool.ContainerRegist
 	containerRegistry := pool.ContainerRegistry{}
 
 	if v := ref["registry_server"]; v != nil && v != "" {
-		containerRegistry.RegistryServer = pointer.To(v.(string))
+		containerRegistry.RegistryServer = new(v.(string))
 	}
 	if v := ref["user_name"]; v != nil && v != "" {
-		containerRegistry.Username = pointer.To(v.(string))
+		containerRegistry.Username = new(v.(string))
 	}
 	if v := ref["password"]; v != nil && v != "" {
-		containerRegistry.Password = pointer.To(v.(string))
+		containerRegistry.Password = new(v.(string))
 	}
 	if v := ref["user_assigned_identity_id"]; v != nil && v != "" {
 		containerRegistry.IdentityReference = &pool.ComputeNodeIdentityReference{
-			ResourceId: pointer.To(v.(string)),
+			ResourceId: new(v.(string)),
 		}
 	}
 
@@ -614,7 +614,7 @@ func ExpandBatchPoolStartTask(list []any) (*pool.StartTask, error) {
 			resourceId := v.(string)
 			if resourceId != "" {
 				identityReference := pool.ComputeNodeIdentityReference{
-					ResourceId: pointer.To(resourceId),
+					ResourceId: new(resourceId),
 				}
 				resourceFile.IdentityReference = &identityReference
 			}
@@ -623,9 +623,9 @@ func ExpandBatchPoolStartTask(list []any) (*pool.StartTask, error) {
 	}
 
 	startTask := &pool.StartTask{
-		CommandLine:       pointer.To(startTaskValue["command_line"].(string)),
+		CommandLine:       new(startTaskValue["command_line"].(string)),
 		MaxTaskRetryCount: &maxTaskRetryCount,
-		WaitForSuccess:    pointer.To(startTaskValue["wait_for_success"].(bool)),
+		WaitForSuccess:    new(startTaskValue["wait_for_success"].(bool)),
 		UserIdentity:      &userIdentity,
 		ResourceFiles:     &resourceFiles,
 	}
@@ -642,7 +642,7 @@ func ExpandBatchPoolStartTask(list []any) (*pool.StartTask, error) {
 			settingMap := containerSettingsList[0].(map[string]any)
 			containerSettings.ImageName = settingMap["image_name"].(string)
 			if containerRunOptions, ok := settingMap["run_options"]; ok {
-				containerSettings.ContainerRunOptions = pointer.To(containerRunOptions.(string))
+				containerSettings.ContainerRunOptions = new(containerRunOptions.(string))
 			}
 			if registries, ok := settingMap["registry"].([]any); ok && len(registries) > 0 && registries[0] != nil {
 				if containerRegistryRef, err := expandBatchPoolContainerRegistry(registries[0].(map[string]any)); err == nil {
@@ -703,7 +703,7 @@ func expandBatchPoolVirtualMachineConfig(d *pluginsdk.ResourceData) (*pool.Virtu
 	}
 
 	if licenseType, ok := d.GetOk("license_type"); ok {
-		result.LicenseType = pointer.To(licenseType.(string))
+		result.LicenseType = new(licenseType.(string))
 	}
 
 	if v, ok := d.GetOk("node_placement"); ok {
@@ -736,7 +736,7 @@ func expandBatchPoolSecurityProfile(profile []any) *pool.SecurityProfile {
 	}
 
 	if v, ok := item["host_encryption_enabled"]; ok {
-		securityProfile.EncryptionAtHost = pointer.To(v.(bool))
+		securityProfile.EncryptionAtHost = new(v.(bool))
 	}
 
 	if v, ok := item["security_type"]; ok {
@@ -744,11 +744,11 @@ func expandBatchPoolSecurityProfile(profile []any) *pool.SecurityProfile {
 	}
 
 	if v, ok := item["secure_boot_enabled"]; ok {
-		securityProfile.UefiSettings.SecureBootEnabled = pointer.To(v.(bool))
+		securityProfile.UefiSettings.SecureBootEnabled = new(v.(bool))
 	}
 
 	if v, ok := item["vtpm_enabled"]; ok {
-		securityProfile.UefiSettings.VTpmEnabled = pointer.To(v.(bool))
+		securityProfile.UefiSettings.VTpmEnabled = new(v.(bool))
 	}
 
 	return securityProfile
@@ -783,7 +783,7 @@ func expandBatchPoolWindowsConfiguration(list []any) *pool.WindowsConfiguration 
 
 	item := list[0].(map[string]any)["enable_automatic_updates"].(bool)
 	return &pool.WindowsConfiguration{
-		EnableAutomaticUpdates: pointer.To(item),
+		EnableAutomaticUpdates: new(item),
 	}
 }
 
@@ -817,15 +817,15 @@ func expandBatchPoolExtension(ref map[string]any) (*pool.VmExtension, error) {
 	}
 
 	if autoUpgradeMinorVersion, ok := ref["auto_upgrade_minor_version"]; ok {
-		result.AutoUpgradeMinorVersion = pointer.To(autoUpgradeMinorVersion.(bool))
+		result.AutoUpgradeMinorVersion = new(autoUpgradeMinorVersion.(bool))
 	}
 
 	if autoUpgradeEnabled, ok := ref["automatic_upgrade_enabled"]; ok {
-		result.EnableAutomaticUpgrade = pointer.To(autoUpgradeEnabled.(bool))
+		result.EnableAutomaticUpgrade = new(autoUpgradeEnabled.(bool))
 	}
 
 	if typeHandlerVersion, ok := ref["type_handler_version"]; ok {
-		result.TypeHandlerVersion = pointer.To(typeHandlerVersion.(string))
+		result.TypeHandlerVersion = new(typeHandlerVersion.(string))
 	}
 
 	if settings, ok := ref["settings_json"]; ok {
@@ -898,7 +898,7 @@ func expandCommonEnvironmentProperties(env map[string]any) *[]pool.EnvironmentSe
 		theKey := k
 		envSetting := pool.EnvironmentSetting{
 			Name:  theKey,
-			Value: pointer.To(v.(string)),
+			Value: new(v.(string)),
 		}
 
 		envSettings = append(envSettings, envSetting)
@@ -986,15 +986,15 @@ func expandBatchPoolAzureBlobFileSystemConfiguration(list []any) (*pool.AzureBlo
 	}
 
 	if accountKey, ok := configMap["account_key"]; ok && accountKey != "" {
-		result.AccountKey = pointer.To(accountKey.(string))
+		result.AccountKey = new(accountKey.(string))
 	} else if sasKey, ok := configMap["sas_key"]; ok && sasKey != "" {
-		result.SasKey = pointer.To(sasKey.(string))
+		result.SasKey = new(sasKey.(string))
 	} else if computedIDRef, err := expandBatchPoolIdentityReference(configMap); err == nil {
 		result.IdentityReference = computedIDRef
 	}
 
 	if blobfuseOptions, ok := configMap["blobfuse_options"]; ok {
-		result.BlobfuseOptions = pointer.To(blobfuseOptions.(string))
+		result.BlobfuseOptions = new(blobfuseOptions.(string))
 	}
 	return &result, nil
 }
@@ -1013,7 +1013,7 @@ func expandBatchPoolAzureFileShareConfiguration(list []any) (*pool.AzureFileShar
 	}
 
 	if mountOptions, ok := configMap["mount_options"]; ok {
-		result.MountOptions = pointer.To(mountOptions.(string))
+		result.MountOptions = new(mountOptions.(string))
 	}
 
 	return &result, nil
@@ -1033,7 +1033,7 @@ func expandBatchPoolCIFSMountConfiguration(list []any) (*pool.CIFSMountConfigura
 	}
 
 	if mountOptions, ok := configMap["mount_options"]; ok {
-		result.MountOptions = pointer.To(mountOptions.(string))
+		result.MountOptions = new(mountOptions.(string))
 	}
 
 	return &result, nil
@@ -1051,7 +1051,7 @@ func expandBatchPoolNFSMountConfiguration(list []any) (*pool.NFSMountConfigurati
 	}
 
 	if mountOptions, ok := configMap["mount_options"]; ok {
-		result.MountOptions = pointer.To(mountOptions.(string))
+		result.MountOptions = new(mountOptions.(string))
 	}
 	return &result, nil
 }
@@ -1059,7 +1059,7 @@ func expandBatchPoolNFSMountConfiguration(list []any) (*pool.NFSMountConfigurati
 func expandBatchPoolIdentityReference(ref map[string]any) (*pool.ComputeNodeIdentityReference, error) {
 	var result pool.ComputeNodeIdentityReference
 	if iid, ok := ref["identity_id"]; ok && iid != "" {
-		result.ResourceId = pointer.To(iid.(string))
+		result.ResourceId = new(iid.(string))
 		return &result, nil
 	}
 	return nil, fmt.Errorf("identity_id is empty")
@@ -1079,7 +1079,7 @@ func ExpandBatchPoolNetworkConfiguration(list []any) (*pool.NetworkConfiguration
 	}
 
 	if v, ok := networkConfigValue["accelerated_networking_enabled"]; ok {
-		networkConfiguration.EnableAcceleratedNetworking = pointer.To(v.(bool))
+		networkConfiguration.EnableAcceleratedNetworking = new(v.(bool))
 	}
 
 	if v, ok := networkConfigValue["subnet_id"]; ok {
@@ -1313,12 +1313,12 @@ func expandBatchPoolUserAccount(ref map[string]any) pool.UserAccount {
 			var linuxUserConfig pool.LinuxUserConfiguration
 			if uid, ok := linuxUserConfigMap["uid"]; ok {
 				linuxUserConfig = pool.LinuxUserConfiguration{
-					Uid: pointer.To(int64(uid.(int))),
-					Gid: pointer.To(int64(linuxUserConfigMap["gid"].(int))),
+					Uid: new(int64(uid.(int))),
+					Gid: new(int64(linuxUserConfigMap["gid"].(int))),
 				}
 			}
 			if sshPrivateKey, ok := linuxUserConfigMap["ssh_private_key"]; ok {
-				linuxUserConfig.SshPrivateKey = pointer.To(sshPrivateKey.(string))
+				linuxUserConfig.SshPrivateKey = new(sshPrivateKey.(string))
 			}
 			result.LinuxUserConfiguration = &linuxUserConfig
 		}
