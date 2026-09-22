@@ -1329,8 +1329,8 @@ github.com/hashicorp/go-uuid
 # github.com/hashicorp/go-version v1.9.0
 ## explicit
 github.com/hashicorp/go-version
-# github.com/hashicorp/hc-install v0.9.4
-## explicit; go 1.25.8
+# github.com/hashicorp/hc-install v0.9.5
+## explicit; go 1.25.0
 github.com/hashicorp/hc-install
 github.com/hashicorp/hc-install/checkpoint
 github.com/hashicorp/hc-install/errors
@@ -1354,11 +1354,11 @@ github.com/hashicorp/hcl/v2/hclwrite
 # github.com/hashicorp/logutils v1.0.0
 ## explicit
 github.com/hashicorp/logutils
-# github.com/hashicorp/terraform-exec v0.25.1
-## explicit; go 1.25.8
+# github.com/hashicorp/terraform-exec v0.25.2
+## explicit; go 1.25.0
 github.com/hashicorp/terraform-exec/internal/version
 github.com/hashicorp/terraform-exec/tfexec
-# github.com/hashicorp/terraform-json v0.27.2
+# github.com/hashicorp/terraform-json v0.28.0
 ## explicit; go 1.21
 github.com/hashicorp/terraform-json
 # github.com/hashicorp/terraform-plugin-framework v1.19.0
@@ -1457,7 +1457,7 @@ github.com/hashicorp/terraform-plugin-log/tfsdklog
 ## explicit; go 1.25.0
 github.com/hashicorp/terraform-plugin-mux/internal/logging
 github.com/hashicorp/terraform-plugin-mux/tf5muxserver
-# github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.1
+# github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.1 => github.com/sreallymatt/terraform-plugin-sdk/v2 v2.0.0-20260914141723-556a59a09eae
 ## explicit; go 1.25.8
 github.com/hashicorp/terraform-plugin-sdk/v2/diag
 github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff
@@ -1881,3 +1881,4 @@ gopkg.in/yaml.v3
 ## explicit; go 1.19
 software.sslmate.com/src/go-pkcs12
 software.sslmate.com/src/go-pkcs12/internal/rc2
+# github.com/hashicorp/terraform-plugin-sdk/v2 => github.com/sreallymatt/terraform-plugin-sdk/v2 v2.0.0-20260914141723-556a59a09eae

@@ -905,7 +905,8 @@ func (r *Resource) Apply(
 	ctx context.Context,
 	s *terraform.InstanceState,
 	d *terraform.InstanceDiff,
-	meta interface{}) (*terraform.InstanceState, diag.Diagnostics) {
+	meta interface{},
+) (*terraform.InstanceState, diag.Diagnostics) {
 	schema := schemaMapWithIdentity{r.SchemaMap(), r.Identity.SchemaMap()}
 	data, err := schema.Data(s, d)
 	if err != nil {
@@ -999,11 +1000,10 @@ func (r *Resource) Diff(
 	ctx context.Context,
 	s *terraform.InstanceState,
 	c *terraform.ResourceConfig,
-	meta interface{}) (*terraform.InstanceDiff, error) {
-
+	meta interface{},
+) (*terraform.InstanceDiff, error) {
 	t := &ResourceTimeout{}
 	err := t.ConfigDecode(r, c)
-
 	if err != nil {
 		return nil, fmt.Errorf("[ERR] Error decoding timeout: %s", err)
 	}
@@ -1028,8 +1028,8 @@ func (r *Resource) SimpleDiff(
 	ctx context.Context,
 	s *terraform.InstanceState,
 	c *terraform.ResourceConfig,
-	meta interface{}) (*terraform.InstanceDiff, error) {
-
+	meta interface{},
+) (*terraform.InstanceDiff, error) {
 	// TODO: figure out if it makes sense to be able to set identity in CustomizeDiff at all
 	instanceDiff, err := schemaMapWithIdentity{r.SchemaMap(), r.Identity.SchemaMap()}.Diff(ctx, s, c, r.CustomizeDiff, meta, false)
 	if err != nil {
@@ -1084,6 +1084,16 @@ func (r *Resource) ReadDataApply(
 		return nil, diag.FromErr(err)
 	}
 
+	rt := ResourceTimeout{}
+	if d != nil {
+		if _, ok := d.Meta[TimeoutKey]; ok {
+			if err := rt.DiffDecode(d); err != nil {
+				logging.HelperSchemaError(ctx, "Error decoding ResourceTimeout for Data Source", map[string]interface{}{logging.KeyError: err})
+			}
+		}
+	}
+	data.timeouts = &rt
+
 	logging.HelperSchemaTrace(ctx, "Calling downstream")
 	diags := r.read(ctx, data, meta)
 	logging.HelperSchemaTrace(ctx, "Called downstream")
@@ -1107,7 +1117,8 @@ func (r *Resource) ReadDataApply(
 func (r *Resource) RefreshWithoutUpgrade(
 	ctx context.Context,
 	s *terraform.InstanceState,
-	meta interface{}) (*terraform.InstanceState, diag.Diagnostics) {
+	meta interface{},
+) (*terraform.InstanceState, diag.Diagnostics) {
 	// If the ID is already somehow blank, it doesn't exist
 	if s.ID == "" {
 		return nil, nil
@@ -1442,7 +1453,8 @@ func (r *Resource) isTopLevel() bool {
 }
 
 func (r *Resource) recordCurrentSchemaVersion(
-	state *terraform.InstanceState) *terraform.InstanceState {
+	state *terraform.InstanceState,
+) *terraform.InstanceState {
 	if state != nil && r.SchemaVersion > 0 {
 		if state.Meta == nil {
 			state.Meta = make(map[string]interface{})
