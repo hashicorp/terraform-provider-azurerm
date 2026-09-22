@@ -4013,7 +4013,9 @@ func TestAccKubernetesClusterNodePool_modeGateway(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	// changing `mode` to or from `Gateway` is rejected by Azure, so the pool is
+	// replaced rather than updated - the default no-recreate plan check can't apply
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.modeGatewayConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -4024,9 +4026,8 @@ func TestAccKubernetesClusterNodePool_modeGateway(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			// `mode` is updatable, so moving off Gateway has to clear the gateway profile
-			// rather than trip the `gateway_public_ip_prefix_size` validation - the value is
-			// Optional+Computed, so it lingers in the plan after being dropped from config
+			// Azure rejects changing `mode` to or from `Gateway` in place, so this
+			// transition must replace the pool rather than update it
 			Config: r.modeGatewayUserConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -4080,6 +4081,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_taints = [
     "kubernetes.azure.com/mode=gateway:NoSchedule",
   ]
+
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateStaticEgressGatewayConfig(data))
 }
@@ -4099,6 +4104,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 2
   mode                  = "User"
   vnet_subnet_id        = azurerm_subnet.test.id
+
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateStaticEgressGatewayConfig(data))
 }
