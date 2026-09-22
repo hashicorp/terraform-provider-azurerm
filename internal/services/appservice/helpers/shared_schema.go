@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/ctyhelpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -534,7 +534,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 						// If `auth_settings` is not defined in config, the Create request doesn't send an `auth_settings` request.
 						// Azure returns nothing for `tokenRefreshExtensionHours`, and the zero-value is set into state.
 						// This then causes a diff on subsequent plans where Terraform wants to change from `0` to the default of `72`. So we'll suppress it.
-						authSettingsVal, authSettingsDiags := d.GetRawConfigAt(sdk.ConstructCtyPath("auth_settings"))
+						authSettingsVal, authSettingsDiags := d.GetRawConfigAt(ctyhelpers.ConstructCtyPath("auth_settings"))
 						if !authSettingsDiags.HasError() && authSettingsVal.IsKnown() {
 							return authSettingsVal.LengthInt() == 0 && o == "0" && n == "72"
 						}
