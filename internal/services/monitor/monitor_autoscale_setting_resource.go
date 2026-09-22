@@ -6,6 +6,7 @@ package monitor
 import (
 	"fmt"
 	"log"
+	"maps"
 	"strconv"
 	"time"
 
@@ -15,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-10-01/autoscalesettings"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -461,7 +461,7 @@ func resourceMonitorAutoScaleSettingCreateUpdate(d *pluginsdk.ResourceData, meta
 			Notifications:             notifications,
 			TargetResourceUri:         &targetResourceId,
 		},
-		Tags: helpers.ExpandPtrMapStringString(t),
+		Tags: pluginsdk.ExpandPtrMapStringString(t),
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -523,7 +523,7 @@ func resourceMonitorAutoScaleSettingRead(d *pluginsdk.ResourceData, meta interfa
 		// Return a new tag map filtered by the specified tag names.
 		tagMap := tags.Filter(model.Tags, "$type")
 
-		if err = d.Set("tags", helpers.FlattenPtrMapStringString(tagMap)); err != nil {
+		if err = d.Set("tags", pluginsdk.FlattenPtrMapStringString(tagMap)); err != nil {
 			return err
 		}
 	}
@@ -927,7 +927,7 @@ func flattenAzureRmMonitorAutoScaleSettingRules(input []autoscalesettings.ScaleR
 		if val := v.Value; val != nil && *val != "" {
 			i, err := strconv.Atoi(*val)
 			if err != nil {
-				return nil, fmt.Errorf("`value` %q was not convertable to an int: %s", *val, err)
+				return nil, fmt.Errorf("`value` %q was not convertible to an int: %s", *val, err)
 			}
 			action["value"] = i
 		}
@@ -1038,9 +1038,7 @@ func flattenAzureRmMonitorAutoScaleSettingNotification(notifications *[]autoscal
 
 				props := make(map[string]string)
 				if webHookProps := v.Properties; webHookProps != nil {
-					for key, value := range *v.Properties {
-						props[key] = value
-					}
+					maps.Copy(props, *v.Properties)
 					hook["properties"] = props
 					webhooks = append(webhooks, hook)
 				}
@@ -1072,7 +1070,7 @@ func flattenAzureRmMonitorAutoScaleSettingRulesDimensions(dimensions *[]autoscal
 }
 
 func validateAutoScaleSettingsTimeZone() pluginsdk.SchemaValidateFunc {
-	// from https://docs.microsoft.com/en-us/rest/api/monitor/autoscalesettings/createorupdate#timewindow
+	// from https://docs.microsoft.com/rest/api/monitor/autoscalesettings/createorupdate#timewindow
 	timeZones := []string{
 		"Dateline Standard Time",
 		"UTC-11",

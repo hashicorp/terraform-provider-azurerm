@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/querykeys"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -181,8 +180,8 @@ func resourceSearchService() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.Any(
-						validate.IPv4Address,
-						validate.CIDR,
+						validation.IsIPv4Address,
+						validation.IsCIDRIPv4,
 					),
 				},
 			},
@@ -563,7 +562,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			partitionCount := 1         // Default
 			replicaCount := 1           // Default
 			publicNetworkAccess := true // publicNetworkAccess defaults to true...
-			cmkEnforcement := false     // cmkEnforcment defaults to false...
+			cmkEnforcement := false     // cmkEnforcement defaults to false...
 			endpoint := ""
 			hostingMode := services.HostingModeDefault
 			localAuthEnabled := true

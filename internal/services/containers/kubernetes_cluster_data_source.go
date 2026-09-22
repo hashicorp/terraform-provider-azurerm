@@ -17,9 +17,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -801,7 +800,7 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("node_resource_group_id", nodeResourceGroupId.ID())
 
 			if accessProfile := props.ApiServerAccessProfile; accessProfile != nil {
-				if err := d.Set("api_server_authorized_ip_ranges", helpers.FlattenStringSlice(accessProfile.AuthorizedIPRanges)); err != nil {
+				if err := d.Set("api_server_authorized_ip_ranges", pluginsdk.FlattenSlice(accessProfile.AuthorizedIPRanges)); err != nil {
 					return fmt.Errorf("setting `api_server_authorized_ip_ranges`: %+v", err)
 				}
 
@@ -1273,7 +1272,7 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]managedcluster
 func flattenKubernetesClusterDataSourceAzureActiveDirectoryRoleBasedAccessControl(input *managedclusters.ManagedClusterProperties) []interface{} {
 	results := make([]interface{}, 0)
 	if profile := input.AadProfile; profile != nil {
-		adminGroupObjectIds := helpers.FlattenStringSlice(profile.AdminGroupObjectIDs)
+		adminGroupObjectIds := pluginsdk.FlattenSlice(profile.AdminGroupObjectIDs)
 
 		azureRbacEnabled := pointer.From(profile.EnableAzureRBAC)
 
@@ -1412,7 +1411,7 @@ func flattenKubernetesClusterDataSourceKubeConfig(config kubernetes.KubeConfig) 
 	values["host"] = cluster.Server
 	values["username"] = config.Users[0].Name
 	values["password"] = user.Token
-	values["client_certificate"] = user.ClientCertificteData
+	values["client_certificate"] = user.ClientCertificateData
 	values["client_key"] = user.ClientKeyData
 	values["cluster_ca_certificate"] = cluster.ClusterAuthorityData
 

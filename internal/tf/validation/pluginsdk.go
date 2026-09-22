@@ -8,6 +8,7 @@ import (
 	"net/mail"
 	"net/url"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -54,10 +55,8 @@ func FloatInSlice(valid []float64) func(interface{}, string) ([]string, []error)
 			return warnings, errors
 		}
 
-		for _, validFloat := range valid {
-			if v == validFloat {
-				return warnings, errors
-			}
+		if slices.Contains(valid, v) {
+			return warnings, errors
 		}
 
 		errors = append(errors, fmt.Errorf("expected %s to be one of %v, got %f", k, valid, v))
@@ -159,6 +158,11 @@ func IsMonth(ignoreCase bool) func(interface{}, string) ([]string, []error) {
 // IsPortNumber is a SchemaValidateFunc which tests if the provided value is of type string and a valid TCP Port Number
 func IsPortNumber(i interface{}, k string) ([]string, []error) {
 	return validation.IsPortNumber(i, k)
+}
+
+// IsPortNumberOrZero is a SchemaValidateFunc which tests if the provided value is of type string and a valid TCP Port Number or zero
+func IsPortNumberOrZero(i interface{}, k string) ([]string, []error) {
+	return validation.IsPortNumberOrZero(i, k)
 }
 
 // IsRFC3339Time is a SchemaValidateFunc which tests if the provided value is of type string and a valid RFC33349Time

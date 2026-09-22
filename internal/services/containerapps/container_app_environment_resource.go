@@ -505,8 +505,7 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 				switch state.LogsDestination {
 				case LogsDestinationAzureMonitor:
 					payload.Properties.AppLogsConfiguration = &azuresdkhacks.AppLogsConfiguration{
-						Destination:               pointer.To(LogsDestinationAzureMonitor),
-						LogAnalyticsConfiguration: nil,
+						Destination: pointer.To(LogsDestinationAzureMonitor),
 					}
 				case LogsDestinationLogAnalytics:
 					if state.LogAnalyticsWorkspaceId != "" {
@@ -529,8 +528,7 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 					}
 				default:
 					payload.Properties.AppLogsConfiguration = &azuresdkhacks.AppLogsConfiguration{
-						Destination:               pointer.To(LogsDestinationNone),
-						LogAnalyticsConfiguration: nil,
+						Destination: pointer.To(LogsDestinationNone),
 					}
 				}
 			}

@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/dashboard"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/validate"
@@ -59,7 +58,7 @@ func resourcePortalDashboard() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validate.DashboardProperties,
-				StateFunc:    helpers.NormalizeJson,
+				StateFunc:    pluginsdk.NormalizeJson,
 			},
 		},
 	}

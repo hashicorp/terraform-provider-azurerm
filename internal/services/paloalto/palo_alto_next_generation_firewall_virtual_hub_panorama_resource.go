@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	firewalls "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
-	helpersValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
@@ -70,7 +69,7 @@ func (r NextGenerationFirewallVHubPanoramaResource) Arguments() map[string]*plug
 		"panorama_base64_config": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: helpersValidate.Base64EncodedString,
+			ValidateFunc: validation.StringIsBase64,
 		},
 
 		"network_profile": schema.VHubNetworkProfileSchema(),
@@ -263,7 +262,7 @@ func (r NextGenerationFirewallVHubPanoramaResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.FirewallsGet(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("retreiving %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			firewall := *existing.Model

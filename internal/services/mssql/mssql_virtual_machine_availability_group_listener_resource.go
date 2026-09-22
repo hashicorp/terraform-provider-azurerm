@@ -16,8 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/availabilitygrouplisteners"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachines"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -100,7 +98,7 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Arguments() map[st
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.PortNumber,
+			ValidateFunc: validation.IsPortNumber,
 		},
 
 		"load_balancer_configuration": {
@@ -129,7 +127,7 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Arguments() map[st
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validate.PortNumber,
+						ValidateFunc: validation.IsPortNumber,
 					},
 
 					"sql_virtual_machine_ids": {
@@ -406,7 +404,7 @@ func expandMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfiguration
 			}
 			parsedIds = append(parsedIds, parsedId.ID())
 		}
-		lbConfig.SqlVirtualMachineInstances = helpers.ExpandStringSlice(parsedIds)
+		lbConfig.SqlVirtualMachineInstances = pluginsdk.ExpandStringSlice(parsedIds)
 
 		lbConfig.PrivateIPAddress = &availabilitygrouplisteners.PrivateIPAddress{
 			IPAddress:        pointer.To(lb.PrivateIpAddress),
