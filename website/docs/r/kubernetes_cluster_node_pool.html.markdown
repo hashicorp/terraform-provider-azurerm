@@ -162,6 +162,8 @@ The following arguments are supported:
 
 * `upgrade_settings` - (Optional) A `upgrade_settings` block as documented below.
 
+~> **Note:** `upgrade_settings` cannot be used when `mode` is set to `Gateway`, as the Azure API rejects `maxUnavailable` on Gateway node pools.
+
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where this Node Pool should exist. Changing this property requires specifying `temporary_name_for_rotation`.
 
 ~> **Note:** A route table must be configured on this Subnet.

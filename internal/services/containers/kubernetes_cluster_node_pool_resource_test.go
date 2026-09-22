@@ -4081,10 +4081,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_taints = [
     "kubernetes.azure.com/mode=gateway:NoSchedule",
   ]
-
-  upgrade_settings {
-    max_surge = "10%%"
-  }
 }
 `, r.templateStaticEgressGatewayConfig(data))
 }
