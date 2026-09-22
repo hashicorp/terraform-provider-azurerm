@@ -16,10 +16,9 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
-
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 )
 
 var packagesUsingAlias = map[string]struct{}{
