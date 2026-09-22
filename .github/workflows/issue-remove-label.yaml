@@ -4,9 +4,8 @@ name: Remove specified label from issue
 # if present. Building block for the waiting-response machinery (see README.md in
 # this directory).
 
-permissions:
-  issues: write
-  pull-requests: write
+# Inherit the caller's permissions: issue callers need issues: write, while
+# PR-only callers can use pull-requests: write. Requiring both breaks PR-only callers.
 
 on:
   # This file is reused, and called from other workflows
