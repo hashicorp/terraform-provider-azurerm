@@ -16,7 +16,6 @@ on:
 
 permissions:
   pull-requests: write
-  issues: write
 
 jobs:
   comment-failure:
