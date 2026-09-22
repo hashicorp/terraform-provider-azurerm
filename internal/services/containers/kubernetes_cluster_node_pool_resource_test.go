@@ -4161,6 +4161,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   network_profile {
     network_plugin                        = "azure"
     static_egress_gateway_profile_enabled = true

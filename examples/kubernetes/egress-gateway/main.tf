@@ -29,6 +29,11 @@ resource "azurerm_kubernetes_cluster" "example" {
     vm_size    = "Standard_D2_v2"
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   # Enable static egress gateway for the cluster
   network_profile {
     network_plugin                        = "azure"
