@@ -4018,6 +4018,29 @@ func TestAccKubernetesClusterNodePool_modeGateway(t *testing.T) {
 			Config: r.modeGatewayConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mode").HasValue("Gateway"),
+				check.That(data.ResourceName).Key("gateway_public_ip_prefix_size").HasValue("30"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// `mode` is updatable, so moving off Gateway has to clear the gateway profile
+			// rather than trip the `gateway_public_ip_prefix_size` validation - the value is
+			// Optional+Computed, so it lingers in the plan after being dropped from config
+			Config: r.modeGatewayUserConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mode").HasValue("User"),
+				check.That(data.ResourceName).Key("gateway_public_ip_prefix_size").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.modeGatewayConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mode").HasValue("Gateway"),
+				check.That(data.ResourceName).Key("gateway_public_ip_prefix_size").HasValue("30"),
 			),
 		},
 		data.ImportStep(),
@@ -4057,6 +4080,25 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_taints = [
     "kubernetes.azure.com/mode=gateway:NoSchedule",
   ]
+}
+`, r.templateStaticEgressGatewayConfig(data))
+}
+
+func (r KubernetesClusterNodePoolResource) modeGatewayUserConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 2
+  mode                  = "User"
+  vnet_subnet_id        = azurerm_subnet.test.id
 }
 `, r.templateStaticEgressGatewayConfig(data))
 }

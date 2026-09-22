@@ -88,12 +88,17 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				return old != "" && new == ""
 			}),
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-				// Validate gateway_public_ip_prefix_size is only set when mode is Gateway
-				mode := d.Get("mode").(string)
-				gatewayPublicIPPrefixSize := d.Get("gateway_public_ip_prefix_size").(int)
-
-				if gatewayPublicIPPrefixSize != 0 && mode != string(agentpools.AgentPoolModeGateway) {
-					return errors.New("`gateway_public_ip_prefix_size` can only be configured when `mode` is set to `Gateway`")
+				// Validate gateway_public_ip_prefix_size is only set when mode is Gateway.
+				// It's Optional+Computed, so dropping it from the config leaves the previous
+				// value in the plan - consult the raw config to see whether it was really set.
+				rawConfig := d.GetRawConfig()
+				if rawConfig.IsNull() || !rawConfig.IsKnown() {
+					return nil
+				}
+				if v, ok := rawConfig.AsValueMap()["gateway_public_ip_prefix_size"]; ok && !v.IsNull() {
+					if !strings.EqualFold(d.Get("mode").(string), string(agentpools.AgentPoolModeGateway)) {
+						return errors.New("`gateway_public_ip_prefix_size` can only be configured when `mode` is set to `Gateway`")
+					}
 				}
 
 				return nil
@@ -781,8 +786,13 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.KubeletDiskType = pointer.ToEnum[agentpools.KubeletDiskType](d.Get("kubelet_disk_type").(string))
 	}
 
-	if d.HasChange("gateway_public_ip_prefix_size") {
-		props.GatewayProfile = expandAgentPoolGatewayProfile(d.Get("gateway_public_ip_prefix_size").(int))
+	if d.HasChange("gateway_public_ip_prefix_size") || d.HasChange("mode") {
+		if strings.EqualFold(d.Get("mode").(string), string(agentpools.AgentPoolModeGateway)) {
+			props.GatewayProfile = expandAgentPoolGatewayProfile(d.Get("gateway_public_ip_prefix_size").(int))
+		} else {
+			// a gateway profile isn't applicable outside Gateway mode
+			props.GatewayProfile = nil
+		}
 	}
 
 	if d.HasChange("linux_os_config") {
@@ -1090,10 +1100,12 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("gpu_driver", string(pointer.From(v.Driver)))
 		}
 
+		gatewayPublicIPPrefixSize := 0
 		if props.GatewayProfile != nil {
-			if err := d.Set("gateway_public_ip_prefix_size", int(*props.GatewayProfile.PublicIPPrefixSize)); err != nil {
-				return fmt.Errorf("setting `gateway_public_ip_prefix_size`: %+v", err)
-			}
+			gatewayPublicIPPrefixSize = int(pointer.From(props.GatewayProfile.PublicIPPrefixSize))
+		}
+		if err := d.Set("gateway_public_ip_prefix_size", gatewayPublicIPPrefixSize); err != nil {
+			return fmt.Errorf("setting `gateway_public_ip_prefix_size`: %+v", err)
 		}
 
 		if props.CreationData != nil {
