@@ -47,6 +47,22 @@ func TestAccDataProtectionBackupPolicyBlobStorage_vaultbackup(t *testing.T) {
 	})
 }
 
+func TestAccDataProtectionBackupPolicyBlobStorage_hybrid(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_blob_storage", "test")
+	r := DataProtectionBackupPolicyBlobStorageResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.hybrid(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("operational_default_retention_duration").HasValue("P30D"),
+				check.That(data.ResourceName).Key("vault_default_retention_duration").HasValue("P90D"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDataProtectionBackupPolicyBlobStorage_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_blob_storage", "test")
 	r := DataProtectionBackupPolicyBlobStorageResource{}
@@ -150,6 +166,21 @@ resource "azurerm_data_protection_backup_policy_blob_storage" "test" {
   }
 }
 `, template, data.RandomInteger)
+}
+
+func (r DataProtectionBackupPolicyBlobStorageResource) hybrid(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_protection_backup_policy_blob_storage" "test" {
+  name                                   = "acctest-dbp-%d"
+  vault_id                               = azurerm_data_protection_backup_vault.test.id
+  operational_default_retention_duration = "P30D"
+  vault_default_retention_duration       = "P90D"
+  backup_repeating_time_intervals        = ["R/2026-01-01T02:00:00+11:00/P1D"]
+  time_zone                              = "AUS Eastern Standard Time"
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r DataProtectionBackupPolicyBlobStorageResource) requiresImport(data acceptance.TestData) string {

@@ -473,8 +473,13 @@ func expandBackupPolicyBlobStorageAzureBackupRuleArray(input []interface{}, time
 }
 
 func expandBackupPolicyBlobStorageDefaultRetentionRuleArray(input interface{}, dataStoreType basebackuppolicyresources.DataStoreTypes) basebackuppolicyresources.BasePolicyRule {
+	name := "Default"
+	if dataStoreType == basebackuppolicyresources.DataStoreTypesOperationalStore {
+		name = "Default_OperationalStore"
+	}
+
 	return basebackuppolicyresources.AzureRetentionRule{
-		Name:      "Default",
+		Name:      name,
 		IsDefault: pointer.To(true),
 		Lifecycles: []basebackuppolicyresources.SourceLifeCycle{
 			{
