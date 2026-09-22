@@ -198,9 +198,10 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				if err != nil {
 					return fmt.Errorf("failed to decode Y: %+v", err)
 				}
+				// X/Y are deprecated since go 1.26 in favour of ecdsa.ParseUncompressedPublicKey, which needs the curve up front
 				publicKey := &ecdsa.PublicKey{
-					X: big.NewInt(0).SetBytes(xBytes),
-					Y: big.NewInt(0).SetBytes(yBytes),
+					X: big.NewInt(0).SetBytes(xBytes), //nolint:staticcheck
+					Y: big.NewInt(0).SetBytes(yBytes), //nolint:staticcheck
 				}
 				switch key.Crv {
 				case kv.JSONWebKeyCurveNameP256:

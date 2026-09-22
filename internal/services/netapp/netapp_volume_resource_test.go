@@ -653,7 +653,7 @@ func (t NetAppVolumeResource) Exists(ctx context.Context, clients *clients.Clien
 }
 
 func (NetAppVolumeResource) volEncryptionCmkUserAssigned(data acceptance.TestData, tenantID string) string {
-	cmkUserAssginedTemplate := NetAppAccountEncryptionResource{}.cmkUserAssigned(data, tenantID)
+	cmkUserAssignedTemplate := NetAppAccountEncryptionResource{}.cmkUserAssigned(data, tenantID)
 	networkTemplate := NetAppVolumeResource{}.networkTemplate(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -720,11 +720,11 @@ resource "azurerm_netapp_volume" "test" {
     azurerm_private_endpoint.test
   ]
 }
-`, cmkUserAssginedTemplate, networkTemplate, data.RandomInteger)
+`, cmkUserAssignedTemplate, networkTemplate, data.RandomInteger)
 }
 
 func (NetAppVolumeResource) volEncryptionCmkSystemAssigned(data acceptance.TestData, tenantID string) string {
-	cmkUserAssginedTemplate := NetAppAccountEncryptionResource{}.cmkSystemAssigned(data, tenantID)
+	cmkUserAssignedTemplate := NetAppAccountEncryptionResource{}.cmkSystemAssigned(data, tenantID)
 	networkTemplate := NetAppVolumeResource{}.networkTemplate(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -791,7 +791,7 @@ resource "azurerm_netapp_volume" "test" {
     azurerm_private_endpoint.test
   ]
 }
-`, cmkUserAssginedTemplate, networkTemplate, data.RandomInteger)
+`, cmkUserAssignedTemplate, networkTemplate, data.RandomInteger)
 }
 
 func (NetAppVolumeResource) backupPolicy(data acceptance.TestData) string {
