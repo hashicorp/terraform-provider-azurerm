@@ -143,7 +143,7 @@ func dataSourceAdvisorRecommendationsRead(d *pluginsdk.ResourceData, meta any) e
 
 	opts := getrecommendations.RecommendationsListOperationOptions{}
 	if len(filterList) > 0 {
-		opts.Filter = pointer.To(strings.Join(filterList, " and "))
+		opts.Filter = new(strings.Join(filterList, " and "))
 	}
 
 	recommendations, err := client.RecommendationsListComplete(ctx, id, opts)

@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/advisor/2023-01-01/suppressions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -44,7 +43,7 @@ func (AdvisorSuppressionResource) Exists(ctx context.Context, clients *clients.C
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
+	return new(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
 func (t AdvisorSuppressionResource) basic(data acceptance.TestData) string {

@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
@@ -229,7 +228,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 					}
 
 					resId := redisenterprise.NewRedisEnterpriseID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
-					preflightValidate, err := preflight.NewValidationRequestWithTypeOverride(pointer.To(model.Location), pointer.To(resId), "redis", "2025-07-01", req)
+					preflightValidate, err := preflight.NewValidationRequestWithTypeOverride(new(model.Location), new(resId), "redis", "2025-07-01", req)
 					if err != nil {
 						return fmt.Errorf("constructing preflight validation request: %w", err)
 					}

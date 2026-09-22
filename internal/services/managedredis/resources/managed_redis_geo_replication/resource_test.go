@@ -111,12 +111,12 @@ func (r ManagedRedisGeoReplicationResource) Exists(ctx context.Context, client *
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			if geoProps := props.GeoReplication; geoProps != nil {
-				return pointer.To(len(pointer.From(geoProps.LinkedDatabases)) > 0), nil
+				return new(len(pointer.From(geoProps.LinkedDatabases)) > 0), nil
 			}
 		}
 	}
 
-	return pointer.To(false), nil
+	return new(false), nil
 }
 
 func (r ManagedRedisGeoReplicationResource) template(data acceptance.TestData) string {

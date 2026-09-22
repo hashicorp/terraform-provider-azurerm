@@ -40,10 +40,10 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	parameters := pool.Pool{
 		Properties: &pool.PoolProperties{
-			VMSize:                 pointer.To(d.Get("vm_size").(string)),
-			DisplayName:            pointer.To(d.Get("display_name").(string)),
+			VMSize:                 new(d.Get("vm_size").(string)),
+			DisplayName:            new(d.Get("display_name").(string)),
 			InterNodeCommunication: pointer.ToEnum[pool.InterNodeCommunicationState](d.Get("inter_node_communication").(string)),
-			TaskSlotsPerNode:       pointer.To(int64(d.Get("max_tasks_per_node").(int))),
+			TaskSlotsPerNode:       new(int64(d.Get("max_tasks_per_node").(int))),
 		},
 	}
 
@@ -170,7 +170,7 @@ func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*pool.ScaleSetting
 		autoScaleFormula := autoScaleSettings["formula"].(string)
 
 		scaleSettings.AutoScale = &pool.AutoScaleSettings{
-			EvaluationInterval: pointer.To(autoScaleSettings["evaluation_interval"].(string)),
+			EvaluationInterval: new(autoScaleSettings["evaluation_interval"].(string)),
 			Formula:            autoScaleFormula,
 		}
 	} else if fixedScaleOk {
@@ -185,9 +185,9 @@ func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*pool.ScaleSetting
 
 		scaleSettings.FixedScale = &pool.FixedScaleSettings{
 			NodeDeallocationOption: pointer.ToEnum[pool.ComputeNodeDeallocationOption](fixedScaleSettings["node_deallocation_method"].(string)),
-			ResizeTimeout:          pointer.To(fixedScaleSettings["resize_timeout"].(string)),
-			TargetDedicatedNodes:   pointer.To(int64(targetDedicatedNodes)),
-			TargetLowPriorityNodes: pointer.To(int64(targetLowPriorityNodes)),
+			ResizeTimeout:          new(fixedScaleSettings["resize_timeout"].(string)),
+			TargetDedicatedNodes:   new(int64(targetDedicatedNodes)),
+			TargetLowPriorityNodes: new(int64(targetLowPriorityNodes)),
 		}
 	}
 
