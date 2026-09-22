@@ -8,14 +8,13 @@ import (
 	"fmt"
 	"time"
 
-	svchelpers "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/helpers"
-
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/databaselink"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/helpers"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
@@ -73,7 +72,7 @@ func linkUnlinkGeoReplication(ctx context.Context, metadata sdk.ResourceMetaData
 		return fmt.Errorf("geo_replication_group_name has to be set on database %s", primaryId)
 	}
 
-	fromDbIds := svchelpers.FlattenLinkedDatabases(existing.Model.Properties.GeoReplication.LinkedDatabases)
+	fromDbIds := helpers.FlattenLinkedDatabases(existing.Model.Properties.GeoReplication.LinkedDatabases)
 	toDbIds, err := toDbIds(model.LinkedManagedRedisIds, primaryId)
 	if err != nil {
 		return err

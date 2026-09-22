@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	svchelpers "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -294,7 +294,7 @@ func (r DataSource) Read() sdk.ResourceFunc {
 					}
 
 					if props.GeoReplication != nil {
-						defaultDb.GeoReplicationLinkedDatabaseIds = svchelpers.FlattenLinkedDatabases(props.GeoReplication.LinkedDatabases)
+						defaultDb.GeoReplicationLinkedDatabaseIds = helpers.FlattenLinkedDatabases(props.GeoReplication.LinkedDatabases)
 					}
 
 					if defaultDb.AccessKeysAuthenticationEnabled {

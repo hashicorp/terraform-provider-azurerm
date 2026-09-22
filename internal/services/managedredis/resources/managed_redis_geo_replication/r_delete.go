@@ -8,12 +8,11 @@ import (
 	"fmt"
 	"time"
 
-	svchelpers "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/helpers"
-
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/databaselink"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/helpers"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
@@ -35,7 +34,7 @@ func (r Resource) Delete() sdk.ResourceFunc {
 			}
 
 			if existing.Model.Properties != nil && existing.Model.Properties.GeoReplication != nil {
-				fromDbIds := svchelpers.FlattenLinkedDatabases(existing.Model.Properties.GeoReplication.LinkedDatabases)
+				fromDbIds := helpers.FlattenLinkedDatabases(existing.Model.Properties.GeoReplication.LinkedDatabases)
 				toDbIds := []string{dbId.ID()}
 
 				dbIdsToUnlink, intermediateDbIds, _ := databaselink.LinkUnlink(fromDbIds, toDbIds)
