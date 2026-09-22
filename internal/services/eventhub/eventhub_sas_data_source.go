@@ -10,8 +10,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+
 	"github.com/hashicorp/go-azure-helpers/eventhub"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -45,7 +46,7 @@ func (EventHubSharedAccessSignatureDataSource) Arguments() map[string]*pluginsdk
 		"expiry": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.ISO8601DateTime,
+			ValidateFunc: validation.ISO8601DateTime,
 		},
 	}
 }

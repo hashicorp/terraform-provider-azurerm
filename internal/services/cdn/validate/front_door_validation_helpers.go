@@ -6,7 +6,7 @@ package validate
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func CdnFrontDoorSecretName(i interface{}, k string) (_ []string, errors []error) {
@@ -15,7 +15,7 @@ func CdnFrontDoorSecretName(i interface{}, k string) (_ []string, errors []error
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
 	}
 
-	if m, _ := validate.RegExHelper(i, k, `^[a-zA-Z0-9][a-zA-Z0-9-]{0,258}[a-zA-Z0-9]$`); !m {
+	if m, _ := validation.RegExHelper(i, k, `^[a-zA-Z0-9][a-zA-Z0-9-]{0,258}[a-zA-Z0-9]$`); !m {
 		return nil, []error{fmt.Errorf(`%q must be between 2 and 260 characters in length, must begin with a letter or number, end with a letter or number and contain only letters, numbers and hyphens, got %q`, k, v)}
 	}
 
