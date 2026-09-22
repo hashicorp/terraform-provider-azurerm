@@ -1183,7 +1183,6 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]managedcluster
 	}
 
 	for _, profile := range *input {
-
 		nodeLabels := make(map[string]string)
 		if profile.NodeLabels != nil {
 			for k, v := range *profile.NodeLabels {
