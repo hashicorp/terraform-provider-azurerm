@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBatchUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Batch.PoolClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -54,7 +54,7 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		Properties: &pool.PoolProperties{},
 	}
 
-	identity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf(`expanding "identity": %v`, err)
 	}
@@ -80,7 +80,7 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	parameters.Properties.UserAccounts = userAccounts
 
 	if startTaskValue, startTaskOk := d.GetOk("start_task"); startTaskOk {
-		startTaskList := startTaskValue.([]interface{})
+		startTaskList := startTaskValue.([]any)
 		startTask, startTaskErr := ExpandBatchPoolStartTask(startTaskList)
 
 		if startTaskErr != nil {
@@ -99,7 +99,7 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			// when updating `data_disks`, it has to include additional properties such as `NodeAgentSkuId`, `ImageReference` and `OsDisk`, otherwise API request will fail.
 			parameters.Properties.DeploymentConfiguration = props.DeploymentConfiguration
 			if d.HasChange("data_disks") {
-				parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.DataDisks = expandBatchPoolDataDisks(d.Get("data_disks").([]interface{}))
+				parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.DataDisks = expandBatchPoolDataDisks(d.Get("data_disks").([]any))
 			}
 		}
 	}
@@ -109,7 +109,7 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("metadata") {
-		metaDataRaw := d.Get("metadata").(map[string]interface{})
+		metaDataRaw := d.Get("metadata").(map[string]any)
 
 		parameters.Properties.Metadata = ExpandBatchMetaData(metaDataRaw)
 	}

@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package managedredis
+package managed_redis
 
 import (
 	"context"
@@ -17,13 +17,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	svchelpers "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ManagedRedisDataSource struct{}
+type DataSource struct{}
 
-var _ sdk.DataSource = ManagedRedisDataSource{}
+var _ sdk.DataSource = DataSource{}
 
 type ManagedRedisDataSourceModel struct {
 	Name              string `tfschema:"name"`
@@ -56,7 +57,7 @@ type DefaultDatabaseDataSourceModel struct {
 	SecondaryAccessKey                       string        `tfschema:"secondary_access_key"`
 }
 
-func (r ManagedRedisDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -68,7 +69,7 @@ func (r ManagedRedisDataSource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r ManagedRedisDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"customer_managed_key": {
 			Type:     pluginsdk.TypeList,
@@ -212,15 +213,15 @@ func (r ManagedRedisDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r ManagedRedisDataSource) ModelObject() any {
+func (r DataSource) ModelObject() any {
 	return &ManagedRedisDataSourceModel{}
 }
 
-func (r ManagedRedisDataSource) ResourceType() string {
+func (r DataSource) ResourceType() string {
 	return "azurerm_managed_redis"
 }
 
-func (r ManagedRedisDataSource) Read() sdk.ResourceFunc {
+func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -293,7 +294,7 @@ func (r ManagedRedisDataSource) Read() sdk.ResourceFunc {
 					}
 
 					if props.GeoReplication != nil {
-						defaultDb.GeoReplicationLinkedDatabaseIds = flattenLinkedDatabases(props.GeoReplication.LinkedDatabases)
+						defaultDb.GeoReplicationLinkedDatabaseIds = svchelpers.FlattenLinkedDatabases(props.GeoReplication.LinkedDatabases)
 					}
 
 					if defaultDb.AccessKeysAuthenticationEnabled {

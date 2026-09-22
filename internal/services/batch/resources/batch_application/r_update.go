@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceBatchApplicationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBatchApplicationUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Batch.ApplicationClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()

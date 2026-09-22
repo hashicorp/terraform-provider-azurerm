@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package managedredis
+package managed_redis_flush_databases
 
 import (
 	"context"
@@ -24,7 +24,7 @@ type ManagedRedisFlushDatabasesAction struct {
 
 var _ sdk.Action = &ManagedRedisFlushDatabasesAction{}
 
-func newManagedRedisFlushDatabasesAction() action.Action {
+func Action() action.Action {
 	return &ManagedRedisFlushDatabasesAction{}
 }
 

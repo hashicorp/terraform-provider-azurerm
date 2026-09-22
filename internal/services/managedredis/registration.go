@@ -7,6 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/actions/managed_redis_flush_databases"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/resources/managed_redis"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/resources/managed_redis_access_policy_assignment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/resources/managed_redis_geo_replication"
 )
 
 var (
@@ -30,22 +34,22 @@ func (r Registration) Name() string {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		ManagedRedisAccessPolicyAssignmentDataSource{},
-		ManagedRedisDataSource{},
+		managed_redis_access_policy_assignment.DataSource{},
+		managed_redis.DataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		ManagedRedisAccessPolicyAssignmentResource{},
-		ManagedRedisGeoReplicationResource{},
-		ManagedRedisResource{},
+		managed_redis_access_policy_assignment.Resource{},
+		managed_redis_geo_replication.Resource{},
+		managed_redis.Resource{},
 	}
 }
 
 func (r Registration) Actions() []func() action.Action {
 	return []func() action.Action{
-		newManagedRedisFlushDatabasesAction,
+		managed_redis_flush_databases.Action,
 	}
 }
 
