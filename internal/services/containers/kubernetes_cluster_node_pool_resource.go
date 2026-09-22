@@ -241,14 +241,10 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"mode": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(agentpools.AgentPoolModeUser),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.AgentPoolModeSystem),
-				string(agentpools.AgentPoolModeUser),
-				string(agentpools.AgentPoolModeGateway),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(agentpools.AgentPoolModeUser),
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForAgentPoolMode(), false),
 		},
 
 		"min_count": {
