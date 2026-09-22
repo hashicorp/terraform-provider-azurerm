@@ -3,16 +3,16 @@ subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_pipeline"
 description: |-
-  Lists Pipeline Group resources.
+  Lists Azure Monitor Pipeline resources.
 ---
 
 # List resource: azurerm_monitor_pipeline
 
-Lists Pipeline Group resources.
+Lists Azure Monitor Pipeline resources.
 
 ## Example Usage
 
-### List all Pipeline Group resources in the subscription
+### List all Azure Monitor Pipeline resources in the subscription
 
 ```hcl
 list "azurerm_monitor_pipeline" "example" {
@@ -21,7 +21,7 @@ list "azurerm_monitor_pipeline" "example" {
 }
 ```
 
-### List all Pipeline Group resources in a specific resource group
+### List all Azure Monitor Pipeline resources in a specific Resource Group
 
 ```hcl
 list "azurerm_monitor_pipeline" "example" {

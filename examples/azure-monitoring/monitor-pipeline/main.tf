@@ -210,7 +210,7 @@ resource "local_file" "pipeline_persistent_volume" {
 
 resource "terraform_data" "cluster_prerequisites" {
   provisioner "local-exec" {
-    command = "bash ${path.module}/testdata/configure_pipeline_cluster.sh && kubectl label nodes --all gpu-enabled=true high-memory=true node-type=dedicated --overwrite"
+    command = "export PATH=\"$HOME/go/bin:$PATH\"; bash ${path.module}/testdata/configure_pipeline_cluster.sh && kubectl label nodes --all gpu-enabled=true high-memory=true node-type=dedicated --overwrite"
 
     environment = {
       CLIENT_CA_CERT                    = tls_self_signed_cert.client_ca.cert_pem

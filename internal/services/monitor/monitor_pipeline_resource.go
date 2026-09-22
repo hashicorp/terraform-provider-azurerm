@@ -992,8 +992,11 @@ func (r MonitorPipelineResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
-			if resp.Model == nil || resp.Model.Properties == nil {
+			if resp.Model == nil {
 				return fmt.Errorf("retrieving %s: model was nil", *id)
+			}
+			if resp.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: properties was nil", *id)
 			}
 
 			payload := *resp.Model
