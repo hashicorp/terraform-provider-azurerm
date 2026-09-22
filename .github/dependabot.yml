@@ -10,6 +10,10 @@ updates:
           - "version-update:semver-major"
     cooldown:
       default-days: 7
+    groups:
+      github-actions:
+        patterns:
+          - "*"
 
   # go dev tools (golangci-lint, terrafmt, gofumpt, ...) pinned in .tools/go.mod, built by make
   # into .tools/bin; tools should move slowly so only check quarterly
@@ -19,3 +23,7 @@ updates:
       interval: "quarterly"
     cooldown:
       default-days: 7
+    groups:
+      go-tools:
+        patterns:
+          - "*"
