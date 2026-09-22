@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
@@ -215,10 +214,10 @@ func expandBuildPackBindingBuildPackBindingLaunchProperties(input []interface{})
 	v := input[0].(map[string]interface{})
 	var properties, secrets map[string]*string
 	if valueRaw, ok := v["properties"]; ok && valueRaw != nil {
-		properties = helpers.ExpandMapStringPtrString(valueRaw.(map[string]interface{}))
+		properties = pluginsdk.ExpandMapStringPtrString(valueRaw.(map[string]interface{}))
 	}
 	if valueRaw, ok := v["secrets"]; ok && valueRaw != nil {
-		secrets = helpers.ExpandMapStringPtrString(valueRaw.(map[string]interface{}))
+		secrets = pluginsdk.ExpandMapStringPtrString(valueRaw.(map[string]interface{}))
 	}
 	return &appplatform.BuildpackBindingLaunchProperties{
 		Properties: properties,
@@ -233,7 +232,7 @@ func flattenBuildPackBindingBuildPackBindingLaunchProperties(input *appplatform.
 
 	props := make(map[string]interface{})
 	if input.Properties != nil {
-		props = helpers.FlattenMapStringPtrString(input.Properties)
+		props = pluginsdk.FlattenMapStringPtrString(input.Properties)
 	}
 	secrets := make(map[string]interface{})
 	if len(old) != 0 {

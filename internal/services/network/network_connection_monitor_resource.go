@@ -18,10 +18,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkwatchers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/connectionmonitors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -227,7 +225,7 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 								"port": {
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
-									ValidateFunc: validate.PortNumber,
+									ValidateFunc: validation.IsPortNumber,
 								},
 
 								"prefer_https": {
@@ -320,7 +318,7 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 								"port": {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
-									ValidateFunc: validate.PortNumber,
+									ValidateFunc: validation.IsPortNumber,
 								},
 
 								"trace_route_enabled": {
@@ -753,7 +751,7 @@ func expandNetworkConnectionMonitorHTTPConfiguration(input []interface{}) *conne
 	}
 
 	if ranges := v["valid_status_code_ranges"].(*pluginsdk.Set).List(); len(ranges) != 0 {
-		props.ValidStatusCodeRanges = helpers.ExpandStringSlice(ranges)
+		props.ValidStatusCodeRanges = pluginsdk.ExpandStringSlice(ranges)
 	}
 
 	return props
@@ -832,10 +830,10 @@ func expandNetworkConnectionMonitorTestGroup(input []interface{}) *[]connectionm
 
 		result := connectionmonitors.ConnectionMonitorTestGroup{
 			Name:               v["name"].(string),
-			Destinations:       *helpers.ExpandStringSlice(v["destination_endpoints"].(*pluginsdk.Set).List()),
+			Destinations:       *pluginsdk.ExpandStringSlice(v["destination_endpoints"].(*pluginsdk.Set).List()),
 			Disable:            pointer.To(!v["enabled"].(bool)),
-			Sources:            *helpers.ExpandStringSlice(v["source_endpoints"].(*pluginsdk.Set).List()),
-			TestConfigurations: *helpers.ExpandStringSlice(v["test_configuration_names"].(*pluginsdk.Set).List()),
+			Sources:            *pluginsdk.ExpandStringSlice(v["source_endpoints"].(*pluginsdk.Set).List()),
+			TestConfigurations: *pluginsdk.ExpandStringSlice(v["test_configuration_names"].(*pluginsdk.Set).List()),
 		}
 
 		results = append(results, result)
@@ -1009,7 +1007,7 @@ func flattenNetworkConnectionMonitorHTTPConfiguration(input *connectionmonitors.
 			"port":                     pointer.From(input.Port),
 			"prefer_https":             pointer.From(input.PreferHTTPS),
 			"request_header":           flattenNetworkConnectionMonitorHTTPHeader(input.RequestHeaders),
-			"valid_status_code_ranges": helpers.FlattenStringSlice(input.ValidStatusCodeRanges),
+			"valid_status_code_ranges": pluginsdk.FlattenSlice(input.ValidStatusCodeRanges),
 		},
 	}
 }

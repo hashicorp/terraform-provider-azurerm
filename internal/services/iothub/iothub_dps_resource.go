@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceprovisioningservices/2022-02-05/iotdpsresource"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -139,7 +138,7 @@ func resourceIotHubDPS() *pluginsdk.Resource {
 						"ip_mask": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validate.CIDR,
+							ValidateFunc: validation.IsCIDRIPv4,
 						},
 						"action": {
 							Type:         pluginsdk.TypeString,

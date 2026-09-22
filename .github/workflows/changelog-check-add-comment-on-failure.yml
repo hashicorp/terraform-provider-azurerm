@@ -1,6 +1,7 @@
 name: changelog-check-add-comment-on-failure
 
-on:
+# workflow_run is needed for write access on fork PRs, which pull_request cannot provide
+on:  # zizmor: ignore[dangerous-triggers]
   workflow_run:
     workflows:
       - "changelog-check"
@@ -29,15 +30,34 @@ jobs:
           merge-multiple: true
         continue-on-error: true
 
+      - name: Validate PR number
+        id: meta
+        if: steps.download.outcome == 'success'
+        run: |
+          IFS= read -r pr_number < artifacts/pr-number
+          if ! [[ "$pr_number" =~ ^[0-9]+$ ]]; then
+            echo "Invalid pr-number in artifact" >&2
+            exit 1
+          fi
+          echo "pr-number=$pr_number" >> "$GITHUB_OUTPUT"
+
+      - name: Read author association
+        id: author
+        if: steps.download.outcome == 'success' && steps.meta.outcome == 'success'
+        run: echo "association=$(cat artifacts/author-association)" >> "$GITHUB_OUTPUT"
+
       - name: Comment on missing changelog entry - maintainers
         if: >
           steps.download.outcome == 'success' &&
-          contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+          steps.meta.outcome == 'success' &&
+          contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), steps.author.outputs.association)
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          PR_NUMBER: ${{ steps.meta.outputs.pr-number }}
         with:
           script: |
             const fs = require('fs')
-            const prNumber = parseInt(fs.readFileSync('artifacts/pr-number', 'utf8').trim())
+            const prNumber = parseInt(process.env.PR_NUMBER, 10)
             const types = fs.readFileSync('artifacts/types-table', 'utf8').trim()
             const marker = '<!-- changelog-comment -->'
             const body = [
@@ -58,18 +78,17 @@ jobs:
               "",
               "Available types:",
               "",
-              "```",
               types,
-              "```",
               "",
               "If this PR does not require a changelog entry, add the `no-changelog-needed` label or check the box in the PR description."
             ].join("\n")
 
-            const { data: comments } = await github.rest.issues.listComments({
+            const comments = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: prNumber,
-            })
+              per_page: 100
+            });
 
             const botComments = comments.filter(c => c.user.login === 'github-actions[bot]')
             const existing = botComments.find(c => c.body.includes(marker))
@@ -104,12 +123,15 @@ jobs:
       - name: Comment on missing changelog entry - community
         if: >
           steps.download.outcome == 'success' &&
-          !contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+          steps.meta.outcome == 'success' &&
+          !contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), steps.author.outputs.association)
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          PR_NUMBER: ${{ steps.meta.outputs.pr-number }}
         with:
           script: |
             const fs = require('fs')
-            const prNumber = parseInt(fs.readFileSync('artifacts/pr-number', 'utf8').trim())
+            const prNumber = parseInt(process.env.PR_NUMBER, 10)
             const types = fs.readFileSync('artifacts/types-table', 'utf8').trim()
             const marker = '<!-- changelog-comment -->'
             const body = [
@@ -124,18 +146,17 @@ jobs:
               "",
               "Available types:",
               "",
-              "```",
               types,
-              "```",
               "",
               "If this PR does not require a changelog entry, check the `This change does not require a changelog entry` box in the PR description."
             ].join("\n")
 
-            const { data: comments } = await github.rest.issues.listComments({
+            const comments = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: prNumber,
-            })
+              per_page: 100
+            });
 
             const botComments = comments.filter(c => c.user.login === 'github-actions[bot]')
             const existing = botComments.find(c => c.body.includes(marker))
@@ -186,13 +207,25 @@ jobs:
           merge-multiple: true
         continue-on-error: true
 
-      - name: Remove missing-changelog-entry label
+      - name: Validate PR number
+        id: meta
         if: steps.download.outcome == 'success'
+        run: |
+          IFS= read -r pr_number < artifacts/pr-number
+          if ! [[ "$pr_number" =~ ^[0-9]+$ ]]; then
+            echo "Invalid pr-number in artifact" >&2
+            exit 1
+          fi
+          echo "pr-number=$pr_number" >> "$GITHUB_OUTPUT"
+
+      - name: Remove missing-changelog-entry label
+        if: steps.download.outcome == 'success' && steps.meta.outcome == 'success'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          PR_NUMBER: ${{ steps.meta.outputs.pr-number }}
         with:
           script: |
-            const fs = require('fs')
-            const prNumber = parseInt(fs.readFileSync('artifacts/pr-number', 'utf8').trim())
+            const prNumber = parseInt(process.env.PR_NUMBER, 10)
 
             try {
               await github.rest.issues.removeLabel({
@@ -207,4 +240,39 @@ jobs:
               } else {
                 core.warning(`Failed to remove label: ${error.message}`)
               }
+            }
+
+      - name: Hide missing changelog comment
+        if: steps.download.outcome == 'success' && steps.meta.outcome == 'success'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          PR_NUMBER: ${{ steps.meta.outputs.pr-number }}
+        with:
+          script: |
+            const prNumber = parseInt(process.env.PR_NUMBER, 10)
+            const marker = '<!-- changelog-comment -->'
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              per_page: 100
+            });
+
+            const existing = comments.filter(c => c.user.login === 'github-actions[bot]').find(c => c.body.includes(marker))
+
+            if (existing) {
+              await github.graphql(`
+                mutation($subjectId: ID!) {
+                  minimizeComment(input: { subjectId: $subjectId, classifier: OUTDATED }) {
+                    minimizedComment {
+                      isMinimized
+                    }
+                  }
+                }
+              `, {
+                subjectId: existing.node_id,
+              })
+            } else {
+              core.info('No changelog comment found, nothing to hide')
             }
