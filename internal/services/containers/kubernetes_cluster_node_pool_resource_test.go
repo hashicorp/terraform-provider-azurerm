@@ -2806,6 +2806,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
   os_type               = "Windows"
   os_sku                = "Windows2025"
+  fips_enabled          = true
   tags = {
     Os = "Windows"
   }
