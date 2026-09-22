@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
@@ -41,6 +42,47 @@ func dataSourceSpringCloudApp() *pluginsdk.Resource {
 				ValidateFunc: validate.SpringCloudServiceName,
 			},
 
+			"addon_json": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"custom_persistent_disk": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"storage_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"mount_path": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"share_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"mount_options": {
+							Type:     pluginsdk.TypeSet,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"read_only_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"fqdn": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -52,6 +94,39 @@ func dataSourceSpringCloudApp() *pluginsdk.Resource {
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
+
+			"ingress_settings": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"backend_protocol": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"read_timeout_in_seconds": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+
+						"send_timeout_in_seconds": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+
+						"session_affinity": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"session_cookie_max_age": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+					},
+				},
+			},
 
 			"is_public": {
 				Type:     pluginsdk.TypeBool,
@@ -74,6 +149,11 @@ func dataSourceSpringCloudApp() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"public_endpoint_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
 			},
 
 			"tls_enabled": {
@@ -127,6 +207,22 @@ func dataSourceSpringCloudAppRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 		if err := d.Set("persistent_disk", flattenSpringCloudAppPersistentDisk(prop.PersistentDisk)); err != nil {
 			return fmt.Errorf("setting `persistent_disk`: %s", err)
+		}
+
+		if err := d.Set("addon_json", flattenSpringCloudAppAddon(prop.AddonConfigs)); err != nil {
+			return fmt.Errorf("setting `addon_json`: %s", err)
+		}
+
+		if err := d.Set("custom_persistent_disk", flattenAppCustomPersistentDiskResourceArray(prop.CustomPersistentDisks)); err != nil {
+			return fmt.Errorf("setting `custom_persistent_disk`: %+v", err)
+		}
+
+		if err := d.Set("ingress_settings", flattenSpringCloudAppIngressSettings(prop.IngressSettings)); err != nil {
+			return fmt.Errorf("setting `ingress_settings`: %+v", err)
+		}
+
+		if prop.VnetAddons != nil {
+			d.Set("public_endpoint_enabled", pointer.From(prop.VnetAddons.PublicEndpoint))
 		}
 	}
 

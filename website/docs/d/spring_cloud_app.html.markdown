@@ -42,19 +42,41 @@ The following attributes are exported:
 
 * `id` - The ID of Spring Cloud Application.
 
+* `addon_json` - A JSON object that contains the addon configurations of the Spring Cloud Service.
+
+* `custom_persistent_disk` - A `custom_persistent_disk` block as defined below.
+
 * `fqdn` - The Fully Qualified DNS Name.
 
 * `https_only` - Is only HTTPS allowed?
 
 * `identity` - An `identity` block as defined below.
 
+* `ingress_settings` - An `ingress_settings` block as defined below.
+
 * `is_public` - Does the Spring Cloud Application have public endpoint?
 
 * `persistent_disk` - A `persistent_disk` block as defined below.
 
+* `public_endpoint_enabled` - Does the App in vnet injection instance expose an endpoint which could be accessed from the Internet?
+
 * `url` - The public endpoint of the Spring Cloud Application.
 
 * `tls_enabled` - Is End to End TLS Enabled?
+
+---
+
+The `custom_persistent_disk` block exports the following:
+
+* `storage_name` - The name of the Spring Cloud Storage.
+
+* `mount_path` - The mount path of the persistent disk.
+
+* `share_name` - The share name of the Azure File share.
+
+* `mount_options` - The mount options for the persistent disk.
+
+* `read_only_enabled` - Whether the persistent disk is a readOnly one.
 
 ---
 
@@ -65,6 +87,20 @@ The `identity` block exports the following:
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this Spring Cloud Application.
 
 * `type` - The Type of Managed Identity assigned to the Spring Cloud Application.
+
+---
+
+The `ingress_settings` block exports the following:
+
+* `backend_protocol` - How ingress communicates with this app backend service.
+
+* `read_timeout_in_seconds` - The ingress read time out in seconds.
+
+* `send_timeout_in_seconds` - The ingress send time out in seconds.
+
+* `session_affinity` - The type of the affinity.
+
+* `session_cookie_max_age` - The time in seconds until the cookie expires.
 
 ---
 
