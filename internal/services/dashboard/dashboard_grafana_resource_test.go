@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -92,24 +91,6 @@ func TestAccDashboardGrafana_update(t *testing.T) {
 	})
 }
 
-func TestAccDashboardGrafana_withSku(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("the `Essential` SKU is no longer supported in v5.0 of the AzureRM provider")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana", "test")
-	r := DashboardGrafanaResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.essential(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccDashboardGrafana_withSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana", "test")
 	r := DashboardGrafanaResource{}
@@ -182,23 +163,7 @@ resource "azurerm_dashboard_grafana" "test" {
   name                  = "a-dg-%d"
   resource_group_name   = azurerm_resource_group.test.name
   location              = azurerm_resource_group.test.location
-  grafana_major_version = "12"
-}
-`, template, data.RandomInteger)
-}
-
-func (r DashboardGrafanaResource) essential(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-				%s
-
-resource "azurerm_dashboard_grafana" "test" {
-  name                  = "a-dg-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = azurerm_resource_group.test.location
-  grafana_major_version = "11"
-
-  sku = "Essential"
+  grafana_major_version = "13"
 }
 `, template, data.RandomInteger)
 }
@@ -212,7 +177,7 @@ resource "azurerm_dashboard_grafana" "test" {
   name                  = "a-dg-%d"
   resource_group_name   = azurerm_resource_group.test.name
   location              = azurerm_resource_group.test.location
-  grafana_major_version = "12"
+  grafana_major_version = "13"
 
   sku      = "Standard"
   sku_size = "X1"
@@ -229,7 +194,7 @@ resource "azurerm_dashboard_grafana" "import" {
   name                  = azurerm_dashboard_grafana.test.name
   resource_group_name   = azurerm_dashboard_grafana.test.resource_group_name
   location              = azurerm_dashboard_grafana.test.location
-  grafana_major_version = "12"
+  grafana_major_version = "13"
 }
 `, config)
 }
@@ -251,7 +216,7 @@ resource "azurerm_dashboard_grafana" "test" {
   api_key_enabled                   = true
   deterministic_outbound_ip_enabled = true
   public_network_access_enabled     = false
-  grafana_major_version             = "12"
+  grafana_major_version             = "13"
   smtp {
     enabled          = true
     host             = "localhost:25"
@@ -293,7 +258,7 @@ resource "azurerm_dashboard_grafana" "test" {
   name                  = "a-dg-%d"
   resource_group_name   = azurerm_resource_group.test.name
   location              = azurerm_resource_group.test.location
-  grafana_major_version = "12"
+  grafana_major_version = "13"
 
   identity {
     type = "SystemAssigned"
@@ -358,7 +323,7 @@ resource "azurerm_dashboard_grafana" "test" {
   api_key_enabled                   = true
   deterministic_outbound_ip_enabled = true
   public_network_access_enabled     = false
-  grafana_major_version             = "12"
+  grafana_major_version             = "13"
   smtp {
     enabled          = true
     host             = "localhost:25"

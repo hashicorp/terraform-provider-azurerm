@@ -1,6 +1,9 @@
 ---
 name: Closed Milestones
 
+# When a milestone is closed, comments on every attached issue/PR that the
+# functionality shipped in that release.
+
 on:
   milestone:
     types: [closed]

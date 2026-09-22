@@ -173,7 +173,7 @@ func resourceStreamAnalyticsOutputSynapseRead(d *pluginsdk.ResourceData, meta in
 			return nil
 		}
 
-		return fmt.Errorf("retreving %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.OutputName)
@@ -187,29 +187,13 @@ func resourceStreamAnalyticsOutputSynapseRead(d *pluginsdk.ResourceData, meta in
 				return fmt.Errorf("converting %s to a Synapse Output", *id)
 			}
 
-			server := ""
-			if v := output.Properties.Server; v != nil {
-				server = *v
-			}
-			d.Set("server", server)
+			d.Set("server", pointer.From(output.Properties.Server))
 
-			database := ""
-			if v := output.Properties.Database; v != nil {
-				database = *v
-			}
-			d.Set("database", database)
+			d.Set("database", pointer.From(output.Properties.Database))
 
-			table := ""
-			if v := output.Properties.Table; v != nil {
-				table = *v
-			}
-			d.Set("table", table)
+			d.Set("table", pointer.From(output.Properties.Table))
 
-			user := ""
-			if v := output.Properties.User; v != nil {
-				user = *v
-			}
-			d.Set("user", user)
+			d.Set("user", pointer.From(output.Properties.User))
 		}
 	}
 	return nil

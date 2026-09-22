@@ -220,10 +220,9 @@ func (r ManagerNetworkGroupResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id, networkgroups.DeleteOperationOptions{
+			if err = client.DeleteThenPoll(ctx, *id, networkgroups.DeleteOperationOptions{
 				Force: pointer.To(true),
-			})
-			if err != nil {
+			}); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

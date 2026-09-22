@@ -27,7 +27,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name service_plan -service-package-name appservice -properties "resource_group_name,name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 type ServicePlanResource struct{}
 
@@ -116,7 +116,7 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 		"worker_count": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.IntAtLeast(1),
 		},
 
@@ -129,7 +129,7 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 		"maximum_elastic_worker_count": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.IntAtLeast(0),
 		},
 

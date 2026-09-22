@@ -38,8 +38,8 @@ func TestExpandFeatures(t *testing.T) {
 					PurgeSoftDeleteOnDestroy: true,
 				},
 				EnhancedValidation: features.EnhancedValidationFeatures{
-					Locations:         true,
-					ResourceProviders: true,
+					Locations:         false,
+					ResourceProviders: false,
 					PreflightEnabled:  false,
 					LocationFallback:  nil,
 				},
@@ -259,7 +259,7 @@ func TestExpandFeatures(t *testing.T) {
 				EnhancedValidation: features.EnhancedValidationFeatures{
 					Locations:         true,
 					ResourceProviders: true,
-					PreflightEnabled:  features.FivePointOh(),
+					PreflightEnabled:  true,
 					LocationFallback:  nil,
 				},
 				KeyVault: features.KeyVaultFeatures{
@@ -1997,8 +1997,8 @@ func TestExpandFeaturesEnhancedValidation(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				EnhancedValidation: features.EnhancedValidationFeatures{
-					Locations:         !features.FivePointOh(),
-					ResourceProviders: !features.FivePointOh(),
+					Locations:         false,
+					ResourceProviders: false,
 					PreflightEnabled:  false,
 					LocationFallback:  nil,
 				},
@@ -2022,7 +2022,7 @@ func TestExpandFeaturesEnhancedValidation(t *testing.T) {
 				EnhancedValidation: features.EnhancedValidationFeatures{
 					Locations:         true,
 					ResourceProviders: true,
-					PreflightEnabled:  features.FivePointOh(),
+					PreflightEnabled:  true,
 					LocationFallback:  nil,
 				},
 			},

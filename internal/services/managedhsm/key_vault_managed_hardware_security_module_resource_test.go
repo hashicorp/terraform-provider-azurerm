@@ -18,7 +18,7 @@ import (
 
 type KeyVaultManagedHardwareSecurityModuleResource struct{}
 
-func TestAccKeyVaultManagedHardwareSecurityModule(t *testing.T) {
+func TestAccKeyVaultManagedHardwareSecurityModule_sequential(t *testing.T) {
 	// @manicminer: these tests are sequential due to low service limits for Managed HSM
 	// (max 5 instances per subscription as of 2024-04-23)
 	// and to try and maintain a little headroom for cleanup after failed tests
@@ -345,7 +345,9 @@ resource "azurerm_subnet" "test_a" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-  service_endpoints    = ["Microsoft.KeyVault"]
+  service_endpoint {
+    service = "Microsoft.KeyVault"
+  }
 }
 
 resource "azurerm_key_vault_managed_hardware_security_module" "test" {

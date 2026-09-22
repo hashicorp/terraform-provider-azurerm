@@ -494,7 +494,6 @@ resource "azurerm_container_registry" "test" {
   public_network_access_enabled                = false
   quarantine_policy_enabled                    = true
   retention_policy_in_days                     = 10
-  trust_policy_enabled                         = true
   export_policy_enabled                        = false
   azuread_authentication_as_arm_policy_enabled = false
   anonymous_pull_enabled                       = true
@@ -545,7 +544,6 @@ resource "azurerm_container_registry" "test" {
   public_network_access_enabled                = true
   quarantine_policy_enabled                    = false
   retention_policy_in_days                     = 15
-  trust_policy_enabled                         = false
   export_policy_enabled                        = true
   azuread_authentication_as_arm_policy_enabled = true
   anonymous_pull_enabled                       = false
@@ -604,7 +602,8 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   georeplications {
-    location = "%s"
+    location                        = "%s"
+    global_endpoint_routing_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, replicationRegion)
@@ -627,10 +626,12 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   georeplications {
-    location = "%s"
+    location                        = "%s"
+    global_endpoint_routing_enabled = true
   }
   georeplications {
-    location = "%s"
+    location                        = "%s"
+    global_endpoint_routing_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, primaryLocation, secondaryLocation)
@@ -653,12 +654,13 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   georeplications {
-    location                = "%s"
-    zone_redundancy_enabled = true
+    location                        = "%s"
+    global_endpoint_routing_enabled = true
+    zone_redundancy_enabled         = true
   }
   georeplications {
-    location                  = "%s"
-    regional_endpoint_enabled = true
+    location                        = "%s"
+    global_endpoint_routing_enabled = true
     tags = {
       foo = "bar"
     }
@@ -806,8 +808,9 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   georeplications {
-    location                = "%s"
-    zone_redundancy_enabled = true
+    location                        = "%s"
+    zone_redundancy_enabled         = true
+    global_endpoint_routing_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)
@@ -828,8 +831,8 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   georeplications {
-    location                  = "%s"
-    regional_endpoint_enabled = true
+    location                        = "%s"
+    global_endpoint_routing_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)

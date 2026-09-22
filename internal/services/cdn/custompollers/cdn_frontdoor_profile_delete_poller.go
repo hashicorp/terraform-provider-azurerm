@@ -28,8 +28,7 @@ func NewFrontDoorProfileDeletePoller(client *profiles.ProfilesClient, id profile
 }
 
 func (p frontDoorProfileDeletePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
-	err := p.client.DeleteThenPoll(ctx, p.id)
-	if err != nil {
+	if err := p.client.DeleteThenPoll(ctx, p.id); err != nil {
 		msg := strings.ToLower(err.Error())
 		if strings.Contains(msg, "another operation is in progress") || strings.Contains(msg, "operation is in progress") {
 			return &pollers.PollResult{

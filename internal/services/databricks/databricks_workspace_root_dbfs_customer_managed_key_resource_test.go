@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -131,6 +132,11 @@ func TestAccDatabricksWorkspaceRootDbfsCustomerManagedKey_basicAltSubscription(t
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_root_dbfs_customer_managed_key", "test")
 	r := DatabricksWorkspaceRootDbfsCustomerManagedKeyResource{}
 
+	ignore := ([]string)(nil)
+	if !features.SixPointOh() {
+		ignore = []string{"key_vault_id"}
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicAltSubscription(data, altSubscription),
@@ -138,8 +144,7 @@ func TestAccDatabricksWorkspaceRootDbfsCustomerManagedKey_basicAltSubscription(t
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// `key_vault_id` is always set into state based on config, so it will be missing during imports
-		data.ImportStep("key_vault_id"),
+		data.ImportStep(ignore...),
 	})
 }
 
@@ -253,7 +258,8 @@ resource "azurerm_databricks_workspace_root_dbfs_customer_managed_key" "test" {
 }
 
 func (r DatabricksWorkspaceRootDbfsCustomerManagedKeyResource) basicAltSubscription(data acceptance.TestData, alternate *DatabricksWorkspaceAlternateSubscription) string {
-	return fmt.Sprintf(`
+	if !features.SixPointOh() {
+		return fmt.Sprintf(`
 
 provider "azurerm" {
   features {}
@@ -265,6 +271,23 @@ resource "azurerm_databricks_workspace_root_dbfs_customer_managed_key" "test" {
   workspace_id     = azurerm_databricks_workspace.test.id
   key_vault_key_id = azurerm_key_vault_key.test.id
   key_vault_id     = azurerm_key_vault.test.id
+
+  depends_on = [azurerm_key_vault_access_policy.databricks]
+}
+`, r.keyVaultAltSubscriptionTemplate(data, alternate), data.RandomInteger)
+	}
+
+	return fmt.Sprintf(`
+
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_databricks_workspace_root_dbfs_customer_managed_key" "test" {
+  workspace_id     = azurerm_databricks_workspace.test.id
+  key_vault_key_id = azurerm_key_vault_key.test.id
 
   depends_on = [azurerm_key_vault_access_policy.databricks]
 }

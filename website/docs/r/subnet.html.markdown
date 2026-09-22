@@ -77,11 +77,11 @@ The following arguments are supported:
 
 -> **Note:** If you want to use network policies like user-defined Routes and Network Security Groups, you need to set the `private_endpoint_network_policies` in the Subnet to `Enabled`/`NetworkSecurityGroupEnabled`/`RouteTableEnabled`. This setting only applies to Private Endpoints in the Subnet and affects all Private Endpoints in the Subnet. For other resources in the Subnet, access is controlled based via the Network Security Group which can be configured using the `azurerm_subnet_network_security_group_association` resource.
 
--> **Note:** See more details from [Manage network policies for Private Endpoints](https://learn.microsoft.com/en-gb/azure/private-link/disable-private-endpoint-network-policy?tabs=network-policy-portal).
+-> **Note:** See more details from [Manage network policies for Private Endpoints](https://learn.microsoft.com/azure/private-link/disable-private-endpoint-network-policy?tabs=network-policy-portal).
 
 * `private_link_service_network_policies_enabled` - (Optional) Enable or Disable network policies for the private link service on the subnet. Defaults to `true`.
 
--> **Note:** When configuring Azure Private Link service, the explicit setting `private_link_service_network_policies_enabled` must be set to `false` in the subnet since Private Link Service does not support network policies like user-defined Routes and Network Security Groups. This setting only affects the Private Link service. For other resources in the subnet, access is controlled based on the Network Security Group which can be configured using the `azurerm_subnet_network_security_group_association` resource. See more details from [Manage network policies for Private Link Services](https://learn.microsoft.com/en-gb/azure/private-link/disable-private-link-service-network-policy?tabs=private-link-network-policy-powershell).
+-> **Note:** When configuring Azure Private Link service, the explicit setting `private_link_service_network_policies_enabled` must be set to `false` in the subnet since Private Link Service does not support network policies like user-defined Routes and Network Security Groups. This setting only affects the Private Link service. For other resources in the subnet, access is controlled based on the Network Security Group which can be configured using the `azurerm_subnet_network_security_group_association` resource. See more details from [Manage network policies for Private Link Services](https://learn.microsoft.com/azure/private-link/disable-private-link-service-network-policy?tabs=private-link-network-policy-powershell).
 
 * `sharing_scope` - (Optional) The sharing scope of the subnet. Possible value is `Tenant`.
 
@@ -89,11 +89,29 @@ The following arguments are supported:
 
 !> **Note:** The `sharing_scope` property is only available to users who have been explicitly registered and granted access by the Azure Networking Product Group.
 
-* `service_endpoints` - (Optional) The list of Service endpoints to associate with the subnet. Possible values include: `Microsoft.AzureActiveDirectory`, `Microsoft.AzureCosmosDB`, `Microsoft.ContainerRegistry`, `Microsoft.EventHub`, `Microsoft.KeyVault`, `Microsoft.ServiceBus`, `Microsoft.Sql`, `Microsoft.Storage`, `Microsoft.Storage.Global` and `Microsoft.Web`.
-
--> **Note:** In order to use `Microsoft.Storage.Global` service endpoint (which allows access to virtual networks in other regions), you must enable the `AllowGlobalTagsForStorage` feature in your subscription. This is currently a preview feature, please see the [official documentation](https://learn.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-cli#enabling-access-to-virtual-networks-in-other-regions-preview) for more information.
+* `service_endpoint` - (Optional) A `service_endpoint` block as defined below.
 
 * `service_endpoint_policy_ids` - (Optional) The list of IDs of Service Endpoint Policies to associate with the subnet.
+
+* `network_security_group_id_wo` - (Optional, Write-Only) The ID of the Network Security Group to associate with the subnet.
+
+-> **Note:** This property is only meant for environments where Azure Policy requires Network Security Groups to be specified during Subnet creation/update. It is recommended to use the `azurerm_subnet_network_security_group_association` resource instead.
+
+* `network_security_group_id_wo_version` - (Optional) An integer that must be incremented whenever `network_security_group_id_wo` is updated. Required if `network_security_group_id_wo` is specified.
+
+* `route_table_id_wo` - (Optional, Write-Only) The ID of the Route Table to associate with the subnet.
+
+-> **Note:** This property is only meant for environments where Azure Policy requires Route Tables to be specified during Subnet creation/update. It is recommended to use the `azurerm_subnet_route_table_association` resource instead.
+
+* `route_table_id_wo_version` - (Optional) An integer that must be incremented whenever `route_table_id_wo` is updated. Required if `route_table_id_wo` is specified.
+
+---
+
+A `service_endpoint` block supports the following:
+
+* `service` - (Required) The name of the Service endpoint to associate with the subnet. Possible values are `Microsoft.AzureActiveDirectory`, `Microsoft.AzureCosmosDB`, `Microsoft.CognitiveService`, `Microsoft.ContainerRegistry`, `Microsoft.EventHub`, `Microsoft.KeyVault`, `Microsoft.ServiceBus`, `Microsoft.Sql`, `Microsoft.Storage`, `Microsoft.Storage.Global`, and `Microsoft.Web`.
+
+* `network_identifier` - (Optional) The ARM resource ID of the network identifier to associate with the service endpoint.
 
 ---
 

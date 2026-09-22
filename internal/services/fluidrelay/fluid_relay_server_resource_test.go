@@ -19,7 +19,7 @@ import (
 
 type FluidRelayResource struct{}
 
-func TestAccFluidRelay_basic(t *testing.T) {
+func TestAccFluidRelayServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_fluid_relay_server", "test")
 	f := FluidRelayResource{}
 
@@ -37,7 +37,7 @@ func TestAccFluidRelay_basic(t *testing.T) {
 	})
 }
 
-func TestAccFluidRelay_storageBasic(t *testing.T) {
+func TestAccFluidRelayServer_storageBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_fluid_relay_server", "test")
 	f := FluidRelayResource{}
 
@@ -53,7 +53,7 @@ func TestAccFluidRelay_storageBasic(t *testing.T) {
 	})
 }
 
-func TestAccFluidRelay_ami(t *testing.T) {
+func TestAccFluidRelayServer_ami(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_fluid_relay_server", "test")
 	f := FluidRelayResource{}
 

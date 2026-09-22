@@ -16,11 +16,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	providerfeatures "github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func AzureProvider() *schema.Provider {
@@ -37,6 +36,7 @@ func AzureProviderWithTestName(testName string) *schema.Provider {
 	return azureProvider(false, testName)
 }
 
+// lintignore:V013 // false positive - this validates a UUID with an optional pid- prefix/suffix; the string comparison checks for empty values
 func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
 	// ValidatePartnerID checks if partner_id is any of the following:
 	//  * a valid UUID - will add "pid-" prefix to the ID if it is not already present
@@ -67,9 +67,7 @@ func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
 
 	// Check for pid=<guid> (without the -partnercenter suffix)
 	if strings.HasPrefix(v, "pid-") && !strings.HasSuffix(v, "-partnercenter") {
-		g := strings.TrimPrefix(v, "pid-")
-
-		if _, err := validation.IsUUID(g, ""); err != nil {
+		if _, err := validation.IsUUID(strings.TrimPrefix(v, "pid-"), ""); err != nil {
 			return nil, []error{fmt.Errorf("expected %q to be a valid UUID", k)}
 		}
 
@@ -381,47 +379,11 @@ func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provide
 
 	p.ConfigureContextFunc = providerConfigure(p, testName)
 
-	if !providerfeatures.FivePointOh() {
-		p.Schema["resource_provider_registrations"].DefaultFunc = schema.EnvDefaultFunc("ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsLegacy)
-
-		p.Schema["skip_provider_registration"] = &schema.Schema{
-			Type:        schema.TypeBool,
-			Optional:    true,
-			DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_PROVIDER_REGISTRATION", nil),
-			Description: "Should the AzureRM Provider skip registering all of the Resource Providers that it supports, if they're not already registered?",
-			Deprecated:  "This property is deprecated and will be removed in v5.0 of the AzureRM provider. Please use the `resource_provider_registrations` property instead.",
-		}
-
-		p.Schema["enhanced_validation"] = &schema.Schema{
-			Type:          schema.TypeList,
-			Optional:      true,
-			MaxItems:      1,
-			ConflictsWith: []string{"features.0.enhanced_validation"},
-			Deprecated:    "This block has been deprecated and will be removed in version 5.0 of the AzureRM provider. Please use the `enhanced_validation` block inside the `features` block instead.",
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
-					"locations": {
-						Type:        schema.TypeBool,
-						Optional:    true,
-						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", providerfeatures.EnhancedValidationLocationsEnabled()),
-						Description: "Should the AzureRM Provider validate location arguments against the list of supported Azure Locations?",
-					},
-					"resource_providers": {
-						Type:        schema.TypeBool,
-						Optional:    true,
-						DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", providerfeatures.EnhancedValidationResourceProvidersEnabled()),
-						Description: "Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid resource providers are caught at plan time; when disabled, they are caught at apply time.",
-					},
-				},
-			},
-		}
-	}
-
 	return p
 }
 
 // providerConfigure is used to configure the cloud environment and authentication.
-// To configure behavioral aspects of the provider, use the buildClient function instead.
+// To configure behavioural aspects of the provider, use the buildClient function instead.
 // This separation allows us to robustly test different authentication scenarios.
 func providerConfigure(p *schema.Provider, testName string) schema.ConfigureContextFunc {
 	return func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
@@ -434,7 +396,7 @@ func providerConfigure(p *schema.Provider, testName string) schema.ConfigureCont
 
 		var auxTenants []string
 		if v, ok := d.Get("auxiliary_tenant_ids").([]interface{}); ok && len(v) > 0 {
-			auxTenants = *utils.ExpandStringSlice(v)
+			auxTenants = *helpers.ExpandStringSlice(v)
 		} else if v := os.Getenv("ARM_AUXILIARY_TENANT_IDS"); v != "" {
 			auxTenants = strings.Split(v, ";")
 		}
@@ -532,19 +494,10 @@ func providerConfigure(p *schema.Provider, testName string) schema.ConfigureCont
 	}
 }
 
-// buildClient is used to configure behavioral aspects of the provider. To configure the
+// buildClient is used to configure behavioural aspects of the provider. To configure the
 // cloud environment and authentication-related settings, use the providerConfigure function.
 func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData, authConfig *auth.Credentials, testName string) (*clients.Client, diag.Diagnostics) {
 	providerRegistrations := d.Get("resource_provider_registrations").(string)
-
-	if !providerfeatures.FivePointOh() {
-		if d.Get("skip_provider_registration").(bool) {
-			if providerRegistrations != resourceproviders.ProviderRegistrationsLegacy {
-				return nil, diag.Errorf("provider property `skip_provider_registration` cannot be set at the same time as `resource_provider_registrations`, please remove `skip_provider_registration` from your configuration or unset the `ARM_SKIP_PROVIDER_REGISTRATION` environment variable")
-			}
-			providerRegistrations = resourceproviders.ProviderRegistrationsNone
-		}
-	}
 
 	requiredResourceProviders, err := resourceproviders.GetResourceProvidersSet(providerRegistrations)
 	if err != nil {
@@ -558,25 +511,8 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 	requiredResourceProviders.Merge(additionalProvidersToRegister)
 
 	features := expandFeatures(d.Get("features").([]interface{}))
-	// In 4.x, validate that the legacy and specific enhanced validation env vars don't conflict
-	if !providerfeatures.FivePointOh() {
-		if err := providerfeatures.ValidateEnhancedValidationEnvVars(); err != nil {
-			return nil, diag.FromErr(err)
-		}
 
-		if raw, ok := d.GetOk("enhanced_validation"); ok {
-			items := raw.([]interface{})
-			if len(items) > 0 && items[0] != nil {
-				evRaw := items[0].(map[string]interface{})
-				if v, ok := evRaw["locations"]; ok {
-					features.EnhancedValidation.Locations = v.(bool)
-				}
-				if v, ok := evRaw["resource_providers"]; ok {
-					features.EnhancedValidation.ResourceProviders = v.(bool)
-				}
-			}
-		}
-	} else if os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION") != "" {
+	if os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION") != "" {
 		return nil, diag.Errorf("the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` has been removed in v5.0 of the AzureRM Provider - please use the `enhanced_validation` block inside the `features` block or the replacement environment variables `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` instead")
 	}
 

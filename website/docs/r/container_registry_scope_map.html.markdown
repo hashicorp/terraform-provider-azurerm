@@ -9,7 +9,7 @@ description: |-
 
 # azurerm_container_registry_scope_map
 
-Manages an Azure Container Registry scope map.  For more information on scope maps see the [product documentation](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-repository-scoped-permissions).
+Manages an Azure Container Registry scope map.  For more information on scope maps see the [product documentation](https://learn.microsoft.com/azure/container-registry/container-registry-repository-scoped-permissions).
 
 ## Example Usage
 
@@ -27,10 +27,12 @@ resource "azurerm_container_registry" "example" {
   admin_enabled       = false
 
   georeplications {
-    location = "East US"
+    location                        = "East US"
+    global_endpoint_routing_enabled = true
   }
   georeplications {
-    location = "West Europe"
+    location                        = "West Europe"
+    global_endpoint_routing_enabled = true
   }
 }
 
