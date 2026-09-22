@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Batch.AccountClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -42,12 +42,12 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf(`expanding "identity": %v`, err)
 	}
 
-	encryptionRaw := d.Get("encryption").([]interface{})
+	encryptionRaw := d.Get("encryption").([]any)
 	encryption := expandEncryption(encryptionRaw)
 
 	poolAllocationMode := batchaccount.PoolAllocationMode(d.Get("pool_allocation_mode").(string))
@@ -60,7 +60,7 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			AllowedAuthenticationModes: expandAllowedAuthenticationModes(d.Get("allowed_authentication_modes").(*pluginsdk.Set).List()),
 		},
 		Identity: identity,
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
@@ -68,12 +68,12 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if v, ok := d.GetOk("network_profile"); ok {
-		parameters.Properties.NetworkProfile = expandBatchAccountNetworkProfile(v.([]interface{}))
+		parameters.Properties.NetworkProfile = expandBatchAccountNetworkProfile(v.([]any))
 	}
 
 	// if pool allocation mode is UserSubscription, a key vault reference needs to be set
 	if poolAllocationMode == batchaccount.PoolAllocationModeUserSubscription {
-		keyVaultReferenceSet := d.Get("key_vault_reference").([]interface{})
+		keyVaultReferenceSet := d.Get("key_vault_reference").([]any)
 		keyVaultReference, err := expandBatchAccountKeyVaultReference(keyVaultReferenceSet)
 		if err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
@@ -113,7 +113,7 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	nodeIdentity := d.Get("storage_account_node_identity").(string)
 	if nodeIdentity != "" {
 		parameters.Properties.AutoStorage.NodeIdentityReference = &batchaccount.ComputeNodeIdentityReference{
-			ResourceId: pointer.To(nodeIdentity),
+			ResourceId: new(nodeIdentity),
 		}
 	}
 

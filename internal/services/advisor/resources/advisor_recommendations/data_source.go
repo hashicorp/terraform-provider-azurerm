@@ -120,7 +120,7 @@ func DataSource() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceAdvisorRecommendationsRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceAdvisorRecommendationsRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Advisor.RecommendationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -143,7 +143,7 @@ func dataSourceAdvisorRecommendationsRead(d *pluginsdk.ResourceData, meta interf
 
 	opts := getrecommendations.RecommendationsListOperationOptions{}
 	if len(filterList) > 0 {
-		opts.Filter = pointer.To(strings.Join(filterList, " and "))
+		opts.Filter = new(strings.Join(filterList, " and "))
 	}
 
 	recommendations, err := client.RecommendationsListComplete(ctx, id, opts)
@@ -160,8 +160,8 @@ func dataSourceAdvisorRecommendationsRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func flattenAzureRmAdvisorRecommendations(recommends []getrecommendations.ResourceRecommendationBase) []interface{} {
-	result := make([]interface{}, 0)
+func flattenAzureRmAdvisorRecommendations(recommends []getrecommendations.ResourceRecommendationBase) []any {
+	result := make([]any, 0)
 
 	if len(recommends) == 0 {
 		return result
@@ -169,7 +169,7 @@ func flattenAzureRmAdvisorRecommendations(recommends []getrecommendations.Resour
 
 	for _, r := range recommends {
 		var description string
-		var suppressionIds []interface{}
+		var suppressionIds []any
 
 		v := r.Properties
 
@@ -181,7 +181,7 @@ func flattenAzureRmAdvisorRecommendations(recommends []getrecommendations.Resour
 			suppressionIds = flattenSuppressionSlice(v.SuppressionIds)
 		}
 
-		result = append(result, map[string]interface{}{
+		result = append(result, map[string]any{
 			"category":               string(pointer.From(v.Category)),
 			"description":            description,
 			"id":                     pointer.From(r.Id),
@@ -198,7 +198,7 @@ func flattenAzureRmAdvisorRecommendations(recommends []getrecommendations.Resour
 	return result
 }
 
-func expandAzureRmAdvisorRecommendationsMapString(t string, input []interface{}) string {
+func expandAzureRmAdvisorRecommendationsMapString(t string, input []any) string {
 	if len(input) == 0 {
 		return ""
 	}
@@ -209,8 +209,8 @@ func expandAzureRmAdvisorRecommendationsMapString(t string, input []interface{})
 	return "(" + strings.Join(result, " or ") + ")"
 }
 
-func flattenSuppressionSlice(input *[]string) []interface{} {
-	result := make([]interface{}, 0)
+func flattenSuppressionSlice(input *[]string) []any {
+	result := make([]any, 0)
 	if input != nil {
 		for _, item := range *input {
 			result = append(result, item)

@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
 )
 
-func expandEncryption(e []interface{}) *batchaccount.EncryptionProperties {
+func expandEncryption(e []any) *batchaccount.EncryptionProperties {
 	defaultEnc := batchaccount.EncryptionProperties{
 		KeySource: pointer.To(batchaccount.KeySourceMicrosoftPointBatch),
 	}
@@ -17,18 +17,18 @@ func expandEncryption(e []interface{}) *batchaccount.EncryptionProperties {
 		return &defaultEnc
 	}
 
-	v := e[0].(map[string]interface{})
+	v := e[0].(map[string]any)
 	encryptionProperty := batchaccount.EncryptionProperties{
 		KeySource: pointer.To(batchaccount.KeySourceMicrosoftPointKeyVault),
 		KeyVaultProperties: &batchaccount.KeyVaultProperties{
-			KeyIdentifier: pointer.To(v["key_vault_key_id"].(string)),
+			KeyIdentifier: new(v["key_vault_key_id"].(string)),
 		},
 	}
 
 	return &encryptionProperty
 }
 
-func expandAllowedAuthenticationModes(input []interface{}) *[]batchaccount.AuthenticationMode {
+func expandAllowedAuthenticationModes(input []any) *[]batchaccount.AuthenticationMode {
 	if len(input) == 0 {
 		return nil
 	}
@@ -40,29 +40,29 @@ func expandAllowedAuthenticationModes(input []interface{}) *[]batchaccount.Authe
 	return &allowedAuthModes
 }
 
-func expandBatchAccountNetworkProfile(input []interface{}) *batchaccount.NetworkProfile {
+func expandBatchAccountNetworkProfile(input []any) *batchaccount.NetworkProfile {
 	if len(input) == 0 || input[0] == nil {
 		return &batchaccount.NetworkProfile{}
 	}
 
-	networkProfile := input[0].(map[string]interface{})
+	networkProfile := input[0].(map[string]any)
 	return &batchaccount.NetworkProfile{
-		AccountAccess:        expandBatchAccountEndpointAccessProfile(networkProfile["account_access"].([]interface{})),
-		NodeManagementAccess: expandBatchAccountEndpointAccessProfile(networkProfile["node_management_access"].([]interface{})),
+		AccountAccess:        expandBatchAccountEndpointAccessProfile(networkProfile["account_access"].([]any)),
+		NodeManagementAccess: expandBatchAccountEndpointAccessProfile(networkProfile["node_management_access"].([]any)),
 	}
 }
 
-func expandBatchAccountEndpointAccessProfile(input []interface{}) *batchaccount.EndpointAccessProfile {
+func expandBatchAccountEndpointAccessProfile(input []any) *batchaccount.EndpointAccessProfile {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	accessProfile := input[0].(map[string]interface{})
+	accessProfile := input[0].(map[string]any)
 
-	ipRulesRaw := accessProfile["ip_rule"].([]interface{})
+	ipRulesRaw := accessProfile["ip_rule"].([]any)
 	ipRules := make([]batchaccount.IPRule, 0)
 	for _, ipRule := range ipRulesRaw {
-		ipRuleRaw := ipRule.(map[string]interface{})
+		ipRuleRaw := ipRule.(map[string]any)
 		ipRules = append(ipRules, batchaccount.IPRule{
 			Action: batchaccount.IPRuleAction(ipRuleRaw["action"].(string)),
 			Value:  ipRuleRaw["ip_range"].(string),
@@ -71,6 +71,6 @@ func expandBatchAccountEndpointAccessProfile(input []interface{}) *batchaccount.
 
 	return &batchaccount.EndpointAccessProfile{
 		DefaultAction: batchaccount.EndpointAccessDefaultAction(accessProfile["default_action"].(string)),
-		IPRules:       pointer.To(ipRules),
+		IPRules:       new(ipRules),
 	}
 }

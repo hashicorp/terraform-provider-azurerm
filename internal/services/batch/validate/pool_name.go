@@ -10,7 +10,7 @@ import (
 )
 
 // PoolName validates the name of a Batch pool
-func PoolName(v interface{}, k string) ([]string, []error) {
+func PoolName(v any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9_-]+$`), "any combination of alphanumeric characters including hyphens and underscores are allowed"),
 		validation.StringLenBetween(1, 64),

@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Batch.AccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -38,7 +38,7 @@ func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return resourceBatchAccountFlatten(ctx, client, d, id, resp.Model, true)
 }
 
-func isShardKeyAllowed(input []interface{}) bool {
+func isShardKeyAllowed(input []any) bool {
 	if len(input) == 0 {
 		return false
 	}

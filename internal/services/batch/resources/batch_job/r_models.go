@@ -12,6 +12,6 @@ type BatchJobModel struct {
 	CommonEnvironmentProperties map[string]string `tfschema:"common_environment_properties"`
 }
 
-func (r Resource) ModelObject() interface{} {
+func (r Resource) ModelObject() any {
 	return &BatchJobModel{}
 }

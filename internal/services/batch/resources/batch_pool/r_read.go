@@ -23,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Batch.PoolClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -71,15 +71,15 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 
 			if props.TaskSchedulingPolicy != nil && props.TaskSchedulingPolicy.NodeFillType != "" {
-				taskSchedulingPolicy := make([]interface{}, 0)
-				nodeFillType := make(map[string]interface{})
+				taskSchedulingPolicy := make([]any, 0)
+				nodeFillType := make(map[string]any)
 				nodeFillType["node_fill_type"] = string(props.TaskSchedulingPolicy.NodeFillType)
 				taskSchedulingPolicy = append(taskSchedulingPolicy, nodeFillType)
 				d.Set("task_scheduling_policy", taskSchedulingPolicy)
 			}
 
 			if props.UserAccounts != nil {
-				userAccounts := make([]interface{}, 0)
+				userAccounts := make([]any, 0)
 				for _, userAccount := range *props.UserAccounts {
 					userAccounts = append(userAccounts, flattenBatchPoolUserAccount(d, &userAccount))
 				}
@@ -95,9 +95,9 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 						d.Set("container_configuration", flattenBatchPoolContainerConfiguration(d, config.ContainerConfiguration))
 					}
 					if config.DataDisks != nil {
-						dataDisks := make([]interface{}, 0)
+						dataDisks := make([]any, 0)
 						for _, item := range *config.DataDisks {
-							dataDisk := make(map[string]interface{})
+							dataDisk := make(map[string]any)
 							dataDisk["lun"] = item.Lun
 							dataDisk["disk_size_gb"] = item.DiskSizeGB
 
@@ -118,10 +118,10 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 						d.Set("data_disks", dataDisks)
 					}
 					if config.DiskEncryptionConfiguration != nil {
-						diskEncryptionConfiguration := make([]interface{}, 0)
+						diskEncryptionConfiguration := make([]any, 0)
 						if config.DiskEncryptionConfiguration.Targets != nil {
 							for _, item := range *config.DiskEncryptionConfiguration.Targets {
-								target := make(map[string]interface{})
+								target := make(map[string]any)
 								target["disk_encryption_target"] = string(item)
 								diskEncryptionConfiguration = append(diskEncryptionConfiguration, target)
 							}
@@ -129,10 +129,10 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 						d.Set("disk_encryption", diskEncryptionConfiguration)
 					}
 					if config.Extensions != nil {
-						extensions := make([]interface{}, 0)
+						extensions := make([]any, 0)
 						n := len(*config.Extensions)
 						for _, item := range *config.Extensions {
-							extension := make(map[string]interface{})
+							extension := make(map[string]any)
 							extension["name"] = item.Name
 							extension["publisher"] = item.Publisher
 							extension["type"] = item.Type
@@ -146,7 +146,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 								extension["automatic_upgrade_enabled"] = *item.EnableAutomaticUpgrade
 							}
 							if item.Settings != nil {
-								settingValue, err := json.Marshal((*item.Settings).(map[string]interface{}))
+								settingValue, err := json.Marshal((*item.Settings).(map[string]any))
 								if err != nil {
 									return fmt.Errorf("flattening `settings_json`: %+v", err)
 								}
@@ -173,8 +173,8 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 					d.Set("node_agent_sku_id", config.NodeAgentSkuId)
 
 					if config.NodePlacementConfiguration != nil {
-						nodePlacementConfiguration := make([]interface{}, 0)
-						nodePlacementConfig := make(map[string]interface{})
+						nodePlacementConfiguration := make([]any, 0)
+						nodePlacementConfig := make(map[string]any)
 						nodePlacementConfig["policy"] = string(*config.NodePlacementConfiguration.Policy)
 						nodePlacementConfiguration = append(nodePlacementConfiguration, nodePlacementConfig)
 						d.Set("node_placement", nodePlacementConfiguration)
@@ -191,8 +191,8 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 					}
 
 					if config.WindowsConfiguration != nil {
-						windowsConfig := []interface{}{
-							map[string]interface{}{
+						windowsConfig := []any{
+							map[string]any{
 								"enable_automatic_updates": *config.WindowsConfiguration.EnableAutomaticUpdates,
 							},
 						}
@@ -205,7 +205,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("metadata", FlattenBatchMetaData(props.Metadata))
 
 			if props.MountConfiguration != nil {
-				mountConfigs := make([]interface{}, 0)
+				mountConfigs := make([]any, 0)
 				for _, mountConfig := range *props.MountConfiguration {
 					mountConfigs = append(mountConfigs, flattenBatchPoolMountConfig(d, &mountConfig))
 				}

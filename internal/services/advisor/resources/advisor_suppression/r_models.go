@@ -11,6 +11,6 @@ type AdvisorSuppressionResourceModel struct {
 	TTL              string `tfschema:"ttl"`
 }
 
-func (Resource) ModelObject() interface{} {
+func (Resource) ModelObject() any {
 	return &AdvisorSuppressionResourceModel{}
 }

@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -59,7 +58,7 @@ func (r ManagedRedisAccessPolicyAssignmentResource) Exists(ctx context.Context, 
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return pointer.To(resp.Model != nil), nil
+	return new(resp.Model != nil), nil
 }
 
 func (r ManagedRedisAccessPolicyAssignmentResource) basic(data acceptance.TestData) string {

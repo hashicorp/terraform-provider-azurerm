@@ -8,6 +8,6 @@ type ManagedRedisAccessPolicyAssignmentResourceModel struct {
 	ObjectID       string `tfschema:"object_id"`
 }
 
-func (r Resource) ModelObject() interface{} {
+func (r Resource) ModelObject() any {
 	return &ManagedRedisAccessPolicyAssignmentResourceModel{}
 }

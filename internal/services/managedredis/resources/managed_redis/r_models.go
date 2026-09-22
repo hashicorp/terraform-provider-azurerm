@@ -52,6 +52,6 @@ type ModuleModel struct {
 	Version string `tfschema:"version"`
 }
 
-func (r Resource) ModelObject() interface{} {
+func (r Resource) ModelObject() any {
 	return &ManagedRedisResourceModel{}
 }

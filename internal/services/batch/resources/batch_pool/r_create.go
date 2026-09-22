@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBatchCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Batch.PoolClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -40,10 +40,10 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	parameters := pool.Pool{
 		Properties: &pool.PoolProperties{
-			VMSize:                 pointer.To(d.Get("vm_size").(string)),
-			DisplayName:            pointer.To(d.Get("display_name").(string)),
+			VMSize:                 new(d.Get("vm_size").(string)),
+			DisplayName:            new(d.Get("display_name").(string)),
 			InterNodeCommunication: pointer.ToEnum[pool.InterNodeCommunicationState](d.Get("inter_node_communication").(string)),
-			TaskSlotsPerNode:       pointer.To(int64(d.Get("max_tasks_per_node").(int))),
+			TaskSlotsPerNode:       new(int64(d.Get("max_tasks_per_node").(int))),
 		},
 	}
 
@@ -59,7 +59,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 	parameters.Properties.TaskSchedulingPolicy = taskSchedulingPolicy
 
-	identityResult, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
+	identityResult, err := identity.ExpandUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf(`expanding "identity": %v`, err)
 	}
@@ -73,7 +73,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	parameters.Properties.ScaleSettings = scaleSettings
 
 	if startTaskValue, startTaskOk := d.GetOk("start_task"); startTaskOk {
-		startTaskList := startTaskValue.([]interface{})
+		startTaskList := startTaskValue.([]any)
 		startTask, startTaskErr := ExpandBatchPoolStartTask(startTaskList)
 
 		if startTaskErr != nil {
@@ -100,7 +100,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	metaDataRaw := d.Get("metadata").(map[string]interface{})
+	metaDataRaw := d.Get("metadata").(map[string]any)
 	parameters.Properties.Metadata = ExpandBatchMetaData(metaDataRaw)
 
 	mountConfiguration, err := ExpandBatchPoolMountConfigurations(d)
@@ -109,7 +109,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 	parameters.Properties.MountConfiguration = mountConfiguration
 
-	networkConfiguration := d.Get("network_configuration").([]interface{})
+	networkConfiguration := d.Get("network_configuration").([]any)
 	parameters.Properties.NetworkConfiguration, err = ExpandBatchPoolNetworkConfiguration(networkConfiguration)
 	if err != nil {
 		return fmt.Errorf("expanding `network_configuration`: %+v", err)
@@ -160,34 +160,34 @@ func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*pool.ScaleSetting
 	}
 
 	if autoScaleOk {
-		autoScale := autoScaleValue.([]interface{})
+		autoScale := autoScaleValue.([]any)
 		if len(autoScale) == 0 {
 			return nil, fmt.Errorf("when scale mode is Auto, auto_scale block is required")
 		}
 
-		autoScaleSettings := autoScale[0].(map[string]interface{})
+		autoScaleSettings := autoScale[0].(map[string]any)
 
 		autoScaleFormula := autoScaleSettings["formula"].(string)
 
 		scaleSettings.AutoScale = &pool.AutoScaleSettings{
-			EvaluationInterval: pointer.To(autoScaleSettings["evaluation_interval"].(string)),
+			EvaluationInterval: new(autoScaleSettings["evaluation_interval"].(string)),
 			Formula:            autoScaleFormula,
 		}
 	} else if fixedScaleOk {
-		fixedScale := fixedScaleValue.([]interface{})
+		fixedScale := fixedScaleValue.([]any)
 		if len(fixedScale) == 0 {
 			return nil, fmt.Errorf("when scale mode is Fixed, fixed_scale block is required")
 		}
 
-		fixedScaleSettings := fixedScale[0].(map[string]interface{})
+		fixedScaleSettings := fixedScale[0].(map[string]any)
 		targetDedicatedNodes := int32(fixedScaleSettings["target_dedicated_nodes"].(int))
 		targetLowPriorityNodes := int32(fixedScaleSettings["target_low_priority_nodes"].(int))
 
 		scaleSettings.FixedScale = &pool.FixedScaleSettings{
 			NodeDeallocationOption: pointer.ToEnum[pool.ComputeNodeDeallocationOption](fixedScaleSettings["node_deallocation_method"].(string)),
-			ResizeTimeout:          pointer.To(fixedScaleSettings["resize_timeout"].(string)),
-			TargetDedicatedNodes:   pointer.To(int64(targetDedicatedNodes)),
-			TargetLowPriorityNodes: pointer.To(int64(targetLowPriorityNodes)),
+			ResizeTimeout:          new(fixedScaleSettings["resize_timeout"].(string)),
+			TargetDedicatedNodes:   new(int64(targetDedicatedNodes)),
+			TargetLowPriorityNodes: new(int64(targetLowPriorityNodes)),
 		}
 	}
 

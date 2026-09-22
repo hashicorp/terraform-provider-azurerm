@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Batch.AccountClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -25,14 +25,14 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
-	identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf(`expanding "identity": %v`, err)
 	}
 
-	encryptionRaw := d.Get("encryption").([]interface{})
+	encryptionRaw := d.Get("encryption").([]any)
 	encryption := expandEncryption(encryptionRaw)
 
 	parameters := batchaccount.BatchAccountUpdateParameters{
@@ -61,7 +61,7 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("network_profile") {
-		parameters.Properties.NetworkProfile = expandBatchAccountNetworkProfile(d.Get("network_profile").([]interface{}))
+		parameters.Properties.NetworkProfile = expandBatchAccountNetworkProfile(d.Get("network_profile").([]any))
 	}
 
 	if d.HasChange("storage_account_id") {
@@ -90,7 +90,7 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	nodeIdentity := d.Get("storage_account_node_identity").(string)
 	if nodeIdentity != "" {
 		parameters.Properties.AutoStorage.NodeIdentityReference = &batchaccount.ComputeNodeIdentityReference{
-			ResourceId: pointer.To(nodeIdentity),
+			ResourceId: new(nodeIdentity),
 		}
 	}
 

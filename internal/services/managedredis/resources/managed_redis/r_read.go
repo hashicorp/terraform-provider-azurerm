@@ -117,8 +117,8 @@ func (r Resource) Read() sdk.ResourceFunc {
 
 const defaultDatabaseName = "default"
 
-func dbLen(v interface{}) int {
-	if s, ok := v.([]interface{}); ok {
+func dbLen(v any) int {
+	if s, ok := v.([]any); ok {
 		return len(s)
 	}
 	return 0

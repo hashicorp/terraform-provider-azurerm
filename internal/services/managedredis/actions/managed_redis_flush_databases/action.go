@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/action/schema"
@@ -112,7 +111,7 @@ func (m *ManagedRedisFlushDatabasesAction) Invoke(ctx context.Context, request a
 	}
 
 	payload := redisenterprise.FlushParameters{
-		Ids: pointer.To(linkedDatabaseIds),
+		Ids: new(linkedDatabaseIds),
 	}
 
 	if err = client.DatabasesFlushThenPoll(ctx, *id, payload); err != nil {

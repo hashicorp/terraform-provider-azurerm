@@ -8,6 +8,6 @@ type ManagedRedisGeoReplicationResourceModel struct {
 	LinkedManagedRedisIds []string `tfschema:"linked_managed_redis_ids"`
 }
 
-func (r Resource) ModelObject() interface{} {
+func (r Resource) ModelObject() any {
 	return &ManagedRedisGeoReplicationResourceModel{}
 }

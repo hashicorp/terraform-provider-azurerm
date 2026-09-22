@@ -75,7 +75,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				clusterParams.Tags = pointer.To(state.Tags)
+				clusterParams.Tags = new(state.Tags)
 				clusterUpdateRequired = true
 			}
 

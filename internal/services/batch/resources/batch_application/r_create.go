@@ -6,7 +6,6 @@ package batch_application
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/application"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -15,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceBatchApplicationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBatchApplicationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Batch.ApplicationClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -41,9 +40,9 @@ func resourceBatchApplicationCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	parameters := application.Application{
 		Properties: &application.ApplicationProperties{
-			AllowUpdates:   pointer.To(allowUpdates),
-			DefaultVersion: pointer.To(defaultVersion),
-			DisplayName:    pointer.To(displayName),
+			AllowUpdates:   new(allowUpdates),
+			DefaultVersion: new(defaultVersion),
+			DisplayName:    new(displayName),
 		},
 	}
 

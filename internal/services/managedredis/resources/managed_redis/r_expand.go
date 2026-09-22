@@ -29,7 +29,7 @@ func expandCreateForManagedRedis(model ManagedRedisResourceModel) (redisenterpri
 			HighAvailability:    expandHighAvailability(model.HighAvailabilityEnabled),
 			PublicNetworkAccess: redisenterprise.PublicNetworkAccess(model.PublicNetworkAccess),
 		},
-		Tags: pointer.To(model.Tags),
+		Tags: new(model.Tags),
 	}
 
 	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
@@ -50,10 +50,10 @@ func expandManagedRedisClusterCustomerManagedKey(input []CustomerManagedKeyModel
 
 	return &redisenterprise.ClusterPropertiesEncryption{
 		CustomerManagedKeyEncryption: &redisenterprise.ClusterPropertiesEncryptionCustomerManagedKeyEncryption{
-			KeyEncryptionKeyURL: pointer.To(cmk.KeyVaultKeyId),
+			KeyEncryptionKeyURL: new(cmk.KeyVaultKeyId),
 			KeyEncryptionKeyIdentity: &redisenterprise.ClusterPropertiesEncryptionCustomerManagedKeyEncryptionKeyEncryptionKeyIdentity{
 				IdentityType:                   pointer.To(redisenterprise.CmkIdentityTypeUserAssignedIdentity),
-				UserAssignedIdentityResourceId: pointer.To(cmk.UserAssignedIdentityId),
+				UserAssignedIdentityResourceId: new(cmk.UserAssignedIdentityId),
 			},
 		},
 	}
@@ -81,10 +81,10 @@ func expandGeoReplication(input string, id string) *databases.DatabaseProperties
 	}
 
 	return &databases.DatabasePropertiesGeoReplication{
-		GroupNickname: pointer.To(input),
+		GroupNickname: new(input),
 		LinkedDatabases: &[]databases.LinkedDatabase{
 			{
-				Id: pointer.To(id),
+				Id: new(id),
 			},
 		},
 	}
@@ -95,7 +95,7 @@ func expandModules(input []ModuleModel) *[]databases.Module {
 	for _, module := range input {
 		results = append(results, databases.Module{
 			Name: module.Name,
-			Args: pointer.To(module.Args),
+			Args: new(module.Args),
 		})
 	}
 	return &results
@@ -105,12 +105,12 @@ func expandPersistence(aofBackupFreq string, rdbBackupFreq string) *databases.Pe
 	switch {
 	case aofBackupFreq != "":
 		return &databases.Persistence{
-			AofEnabled:   pointer.To(true),
+			AofEnabled:   new(true),
 			AofFrequency: pointer.ToEnum[databases.AofFrequency](aofBackupFreq),
 		}
 	case rdbBackupFreq != "":
 		return &databases.Persistence{
-			RdbEnabled:   pointer.To(true),
+			RdbEnabled:   new(true),
 			RdbFrequency: pointer.ToEnum[databases.RdbFrequency](rdbBackupFreq),
 		}
 	default:
