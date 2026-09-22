@@ -1,0 +1,39 @@
+name: Go Vulnerability Check
+
+# Runs govulncheck over the provider so known CVEs in our dependencies (or the Go toolchain) fail
+# CI. It only reports vulnerabilities in code paths we actually call, so it is quiet unless
+# something needs attention. The weekly run catches new CVEs against unchanged code.
+#
+# Mirrors the setup in katbyte/tctest. The action does its own checkout and Go setup, reading the
+# Go version from .go-version like every other job here.
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    types: ['opened', 'synchronize']
+    paths:
+      - '**.go'
+      - 'go.mod'
+      - 'go.sum'
+      - 'vendor/**'
+      - '.go-version'
+      - '.github/workflows/pr-check-govulncheck.yaml'
+  schedule:
+    - cron: '17 4 * * 1' # weekly (Monday 04:17 UTC)
+
+concurrency:
+  group: 'pr-check-govulncheck-${{ github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  govulncheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: golang/govulncheck-action@032d45514ae346b1db93c04b0c90b841c370344f # v1.1.0
+        with:
+          go-version-file: ./.go-version
