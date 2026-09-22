@@ -365,7 +365,7 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 
 		profileModel := profileResp.Model
 		if profileModel == nil {
-			return fmt.Errorf("retreiving %s: model was nil", profileId)
+			return fmt.Errorf("retrieving %s: model was nil", profileId)
 		}
 
 		if profileModel.Sku.Name == nil {

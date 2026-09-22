@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -498,7 +497,7 @@ func resourceIotHub() *pluginsdk.Resource {
 									"ip_mask": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: validate.CIDR,
+										ValidateFunc: validation.IsCIDRIPv4,
 									},
 									"action": {
 										Type:         pluginsdk.TypeString,
@@ -1119,7 +1118,7 @@ func expandIoTHubRoutes(d *pluginsdk.ResourceData) *[]devices.RouteProperties {
 			Name:          pointer.To(route["name"].(string)),
 			Source:        source,
 			Condition:     pointer.To(route["condition"].(string)),
-			EndpointNames: helpers.ExpandStringSlice(endpointNamesRaw),
+			EndpointNames: pluginsdk.ExpandStringSlice(endpointNamesRaw),
 			IsEnabled:     pointer.To(route["enabled"].(bool)),
 		})
 	}
@@ -1140,7 +1139,7 @@ func expandIoTHubEnrichments(d *pluginsdk.ResourceData) *[]devices.EnrichmentPro
 		enrichmentProperties = append(enrichmentProperties, devices.EnrichmentProperties{
 			Key:           pointer.To(enrichment["key"].(string)),
 			Value:         pointer.To(enrichment["value"].(string)),
-			EndpointNames: helpers.ExpandStringSlice(endpointNamesRaw),
+			EndpointNames: pluginsdk.ExpandStringSlice(endpointNamesRaw),
 		})
 	}
 
@@ -1208,7 +1207,7 @@ func expandIoTHubEndpoints(d *pluginsdk.ResourceData, subscriptionId string) (*d
 		authenticationType := devices.AuthenticationType(endpoint["authentication_type"].(string))
 
 		var subscriptionID string
-		// To align with the previous TF behavior, `subscription_id` needs to be set with the provider's subscription Id when it isn't specified in the tf config, otherwise TF behavior is different than before and it may block the existing users
+		// To align with the previous TF behaviour, `subscription_id` needs to be set with the provider's subscription Id when it isn't specified in the tf config, otherwise TF behaviour is different than before and it may block the existing users
 		// From the business perspective, the raw config handling is only meant for the case that the user has an EventHub whose Endpoint's subscription is not the provider's one. Then the user wants to reset it to the provider's one by unset the subscription_id
 		// From the TF code perspective, given `Computed: true` is enabled, TF would always get the value from the last apply when this property isn't set in the tf config. So `d.GetRawConfig()` is required to determine if it's set in the tf config
 		if v := d.GetRawConfig().AsValueMap()["endpoint"].AsValueSlice()[k].AsValueMap()["subscription_id"]; v.IsNull() {
@@ -1342,7 +1341,7 @@ func expandIoTHubFallbackRoute(d *pluginsdk.ResourceData) *devices.FallbackRoute
 	return &devices.FallbackRouteProperties{
 		Source:        pointer.To(fallbackRouteMap["source"].(string)),
 		Condition:     pointer.To(fallbackRouteMap["condition"].(string)),
-		EndpointNames: helpers.ExpandStringSlice(fallbackRouteMap["endpoint_names"].([]interface{})),
+		EndpointNames: pluginsdk.ExpandStringSlice(fallbackRouteMap["endpoint_names"].([]interface{})),
 		IsEnabled:     pointer.To(fallbackRouteMap["enabled"].(bool)),
 	}
 }
@@ -1703,7 +1702,7 @@ func flattenIoTHubFallbackRoute(input *devices.RoutingProperties) []interface{} 
 		output["source"] = *source
 	}
 
-	output["endpoint_names"] = helpers.FlattenStringSlice(route.EndpointNames)
+	output["endpoint_names"] = pluginsdk.FlattenSlice(route.EndpointNames)
 
 	return []interface{}{output}
 }

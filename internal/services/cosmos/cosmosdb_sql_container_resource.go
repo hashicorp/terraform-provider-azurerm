@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -151,7 +150,7 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 			}),
 
 			pluginsdk.ForceNewIfChange("partition_key_version", func(ctx context.Context, old, new, _ interface{}) bool {
-				// The behavior of the Azure API is that `partition_key_version` can be updated to `1` when it is not set at creation time, but it can not be updated to `2`.
+				// The behaviour of the Azure API is that `partition_key_version` can be updated to `1` when it is not set at creation time, but it can not be updated to `2`.
 				return old.(int) != 0 || new.(int) != 1
 			}),
 		),
@@ -199,7 +198,7 @@ func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if v, ok := d.GetOk("partition_key_paths"); ok {
-		db.Properties.Resource.PartitionKey.Paths = helpers.ExpandStringSlice(v.([]interface{}))
+		db.Properties.Resource.PartitionKey.Paths = pluginsdk.ExpandStringSlice(v.([]interface{}))
 	}
 
 	if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
@@ -273,7 +272,7 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if v, ok := d.GetOk("partition_key_paths"); ok {
-		db.Properties.Resource.PartitionKey.Paths = helpers.ExpandStringSlice(v.([]interface{}))
+		db.Properties.Resource.PartitionKey.Paths = pluginsdk.ExpandStringSlice(v.([]interface{}))
 	}
 
 	if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
@@ -338,7 +337,7 @@ func resourceCosmosDbSQLContainerRead(d *pluginsdk.ResourceData, meta interface{
 			if res := props.Resource; res != nil {
 				if pk := res.PartitionKey; pk != nil {
 					d.Set("partition_key_kind", pointer.FromEnum(pk.Kind))
-					d.Set("partition_key_paths", helpers.FlattenStringSlice(pk.Paths))
+					d.Set("partition_key_paths", pluginsdk.FlattenSlice(pk.Paths))
 					d.Set("partition_key_version", pk.Version)
 				}
 
@@ -417,7 +416,7 @@ func expandCosmosSQLContainerUniqueKeys(s *pluginsdk.Set) *[]cosmosdb.UniqueKey 
 		}
 
 		keys = append(keys, cosmosdb.UniqueKey{
-			Paths: helpers.ExpandStringSlice(paths),
+			Paths: pluginsdk.ExpandStringSlice(paths),
 		})
 	}
 

@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/certificate"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/backend"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -497,7 +496,7 @@ func expandApiManagementBackendCredentials(input []interface{}) *backend.Backend
 		contract.Authorization = expandApiManagementBackendCredentialsAuthorization(authorizationRaw.([]interface{}))
 	}
 	if certificate := v["certificate"]; certificate != nil {
-		certificates := helpers.ExpandStringSlice(certificate.([]interface{}))
+		certificates := pluginsdk.ExpandStringSlice(certificate.([]interface{}))
 		if certificates != nil && len(*certificates) > 0 {
 			contract.Certificate = certificates
 		}
@@ -560,7 +559,7 @@ func expandApiManagementBackendServiceFabricCluster(input []interface{}) (*backe
 	managementEndpoints := v["management_endpoints"].(*pluginsdk.Set).List()
 	maxPartitionResolutionRetries := int64(v["max_partition_resolution_retries"].(int))
 	properties := backend.BackendServiceFabricClusterProperties{
-		ManagementEndpoints:           pointer.From(helpers.ExpandStringSlice(managementEndpoints)),
+		ManagementEndpoints:           pointer.From(pluginsdk.ExpandStringSlice(managementEndpoints)),
 		MaxPartitionResolutionRetries: pointer.To(maxPartitionResolutionRetries),
 	}
 
@@ -579,7 +578,7 @@ func expandApiManagementBackendServiceFabricCluster(input []interface{}) (*backe
 	serverCertificateThumbprintsUnset := true
 	serverX509NamesUnset := true
 	if serverCertificateThumbprints := v["server_certificate_thumbprints"]; serverCertificateThumbprints != nil {
-		properties.ServerCertificateThumbprints = helpers.ExpandStringSlice(serverCertificateThumbprints.(*pluginsdk.Set).List())
+		properties.ServerCertificateThumbprints = pluginsdk.ExpandStringSlice(serverCertificateThumbprints.(*pluginsdk.Set).List())
 		serverCertificateThumbprintsUnset = false
 	}
 	if serverX509Names := v["server_x509_name"]; serverX509Names != nil {
@@ -673,7 +672,7 @@ func expandApiManagementBackendCircuitBreakerFailureCondition(input []interface{
 	if errorReasons, ok := v["error_reasons"]; ok {
 		reasons := errorReasons.([]interface{})
 		if len(reasons) > 0 {
-			condition.ErrorReasons = helpers.ExpandStringSlice(reasons)
+			condition.ErrorReasons = pluginsdk.ExpandStringSlice(reasons)
 		}
 	}
 
