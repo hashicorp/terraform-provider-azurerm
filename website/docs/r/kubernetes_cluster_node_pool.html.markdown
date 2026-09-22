@@ -112,6 +112,8 @@ The following arguments are supported:
 
 -> **Note:** `Gateway` mode creates a node pool configured to host static egress gateways. For more information about this feature, see [the Azure documentation](https://learn.microsoft.com/rest/api/aks/agent-pools/create-or-update?view=rest-aks-2025-07-01&tabs=HTTP#agentpoolgatewayprofile).
 
+~> **Note:** Changing `mode` to or from `Gateway` forces a new resource to be created, since the Azure API does not permit this property to be updated in place.
+
 * `node_network_profile` - (Optional) A `node_network_profile` block as documented below.
 
 * `node_labels` - (Optional) A map of Kubernetes labels which should be applied to nodes in this Node Pool.

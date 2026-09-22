@@ -87,6 +87,12 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("upgrade_settings.0.undrainable_node_behavior", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old != "" && new == ""
 			}),
+			// Azure rejects moving an existing pool into or out of `Gateway` mode:
+			// "Changing property 'agentPoolProfile.mode' from 'Gateway' to 'User' is not allowed"
+			pluginsdk.ForceNewIfChange("mode", func(ctx context.Context, old, new, meta interface{}) bool {
+				gateway := string(agentpools.AgentPoolModeGateway)
+				return strings.EqualFold(old.(string), gateway) || strings.EqualFold(new.(string), gateway)
+			}),
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 				// Validate gateway_public_ip_prefix_size is only set when mode is Gateway.
 				// It's Optional+Computed, so dropping it from the config leaves the previous
@@ -786,13 +792,8 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.KubeletDiskType = pointer.ToEnum[agentpools.KubeletDiskType](d.Get("kubelet_disk_type").(string))
 	}
 
-	if d.HasChange("gateway_public_ip_prefix_size") || d.HasChange("mode") {
-		if strings.EqualFold(d.Get("mode").(string), string(agentpools.AgentPoolModeGateway)) {
-			props.GatewayProfile = expandAgentPoolGatewayProfile(d.Get("gateway_public_ip_prefix_size").(int))
-		} else {
-			// a gateway profile isn't applicable outside Gateway mode
-			props.GatewayProfile = nil
-		}
+	if d.HasChange("gateway_public_ip_prefix_size") {
+		props.GatewayProfile = expandAgentPoolGatewayProfile(d.Get("gateway_public_ip_prefix_size").(int))
 	}
 
 	if d.HasChange("linux_os_config") {
