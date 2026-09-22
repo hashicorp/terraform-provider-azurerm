@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package managedredis_test
+package managed_redis_flush_databases_test
 
 import (
 	"context"
