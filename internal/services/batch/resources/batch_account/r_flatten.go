@@ -27,40 +27,40 @@ func flattenAllowedAuthenticationModes(input *[]batchaccount.AuthenticationMode)
 	return allowedAuthModes
 }
 
-func flattenEncryption(encryptionProperties *batchaccount.EncryptionProperties) []interface{} {
+func flattenEncryption(encryptionProperties *batchaccount.EncryptionProperties) []any {
 	if encryptionProperties == nil || *encryptionProperties.KeySource == batchaccount.KeySourceMicrosoftPointBatch {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"key_vault_key_id": *encryptionProperties.KeyVaultProperties.KeyIdentifier,
 		},
 	}
 }
 
-func flattenBatchAccountNetworkProfile(input *batchaccount.NetworkProfile) []interface{} {
+func flattenBatchAccountNetworkProfile(input *batchaccount.NetworkProfile) []any {
 	if input == nil || input.AccountAccess == nil && input.NodeManagementAccess == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"account_access":         flattenBatchAccountEndpointAccessProfile(input.AccountAccess),
 			"node_management_access": flattenBatchAccountEndpointAccessProfile(input.NodeManagementAccess),
 		},
 	}
 }
 
-func flattenBatchAccountEndpointAccessProfile(input *batchaccount.EndpointAccessProfile) []interface{} {
+func flattenBatchAccountEndpointAccessProfile(input *batchaccount.EndpointAccessProfile) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	ipRules := make([]interface{}, 0)
+	ipRules := make([]any, 0)
 	if input.IPRules != nil {
 		for _, ipRule := range *input.IPRules {
-			flattenedIpRule := map[string]interface{}{
+			flattenedIpRule := map[string]any{
 				"action":   string(ipRule.Action),
 				"ip_range": ipRule.Value,
 			}
@@ -68,8 +68,8 @@ func flattenBatchAccountEndpointAccessProfile(input *batchaccount.EndpointAccess
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"default_action": string(input.DefaultAction),
 			"ip_rule":        ipRules,
 		},
