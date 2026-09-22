@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkinterfaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipaddresses"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -33,6 +32,7 @@ import (
 	compute2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	intStor "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -47,7 +47,7 @@ func userDataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) boo
 func userDataStateFunc(v interface{}) string {
 	switch s := v.(type) {
 	case string:
-		s = helpers.Base64EncodeIfNot(s)
+		s = base64.EncodeIfNot(s)
 		hash := sha1.Sum([]byte(s))
 		return hex.EncodeToString(hash[:])
 	default:
@@ -1410,7 +1410,7 @@ func expandAzureRmVirtualMachineOsProfile(d *pluginsdk.ResourceData) (*virtualma
 	}
 
 	if v := osProfile["custom_data"].(string); v != "" {
-		v = helpers.Base64EncodeIfNot(v)
+		v = base64.EncodeIfNot(v)
 		profile.CustomData = &v
 	}
 

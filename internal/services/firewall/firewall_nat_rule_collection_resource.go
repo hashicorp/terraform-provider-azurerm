@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/azurefirewalls"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -461,16 +460,16 @@ func flattenFirewallNatRuleCollectionRules(rules *[]azurefirewalls.AzureFirewall
 			output["translated_port"] = *rule.TranslatedPort
 		}
 		if rule.SourceAddresses != nil {
-			output["source_addresses"] = helpers.FlattenStringSlice(rule.SourceAddresses)
+			output["source_addresses"] = pluginsdk.FlattenSlice(rule.SourceAddresses)
 		}
 		if rule.SourceIPGroups != nil {
-			output["source_ip_groups"] = helpers.FlattenStringSlice(rule.SourceIPGroups)
+			output["source_ip_groups"] = pluginsdk.FlattenSlice(rule.SourceIPGroups)
 		}
 		if rule.DestinationAddresses != nil {
-			output["destination_addresses"] = helpers.FlattenStringSlice(rule.DestinationAddresses)
+			output["destination_addresses"] = pluginsdk.FlattenSlice(rule.DestinationAddresses)
 		}
 		if rule.DestinationPorts != nil {
-			output["destination_ports"] = helpers.FlattenStringSlice(rule.DestinationPorts)
+			output["destination_ports"] = pluginsdk.FlattenSlice(rule.DestinationPorts)
 		}
 		protocols := make([]string, 0)
 		if rule.Protocols != nil {
@@ -478,7 +477,7 @@ func flattenFirewallNatRuleCollectionRules(rules *[]azurefirewalls.AzureFirewall
 				protocols = append(protocols, string(protocol))
 			}
 		}
-		output["protocols"] = helpers.FlattenStringSlice(&protocols)
+		output["protocols"] = pluginsdk.FlattenSlice(&protocols)
 		outputs = append(outputs, output)
 	}
 	return outputs

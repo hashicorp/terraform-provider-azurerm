@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privatelinkservices"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -144,12 +143,12 @@ func dataSourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{
 			d.Set("destination_ip_address", pointer.From(props.DestinationIPAddress))
 
 			if autoApproval := props.AutoApproval; autoApproval != nil {
-				if err := d.Set("auto_approval_subscription_ids", helpers.FlattenStringSlice(autoApproval.Subscriptions)); err != nil {
+				if err := d.Set("auto_approval_subscription_ids", pluginsdk.FlattenSlice(autoApproval.Subscriptions)); err != nil {
 					return fmt.Errorf("setting `auto_approval_subscription_ids`: %+v", err)
 				}
 			}
 			if visibility := props.Visibility; visibility != nil {
-				if err := d.Set("visibility_subscription_ids", helpers.FlattenStringSlice(visibility.Subscriptions)); err != nil {
+				if err := d.Set("visibility_subscription_ids", pluginsdk.FlattenSlice(visibility.Subscriptions)); err != nil {
 					return fmt.Errorf("setting `visibility_subscription_ids`: %+v", err)
 				}
 			}
@@ -164,7 +163,7 @@ func dataSourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{
 					return fmt.Errorf("setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
 				}
 			}
-			if err := d.Set("fqdns", helpers.FlattenStringSlice(props.Fqdns)); err != nil {
+			if err := d.Set("fqdns", pluginsdk.FlattenSlice(props.Fqdns)); err != nil {
 				return fmt.Errorf("setting `fqdns`: %+v", err)
 			}
 		}

@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/firewallpolicyrulecollectiongroups"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -656,14 +655,14 @@ func expandFirewallPolicyRuleApplication(input []interface{}) *[]firewallpolicyr
 			Description:          pointer.To(condition["description"].(string)),
 			Protocols:            &protocols,
 			HTTPHeadersToInsert:  &httpHeader,
-			SourceAddresses:      helpers.ExpandStringSlice(condition["source_addresses"].([]interface{})),
-			SourceIPGroups:       helpers.ExpandStringSlice(condition["source_ip_groups"].([]interface{})),
-			DestinationAddresses: helpers.ExpandStringSlice(condition["destination_addresses"].([]interface{})),
-			TargetFqdns:          helpers.ExpandStringSlice(condition["destination_fqdns"].([]interface{})),
-			TargetURLs:           helpers.ExpandStringSlice(condition["destination_urls"].([]interface{})),
-			FqdnTags:             helpers.ExpandStringSlice(condition["destination_fqdn_tags"].([]interface{})),
+			SourceAddresses:      pluginsdk.ExpandStringSlice(condition["source_addresses"].([]interface{})),
+			SourceIPGroups:       pluginsdk.ExpandStringSlice(condition["source_ip_groups"].([]interface{})),
+			DestinationAddresses: pluginsdk.ExpandStringSlice(condition["destination_addresses"].([]interface{})),
+			TargetFqdns:          pluginsdk.ExpandStringSlice(condition["destination_fqdns"].([]interface{})),
+			TargetURLs:           pluginsdk.ExpandStringSlice(condition["destination_urls"].([]interface{})),
+			FqdnTags:             pluginsdk.ExpandStringSlice(condition["destination_fqdn_tags"].([]interface{})),
 			TerminateTLS:         pointer.To(condition["terminate_tls"].(bool)),
-			WebCategories:        helpers.ExpandStringSlice(condition["web_categories"].([]interface{})),
+			WebCategories:        pluginsdk.ExpandStringSlice(condition["web_categories"].([]interface{})),
 		}
 		result = append(result, output)
 	}
@@ -681,12 +680,12 @@ func expandFirewallPolicyRuleNetwork(input []interface{}) *[]firewallpolicyrulec
 		output := &firewallpolicyrulecollectiongroups.NetworkRule{
 			Name:                 pointer.To(condition["name"].(string)),
 			IPProtocols:          &protocols,
-			SourceAddresses:      helpers.ExpandStringSlice(condition["source_addresses"].([]interface{})),
-			SourceIPGroups:       helpers.ExpandStringSlice(condition["source_ip_groups"].([]interface{})),
-			DestinationAddresses: helpers.ExpandStringSlice(condition["destination_addresses"].([]interface{})),
-			DestinationIPGroups:  helpers.ExpandStringSlice(condition["destination_ip_groups"].([]interface{})),
-			DestinationFqdns:     helpers.ExpandStringSlice(condition["destination_fqdns"].([]interface{})),
-			DestinationPorts:     helpers.ExpandStringSlice(condition["destination_ports"].([]interface{})),
+			SourceAddresses:      pluginsdk.ExpandStringSlice(condition["source_addresses"].([]interface{})),
+			SourceIPGroups:       pluginsdk.ExpandStringSlice(condition["source_ip_groups"].([]interface{})),
+			DestinationAddresses: pluginsdk.ExpandStringSlice(condition["destination_addresses"].([]interface{})),
+			DestinationIPGroups:  pluginsdk.ExpandStringSlice(condition["destination_ip_groups"].([]interface{})),
+			DestinationFqdns:     pluginsdk.ExpandStringSlice(condition["destination_fqdns"].([]interface{})),
+			DestinationPorts:     pluginsdk.ExpandStringSlice(condition["destination_ports"].([]interface{})),
 			Description:          pointer.To(condition["description"].(string)),
 		}
 		result = append(result, output)
@@ -713,10 +712,10 @@ func expandFirewallPolicyRuleNat(input []interface{}) (*[]firewallpolicyrulecoll
 		output := &firewallpolicyrulecollectiongroups.NatRule{
 			Name:                 pointer.To(condition["name"].(string)),
 			IPProtocols:          &protocols,
-			SourceAddresses:      helpers.ExpandStringSlice(condition["source_addresses"].([]interface{})),
-			SourceIPGroups:       helpers.ExpandStringSlice(condition["source_ip_groups"].([]interface{})),
+			SourceAddresses:      pluginsdk.ExpandStringSlice(condition["source_addresses"].([]interface{})),
+			SourceIPGroups:       pluginsdk.ExpandStringSlice(condition["source_ip_groups"].([]interface{})),
 			DestinationAddresses: pointer.To([]string{condition["destination_address"].(string)}),
-			DestinationPorts:     helpers.ExpandStringSlice(condition["destination_ports"].([]interface{})),
+			DestinationPorts:     pluginsdk.ExpandStringSlice(condition["destination_ports"].([]interface{})),
 			TranslatedPort:       pointer.To(strconv.Itoa(condition["translated_port"].(int))),
 			Description:          pointer.To(condition["description"].(string)),
 		}
@@ -853,14 +852,14 @@ func flattenFirewallPolicyRuleApplication(input *[]firewallpolicyrulecollectiong
 			"description":           pointer.From(rule.Description),
 			"protocols":             protocols,
 			"http_headers":          httpHeaders,
-			"source_addresses":      helpers.FlattenStringSlice(rule.SourceAddresses),
-			"source_ip_groups":      helpers.FlattenStringSlice(rule.SourceIPGroups),
-			"destination_addresses": helpers.FlattenStringSlice(rule.DestinationAddresses),
-			"destination_urls":      helpers.FlattenStringSlice(rule.TargetURLs),
-			"destination_fqdns":     helpers.FlattenStringSlice(rule.TargetFqdns),
-			"destination_fqdn_tags": helpers.FlattenStringSlice(rule.FqdnTags),
+			"source_addresses":      pluginsdk.FlattenSlice(rule.SourceAddresses),
+			"source_ip_groups":      pluginsdk.FlattenSlice(rule.SourceIPGroups),
+			"destination_addresses": pluginsdk.FlattenSlice(rule.DestinationAddresses),
+			"destination_urls":      pluginsdk.FlattenSlice(rule.TargetURLs),
+			"destination_fqdns":     pluginsdk.FlattenSlice(rule.TargetFqdns),
+			"destination_fqdn_tags": pluginsdk.FlattenSlice(rule.FqdnTags),
 			"terminate_tls":         pointer.From(rule.TerminateTLS),
-			"web_categories":        helpers.FlattenStringSlice(rule.WebCategories),
+			"web_categories":        pluginsdk.FlattenSlice(rule.WebCategories),
 		})
 	}
 
@@ -888,12 +887,12 @@ func flattenFirewallPolicyRuleNetwork(input *[]firewallpolicyrulecollectiongroup
 		output = append(output, map[string]interface{}{
 			"name":                  pointer.From(rule.Name),
 			"protocols":             protocols,
-			"source_addresses":      helpers.FlattenStringSlice(rule.SourceAddresses),
-			"source_ip_groups":      helpers.FlattenStringSlice(rule.SourceIPGroups),
-			"destination_addresses": helpers.FlattenStringSlice(rule.DestinationAddresses),
-			"destination_ip_groups": helpers.FlattenStringSlice(rule.DestinationIPGroups),
-			"destination_fqdns":     helpers.FlattenStringSlice(rule.DestinationFqdns),
-			"destination_ports":     helpers.FlattenStringSlice(rule.DestinationPorts),
+			"source_addresses":      pluginsdk.FlattenSlice(rule.SourceAddresses),
+			"source_ip_groups":      pluginsdk.FlattenSlice(rule.SourceIPGroups),
+			"destination_addresses": pluginsdk.FlattenSlice(rule.DestinationAddresses),
+			"destination_ip_groups": pluginsdk.FlattenSlice(rule.DestinationIPGroups),
+			"destination_fqdns":     pluginsdk.FlattenSlice(rule.DestinationFqdns),
+			"destination_ports":     pluginsdk.FlattenSlice(rule.DestinationPorts),
 			"description":           pointer.From(rule.Description),
 		})
 	}
@@ -934,10 +933,10 @@ func flattenFirewallPolicyRuleNat(input *[]firewallpolicyrulecollectiongroups.Fi
 		output = append(output, map[string]interface{}{
 			"name":                pointer.From(rule.Name),
 			"protocols":           protocols,
-			"source_addresses":    helpers.FlattenStringSlice(rule.SourceAddresses),
-			"source_ip_groups":    helpers.FlattenStringSlice(rule.SourceIPGroups),
+			"source_addresses":    pluginsdk.FlattenSlice(rule.SourceAddresses),
+			"source_ip_groups":    pluginsdk.FlattenSlice(rule.SourceIPGroups),
 			"destination_address": destinationAddr,
-			"destination_ports":   helpers.FlattenStringSlice(rule.DestinationPorts),
+			"destination_ports":   pluginsdk.FlattenSlice(rule.DestinationPorts),
 			"translated_address":  pointer.From(rule.TranslatedAddress),
 			"translated_port":     translatedPort,
 			"translated_fqdn":     pointer.From(rule.TranslatedFqdn),

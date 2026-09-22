@@ -6,6 +6,7 @@ package network
 import (
 	"fmt"
 	"log"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/ddosprotectionplans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -259,7 +259,7 @@ func expandNetworkDDoSProtectionPlanVnetIDs(input []interface{}) (*[]string, err
 			return nil, err
 		}
 
-		if !helpers.SliceContainsValue(vnetIDs, vnetResourceID.ID()) {
+		if !slices.Contains(vnetIDs, vnetResourceID.ID()) {
 			vnetIDs = append(vnetIDs, vnetResourceID.ID())
 		}
 	}
@@ -297,7 +297,7 @@ func extractVnetIDs(input *[]ddosprotectionplans.SubResource) (*[]string, error)
 				return nil, err
 			}
 
-			if !helpers.SliceContainsValue(vnetIDs, id.ID()) {
+			if !slices.Contains(vnetIDs, id.ID()) {
 				vnetIDs = append(vnetIDs, id.ID())
 			}
 		}

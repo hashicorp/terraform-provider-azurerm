@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetvms"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkwatchers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/packetcaptures"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -395,11 +394,11 @@ func expandVirtualMachineScaleSetPacketCaptureMachineScope(input []interface{}) 
 	output := &packetcaptures.PacketCaptureMachineScope{}
 
 	if exclude := raw["exclude_instance_ids"].([]interface{}); len(exclude) > 0 {
-		output.Exclude = helpers.ExpandStringSlice(exclude)
+		output.Exclude = pluginsdk.ExpandStringSlice(exclude)
 	}
 
 	if include := raw["include_instance_ids"].([]interface{}); len(include) > 0 {
-		output.Include = helpers.ExpandStringSlice(include)
+		output.Include = pluginsdk.ExpandStringSlice(include)
 	}
 
 	return output

@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -152,7 +151,7 @@ func resourceVirtualHubRouteTableCreate(d *pluginsdk.ResourceData, meta interfac
 	parameters := virtualwans.HubRouteTable{
 		Name: pointer.To(d.Get("name").(string)),
 		Properties: &virtualwans.HubRouteTableProperties{
-			Labels: helpers.ExpandStringSlice(d.Get("labels").(*pluginsdk.Set).List()),
+			Labels: pluginsdk.ExpandStringSlice(d.Get("labels").(*pluginsdk.Set).List()),
 			Routes: expandVirtualHubRouteTableHubRoutes(d.Get("route").(*pluginsdk.Set).List()),
 		},
 	}
@@ -204,7 +203,7 @@ func resourceVirtualHubRouteTableUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if d.HasChange("labels") {
-		payload.Properties.Labels = helpers.ExpandStringSlice(d.Get("labels").(*pluginsdk.Set).List())
+		payload.Properties.Labels = pluginsdk.ExpandStringSlice(d.Get("labels").(*pluginsdk.Set).List())
 	}
 
 	if d.HasChange("route") {
@@ -245,7 +244,7 @@ func resourceVirtualHubRouteTableRead(d *pluginsdk.ResourceData, meta interface{
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("labels", helpers.FlattenStringSlice(props.Labels))
+			d.Set("labels", pluginsdk.FlattenSlice(props.Labels))
 
 			if err := d.Set("route", flattenVirtualHubRouteTableHubRoutes(props.Routes)); err != nil {
 				return fmt.Errorf("setting `route`: %+v", err)
@@ -285,7 +284,7 @@ func expandVirtualHubRouteTableHubRoutes(input []interface{}) *[]virtualwans.Hub
 		result := virtualwans.HubRoute{
 			Name:            v["name"].(string),
 			DestinationType: v["destinations_type"].(string),
-			Destinations:    pointer.From(helpers.ExpandStringSlice(v["destinations"].(*pluginsdk.Set).List())),
+			Destinations:    pointer.From(pluginsdk.ExpandStringSlice(v["destinations"].(*pluginsdk.Set).List())),
 			NextHopType:     v["next_hop_type"].(string),
 			NextHop:         v["next_hop"].(string),
 		}
@@ -305,7 +304,7 @@ func flattenVirtualHubRouteTableHubRoutes(input *[]virtualwans.HubRoute) []inter
 	for _, item := range *input {
 		v := map[string]interface{}{
 			"name":              item.Name,
-			"destinations":      helpers.FlattenStringSlice(&item.Destinations),
+			"destinations":      pluginsdk.FlattenSlice(&item.Destinations),
 			"destinations_type": item.DestinationType,
 			"next_hop":          item.NextHop,
 			"next_hop_type":     item.NextHopType,
