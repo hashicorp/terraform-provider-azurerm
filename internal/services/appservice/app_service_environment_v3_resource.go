@@ -497,6 +497,7 @@ func (r AppServiceEnvironmentV3Resource) Read() sdk.ResourceFunc {
 					// returns an error for `ASEV3` resources, so we log and continue rather than failing the Read.
 					inboundNetworkDependencies, err := flattenInboundNetworkDependencies(ctx, client, id)
 					if err != nil {
+						// azignore:AZR009 - logging the dependent network configuration retrieval error rather than failing the read
 						metadata.Logger.Warnf("retrieving Inbound Network Dependencies for %s: %+v", *id, err)
 					} else {
 						state.InboundNetworkDependencies = *inboundNetworkDependencies
