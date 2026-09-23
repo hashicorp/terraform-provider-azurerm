@@ -649,16 +649,16 @@ func getDatabricksPrincipalId(subscriptionId string) string {
 }
 
 func altSubscriptionCheck() *DatabricksWorkspaceAlternateSubscription {
-	altSubscriptonID := os.Getenv("ARM_SUBSCRIPTION_ID_ALT")
+	altSubscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID_ALT")
 	altTenantID := os.Getenv("ARM_TENANT_ID")
 
-	if altSubscriptonID == "" || altTenantID == "" {
+	if altSubscriptionID == "" || altTenantID == "" {
 		return nil
 	}
 
 	return &DatabricksWorkspaceAlternateSubscription{
 		tenantID:       altTenantID,
-		subscriptionID: altSubscriptonID,
+		subscriptionID: altSubscriptionID,
 	}
 }
 

@@ -20,8 +20,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	tfbase64 "github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -429,7 +429,7 @@ func (r ApplicationInsightsStandardWebTestResource) Update() sdk.ResourceFunc {
 			props.Enabled = pointer.To(model.Enabled)
 			props.RetryEnabled = pointer.To(model.Retry)
 
-			// API requires that ths `Locations` property is always set, even if it is an empty list
+			// API requires that the `Locations` property is always set, even if it is an empty list
 			props.Locations = expandApplicationInsightsStandardWebTestGeoLocations(model.GeoLocations)
 
 			if metadata.ResourceData.HasChange("request") {
@@ -580,7 +580,7 @@ func expandApplicationInsightsStandardWebTestRequest(input []RequestModel) (requ
 	request.Headers = expandApplicationInsightsStandardWebTestRequestHeaders(requestInput.Header)
 
 	if v := requestInput.Body; v != "" {
-		request.RequestBody = pointer.To(helpers.Base64EncodeIfNot(v))
+		request.RequestBody = pointer.To(tfbase64.EncodeIfNot(v))
 	}
 
 	if v := requestInput.URL; v != "" {
