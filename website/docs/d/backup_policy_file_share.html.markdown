@@ -36,6 +36,86 @@ The following attributes are exported:
 
 - `id` - The ID of the File Share Backup Policy.
 
+- `backup` - A `backup` block as defined below.
+
+- `backup_tier` - The backup tier to use.
+
+- `retention_daily` - A `retention_daily` block as defined below.
+
+- `retention_monthly` - A `retention_monthly` block as defined below.
+
+- `retention_weekly` - A `retention_weekly` block as defined below.
+
+- `retention_yearly` - A `retention_yearly` block as defined below.
+
+- `snapshot_retention_in_days` - The number of days to retain the snapshots.
+
+- `timezone` - The timezone.
+
+---
+
+A `backup` block exports the following:
+
+- `frequency` - The backup frequency.
+
+- `hourly` - An `hourly` block as defined below.
+
+- `time` - The time of day to perform the backup.
+
+---
+
+An `hourly` block exports the following:
+
+- `interval` - The interval at which backup is triggered.
+
+- `start_time` - The start time of the hourly backup.
+
+- `window_duration` - The duration of the backup window in hours.
+
+---
+
+A `retention_daily` block exports the following:
+
+- `count` - The number of daily backups to keep.
+
+---
+
+A `retention_weekly` block exports the following:
+
+- `count` - The number of weekly backups to keep.
+
+- `weekdays` - The weekday backups retained.
+
+---
+
+A `retention_monthly` block exports the following:
+
+- `count` - The number of monthly backups to keep.
+
+- `days` - The days of the month backups are retained on.
+
+- `include_last_days` - Whether the last day of the month is included.
+
+- `weekdays` - The weekday backups retained.
+
+- `weeks` - The weeks of the month backups are retained on.
+
+---
+
+A `retention_yearly` block exports the following:
+
+- `count` - The number of yearly backups to keep.
+
+- `days` - The days of the month backups are retained on.
+
+- `include_last_days` - Whether the last day of the month is included.
+
+- `months` - The months of the year backups are retained on.
+
+- `weekdays` - The weekday backups retained.
+
+- `weeks` - The weeks of the month backups are retained on.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
