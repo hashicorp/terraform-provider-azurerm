@@ -153,7 +153,9 @@ An `application_logs` block supports the following:
 
 An `application_stack` block supports the following:
 
-~> **Note:** When an `application_stack` block is specified, exactly one of `docker_image_name`, `dotnet_version`, `go_version`, `java_version`, `node_version`, `php_version`, `python_version`, or `site_containers_enabled` must be set.
+~> **Note:** When an `application_stack` block is specified, exactly one of `docker_image_name`, `dotnet_version`, `go_version`, `java_version`, `node_version`, `php_version`, or `python_version` must be set.
+
+~> **Note:** `application_stack` conflicts with `site_config.0.main_site_container` - use `main_site_container` to run this Linux Web App in Site Containers (multi-container/sidecar) mode instead.
 
 * `docker_image_name` - (Optional) The docker image, including tag, to be used. e.g. `appsvc/staticsite:latest`.
 
@@ -190,8 +192,6 @@ An `application_stack` block supports the following:
 ~> **Note:** version `7.4` is deprecated and will be removed from the provider in a future version.
 
 * `python_version` - (Optional) The version of Python to run. Possible values include `3.14`, `3.13`, `3.12`, `3.11`, `3.10`, `3.9`, `3.8` and `3.7`.
-
-* `site_containers_enabled` - (Optional) Should the Web App use the multi-container (sidecar) runtime stack? When set to `true` the `linuxFxVersion` is set to `sitecontainers` and container definitions are managed via the [`azurerm_linux_web_app_site_container`](linux_web_app_site_container.html) resource. Defaults to `false`.
 
 ---
 
@@ -733,6 +733,10 @@ A `site_config` block supports the following:
 
 * `local_mysql_enabled` - (Optional) Use Local MySQL. Defaults to `false`.
 
+* `main_site_container` - (Optional) A `main_site_container` block as defined below.
+
+~> **Note:** `main_site_container` conflicts with `site_config.0.application_stack` - setting this block switches this Linux Web App in-place to Site Containers (multi-container/sidecar) mode. Additional (non-main) sidecar containers created out of band (e.g. via the Portal or Azure CLI) are not managed by this resource and are left untouched.
+
 * `managed_pipeline_mode` - (Optional) Managed pipeline mode. Possible values include `Integrated`, and `Classic`. Defaults to `Integrated`.
 
 * `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, `1.2` and `1.3`. Defaults to `1.2`.
@@ -758,6 +762,36 @@ A `site_config` block supports the following:
 * `websockets_enabled` - (Optional) Should Web Sockets be enabled? Defaults to `false`.
 
 * `worker_count` - (Optional) The number of Workers for this Linux App Service.
+
+---
+
+A `main_site_container` block supports the following:
+
+* `image` - (Required) The image to use for the main Site Container, e.g. `mcr.microsoft.com/appsvc/staticsite:latest`.
+
+* `environment_variable` - (Optional) One or more `environment_variable` blocks as defined below.
+
+* `target_port` - (Optional) The port the main Site Container listens on.
+
+* `volume_mount` - (Optional) One or more `volume_mount` blocks as defined below.
+
+---
+
+An `environment_variable` block supports the following:
+
+* `name` - (Required) The name of the environment variable.
+
+* `value` - (Required) The value of the environment variable.
+
+---
+
+A `volume_mount` block supports the following:
+
+* `container_mount_path` - (Required) The path within the container at which the volume should be mounted.
+
+* `read_only` - (Optional) Should this volume mount be read-only? Defaults to `false`.
+
+* `volume_sub_path` - (Required) The path within the volume to mount.
 
 ---
 

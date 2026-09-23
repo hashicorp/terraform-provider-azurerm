@@ -36,10 +36,6 @@ var urlSchemes = []string{
 
 func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 	result := ApplicationStackLinux{}
-	if strings.EqualFold(fxString, LinuxFxVersionSiteContainers) {
-		result.SiteContainersEnabled = true
-		return result
-	}
 
 	parts := strings.Split(fxString, "|")
 	if len(parts) != 2 {

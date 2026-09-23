@@ -163,8 +163,6 @@ An `application_stack` block exports the following:
 
 * `python_version` - The version of Python in use.
 
-* `site_containers_enabled` - Whether the Linux Web App uses site containers (sidecars) defined via `azurerm_linux_web_app_site_container` resources.
-
 ---
 
 A `auth_settings` block exports the following:
@@ -603,6 +601,8 @@ A `site_config` block exports the following:
 
 * `local_mysql_enabled` - Is the Local MySQL enabled.
 
+* `main_site_container` - A `main_site_container` block as defined below.
+
 * `managed_pipeline_mode` - The Managed Pipeline Mode.
 
 * `minimum_tls_version` - The Minimum version of TLS for requests.
@@ -628,6 +628,36 @@ A `site_config` block exports the following:
 * `websockets_enabled` - Are Web Sockets enabled?
 
 * `worker_count` - The number of Workers for this Linux App Service.
+
+---
+
+A `main_site_container` block exports the following:
+
+* `image` - The image used for the main Site Container.
+
+* `environment_variable` - One or more `environment_variable` blocks as defined below.
+
+* `target_port` - The port the main Site Container listens on.
+
+* `volume_mount` - One or more `volume_mount` blocks as defined below.
+
+---
+
+An `environment_variable` block exports the following:
+
+* `name` - The name of the environment variable.
+
+* `value` - The value of the environment variable.
+
+---
+
+A `volume_mount` block exports the following:
+
+* `container_mount_path` - The path within the container at which the volume is mounted.
+
+* `read_only` - Is this volume mount read-only?
+
+* `volume_sub_path` - The path within the volume to mount.
 
 ---
 

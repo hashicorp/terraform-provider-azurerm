@@ -418,6 +418,13 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
+			if mainSiteContainerProps := helpers.ExpandMainSiteContainer(sc.MainSiteContainer); mainSiteContainerProps != nil {
+				sitecontainerId := webapps.NewSitecontainerID(id.SubscriptionId, id.ResourceGroupName, id.SiteName, helpers.MainSiteContainerName)
+				if _, err := client.CreateOrUpdateSiteContainer(ctx, sitecontainerId, webapps.SiteContainer{Properties: mainSiteContainerProps}); err != nil {
+					return fmt.Errorf("creating main Site Container for Linux %s: %+v", id, err)
+				}
+			}
+
 			appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(siteConfig.AppSettings)
 			appSettingsProps := *appSettingsUpdate.Properties
 			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
@@ -680,6 +687,14 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 					siteConfig.DecodeDockerAppStack(state.AppSettings)
 				}
 
+				if strings.EqualFold(siteConfig.LinuxFxVersion, helpers.LinuxFxVersionSiteContainers) {
+					mainSiteContainer, err := helpers.FindMainSiteContainer(ctx, client, *id)
+					if err != nil {
+						return fmt.Errorf("reading main Site Container for Linux %s: %+v", id, err)
+					}
+					siteConfig.MainSiteContainer = helpers.FlattenMainSiteContainer(mainSiteContainer)
+				}
+
 				state.SiteConfig = []helpers.SiteConfigLinux{siteConfig}
 
 				// Filter out all settings we've consumed above
@@ -867,6 +882,29 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
 				return fmt.Errorf("updating Linux %s: %+v", id, err)
+			}
+
+			if metadata.ResourceData.HasChange("site_config.0.main_site_container") {
+				existingMainSiteContainer, err := helpers.FindMainSiteContainer(ctx, client, *id)
+				if err != nil {
+					return fmt.Errorf("reading main Site Container for Linux %s: %+v", id, err)
+				}
+
+				if mainSiteContainerProps := helpers.ExpandMainSiteContainer(sc.MainSiteContainer); mainSiteContainerProps != nil {
+					sitecontainerName := helpers.MainSiteContainerName
+					if existingMainSiteContainer != nil && existingMainSiteContainer.Name != nil {
+						sitecontainerName = *existingMainSiteContainer.Name
+					}
+					sitecontainerId := webapps.NewSitecontainerID(id.SubscriptionId, id.ResourceGroupName, id.SiteName, sitecontainerName)
+					if _, err := client.CreateOrUpdateSiteContainer(ctx, sitecontainerId, webapps.SiteContainer{Properties: mainSiteContainerProps}); err != nil {
+						return fmt.Errorf("updating main Site Container for Linux %s: %+v", id, err)
+					}
+				} else if existingMainSiteContainer != nil && existingMainSiteContainer.Name != nil {
+					sitecontainerId := webapps.NewSitecontainerID(id.SubscriptionId, id.ResourceGroupName, id.SiteName, *existingMainSiteContainer.Name)
+					if _, err := client.DeleteSiteContainer(ctx, sitecontainerId); err != nil {
+						return fmt.Errorf("removing main Site Container for Linux %s: %+v", id, err)
+					}
+				}
 			}
 
 			updateLogs := false

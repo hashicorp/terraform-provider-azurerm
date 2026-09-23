@@ -409,6 +409,14 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 					siteConfig.DecodeDockerAppStack(webApp.AppSettings)
 				}
 
+				if strings.EqualFold(siteConfig.LinuxFxVersion, helpers.LinuxFxVersionSiteContainers) {
+					mainSiteContainer, err := helpers.FindMainSiteContainer(ctx, client, *id)
+					if err != nil {
+						return fmt.Errorf("reading main Site Container for Linux %s: %+v", id, err)
+					}
+					siteConfig.MainSiteContainer = helpers.FlattenMainSiteContainer(mainSiteContainer)
+				}
+
 				webApp.SiteConfig = []helpers.SiteConfigLinux{siteConfig}
 
 				// Filter out all settings we've consumed above

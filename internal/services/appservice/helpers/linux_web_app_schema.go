@@ -52,6 +52,7 @@ type SiteConfigLinux struct {
 	DetailedErrorLogging          bool                    `tfschema:"detailed_error_logging_enabled"`
 	LinuxFxVersion                string                  `tfschema:"linux_fx_version"`
 	VnetRouteAllEnabled           bool                    `tfschema:"vnet_route_all_enabled"`
+	MainSiteContainer             []MainSiteContainer     `tfschema:"main_site_container"`
 	// SiteLimits []SiteLimitsSettings `tfschema:"site_limits"` // TODO - New block to (possibly) support? No way to configure this in the portal?
 }
 
@@ -85,7 +86,11 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 					Optional: true,
 				},
 
-				"application_stack": linuxApplicationStackSchema(),
+				"application_stack": func() *pluginsdk.Schema {
+					applicationStack := linuxApplicationStackSchema()
+					applicationStack.ConflictsWith = []string{"site_config.0.main_site_container"}
+					return applicationStack
+				}(),
 
 				"auto_heal_setting": autoHealSettingSchemaLinux(),
 
@@ -266,6 +271,8 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
+
+				"main_site_container": MainSiteContainerSchema(),
 			},
 		},
 	}
@@ -434,6 +441,8 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
+
+				"main_site_container": MainSiteContainerSchemaComputed(),
 			},
 		},
 	}
@@ -824,9 +833,6 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webap
 
 	if len(s.ApplicationStack) == 1 {
 		linuxAppStack := s.ApplicationStack[0]
-		if linuxAppStack.SiteContainersEnabled {
-			expanded.LinuxFxVersion = pointer.To(LinuxFxVersionSiteContainers)
-		}
 
 		if linuxAppStack.NetFrameworkVersion != "" {
 			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("%s|%s", FxStringPrefixDotNetCore, linuxAppStack.NetFrameworkVersion))
@@ -865,6 +871,8 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webap
 			appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = linuxAppStack.DockerRegistryUsername
 			appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = linuxAppStack.DockerRegistryPassword
 		}
+	} else if len(s.MainSiteContainer) == 1 {
+		expanded.LinuxFxVersion = pointer.To(LinuxFxVersionSiteContainers)
 	}
 
 	expanded.AppSettings = ExpandAppSettingsForCreate(appSettings)
@@ -948,11 +956,9 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 		expanded.AppCommandLine = pointer.To(s.AppCommandLine)
 	}
 
-	if len(s.ApplicationStack) == 1 {
+	switch {
+	case len(s.ApplicationStack) == 1:
 		linuxAppStack := s.ApplicationStack[0]
-		if linuxAppStack.SiteContainersEnabled {
-			expanded.LinuxFxVersion = pointer.To(LinuxFxVersionSiteContainers)
-		}
 
 		if linuxAppStack.NetFrameworkVersion != "" {
 			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNETCORE|%s", linuxAppStack.NetFrameworkVersion))
@@ -991,7 +997,9 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 			appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = linuxAppStack.DockerRegistryUsername
 			appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = linuxAppStack.DockerRegistryPassword
 		}
-	} else {
+	case len(s.MainSiteContainer) == 1:
+		expanded.LinuxFxVersion = pointer.To(LinuxFxVersionSiteContainers)
+	default:
 		expanded.LinuxFxVersion = pointer.To("")
 	}
 
