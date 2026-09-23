@@ -6,6 +6,7 @@ package network
 import (
 	"fmt"
 	"log"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkprofiles"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -360,11 +360,11 @@ func expandNetworkProfileVirtualNetworkSubnetNames(input *[]networkprofiles.Cont
 
 				vnetId := commonids.NewVirtualNetworkID(subnetId.SubscriptionId, subnetId.ResourceGroupName, subnetId.VirtualNetworkName)
 
-				if !helpers.SliceContainsValue(subnetIds, subnetId.ID()) {
+				if !slices.Contains(subnetIds, subnetId.ID()) {
 					subnetIds = append(subnetIds, subnetId.ID())
 				}
 
-				if !helpers.SliceContainsValue(vnetIds, vnetId.ID()) {
+				if !slices.Contains(vnetIds, vnetId.ID()) {
 					vnetIds = append(vnetIds, vnetId.ID())
 				}
 			}

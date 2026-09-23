@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/firewallpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -120,7 +119,7 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if v, ok := d.GetOk("private_ip_ranges"); ok {
-		privateIPRanges := helpers.ExpandStringSlice(v.([]interface{}))
+		privateIPRanges := pluginsdk.ExpandStringSlice(v.([]interface{}))
 		props.Properties.Snat = &firewallpolicies.FirewallPolicySNAT{
 			PrivateRanges: privateIPRanges,
 		}
@@ -230,7 +229,7 @@ func resourceFirewallPolicySetFlatten(d *pluginsdk.ResourceData, id *firewallpol
 			var privateIPRanges []interface{}
 			var isAutoLearnPrivateRangeEnabled bool
 			if props.Snat != nil {
-				privateIPRanges = helpers.FlattenStringSlice(props.Snat.PrivateRanges)
+				privateIPRanges = pluginsdk.FlattenSlice(props.Snat.PrivateRanges)
 				isAutoLearnPrivateRangeEnabled = pointer.From(props.Snat.AutoLearnPrivateRanges) == firewallpolicies.AutoLearnPrivateRangesModeEnabled
 			}
 			if err := d.Set("private_ip_ranges", privateIPRanges); err != nil {
@@ -298,8 +297,8 @@ func expandFirewallPolicyThreatIntelWhitelist(input []interface{}) *firewallpoli
 
 	raw := input[0].(map[string]interface{})
 	return &firewallpolicies.FirewallPolicyThreatIntelWhitelist{
-		IPAddresses: helpers.ExpandStringSlice(raw["ip_addresses"].(*pluginsdk.Set).List()),
-		Fqdns:       helpers.ExpandStringSlice(raw["fqdns"].(*pluginsdk.Set).List()),
+		IPAddresses: pluginsdk.ExpandStringSlice(raw["ip_addresses"].(*pluginsdk.Set).List()),
+		Fqdns:       pluginsdk.ExpandStringSlice(raw["fqdns"].(*pluginsdk.Set).List()),
 	}
 }
 
@@ -310,7 +309,7 @@ func expandFirewallPolicyDNSSetting(input []interface{}) *firewallpolicies.DnsSe
 
 	raw := input[0].(map[string]interface{})
 	return &firewallpolicies.DnsSettings{
-		Servers:     helpers.ExpandStringSlice(raw["servers"].([]interface{})),
+		Servers:     pluginsdk.ExpandStringSlice(raw["servers"].([]interface{})),
 		EnableProxy: pointer.To(raw["proxy_enabled"].(bool)),
 	}
 }
@@ -340,11 +339,11 @@ func expandFirewallPolicyIntrusionDetection(input []interface{}) *firewallpolici
 			Name:                 pointer.To(bypass["name"].(string)),
 			Description:          pointer.To(bypass["description"].(string)),
 			Protocol:             pointer.ToEnum[firewallpolicies.FirewallPolicyIntrusionDetectionProtocol](bypass["protocol"].(string)),
-			SourceAddresses:      helpers.ExpandStringSlice(bypass["source_addresses"].(*pluginsdk.Set).List()),
-			DestinationAddresses: helpers.ExpandStringSlice(bypass["destination_addresses"].(*pluginsdk.Set).List()),
-			DestinationPorts:     helpers.ExpandStringSlice(bypass["destination_ports"].(*pluginsdk.Set).List()),
-			SourceIPGroups:       helpers.ExpandStringSlice(bypass["source_ip_groups"].(*pluginsdk.Set).List()),
-			DestinationIPGroups:  helpers.ExpandStringSlice(bypass["destination_ip_groups"].(*pluginsdk.Set).List()),
+			SourceAddresses:      pluginsdk.ExpandStringSlice(bypass["source_addresses"].(*pluginsdk.Set).List()),
+			DestinationAddresses: pluginsdk.ExpandStringSlice(bypass["destination_addresses"].(*pluginsdk.Set).List()),
+			DestinationPorts:     pluginsdk.ExpandStringSlice(bypass["destination_ports"].(*pluginsdk.Set).List()),
+			SourceIPGroups:       pluginsdk.ExpandStringSlice(bypass["source_ip_groups"].(*pluginsdk.Set).List()),
+			DestinationIPGroups:  pluginsdk.ExpandStringSlice(bypass["destination_ip_groups"].(*pluginsdk.Set).List()),
 		})
 	}
 
@@ -448,8 +447,8 @@ func flattenFirewallPolicyThreatIntelWhitelist(input *firewallpolicies.FirewallP
 
 	return []interface{}{
 		map[string]interface{}{
-			"ip_addresses": helpers.FlattenStringSlice(input.IPAddresses),
-			"fqdns":        helpers.FlattenStringSlice(input.Fqdns),
+			"ip_addresses": pluginsdk.FlattenSlice(input.IPAddresses),
+			"fqdns":        pluginsdk.FlattenSlice(input.Fqdns),
 		},
 	}
 }
@@ -461,7 +460,7 @@ func flattenFirewallPolicyDNSSetting(input *firewallpolicies.DnsSettings) []inte
 
 	return []interface{}{
 		map[string]interface{}{
-			"servers":       helpers.FlattenStringSlice(input.Servers),
+			"servers":       pluginsdk.FlattenSlice(input.Servers),
 			"proxy_enabled": pointer.From(input.EnableProxy),
 		},
 	}
@@ -557,13 +556,13 @@ func flattenFirewallPolicyInsights(input *firewallpolicies.FirewallPolicyInsight
 		retentionInDays = int(*input.RetentionDays)
 	}
 
-	defaultLogAnalyticsWorspaceId, logAnalyticsWorkspaces := flattenFirewallPolicyLogAnalyticsResources(input.LogAnalyticsResources)
+	defaultLogAnalyticsWorkspaceId, logAnalyticsWorkspaces := flattenFirewallPolicyLogAnalyticsResources(input.LogAnalyticsResources)
 
 	return []interface{}{
 		map[string]interface{}{
 			"enabled":                            pointer.From(input.IsEnabled),
 			"retention_in_days":                  retentionInDays,
-			"default_log_analytics_workspace_id": defaultLogAnalyticsWorspaceId,
+			"default_log_analytics_workspace_id": defaultLogAnalyticsWorkspaceId,
 			"log_analytics_workspace":            logAnalyticsWorkspaces,
 		},
 	}

@@ -22,8 +22,10 @@ jobs:
         run: |
           mkdir -p wr_actions
           echo ${{ github.repository_owner }} > wr_actions/ghowner.txt
-          echo ${{ github.event.repository.name }} > wr_actions/ghrepo.txt
+          echo "${GITHUB_EVENT_REPOSITORY_NAME}" > wr_actions/ghrepo.txt
           echo ${{ github.event.pull_request.number }} > wr_actions/prnumber.txt
+        env:
+          GITHUB_EVENT_REPOSITORY_NAME: ${{ github.event.repository.name }}
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: artifact

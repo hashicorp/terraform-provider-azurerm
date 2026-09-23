@@ -24,7 +24,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/go-cty/cty"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -473,7 +472,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 				if !isValid {
 					if strings.EqualFold(oldTierRaw.(string), newTier) {
-						// The tier value did not change, so we need to determin if they are
+						// The tier value did not change, so we need to determine if they are
 						// using the default value for the tier, or they actually defined the
 						// tier in the config or not... If they did not define
 						// the tier in the config we need to assign a new valid default
@@ -486,7 +485,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 						}
 					}
 
-					return fmt.Errorf("invalid 'storage_tier' %q for defined 'storage_mb' size '%d', expected one of [%s]", newTier, newMb, azure.QuotedStringSlice(*storageTiers.ValidTiers))
+					return fmt.Errorf("invalid 'storage_tier' %q for defined 'storage_mb' size '%d', expected one of %q", newTier, newMb, *storageTiers.ValidTiers)
 				}
 
 				return nil
@@ -848,7 +847,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("fqdn", props.FullyQualifiedDomainName)
 
 			// According to the API spec, `sourceServerResourceId`(`source_server_id`) is only returned by the Azure REST API
-			// when `create_mode` is 'Replica'. For other create modes, this field is not returned, which is intended behavior of the API.
+			// when `create_mode` is 'Replica'. For other create modes, this field is not returned, which is intended behaviour of the API.
 			// Therefore, we populate this field from the API response if present; otherwise, we read the value from the configuration.
 			sourceResourceId := pointer.From(props.SourceServerResourceId)
 			if sourceResourceId == "" {
