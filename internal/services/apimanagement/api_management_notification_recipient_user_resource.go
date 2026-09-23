@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -38,18 +37,10 @@ func (r ApiManagementNotificationRecipientUserResource) Arguments() map[string]*
 		},
 
 		"notification_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(notificationrecipientuser.NotificationNameAccountClosedPublisher),
-				string(notificationrecipientuser.NotificationNameBCC),
-				string(notificationrecipientuser.NotificationNameNewApplicationNotificationMessage),
-				string(notificationrecipientuser.NotificationNameNewIssuePublisherNotificationMessage),
-				string(notificationrecipientuser.NotificationNamePurchasePublisherNotificationMessage),
-				string(notificationrecipientuser.NotificationNameQuotaLimitApproachingPublisherNotificationMessage),
-				string(notificationrecipientuser.NotificationNameRequestPublisherNotificationMessage),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(notificationrecipientuser.PossibleValuesForNotificationName(), false),
 		},
 
 		"user_id": {
@@ -182,5 +173,5 @@ func (r ApiManagementNotificationRecipientUserResource) Delete() sdk.ResourceFun
 }
 
 func (r ApiManagementNotificationRecipientUserResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.NotificationRecipientUserID
+	return notificationrecipientuser.ValidateRecipientUserID
 }

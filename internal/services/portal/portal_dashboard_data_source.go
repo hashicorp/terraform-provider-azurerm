@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourcePortalDashboard() *pluginsdk.Resource {
@@ -50,8 +49,8 @@ func dataSourcePortalDashboard() *pluginsdk.Resource {
 			"dashboard_properties": {
 				Type:      pluginsdk.TypeString,
 				Optional:  true,
-				Computed:  true,
-				StateFunc: utils.NormalizeJson,
+				Computed:  true, // azignore:AZS007 - pre-existing violation
+				StateFunc: pluginsdk.NormalizeJson,
 			},
 			"tags": commonschema.TagsDataSource(),
 		},

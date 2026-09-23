@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/storage"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -19,7 +18,7 @@ const (
 	connStringAccountNameKey = "AccountName"
 )
 
-// This is an ACCOUNT SAS : https://docs.microsoft.com/en-us/rest/api/storageservices/Constructing-an-Account-SAS
+// This is an ACCOUNT SAS : https://docs.microsoft.com/rest/api/storageservices/Constructing-an-Account-SAS
 // not Service SAS
 func dataSourceStorageAccountSharedAccessSignature() *pluginsdk.Resource {
 	const sasSignedVersion = "2022-11-02"
@@ -115,14 +114,14 @@ func dataSourceStorageAccountSharedAccessSignature() *pluginsdk.Resource {
 			"start": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ISO8601DateTime,
+				ValidateFunc: validation.ISO8601DateTime,
 			},
 
 			// Always in UTC and must be ISO-8601 format
 			"expiry": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ISO8601DateTime,
+				ValidateFunc: validation.ISO8601DateTime,
 			},
 
 			"permissions": {
@@ -221,7 +220,7 @@ func dataSourceStorageAccountSasRead(d *pluginsdk.ResourceData, _ interface{}) e
 	// Create the string to sign with the key...
 
 	// Details on how to do this are here:
-	// https://docs.microsoft.com/en-us/rest/api/storageservices/Constructing-an-Account-SAS
+	// https://docs.microsoft.com/rest/api/storageservices/Constructing-an-Account-SAS
 	accountName := kvp[connStringAccountNameKey]
 	accountKey := kvp[connStringAccountKeyKey]
 	signedProtocol := "https,http"

@@ -7,10 +7,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rulesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rulesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -62,6 +63,10 @@ func dataSourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if resp.Model != nil && resp.Model.Properties != nil && pointer.From(resp.Model.Properties.BatchMode) {
+		return fmt.Errorf("%s was provisioned using batch mode, and cannot be read by this data source, use `azurerm_cdn_frontdoor_batch_rule_set` instead", id)
 	}
 
 	d.SetId(id.ID())

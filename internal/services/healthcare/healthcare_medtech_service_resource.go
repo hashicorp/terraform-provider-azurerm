@@ -26,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceHealthcareApisMedTechService() *pluginsdk.Resource {
@@ -93,7 +92,7 @@ func resourceHealthcareApisMedTechService() *pluginsdk.Resource {
 			"device_mapping_json": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
-				StateFunc:        utils.NormalizeJson,
+				StateFunc:        pluginsdk.NormalizeJson,
 				DiffSuppressFunc: suppressJsonOrderingDifference,
 			},
 
@@ -304,5 +303,5 @@ func resourceHealthcareApisMedTechServiceDelete(d *pluginsdk.ResourceData, meta 
 }
 
 func suppressJsonOrderingDifference(_, old, new string, _ *pluginsdk.ResourceData) bool {
-	return utils.NormalizeJson(old) == utils.NormalizeJson(new)
+	return pluginsdk.NormalizeJson(old) == pluginsdk.NormalizeJson(new)
 }

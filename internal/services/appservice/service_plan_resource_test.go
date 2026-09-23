@@ -231,7 +231,7 @@ func TestAccServicePlan_memoryOptimized(t *testing.T) {
 }
 
 // ASE tests given longer prefix to allow them to be more easily filtered out due to exceptionally long running time
-func TestAccServicePlanIsolated_appServiceEnvironmentV3(t *testing.T) {
+func TestAccServicePlan_appServiceEnvironmentV3(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
 	r := ServicePlanResource{}
 
@@ -246,7 +246,7 @@ func TestAccServicePlanIsolated_appServiceEnvironmentV3(t *testing.T) {
 	})
 }
 
-func TestAccServicePlanIsolated_appServiceEnvironmentV3memoryIntensive(t *testing.T) {
+func TestAccServicePlan_appServiceEnvironmentV3memoryIntensive(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
 	r := ServicePlanResource{}
 
@@ -261,6 +261,19 @@ func TestAccServicePlanIsolated_appServiceEnvironmentV3memoryIntensive(t *testin
 	})
 }
 
+func TestAccServicePlan_completePreflightPlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
+	r := ServicePlanResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:             r.completePreflightPlan(data),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: true,
+		},
+	})
+}
+
 func (r ServicePlanResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseAppServicePlanID(state.ID)
 	if err != nil {
@@ -272,7 +285,7 @@ func (r ServicePlanResource) Exists(ctx context.Context, client *clients.Client,
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil
 		}
-		return nil, fmt.Errorf("retreiving %s: %v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %v", id, err)
 	}
 	if response.WasNotFound(resp.HttpResponse) {
 		return pointer.To(false), nil
@@ -419,6 +432,40 @@ func (r ServicePlanResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appserviceplan-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                     = "acctest-SP-%[1]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  sku_name                 = "P1v3"
+  os_type                  = "Linux"
+  per_site_scaling_enabled = true
+  worker_count             = 3
+
+  zone_balancing_enabled = true
+
+  tags = {
+    environment = "AccTest"
+    Foo         = "bar"
+  }
+}
+`, data.RandomInteger, "East Asia")
+}
+
+func (r ServicePlanResource) completePreflightPlan(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    enhanced_validation {
+      preflight_enabled = true
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {

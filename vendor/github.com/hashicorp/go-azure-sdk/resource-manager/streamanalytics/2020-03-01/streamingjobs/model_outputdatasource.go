@@ -25,9 +25,9 @@ func (s BaseOutputDataSourceImpl) OutputDataSource() BaseOutputDataSourceImpl {
 
 var _ OutputDataSource = RawOutputDataSourceImpl{}
 
-// RawOutputDataSourceImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawOutputDataSourceImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawOutputDataSourceImpl struct {
 	outputDataSource BaseOutputDataSourceImpl
 	Type             string
@@ -36,6 +36,10 @@ type RawOutputDataSourceImpl struct {
 
 func (s RawOutputDataSourceImpl) OutputDataSource() BaseOutputDataSourceImpl {
 	return s.outputDataSource
+}
+
+func (s RawOutputDataSourceImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalOutputDataSourceImplementation(input []byte) (OutputDataSource, error) {

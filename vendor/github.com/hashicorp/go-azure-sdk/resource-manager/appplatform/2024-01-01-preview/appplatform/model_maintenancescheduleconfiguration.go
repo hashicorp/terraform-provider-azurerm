@@ -25,9 +25,9 @@ func (s BaseMaintenanceScheduleConfigurationImpl) MaintenanceScheduleConfigurati
 
 var _ MaintenanceScheduleConfiguration = RawMaintenanceScheduleConfigurationImpl{}
 
-// RawMaintenanceScheduleConfigurationImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawMaintenanceScheduleConfigurationImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawMaintenanceScheduleConfigurationImpl struct {
 	maintenanceScheduleConfiguration BaseMaintenanceScheduleConfigurationImpl
 	Type                             string
@@ -36,6 +36,10 @@ type RawMaintenanceScheduleConfigurationImpl struct {
 
 func (s RawMaintenanceScheduleConfigurationImpl) MaintenanceScheduleConfiguration() BaseMaintenanceScheduleConfigurationImpl {
 	return s.maintenanceScheduleConfiguration
+}
+
+func (s RawMaintenanceScheduleConfigurationImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalMaintenanceScheduleConfigurationImplementation(input []byte) (MaintenanceScheduleConfiguration, error) {

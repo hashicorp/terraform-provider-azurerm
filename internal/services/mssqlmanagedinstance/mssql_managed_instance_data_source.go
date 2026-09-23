@@ -231,7 +231,7 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 
 func (d MsSqlManagedInstanceDataSource) flattenIdentity(input *identity.LegacySystemAndUserAssignedMap) []identity.SystemOrUserAssignedList {
 	if input == nil {
-		return nil
+		return []identity.SystemOrUserAssignedList{}
 	}
 
 	identityIds := make([]string, 0)

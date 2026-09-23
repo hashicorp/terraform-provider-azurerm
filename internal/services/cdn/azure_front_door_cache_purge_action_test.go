@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package cdn_test
 
 import (
@@ -108,7 +111,7 @@ action "azurerm_cdn_front_door_cache_purge" "test" {
 func (a *AzureFrontDoorCachePurgeAction) complete(data acceptance.TestData) string {
 	dnsZoneName := os.Getenv("ARM_TEST_DNS_ZONE")
 	dnsZoneRG := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
-	childZoneSuffix := data.RandomIntOfLength(8)
+	childZoneSuffix := data.RandomString
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -138,7 +141,7 @@ data "azurerm_dns_zone" "test" {
 locals {
   # Create a delegated child zone inside the test RG.
   # NOTE: ARM_TEST_DNS_ZONE / ARM_TEST_DATA_RESOURCE_GROUP must refer to a real, delegated parent zone.
-  child_zone_label = "acctest%[6]d"
+  child_zone_label = "%[6]s"
   child_zone_name  = join(".", [local.child_zone_label, data.azurerm_dns_zone.test.name])
 }
 
@@ -166,8 +169,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
   host_name   = join(".", ["%[3]s", azurerm_dns_zone.child.name])
 
   tls {
-    certificate_type    = "ManagedCertificate"
-    minimum_tls_version = "TLS12"
+    certificate_type = "ManagedCertificate"
+    minimum_version  = "TLS12"
   }
 }
 
@@ -207,5 +210,5 @@ action "azurerm_cdn_front_door_cache_purge" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, dnsZoneName, dnsZoneRG, childZoneSuffix)
+`, data.RandomInteger, data.Locations.Primary, "fd", dnsZoneName, dnsZoneRG, childZoneSuffix)
 }

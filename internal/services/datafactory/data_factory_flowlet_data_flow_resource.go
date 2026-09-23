@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDataFactoryFlowletDataFlow() *pluginsdk.Resource {
@@ -137,8 +136,7 @@ func resourceDataFactoryFlowletDataFlowCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		flowLet.Annotations = &annotations
+		flowLet.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
@@ -148,7 +146,7 @@ func resourceDataFactoryFlowletDataFlowCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	if v, ok := d.GetOk("script_lines"); ok {
-		flowLet.TypeProperties.ScriptLines = utils.ExpandStringSlice(v.([]interface{}))
+		flowLet.TypeProperties.ScriptLines = pluginsdk.ExpandStringSlice(v.([]interface{}))
 	}
 
 	dataFlow := dataflows.DataFlowResource{

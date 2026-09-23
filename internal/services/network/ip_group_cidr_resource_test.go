@@ -6,6 +6,7 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -15,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IPGroupCidrResource struct{}
@@ -95,7 +95,7 @@ func (t IPGroupCidrResource) Exists(ctx context.Context, clients *clients.Client
 		return nil, fmt.Errorf("retrieving %s: `properties` was nil", ipGroupId)
 	}
 
-	if !utils.SliceContainsValue(*resp.Model.Properties.IPAddresses, state.Attributes["cidr"]) {
+	if !slices.Contains(*resp.Model.Properties.IPAddresses, state.Attributes["cidr"]) {
 		return pointer.To(false), nil
 	}
 

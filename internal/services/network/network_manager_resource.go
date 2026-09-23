@@ -20,7 +20,6 @@ import (
 	managementGroupValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagerModel struct {
@@ -50,7 +49,7 @@ var (
 	_ sdk.ResourceWithIdentity = ManagerResource{}
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name network_manager -service-package-name network -properties "resource_group_name,name" -known-values "subscription_id:data.Subscriptions.Primary" -test-sequential
+//go:generate go run ../../tools/generator-tests resourceidentity -test-sequential
 
 type ManagerResource struct{}
 
@@ -198,7 +197,7 @@ func (r ManagerResource) Create() sdk.ResourceFunc {
 					NetworkManagerScopes:        expandNetworkManagerScope(state.Scope),
 					NetworkManagerScopeAccesses: expandNetworkManagerScopeAccesses(state.ScopeAccesses),
 				},
-				Tags: utils.ExpandPtrMapStringString(state.Tags),
+				Tags: pluginsdk.ExpandPtrMapStringString(state.Tags),
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id, input); err != nil {
@@ -261,7 +260,7 @@ func (r ManagerResource) Read() sdk.ResourceFunc {
 				ResourceGroupName: id.ResourceGroupName,
 				ScopeAccesses:     scopeAccesses,
 				Scope:             scope,
-				Tags:              utils.FlattenPtrMapStringString(resp.Model.Tags),
+				Tags:              pluginsdk.FlattenPtrMapStringString(resp.Model.Tags),
 			})
 		},
 	}
@@ -306,7 +305,7 @@ func (r ManagerResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				existing.Model.Tags = utils.ExpandPtrMapStringString(state.Tags)
+				existing.Model.Tags = pluginsdk.ExpandPtrMapStringString(state.Tags)
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
@@ -327,10 +326,9 @@ func (r ManagerResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id, networkmanagers.DeleteOperationOptions{
+			if err = client.DeleteThenPoll(ctx, *id, networkmanagers.DeleteOperationOptions{
 				Force: pointer.To(true),
-			})
-			if err != nil {
+			}); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

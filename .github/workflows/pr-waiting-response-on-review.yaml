@@ -1,0 +1,71 @@
+---
+name: "Pull Request Reviewed Workflow"
+
+# Privileged half of the review relay (see README.md): reads the artifact
+# uploaded by pr-reviewed.yaml and adds waiting-response (reviewer requested
+# changes) or removes it (the author responded).
+
+# workflow_run is needed for write access on fork PRs, which pull_request cannot provide
+on:  # zizmor: ignore[dangerous-triggers]
+  workflow_run:
+    workflows:
+      - "Pull Request Reviewed"
+    types:
+      - completed
+
+permissions:
+  contents: read
+
+jobs:
+  add-or-remove-waiting-response:
+    runs-on: ubuntu-latest
+    outputs:
+      ghrepo: ${{ steps.env_vars.outputs.ghrepo }}
+      ghowner: ${{ steps.env_vars.outputs.ghowner }}
+      prnumber: ${{ steps.env_vars.outputs.prnumber }}
+      action: ${{ steps.env_vars.outputs.action }}
+      artifact_outcome: ${{ steps.env_vars.outputs.artifact_outcome }}
+    steps:
+      - name: Get Artifact
+        id: get_artifact
+        continue-on-error: true
+        uses: dawidd6/action-download-artifact@b6e2e70617bc3265edd6dab6c906732b2f1ae151 # v21
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          run_id: ${{ github.event.workflow_run.id }}
+
+      - name: env_vars
+        id: env_vars
+        if: steps.get_artifact.outcome == 'success'
+        run: |
+          {
+            echo "ghrepo=$(cat artifact/ghrepo.txt)"
+            echo "ghowner=$(cat artifact/ghowner.txt)"
+            echo "prnumber=$(cat artifact/prnumber.txt)"
+            echo "action=$(cat artifact/action.txt)"
+            echo "artifact_outcome=success"
+          } >> "${GITHUB_OUTPUT}"
+
+  add-waiting-response:
+    needs: add-or-remove-waiting-response
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    if: needs.add-or-remove-waiting-response.outputs.artifact_outcome == 'success' && needs.add-or-remove-waiting-response.outputs.action == 'add-waiting-response'
+    steps:
+      - run: |
+          curl -X POST -H "Accept: application/vnd.github+json" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${NEEDS_ADD_OR_REMOVE_WAITING_RESPONSE_OUTPUTS_GHOWNER}/${NEEDS_ADD_OR_REMOVE_WAITING_RESPONSE_OUTPUTS_GHREPO}/issues/${NEEDS_ADD_OR_REMOVE_WAITING_RESPONSE_OUTPUTS_PRNUMBER}/labels" -d '{"labels":["waiting-response"]}'
+        env:
+          NEEDS_ADD_OR_REMOVE_WAITING_RESPONSE_OUTPUTS_GHOWNER: ${{ needs.add-or-remove-waiting-response.outputs.ghowner }}
+          NEEDS_ADD_OR_REMOVE_WAITING_RESPONSE_OUTPUTS_GHREPO: ${{ needs.add-or-remove-waiting-response.outputs.ghrepo }}
+          NEEDS_ADD_OR_REMOVE_WAITING_RESPONSE_OUTPUTS_PRNUMBER: ${{ needs.add-or-remove-waiting-response.outputs.prnumber }}
+
+  remove-waiting-response:
+    needs: add-or-remove-waiting-response
+    if: needs.add-or-remove-waiting-response.outputs.artifact_outcome == 'success' && needs.add-or-remove-waiting-response.outputs.action == 'remove-waiting-response'
+    uses: $/.github/workflows/issue-remove-label.yaml
+    permissions:
+      issues: write
+      pull-requests: write
+    with:
+      label-name: "waiting-response"

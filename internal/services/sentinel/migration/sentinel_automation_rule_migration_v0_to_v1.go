@@ -7,7 +7,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2024-09-01/automationrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -150,7 +150,7 @@ func (s SentinelAutomationRuleV0ToV1) Schema() map[string]*pluginsdk.Schema {
 func (s SentinelAutomationRuleV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldId := rawState["id"].(string)
-		newId, err := parse.AutomationRuleIDInsensitively(oldId)
+		newId, err := automationrules.ParseAutomationRuleIDInsensitively(oldId)
 		if err != nil {
 			return nil, err
 		}
