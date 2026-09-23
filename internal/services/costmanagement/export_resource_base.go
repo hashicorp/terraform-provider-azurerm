@@ -7,11 +7,13 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/exports"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/exports"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -25,8 +27,22 @@ type CostManagementExportDataStorageLocationModel struct {
 }
 
 type CostManagementExportDataOptionsModel struct {
-	Type      string `tfschema:"type"`
-	TimeFrame string `tfschema:"time_frame"`
+	Type            string                                  `tfschema:"type"`
+	TimeFrame       string                                  `tfschema:"time_frame"`
+	TimePeriod      CostManagementExportDataTimePeriodModel `tfschema:"time_period"`
+	DataGranularity string                                  `tfschema:"data_granularity"`
+	DataVersion     string                                  `tfschema:"data_version"`
+	Filter          []CostManagementExportDataFilterModel   `tfschema:"filter"`
+}
+
+type CostManagementExportDataTimePeriodModel struct {
+	From string `tfschema:"from"`
+	To   string `tfschema:"to"`
+}
+
+type CostManagementExportDataFilterModel struct {
+	Name  string `tfschema:"name"`
+	Value string `tfschema:"value"`
 }
 
 type costManagementExportBaseResource struct{}
@@ -38,6 +54,16 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 			Optional: true,
 			Default:  true,
 		},
+
+		"description": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "",
+		},
+
+		"location": commonschema.LocationOptional(),
+
+		"identity": commonschema.SystemAssignedIdentityOptional(),
 
 		"recurrence_type": {
 			Type:         pluginsdk.TypeString,
@@ -64,6 +90,26 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 			ValidateFunc: validation.StringInSlice(exports.PossibleValuesForFormatType(), false),
 		},
 
+		"compression_mode": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(exports.CompressionModeTypeNone),
+			ValidateFunc: validation.StringInSlice(exports.PossibleValuesForCompressionModeType(), false),
+		},
+
+		"partition_data": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"data_overwrite_behavior": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(exports.DataOverwriteBehaviorTypeCreateNewReport),
+			ValidateFunc: validation.StringInSlice(exports.PossibleValuesForDataOverwriteBehaviorType(), false),
+		},
+
 		"export_data_storage_location": {
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,
@@ -77,10 +123,22 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 						ValidateFunc: commonids.ValidateStorageContainerID,
 					},
 					"root_folder_path": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ForceNew: true,
+						ValidateFunc: func(val interface{}, key string) ([]string, []error) {
+							warnings, errors := validation.StringIsNotEmpty(val, key)
+
+							// Since API 2025-03-01, root_folder_path cannot start with a slash.
+							if v := val.(string); strings.HasPrefix(v, "/") {
+								warnings = append(warnings, fmt.Sprintf("%q should not start with a slash", key))
+							}
+							return warnings, errors
+						},
+						DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
+							return strings.TrimPrefix(new, "/") == strings.TrimPrefix(old, "/")
+						},
+						DiffSuppressOnRefresh: true,
 					},
 				},
 			},
@@ -111,6 +169,89 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 							// TODO Use value from SDK after https://github.com/Azure/azure-rest-api-specs/issues/23707 is fixed
 							"TheLast7Days",
 						}, false),
+					},
+
+					"time_period": {
+						Type:     pluginsdk.TypeList,
+						MaxItems: 1,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"from": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.IsRFC3339Time,
+								},
+
+								"to": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.IsRFC3339Time,
+								},
+							},
+						},
+					},
+
+					"data_version": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
+							// Ignore changes to data_version if it is not set
+							return new == ""
+						},
+						DiffSuppressOnRefresh: true,
+					},
+
+					"data_granularity": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(exports.GranularityTypeDaily),
+						ValidateFunc: validation.StringInSlice(exports.PossibleValuesForGranularityType(), false),
+					},
+
+					"filter": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(exports.PossibleValuesForFilterItemNames(), false),
+								},
+								"value": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										// for ReservationScope
+										"Single",
+										"Shared",
+
+										// for LookBackPeriod
+										"Last7Days",
+										"Last30Days",
+										"Last60Days",
+
+										// for ResourceType
+										"VirtualMachines",
+										"SQLDatabases",
+										"PostgreSQL",
+										"ManagedDisk",
+										"MySQL",
+										"RedHat",
+										"MariaDB",
+										"RedisCache",
+										"CosmosDB",
+										"SqlDataWarehouse",
+										"SUSELinux",
+										"AppService",
+										"BlockBlob",
+										"AzureDataExplorer",
+										"VMwareCloudSimple",
+									}, false),
+								},
+							},
+						},
 					},
 				},
 			},
@@ -160,12 +301,13 @@ func expandExportDataStorageLocationFromModel(input []CostManagementExportDataSt
 	}
 
 	storageId := commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName)
+	rootFolderPath := strings.TrimPrefix(loc.RootFolderPath, "/") // Ensure no leading slash
 
 	return &exports.ExportDeliveryInfo{
 		Destination: exports.ExportDeliveryDestination{
 			ResourceId:     pointer.To(storageId.ID()),
 			Container:      containerId.ContainerName,
-			RootFolderPath: pointer.To(loc.RootFolderPath),
+			RootFolderPath: pointer.To(rootFolderPath),
 		},
 	}, nil
 }
@@ -206,9 +348,33 @@ func expandExportDataOptionsFromModel(input []CostManagementExportDataOptionsMod
 	}
 
 	opt := input[0]
+
+	timePeriod := &exports.ExportTimePeriod{
+		From: opt.TimePeriod.From,
+		To:   opt.TimePeriod.To,
+	}
+
+	filters := []exports.FilterItems{}
+	for _, item := range opt.Filter {
+		filters = append(filters, exports.FilterItems{
+			Name:  pointer.ToEnum[exports.FilterItemNames](item.Name),
+			Value: pointer.To(item.Value),
+		})
+	}
+
+	dataset := &exports.ExportDataset{
+		Granularity: pointer.ToEnum[exports.GranularityType](opt.DataGranularity),
+		Configuration: &exports.ExportDatasetConfiguration{
+			DataVersion: pointer.To(opt.DataVersion),
+			Filters:     pointer.To(filters),
+		},
+	}
+
 	return &exports.ExportDefinition{
-		Type:      exports.ExportType(opt.Type),
-		Timeframe: exports.TimeframeType(opt.TimeFrame),
+		Type:       exports.ExportType(opt.Type),
+		Timeframe:  exports.TimeframeType(opt.TimeFrame),
+		TimePeriod: timePeriod,
+		DataSet:    dataset,
 	}
 }
 
@@ -219,10 +385,41 @@ func flattenExportDataOptionsToModel(input exports.ExportDefinition) []CostManag
 		queryType = string(input.Type)
 	}
 
+	timePeriod := CostManagementExportDataTimePeriodModel{}
+	if v := input.TimePeriod; v != nil {
+		timePeriod.From = v.From
+		timePeriod.To = v.To
+	}
+
+	dataVersion := ""
+	dataGranularity := ""
+	filters := []CostManagementExportDataFilterModel{}
+
+	if input.DataSet != nil {
+		dataGranularity = string(pointer.From(input.DataSet.Granularity))
+
+		if c := input.DataSet.Configuration; c != nil {
+			dataVersion = pointer.From(c.DataVersion)
+
+			if v := c.Filters; v != nil {
+				for _, item := range *v {
+					filters = append(filters, CostManagementExportDataFilterModel{
+						Name:  string(pointer.From(item.Name)),
+						Value: pointer.From(item.Value),
+					})
+				}
+			}
+		}
+	}
+
 	return []CostManagementExportDataOptionsModel{
 		{
-			TimeFrame: string(input.Timeframe),
-			Type:      queryType,
+			TimeFrame:       string(input.Timeframe),
+			Type:            queryType,
+			TimePeriod:      timePeriod,
+			DataGranularity: dataGranularity,
+			DataVersion:     dataVersion,
+			Filter:          filters,
 		},
 	}
 }
