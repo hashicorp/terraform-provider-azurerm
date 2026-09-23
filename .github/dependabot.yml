@@ -15,10 +15,8 @@ updates:
         patterns:
           - "*"
 
-  # the provider's own dependencies. Security updates are not scheduled: dependabot opens a PR as
-  # soon as an advisory lands, regardless of this interval. Routine version bumps (go-azure-sdk and
-  # friends) only arrive quarterly, batched into one PR. Dependabot detects vendor/ and runs
-  # `go mod tidy` + `go mod vendor` on updates.
+  # the provider's own dependencies. Security updates are not scheduled as dependabot opens a PR as soon as an advisory lands. 
+  # Routine version bumps only arrive quarterly, batched into one PR.
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
@@ -30,8 +28,8 @@ updates:
         patterns:
           - "*"
 
-  # go dev tools (golangci-lint, terrafmt, gofumpt, ...) pinned in .tools/go.mod, built by make
-  # into .tools/bin; tools should move slowly so only check quarterly
+  # go dev tools (golangci-lint, terrafmt, gofumpt, ...) pinned in .tools/go.mod, built by make into .tools/bin; 
+  # tools should move slowly so only check quarterly
   - package-ecosystem: "gomod"
     directory: "/.tools"
     schedule:
