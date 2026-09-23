@@ -5,7 +5,8 @@ name: Assign Reviewer as Assignee
 # reads its wr_actions artifact, since the review event itself has no write token
 # for fork PRs (see the artifact relay in README.md).
 
-on:
+# workflow_run is needed for write access on fork PRs, which pull_request cannot provide
+on:  # zizmor: ignore[dangerous-triggers]
   workflow_run:
     workflows:
       - "Pull Request Reviewed"
@@ -40,14 +41,18 @@ jobs:
 
       - name: Assign the reviewer as assignee when changes are requested
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          REVIEWER: ${{ steps.env_vars.outputs.reviewer }}
+          PR_NUMBER: ${{ steps.env_vars.outputs.prNumber }}
+          REVIEW_STATE: ${{ steps.env_vars.outputs.reviewState }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const reviewer = '${{ steps.env_vars.outputs.reviewer }}';
-            const prNumber = parseInt('${{ steps.env_vars.outputs.prNumber }}', 10);
-            const reviewState = '${{ steps.env_vars.outputs.reviewState }}';
-            const repo = '${{ github.event.repository.name }}';
-            const owner = '${{ github.event.repository.owner.login }}';
+            const reviewer = process.env.REVIEWER;
+            const prNumber = parseInt(process.env.PR_NUMBER, 10);
+            const reviewState = process.env.REVIEW_STATE;
+            const repo = context.repo.repo;
+            const owner = context.repo.owner;
 
             if (reviewState === 'changes_requested') {
               console.log(`Assigning reviewer: ${reviewer} to PR #${prNumber} as changes were requested.`);
