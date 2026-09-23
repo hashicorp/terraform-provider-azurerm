@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package cdn
 
 import (
@@ -10,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rulesets"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	cdnValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -247,7 +249,7 @@ func validateCdnFrontDoorRuleName(i interface{}, k string) (_ []string, errors [
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
 	}
 
-	if m, _ := validate.RegExHelper(i, k, `^[a-zA-Z][\da-zA-Z]{0,259}$`); !m {
+	if m, _ := validation.RegExHelper(i, k, `^[a-zA-Z][\da-zA-Z]{0,259}$`); !m {
 		return nil, []error{fmt.Errorf(`%q must be between 1 and 260 characters in length, begin with a letter and may contain only letters and numbers, got %q`, k, v)}
 	}
 
@@ -340,7 +342,7 @@ func validateCdnFrontDoorCacheDuration(i interface{}, k string) (_ []string, err
 
 	// the old regular expression was broken because it wouldn't allow the value in the tens
 	// position to be greater than 6 and the ones position greater than 5
-	if m, _ := validate.RegExHelper(i, k, `^([1-9]|([1-9][0-9])|([1-3][0-9][0-9])).((?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d))$|^((?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d))$`); !m {
+	if m, _ := validation.RegExHelper(i, k, `^([1-9]|([1-9][0-9])|([1-3][0-9][0-9])).((?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d))$|^((?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d))$`); !m {
 		return nil, []error{fmt.Errorf(`%q must be in the d.HH:MM:SS or HH:MM:SS format and must be equal to or lower than %q, got %q`, k, "365.23:59:59", v)}
 	}
 

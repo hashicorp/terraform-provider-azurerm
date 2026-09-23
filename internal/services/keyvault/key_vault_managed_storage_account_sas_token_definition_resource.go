@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -79,7 +78,7 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinition() *pluginsdk.Resour
 			"validity_period": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ISO8601Duration,
+				ValidateFunc: validation.ISO8601Duration,
 			},
 
 			"tags": commonschema.TagsForceNew(),
@@ -120,7 +119,7 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionCreateUpdate(d *plug
 			existing, err := client.GetSasDefinition(ctx, *keyVaultBaseUri, storageAccount.Name, name)
 			if err != nil {
 				if !response.WasNotFound(existing.Response.Response) {
-					return fmt.Errorf("checking for presence of existing Managed Storage Account Sas Defition %q (Storage Account %q, Key Vault %q): %+v", name, storageAccount.Name, *keyVaultId, err)
+					return fmt.Errorf("checking for presence of existing Managed Storage Account Sas Definition %q (Storage Account %q, Key Vault %q): %+v", name, storageAccount.Name, *keyVaultId, err)
 				}
 			}
 
@@ -220,7 +219,7 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinitionRead(d *pluginsdk.Re
 
 	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
 	if err != nil {
-		return fmt.Errorf("checking for presence of existing Managed Storage Account Sas Defition %q (Key Vault %q): %+v", id.Name, id.KeyVaultBaseUrl, err)
+		return fmt.Errorf("checking for presence of existing Managed Storage Account Sas Definition %q (Key Vault %q): %+v", id.Name, id.KeyVaultBaseUrl, err)
 	}
 	if !ok {
 		log.Printf("[DEBUG] Managed Storage Account Sas Definition %q Key Vault %q was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)

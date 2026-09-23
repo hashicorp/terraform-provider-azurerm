@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/azurefirewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -420,7 +420,7 @@ func (FirewallNetworkRuleCollectionResource) Destroy(ctx context.Context, client
 
 	read.Model.Properties.NetworkRuleCollections = &rules
 
-	if err = clients.Network.AzureFirewalls.CreateOrUpdateThenPoll(ctx, firewallId, *read.Model); err != nil {
+	if err = clients.Network.AzureFirewalls.CreateOrUpdateThenPoll(ctx, firewallId, *read.Model, azurefirewalls.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return pointer.To(false), fmt.Errorf("removing Network Rule Collection from Firewall: %+v", err)
 	}
 

@@ -17,13 +17,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -182,6 +181,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 							string(agentpools.OSSKUUbuntuTwoFourZeroFour),
 							string(agentpools.OSSKUWindowsTwoZeroOneNine),
 							string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
+							string(agentpools.OSSKUWindowsTwoZeroTwoFive),
 						}, false),
 					},
 
@@ -1010,7 +1010,7 @@ func expandClusterNodePoolKubeletConfig(input []interface{}) *managedclusters.Ku
 		CpuCfsQuota: pointer.To(raw["cpu_cfs_quota_enabled"].(bool)),
 		// must be false, otherwise the backend will report error: CustomKubeletConfig.FailSwapOn must be set to false to enable swap file on nodes.
 		FailSwapOn:           pointer.To(false),
-		AllowedUnsafeSysctls: helpers.ExpandStringSlice(raw["allowed_unsafe_sysctls"].(*pluginsdk.Set).List()),
+		AllowedUnsafeSysctls: pluginsdk.ExpandStringSlice(raw["allowed_unsafe_sysctls"].(*pluginsdk.Set).List()),
 	}
 
 	if v := raw["cpu_manager_policy"].(string); v != "" {
@@ -1427,7 +1427,7 @@ func flattenClusterNodePoolKubeletConfig(input *managedclusters.KubeletConfig) [
 			"image_gc_high_threshold":   imageGcHighThreshold,
 			"image_gc_low_threshold":    imageGcLowThreshold,
 			"topology_manager_policy":   topologyManagerPolicy,
-			"allowed_unsafe_sysctls":    helpers.FlattenStringSlice(input.AllowedUnsafeSysctls),
+			"allowed_unsafe_sysctls":    pluginsdk.FlattenSlice(input.AllowedUnsafeSysctls),
 			"container_log_max_size_mb": containerLogMaxSizeMB,
 			"container_log_max_files":   containerLogMaxFiles,
 			"pod_max_pid":               podMaxPids,
@@ -1480,7 +1480,7 @@ func flattenAgentPoolKubeletConfig(input *agentpools.KubeletConfig) []interface{
 			"image_gc_high_threshold":   imageGcHighThreshold,
 			"image_gc_low_threshold":    imageGcLowThreshold,
 			"topology_manager_policy":   topologyManagerPolicy,
-			"allowed_unsafe_sysctls":    helpers.FlattenStringSlice(input.AllowedUnsafeSysctls),
+			"allowed_unsafe_sysctls":    pluginsdk.FlattenSlice(input.AllowedUnsafeSysctls),
 			"container_log_max_size_mb": containerLogMaxSizeMB,
 			"container_log_max_files":   containerLogMaxFiles,
 			"pod_max_pid":               podMaxPids,
@@ -1758,7 +1758,7 @@ func expandClusterPoolNetworkProfile(input []interface{}) *managedclusters.Agent
 	v := input[0].(map[string]interface{})
 	return &managedclusters.AgentPoolNetworkProfile{
 		AllowedHostPorts:          expandClusterPoolNetworkProfileAllowedHostPorts(v["allowed_host_ports"].([]interface{})),
-		ApplicationSecurityGroups: helpers.ExpandStringSlice(v["application_security_group_ids"].([]interface{})),
+		ApplicationSecurityGroups: pluginsdk.ExpandStringSlice(v["application_security_group_ids"].([]interface{})),
 		NodePublicIPTags:          expandClusterPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]interface{})),
 	}
 }
@@ -1813,7 +1813,7 @@ func flattenClusterPoolNetworkProfile(input *managedclusters.AgentPoolNetworkPro
 	return []interface{}{
 		map[string]interface{}{
 			"allowed_host_ports":             flattenClusterPoolNetworkProfileAllowedHostPorts(input.AllowedHostPorts),
-			"application_security_group_ids": helpers.FlattenStringSlice(input.ApplicationSecurityGroups),
+			"application_security_group_ids": pluginsdk.FlattenSlice(input.ApplicationSecurityGroups),
 			"node_public_ip_tags":            flattenClusterPoolNetworkProfileNodePublicIPTags(input.NodePublicIPTags),
 		},
 	}
