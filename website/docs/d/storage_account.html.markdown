@@ -291,11 +291,11 @@ A `cors_rule` block exports the following:
 
 * `exposed_headers` - A list of response headers that are exposed to CORS clients.
 
-* `max_age_in_seconds` - The number of seconds the client should cache a preflight response.
+* `maximum_age_in_seconds` - The number of seconds the client should cache a preflight response.
 
 ---
 
-* `custom_domain` supports the following:
+A `custom_domain` block exports the following:
 
 * `name` - The Custom Domain Name used for the Storage Account.
 
@@ -317,7 +317,7 @@ A `delete_retention_policy` block exports the following:
 
 ---
 
-`identity` supports the following:
+An `identity` block exports the following:
 
 * `type` - The type of Managed Service Identity that is configured on this Storage Account
 
@@ -329,7 +329,7 @@ A `delete_retention_policy` block exports the following:
 
 ---
 
-`azure_files_authentication` supports the following:
+An `azure_files_authentication` block exports the following:
 
 * `directory_type` - The directory service used for this Storage Account.
 
@@ -339,7 +339,7 @@ A `delete_retention_policy` block exports the following:
 
 ---
 
-`active_directory` supports the following:
+An `active_directory` block exports the following:
 
 * `domain_name` - The primary domain that the AD DNS server is authoritative for.
 
@@ -367,7 +367,7 @@ An `immutability_policy` block exports the following:
 
 A `network_rules` block exports the following:
 
-* `bypass` - Whether traffic is bypassed for Logging/Metrics/AzureServices.
+* `bypass` - The set of services that are permitted to bypass the network rules.
 
 * `default_action` - The default action of allow or deny when no other rules match.
 

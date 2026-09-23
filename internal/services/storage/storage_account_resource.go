@@ -481,7 +481,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 							},
 						},
 
-						"cors_rule": helpers.SchemaStorageAccountCorsRule(true),
+						"cors_rule": helpers.SchemaStorageAccountCorsRule(true), //azignore:AZS006 - `max_age_in_seconds` is named `maximum_age_in_seconds` in the data source to follow current naming conventions
 
 						"default_service_version": {
 							Type:         pluginsdk.TypeString,
@@ -577,7 +577,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"cors_rule": helpers.SchemaStorageAccountCorsRule(true),
+						"cors_rule": helpers.SchemaStorageAccountCorsRule(true), //azignore:AZS006 - `max_age_in_seconds` is named `maximum_age_in_seconds` in the data source to follow current naming conventions
 
 						"retention_policy": {
 							Type:     pluginsdk.TypeList,

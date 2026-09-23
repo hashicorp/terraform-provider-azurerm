@@ -16,6 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/blobservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/fileservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -134,7 +136,7 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 										},
 									},
 
-									"max_age_in_seconds": {
+									"maximum_age_in_seconds": {
 										Type:     pluginsdk.TypeInt,
 										Computed: true,
 									},
@@ -458,7 +460,7 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 										},
 									},
 
-									"max_age_in_seconds": {
+									"maximum_age_in_seconds": {
 										Type:     pluginsdk.TypeInt,
 										Computed: true,
 									},
@@ -1070,7 +1072,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 			isLocalEnabled := true
 			if props.IsLocalUserEnabled != nil {
-				isLocalEnabled = *props.IsLocalUserEnabled
+				isLocalEnabled = pointer.From(props.IsLocalUserEnabled)
 			}
 			d.Set("local_user_enabled", isLocalEnabled)
 
@@ -1094,7 +1096,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 			allowSharedKeyAccess := true
 			if props.AllowSharedKeyAccess != nil {
-				allowSharedKeyAccess = *props.AllowSharedKeyAccess
+				allowSharedKeyAccess = pointer.From(props.AllowSharedKeyAccess)
 			}
 			d.Set("shared_access_key_enabled", allowSharedKeyAccess)
 
@@ -1168,7 +1170,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("reading blob properties for %s: %+v", id, err)
 		}
 
-		blobProperties = flattenAccountBlobServiceProperties(blobProps.Model)
+		blobProperties = flattenAccountBlobServicePropertiesForDataSource(blobProps.Model)
 	}
 	if err := d.Set("blob_properties", blobProperties); err != nil {
 		return fmt.Errorf("setting `blob_properties` for %s: %+v", id, err)
@@ -1181,11 +1183,128 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("retrieving share properties for %s: %+v", id, err)
 		}
 
-		shareProperties = flattenAccountShareProperties(shareProps.Model)
+		shareProperties = flattenAccountSharePropertiesForDataSource(shareProps.Model)
 	}
 	if err := d.Set("share_properties", shareProperties); err != nil {
 		return fmt.Errorf("setting `share_properties` for %s: %+v", id, err)
 	}
 
 	return nil
+}
+
+func flattenAccountBlobServicePropertiesForDataSource(input *blobservices.BlobServiceProperties) []interface{} {
+	if input == nil || input.Properties == nil {
+		return []interface{}{}
+	}
+
+	flattenedCorsRules := make([]interface{}, 0)
+	if corsRules := input.Properties.Cors; corsRules != nil {
+		flattenedCorsRules = flattenAccountBlobPropertiesCorsRuleForDataSource(corsRules)
+	}
+
+	flattenedDeletePolicy := make([]interface{}, 0)
+	if deletePolicy := input.Properties.DeleteRetentionPolicy; deletePolicy != nil {
+		flattenedDeletePolicy = flattenAccountBlobDeleteRetentionPolicy(deletePolicy)
+	}
+
+	flattenedRestorePolicy := make([]interface{}, 0)
+	if restorePolicy := input.Properties.RestorePolicy; restorePolicy != nil {
+		flattenedRestorePolicy = flattenAccountBlobPropertiesRestorePolicy(restorePolicy)
+	}
+
+	flattenedContainerDeletePolicy := make([]interface{}, 0)
+	if containerDeletePolicy := input.Properties.ContainerDeleteRetentionPolicy; containerDeletePolicy != nil {
+		flattenedContainerDeletePolicy = flattenAccountBlobContainerDeleteRetentionPolicy(containerDeletePolicy)
+	}
+
+	versioning, changeFeedEnabled, changeFeedRetentionInDays := false, false, 0
+	if input.Properties.IsVersioningEnabled != nil {
+		versioning = *input.Properties.IsVersioningEnabled
+	}
+
+	if v := input.Properties.ChangeFeed; v != nil {
+		if v.Enabled != nil {
+			changeFeedEnabled = *v.Enabled
+		}
+		if v.RetentionInDays != nil {
+			changeFeedRetentionInDays = int(*v.RetentionInDays)
+		}
+	}
+
+	defaultServiceVersion := pointer.From(input.Properties.DefaultServiceVersion)
+
+	var LastAccessTimeTrackingPolicy bool
+	if v := input.Properties.LastAccessTimeTrackingPolicy; v != nil {
+		LastAccessTimeTrackingPolicy = v.Enable
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"change_feed_enabled":               changeFeedEnabled,
+			"change_feed_retention_in_days":     changeFeedRetentionInDays,
+			"container_delete_retention_policy": flattenedContainerDeletePolicy,
+			"cors_rule":                         flattenedCorsRules,
+			"default_service_version":           defaultServiceVersion,
+			"delete_retention_policy":           flattenedDeletePolicy,
+			"last_access_time_enabled":          LastAccessTimeTrackingPolicy,
+			"restore_policy":                    flattenedRestorePolicy,
+			"versioning_enabled":                versioning,
+		},
+	}
+}
+
+func flattenAccountBlobPropertiesCorsRuleForDataSource(input *blobservices.CorsRules) []interface{} {
+	corsRules := make([]interface{}, 0)
+
+	if input == nil || input.CorsRules == nil {
+		return corsRules
+	}
+
+	for _, corsRule := range *input.CorsRules {
+		corsRules = append(corsRules, map[string]interface{}{
+			"allowed_headers":        corsRule.AllowedHeaders,
+			"allowed_methods":        corsRule.AllowedMethods,
+			"allowed_origins":        corsRule.AllowedOrigins,
+			"exposed_headers":        corsRule.ExposedHeaders,
+			"maximum_age_in_seconds": int(corsRule.MaxAgeInSeconds),
+		})
+	}
+
+	return corsRules
+}
+
+func flattenAccountSharePropertiesForDataSource(input *fileservices.FileServiceProperties) []interface{} {
+	output := make([]interface{}, 0)
+
+	if input != nil {
+		if props := input.Properties; props != nil {
+			output = append(output, map[string]interface{}{
+				"cors_rule":        flattenAccountSharePropertiesCorsRuleForDataSource(props.Cors),
+				"retention_policy": flattenAccountShareDeleteRetentionPolicy(props.ShareDeleteRetentionPolicy),
+				"smb":              flattenAccountSharePropertiesSMB(props.ProtocolSettings),
+			})
+		}
+	}
+
+	return output
+}
+
+func flattenAccountSharePropertiesCorsRuleForDataSource(input *fileservices.CorsRules) []interface{} {
+	corsRules := make([]interface{}, 0)
+
+	if input == nil || input.CorsRules == nil {
+		return corsRules
+	}
+
+	for _, corsRule := range *input.CorsRules {
+		corsRules = append(corsRules, map[string]interface{}{
+			"allowed_headers":        corsRule.AllowedHeaders,
+			"allowed_methods":        corsRule.AllowedMethods,
+			"allowed_origins":        corsRule.AllowedOrigins,
+			"exposed_headers":        corsRule.ExposedHeaders,
+			"maximum_age_in_seconds": int(corsRule.MaxAgeInSeconds),
+		})
+	}
+
+	return corsRules
 }
