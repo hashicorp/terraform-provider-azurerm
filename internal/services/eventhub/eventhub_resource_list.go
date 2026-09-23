@@ -39,7 +39,7 @@ func (EventHubListResource) ResourceFunc() *pluginsdk.Resource {
 func (EventHubListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"namespace_id": schema.StringAttribute{
+			"eventhub_namespace_id": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{Func: eventhubs.ValidateNamespaceID},
