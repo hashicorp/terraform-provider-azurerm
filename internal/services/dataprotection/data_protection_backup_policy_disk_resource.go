@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -73,7 +72,7 @@ func resourceDataProtectionBackupPolicyDisk() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: helperValidate.ISO8601Duration,
+				ValidateFunc: validation.ISO8601Duration,
 			},
 
 			"retention_rule": {
@@ -92,7 +91,7 @@ func resourceDataProtectionBackupPolicyDisk() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: helperValidate.ISO8601Duration,
+							ValidateFunc: validation.ISO8601Duration,
 						},
 
 						"criteria": {
