@@ -257,7 +257,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 							Required: true,
 						},
 
-						"use_subdomain": { //azignore:AZS006 - not returned by the API, not added to the data source
+						"use_subdomain": { // azignore:AZS006 - not returned by the API, not added to the data source
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
@@ -481,7 +481,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 							},
 						},
 
-						"cors_rule": helpers.SchemaStorageAccountCorsRule(true), //azignore:AZS006 - `max_age_in_seconds` is named `maximum_age_in_seconds` in the data source to follow current naming conventions
+						"cors_rule": helpers.SchemaStorageAccountCorsRule(true), // azignore:AZS006 - `max_age_in_seconds` is named `maximum_age_in_seconds` in the data source to follow current naming conventions
 
 						"default_service_version": {
 							Type:         pluginsdk.TypeString,
@@ -577,7 +577,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"cors_rule": helpers.SchemaStorageAccountCorsRule(true), //azignore:AZS006 - `max_age_in_seconds` is named `maximum_age_in_seconds` in the data source to follow current naming conventions
+						"cors_rule": helpers.SchemaStorageAccountCorsRule(true), // azignore:AZS006 - `max_age_in_seconds` is named `maximum_age_in_seconds` in the data source to follow current naming conventions
 
 						"retention_policy": {
 							Type:     pluginsdk.TypeList,
@@ -1228,7 +1228,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 	}
 
 	if !features.SixPointOh() {
-		r.Schema["public_network_access_enabled"] = &pluginsdk.Schema{ //azignore:AZS006 - deprecated in favour of `public_network_access`, not added to the data source
+		r.Schema["public_network_access_enabled"] = &pluginsdk.Schema{ // azignore:AZS006 - deprecated in favour of `public_network_access`, not added to the data source
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			// Note: O+C because in 5.x this value may be affected by `public_network_access`
