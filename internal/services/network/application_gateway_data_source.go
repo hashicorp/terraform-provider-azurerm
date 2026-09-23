@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/webapplicationfirewallpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-05-01/applicationgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -1184,6 +1184,11 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 							},
 						},
 
+						"verify_client_auth_mode": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
 						"verify_client_certificate_issuer_dn": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
@@ -1193,7 +1198,6 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
-
 						"ssl_policy": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,

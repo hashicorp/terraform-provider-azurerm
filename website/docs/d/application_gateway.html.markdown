@@ -539,6 +539,8 @@ A `ssl_profile` block exports the following:
 
 * `trusted_client_certificate_names` - The name of the Trusted Client Certificate that will be used to authenticate requests from clients.
 
+* `verify_client_auth_mode` - The client authentication mode used by the SSL Profile.
+
 * `verify_client_certificate_issuer_dn` - Will the client certificate issuer DN be verified?
 
 * `verify_client_certificate_revocation` - The method used to check client certificate revocation status.
@@ -711,4 +713,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-05-01
