@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
@@ -241,6 +242,36 @@ func dataSourceRedisCache() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"redis_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"replicas_per_master": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
+			"replicas_per_primary": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
+			"tenant_settings": {
+				Type:     pluginsdk.TypeMap,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
@@ -282,6 +313,14 @@ func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error
 	d.SetId(id.ID())
 
 	if model := resp.Model; model != nil {
+		redisIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", redisIdentity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
 		d.Set("location", location.Normalize(model.Location))
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
@@ -317,6 +356,16 @@ func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error
 			subnetId = parsed.ID()
 		}
 		d.Set("subnet_id", subnetId)
+
+		publicNetworkAccessEnabled := true
+		if props.PublicNetworkAccess != nil {
+			publicNetworkAccessEnabled = *props.PublicNetworkAccess == redisresources.PublicNetworkAccessEnabled
+		}
+		d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
+		d.Set("replicas_per_master", props.ReplicasPerMaster)
+		d.Set("replicas_per_primary", props.ReplicasPerPrimary)
+		d.Set("redis_version", props.RedisVersion)
+		d.Set("tenant_settings", flattenTenantSettings(props.TenantSettings))
 
 		redisConfiguration, err := flattenDataSourceRedisConfiguration(props.RedisConfiguration)
 		if err != nil {

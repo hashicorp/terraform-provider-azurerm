@@ -74,6 +74,30 @@ output "hostname" {
 
 * `zones` - A list of Availability Zones in which this Redis Cache is located.
 
+* `identity` - An `identity` block as defined below.
+
+* `public_network_access_enabled` - Whether public network access is allowed for this Redis Cache.
+
+* `redis_version` - The version of Redis to use.
+
+* `replicas_per_master` - The number of replicas to create per master for this Redis Cache.
+
+* `replicas_per_primary` - The number of replicas to create per primary for this Redis Cache.
+
+* `tenant_settings` - A map of tenant settings.
+
+---
+
+An `identity` block exports the following:
+
+* `type` - The type of Managed Service Identity that is configured on this Redis Cache.
+
+* `identity_ids` - A list of User Assigned Managed Identity IDs assigned to this Redis Cache.
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
 ---
 
 A `patch_schedule` block supports the following:
