@@ -60,10 +60,8 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 				},
 
 				"immutability_mode": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					// Note: O+C because the API returns `Unlocked` once time based immutability has been enabled, even when `immutability_mode` has not been explicitly configured.
-					Computed:     true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
 					ValidateFunc: validation.StringInSlice(longtermretentionpolicies.PossibleValuesForTimeBasedImmutabilityMode(), false),
 				},
 			},
@@ -159,7 +157,11 @@ func FlattenLongTermRetentionPolicy(input *longtermretentionpolicies.LongTermRet
 		yearlyRetention = pointer.From(input.Properties.YearlyRetention)
 	}
 
-	immutabilityMode := string(pointer.From(input.Properties.TimeBasedImmutabilityMode))
+	// the API continues to return a mode after time based immutability has been disabled
+	immutabilityMode := ""
+	if pointer.From(input.Properties.TimeBasedImmutability) == longtermretentionpolicies.TimeBasedImmutabilityEnabled {
+		immutabilityMode = string(pointer.From(input.Properties.TimeBasedImmutabilityMode))
+	}
 
 	return []interface{}{
 		map[string]interface{}{

@@ -16,6 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases"
 	"github.com/hashicorp/go-uuid"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -749,7 +751,6 @@ func TestAccMsSqlDatabase_withLongTermRetentionPolicy(t *testing.T) {
 			Config: r.withLongTermRetentionPolicy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("long_term_retention_policy.0.immutability_mode").HasValue("Unlocked"),
 			),
 		},
 		data.ImportStep(),
@@ -762,6 +763,95 @@ func TestAccMsSqlDatabase_withLongTermRetentionPolicy(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.withLongTermRetentionPolicyNoWeekOfYear(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlDatabase_longTermRetentionPolicyImmutabilityMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MssqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.longTermRetentionPolicyImmutabilityMode(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.longTermRetentionPolicyImmutabilityMode(data, "Unlocked"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.longTermRetentionPolicyImmutabilityMode(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlDatabase_longTermRetentionPolicyImmutabilityModeLockedExpectReplace(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MssqlDatabaseResource{}
+
+	// Ignoring recreation of the resource as we're purposely testing that the `CustomizeDiff`
+	// forces a new resource to be created when changing `immutability_mode` from `Locked`.
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+		{
+			Config: r.longTermRetentionPolicyImmutabilityMode(data, "Unlocked"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.longTermRetentionPolicyImmutabilityMode(data, "Locked"),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.longTermRetentionPolicyImmutabilityMode(data, "Unlocked"),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.longTermRetentionPolicyImmutabilityMode(data, "Locked"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.longTermRetentionPolicyImmutabilityMode(data, ""),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2270,7 +2360,6 @@ resource "azurerm_mssql_database" "test" {
     monthly_retention = "P1M"
     yearly_retention  = "P1Y"
     week_of_year      = 1
-    immutability_mode = "Unlocked"
   }
 }
 `, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)
@@ -2336,6 +2425,27 @@ resource "azurerm_mssql_database" "test" {
   }
 }
 `, r.template(data), data.RandomIntOfLength(15), data.RandomInteger)
+}
+
+func (r MssqlDatabaseResource) longTermRetentionPolicyImmutabilityMode(data acceptance.TestData, immutabilityMode string) string {
+	mode := ""
+	if immutabilityMode != "" {
+		mode = fmt.Sprintf("immutability_mode = %q", immutabilityMode)
+	}
+
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[2]d"
+  server_id = azurerm_mssql_server.test.id
+
+  long_term_retention_policy {
+    weekly_retention = "P1W"
+    %[3]s
+  }
+}
+`, r.template(data), data.RandomInteger, mode)
 }
 
 func (r MssqlDatabaseResource) withShortTermRetentionPolicy(data acceptance.TestData) string {
