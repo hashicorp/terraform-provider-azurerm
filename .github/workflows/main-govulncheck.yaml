@@ -1,8 +1,10 @@
 name: Go Vulnerability Check
 
-# Runs govulncheck over the provider so known CVEs in our dependencies (or the Go toolchain) fail
-# CI. It only reports vulnerabilities in code paths we actually call, so it is quiet unless
-# something needs attention. The weekly run catches new CVEs against unchanged code.
+# Runs govulncheck over the provider so known CVEs in our dependencies (or the Go toolchain) get
+# flagged. It only reports vulnerabilities in code paths we actually call, so it is quiet unless
+# something needs attention. Runs on pushes to main and weekly, not on PRs: a CVE published
+# against a dependency we already use produces no new commit, so only a schedule can catch it,
+# and contributors should not be blocked by a vulnerability that is already on main.
 #
 # Mirrors the setup in katbyte/tctest. The action does its own checkout and Go setup, reading the
 # Go version from .go-version like every other job here.
@@ -11,22 +13,14 @@ permissions:
   contents: read
 
 on:
+  workflow_dispatch:
   push:
     branches: ['main']
-  pull_request:
-    types: ['opened', 'synchronize']
-    paths:
-      - '**.go'
-      - 'go.mod'
-      - 'go.sum'
-      - 'vendor/**'
-      - '.go-version'
-      - '.github/workflows/pr-check-govulncheck.yaml'
   schedule:
     - cron: '17 4 * * 1' # weekly (Monday 04:17 UTC)
 
 concurrency:
-  group: 'pr-check-govulncheck-${{ github.head_ref || github.ref }}'
+  group: 'main-govulncheck-${{ github.ref }}'
   cancel-in-progress: true
 
 jobs:
