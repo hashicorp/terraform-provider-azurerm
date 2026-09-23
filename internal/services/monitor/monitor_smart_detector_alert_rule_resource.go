@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-01-01/actiongroupsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -94,7 +93,7 @@ func resourceMonitorSmartDetectorAlertRule() *pluginsdk.Resource {
 			"frequency": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: commonValidate.ISO8601Duration,
+				ValidateFunc: validation.ISO8601Duration,
 			},
 
 			"action_group": {
@@ -143,7 +142,7 @@ func resourceMonitorSmartDetectorAlertRule() *pluginsdk.Resource {
 			"throttling_duration": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: commonValidate.ISO8601Duration,
+				ValidateFunc: validation.ISO8601Duration,
 			},
 
 			"tags": commonschema.Tags(),

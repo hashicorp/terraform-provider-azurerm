@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
@@ -207,19 +206,19 @@ func resourceIotHub() *pluginsdk.Resource {
 						"sas_ttl": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.ISO8601Duration,
+							ValidateFunc: validation.ISO8601Duration,
 							Default:      "PT1H",
 						},
 						"default_ttl": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.ISO8601Duration,
+							ValidateFunc: validation.ISO8601Duration,
 							Default:      "PT1H",
 						},
 						"lock_duration": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.ISO8601Duration,
+							ValidateFunc: validation.ISO8601Duration,
 							Default:      "PT1M",
 						},
 					},
@@ -529,7 +528,7 @@ func resourceIotHub() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "PT1H",
-							ValidateFunc: validate.ISO8601DurationBetween("PT15M", "P2D"),
+							ValidateFunc: validation.ISO8601DurationBetween("PT15M", "P2D"),
 						},
 						"feedback": {
 							Type:     pluginsdk.TypeList,
@@ -540,7 +539,7 @@ func resourceIotHub() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Default:      "PT1H",
-										ValidateFunc: validate.ISO8601DurationBetween("PT15M", "P2D"),
+										ValidateFunc: validation.ISO8601DurationBetween("PT15M", "P2D"),
 									},
 									"max_delivery_count": {
 										Type:         pluginsdk.TypeInt,
@@ -552,7 +551,7 @@ func resourceIotHub() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Default:      "PT60S",
-										ValidateFunc: validate.ISO8601DurationBetween("PT5S", "PT300S"),
+										ValidateFunc: validation.ISO8601DurationBetween("PT5S", "PT300S"),
 									},
 								},
 							},
