@@ -795,7 +795,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/vmsspublic
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/applicationgateways
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privatelinkservices
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes
-github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/webapplicationfirewallpolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/adminrulecollections
