@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/fhirservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/iotconnectors"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
@@ -85,7 +84,7 @@ func resourceHealthcareApisMedTechServiceFhirDestination() *pluginsdk.Resource {
 			"destination_fhir_mapping_json": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
-				StateFunc:        helpers.NormalizeJson,
+				StateFunc:        pluginsdk.NormalizeJson,
 				DiffSuppressFunc: suppressJsonOrderingDifference,
 			},
 		},

@@ -24,7 +24,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/replications"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -190,7 +189,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 									"ip_range": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: validate.CIDR,
+										ValidateFunc: validation.IsCIDRIPv4,
 									},
 								},
 							},

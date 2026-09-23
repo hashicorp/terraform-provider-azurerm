@@ -160,6 +160,11 @@ func IsPortNumber(i interface{}, k string) ([]string, []error) {
 	return validation.IsPortNumber(i, k)
 }
 
+// IsPortNumberOrZero is a SchemaValidateFunc which tests if the provided value is of type string and a valid TCP Port Number or zero
+func IsPortNumberOrZero(i interface{}, k string) ([]string, []error) {
+	return validation.IsPortNumberOrZero(i, k)
+}
+
 // IsRFC3339Time is a SchemaValidateFunc which tests if the provided value is of type string and a valid RFC33349Time
 func IsRFC3339Time(i interface{}, k string) ([]string, []error) {
 	return validation.IsRFC3339Time(i, k)

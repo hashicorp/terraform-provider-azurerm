@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/vnetpeering"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -161,8 +160,8 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 	allowVirtualNetworkAccess := d.Get("allow_virtual_network_access").(bool)
 	useRemoteGateways := d.Get("use_remote_gateways").(bool)
 	remoteVirtualNetwork := d.Get("remote_virtual_network_id").(string)
-	databricksAddressSpace := helpers.ExpandStringSlice(d.Get("address_space_prefixes").([]interface{}))
-	remoteAddressSpace := helpers.ExpandStringSlice(d.Get("remote_address_space_prefixes").([]interface{}))
+	databricksAddressSpace := pluginsdk.ExpandStringSlice(d.Get("address_space_prefixes").([]interface{}))
+	remoteAddressSpace := pluginsdk.ExpandStringSlice(d.Get("remote_address_space_prefixes").([]interface{}))
 
 	props := vnetpeering.VirtualNetworkPeeringPropertiesFormat{
 		DatabricksAddressSpace: &vnetpeering.AddressSpace{
