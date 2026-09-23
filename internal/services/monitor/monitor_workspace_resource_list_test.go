@@ -19,7 +19,7 @@ import (
 )
 
 func TestAccMonitorWorkspace_listBySubscriptionAndRG(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_workspace", "testlist1")
+	data := acceptance.BuildTestData(t, "azurerm_monitor_workspace", "list")
 	r := MonitorWorkspaceResource{}
 
 	resource.Test(t, resource.TestCase{
