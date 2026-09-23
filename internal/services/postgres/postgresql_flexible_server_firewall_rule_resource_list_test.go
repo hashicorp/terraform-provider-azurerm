@@ -19,7 +19,7 @@ import (
 )
 
 func TestAccPostgresqlFlexibleServerFirewallRule_listByFlexibleServerID(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_firewall_rule", "testlist1")
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_firewall_rule", "list")
 	r := PostgresqlFlexibleServerFirewallRuleResource{}
 
 	resource.Test(t, resource.TestCase{
