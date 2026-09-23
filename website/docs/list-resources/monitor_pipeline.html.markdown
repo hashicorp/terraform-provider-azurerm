@@ -21,7 +21,7 @@ list "azurerm_monitor_pipeline" "example" {
 }
 ```
 
-### List all Azure Monitor Pipeline resources in a specific Resource Group
+### List all Azure Monitor Pipeline resources in a specific resource group
 
 ```hcl
 list "azurerm_monitor_pipeline" "example" {
