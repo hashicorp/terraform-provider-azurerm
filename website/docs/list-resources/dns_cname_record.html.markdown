@@ -3,16 +3,16 @@ subcategory: "DNS"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_cname_record"
 description: |-
-    Lists Dns Cname Record resources.
+    Lists DNS CNAME Record resources.
 ---
 
 # List resource: azurerm_dns_cname_record
 
-Lists Dns Cname Record resources.
+Lists DNS CNAME Record resources.
 
 ## Example Usage
 
-### List Dns Cname Records in a Dns Zone
+### List DNS CNAME Records in a Dns Zone
 
 ```hcl
 list "azurerm_dns_cname_record" "example" {
@@ -27,4 +27,4 @@ list "azurerm_dns_cname_record" "example" {
 
 This list resource supports the following arguments:
 
-* `dns_zone_id` - (Required) The ID of the Dns Zone to query.
+* `dns_zone_id` - (Required) The ID of the DNS Zone to query.
