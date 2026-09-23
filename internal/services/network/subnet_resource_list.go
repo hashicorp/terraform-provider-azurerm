@@ -90,8 +90,7 @@ func (r SubnetListResource) List(ctx context.Context, request list.ListRequest, 
 
 			rd.SetId(id.ID())
 
-			err = resourceSubnetFlatten(rd, *id, &subnet)
-			if err != nil {
+			if err = resourceSubnetFlatten(rd, *id, &subnet); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, "encoding resource data", err)
 				return
 			}

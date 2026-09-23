@@ -37,7 +37,7 @@ func TestAccRecoveryServicesVault_basic(t *testing.T) {
 	})
 }
 
-// This test validates the conditional ForceNew behavior in the resource CustomizeDiff
+// This test validates the conditional ForceNew behaviour in the resource CustomizeDiff
 // when updating cross_region_restore_enabled from true to false, which requires recreation
 func TestAccRecoveryServicesVault_ToggleCrossRegionRestore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
@@ -883,6 +883,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctest-key-vault-%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
@@ -979,6 +980,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctest-key-vault-%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
@@ -1126,6 +1128,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctest-key-vault-%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
@@ -1296,6 +1299,7 @@ resource "azurerm_key_vault" "test" {
   name                        = "acctest-key-vault-%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
+  rbac_authorization_enabled  = false
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7

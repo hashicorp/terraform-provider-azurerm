@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSentinelAlertRuleMsSecurityIncident() *pluginsdk.Resource {
@@ -60,17 +59,9 @@ func resourceSentinelAlertRuleMsSecurityIncident() *pluginsdk.Resource {
 			},
 
 			"product_filter": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(alertrules.MicrosoftSecurityProductNameMicrosoftCloudAppSecurity),
-					string(alertrules.MicrosoftSecurityProductNameAzureSecurityCenter),
-					string(alertrules.MicrosoftSecurityProductNameAzureActiveDirectoryIdentityProtection),
-					string(alertrules.MicrosoftSecurityProductNameAzureSecurityCenterForIoT),
-					string(alertrules.MicrosoftSecurityProductNameAzureAdvancedThreatProtection),
-					string(alertrules.MicrosoftSecurityProductNameMicrosoftDefenderAdvancedThreatProtection),
-					string(alertrules.MicrosoftSecurityProductNameOfficeThreeSixFiveAdvancedThreatProtection),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(alertrules.PossibleValuesForMicrosoftSecurityProductName(), false),
 			},
 
 			"severity_filter": {
@@ -78,13 +69,8 @@ func resourceSentinelAlertRuleMsSecurityIncident() *pluginsdk.Resource {
 				Required: true,
 				MinItems: 1,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(alertrules.AlertSeverityHigh),
-						string(alertrules.AlertSeverityMedium),
-						string(alertrules.AlertSeverityLow),
-						string(alertrules.AlertSeverityInformational),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(alertrules.PossibleValuesForAlertSeverity(), false),
 				},
 			},
 
@@ -172,11 +158,11 @@ func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *pluginsdk.Resour
 	}
 
 	if dnf, ok := d.GetOk("display_name_filter"); ok {
-		param.Properties.DisplayNamesFilter = utils.ExpandStringSlice(dnf.(*pluginsdk.Set).List())
+		param.Properties.DisplayNamesFilter = pluginsdk.ExpandStringSlice(dnf.(*pluginsdk.Set).List())
 	}
 
 	if v, ok := d.GetOk("display_name_exclude_filter"); ok {
-		param.Properties.DisplayNamesExcludeFilter = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
+		param.Properties.DisplayNamesExcludeFilter = pluginsdk.ExpandStringSlice(v.(*pluginsdk.Set).List())
 	}
 
 	if !d.IsNewResource() {
@@ -237,10 +223,10 @@ func resourceSentinelAlertRuleMsSecurityIncidentRead(d *pluginsdk.ResourceData, 
 				d.Set("enabled", prop.Enabled)
 				d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
 
-				if err := d.Set("display_name_filter", utils.FlattenStringSlice(prop.DisplayNamesFilter)); err != nil {
+				if err := d.Set("display_name_filter", pluginsdk.FlattenSlice(prop.DisplayNamesFilter)); err != nil {
 					return fmt.Errorf(`setting "display_name_filter": %+v`, err)
 				}
-				if err := d.Set("display_name_exclude_filter", utils.FlattenStringSlice(prop.DisplayNamesExcludeFilter)); err != nil {
+				if err := d.Set("display_name_exclude_filter", pluginsdk.FlattenSlice(prop.DisplayNamesExcludeFilter)); err != nil {
 					return fmt.Errorf(`setting "display_name_exclude_filter": %+v`, err)
 				}
 				if err := d.Set("severity_filter", flattenAlertRuleMsSecurityIncidentSeverityFilter(prop.SeveritiesFilter)); err != nil {

@@ -34,7 +34,7 @@ func dataSourcePrivateDnsZone() *pluginsdk.Resource {
 			"resource_group_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"number_of_record_sets": {

@@ -16,9 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/netappaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/netappaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -26,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceNetAppAccount() *pluginsdk.Resource {
@@ -72,7 +70,7 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 							Required: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.IPv4Address,
+								ValidateFunc: validation.IsIPv4Address,
 							},
 						},
 						"domain": {
@@ -367,7 +365,7 @@ func expandNetAppActiveDirectories(input []interface{}) *[]netappaccounts.Active
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		dns := strings.Join(*utils.ExpandStringSlice(v["dns_servers"].([]interface{})), ",")
+		dns := strings.Join(*pluginsdk.ExpandStringSlice(v["dns_servers"].([]interface{})), ",")
 
 		result := netappaccounts.ActiveDirectory{
 			Dns:                        pointer.To(dns),
@@ -400,7 +398,7 @@ func flattenNetAppActiveDirectories(input *[]netappaccounts.ActiveDirectory, pre
 
 	return []interface{}{
 		map[string]interface{}{
-			"dns_servers":                       utils.FlattenStringSliceWithDelimiter(v.Dns, ","),
+			"dns_servers":                       pluginsdk.FlattenStringSliceWithDelimiter(v.Dns, ","),
 			"domain":                            v.Domain,
 			"organizational_unit":               v.OrganizationalUnit,
 			"password":                          prevPassword,

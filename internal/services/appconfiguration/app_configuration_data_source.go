@@ -274,11 +274,7 @@ func dataSourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{})
 			}
 
 			d.Set("local_auth_enabled", localAuthEnabled)
-			purgeProtectionEnabled := false
-			if props.EnablePurgeProtection != nil {
-				purgeProtectionEnabled = *props.EnablePurgeProtection
-			}
-			d.Set("purge_protection_enabled", purgeProtectionEnabled)
+			d.Set("purge_protection_enabled", pointer.From(props.EnablePurgeProtection))
 		}
 
 		accessKeys := flattenAppConfigurationAccessKeys(resultPage.Items)

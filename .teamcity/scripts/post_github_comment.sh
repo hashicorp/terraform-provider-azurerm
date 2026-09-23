@@ -4,13 +4,29 @@ POST_GITHUB_COMMENT="%POST_GITHUB_COMMENT%"
 GITHUB_REPO="%env.GITHUB_REPO%"
 GIT_PAT="%env.GIT_PAT%"
 TEAMCITY_TOKEN="%env.TEAMCITY_TOKEN%"
+TEAMCITY_SERVER_URL="%teamcity.serverUrl%"
 # BUILD_START_TIME is set in the first build step: $(date +%s)
+BUILD_ID="%teamcity.build.id%"
+BUILD_TYPE_ID="%system.teamcity.buildType.id%"
 BUILD_START_TIME="%env.BUILD_START_TIME%"
 BETA_VERSION_ENV_VAR="%env.BETA_VERSION_ENV_VAR%"
 TEAMCITY_BUILD_BRANCH="%teamcity.build.branch%"
 LABEL_SUCCESS="%env.LABEL_SUCCESS%"
 LABEL_FAILURE="%env.LABEL_FAILURE%"
+LABEL_OUTDATED="%env.LABEL_OUTDATED%"
+LABEL_NEW_FAILURE="%env.LABEL_NEW_FAILURE%"
+APPLY_TESTING_LABELS_ENABLED="%env.APPLY_TESTING_LABELS_ENABLED%"
+TRACKING_ID="%TRACKING_ID%"
+BUILD_VCS_NUMBER="%build.vcs.number%"
 
+# Builds triggered outside of /test (TeamCity UI, tctest without --properties) have no
+# TRACKING_ID and inherit the "0" default. Since one test run is now split into several
+# per-service builds, a zero tracking id would make each build's comment minimize its
+# sibling builds' still-valid comments. Fall back to the VCS revision so builds of the
+# same revision share a tracking id and never minimize each other.
+if [ "$TRACKING_ID" = "0" ] || [ -z "$TRACKING_ID" ]; then
+  TRACKING_ID="$BUILD_VCS_NUMBER"
+fi
 
 if [ "$POST_GITHUB_COMMENT" != "true" ]; then
   echo "GitHub commenting disabled — skipping."
@@ -20,14 +36,11 @@ fi
 if [[ "$TEAMCITY_BUILD_BRANCH" =~ refs/pull/([0-9]+)/merge ]]; then
   PR_NUMBER="${BASH_REMATCH[1]}"
 else
-  echo "Not a PR merge branch: %teamcity.build.branch%"
+  echo "Not a PR merge branch: $TEAMCITY_BUILD_BRANCH"
   exit 0
 fi
 
-TRACKING_ID="%TRACKING_ID%"
 echo "Tracking ID: $TRACKING_ID"
-
-BUILD_ID="%teamcity.build.id%"
 
 github_api_request() {
   local endpoint="$1"
@@ -63,52 +76,131 @@ remove_label() {
 set_testing_label() {
   local label="$1"
   if [ "$label" = "$LABEL_SUCCESS" ]; then
+    remove_label "$LABEL_OUTDATED"
     remove_label "$LABEL_FAILURE"
+    remove_label "$LABEL_NEW_FAILURE"
     apply_label "$LABEL_SUCCESS"
   elif [ "$label" = "$LABEL_FAILURE" ]; then
+    remove_label "$LABEL_OUTDATED"
     remove_label "$LABEL_SUCCESS"
+    remove_label "$LABEL_NEW_FAILURE"
     apply_label "$LABEL_FAILURE"
+  elif [ "$label" = "$LABEL_NEW_FAILURE" ]; then
+    remove_label "$LABEL_OUTDATED"
+    remove_label "$LABEL_SUCCESS"
+    remove_label "$LABEL_FAILURE"
+    apply_label "$LABEL_NEW_FAILURE"
   fi
 }
 
-# Fetch test results for this build from the TeamCity REST API
-TEST_RESULTS=$(curl -s \
+# Fetch test results for this build from the TeamCity REST API.
+#
+# This step runs immediately after the test step, while the build is still running, and
+# TeamCity indexes test service messages asynchronously - the tests that finished last
+# (often several at once, since they run in parallel) may not be visible yet, and a short
+# run can briefly return no occurrences at all. Poll (bounded) until at least one result is
+# visible and the count has not changed between two consecutive polls.
+TEAMCITY_ERROR=""
+TEST_RESULTS=""
+RESULTS_ATTEMPTS=12
+RESULTS_DELAY_S=5
+SEEN_COUNT=0
+PREV_SEEN_COUNT=-1
+for attempt in $(seq 1 "$RESULTS_ATTEMPTS"); do
+  RAW_TEST_RESULTS_JSON=$(curl -sS -f \
+    -H "Authorization: Bearer $TEAMCITY_TOKEN" \
+    -H "Accept: application/json" \
+    "$TEAMCITY_SERVER_URL/app/rest/testOccurrences?locator=build:(id:$BUILD_ID),count:100000&fields=testOccurrence(name,status,ignored,duration,newFailure,test(id),firstFailed(build(id,number,branchName)))")
+
+  if [ $? -ne 0 ] || [ -z "$RAW_TEST_RESULTS_JSON" ]; then
+    TEAMCITY_ERROR="Failed to fetch test results from TeamCity for build $BUILD_ID."
+    TEST_RESULTS=""
+    break
+  fi
+
+  TEST_RESULTS=$(echo "$RAW_TEST_RESULTS_JSON" | jq -r '(.testOccurrence // [])[]
+      | select(.status == "SUCCESS" or .status == "FAILURE" or .ignored == true)
+      | "\(.name)|\(if .status == "SUCCESS" then "PASS" elif .status == "FAILURE" then "FAIL" else "SKIP" end)|\((.duration // 0) / 1000)|"')
+
+  if [ $? -ne 0 ]; then
+    TEAMCITY_ERROR="Failed to parse TeamCity test results for build $BUILD_ID."
+    TEST_RESULTS=""
+    break
+  fi
+
+  SEEN_COUNT=$(echo "$RAW_TEST_RESULTS_JSON" | jq -r '(.testOccurrence // []) | length')
+
+  if [ "$SEEN_COUNT" -gt 0 ] && [ "$SEEN_COUNT" -eq "$PREV_SEEN_COUNT" ]; then
+    break
+  fi
+
+  echo "Test results for build $BUILD_ID not settled yet: $SEEN_COUNT visible (attempt $attempt/$RESULTS_ATTEMPTS), retrying in ${RESULTS_DELAY_S}s..."
+  PREV_SEEN_COUNT=$SEEN_COUNT
+  sleep "$RESULTS_DELAY_S"
+done
+
+# The build's own status catches failures the test list cannot show: a test step that
+# failed before or without reporting tests, or failed tests that were still not indexed.
+BUILD_STATUS=""
+BUILD_STATUS_TEXT=""
+BUILD_INFO_JSON=$(curl -sS -f \
   -H "Authorization: Bearer $TEAMCITY_TOKEN" \
   -H "Accept: application/json" \
-  "%teamcity.serverUrl%/app/rest/testOccurrences?locator=build:(id:$BUILD_ID),count:100000&fields=testOccurrence(name,status,duration)" \
-  | jq -r '.testOccurrence[]
-      | select(.status == "SUCCESS" or .status == "FAILURE")
-      | "\(.name)|\(if .status == "SUCCESS" then "PASS" else "FAIL" end)|\((.duration // 0) / 1000)|"')
+  "$TEAMCITY_SERVER_URL/app/rest/builds/id:$BUILD_ID?fields=status,statusText")
+if [ $? -eq 0 ] && [ -n "$BUILD_INFO_JSON" ]; then
+  BUILD_STATUS=$(echo "$BUILD_INFO_JSON" | jq -r '.status // ""' 2>/dev/null)
+  BUILD_STATUS_TEXT=$(echo "$BUILD_INFO_JSON" | jq -r '.statusText // ""' 2>/dev/null)
+else
+  echo "Warning: could not fetch build status for build $BUILD_ID"
+fi
 
-PASS_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' '{if($2=="PASS") print}' | wc -l | tr -d ' ')
-FAIL_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' '{if($2=="FAIL") print}' | wc -l | tr -d ' ')
-TOTAL=$((PASS_COUNT + FAIL_COUNT))
+PASS_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' 'BEGIN{c=0} $1!="" && $2=="PASS"{c++} END{print c}')
+FAIL_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' 'BEGIN{c=0} $1!="" && $2=="FAIL"{c++} END{print c}')
+SKIP_COUNT=$(echo "$TEST_RESULTS" | awk -F'|' 'BEGIN{c=0} $1!="" && $2=="SKIP"{c++} END{print c}')
+TOTAL=$((PASS_COUNT + FAIL_COUNT + SKIP_COUNT))
+
+# A build that failed without any failed tests (test step crashed, results not indexed)
+# must not be reported or labelled as passing.
+BUILD_FAILED_WITHOUT_TEST_FAILURES="false"
+if [ -z "$TEAMCITY_ERROR" ] && [ "$BUILD_STATUS" = "FAILURE" ] && [ "$FAIL_COUNT" -eq 0 ]; then
+  BUILD_FAILED_WITHOUT_TEST_FAILURES="true"
+fi
 
 # Fetch main branch test results early to identify new failures for comment marking
 NEW_FAILURES=""
 MAIN_TEST_RESULTS=""
-if [ "$FAIL_COUNT" -gt 0 ]; then
+MAIN_TEST_ID_MAP=""
+if [ -z "$TEAMCITY_ERROR" ] && [ "$FAIL_COUNT" -gt 0 ]; then
   echo "Fetching main branch test results for comparison..."
 
   # Get the latest successful build on main branch
   MAIN_BUILD_INFO=$(curl -s \
     -H "Authorization: Bearer $TEAMCITY_TOKEN" \
     -H "Accept: application/json" \
-    "%teamcity.serverUrl%/app/rest/builds?locator=buildType:(id:%system.teamcity.buildType.id%),branch:refs/heads/main,status:SUCCESS,count:1")
+    "$TEAMCITY_SERVER_URL/app/rest/builds?locator=buildType:(id:$BUILD_TYPE_ID),branch:refs/heads/main,status:SUCCESS,count:1")
 
   MAIN_BUILD_ID=$(echo "$MAIN_BUILD_INFO" | jq -r '.build[0].id // empty')
 
   if [ -n "$MAIN_BUILD_ID" ]; then
     echo "Found main branch build: $MAIN_BUILD_ID"
 
-    # Fetch test results from main branch build via the TeamCity REST API
-    MAIN_TEST_RESULTS=$(curl -s \
+    # Fetch test results from main branch build via the TeamCity REST API.
+    MAIN_RAW_JSON=$(curl -s \
       -H "Authorization: Bearer $TEAMCITY_TOKEN" \
       -H "Accept: application/json" \
-      "%teamcity.serverUrl%/app/rest/testOccurrences?locator=build:(id:$MAIN_BUILD_ID),count:100000&fields=testOccurrence(name,status)" \
-      | jq -r '.testOccurrence[]
+      "$TEAMCITY_SERVER_URL/app/rest/testOccurrences?locator=build:(id:$MAIN_BUILD_ID),count:100000&fields=testOccurrence(name,status,test(id))")
+
+    # Build name→status pairs (for new-failure detection)
+    MAIN_TEST_RESULTS=$(echo "$MAIN_RAW_JSON" \
+      | jq -r '(.testOccurrence // [])[]
           | select(.status == "SUCCESS" or .status == "FAILURE")
           | "\(.name)|\(if .status == "SUCCESS" then "PASS" else "FAIL" end)"' 2>/dev/null || echo "")
+
+    # Build name→test-entity-id pairs (for history queries)
+    MAIN_TEST_ID_MAP=$(echo "$MAIN_RAW_JSON" \
+      | jq -r '(.testOccurrence // [])[]
+          | select(.test.id != null)
+          | "\(.name)|\(.test.id)"' 2>/dev/null || echo "")
 
     if [ -n "$MAIN_TEST_RESULTS" ]; then
       # Extract failed test names from current PR
@@ -127,7 +219,6 @@ if [ "$FAIL_COUNT" -gt 0 ]; then
   fi
 fi
 
-
 CURRENT_TIME_S=$(date +%s)
 BUILD_DURATION=$((CURRENT_TIME_S - BUILD_START_TIME))
 
@@ -135,27 +226,141 @@ BUILD_HOURS=$((BUILD_DURATION / 3600))
 BUILD_MINUTES=$(((BUILD_DURATION % 3600) / 60))
 BUILD_SECONDS=$((BUILD_DURATION % 60))
 
-COMMENT="Build: [$BUILD_ID](%teamcity.serverUrl%/viewLog.html?buildId=$BUILD_ID)
+TEST_HISTORY=""
+HAS_NEW_FAILURES="false"
+if [ -z "$TEAMCITY_ERROR" ]; then
+  echo "Fetching per-test main branch history..."
+
+  ALL_TEST_NAMES=$(echo "$RAW_TEST_RESULTS_JSON" \
+    | jq -r '(.testOccurrence // [])[] | select(.status == "SUCCESS" or .status == "FAILURE" or .ignored == true) | .name' \
+    2>/dev/null || echo "")
+
+  while IFS= read -r test_name; do
+    [ -z "$test_name" ] && continue
+
+    TEST_ID=$(echo "$RAW_TEST_RESULTS_JSON" \
+      | TEST_NAME="$test_name" jq -r '
+          (.testOccurrence // [])[]
+          | select(.name == env.TEST_NAME)
+          | .test.id // empty
+        ' 2>/dev/null | head -1)
+
+    PR_STATUS=$(echo "$RAW_TEST_RESULTS_JSON" \
+      | TEST_NAME="$test_name" jq -r '
+          (.testOccurrence // [])[]
+          | select(.name == env.TEST_NAME)
+          | .status
+        ' 2>/dev/null | head -1)
+
+    FIRST_FAILED_BRANCH=$(echo "$RAW_TEST_RESULTS_JSON" \
+      | TEST_NAME="$test_name" jq -r '
+          (.testOccurrence // [])[]
+          | select(.name == env.TEST_NAME)
+          | .firstFailed.build.branchName // ""
+        ' 2>/dev/null | head -1)
+
+    IS_NEW="false"
+    if [ "$PR_STATUS" = "FAILURE" ] && [ "$FIRST_FAILED_BRANCH" != "refs/heads/main" ] && [ -n "$FIRST_FAILED_BRANCH" ]; then
+      IS_NEW="true"
+      HAS_NEW_FAILURES="true"
+    fi
+
+    if [ -z "$TEST_ID" ]; then
+      TEST_HISTORY+="${test_name}|N/A|N/A|N/A|${IS_NEW}"$'\n'
+      continue
+    fi
+
+    MAIN_HISTORY_JSON=$(curl -s \
+      -H "Authorization: Bearer $TEAMCITY_TOKEN" \
+      -H "Accept: application/json" \
+      "$TEAMCITY_SERVER_URL/app/rest/testOccurrences?locator=test:(id:${TEST_ID}),branch:refs/heads/main,count:1000&fields=testOccurrence(status,build(startDate))")
+
+    CUTOFF_S=$(( CURRENT_TIME_S - 100 * 86400 ))
+
+    PCT="%"
+    TC_DATE_FMT="${PCT}Y${PCT}m${PCT}dT${PCT}H${PCT}M${PCT}SZ"
+    MAIN_STATS=$(echo "$MAIN_HISTORY_JSON" | CUTOFF_S="$CUTOFF_S" CURRENT_TIME_S="$CURRENT_TIME_S" jq -r --arg fmt "$TC_DATE_FMT" '
+      [ .testOccurrence[]?
+        | select(
+            (.build.startDate // "") != "" and
+            (.build.startDate | gsub("\\+(?:[0-9]{4})$"; "Z") | strptime($fmt) | mktime) >= (env.CUTOFF_S | tonumber)
+          )
+      ] as $recent |
+      ($recent | map(select(.status=="SUCCESS")) | length) as $s |
+      ($recent | map(select(.status=="FAILURE")) | length) as $f |
+      ($s + $f) as $total |
+      (if $total > 0 then (($f * 100 / $total | floor | tostring) + "%") else "N/A" end) as $rate |
+      ([ .testOccurrence[]?
+          | select(.status=="FAILURE" and (.build.startDate // "") != "")
+          | (.build.startDate | gsub("\\+(?:[0-9]{4})$"; "Z") | strptime($fmt) | mktime)
+        ]) as $fail_ts_list |
+      ($fail_ts_list | min // null) as $oldest_fail_ts |
+      ($fail_ts_list | max // null) as $newest_fail_ts |
+      (if $oldest_fail_ts != null
+        then (((env.CURRENT_TIME_S | tonumber) - $oldest_fail_ts) / 86400 | floor | tostring) + "d"
+        else ""
+      end) as $first_ago |
+      (if $newest_fail_ts != null
+        then (((env.CURRENT_TIME_S | tonumber) - $newest_fail_ts) / 86400 | floor | tostring) + "d"
+        else ""
+      end) as $last_ago |
+      "\($rate)|\($first_ago)|\($last_ago)"
+    ' 2>/dev/null || echo "N/A|")
+
+    # Parse the three pipe-delimited fields from HISTORY_STATS
+    HIST_RATE=$(echo "$MAIN_STATS" | cut -d'|' -f1)
+    FIRST_AGO=$(echo "$MAIN_STATS" | cut -d'|' -f2)
+    LAST_AGO=$(echo "$MAIN_STATS"  | cut -d'|' -f3)
+
+    HIST_RATE_LINK="[$HIST_RATE]($TEAMCITY_SERVER_URL/test/${TEST_ID}?currentProjectId=TF_AzureRM)"
+
+    FIRST_DISPLAY="${FIRST_AGO:-N/A}"
+    LAST_DISPLAY="${LAST_AGO:-N/A}"
+
+    TEST_HISTORY+="${test_name}|${HIST_RATE_LINK}|${FIRST_DISPLAY}|${LAST_DISPLAY}|${IS_NEW}"$'\n'
+  done <<< "$ALL_TEST_NAMES"
+fi
+
+NO_RESULTS_NOTE=""
+if [ -z "$TEAMCITY_ERROR" ] && [ "$TOTAL" -eq 0 ]; then
+  NO_RESULTS_NOTE="
+> TeamCity reported no test results for this build after waiting $((RESULTS_ATTEMPTS * RESULTS_DELAY_S))s. Check the build log: the test filter may have matched nothing, or the build may have failed before the tests ran."
+fi
+
+BUILD_FAILED_NOTE=""
+if [ "$BUILD_FAILED_WITHOUT_TEST_FAILURES" = "true" ]; then
+  BUILD_FAILED_NOTE="
+> TeamCity reports this build as **FAILURE** (${BUILD_STATUS_TEXT:-no status text}) but no failed tests were returned. Treating the run as failed; check the build log."
+fi
+
+if [ -n "$TEAMCITY_ERROR" ]; then
+  COMMENT="Build: [$BUILD_ID]($TEAMCITY_SERVER_URL/viewLog.html?buildId=$BUILD_ID)
 PR: #$PR_NUMBER
 
-**Total:** $TOTAL
-**Passed:** $PASS_COUNT
-**Failed:** $FAIL_COUNT
-**Test Duration:** ${BUILD_HOURS}h ${BUILD_MINUTES}m ${BUILD_SECONDS}s
+**TeamCity Error:** $TEAMCITY_ERROR
 
-<details>
-<summary>Test Details</summary>
-
-<table>
-<tr><td><b>Status</b></td><td><b>Test Name</b></td><td><b>Duration</b></td></tr>
+Unable to collect test details for this run. Please check TeamCity build logs.
 "
-
-TABLE_ROWS=$(echo "$TEST_RESULTS" | awk -F'|' -v new_failures="$NEW_FAILURES" '
+else
+  TABLE_ROWS=$(echo "$TEST_RESULTS" | TEST_HISTORY="$TEST_HISTORY" awk -F'|' '
 BEGIN {
-    # Build array of new failure test names
-    n = split(new_failures, nf_array, "\n")
-    for (i = 1; i <= n; i++) {
-        if (nf_array[i] != "") new_fail[nf_array[i]] = 1
+    m = split(ENVIRON["TEST_HISTORY"], h_array, "\n")
+    for (i = 1; i <= m; i++) {
+        if (h_array[i] == "") continue
+        line = h_array[i]
+        name_part = ""
+        pipe_count = 0
+        for (j = length(line); j >= 1; j--) {
+            if (substr(line, j, 1) == "|") {
+                pipe_count++
+                if (pipe_count == 4) {
+                    name_part = substr(line, 1, j - 1)
+                    last4 = substr(line, j + 1)
+                    break
+                }
+            }
+        }
+        if (name_part != "") hist[name_part] = last4
     }
 }
 $1 == "" { next }
@@ -164,39 +369,70 @@ $1 == "" { next }
     status = $2
     duration = $3
 
-    if (status == "PASS") {
-        print "<tr><td>✅ PASS</td><td>" test_name "</td><td>" duration "s</td></tr>"
-    } else if (status == "FAIL") {
-        # Check if this is a new failure
-        if (test_name in new_fail) {
-            print "<tr><td>❌ FAIL 🆕</td><td>" test_name "</td><td>" duration "s</td></tr>"
-        } else {
-            print "<tr><td>❌ FAIL</td><td>" test_name "</td><td>" duration "s</td></tr>"
-        }
+    if (test_name in hist) {
+        n_hist = split(hist[test_name], hf, "|")
+        fail_rate  = (n_hist >= 1) ? hf[1] : "N/A"
+        first_fail = (n_hist >= 2) ? hf[2] : "N/A"
+        last_fail  = (n_hist >= 3) ? hf[3] : "N/A"
+        is_new     = (n_hist >= 4) ? hf[4] : "true"
+    } else {
+        fail_rate  = "N/A"
+        first_fail = "N/A"
+        last_fail  = "N/A"
+        is_new     = "true"
     }
+
+    if (status == "PASS") {
+      label = "✅ PASS"
+    } else if (status == "SKIP") {
+      label = "⏭️ SKIP"
+    } else if (is_new == "true") {
+      label = "❌ NEW"
+    } else {
+      label = "❌ FAIL"
+    }
+
+    print "| " label " | " test_name " | " duration "s | " fail_rate " | " first_fail " | " last_fail " |"
 }
 ')
 
-COMMENT+="$TABLE_ROWS"
+  COMMENT="Build: [$BUILD_ID]($TEAMCITY_SERVER_URL/viewLog.html?buildId=$BUILD_ID)
+PR: #$PR_NUMBER
 
-COMMENT+="</table>
+**Total:** $TOTAL
+**Passed:** $PASS_COUNT
+**Failed:** $FAIL_COUNT
+**Skipped:** $SKIP_COUNT
+**Test Duration:** ${BUILD_HOURS}h ${BUILD_MINUTES}m ${BUILD_SECONDS}s
+${NO_RESULTS_NOTE}${BUILD_FAILED_NOTE}
+
+<details>
+<summary>Test Details</summary>
+
+| Status | Test Name | Duration | %❌ | First | Last |
+| :--- | :--- | ---: | --- | --- | --- |
+${TABLE_ROWS}
 </details>
 "
+fi
 
 # Fetch PR author if there are failures
 AUTHOR_MESSAGE=""
-if [ "$FAIL_COUNT" -gt 0 ]; then
+if [ -z "$TEAMCITY_ERROR" ] && { [ "$FAIL_COUNT" -gt 0 ] || [ "$BUILD_FAILED_WITHOUT_TEST_FAILURES" = "true" ]; }; then
   PR_AUTHOR=$(github_api_request "/pulls/${PR_NUMBER}" \
   | jq -r '.user.login')
 
   if [ -z "$PR_AUTHOR" ] || [ "$PR_AUTHOR" = "null" ]; then
     echo "Warning: Could not fetch PR author"
   else
-    if [ -z "$NEW_FAILURES" ]; then
-      AUTHOR_MESSAGE="@${PR_AUTHOR} - One or more tests failed in this PR. Please review the failures.
+    if [ "$BUILD_FAILED_WITHOUT_TEST_FAILURES" = "true" ]; then
+      AUTHOR_MESSAGE="@${PR_AUTHOR} - The TeamCity build failed without reporting failed tests. Please review the build log.
+      "
+    elif [ "$HAS_NEW_FAILURES" = "true" ]; then
+      AUTHOR_MESSAGE="@${PR_AUTHOR} - One or more tests newly failed in this PR. Please review the failures.
       "
     else
-      AUTHOR_MESSAGE="@${PR_AUTHOR} - One or more tests newly failed in this PR. Please review the failures.
+      AUTHOR_MESSAGE="@${PR_AUTHOR} - One or more tests failed in this PR. Please review the failures.
       "
     fi
   fi
@@ -222,13 +458,19 @@ echo "Fetching existing comments..."
 COMMENTS_JSON=$(github_api_request "/issues/${PR_NUMBER}/comments")
 
 # Filter comments that should be minimized (teamcity-test-results or /test comments)
-# but exclude those with the current tracking ID
+# but exclude those with the current tracking ID. Without a usable tracking id we
+# cannot tell sibling builds of the current run from stale ones, so minimize nothing.
+COMMENT_IDS=""
+if [ -n "$TRACKING_ID" ] && [ "$TRACKING_ID" != "0" ]; then
 COMMENT_IDS=$(echo "$COMMENTS_JSON" | jq -r --arg tracking_id "$TRACKING_ID" '
   .[] |
   select(.body | type == "string" and (contains("<!-- teamcity-test-results -->") or startswith("/test"))) |
   select(.body | contains("tracking-id:" + $tracking_id) | not) |
   .node_id
 ' 2>&1 | grep -v "^jq:")
+else
+  echo "No usable tracking id; skipping minimization of previous comments"
+fi
 
 if [ -n "$COMMENT_IDS" ]; then
   echo "Found previous comments to minimize"
@@ -269,25 +511,36 @@ curl -s -X POST \
   "https://api.github.com/repos/$GITHUB_REPO/issues/${PR_NUMBER}/comments" \
   -d "{\"body\": $(jq -Rs . <<< "$COMMENT")}"
 
-echo "Applying labels..."
+if [ "$APPLY_TESTING_LABELS_ENABLED" = "true" ]; then
+  echo "Applying labels..."
 
-# If no failures, apply teamcity-passed label
-if [ "$FAIL_COUNT" -eq 0 ]; then
-  echo "No test failures detected"
-  set_testing_label "$LABEL_SUCCESS"
-  exit 0
+  if [ -n "$TEAMCITY_ERROR" ]; then
+    echo "Skipping label application due to TeamCity error"
+    exit 0
+  fi
+
+  # A failed build never gets the passed label, even with no failed tests reported
+  if [ "$BUILD_FAILED_WITHOUT_TEST_FAILURES" = "true" ]; then
+    echo "Build status is FAILURE with no failed tests reported"
+    set_testing_label "$LABEL_FAILURE"
+    exit 0
+  fi
+
+  # If no failures, apply teamcity-passed label
+  if [ "$FAIL_COUNT" -eq 0 ]; then
+    echo "No test failures detected"
+    set_testing_label "$LABEL_SUCCESS"
+    exit 0
+  fi
+
+  # If there are failures, determine label based on earlier analysis
+  if [ -z "$NEW_FAILURES" ]; then
+    echo "All failed tests also exist in main branch"
+    set_testing_label "$LABEL_FAILURE"
+  else
+    echo "Found new test failures not present in main branch"
+    set_testing_label "$LABEL_NEW_FAILURE"
+  fi
+
+  echo "Label application complete"
 fi
-
-# If there are failures, determine label based on earlier analysis
-if [ -z "$MAIN_TEST_RESULTS" ]; then
-  echo "Could not fetch main branch results - applying '$LABEL_FAILURE' label as precaution..."
-  set_testing_label "$LABEL_FAILURE"
-elif [ -z "$NEW_FAILURES" ]; then
-  echo "All failed tests also exist in main branch"
-  set_testing_label "$LABEL_SUCCESS"
-else
-  echo "Found new test failures not present in main branch"
-  set_testing_label "$LABEL_FAILURE"
-fi
-
-echo "Label application complete"

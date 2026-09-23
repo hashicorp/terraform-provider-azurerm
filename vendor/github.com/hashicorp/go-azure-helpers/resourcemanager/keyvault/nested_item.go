@@ -34,9 +34,7 @@ func NewNestedItemID(keyVaultBaseURL string, nestedItemType NestedItemType, name
 		return nil, fmt.Errorf("parsing `%s`: %w", keyVaultBaseURL, err)
 	}
 
-	if hostParts := strings.Split(keyVaultUrl.Host, ":"); len(hostParts) > 1 {
-		keyVaultUrl.Host = hostParts[0]
-	}
+	keyVaultUrl.Host = stripDefaultPort(keyVaultUrl.Scheme, keyVaultUrl.Host)
 
 	return &NestedItemID{
 		KeyVaultBaseURL: strings.TrimSuffix(keyVaultUrl.String(), "/"),
@@ -128,7 +126,7 @@ func parseNestedItemID(input string) (*NestedItemID, error) {
 	}
 
 	return &NestedItemID{
-		KeyVaultBaseURL: fmt.Sprintf("%s://%s", inputUrl.Scheme, inputUrl.Host),
+		KeyVaultBaseURL: fmt.Sprintf("%s://%s", inputUrl.Scheme, stripDefaultPort(inputUrl.Scheme, inputUrl.Host)),
 		NestedItemType:  NestedItemType(pathSegments[0]),
 		Name:            pathSegments[1],
 		Version:         version,
@@ -173,4 +171,20 @@ func ValidateNestedItemName(v interface{}, k string) (warnings []string, errors 
 // This can be used to determine whether to set `managed_hsm_key_id` into state while this argument is in a deprecated state.
 func (id NestedItemID) IsManagedHSM() bool {
 	return strings.Contains(id.KeyVaultBaseURL, ".managedhsm.")
+}
+
+// stripDefaultPort removes the port when it's the default for that scheme
+// for example when :443 is included in the response.
+//
+// This allows handling cases where a non-default port may be being used.
+func stripDefaultPort(scheme, hostname string) string {
+	idx := strings.LastIndex(hostname, ":")
+	if idx < 0 {
+		return hostname
+	}
+	port := hostname[idx+1:]
+	if strings.EqualFold(scheme, "https") && port == "443" {
+		return hostname[:idx]
+	}
+	return hostname
 }

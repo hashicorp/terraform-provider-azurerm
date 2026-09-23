@@ -10,13 +10,13 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/customdomains"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CdnEndpointCustomDomainResource struct {
@@ -214,13 +214,13 @@ func (r CdnEndpointCustomDomainResource) preCheckUserManagedCertificate(t *testi
 }
 
 func (r CdnEndpointCustomDomainResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.CustomDomainID(state.ID)
+	id, err := customdomains.ParseEndpointCustomDomainID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Cdn.CustomDomainsClient.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
+	resp, err := client.Cdn.CustomDomainsClient.Get(ctx, id.ResourceGroupName, id.ProfileName, id.EndpointName, id.CustomDomainName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %q: %+v", id, err)
@@ -229,13 +229,13 @@ func (r CdnEndpointCustomDomainResource) Exists(ctx context.Context, client *cli
 }
 
 func (r CdnEndpointCustomDomainResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.CustomDomainID(state.ID)
+	id, err := customdomains.ParseEndpointCustomDomainID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	c := client.Cdn.CustomDomainsClient
-	future, err := c.Delete(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
+	future, err := c.Delete(ctx, id.ResourceGroupName, id.ProfileName, id.EndpointName, id.CustomDomainName)
 	if err != nil {
 		return nil, fmt.Errorf("deleting %q: %+v", id, err)
 	}
@@ -301,11 +301,12 @@ data "azuread_service_principal" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "testkeyvault-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.test.tenant_id
-  sku_name            = "standard"
+  name                       = "testkeyvault-%[2]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.test.tenant_id
+  sku_name                   = "standard"
   access_policy {
     tenant_id = data.azurerm_client_config.test.tenant_id
     object_id = data.azurerm_client_config.test.object_id

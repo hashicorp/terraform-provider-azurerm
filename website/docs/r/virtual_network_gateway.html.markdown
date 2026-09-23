@@ -146,6 +146,18 @@ The following arguments are supported:
 
 * `ip_sec_replay_protection_enabled` - (Optional) Is IP Sec Replay Protection enabled? Defaults to `true`.
 
+* `maximum_scale_unit` - (Optional) The maximum scale unit for the Virtual Network Gateway, possible values are `1` through `40`. 
+
+~> **Note:** `maximum_scale_unit` is only supported for the `ErGwScale` SKU.
+
+* `minimum_scale_unit` - (Optional) The minimum scale unit for the Virtual Network Gateway, possible values are `1` through `40`. 
+
+~> **Note:** `minimum_scale_unit` is only supported for the `ErGwScale` SKU.
+
+~> **Note:** To configure a `fixed-size` gateway, set `minimum_scale_unit` and `maximum_scale_unit` to the same value. To enable `autoscaling`, set `minimum_scale_unit` to `2` or higher and `maximum_scale_unit` up to `40`. When `maximum_scale_unit` is set to `1`, `minimum_scale_unit` must also be set to `1`.
+
+~> **Note:** Changing the `sku` between an availability-zone SKU (`ErGwScale`, `ErGw1AZ`, `ErGw2AZ`, `ErGw3AZ`) and a non-availability-zone SKU (`Standard`, `HighPerformance`, `UltraPerformance`) forces a new resource to be created.
+
 * `policy_group` - (Optional) One or more `policy_group` blocks as defined below.
 
 * `remote_vnet_traffic_enabled` - (Optional) Is remote vnet traffic that is used to configure this gateway to accept traffic from other Azure Virtual Networks enabled? Defaults to `false`.
@@ -203,7 +215,7 @@ The `vpn_client_configuration` block supports:
 * `aad_tenant` - (Optional) AzureAD Tenant URL
 
 * `aad_audience` - (Optional) The client id of the Azure VPN application.
-    See [Create an Active Directory (AD) tenant for P2S OpenVPN protocol connections](https://docs.microsoft.com/en-gb/azure/vpn-gateway/openvpn-azure-ad-tenant-multi-app) for values
+    See [Create an Active Directory (AD) tenant for P2S OpenVPN protocol connections](https://docs.microsoft.com/azure/vpn-gateway/openvpn-azure-ad-tenant-multi-app) for values
 
 * `aad_issuer` - (Optional) The STS url for your tenant
 

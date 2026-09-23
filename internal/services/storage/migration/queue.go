@@ -46,8 +46,7 @@ func (QueueV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 
 		queueName := rawState["name"]
 		storageAccountName := rawState["storage_account_name"]
-		newID := fmt.Sprintf("https://%s.queue.%s/%s", storageAccountName, *storageDomainSuffix, queueName)
-		rawState["id"] = newID
+		rawState["id"] = fmt.Sprintf("https://%s.queue.%s/%s", storageAccountName, *storageDomainSuffix, queueName)
 
 		return rawState, nil
 	}

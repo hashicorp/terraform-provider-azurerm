@@ -1,0 +1,26 @@
+// Copyright IBM Corp. 2021, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package statestore
+
+import (
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/statestore/schema"
+)
+
+// SchemaRequest represents a request for the State Store to return its schema.
+// An instance of this request struct is supplied as an argument to the
+// State Store type Schema method.
+type SchemaRequest struct{}
+
+// SchemaResponse represents a response to a SchemaRequest. An instance of this
+// response struct is supplied as an argument to the State Store type Schema
+// method.
+type SchemaResponse struct {
+	// Schema is the schema of the state store.
+	Schema schema.Schema
+
+	// Diagnostics report errors or warnings related to retrieving the state store schema.
+	// An empty slice indicates success, with no warnings or errors generated.
+	Diagnostics diag.Diagnostics
+}

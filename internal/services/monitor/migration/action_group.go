@@ -8,7 +8,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-01-01/actiongroupsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -27,7 +27,7 @@ func (ActionGroupUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		// new:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/actionGroups/actionGroup1
 		oldId := rawState["id"].(string)
-		id, err := parse.ActionGroupIDInsensitively(oldId)
+		id, err := actiongroupsapis.ParseActionGroupIDInsensitively(oldId)
 		if err != nil {
 			return rawState, err
 		}

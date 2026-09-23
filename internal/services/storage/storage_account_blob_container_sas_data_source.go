@@ -6,10 +6,10 @@ package storage
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/storage"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -52,13 +52,13 @@ func dataSourceStorageAccountBlobContainerSharedAccessSignature() *pluginsdk.Res
 			"start": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ISO8601DateTime,
+				ValidateFunc: validation.ISO8601DateTime,
 			},
 
 			"expiry": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ISO8601DateTime,
+				ValidateFunc: validation.ISO8601DateTime,
 			},
 
 			"permissions": {
@@ -247,13 +247,13 @@ func BuildContainerPermissionsString(perms map[string]interface{}) string {
 		{"set_immutability_policy", "i"},
 	}
 
-	retVal := ""
+	var retVal strings.Builder
 
 	for _, perm := range orderedPermissions {
 		if val, pres := perms[perm.name].(bool); pres && val {
-			retVal += perm.letter
+			retVal.WriteString(perm.letter)
 		}
 	}
 
-	return retVal
+	return retVal.String()
 }

@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -214,10 +214,7 @@ func flattenArmLoadBalancerBackendAddresses(input *[]loadbalancers.LoadBalancerB
 	output := make([]interface{}, 0)
 
 	for _, e := range *input {
-		var name string
-		if e.Name != nil {
-			name = *e.Name
-		}
+		name := pointer.From(e.Name)
 
 		var (
 			ipAddress string

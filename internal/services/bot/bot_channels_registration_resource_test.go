@@ -9,10 +9,10 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -114,12 +114,12 @@ func TestAccBotChannelsRegistration_streamingEndpointEnabled(t *testing.T) {
 }
 
 func (r BotChannelsRegistrationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.BotServiceID(state.ID)
+	id, err := commonids.ParseBotServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Bot.BotClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Bot.BotClient.Get(ctx, id.ResourceGroupName, id.BotServiceName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
@@ -170,7 +170,7 @@ resource "azurerm_bot_channels_registration" "test" {
   sku                     = "F0"
 
   endpoint                              = "https://example2.com"
-  developer_app_insights_api_key        = azurerm_application_insights_api_key.test2.api_key
+  developer_app_insights_api_key        = "IamAFakeKeyToTestTheAttribute00000000000"
   developer_app_insights_application_id = azurerm_application_insights.test2.app_id
   developer_app_insights_key            = azurerm_application_insights.test2.instrumentation_key
 
@@ -209,7 +209,7 @@ resource "azurerm_bot_channels_registration" "test" {
   sku                     = "F0"
 
   endpoint                              = "https://example.com"
-  developer_app_insights_api_key        = azurerm_application_insights_api_key.test.api_key
+  developer_app_insights_api_key        = "IamAFakeKeyToTestTheAttribute00000000000"
   developer_app_insights_application_id = azurerm_application_insights.test.app_id
   developer_app_insights_key            = azurerm_application_insights.test.instrumentation_key
 
@@ -248,7 +248,7 @@ resource "azurerm_bot_channels_registration" "test" {
   sku                     = "F0"
 
   endpoint                              = "https://example2.com"
-  developer_app_insights_api_key        = azurerm_application_insights_api_key.test2.api_key
+  developer_app_insights_api_key        = "IamAFakeKeyToTestTheAttribute00000000000"
   developer_app_insights_application_id = azurerm_application_insights.test2.app_id
   developer_app_insights_key            = azurerm_application_insights.test2.instrumentation_key
 
@@ -349,6 +349,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv-%[3]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   purge_protection_enabled   = true
