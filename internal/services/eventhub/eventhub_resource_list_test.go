@@ -35,7 +35,7 @@ func TestAccEventhub_listByNamespaceID(t *testing.T) {
 				Query:  true,
 				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_eventhub.list", 3),
+					querycheck.ExpectLength("azurerm_eventhub.list", 3),
 					querycheck.ExpectIdentity(
 						"azurerm_eventhub.list",
 						map[string]knownvalue.Check{
