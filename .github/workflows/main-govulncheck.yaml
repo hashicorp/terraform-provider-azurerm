@@ -5,9 +5,6 @@ name: Go Vulnerability Check
 # something needs attention. Runs on pushes to main and weekly, not on PRs: a CVE published
 # against a dependency we already use produces no new commit, so only a schedule can catch it,
 # and contributors should not be blocked by a vulnerability that is already on main.
-#
-# Mirrors the setup in katbyte/tctest. The action does its own checkout and Go setup, reading the
-# Go version from .go-version like every other job here.
 
 permissions:
   contents: read
