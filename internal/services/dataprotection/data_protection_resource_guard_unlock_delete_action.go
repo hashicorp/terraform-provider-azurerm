@@ -6,6 +6,7 @@ package dataprotection
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
@@ -20,6 +21,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
+
+const GuardOperationDeleteProtectedItem = "Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers/protectedItems/delete"
 
 type DataProtectionResourceGuardUnlockDeleteAction struct {
 	sdk.ActionMetadata
@@ -73,7 +76,7 @@ func (a *DataProtectionResourceGuardUnlockDeleteAction) Invoke(ctx context.Conte
 	}
 
 	client := a.Client.RecoveryServices
-	existing, err := client.ProtectedItemsClient.Get(ctx, *id, protecteditems.GetOperationOptions{})
+	existing, err := client.ProtectedItemsClient.Get(ctx, *id, protecteditems.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(existing.HttpResponse) {
 			resp.SendProgress(action.InvokeProgressEvent{
@@ -97,7 +100,7 @@ func (a *DataProtectionResourceGuardUnlockDeleteAction) Invoke(ctx context.Conte
 		var operationRequests []string
 		if proxy.Properties != nil && proxy.Properties.ResourceGuardOperationDetails != nil {
 			for _, detail := range *proxy.Properties.ResourceGuardOperationDetails {
-				if pointer.From(detail.VaultCriticalOperation) != GuardOperationDeleteProtectedItem {
+				if !strings.EqualFold(pointer.From(detail.VaultCriticalOperation), GuardOperationDeleteProtectedItem) {
 					continue
 				}
 				if pointer.From(detail.DefaultResourceRequest) == "" {
@@ -129,6 +132,7 @@ func (a *DataProtectionResourceGuardUnlockDeleteAction) Invoke(ctx context.Conte
 			sdk.SetResponseErrorDiagnostic(resp, "unlocking deletion", fmt.Errorf("unlocking %s using %s: %+v", id, proxyId, err))
 			return
 		}
+
 		unlocked = true
 		if result.Model != nil && result.Model.UnlockDeleteExpiryTime != nil {
 			resp.SendProgress(action.InvokeProgressEvent{
@@ -141,6 +145,7 @@ func (a *DataProtectionResourceGuardUnlockDeleteAction) Invoke(ctx context.Conte
 	if !unlocked {
 		message = fmt.Sprintf("deletion of %s is not protected by Resource Guard; no unlock is required", id)
 	}
+
 	resp.SendProgress(action.InvokeProgressEvent{Message: message})
 }
 
