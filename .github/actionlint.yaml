@@ -1,4 +1,4 @@
-# Configuration for rhysd/actionlint (run by .github/workflows/workflow-actionlint.yml); this is
+# Configuration for actionlint (run by .github/workflows/workflow-actionlint.yml); this is
 # actionlint's default config path, so it is picked up automatically.
 
 # Custom runner labels used by this repo's workflows.

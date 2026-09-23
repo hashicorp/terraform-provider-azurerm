@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkmanagers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	managementGroupValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -198,7 +197,7 @@ func (r ManagerResource) Create() sdk.ResourceFunc {
 					NetworkManagerScopes:        expandNetworkManagerScope(state.Scope),
 					NetworkManagerScopeAccesses: expandNetworkManagerScopeAccesses(state.ScopeAccesses),
 				},
-				Tags: helpers.ExpandPtrMapStringString(state.Tags),
+				Tags: pluginsdk.ExpandPtrMapStringString(state.Tags),
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id, input); err != nil {
@@ -261,7 +260,7 @@ func (r ManagerResource) Read() sdk.ResourceFunc {
 				ResourceGroupName: id.ResourceGroupName,
 				ScopeAccesses:     scopeAccesses,
 				Scope:             scope,
-				Tags:              helpers.FlattenPtrMapStringString(resp.Model.Tags),
+				Tags:              pluginsdk.FlattenPtrMapStringString(resp.Model.Tags),
 			})
 		},
 	}
@@ -306,7 +305,7 @@ func (r ManagerResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				existing.Model.Tags = helpers.ExpandPtrMapStringString(state.Tags)
+				existing.Model.Tags = pluginsdk.ExpandPtrMapStringString(state.Tags)
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {

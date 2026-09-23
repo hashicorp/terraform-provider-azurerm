@@ -6,7 +6,7 @@ package validate
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func PrivateLinkName(i interface{}, k string) (_ []string, errors []error) {
@@ -24,10 +24,10 @@ func PrivateLinkName(i interface{}, k string) (_ []string, errors []error) {
 	//    c) may contain only letters, numbers, underscores, periods, or hyphens.
 
 	if len(v) == 1 {
-		if m, _ := validate.RegExHelper(i, k, `^([a-zA-Z\d])`); !m {
+		if m, _ := validation.RegExHelper(i, k, `^([a-zA-Z\d])`); !m {
 			errors = append(errors, fmt.Errorf("%s must begin with a letter or number", k))
 		}
-	} else if m, _ := validate.RegExHelper(i, k, `^([a-zA-Z\d])([a-zA-Z\d-\_\.]{0,78})([a-zA-Z\d\_])$`); !m {
+	} else if m, _ := validation.RegExHelper(i, k, `^([a-zA-Z\d])([a-zA-Z\d-\_\.]{0,78})([a-zA-Z\d\_])$`); !m {
 		errors = append(errors, fmt.Errorf("%s must be between 1 - 80 characters long, begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, periods, hyphens or underscores", k))
 	}
 

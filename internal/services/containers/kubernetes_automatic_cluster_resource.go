@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
@@ -257,7 +256,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						},
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
-							ValidateFunc: validate.CIDR,
+							ValidateFunc: validation.IsCIDRIPv4,
 						},
 						ConflictsWith: []string{"private_cluster"},
 					},
@@ -1168,7 +1167,7 @@ func flattenKubernetesAutomaticClusterKubeConfig(config kubernetes.KubeConfig) [
 			Host:                 cluster.Server,
 			Username:             name,
 			Password:             user.Token,
-			ClientCertificate:    user.ClientCertificteData,
+			ClientCertificate:    user.ClientCertificateData,
 			ClientKey:            user.ClientKeyData,
 			ClusterCACertificate: cluster.ClusterAuthorityData,
 		},
