@@ -18,7 +18,7 @@ import (
 )
 
 func TestAccKubernetesClusterNodePool_listByKubernetesClusterID(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "testlist1")
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "list")
 	r := KubernetesClusterNodePoolResource{}
 
 	resource.Test(t, resource.TestCase{
