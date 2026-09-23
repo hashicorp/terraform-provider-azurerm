@@ -1,10 +1,14 @@
 name: Workflow Action Lint
 
-# Lints .github/workflows/ with rhysd/actionlint (expression/context errors, shellcheck on run:
-# blocks, action input validation). actionlint is go installed at the version pinned below (the
-# single source of truth - GNUmakefile seds it out) as dependabot's github-actions ecosystem only
-# bumps `uses:` lines and a go.mod tool directive would drag actionlint's dependencies into
-# vendor/ (this module vendors); its config lives in .github/actionlint.yaml.
+# Lints .github/workflows/ with actionlint (expression/context errors, shellcheck on run:
+# blocks, action input validation). make builds actionlint at the version pinned in .tools/go.mod
+# (a separate module, so its dependencies stay out of vendor/; dependabot bumps it there); its
+# config lives in .github/actionlint.yaml.
+#
+# We build katbyte/actionlint, a fork of rhysd/actionlint carrying two upstream PRs that have not
+# been merged: #732 (support for GitHub's `$/` self-repository `uses:` syntax, without which this
+# repo's workflows fail to lint) and #735 (go.yaml.in/yaml/v4 rc.6, so actionlint and golangci-lint
+# can share a dependency). Upstream has had no commits since April 2026.
 
 permissions:
   contents: read
@@ -15,6 +19,7 @@ on:
     paths:
       - '.github/workflows/**'
       - '.github/actionlint*'
+      - '.tools/**'
       - 'GNUmakefile'
 
 concurrency:
@@ -26,14 +31,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: ./.go-version
           cache: false
-      - name: Install actionlint
-        run: go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
       # the problem matcher turns actionlint's file:line:col output into inline PR annotations
       - name: Register actionlint problem matcher
         run: echo "::add-matcher::.github/actionlint-matcher.json"
-      - name: Run actionlint (with shellcheck) on workflow files
+      - name: Run actionlint (with shellcheck) on workflow files (builds the pinned actionlint first)
         run: make actionlint
