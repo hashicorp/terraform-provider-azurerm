@@ -80,7 +80,6 @@ resource "azurerm_linux_web_app_site_container" "test" {
   linux_web_app_id = azurerm_linux_web_app.test.id
   image            = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
   target_port      = 80
-  primary          = count.index == 0
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

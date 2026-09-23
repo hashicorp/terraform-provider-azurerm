@@ -39,14 +39,6 @@ resource "azurerm_linux_web_app" "example" {
   }
 }
 
-resource "azurerm_linux_web_app_site_container" "example" {
-  name             = "main"
-  linux_web_app_id = azurerm_linux_web_app.example.id
-  image            = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
-  target_port      = 80
-  primary          = true
-}
-
 resource "azurerm_linux_web_app_site_container" "sidecar" {
   name             = "sidecar"
   linux_web_app_id = azurerm_linux_web_app.example.id
@@ -54,6 +46,8 @@ resource "azurerm_linux_web_app_site_container" "sidecar" {
   target_port      = 8080
 }
 ```
+
+~> **Note:** `azurerm_linux_web_app_site_container` manages additional, non-main Site Containers only. The main Site Container - the one that serves the Web App's inbound traffic - is owned by the `main_site_container` block on the parent `azurerm_linux_web_app` (or `azurerm_linux_web_app_slot`) resource and cannot be imported into or managed by this resource.
 
 ## Arguments Reference
 
@@ -78,10 +72,6 @@ The following arguments are supported:
 * `password_secret` - (Optional) The password to use when `authentication_type` is set to `UserCredentials`.
 
 -> **Note:** Azure does not return values supplied to `password_secret`, so Terraform cannot detect drift for this property.
-
-* `primary` - (Optional) Should this container serve the primary site traffic? Defaults to `false`.
-
-~> **Note:** Each Linux Web App should have exactly one Site Container with `primary` set to `true` - this is the container that serves the Web App's inbound traffic. Because each Site Container is managed as a separate resource, Terraform cannot enforce this invariant across multiple `azurerm_linux_web_app_site_container` resources targeting the same Linux Web App; ensuring a single primary container is defined is the responsibility of the configuration.
 
 * `startup_command` - (Optional) The command that should be executed when the container starts.
 

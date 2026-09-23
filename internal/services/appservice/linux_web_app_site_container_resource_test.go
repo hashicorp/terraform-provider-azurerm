@@ -172,7 +172,6 @@ resource "azurerm_linux_web_app_site_container" "test" {
   linux_web_app_id = azurerm_linux_web_app.test.id
   image            = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
   target_port      = 80
-  primary          = true
 }
 `, r.template(data))
 }
@@ -186,7 +185,6 @@ resource "azurerm_linux_web_app_site_container" "test" {
   linux_web_app_id = azurerm_linux_web_app.test.id
   image            = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
   target_port      = 80
-  primary          = true
   startup_command  = "sleep 5"
 
   environment_variable {
@@ -219,7 +217,6 @@ resource "azurerm_linux_web_app_site_container" "test" {
   linux_web_app_id = azurerm_linux_web_app.test.id
   image            = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
   target_port      = 8080
-  primary          = true
 
   environment_variable {
     name             = "EXAMPLE"
@@ -238,7 +235,6 @@ resource "azurerm_linux_web_app_site_container" "test" {
   linux_web_app_id = azurerm_linux_web_app.test.id
   image            = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
   target_port      = 8080
-  primary          = true
 
   environment_variable {
     name             = "EXAMPLE"
@@ -257,7 +253,6 @@ resource "azurerm_linux_web_app_site_container" "import" {
   linux_web_app_id = azurerm_linux_web_app_site_container.test.linux_web_app_id
   image            = azurerm_linux_web_app_site_container.test.image
   target_port      = azurerm_linux_web_app_site_container.test.target_port
-  primary          = azurerm_linux_web_app_site_container.test.primary
 }
 `, r.basic(data))
 }
@@ -271,7 +266,6 @@ resource "azurerm_linux_web_app_site_container" "test" {
   linux_web_app_id = azurerm_linux_web_app.test.id
   image            = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
   target_port      = 80
-  primary          = true
 
   environment_variable {
     name             = "EXAMPLE"

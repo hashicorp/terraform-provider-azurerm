@@ -31,7 +31,6 @@ type LinuxWebAppSiteContainerModel struct {
 	LinuxWebAppId               string                                     `tfschema:"linux_web_app_id"`
 	Image                       string                                     `tfschema:"image"`
 	TargetPort                  int64                                      `tfschema:"target_port"`
-	Primary                     bool                                       `tfschema:"primary"`
 	AuthenticationType          string                                     `tfschema:"authentication_type"`
 	StartUpCommand              string                                     `tfschema:"startup_command"`
 	UserManagedIdentityClientID string                                     `tfschema:"user_managed_identity_client_id"`
@@ -126,15 +125,6 @@ func (r LinuxWebAppSiteContainerResource) Arguments() map[string]*pluginsdk.Sche
 			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		// NOTE: Azure expects exactly one Site Container per Web App to be marked `primary` (the container that
-		// serves the Web App's inbound traffic). As each Site Container is a discrete Terraform resource, this
-		// cross-resource invariant cannot be enforced in-schema and is documented for the practitioner instead.
-		"primary": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
 		},
 
 		"startup_command": {
@@ -283,6 +273,10 @@ func (r LinuxWebAppSiteContainerResource) Read() sdk.ResourceFunc {
 				container = *existing.Model
 			}
 
+			if isMainSiteContainer(container) {
+				return fmt.Errorf("%s is the main Site Container for the parent Linux Web App and must be managed with the `main_site_container` block on `azurerm_linux_web_app`", id)
+			}
+
 			state := flattenLinuxWebAppSiteContainer(*id, container, config.PasswordSecret)
 
 			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
@@ -351,7 +345,7 @@ func (m LinuxWebAppSiteContainerModel) expandProperties() *webapps.SiteContainer
 		AuthType:             pointer.ToEnum[webapps.AuthType](m.AuthenticationType),
 		EnvironmentVariables: helpers.ExpandSiteContainerEnvironmentVariables(m.EnvironmentVariables),
 		Image:                m.Image,
-		IsMain:               m.Primary,
+		IsMain:               false,
 		TargetPort:           pointer.To(strconv.FormatInt(m.TargetPort, 10)),
 		VolumeMounts:         helpers.ExpandSiteContainerVolumeMounts(m.VolumeMounts),
 	}
@@ -396,7 +390,6 @@ func flattenLinuxWebAppSiteContainer(id webapps.SitecontainerId, container webap
 
 	if props := container.Properties; props != nil {
 		state.Image = props.Image
-		state.Primary = props.IsMain
 		state.AuthenticationType = string(webapps.AuthTypeAnonymous)
 		if props.AuthType != nil {
 			state.AuthenticationType = string(*props.AuthType)
@@ -417,4 +410,11 @@ func flattenLinuxWebAppSiteContainer(id webapps.SitecontainerId, container webap
 	}
 
 	return state
+}
+
+// isMainSiteContainer reports whether the Site Container is the parent Linux Web App's main
+// container. The main Site Container is owned by `azurerm_linux_web_app`'s `main_site_container`
+// block and must not be imported into or managed by this resource.
+func isMainSiteContainer(container webapps.SiteContainer) bool {
+	return container.Properties != nil && container.Properties.IsMain
 }

@@ -77,6 +77,10 @@ func (LinuxWebAppSiteContainerListResource) List(ctx context.Context, request li
 
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, container := range resp.Items {
+			if isMainSiteContainer(container) {
+				continue
+			}
+
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(container.Name)
 
