@@ -18,9 +18,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -88,8 +88,6 @@ type Auth struct {
 	ExpireInSec  int64  `tfschema:"expire_in_seconds"`
 }
 
-type SourceSetting struct{}
-
 type SourceTrigger struct {
 	Name          string   `tfschema:"name"`
 	Enabled       bool     `tfschema:"enabled"`
@@ -145,7 +143,7 @@ type ContainerRegistryTaskModel struct {
 func userDataStateFunc(v interface{}) string {
 	switch s := v.(type) {
 	case string:
-		return helpers.Base64EncodeIfNot(s)
+		return base64.EncodeIfNot(s)
 	default:
 		return ""
 	}
@@ -923,7 +921,7 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 				existing.Model.Tags = &model.Tags
 			}
 
-			// Due to the fact that the service doesn't honor explicitly set to null fields in the PATCH request,
+			// Due to the fact that the service doesn't honour explicitly set to null fields in the PATCH request,
 			// we can not use PATCH (i.e. the Update) here.
 			if err := client.CreateThenPoll(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
@@ -974,7 +972,7 @@ func expandRegistryTaskBaseImageTrigger(triggers []BaseImageTrigger) *tasks.Base
 
 func flattenRegistryTaskBaseImageTrigger(trigger *tasks.BaseImageTrigger, model ContainerRegistryTaskModel) []BaseImageTrigger {
 	if trigger == nil {
-		return nil
+		return []BaseImageTrigger{}
 	}
 
 	payloadType := ""
@@ -1035,7 +1033,7 @@ func expandRegistryTaskSourceTriggers(triggers []SourceTrigger) *[]tasks.SourceT
 
 func flattenRegistryTaskSourceTriggers(triggers *[]tasks.SourceTrigger, model ContainerRegistryTaskModel) []SourceTrigger {
 	if triggers == nil {
-		return nil
+		return []SourceTrigger{}
 	}
 	out := make([]SourceTrigger, 0, len(*triggers))
 	for i, trigger := range *triggers {
@@ -1107,7 +1105,7 @@ func expandRegistryTaskTimerTriggers(triggers []TimerTrigger) *[]tasks.TimerTrig
 
 func flattenRegistryTaskTimerTriggers(triggers *[]tasks.TimerTrigger) []TimerTrigger {
 	if triggers == nil {
-		return nil
+		return []TimerTrigger{}
 	}
 	out := make([]TimerTrigger, 0, len(*triggers))
 	for _, trigger := range *triggers {
@@ -1158,12 +1156,12 @@ func expandRegistryTaskDockerStep(step DockerStep) tasks.DockerBuildStep {
 
 func flattenRegistryTaskDockerStep(step tasks.TaskStepProperties, model ContainerRegistryTaskModel) []DockerStep {
 	if step == nil {
-		return nil
+		return []DockerStep{}
 	}
 
 	dockerStep, ok := step.(tasks.DockerBuildStep)
 	if !ok {
-		return nil
+		return []DockerStep{}
 	}
 
 	obj := DockerStep{
@@ -1218,12 +1216,12 @@ func expandRegistryTaskFileTaskStep(step FileTaskStep) tasks.FileTaskStep {
 
 func flattenRegistryTaskFileTaskStep(step tasks.TaskStepProperties, model ContainerRegistryTaskModel) []FileTaskStep {
 	if step == nil {
-		return nil
+		return []FileTaskStep{}
 	}
 
 	fileTaskStep, ok := step.(tasks.FileTaskStep)
 	if !ok {
-		return nil
+		return []FileTaskStep{}
 	}
 
 	obj := FileTaskStep{
@@ -1252,7 +1250,7 @@ func flattenRegistryTaskFileTaskStep(step tasks.TaskStepProperties, model Contai
 
 func expandRegistryTaskEncodedTaskStep(step EncodedTaskStep) tasks.EncodedTaskStep {
 	out := tasks.EncodedTaskStep{
-		EncodedTaskContent: helpers.Base64EncodeIfNot(step.TaskContent),
+		EncodedTaskContent: base64.EncodeIfNot(step.TaskContent),
 		Values:             expandRegistryTaskValues(step.Values, step.SecretValues),
 	}
 	if step.ContextPath != "" {
@@ -1262,19 +1260,19 @@ func expandRegistryTaskEncodedTaskStep(step EncodedTaskStep) tasks.EncodedTaskSt
 		out.ContextAccessToken = &step.ContextAccessToken
 	}
 	if step.ValueContent != "" {
-		out.EncodedValuesContent = pointer.To(helpers.Base64EncodeIfNot(step.ValueContent))
+		out.EncodedValuesContent = pointer.To(base64.EncodeIfNot(step.ValueContent))
 	}
 	return out
 }
 
 func flattenRegistryTaskEncodedTaskStep(step tasks.TaskStepProperties, model ContainerRegistryTaskModel) []EncodedTaskStep {
 	if step == nil {
-		return nil
+		return []EncodedTaskStep{}
 	}
 
 	encodedTaskStep, ok := step.(tasks.EncodedTaskStep)
 	if !ok {
-		return nil
+		return []EncodedTaskStep{}
 	}
 
 	obj := EncodedTaskStep{
@@ -1328,7 +1326,7 @@ func expandRegistryTaskArguments(arguments map[string]string, secretArguments ma
 
 func flattenRegistryTaskArguments(arguments *[]tasks.Argument) map[string]string {
 	if arguments == nil {
-		return nil
+		return map[string]string{}
 	}
 
 	args := map[string]string{}
@@ -1380,7 +1378,7 @@ func expandRegistryTaskValues(values map[string]string, secretValues map[string]
 
 func flattenRegistryTaskValues(values *[]tasks.SetValue) map[string]string {
 	if values == nil {
-		return nil
+		return map[string]string{}
 	}
 
 	vals := map[string]string{}
@@ -1426,7 +1424,7 @@ func expandRegistryTaskPlatform(input []Platform) *tasks.PlatformProperties {
 
 func flattenRegistryTaskPlatform(platform *tasks.PlatformProperties) []Platform {
 	if platform == nil {
-		return nil
+		return []Platform{}
 	}
 
 	architecture := ""
@@ -1459,7 +1457,7 @@ func expandRegistryTaskCredentials(input []RegistryCredential) *tasks.Credential
 
 func flattenRegistryTaskCredentials(input *tasks.Credentials, model ContainerRegistryTaskModel) []RegistryCredential {
 	if input == nil {
-		return nil
+		return []RegistryCredential{}
 	}
 
 	// The customRegistryCredentials is sensitive and won't return from API, setting it from the config.
@@ -1486,7 +1484,7 @@ func expandSourceRegistryCredential(input []SourceRegistryCredential) *tasks.Sou
 
 func flattenSourceRegistryCredential(input *tasks.SourceRegistryCredentials) []SourceRegistryCredential {
 	if input == nil || input.LoginMode == nil {
-		return nil
+		return []SourceRegistryCredential{}
 	}
 
 	return []SourceRegistryCredential{{LoginMode: string(*input.LoginMode)}}
@@ -1540,7 +1538,7 @@ func expandRegistryTaskAgentProperties(input []AgentConfig) *tasks.AgentProperti
 
 func flattenRegistryTaskAgentProperties(input *tasks.AgentProperties) []AgentConfig {
 	if input == nil {
-		return nil
+		return []AgentConfig{}
 	}
 
 	return []AgentConfig{{CPU: pointer.From(input.Cpu)}}

@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2021-06-01/assessmentsmetadata"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -60,12 +59,12 @@ func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInEnumSlice(security.PossibleSeverityValues(), false),
 			},
 
-			// API would return `Unknown` when `categories` isn't set.
-			// After synced with service team, they confirmed will add `Unknown` as possible value to this property and it will be published as a new version of this API.
-			// https://github.com/Azure/azure-rest-api-specs/issues/14918
 			"categories": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
+				// Note: O+C the API would return `Unknown` when `categories` isn't set.
+				// After synced with service team, they confirmed will add `Unknown` as possible value to this property and it will be published as a new version of this API.
+				// https://github.com/Azure/azure-rest-api-specs/issues/14918
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
@@ -230,7 +229,7 @@ func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, me
 					categories = append(categories, string(item))
 				}
 			}
-			d.Set("categories", helpers.FlattenStringSlice(&categories))
+			d.Set("categories", pluginsdk.FlattenSlice(&categories))
 
 			threats := make([]string, 0)
 			if props.Threats != nil {
@@ -238,7 +237,7 @@ func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, me
 					threats = append(threats, string(item))
 				}
 			}
-			d.Set("threats", helpers.FlattenStringSlice(&threats))
+			d.Set("threats", pluginsdk.FlattenSlice(&threats))
 		}
 	}
 

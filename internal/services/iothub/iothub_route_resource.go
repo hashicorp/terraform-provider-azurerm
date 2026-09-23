@@ -11,7 +11,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -83,7 +82,7 @@ func resourceIotHubRoute() *pluginsdk.Resource {
 			},
 			"condition": {
 				// The condition is a string value representing device-to-cloud message routes query expression
-				// https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
+				// https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "true",
@@ -135,7 +134,7 @@ func resourceIotHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Name:          &id.Name,
 		Source:        source,
 		Condition:     &condition,
-		EndpointNames: helpers.ExpandStringSlice(endpointNamesRaw),
+		EndpointNames: pluginsdk.ExpandStringSlice(endpointNamesRaw),
 		IsEnabled:     &isEnabled,
 	}
 

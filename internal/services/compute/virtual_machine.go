@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -125,7 +124,7 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 				"storage_account_type": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					// whilst this appears in the Update block the API returns this when changing:
 					// Changing property 'osDisk.managedDisk.storageAccountType' is not allowed
 					ForceNew: true,
@@ -188,8 +187,9 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 				},
 
 				"disk_size_gb": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					// Note: O+C because Azure computes disk size when not specified
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(0, 4095),
 				},
@@ -198,7 +198,7 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ForceNew: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ConflictsWith: []string{
 						"os_managed_disk_id",
 					},
@@ -422,7 +422,7 @@ func virtualMachineTerminationNotificationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
+		Computed: true, // azignore:AZS007 - pre-existing violation
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -433,7 +433,7 @@ func virtualMachineTerminationNotificationSchema() *pluginsdk.Schema {
 				"timeout": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: azValidate.ISO8601DurationBetween("PT5M", "PT15M"),
+					ValidateFunc: validation.ISO8601DurationBetween("PT5M", "PT15M"),
 					Default:      "PT5M",
 				},
 			},
@@ -449,11 +449,10 @@ func expandOsImageNotificationProfile(input []interface{}) *virtualmachines.OSIm
 	}
 
 	raw := input[0].(map[string]interface{})
-	timeout := raw["timeout"].(string)
 
 	return &virtualmachines.OSImageNotificationProfile{
 		Enable:           pointer.To(true),
-		NotBeforeTimeout: &timeout,
+		NotBeforeTimeout: pointer.To(raw["timeout"].(string)),
 	}
 }
 
@@ -465,18 +464,16 @@ func expandTerminateNotificationProfile(input []interface{}) *virtualmachines.Te
 	}
 
 	raw := input[0].(map[string]interface{})
-	enabled := raw["enabled"].(bool)
-	timeout := raw["timeout"].(string)
 
 	return &virtualmachines.TerminateNotificationProfile{
-		Enable:           &enabled,
-		NotBeforeTimeout: &timeout,
+		Enable:           pointer.To(raw["enabled"].(bool)),
+		NotBeforeTimeout: pointer.To(raw["timeout"].(string)),
 	}
 }
 
 func flattenOsImageNotificationProfile(input *virtualmachines.OSImageNotificationProfile) []interface{} {
 	if input == nil || !pointer.From(input.Enable) {
-		return nil
+		return []interface{}{}
 	}
 
 	timeout := "PT15M"
@@ -591,7 +588,7 @@ func expandVirtualMachineGalleryApplication(input []interface{}) *[]virtualmachi
 
 func flattenVirtualMachineGalleryApplication(input *[]virtualmachines.VMGalleryApplication) []interface{} {
 	if len(*input) == 0 {
-		return nil
+		return []interface{}{}
 	}
 
 	out := make([]interface{}, 0)

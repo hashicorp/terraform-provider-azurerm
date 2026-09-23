@@ -211,8 +211,7 @@ func resourceNetworkSecurityRuleCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("description"); ok {
-		description := v.(string)
-		rule.Properties.Description = &description
+		rule.Properties.Description = pointer.To(v.(string))
 	}
 
 	if r, ok := d.GetOk("source_port_ranges"); ok {

@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -70,10 +69,10 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			// Service will create a route table for the user if this is not specified.
 			"routing": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				// Note: O+C because the service will create a route table for the user if this is not specified.
 				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
@@ -99,7 +98,7 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 						"propagated_route_table": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -733,7 +732,7 @@ func flattenVpnGatewayConnectionPropagatedRouteTable(input *virtualwans.Propagat
 
 	labels := make([]interface{}, 0)
 	if input.Labels != nil {
-		labels = helpers.FlattenStringSlice(input.Labels)
+		labels = pluginsdk.FlattenSlice(input.Labels)
 	}
 
 	routeTableIds := make([]interface{}, 0)
@@ -761,8 +760,8 @@ func expandVpnGatewayConnectionTrafficSelectorPolicy(input []interface{}) *[]vir
 		v := item.(map[string]interface{})
 
 		results = append(results, virtualwans.TrafficSelectorPolicy{
-			LocalAddressRanges:  pointer.From(helpers.ExpandStringSlice(v["local_address_ranges"].(*pluginsdk.Set).List())),
-			RemoteAddressRanges: pointer.From(helpers.ExpandStringSlice(v["remote_address_ranges"].(*pluginsdk.Set).List())),
+			LocalAddressRanges:  pointer.From(pluginsdk.ExpandStringSlice(v["local_address_ranges"].(*pluginsdk.Set).List())),
+			RemoteAddressRanges: pointer.From(pluginsdk.ExpandStringSlice(v["remote_address_ranges"].(*pluginsdk.Set).List())),
 		})
 	}
 
@@ -777,8 +776,8 @@ func flattenVpnGatewayConnectionTrafficSelectorPolicy(input *[]virtualwans.Traff
 
 	for _, item := range *input {
 		results = append(results, map[string]interface{}{
-			"local_address_ranges":  helpers.FlattenStringSlice(&item.LocalAddressRanges),
-			"remote_address_ranges": helpers.FlattenStringSlice(&item.RemoteAddressRanges),
+			"local_address_ranges":  pluginsdk.FlattenSlice(&item.LocalAddressRanges),
+			"remote_address_ranges": pluginsdk.FlattenSlice(&item.RemoteAddressRanges),
 		})
 	}
 
@@ -803,7 +802,7 @@ func expandVpnGatewayConnectionPropagatedRouteTable(input []interface{}) *virtua
 		Ids: pointer.To(routeTableIds),
 	}
 	if labels := v["labels"].(*pluginsdk.Set).List(); len(labels) != 0 {
-		result.Labels = helpers.ExpandStringSlice(labels)
+		result.Labels = pluginsdk.ExpandStringSlice(labels)
 	}
 	return &result
 }

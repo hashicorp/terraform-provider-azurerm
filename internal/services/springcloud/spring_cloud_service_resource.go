@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -87,7 +86,7 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice([]string{
 					"Basic",
 					"Enterprise",
@@ -170,7 +169,7 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 			"marketplace": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -229,7 +228,7 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 						"app_network_resource_group": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ForceNew: true,
 						},
 
@@ -253,7 +252,7 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 						"service_runtime_network_resource_group": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							ForceNew: true,
 						},
 					},
@@ -812,8 +811,7 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 			return fmt.Errorf("setting `network`: %+v", err)
 		}
 
-		outboundPublicIPAddresses := flattenOutboundPublicIPAddresses(props.NetworkProfile)
-		if err := d.Set("outbound_public_ip_addresses", outboundPublicIPAddresses); err != nil {
+		if err := d.Set("outbound_public_ip_addresses", flattenOutboundPublicIPAddresses(props.NetworkProfile)); err != nil {
 			return fmt.Errorf("setting `outbound_public_ip_addresses`: %+v", err)
 		}
 
@@ -935,7 +933,7 @@ func expandSpringCloudNetwork(input []interface{}) *appplatform.NetworkProfile {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	cidrRanges := helpers.ExpandStringSlice(v["cidr_ranges"].([]interface{}))
+	cidrRanges := pluginsdk.ExpandStringSlice(v["cidr_ranges"].([]interface{}))
 	network := &appplatform.NetworkProfile{
 		ServiceRuntimeSubnetID: pointer.To(v["service_runtime_subnet_id"].(string)),
 		AppSubnetID:            pointer.To(v["app_subnet_id"].(string)),
@@ -974,7 +972,7 @@ func expandSpringCloudConfigServerGitProperty(input []interface{}) (*appplatform
 		result.Label = pointer.To(label)
 	}
 	if searchPaths := v["search_paths"].([]interface{}); len(searchPaths) > 0 {
-		result.SearchPaths = helpers.ExpandStringSlice(searchPaths)
+		result.SearchPaths = pluginsdk.ExpandStringSlice(searchPaths)
 	}
 
 	httpBasicAuth := v["http_basic_auth"].([]interface{})
@@ -1025,10 +1023,10 @@ func expandSpringCloudGitPatternRepository(input []interface{}) (*[]appplatform.
 			result.Label = pointer.To(label)
 		}
 		if pattern := v["pattern"].([]interface{}); len(pattern) > 0 {
-			result.Pattern = helpers.ExpandStringSlice(pattern)
+			result.Pattern = pluginsdk.ExpandStringSlice(pattern)
 		}
 		if searchPaths := v["search_paths"].([]interface{}); len(searchPaths) > 0 {
-			result.SearchPaths = helpers.ExpandStringSlice(searchPaths)
+			result.SearchPaths = pluginsdk.ExpandStringSlice(searchPaths)
 		}
 
 		httpBasicAuth := v["http_basic_auth"].([]interface{})
@@ -1136,7 +1134,7 @@ func flattenSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerPr
 
 	label := pointer.From(gitProperty.Label)
 
-	searchPaths := helpers.FlattenStringSlice(gitProperty.SearchPaths)
+	searchPaths := pluginsdk.FlattenSlice(gitProperty.SearchPaths)
 
 	httpBasicAuth := make([]interface{}, 0)
 	if gitProperty.Username != nil && gitProperty.Password != nil {
@@ -1233,8 +1231,8 @@ func flattenSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepos
 			oldGitPatternRepository = gpr.(map[string]interface{})
 		}
 
-		pattern := helpers.FlattenStringSlice(item.Pattern)
-		searchPaths := helpers.FlattenStringSlice(item.SearchPaths)
+		pattern := pluginsdk.FlattenSlice(item.Pattern)
+		searchPaths := pluginsdk.FlattenSlice(item.SearchPaths)
 
 		httpBasicAuth := []interface{}{}
 		if item.Username != nil && item.Password != nil {
@@ -1348,7 +1346,7 @@ func flattenSpringCloudNetwork(input *appplatform.NetworkProfile) []interface{} 
 	}
 	if input.ServiceCidr != nil {
 		cidrs := strings.Split(*input.ServiceCidr, ",")
-		cidrRanges = helpers.FlattenStringSlice(&cidrs)
+		cidrRanges = pluginsdk.FlattenSlice(&cidrs)
 	}
 	if input.ServiceRuntimeNetworkResourceGroup != nil {
 		serviceRuntimeNetworkResourceGroup = *input.ServiceRuntimeNetworkResourceGroup
@@ -1390,7 +1388,7 @@ func flattenOutboundPublicIPAddresses(input *appplatform.NetworkProfile) []inter
 		return []interface{}{}
 	}
 
-	return helpers.FlattenStringSlice(input.OutboundIPs.PublicIPs)
+	return pluginsdk.FlattenSlice(input.OutboundIPs.PublicIPs)
 }
 
 func flattenRequiredTraffic(input *appplatform.NetworkProfile) []interface{} {
@@ -1410,8 +1408,8 @@ func flattenRequiredTraffic(input *appplatform.NetworkProfile) []interface{} {
 		result = append(result, map[string]interface{}{
 			"protocol":     protocol,
 			"port":         port,
-			"ip_addresses": helpers.FlattenStringSlice(v.Ips),
-			"fqdns":        helpers.FlattenStringSlice(v.Fqdns),
+			"ip_addresses": pluginsdk.FlattenSlice(v.Ips),
+			"fqdns":        pluginsdk.FlattenSlice(v.Fqdns),
 			"direction":    string(v.Direction),
 		})
 	}

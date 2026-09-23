@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-02-01/templatespecversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/deployments"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/migration"
@@ -74,12 +73,12 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 			"template_content": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ExactlyOneOf: []string{
 					"template_content",
 					"template_spec_version_id",
 				},
-				StateFunc: helpers.NormalizeJson,
+				StateFunc: pluginsdk.NormalizeJson,
 			},
 
 			"template_spec_version_id": {
@@ -102,8 +101,8 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 			"parameters_content": {
 				Type:      pluginsdk.TypeString,
 				Optional:  true,
-				Computed:  true,
-				StateFunc: helpers.NormalizeJson,
+				Computed:  true, // azignore:AZS007 - pre-existing violation
+				StateFunc: pluginsdk.NormalizeJson,
 			},
 
 			"tags": commonschema.Tags(),
@@ -125,7 +124,7 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 				o, n := d.GetChange("template_content")
 
 				// the json has to be normalized and then compared against to see if a change has occurred
-				if !strings.EqualFold(o.(string), helpers.NormalizeJson(n)) {
+				if !strings.EqualFold(o.(string), pluginsdk.NormalizeJson(n)) {
 					return d.SetNewComputed("output_content")
 				}
 			}
@@ -134,7 +133,7 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 				o, n := d.GetChange("parameters_content")
 
 				// the json has to be normalized and then compared against to see if a change has occurred
-				if !strings.EqualFold(o.(string), helpers.NormalizeJson(n)) {
+				if !strings.EqualFold(o.(string), pluginsdk.NormalizeJson(n)) {
 					return d.SetNewComputed("output_content")
 				}
 			}

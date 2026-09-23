@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineextensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
@@ -344,7 +343,7 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if provisionAfterExtensionsValue, exists := d.GetOk("provision_after_extensions"); exists {
-		extension.Properties.ProvisionAfterExtensions = helpers.ExpandStringSlice(provisionAfterExtensionsValue.([]interface{}))
+		extension.Properties.ProvisionAfterExtensions = pluginsdk.ExpandStringSlice(provisionAfterExtensionsValue.([]interface{}))
 	}
 
 	if d.IsNewResource() {

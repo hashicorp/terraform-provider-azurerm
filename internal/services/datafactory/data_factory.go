@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
@@ -27,11 +26,9 @@ const (
 )
 
 func expandDataFactoryLinkedServiceIntegrationRuntime(integrationRuntimeName string) *datafactory.IntegrationRuntimeReference {
-	typeString := "IntegrationRuntimeReference"
-
 	return &datafactory.IntegrationRuntimeReference{
 		ReferenceName: &integrationRuntimeName,
-		Type:          &typeString,
+		Type:          pointer.To("IntegrationRuntimeReference"),
 	}
 }
 
@@ -228,7 +225,7 @@ func flattenDataFactorySnowflakeSchemaColumns(input interface{}) []interface{} {
 }
 
 func suppressJsonOrderingDifference(_, old, new string, _ *pluginsdk.ResourceData) bool {
-	return helpers.NormalizeJson(old) == helpers.NormalizeJson(new)
+	return pluginsdk.NormalizeJson(old) == pluginsdk.NormalizeJson(new)
 }
 
 func expandAzureKeyVaultSecretReference(input []interface{}) *datafactory.AzureKeyVaultSecretReference {
@@ -249,7 +246,7 @@ func expandAzureKeyVaultSecretReference(input []interface{}) *datafactory.AzureK
 
 func flattenAzureKeyVaultConnectionString(input map[string]interface{}) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	parameters := make(map[string]interface{})
@@ -267,7 +264,7 @@ func flattenAzureKeyVaultConnectionString(input map[string]interface{}) []interf
 
 func flattenAzureKeyVaultSecretReference(secretReference *datafactory.AzureKeyVaultSecretReference) []interface{} {
 	if secretReference == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	parameters := make(map[string]interface{})
@@ -365,7 +362,7 @@ func expandDataFactoryDatasetAzureBlobFSLocation(d *pluginsdk.ResourceData) data
 
 func flattenDataFactoryDatasetHTTPServerLocation(input *datafactory.HTTPServerLocation) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 	result := make(map[string]interface{})
 
@@ -388,7 +385,7 @@ func flattenDataFactoryDatasetHTTPServerLocation(input *datafactory.HTTPServerLo
 
 func flattenDataFactoryDatasetAzureBlobStorageLocation(input *datafactory.AzureBlobStorageLocation) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 	result := make(map[string]interface{})
 
@@ -438,7 +435,7 @@ func flattenDataFactoryDatasetAzureBlobFSLocation(input *datafactory.AzureBlobFS
 
 func flattenDataFactoryDatasetSFTPLocation(input *datafactory.SftpLocation) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 	result := make(map[string]interface{})
 

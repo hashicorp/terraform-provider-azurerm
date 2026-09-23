@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -27,7 +28,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -102,7 +102,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"instances": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.IntBetween(0, 1000),
 			},
 
@@ -203,7 +203,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "PT1H30M",
-				ValidateFunc: validate.ISO8601DurationBetween("PT15M", "PT2H"),
+				ValidateFunc: validation.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
 			// whilst the Swagger defines multiple at this time only UAI is supported
@@ -271,7 +271,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			// for this bool
 			"single_placement_group": {
 				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Optional: true,
 			},
 
@@ -338,13 +338,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				newZones := zones.ExpandUntyped(new.(*schema.Set).List())
 
 				for _, ov := range oldZones {
-					found := false
-					for _, nv := range newZones {
-						if ov == nv {
-							found = true
-							break
-						}
-					}
+					found := slices.Contains(newZones, ov)
 
 					if !found {
 						return true
@@ -801,7 +795,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		virtualMachineProfile.ScheduledEventsProfile = ExpandOrchestratedVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
 	}
 
-	// Only inclued the virtual machine profile if this is not a legacy configuration
+	// Only include the virtual machine profile if this is not a legacy configuration
 	if !isLegacy {
 		if v, ok := d.GetOk("plan"); ok {
 			props.Plan = expandPlanVMSS(v.([]interface{}))
@@ -904,7 +898,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 					ImageReference: existing.Model.Properties.VirtualMachineProfile.StorageProfile.ImageReference,
 				},
 			},
-			// Currently not suppored in orchestrated VMSS
+			// Currently not supported in orchestrated VMSS
 			// if an upgrade policy's been configured previously (which it will have) it must be threaded through
 			// this doesn't matter for Manual - but breaks when updating anything on a Automatic and Rolling Mode Scale Set
 			// UpgradePolicy: existing.Properties.UpgradePolicy,
@@ -1327,14 +1321,10 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 	// AutomaticOSUpgradeIsEnabled currently is not supported in orchestrated VMSS flex
 	metaData := virtualMachineScaleSetUpdateMetaData{
-		AutomaticOSUpgradeIsEnabled:  false,
-		CanReimageOnManualUpgrade:    false,
-		CanRollInstancesWhenRequired: false,
-		UpdateInstances:              false,
-		Client:                       meta.(*clients.Client).Compute,
-		Existing:                     pointer.From(existing.Model),
-		ID:                           id,
-		OSType:                       osType,
+		Client:   meta.(*clients.Client).Compute,
+		Existing: pointer.From(existing.Model),
+		ID:       id,
+		OSType:   osType,
 	}
 
 	if err := metaData.performUpdate(ctx, update); err != nil {
@@ -1501,8 +1491,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				if nwProfile := profile.NetworkProfile; nwProfile != nil {
 					d.Set("network_api_version", pointer.From(nwProfile.NetworkApiVersion))
 
-					flattenedNics := FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
-					if err := d.Set("network_interface", flattenedNics); err != nil {
+					if err := d.Set("network_interface", FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)); err != nil {
 						return fmt.Errorf("setting `network_interface`: %w", err)
 					}
 				}
@@ -1534,8 +1523,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 
 				if policy := props.UpgradePolicy; policy != nil {
 					upgradeMode = string(pointer.From(policy.Mode))
-					flattenedRolling := FlattenVirtualMachineScaleSetRollingUpgradePolicy(policy.RollingUpgradePolicy)
-					if err := d.Set("rolling_upgrade_policy", flattenedRolling); err != nil {
+					if err := d.Set("rolling_upgrade_policy", FlattenVirtualMachineScaleSetRollingUpgradePolicy(policy.RollingUpgradePolicy)); err != nil {
 						return fmt.Errorf("setting `rolling_upgrade_policy`: %w", err)
 					}
 				}

@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/blobauditing"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -101,7 +100,7 @@ func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
 			"audit_actions_and_groups": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				// audit_actions_and_groups seems to be pre-populated with values ["SUCCESSFUL_DATABASE_AUTHENTICATION_GROUP", "FAILED_DATABASE_AUTHENTICATION_GROUP", "BATCH_COMPLETED_GROUP"],
+				// Note: O+C because `audit_actions_and_groups` seems to be pre-populated with values ["SUCCESSFUL_DATABASE_AUTHENTICATION_GROUP", "FAILED_DATABASE_AUTHENTICATION_GROUP", "BATCH_COMPLETED_GROUP"],
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
@@ -167,7 +166,7 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 	}
 
 	if v, ok := d.GetOk("audit_actions_and_groups"); ok && len(v.([]interface{})) > 0 {
-		params.Properties.AuditActionsAndGroups = helpers.ExpandStringSlice(v.([]interface{}))
+		params.Properties.AuditActionsAndGroups = pluginsdk.ExpandStringSlice(v.([]interface{}))
 	}
 
 	if err = client.ExtendedServerBlobAuditingPoliciesCreateOrUpdateThenPoll(ctx, *serverId, params); err != nil {
@@ -212,7 +211,7 @@ func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, me
 			d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)
 			d.Set("enabled", props.State == blobauditing.BlobAuditingPolicyStateEnabled)
 			d.Set("predicate_expression", props.PredicateExpression)
-			d.Set("audit_actions_and_groups", helpers.FlattenStringSlice(props.AuditActionsAndGroups))
+			d.Set("audit_actions_and_groups", pluginsdk.FlattenSlice(props.AuditActionsAndGroups))
 
 			if pointer.From(props.StorageAccountSubscriptionId) != "00000000-0000-0000-0000-000000000000" {
 				d.Set("storage_account_subscription_id", props.StorageAccountSubscriptionId)

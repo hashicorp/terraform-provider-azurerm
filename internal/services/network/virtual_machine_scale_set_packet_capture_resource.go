@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetvms"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkwatchers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/packetcaptures"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -273,13 +272,11 @@ func resourceVirtualMachineScaleSetPacketCaptureRead(d *pluginsdk.ResourceData, 
 			d.Set("maximum_bytes_per_session", int(*props.TotalBytesPerSession))
 			d.Set("maximum_capture_duration_in_seconds", int(*props.TimeLimitInSeconds))
 
-			location := flattenVirtualMachineScaleSetPacketCaptureStorageLocation(props.StorageLocation)
-			if err := d.Set("storage_location", location); err != nil {
+			if err := d.Set("storage_location", flattenVirtualMachineScaleSetPacketCaptureStorageLocation(props.StorageLocation)); err != nil {
 				return fmt.Errorf("setting `storage_location`: %+v", err)
 			}
 
-			filters := flattenVirtualMachineScaleSetPacketCaptureFilters(props.Filters)
-			if err := d.Set("filter", filters); err != nil {
+			if err := d.Set("filter", flattenVirtualMachineScaleSetPacketCaptureFilters(props.Filters)); err != nil {
 				return fmt.Errorf("setting `filter`: %+v", err)
 			}
 
@@ -397,11 +394,11 @@ func expandVirtualMachineScaleSetPacketCaptureMachineScope(input []interface{}) 
 	output := &packetcaptures.PacketCaptureMachineScope{}
 
 	if exclude := raw["exclude_instance_ids"].([]interface{}); len(exclude) > 0 {
-		output.Exclude = helpers.ExpandStringSlice(exclude)
+		output.Exclude = pluginsdk.ExpandStringSlice(exclude)
 	}
 
 	if include := raw["include_instance_ids"].([]interface{}); len(include) > 0 {
-		output.Include = helpers.ExpandStringSlice(include)
+		output.Include = pluginsdk.ExpandStringSlice(include)
 	}
 
 	return output

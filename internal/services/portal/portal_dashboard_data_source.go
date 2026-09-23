@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/dashboard"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -50,8 +49,8 @@ func dataSourcePortalDashboard() *pluginsdk.Resource {
 			"dashboard_properties": {
 				Type:      pluginsdk.TypeString,
 				Optional:  true,
-				Computed:  true,
-				StateFunc: helpers.NormalizeJson,
+				Computed:  true, // azignore:AZS007 - pre-existing violation
+				StateFunc: pluginsdk.NormalizeJson,
 			},
 			"tags": commonschema.TagsDataSource(),
 		},

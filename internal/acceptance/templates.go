@@ -11,6 +11,22 @@ import (
 // It provisions a Key Vault, a Key Vault secret, and references the secret using the Key Vault Secret
 // ephemeral resource.
 func WriteOnlyKeyVaultSecretTemplate(data TestData, secret string) string {
+	return writeOnlyKeyVaultSecretTemplate(data, secret, false)
+}
+
+// WriteOnlyKeyVaultSecretFromAttributeTemplate is a testing template specific for write-only attributes.
+// It provisions a Key Vault, a Key Vault secret based on an attribute exposed by a different data source/resource
+// and references the secret using the Key Vault Secret ephemeral resource.
+func WriteOnlyKeyVaultSecretFromAttributeTemplate(data TestData, reference string) string {
+	return writeOnlyKeyVaultSecretTemplate(data, reference, true)
+}
+
+func writeOnlyKeyVaultSecretTemplate(data TestData, secret string, secretFromAttribute bool) string {
+	value := fmt.Sprintf("%q", secret)
+	if secretFromAttribute {
+		value = secret
+	}
+
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -44,7 +60,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_secret" "test" {
   name         = "secret-%[1]s"
-  value        = "%[2]s"
+  value        = %[2]s
   key_vault_id = azurerm_key_vault.test.id
 }
 
@@ -52,5 +68,5 @@ ephemeral "azurerm_key_vault_secret" "test" {
   name         = azurerm_key_vault_secret.test.name
   key_vault_id = azurerm_key_vault.test.id
 }
-`, data.RandomString, secret)
+`, data.RandomString, value)
 }

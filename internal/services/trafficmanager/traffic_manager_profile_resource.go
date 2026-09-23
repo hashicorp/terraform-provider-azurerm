@@ -167,7 +167,7 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice(profiles.PossibleValuesForProfileStatus(), false),
 			},
 
-			"max_return": {
+			"max_return": { // azignore:AZS006 - named `maximum_return` in the data source to follow new naming conventions
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(1, 8),
@@ -228,8 +228,7 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if status, ok := d.GetOk("profile_status"); ok {
-		profileStatus := profiles.ProfileStatus(status.(string))
-		profile.Properties.ProfileStatus = &profileStatus
+		profile.Properties.ProfileStatus = pointer.ToEnum[profiles.ProfileStatus](status.(string))
 	}
 
 	trafficRoutingMethodPtr := profile.Properties.TrafficRoutingMethod
@@ -394,9 +393,8 @@ func expandArmTrafficManagerMonitorConfig(d *pluginsdk.ResourceData) *profiles.M
 
 	customHeaders := expandArmTrafficManagerCustomHeadersConfig(monitor["custom_header"].([]interface{}))
 
-	protocol := profiles.MonitorProtocol(monitor["protocol"].(string))
 	cfg := profiles.MonitorConfig{
-		Protocol:                  &protocol,
+		Protocol:                  pointer.ToEnum[profiles.MonitorProtocol](monitor["protocol"].(string)),
 		CustomHeaders:             customHeaders,
 		Port:                      pointer.To(int64(monitor["port"].(int))),
 		Path:                      pointer.To(monitor["path"].(string)),
@@ -465,12 +463,9 @@ func expandArmTrafficManagerDNSConfig(d *pluginsdk.ResourceData) *profiles.DnsCo
 	dnsSets := d.Get("dns_config").([]interface{})
 	dns := dnsSets[0].(map[string]interface{})
 
-	name := dns["relative_name"].(string)
-	ttl := int64(dns["ttl"].(int))
-
 	return &profiles.DnsConfig{
-		RelativeName: &name,
-		Ttl:          &ttl,
+		RelativeName: pointer.To(dns["relative_name"].(string)),
+		Ttl:          pointer.To(int64(dns["ttl"].(int))),
 	}
 }
 

@@ -83,7 +83,7 @@ func resourceSpringCloudBuildDeployment() *pluginsdk.Resource {
 			"addon_json": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
@@ -107,14 +107,14 @@ func resourceSpringCloudBuildDeployment() *pluginsdk.Resource {
 			"quota": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"cpu": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							// NOTE: we're intentionally not validating this field since additional values are possible when enabled by the service team
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -122,7 +122,7 @@ func resourceSpringCloudBuildDeployment() *pluginsdk.Resource {
 						"memory": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							// NOTE: we're intentionally not validating this field since additional values are possible when enabled by the service team
 							ValidateFunc: validation.StringIsNotEmpty,
 						},

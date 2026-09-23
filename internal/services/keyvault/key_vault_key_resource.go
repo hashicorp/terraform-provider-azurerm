@@ -30,7 +30,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/keys"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -111,7 +110,7 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 			"curve": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 					return old == "SECP256K1" && new == string(keys.JsonWebKeyCurveNamePNegativeTwoFiveSixK)
@@ -175,7 +174,7 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 						"expire_after": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.ISO8601DurationBetween("P28D", "P100Y"),
+							ValidateFunc: validation.ISO8601DurationBetween("P28D", "P100Y"),
 							AtLeastOneOf: []string{
 								"rotation_policy.0.expire_after",
 								"rotation_policy.0.automatic",
@@ -190,7 +189,7 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 						"notify_before_expiry": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.ISO8601DurationBetween("P7D", "P36493D"),
+							ValidateFunc: validation.ISO8601DurationBetween("P7D", "P36493D"),
 							RequiredWith: []string{
 								"rotation_policy.0.expire_after",
 								"rotation_policy.0.notify_before_expiry",
@@ -206,7 +205,7 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 									"time_after_creation": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										ValidateFunc: validate.ISO8601Duration,
+										ValidateFunc: validation.ISO8601Duration,
 										AtLeastOneOf: []string{
 											"rotation_policy.0.automatic.0.time_after_creation",
 											"rotation_policy.0.automatic.0.time_before_expiry",
@@ -215,7 +214,7 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 									"time_before_expiry": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										ValidateFunc: validate.ISO8601Duration,
+										ValidateFunc: validation.ISO8601Duration,
 										AtLeastOneOf: []string{
 											"rotation_policy.0.automatic.0.time_after_creation",
 											"rotation_policy.0.automatic.0.time_before_expiry",
@@ -430,7 +429,7 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 					stateConf := &pluginsdk.StateChangeConf{
 						Pending:                   []string{"pending"},
 						Target:                    []string{"available"},
-						Refresh:                   keyVaultChildItemRefreshFunc(*kid),
+						Refresh:                   keyVaultChildItemRefreshFunc(ctx, *kid),
 						Delay:                     30 * time.Second,
 						PollInterval:              10 * time.Second,
 						ContinuousTargetOccurence: 10,
@@ -599,8 +598,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		if key := resp.Model.Key; key != nil {
 			d.Set("key_type", string(pointer.From(key.Kty)))
 
-			options := flattenKeyVaultKeyOptions(key.KeyOps)
-			if err := d.Set("key_opts", options); err != nil {
+			if err := d.Set("key_opts", flattenKeyVaultKeyOptions(key.KeyOps)); err != nil {
 				return err
 			}
 
@@ -671,9 +669,10 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				if err != nil {
 					return fmt.Errorf("failed to decode Y: %+v", err)
 				}
+				// X/Y are deprecated since go 1.26 in favour of ecdsa.ParseUncompressedPublicKey, which needs the curve up front
 				publicKey := &ecdsa.PublicKey{
-					X: big.NewInt(0).SetBytes(xBytes),
-					Y: big.NewInt(0).SetBytes(yBytes),
+					X: big.NewInt(0).SetBytes(xBytes), //nolint:staticcheck
+					Y: big.NewInt(0).SetBytes(yBytes), //nolint:staticcheck
 				}
 				switch pointer.From(key.Crv) {
 				case keys.JsonWebKeyCurveNamePNegativeTwoFiveSix:
@@ -713,8 +712,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 
 	if respPolicy.Model != nil {
-		rotationPolicy := flattenKeyVaultKeyRotationPolicy(*respPolicy.Model)
-		if err := d.Set("rotation_policy", rotationPolicy); err != nil {
+		if err := d.Set("rotation_policy", flattenKeyVaultKeyRotationPolicy(*respPolicy.Model)); err != nil {
 			return fmt.Errorf("setting Key Vault Key Rotation Policy: %+v", err)
 		}
 	}
@@ -858,13 +856,11 @@ func expandKeyVaultKeyRotationPolicy(v []interface{}) keys.KeyRotationPolicy {
 		autoRotationRaw := autoRotationList[0].(map[string]interface{})
 
 		if v := autoRotationRaw["time_after_creation"]; v != nil && v.(string) != "" {
-			timeAfterCreate := v.(string)
-			lifetimeActionRotate.Trigger.TimeAfterCreate = &timeAfterCreate
+			lifetimeActionRotate.Trigger.TimeAfterCreate = pointer.To(v.(string))
 		}
 
 		if v := autoRotationRaw["time_before_expiry"]; v != nil && v.(string) != "" {
-			timeBeforeExpiry := v.(string)
-			lifetimeActionRotate.Trigger.TimeBeforeExpiry = &timeBeforeExpiry
+			lifetimeActionRotate.Trigger.TimeBeforeExpiry = pointer.To(v.(string))
 		}
 
 		lifetimeActions = append(lifetimeActions, lifetimeActionRotate)
@@ -942,7 +938,7 @@ func expandKeyVaultKeyReleasePolicy(input []any) *keys.KeyReleasePolicy {
 
 func flattenKeyVaultKeyReleasePolicy(input *keys.KeyReleasePolicy) ([]any, error) {
 	if input == nil {
-		return nil, nil
+		return []any{}, nil
 	}
 
 	data := ""

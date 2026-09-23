@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -405,7 +404,7 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subnet := subnets.Subnet{
 		Name: pointer.To(id.SubnetName),
 		Properties: &subnets.SubnetPropertiesFormat{
-			AddressPrefixes:                   helpers.ExpandStringSlice(d.Get("address_prefixes").([]any)),
+			AddressPrefixes:                   pluginsdk.ExpandStringSlice(d.Get("address_prefixes").([]any)),
 			DefaultOutboundAccess:             pointer.To(d.Get("default_outbound_access_enabled").(bool)),
 			Delegations:                       expandSubnetDelegation(d.Get("delegation").([]interface{})),
 			IPamPoolPrefixAllocations:         expandSubnetIPAddressPool(d.Get("ip_address_pool").([]interface{})),
@@ -561,7 +560,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			props.AddressPrefix = nil
 			props.AddressPrefixes = nil
 		default:
-			props.AddressPrefixes = helpers.ExpandStringSlice(addressPrefixesRaw)
+			props.AddressPrefixes = pluginsdk.ExpandStringSlice(addressPrefixesRaw)
 			props.AddressPrefix = nil
 		}
 	}
@@ -730,8 +729,7 @@ func resourceSubnetFlatten(d *pluginsdk.ResourceData, id commonids.SubnetId, sub
 			}
 			d.Set("default_outbound_access_enabled", defaultOutboundAccessEnabled)
 
-			delegation := flattenSubnetDelegation(props.Delegations)
-			if err := d.Set("delegation", delegation); err != nil {
+			if err := d.Set("delegation", flattenSubnetDelegation(props.Delegations)); err != nil {
 				return fmt.Errorf("flattening `delegation`: %+v", err)
 			}
 
@@ -747,8 +745,7 @@ func resourceSubnetFlatten(d *pluginsdk.ResourceData, id commonids.SubnetId, sub
 				return fmt.Errorf("setting `service_endpoint`: %+v", err)
 			}
 
-			serviceEndpointPolicies := flattenSubnetServiceEndpointPolicies(props.ServiceEndpointPolicies)
-			if err := d.Set("service_endpoint_policy_ids", serviceEndpointPolicies); err != nil {
+			if err := d.Set("service_endpoint_policy_ids", flattenSubnetServiceEndpointPolicies(props.ServiceEndpointPolicies)); err != nil {
 				return fmt.Errorf("setting `service_endpoint_policy_ids`: %+v", err)
 			}
 
@@ -873,10 +870,8 @@ func expandSubnetDelegation(input []interface{}) *[]subnets.Delegation {
 
 	for _, deleValue := range input {
 		deleData := deleValue.(map[string]interface{})
-		deleName := deleData["name"].(string)
 		srvDelegations := deleData["service_delegation"].([]interface{})
 		srvDelegation := srvDelegations[0].(map[string]interface{})
-		srvName := srvDelegation["name"].(string)
 		srvActions := srvDelegation["actions"].(*pluginsdk.Set).List()
 
 		retSrvActions := make([]string, 0)
@@ -886,9 +881,9 @@ func expandSubnetDelegation(input []interface{}) *[]subnets.Delegation {
 		}
 
 		retDelegation := subnets.Delegation{
-			Name: &deleName,
+			Name: pointer.To(deleData["name"].(string)),
 			Properties: &subnets.ServiceDelegationPropertiesFormat{
-				ServiceName: &srvName,
+				ServiceName: pointer.To(srvDelegation["name"].(string)),
 				Actions:     &retSrvActions,
 			},
 		}
@@ -957,15 +952,14 @@ func flattenSubnetNetworkPolicy(input string) bool {
 func expandSubnetServiceEndpointPolicies(input []interface{}) *[]subnets.ServiceEndpointPolicy {
 	output := make([]subnets.ServiceEndpointPolicy, 0)
 	for _, policy := range input {
-		policy := policy.(string)
-		output = append(output, subnets.ServiceEndpointPolicy{Id: &policy})
+		output = append(output, subnets.ServiceEndpointPolicy{Id: pointer.To(policy.(string))})
 	}
 	return &output
 }
 
 func flattenSubnetServiceEndpointPolicies(input *[]subnets.ServiceEndpointPolicy) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	output := make([]interface{}, 0, len(*input))
