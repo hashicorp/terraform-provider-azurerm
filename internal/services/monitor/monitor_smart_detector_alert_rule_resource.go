@@ -15,10 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2019-06-01/smartdetectoralertrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-01-01/actiongroupsapis"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -95,7 +93,7 @@ func resourceMonitorSmartDetectorAlertRule() *pluginsdk.Resource {
 			"frequency": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: commonValidate.ISO8601Duration,
+				ValidateFunc: validation.ISO8601Duration,
 			},
 
 			"action_group": {
@@ -144,7 +142,7 @@ func resourceMonitorSmartDetectorAlertRule() *pluginsdk.Resource {
 			"throttling_duration": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: commonValidate.ISO8601Duration,
+				ValidateFunc: validation.ISO8601Duration,
 			},
 
 			"tags": commonschema.Tags(),
@@ -190,7 +188,7 @@ func resourceMonitorSmartDetectorAlertRuleCreateUpdate(d *pluginsdk.ResourceData
 			Detector: smartdetectoralertrules.Detector{
 				Id: d.Get("detector_type").(string),
 			},
-			Scope:        pointer.From(helpers.ExpandStringSlice(d.Get("scope_resource_ids").(*pluginsdk.Set).List())),
+			Scope:        pointer.From(pluginsdk.ExpandStringSlice(d.Get("scope_resource_ids").(*pluginsdk.Set).List())),
 			ActionGroups: pointer.From(expandMonitorSmartDetectorAlertRuleActionGroup(d.Get("action_group").([]interface{}))),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -287,7 +285,7 @@ func expandMonitorSmartDetectorAlertRuleActionGroup(input []interface{}) *smartd
 	return &smartdetectoralertrules.ActionGroupsInformation{
 		CustomEmailSubject:   pointer.To(v["email_subject"].(string)),
 		CustomWebhookPayload: pointer.To(v["webhook_payload"].(string)),
-		GroupIds:             pointer.From(helpers.ExpandStringSlice(v["ids"].(*pluginsdk.Set).List())),
+		GroupIds:             pointer.From(pluginsdk.ExpandStringSlice(v["ids"].(*pluginsdk.Set).List())),
 	}
 }
 
