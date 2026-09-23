@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -74,7 +73,7 @@ func resourceDataProtectionBackupPolicyBlobStorage() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				AtLeastOneOf: []string{"operational_default_retention_duration", "vault_default_retention_duration"},
-				ValidateFunc: helperValidate.ISO8601Duration,
+				ValidateFunc: validation.ISO8601Duration,
 			},
 
 			"time_zone": {
@@ -90,7 +89,7 @@ func resourceDataProtectionBackupPolicyBlobStorage() *schema.Resource {
 				ForceNew:     true,
 				AtLeastOneOf: []string{"operational_default_retention_duration", "vault_default_retention_duration"},
 				RequiredWith: []string{"backup_repeating_time_intervals"},
-				ValidateFunc: helperValidate.ISO8601Duration,
+				ValidateFunc: validation.ISO8601Duration,
 			},
 
 			"retention_rule": {
@@ -204,7 +203,7 @@ func resourceDataProtectionBackupPolicyBlobStorage() *schema.Resource {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ForceNew:     true,
-										ValidateFunc: helperValidate.ISO8601Duration,
+										ValidateFunc: validation.ISO8601Duration,
 									},
 								},
 							},

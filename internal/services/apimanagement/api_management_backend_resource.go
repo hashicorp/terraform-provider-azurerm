@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/certificate"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/backend"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
@@ -73,7 +72,7 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 						"trip_duration": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azValidate.ISO8601Duration,
+							ValidateFunc: validation.ISO8601Duration,
 						},
 						"accept_retry_after_enabled": {
 							Type:     pluginsdk.TypeBool,
@@ -89,7 +88,7 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 									"interval_duration": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: azValidate.ISO8601Duration,
+										ValidateFunc: validation.ISO8601Duration,
 									},
 									"count": {
 										Type:         pluginsdk.TypeInt,
