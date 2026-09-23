@@ -53,7 +53,7 @@ func resourceAppServiceCertificate() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"pfx_blob": {
+			"pfx_blob": { // azignore:AZS006 - not returned by the API, not added to the data source
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Sensitive:    true,
@@ -61,7 +61,7 @@ func resourceAppServiceCertificate() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsBase64,
 			},
 
-			"password": {
+			"password": { // azignore:AZS006 - not returned by the API, not added to the data source
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Sensitive:    true,
@@ -69,7 +69,7 @@ func resourceAppServiceCertificate() *pluginsdk.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"key_vault_id": {
+			"key_vault_id": { // azignore:AZS006 - not returned by the API, not added to the data source
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
@@ -77,7 +77,7 @@ func resourceAppServiceCertificate() *pluginsdk.Resource {
 				RequiredWith: []string{"key_vault_secret_id"},
 			},
 
-			"key_vault_secret_id": {
+			"key_vault_secret_id": { // azignore:AZS006 - not returned by the API, not added to the data source
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
 				ForceNew:         true,

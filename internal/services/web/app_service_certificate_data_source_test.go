@@ -21,10 +21,27 @@ func TestAccDataSourceAppServiceCertificate_basic(t *testing.T) {
 			Config: AppServiceCertificateDataSource{}.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").Exists(),
+				check.That(data.ResourceName).Key("app_service_plan_id").HasValue(""),
 				check.That(data.ResourceName).Key("subject_name").Exists(),
+				check.That(data.ResourceName).Key("hosting_environment_profile_id").HasValue(""),
 				check.That(data.ResourceName).Key("issue_date").Exists(),
 				check.That(data.ResourceName).Key("expiration_date").Exists(),
 				check.That(data.ResourceName).Key("thumbprint").Exists(),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceAppServiceCertificate_appServicePlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_app_service_certificate", "test")
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: AppServiceCertificateDataSource{}.appServicePlan(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("app_service_plan_id").MatchesOtherKey(
+					check.That("azurerm_service_plan.test").Key("id"),
+				),
 			),
 		},
 	})
@@ -39,4 +56,15 @@ data "azurerm_app_service_certificate" "test" {
   resource_group_name = azurerm_app_service_certificate.test.resource_group_name
 }
 `, AppServiceCertificateResource{}.pfxNoPassword(data))
+}
+
+func (d AppServiceCertificateDataSource) appServicePlan(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_app_service_certificate" "test" {
+  name                = azurerm_app_service_certificate.test.name
+  resource_group_name = azurerm_app_service_certificate.test.resource_group_name
+}
+`, AppServiceCertificateResource{}.pfxWithServicePlan(data))
 }

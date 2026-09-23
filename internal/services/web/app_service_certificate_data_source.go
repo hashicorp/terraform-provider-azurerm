@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/certificates"
@@ -36,7 +37,17 @@ func dataSourceAppServiceCertificate() *pluginsdk.Resource {
 
 			"location": commonschema.LocationComputed(),
 
+			"app_service_plan_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"friendly_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"hosting_environment_profile_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -113,6 +124,22 @@ func dataSourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interfa
 			d.Set("issue_date", props.IssueDate)
 			d.Set("expiration_date", props.ExpirationDate)
 			d.Set("thumbprint", props.Thumbprint)
+
+			if props.HostingEnvironmentProfile != nil && props.HostingEnvironmentProfile.Id != nil {
+				envId, err := commonids.ParseAppServiceEnvironmentID(*props.HostingEnvironmentProfile.Id)
+				if err != nil {
+					return err
+				}
+				d.Set("hosting_environment_profile_id", envId.ID())
+			}
+
+			if props.ServerFarmId != nil {
+				sfID, err := commonids.ParseAppServicePlanID(*props.ServerFarmId)
+				if err != nil {
+					return err
+				}
+				d.Set("app_service_plan_id", sfID.ID())
+			}
 		}
 	}
 

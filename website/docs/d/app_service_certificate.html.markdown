@@ -38,7 +38,11 @@ The following attributes are exported:
 
 * `id` - The App Service certificate ID.
 
+* `app_service_plan_id` - The ID of the associated App Service plan.
+
 * `friendly_name` - The friendly name of the certificate.
+
+* `hosting_environment_profile_id` - The ID of the App Service Environment where the certificate is in use.
 
 * `subject_name` - The subject name of the certificate.
 
