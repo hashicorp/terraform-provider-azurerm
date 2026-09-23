@@ -257,7 +257,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 							Required: true,
 						},
 
-						"use_subdomain": {
+						"use_subdomain": { //azignore:AZS006 - not returned by the API, not added to the data source
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
@@ -1228,7 +1228,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 	}
 
 	if !features.SixPointOh() {
-		r.Schema["public_network_access_enabled"] = &pluginsdk.Schema{
+		r.Schema["public_network_access_enabled"] = &pluginsdk.Schema{ //azignore:AZS006 - deprecated in favour of `public_network_access`, not added to the data source
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			// Note: O+C because in 5.x this value may be affected by `public_network_access`

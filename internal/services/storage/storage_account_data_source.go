@@ -59,8 +59,140 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"provisioned_billing_model_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"access_tier": {
 				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"blob_properties": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"change_feed_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"change_feed_retention_in_days": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+
+						"container_delete_retention_policy": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"days": {
+										Type:     pluginsdk.TypeInt,
+										Computed: true,
+									},
+								},
+							},
+						},
+
+						"cors_rule": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"allowed_headers": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+
+									"allowed_methods": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+
+									"allowed_origins": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+
+									"exposed_headers": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+
+									"max_age_in_seconds": {
+										Type:     pluginsdk.TypeInt,
+										Computed: true,
+									},
+								},
+							},
+						},
+
+						"default_service_version": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"delete_retention_policy": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"days": {
+										Type:     pluginsdk.TypeInt,
+										Computed: true,
+									},
+
+									"permanent_delete_enabled": {
+										Type:     pluginsdk.TypeBool,
+										Computed: true,
+									},
+								},
+							},
+						},
+
+						"last_access_time_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"restore_policy": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"days": {
+										Type:     pluginsdk.TypeInt,
+										Computed: true,
+									},
+								},
+							},
+						},
+
+						"versioning_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"cross_tenant_replication_enabled": {
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
@@ -77,9 +209,57 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
+			"customer_managed_key": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"key_vault_key_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"user_assigned_identity_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"https_traffic_only_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
+			},
+
+			"default_to_oauth_authentication": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"edge_zone": commonschema.EdgeZoneComputed(),
+
+			"immutability_policy": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"allow_protected_append_writes": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"period_since_creation_in_days": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+
+						"state": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"min_tls_version": {
@@ -92,9 +272,82 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"allowed_copy_scope": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"is_hns_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
+			},
+
+			"large_file_share_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"local_user_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"network_rules": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"bypass": {
+							Type:     pluginsdk.TypeSet,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+							Set: pluginsdk.HashString,
+						},
+
+						"default_action": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"ip_rules": {
+							Type:     pluginsdk.TypeSet,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+							Set: pluginsdk.HashString,
+						},
+
+						"private_link_access": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"endpoint_resource_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+
+									"endpoint_tenant_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+
+						"virtual_network_subnet_ids": {
+							Type:     pluginsdk.TypeSet,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+							Set: pluginsdk.HashString,
+						},
+					},
+				},
 			},
 
 			"nfsv3_enabled": {
@@ -112,8 +365,174 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"routing": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"choice": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"publish_internet_endpoints": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"publish_microsoft_endpoints": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"sas_policy": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"expiration_action": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"expiration_period": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"secondary_location": {
 				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"sftp_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"share_properties": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"cors_rule": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"allowed_headers": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+
+									"allowed_methods": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+
+									"allowed_origins": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+
+									"exposed_headers": {
+										Type:     pluginsdk.TypeList,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+
+									"max_age_in_seconds": {
+										Type:     pluginsdk.TypeInt,
+										Computed: true,
+									},
+								},
+							},
+						},
+
+						"retention_policy": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"days": {
+										Type:     pluginsdk.TypeInt,
+										Computed: true,
+									},
+								},
+							},
+						},
+
+						"smb": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"authentication_types": {
+										Type:     pluginsdk.TypeSet,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+										Set: pluginsdk.HashString,
+									},
+
+									"channel_encryption_type": {
+										Type:     pluginsdk.TypeSet,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+										Set: pluginsdk.HashString,
+									},
+
+									"kerberos_ticket_encryption_type": {
+										Type:     pluginsdk.TypeSet,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+										Set: pluginsdk.HashString,
+									},
+
+									"multichannel_enabled": {
+										Type:     pluginsdk.TypeBool,
+										Computed: true,
+									},
+
+									"versions": {
+										Type:     pluginsdk.TypeSet,
+										Computed: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+										Set: pluginsdk.HashString,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
+			"shared_access_key_enabled": {
+				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
@@ -548,7 +967,8 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 }
 
 func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
+	storageClient := meta.(*clients.Client).Storage.ResourceManager
+	client := storageClient.StorageAccounts
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -570,6 +990,10 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	d.SetId(id.ID())
 
+	var accountKind storageaccounts.Kind
+	var accountTier storageaccounts.SkuTier
+	accountReplicationType := ""
+
 	listKeysOpts := storageaccounts.DefaultListKeysOperationOptions()
 	listKeysOpts.Expand = pointer.To(storageaccounts.ExpandKerb)
 	keys, err := client.ListKeys(ctx, id, listKeysOpts)
@@ -583,13 +1007,24 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
-		d.Set("account_kind", string(pointer.From(model.Kind)))
+		d.Set("edge_zone", flattenEdgeZone(model.ExtendedLocation))
 
-		// NOTE: we should expose EdgeZone in the future
+		accountKind = pointer.From(model.Kind)
+		d.Set("account_kind", string(accountKind))
 
 		if sku := model.Sku; sku != nil {
-			d.Set("account_tier", pointer.From(sku.Tier))
-			d.Set("account_replication_type", strings.Split(string(sku.Name), "_")[1])
+			skuNameSegments := strings.Split(string(sku.Name), "_")
+			accountTier = pointer.From(sku.Tier)
+			accountReplicationType = skuNameSegments[1]
+
+			d.Set("account_tier", accountTier)
+			d.Set("account_replication_type", accountReplicationType)
+
+			provisionedBillingModelVersion := ""
+			if accountTier != "" {
+				provisionedBillingModelVersion = strings.TrimPrefix(skuNameSegments[0], string(accountTier))
+			}
+			d.Set("provisioned_billing_model_version", provisionedBillingModelVersion)
 		}
 
 		flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
@@ -607,14 +1042,62 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if props := model.Properties; props != nil {
 			d.Set("access_tier", pointer.From(props.AccessTier))
 			d.Set("allow_nested_items_to_be_public", pointer.From(props.AllowBlobPublicAccess))
+			d.Set("allowed_copy_scope", pointer.FromEnum(props.AllowedCopyScope))
 			if err := d.Set("custom_domain", flattenAccountCustomDomain(props.CustomDomain)); err != nil {
 				return fmt.Errorf("setting `custom_domain`: %+v", err)
 			}
+
+			customerManagedKey, err := flattenAccountCustomerManagedKey(props.Encryption)
+			if err != nil {
+				return fmt.Errorf("flattening `customer_managed_key`: %+v", err)
+			}
+			if err := d.Set("customer_managed_key", customerManagedKey); err != nil {
+				return fmt.Errorf("setting `customer_managed_key`: %+v", err)
+			}
+
+			d.Set("cross_tenant_replication_enabled", pointer.From(props.AllowCrossTenantReplication))
+			d.Set("default_to_oauth_authentication", pointer.From(props.DefaultToOAuthAuthentication))
 			d.Set("https_traffic_only_enabled", pointer.From(props.SupportsHTTPSTrafficOnly))
+
+			if err := d.Set("immutability_policy", flattenAccountImmutabilityPolicy(props.ImmutableStorageWithVersioning)); err != nil {
+				return fmt.Errorf("setting `immutability_policy`: %+v", err)
+			}
+
 			d.Set("is_hns_enabled", pointer.From(props.IsHnsEnabled))
+
+			largeFileShareEnabled := pointer.From(props.LargeFileSharesState) == storageaccounts.LargeFileSharesStateEnabled
+			d.Set("large_file_share_enabled", largeFileShareEnabled)
+
+			isLocalEnabled := true
+			if props.IsLocalUserEnabled != nil {
+				isLocalEnabled = *props.IsLocalUserEnabled
+			}
+			d.Set("local_user_enabled", isLocalEnabled)
+
+			if err := d.Set("network_rules", flattenAccountNetworkRules(props.NetworkAcls)); err != nil {
+				return fmt.Errorf("setting `network_rules`: %+v", err)
+			}
+
 			d.Set("nfsv3_enabled", pointer.From(props.IsNfsV3Enabled))
 			d.Set("primary_location", location.NormalizeNilable(props.PrimaryLocation))
+
+			if err := d.Set("routing", flattenAccountRoutingPreference(props.RoutingPreference)); err != nil {
+				return fmt.Errorf("setting `routing`: %+v", err)
+			}
+
+			if err := d.Set("sas_policy", flattenAccountSASPolicy(props.SasPolicy)); err != nil {
+				return fmt.Errorf("setting `sas_policy`: %+v", err)
+			}
+
 			d.Set("secondary_location", location.NormalizeNilable(props.SecondaryLocation))
+			d.Set("sftp_enabled", pointer.From(props.IsSftpEnabled))
+
+			allowSharedKeyAccess := true
+			if props.AllowSharedKeyAccess != nil {
+				allowSharedKeyAccess = *props.AllowSharedKeyAccess
+			}
+			d.Set("shared_access_key_enabled", allowSharedKeyAccess)
+
 			d.Set("public_network_access", pointer.FromEnum(props.PublicNetworkAccess))
 
 			// Setting the encryption key type to "Service" in PUT. The following GET will not return the queue/table in the service list of its response.
@@ -675,6 +1158,34 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 	keysAndConnectionStrings := flattenAccountAccessKeysAndConnectionStrings(id.StorageAccountName, *storageDomainSuffix, storageAccountKeys, endpoints)
 	keysAndConnectionStrings.set(d)
+
+	supportLevel := availableFunctionalityForAccount(accountKind, accountTier, accountReplicationType)
+
+	blobProperties := make([]interface{}, 0)
+	if supportLevel.supportBlob {
+		blobProps, err := storageClient.BlobServices.GetServiceProperties(ctx, id)
+		if err != nil {
+			return fmt.Errorf("reading blob properties for %s: %+v", id, err)
+		}
+
+		blobProperties = flattenAccountBlobServiceProperties(blobProps.Model)
+	}
+	if err := d.Set("blob_properties", blobProperties); err != nil {
+		return fmt.Errorf("setting `blob_properties` for %s: %+v", id, err)
+	}
+
+	shareProperties := make([]interface{}, 0)
+	if supportLevel.supportShare {
+		shareProps, err := storageClient.FileServices.GetServiceProperties(ctx, id)
+		if err != nil {
+			return fmt.Errorf("retrieving share properties for %s: %+v", id, err)
+		}
+
+		shareProperties = flattenAccountShareProperties(shareProps.Model)
+	}
+	if err := d.Set("share_properties", shareProperties); err != nil {
+		return fmt.Errorf("setting `share_properties` for %s: %+v", id, err)
+	}
 
 	return nil
 }
