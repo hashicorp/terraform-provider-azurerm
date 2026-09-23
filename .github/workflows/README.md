@@ -24,6 +24,24 @@ reusable building blocks with no triggers of their own (`workflow_call` only):
 `pr-save-artifacts.yaml`, `pr-comment-failure.yaml`,
 `pr-comment-failure-outdated.yaml`, and `issue-remove-label.yaml`.
 
+## Reusable workflow permissions
+
+A reusable workflow cannot request permissions its caller does not grant.
+GitHub rejects the caller workflow even if the reusable job is conditional.
+
+The PR comment workflows only need `pull-requests: write`. The
+[issue comment](https://docs.github.com/en/rest/issues/comments#create-an-issue-comment)
+and [label](https://docs.github.com/en/rest/issues/labels#remove-a-label-from-an-issue)
+APIs accept this permission for pull requests, despite their `issues` namespace.
+
+`issue-remove-label.yaml` serves both issues and PRs, so it inherits its caller's
+permissions. Callers must explicitly grant `issues: write` for issues,
+`pull-requests: write` for PRs, or both when handling either.
+
+Fork-PR tokens remain read-only. Keep untrusted checks on `pull_request` and use
+the artifact relay below for privileged labelling; do not move untrusted checkout
+or execution into `pull_request_target`.
+
 ## The artifact relay pattern (why `pr-save-artifacts.yaml` exists)
 
 Several workflows need to *modify* a PR (e.g. add the `waiting-response` label when
