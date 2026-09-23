@@ -33,7 +33,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/custompollers"
@@ -496,7 +495,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					"validation_key": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validate.Base64EncodedString,
+						ValidateFunc: validation.StringIsBase64,
 						Sensitive:    true,
 					},
 				},
