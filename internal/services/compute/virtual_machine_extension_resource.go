@@ -173,7 +173,7 @@ func expandCreateForVirtualMachineExtension(d *schema.ResourceDiff, location str
 	}
 
 	if provisionAfterExtensionsValue, exists := d.GetOk("provision_after_extensions"); exists {
-		extension.Properties.ProvisionAfterExtensions = helpers.ExpandStringSlice(provisionAfterExtensionsValue.([]interface{}))
+		extension.Properties.ProvisionAfterExtensions = pluginsdk.ExpandStringSlice(provisionAfterExtensionsValue.([]interface{}))
 	}
 
 	return extension, nil
