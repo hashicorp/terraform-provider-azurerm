@@ -12,9 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/privateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -302,11 +301,11 @@ func expandWebpubsubPublicNetwork(input []interface{}) *webpubsub.NetworkACL {
 
 	v := input[0].(map[string]interface{})
 
-	for _, item := range *helpers.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List()) {
+	for _, item := range *pluginsdk.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List()) {
 		allowRTs = append(allowRTs, webpubsub.WebPubSubRequestType(item))
 	}
 
-	for _, item := range *helpers.ExpandStringSlice(v["denied_request_types"].(*pluginsdk.Set).List()) {
+	for _, item := range *pluginsdk.ExpandStringSlice(v["denied_request_types"].(*pluginsdk.Set).List()) {
 		deniedRTs = append(deniedRTs, webpubsub.WebPubSubRequestType(item))
 	}
 
@@ -327,7 +326,7 @@ func flattenWebpubsubPublicNetwork(input *webpubsub.NetworkACL) []interface{} {
 			allowRequestTypes = append(allowRequestTypes, string(item))
 		}
 	}
-	allow := helpers.FlattenStringSlice(&allowRequestTypes)
+	allow := pluginsdk.FlattenSlice(&allowRequestTypes)
 
 	deniedRequestTypes := make([]string, 0)
 	if input.Deny != nil {
@@ -335,7 +334,7 @@ func flattenWebpubsubPublicNetwork(input *webpubsub.NetworkACL) []interface{} {
 			deniedRequestTypes = append(deniedRequestTypes, string(item))
 		}
 	}
-	deny := helpers.FlattenStringSlice(&deniedRequestTypes)
+	deny := pluginsdk.FlattenSlice(&deniedRequestTypes)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -371,13 +370,13 @@ func expandWebpubsubPrivateEndpoint(input []interface{}, privateEndpointConnecti
 				}
 
 				allowedRTs := make([]webpubsub.WebPubSubRequestType, 0)
-				for _, item := range *helpers.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List()) {
+				for _, item := range *pluginsdk.ExpandStringSlice(v["allowed_request_types"].(*pluginsdk.Set).List()) {
 					allowedRTs = append(allowedRTs, webpubsub.WebPubSubRequestType(item))
 				}
 				result.Allow = &allowedRTs
 
 				deniedRTs := make([]webpubsub.WebPubSubRequestType, 0)
-				for _, item := range *helpers.ExpandStringSlice(v["denied_request_types"].(*pluginsdk.Set).List()) {
+				for _, item := range *pluginsdk.ExpandStringSlice(v["denied_request_types"].(*pluginsdk.Set).List()) {
 					deniedRTs = append(deniedRTs, webpubsub.WebPubSubRequestType(item))
 				}
 				result.Deny = &deniedRTs
@@ -416,7 +415,7 @@ func flattenWebpubsubPrivateEndpoint(input *[]webpubsub.PrivateEndpointACL, priv
 						allowedRequestTypes = append(allowedRequestTypes, string(item))
 					}
 				}
-				allow := helpers.FlattenStringSlice(&allowedRequestTypes)
+				allow := pluginsdk.FlattenSlice(&allowedRequestTypes)
 
 				deniedRequestTypes := make([]string, 0)
 				if item.Deny != nil {
@@ -424,7 +423,7 @@ func flattenWebpubsubPrivateEndpoint(input *[]webpubsub.PrivateEndpointACL, priv
 						deniedRequestTypes = append(deniedRequestTypes, string(item))
 					}
 				}
-				deny := helpers.FlattenStringSlice(&deniedRequestTypes)
+				deny := pluginsdk.FlattenSlice(&deniedRequestTypes)
 
 				results = append(results, map[string]interface{}{
 					"id":                    *props.PrivateEndpoint.Id,

@@ -9,8 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -118,7 +117,7 @@ func dataSourceVirtualHubRouteTableRead(d *pluginsdk.ResourceData, meta interfac
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("labels", helpers.FlattenStringSlice(props.Labels))
+			d.Set("labels", pluginsdk.FlattenSlice(props.Labels))
 
 			if err := d.Set("route", flattenVirtualHubRouteTableHubRoutes(props.Routes)); err != nil {
 				return fmt.Errorf("setting `route`: %+v", err)

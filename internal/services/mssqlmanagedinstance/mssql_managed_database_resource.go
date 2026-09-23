@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstancelongtermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	miParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
@@ -100,7 +99,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "PT0S",
-						ValidateFunc: helperValidate.ISO8601Duration,
+						ValidateFunc: validation.ISO8601Duration,
 						AtLeastOneOf: atLeastOneOf,
 					},
 
@@ -109,7 +108,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "PT0S",
-						ValidateFunc: helperValidate.ISO8601Duration,
+						ValidateFunc: validation.ISO8601Duration,
 						AtLeastOneOf: atLeastOneOf,
 					},
 
@@ -118,7 +117,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "PT0S",
-						ValidateFunc: helperValidate.ISO8601Duration,
+						ValidateFunc: validation.ISO8601Duration,
 						AtLeastOneOf: atLeastOneOf,
 					},
 
