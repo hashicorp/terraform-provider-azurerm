@@ -1067,8 +1067,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 			d.Set("is_hns_enabled", pointer.From(props.IsHnsEnabled))
 
-			largeFileShareEnabled := pointer.From(props.LargeFileSharesState) == storageaccounts.LargeFileSharesStateEnabled
-			d.Set("large_file_share_enabled", largeFileShareEnabled)
+			d.Set("large_file_share_enabled", pointer.From(props.LargeFileSharesState) == storageaccounts.LargeFileSharesStateEnabled)
 
 			isLocalEnabled := true
 			if props.IsLocalUserEnabled != nil {
