@@ -112,36 +112,44 @@ func TestKubernetesNodePoolSecurityOmittedPreservesState(t *testing.T) {
 			},
 		},
 	} {
-		t.Run(tc.name, func(t *testing.T) {
-			resource := &pluginsdk.Resource{Schema: tc.schema}
-			data := schema.TestResourceDataRaw(t, tc.schema, tc.config)
-			security := flattenAgentPoolSecurityProfile(&agentpools.AgentPoolSecurityProfile{
-				EnableSecureBoot: pointer.To(true),
-				EnableVTPM:       pointer.To(true),
-			})
-			if tc.name == "node_pool" {
-				if err := data.Set("security", security); err != nil {
-					t.Fatal(err)
-				}
-			} else {
-				pool := data.Get("default_node_pool").([]interface{})
-				pool[0].(map[string]interface{})["security"] = security
-				if err := data.Set("default_node_pool", pool); err != nil {
-					t.Fatal(err)
-				}
-			}
-			data.SetId("test")
-			diff, err := resource.SimpleDiff(context.Background(), data.State(), terraform.NewResourceConfigRaw(tc.config), nil)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if diff != nil {
-				for key, change := range diff.Attributes {
-					if strings.HasPrefix(key, tc.key+".") {
-						t.Fatalf("omitted security must preserve API-reported state: %s: %#v", key, change)
+		for _, state := range []struct {
+			name    string
+			enabled bool
+		}{
+			{name: "api_defaults"},
+			{name: "enabled", enabled: true},
+		} {
+			t.Run(tc.name+"/"+state.name, func(t *testing.T) {
+				resource := &pluginsdk.Resource{Schema: tc.schema}
+				data := schema.TestResourceDataRaw(t, tc.schema, tc.config)
+				security := flattenAgentPoolSecurityProfile(&agentpools.AgentPoolSecurityProfile{
+					EnableSecureBoot: pointer.To(state.enabled),
+					EnableVTPM:       pointer.To(state.enabled),
+				})
+				if tc.name == "node_pool" {
+					if err := data.Set("security", security); err != nil {
+						t.Fatal(err)
+					}
+				} else {
+					pool := data.Get("default_node_pool").([]interface{})
+					pool[0].(map[string]interface{})["security"] = security
+					if err := data.Set("default_node_pool", pool); err != nil {
+						t.Fatal(err)
 					}
 				}
-			}
-		})
+				data.SetId("test")
+				diff, err := resource.SimpleDiff(context.Background(), data.State(), terraform.NewResourceConfigRaw(tc.config), nil)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if diff != nil {
+					for key, change := range diff.Attributes {
+						if strings.HasPrefix(key, tc.key+".") {
+							t.Fatalf("omitted security must preserve API-reported state: %s: %#v", key, change)
+						}
+					}
+				}
+			})
+		}
 	}
 }

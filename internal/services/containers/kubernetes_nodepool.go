@@ -277,7 +277,7 @@ func schemaNodePoolSecurity() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		// NOTE: O+C omitting this block preserves API-reported settings.
+		// NOTE: O+C AKS returns a default security profile when omitted; TypeList does not support Default.
 		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
