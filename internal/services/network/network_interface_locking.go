@@ -4,10 +4,11 @@
 package network
 
 import (
+	"slices"
+
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type networkInterfaceIPConfigurationLockingDetails struct {
@@ -48,11 +49,11 @@ func determineResourcesToLockFromIPConfiguration(input *[]networkinterfaces.Netw
 
 		vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName)
 
-		if !utils.SliceContainsValue(virtualNetworkIdsToLock, vnetId.ID()) {
+		if !slices.Contains(virtualNetworkIdsToLock, vnetId.ID()) {
 			virtualNetworkIdsToLock = append(virtualNetworkIdsToLock, vnetId.ID())
 		}
 
-		if !utils.SliceContainsValue(subnetIdsToLock, id.ID()) {
+		if !slices.Contains(subnetIdsToLock, id.ID()) {
 			subnetIdsToLock = append(subnetIdsToLock, id.ID())
 		}
 	}

@@ -26,10 +26,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name firewall_policy -service-package-name firewall -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 const AzureFirewallPolicyResourceName = "azurerm_firewall_policy"
 
@@ -82,7 +81,7 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	props := firewallpolicies.FirewallPolicy{
 		Properties: &firewallpolicies.FirewallPolicyPropertiesFormat{
-			ThreatIntelMode:      pointer.To(firewallpolicies.AzureFirewallThreatIntelMode(d.Get("threat_intelligence_mode").(string))),
+			ThreatIntelMode:      pointer.ToEnum[firewallpolicies.AzureFirewallThreatIntelMode](d.Get("threat_intelligence_mode").(string)),
 			ThreatIntelWhitelist: expandFirewallPolicyThreatIntelWhitelist(d.Get("threat_intelligence_allowlist").([]interface{})),
 			DnsSettings:          expandFirewallPolicyDNSSetting(d.Get("dns").([]interface{})),
 			IntrusionDetection:   expandFirewallPolicyIntrusionDetection(d.Get("intrusion_detection").([]interface{})),
@@ -109,7 +108,7 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	if v, ok := d.GetOk("sku"); ok {
 		props.Properties.Sku = &firewallpolicies.FirewallPolicySku{
-			Tier: pointer.To(firewallpolicies.FirewallPolicySkuTier(v.(string))),
+			Tier: pointer.ToEnum[firewallpolicies.FirewallPolicySkuTier](v.(string)),
 		}
 	}
 
@@ -120,7 +119,7 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if v, ok := d.GetOk("private_ip_ranges"); ok {
-		privateIPRanges := utils.ExpandStringSlice(v.([]interface{}))
+		privateIPRanges := pluginsdk.ExpandStringSlice(v.([]interface{}))
 		props.Properties.Snat = &firewallpolicies.FirewallPolicySNAT{
 			PrivateRanges: privateIPRanges,
 		}
@@ -230,7 +229,7 @@ func resourceFirewallPolicySetFlatten(d *pluginsdk.ResourceData, id *firewallpol
 			var privateIPRanges []interface{}
 			var isAutoLearnPrivateRangeEnabled bool
 			if props.Snat != nil {
-				privateIPRanges = utils.FlattenStringSlice(props.Snat.PrivateRanges)
+				privateIPRanges = pluginsdk.FlattenSlice(props.Snat.PrivateRanges)
 				isAutoLearnPrivateRangeEnabled = pointer.From(props.Snat.AutoLearnPrivateRanges) == firewallpolicies.AutoLearnPrivateRangesModeEnabled
 			}
 			if err := d.Set("private_ip_ranges", privateIPRanges); err != nil {
@@ -245,8 +244,7 @@ func resourceFirewallPolicySetFlatten(d *pluginsdk.ResourceData, id *firewallpol
 				return fmt.Errorf(`setting "insights": %+v`, err)
 			}
 
-			proxySettings := flattenFirewallPolicyExplicitProxy(props.ExplicitProxy)
-			if err := d.Set("explicit_proxy", proxySettings); err != nil {
+			if err := d.Set("explicit_proxy", flattenFirewallPolicyExplicitProxy(props.ExplicitProxy)); err != nil {
 				return fmt.Errorf("setting `explicit_proxy`: %+v", err)
 			}
 
@@ -298,12 +296,10 @@ func expandFirewallPolicyThreatIntelWhitelist(input []interface{}) *firewallpoli
 	}
 
 	raw := input[0].(map[string]interface{})
-	output := &firewallpolicies.FirewallPolicyThreatIntelWhitelist{
-		IPAddresses: utils.ExpandStringSlice(raw["ip_addresses"].(*pluginsdk.Set).List()),
-		Fqdns:       utils.ExpandStringSlice(raw["fqdns"].(*pluginsdk.Set).List()),
+	return &firewallpolicies.FirewallPolicyThreatIntelWhitelist{
+		IPAddresses: pluginsdk.ExpandStringSlice(raw["ip_addresses"].(*pluginsdk.Set).List()),
+		Fqdns:       pluginsdk.ExpandStringSlice(raw["fqdns"].(*pluginsdk.Set).List()),
 	}
-
-	return output
 }
 
 func expandFirewallPolicyDNSSetting(input []interface{}) *firewallpolicies.DnsSettings {
@@ -312,12 +308,10 @@ func expandFirewallPolicyDNSSetting(input []interface{}) *firewallpolicies.DnsSe
 	}
 
 	raw := input[0].(map[string]interface{})
-	output := &firewallpolicies.DnsSettings{
-		Servers:     utils.ExpandStringSlice(raw["servers"].([]interface{})),
+	return &firewallpolicies.DnsSettings{
+		Servers:     pluginsdk.ExpandStringSlice(raw["servers"].([]interface{})),
 		EnableProxy: pointer.To(raw["proxy_enabled"].(bool)),
 	}
-
-	return output
 }
 
 func expandFirewallPolicyIntrusionDetection(input []interface{}) *firewallpolicies.FirewallPolicyIntrusionDetection {
@@ -333,7 +327,7 @@ func expandFirewallPolicyIntrusionDetection(input []interface{}) *firewallpolici
 		overrides := v.(map[string]interface{})
 		signatureOverrides = append(signatureOverrides, firewallpolicies.FirewallPolicyIntrusionDetectionSignatureSpecification{
 			Id:   pointer.To(overrides["id"].(string)),
-			Mode: pointer.To(firewallpolicies.FirewallPolicyIntrusionDetectionStateType(overrides["state"].(string))),
+			Mode: pointer.ToEnum[firewallpolicies.FirewallPolicyIntrusionDetectionStateType](overrides["state"].(string)),
 		})
 	}
 
@@ -344,12 +338,12 @@ func expandFirewallPolicyIntrusionDetection(input []interface{}) *firewallpolici
 		trafficBypass = append(trafficBypass, firewallpolicies.FirewallPolicyIntrusionDetectionBypassTrafficSpecifications{
 			Name:                 pointer.To(bypass["name"].(string)),
 			Description:          pointer.To(bypass["description"].(string)),
-			Protocol:             pointer.To(firewallpolicies.FirewallPolicyIntrusionDetectionProtocol(bypass["protocol"].(string))),
-			SourceAddresses:      utils.ExpandStringSlice(bypass["source_addresses"].(*pluginsdk.Set).List()),
-			DestinationAddresses: utils.ExpandStringSlice(bypass["destination_addresses"].(*pluginsdk.Set).List()),
-			DestinationPorts:     utils.ExpandStringSlice(bypass["destination_ports"].(*pluginsdk.Set).List()),
-			SourceIPGroups:       utils.ExpandStringSlice(bypass["source_ip_groups"].(*pluginsdk.Set).List()),
-			DestinationIPGroups:  utils.ExpandStringSlice(bypass["destination_ip_groups"].(*pluginsdk.Set).List()),
+			Protocol:             pointer.ToEnum[firewallpolicies.FirewallPolicyIntrusionDetectionProtocol](bypass["protocol"].(string)),
+			SourceAddresses:      pluginsdk.ExpandStringSlice(bypass["source_addresses"].(*pluginsdk.Set).List()),
+			DestinationAddresses: pluginsdk.ExpandStringSlice(bypass["destination_addresses"].(*pluginsdk.Set).List()),
+			DestinationPorts:     pluginsdk.ExpandStringSlice(bypass["destination_ports"].(*pluginsdk.Set).List()),
+			SourceIPGroups:       pluginsdk.ExpandStringSlice(bypass["source_ip_groups"].(*pluginsdk.Set).List()),
+			DestinationIPGroups:  pluginsdk.ExpandStringSlice(bypass["destination_ip_groups"].(*pluginsdk.Set).List()),
 		})
 	}
 
@@ -360,7 +354,7 @@ func expandFirewallPolicyIntrusionDetection(input []interface{}) *firewallpolici
 	}
 
 	return &firewallpolicies.FirewallPolicyIntrusionDetection{
-		Mode: pointer.To(firewallpolicies.FirewallPolicyIntrusionDetectionStateType(raw["mode"].(string))),
+		Mode: pointer.ToEnum[firewallpolicies.FirewallPolicyIntrusionDetectionStateType](raw["mode"].(string)),
 		Configuration: &firewallpolicies.FirewallPolicyIntrusionDetectionConfiguration{
 			SignatureOverrides:    &signatureOverrides,
 			PrivateRanges:         &privateRanges,
@@ -390,13 +384,11 @@ func expandFirewallPolicyInsights(input []interface{}) *firewallpolicies.Firewal
 	}
 
 	raw := input[0].(map[string]interface{})
-	output := &firewallpolicies.FirewallPolicyInsights{
+	return &firewallpolicies.FirewallPolicyInsights{
 		IsEnabled:             pointer.To(raw["enabled"].(bool)),
 		RetentionDays:         pointer.To(int64(raw["retention_in_days"].(int))),
 		LogAnalyticsResources: expandFirewallPolicyLogAnalyticsResources(raw["default_log_analytics_workspace_id"].(string), raw["log_analytics_workspace"].([]interface{})),
 	}
-
-	return output
 }
 
 func expandFirewallPolicyExplicitProxy(input []interface{}) *firewallpolicies.ExplicitProxy {
@@ -455,8 +447,8 @@ func flattenFirewallPolicyThreatIntelWhitelist(input *firewallpolicies.FirewallP
 
 	return []interface{}{
 		map[string]interface{}{
-			"ip_addresses": utils.FlattenStringSlice(input.IPAddresses),
-			"fqdns":        utils.FlattenStringSlice(input.Fqdns),
+			"ip_addresses": pluginsdk.FlattenSlice(input.IPAddresses),
+			"fqdns":        pluginsdk.FlattenSlice(input.Fqdns),
 		},
 	}
 }
@@ -466,15 +458,10 @@ func flattenFirewallPolicyDNSSetting(input *firewallpolicies.DnsSettings) []inte
 		return []interface{}{}
 	}
 
-	proxyEnabled := false
-	if input.EnableProxy != nil {
-		proxyEnabled = *input.EnableProxy
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"servers":       utils.FlattenStringSlice(input.Servers),
-			"proxy_enabled": proxyEnabled,
+			"servers":       pluginsdk.FlattenSlice(input.Servers),
+			"proxy_enabled": pointer.From(input.EnableProxy),
 		},
 	}
 }
@@ -499,12 +486,8 @@ func flattenFirewallPolicyIntrusionDetection(input *firewallpolicies.FirewallPol
 
 	if overrides := input.Configuration.SignatureOverrides; overrides != nil {
 		for _, override := range *overrides {
-			id := ""
-			if override.Id != nil {
-				id = *override.Id
-			}
 			signatureOverrides = append(signatureOverrides, map[string]interface{}{
-				"id":    id,
+				"id":    pointer.From(override.Id),
 				"state": string(pointer.From(override.Mode)),
 			})
 		}
@@ -512,26 +495,6 @@ func flattenFirewallPolicyIntrusionDetection(input *firewallpolicies.FirewallPol
 
 	if bypasses := input.Configuration.BypassTrafficSettings; bypasses != nil {
 		for _, bypass := range *bypasses {
-			name := ""
-			if bypass.Name != nil {
-				name = *bypass.Name
-			}
-
-			description := ""
-			if bypass.Description != nil {
-				description = *bypass.Description
-			}
-
-			var sourceAddresses []string
-			if bypass.SourceAddresses != nil {
-				sourceAddresses = *bypass.SourceAddresses
-			}
-
-			var destinationAddresses []string
-			if bypass.DestinationAddresses != nil {
-				destinationAddresses = *bypass.DestinationAddresses
-			}
-
 			destinationPorts := make([]string, 0)
 			if bypass.DestinationPorts != nil {
 				destinationPorts = *bypass.DestinationPorts
@@ -548,20 +511,16 @@ func flattenFirewallPolicyIntrusionDetection(input *firewallpolicies.FirewallPol
 			}
 
 			trafficBypass = append(trafficBypass, map[string]interface{}{
-				"name":                  name,
-				"description":           description,
+				"name":                  pointer.From(bypass.Name),
+				"description":           pointer.From(bypass.Description),
 				"protocol":              string(pointer.From(bypass.Protocol)),
-				"source_addresses":      sourceAddresses,
-				"destination_addresses": destinationAddresses,
+				"source_addresses":      pointer.From(bypass.SourceAddresses),
+				"destination_addresses": pointer.From(bypass.DestinationAddresses),
 				"destination_ports":     destinationPorts,
 				"source_ip_groups":      sourceIPGroups,
 				"destination_ip_groups": destinationIPGroups,
 			})
 		}
-	}
-	var privateRanges []string
-	if privates := input.Configuration.PrivateRanges; privates != nil {
-		privateRanges = *privates
 	}
 
 	return []interface{}{
@@ -569,7 +528,7 @@ func flattenFirewallPolicyIntrusionDetection(input *firewallpolicies.FirewallPol
 			"mode":                string(pointer.From(input.Mode)),
 			"signature_overrides": signatureOverrides,
 			"traffic_bypass":      trafficBypass,
-			"private_ranges":      privateRanges,
+			"private_ranges":      pointer.From(input.Configuration.PrivateRanges),
 		},
 	}
 }
@@ -592,23 +551,18 @@ func flattenFirewallPolicyInsights(input *firewallpolicies.FirewallPolicyInsight
 		return []interface{}{}
 	}
 
-	var enabled bool
-	if input.IsEnabled != nil {
-		enabled = *input.IsEnabled
-	}
-
 	var retentionInDays int
 	if input.RetentionDays != nil {
 		retentionInDays = int(*input.RetentionDays)
 	}
 
-	defaultLogAnalyticsWorspaceId, logAnalyticsWorkspaces := flattenFirewallPolicyLogAnalyticsResources(input.LogAnalyticsResources)
+	defaultLogAnalyticsWorkspaceId, logAnalyticsWorkspaces := flattenFirewallPolicyLogAnalyticsResources(input.LogAnalyticsResources)
 
 	return []interface{}{
 		map[string]interface{}{
-			"enabled":                            enabled,
+			"enabled":                            pointer.From(input.IsEnabled),
 			"retention_in_days":                  retentionInDays,
-			"default_log_analytics_workspace_id": defaultLogAnalyticsWorspaceId,
+			"default_log_analytics_workspace_id": defaultLogAnalyticsWorkspaceId,
 			"log_analytics_workspace":            logAnalyticsWorkspaces,
 		},
 	}
@@ -616,7 +570,7 @@ func flattenFirewallPolicyInsights(input *firewallpolicies.FirewallPolicyInsight
 
 func flattenFirewallPolicyExplicitProxy(input *firewallpolicies.ExplicitProxy) (result []interface{}) {
 	if input == nil {
-		return
+		return []interface{}{}
 	}
 	output := map[string]interface{}{
 		"enabled":         input.EnableExplicitProxy,
@@ -660,7 +614,7 @@ func flattenFirewallPolicyLogAnalyticsResources(input *firewallpolicies.Firewall
 }
 
 func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
-	resource := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -671,15 +625,11 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"sku": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(firewallpolicies.FirewallPolicySkuTierStandard),
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(firewallpolicies.FirewallPolicySkuTierPremium),
-				string(firewallpolicies.FirewallPolicySkuTierStandard),
-				string(firewallpolicies.FirewallPolicySkuTierBasic),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(firewallpolicies.FirewallPolicySkuTierStandard),
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(firewallpolicies.PossibleValuesForFirewallPolicySkuTier(), false),
 		},
 
 		"location": commonschema.Location(),
@@ -715,14 +665,10 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"threat_intelligence_mode": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(firewallpolicies.AzureFirewallThreatIntelModeAlert),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(firewallpolicies.AzureFirewallThreatIntelModeAlert),
-				string(firewallpolicies.AzureFirewallThreatIntelModeDeny),
-				string(firewallpolicies.AzureFirewallThreatIntelModeOff),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(firewallpolicies.AzureFirewallThreatIntelModeAlert),
+			ValidateFunc: validation.StringInSlice(firewallpolicies.PossibleValuesForAzureFirewallThreatIntelMode(), false),
 		},
 
 		"threat_intelligence_allowlist": {
@@ -761,13 +707,9 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"mode": {
-						Type: pluginsdk.TypeString,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(firewallpolicies.FirewallPolicyIntrusionDetectionStateTypeOff),
-							string(firewallpolicies.FirewallPolicyIntrusionDetectionStateTypeAlert),
-							string(firewallpolicies.FirewallPolicyIntrusionDetectionStateTypeDeny),
-						}, false),
-						Optional: true,
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringInSlice(firewallpolicies.PossibleValuesForFirewallPolicyIntrusionDetectionStateType(), false),
+						Optional:     true,
 					},
 					"signature_overrides": {
 						Type:     pluginsdk.TypeList,
@@ -775,13 +717,9 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"state": {
-									Type: pluginsdk.TypeString,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(firewallpolicies.FirewallPolicyIntrusionDetectionStateTypeOff),
-										string(firewallpolicies.FirewallPolicyIntrusionDetectionStateTypeAlert),
-										string(firewallpolicies.FirewallPolicyIntrusionDetectionStateTypeDeny),
-									}, false),
-									Optional: true,
+									Type:         pluginsdk.TypeString,
+									ValidateFunc: validation.StringInSlice(firewallpolicies.PossibleValuesForFirewallPolicyIntrusionDetectionStateType(), false),
+									Optional:     true,
 								},
 								"id": {
 									Type:     pluginsdk.TypeString,
@@ -815,12 +753,7 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 									Required: true,
 									// protocol to be one of [ICMP ANY TCP UDP] but response may be "Any"
 									DiffSuppressFunc: suppress.CaseDifference,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(firewallpolicies.FirewallPolicyIntrusionDetectionProtocolICMP),
-										string(firewallpolicies.FirewallPolicyIntrusionDetectionProtocolANY),
-										string(firewallpolicies.FirewallPolicyIntrusionDetectionProtocolTCP),
-										string(firewallpolicies.FirewallPolicyIntrusionDetectionProtocolUDP),
-									}, true),
+									ValidateFunc:     validation.StringInSlice(firewallpolicies.PossibleValuesForFirewallPolicyIntrusionDetectionProtocol(), true),
 								},
 								"source_addresses": {
 									Type:     pluginsdk.TypeSet,
@@ -1010,6 +943,4 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	return resource
 }

@@ -12,8 +12,6 @@ Manages a File Share within Azure Storage.
 
 ~> **Note:** The storage share supports two storage tiers: premium and standard. Standard file shares are created in general purpose (GPv1 or GPv2) storage accounts and premium file shares are created in FileStorage storage accounts. For further information, refer to the section "What storage tiers are supported in Azure Files?" of [documentation](https://docs.microsoft.com/azure/storage/files/storage-files-faq#general).
 
-~> **Note:** Shared Key authentication will always be used for this resource, as AzureAD authentication is not supported by the Storage API for files.
-
 ## Example Usage
 
 ```hcl
@@ -99,9 +97,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the File Share.
 
-* `rbac_scope_id` - The ID that is supposed to be used as the `scope` of an `azurerm_role_assignmet` for this File Share.
+* `rbac_scope_id` - The ID that is supposed to be used as the `scope` of an `azurerm_role_assignment` for this File Share.
 
-~> **Note:** Due to historical reason of the File Share service, the `scope` to be used in an `azurerm_role_assignmet` is different than its Resource Manager ID. See: https://github.com/Azure/azure-rest-api-specs/issues/24568.
+~> **Note:** Due to historical reason of the File Share service, the `scope` to be used in an `azurerm_role_assignment` is different than its Resource Manager ID. See: https://github.com/Azure/azure-rest-api-specs/issues/24568.
 
 * `url` - The URL of the File Share
 

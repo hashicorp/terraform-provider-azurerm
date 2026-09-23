@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -28,7 +27,7 @@ import (
 )
 
 func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceMonitorAADDiagnosticSettingCreate,
 		Read:   resourceMonitorAADDiagnosticSettingRead,
 		Update: resourceMonitorAADDiagnosticSettingUpdate,
@@ -101,33 +100,6 @@ func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["enabled_log"].Elem.(*pluginsdk.Resource).Schema["retention_policy"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Deprecated: "Azure does not support retention for new Azure Active Directory Diagnostic Settings",
-			MaxItems:   1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-
-					"days": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						ValidateFunc: validation.IntAtLeast(0),
-						Default:      0,
-					},
-				},
-			},
-		}
-	}
-
-	return resource
 }
 
 func resourceMonitorAADDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -380,20 +352,8 @@ func expandMonitorAADDiagnosticsSettingsEnabledLogs(input []interface{}) []diagn
 		v := raw.(map[string]interface{})
 
 		logSettings := diagnosticsettings.LogSettings{
-			Category: pointer.To(diagnosticsettings.Category(v["category"].(string))),
+			Category: pointer.ToEnum[diagnosticsettings.Category](v["category"].(string)),
 			Enabled:  true,
-		}
-
-		if !features.FivePointOh() {
-			if len(v["retention_policy"].([]interface{})) != 0 && v["retention_policy"].([]interface{})[0] != nil {
-				policyRaw := v["retention_policy"].([]interface{})[0].(map[string]interface{})
-				retentionDays := policyRaw["days"].(int)
-				retentionEnabled := policyRaw["enabled"].(bool)
-				logSettings.RetentionPolicy = &diagnosticsettings.RetentionPolicy{
-					Days:    int64(retentionDays),
-					Enabled: retentionEnabled,
-				}
-			}
 		}
 
 		results = append(results, logSettings)
@@ -422,20 +382,6 @@ func flattenMonitorAADDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSetti
 			"category": category,
 		}
 
-		if !features.FivePointOh() {
-			policies := make([]interface{}, 0)
-			if inputPolicy := v.RetentionPolicy; inputPolicy != nil {
-				if inputPolicy.Days != 0 || inputPolicy.Enabled {
-					policies = append(policies, map[string]interface{}{
-						"days":    int(inputPolicy.Days),
-						"enabled": inputPolicy.Enabled,
-					})
-				}
-			}
-
-			result["retention_policy"] = policies
-		}
-
 		results = append(results, result)
 	}
 
@@ -445,9 +391,9 @@ func flattenMonitorAADDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSetti
 var _ pollers.PollerType = &waitForAADDiagnosticSettingToBeGonePoller{}
 
 type waitForAADDiagnosticSettingToBeGonePoller struct {
-	client                    *diagnosticsettings.DiagnosticSettingsClient
-	id                        diagnosticsettings.DiagnosticSettingId
-	continuousTargetOccurence int
+	client                     *diagnosticsettings.DiagnosticSettingsClient
+	id                         diagnosticsettings.DiagnosticSettingId
+	continuousTargetOccurrence int
 }
 
 func (p *waitForAADDiagnosticSettingToBeGonePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
@@ -457,7 +403,7 @@ func (p *waitForAADDiagnosticSettingToBeGonePoller) Poll(ctx context.Context) (*
 	}
 
 	if response.WasNotFound(resp.HttpResponse) {
-		if p.continuousTargetOccurence >= 3 {
+		if p.continuousTargetOccurrence >= 3 {
 			return &pollers.PollResult{
 				HttpResponse: &client.Response{
 					Response: resp.HttpResponse,
@@ -466,9 +412,9 @@ func (p *waitForAADDiagnosticSettingToBeGonePoller) Poll(ctx context.Context) (*
 				Status:       pollers.PollingStatusSucceeded,
 			}, nil
 		}
-		p.continuousTargetOccurence++
+		p.continuousTargetOccurrence++
 	} else {
-		p.continuousTargetOccurence = 0
+		p.continuousTargetOccurrence = 0
 	}
 
 	return &pollers.PollResult{

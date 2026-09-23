@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceSubnet() *pluginsdk.Resource {
@@ -128,7 +127,7 @@ func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 					d.Set("address_prefixes", []string{})
 				}
 			} else {
-				d.Set("address_prefixes", utils.FlattenStringSlice(props.AddressPrefixes))
+				d.Set("address_prefixes", pluginsdk.FlattenSlice(props.AddressPrefixes))
 			}
 
 			defaultOutboundAccessEnabled := true

@@ -10,8 +10,6 @@ description: |-
 
 Use this data source to access information about an existing File Share.
 
-~> **Note:** Shared Key authentication will always be used for this data source, as AzureAD authentication is not supported by the Storage API for files.
-
 ## Example Usage
 
 ```hcl
@@ -45,9 +43,9 @@ The following arguments are supported:
 
 * `acl` - One or more acl blocks as defined below.
 
-* `rbac_scope_id` - The ID that is supposed to be used as the `scope` of an `azurerm_role_assignmet` for this File Share.
+* `rbac_scope_id` - The ID that is supposed to be used as the `scope` of an `azurerm_role_assignment` for this File Share.
 
-~> **Note:** Due to historical reason of the File Share service, the `scope` to be used in an `azurerm_role_assignmet` is different than its Resource Manager ID. See: https://github.com/Azure/azure-rest-api-specs/issues/24568.
+~> **Note:** Due to historical reason of the File Share service, the `scope` to be used in an `azurerm_role_assignment` is different than its Resource Manager ID. See: https://github.com/Azure/azure-rest-api-specs/issues/24568.
 
 ---
 

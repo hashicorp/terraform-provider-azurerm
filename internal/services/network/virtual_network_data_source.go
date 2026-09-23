@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceVirtualNetwork() *pluginsdk.Resource {
@@ -113,13 +112,13 @@ func dataSourceVnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("guid", props.ResourceGuid)
 
 			if as := props.AddressSpace; as != nil {
-				if err := d.Set("address_space", utils.FlattenStringSlice(as.AddressPrefixes)); err != nil {
+				if err := d.Set("address_space", pluginsdk.FlattenSlice(as.AddressPrefixes)); err != nil {
 					return fmt.Errorf("setting `address_space`: %v", err)
 				}
 			}
 
 			if options := props.DhcpOptions; options != nil {
-				if err := d.Set("dns_servers", utils.FlattenStringSlice(options.DnsServers)); err != nil {
+				if err := d.Set("dns_servers", pluginsdk.FlattenSlice(options.DnsServers)); err != nil {
 					return fmt.Errorf("setting `dns_servers`: %v", err)
 				}
 			}

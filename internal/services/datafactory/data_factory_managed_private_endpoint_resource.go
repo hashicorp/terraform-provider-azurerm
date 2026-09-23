@@ -17,13 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDataFactoryManagedPrivateEndpoint() *pluginsdk.Resource {
@@ -33,7 +31,7 @@ func resourceDataFactoryManagedPrivateEndpoint() *pluginsdk.Resource {
 		Delete: resourceDataFactoryManagedPrivateEndpointDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ManagedPrivateEndpointID(id)
+			_, err := managedprivateendpoints.ParseManagedPrivateEndpointID(id)
 			return err
 		}),
 
@@ -75,7 +73,7 @@ func resourceDataFactoryManagedPrivateEndpoint() *pluginsdk.Resource {
 			"fqdns": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
@@ -151,7 +149,7 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 	}
 
 	if len(fqdns) > 0 {
-		payload.Properties.Fqdns = utils.ExpandStringSlice(fqdns)
+		payload.Properties.Fqdns = pluginsdk.ExpandStringSlice(fqdns)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, payload, managedprivateendpoints.DefaultCreateOrUpdateOperationOptions()); err != nil {
@@ -202,7 +200,7 @@ func resourceDataFactoryManagedPrivateEndpointRead(d *pluginsdk.ResourceData, me
 		props := model.Properties
 		d.Set("target_resource_id", props.PrivateLinkResourceId)
 		d.Set("subresource_name", props.GroupId)
-		d.Set("fqdns", utils.FlattenStringSlice(props.Fqdns))
+		d.Set("fqdns", pluginsdk.FlattenSlice(props.Fqdns))
 	}
 
 	return nil

@@ -1,7 +1,11 @@
 ---
 name: TeamCity Remove Label on Commit
 
-on:
+# On new commits to a PR, replaces teamcity-passed/failed/new-failure labels with
+# teamcity-outdated so stale acceptance-test results are not trusted.
+
+# pull_request_target is used to label only; the PR head is never checked out
+on:  # zizmor: ignore[dangerous-triggers]
   pull_request_target:
     types: [synchronize]
 

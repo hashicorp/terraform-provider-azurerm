@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/schedule"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azvalidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -111,23 +110,15 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "Etc/UTC",
-				ValidateFunc: azvalidate.AzureTimeZoneString(),
+				ValidateFunc: validate.AzureTimeZoneString(),
 			},
 
 			"week_days": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(schedule.ScheduleDayMonday),
-						string(schedule.ScheduleDayTuesday),
-						string(schedule.ScheduleDayWednesday),
-						string(schedule.ScheduleDayThursday),
-						string(schedule.ScheduleDayFriday),
-						string(schedule.ScheduleDaySaturday),
-						string(schedule.ScheduleDaySunday),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(schedule.PossibleValuesForScheduleDay(), false),
 				},
 				Set:           set.HashStringIgnoreCase,
 				ConflictsWith: []string{"month_days", "monthly_occurrence"},
@@ -154,17 +145,9 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"day": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(schedule.ScheduleDayMonday),
-								string(schedule.ScheduleDayTuesday),
-								string(schedule.ScheduleDayWednesday),
-								string(schedule.ScheduleDayThursday),
-								string(schedule.ScheduleDayFriday),
-								string(schedule.ScheduleDaySaturday),
-								string(schedule.ScheduleDaySunday),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(schedule.PossibleValuesForScheduleDay(), false),
 						},
 						"occurrence": {
 							Type:     pluginsdk.TypeInt,
@@ -361,7 +344,7 @@ func resourceAutomationScheduleUpdate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	if d.HasChange("week_days") || d.HasChange("month_days") || d.HasChange("monthly_occurrence") {
+	if d.HasChanges("week_days", "month_days", "monthly_occurrence") {
 		// only pay attention to the advanced schedule fields if frequency is either Week or Month
 		if parameters.Properties.Frequency == schedule.ScheduleFrequencyWeek || parameters.Properties.Frequency == schedule.ScheduleFrequencyMonth {
 			parameters.Properties.AdvancedSchedule = expandArmAutomationScheduleAdvanced(d, d.Id() != "")
@@ -487,13 +470,10 @@ func expandArmAutomationScheduleAdvanced(d *pluginsdk.ResourceData, isUpdate boo
 	expandedMonthlyOccurrences := make([]schedule.AdvancedScheduleMonthlyOccurrence, len(monthlyOccurrences))
 	for i := range monthlyOccurrences {
 		m := monthlyOccurrences[i].(map[string]interface{})
-		occurrence := int64(m["occurrence"].(int))
-
-		day := schedule.ScheduleDay(m["day"].(string))
 
 		expandedMonthlyOccurrences[i] = schedule.AdvancedScheduleMonthlyOccurrence{
-			Occurrence: &occurrence,
-			Day:        &day,
+			Occurrence: pointer.To(int64(m["occurrence"].(int))),
+			Day:        pointer.ToEnum[schedule.ScheduleDay](m["day"].(string)),
 		}
 	}
 	expandedAdvancedSchedule.MonthlyOccurrences = &expandedMonthlyOccurrences

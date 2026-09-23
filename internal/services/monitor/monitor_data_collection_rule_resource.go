@@ -1189,8 +1189,7 @@ func expandDataCollectionRuleKind(input string) *datacollectionrules.KnownDataCo
 		return nil
 	}
 
-	result := datacollectionrules.KnownDataCollectionRuleResourceKind(input)
-	return &result
+	return pointer.ToEnum[datacollectionrules.KnownDataCollectionRuleResourceKind](input)
 }
 
 func expandDataCollectionRuleDataFlows(input []DataFlow) *[]datacollectionrules.DataFlow {
@@ -1688,10 +1687,9 @@ func expandDataCollectionRuleStreamDeclarations(input []StreamDeclaration) *map[
 	for _, v := range input {
 		columns := make([]datacollectionrules.ColumnDefinition, 0)
 		for _, column := range v.Column {
-			columnType := datacollectionrules.KnownColumnDefinitionType(column.Type)
 			columns = append(columns, datacollectionrules.ColumnDefinition{
 				Name: pointer.To(column.Name),
-				Type: &columnType,
+				Type: pointer.ToEnum[datacollectionrules.KnownColumnDefinitionType](column.Type),
 			})
 		}
 
