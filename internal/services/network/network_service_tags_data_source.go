@@ -68,13 +68,13 @@ func dataSourceNetworkServiceTags() *pluginsdk.Resource {
 }
 
 func dataSourceNetworkServiceTagsRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ServiceTags
+	client := meta.(*clients.Client).Network
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	locationId := servicetags.NewLocationID(subscriptionId, location.Normalize(d.Get("location").(string)))
-	resp, err := client.ServiceTagsList(ctx, locationId)
+	resp, err := client.CachedServiceTagsList(ctx, locationId)
 	if err != nil {
 		return fmt.Errorf("listing network service tags: %+v", err)
 	}
