@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2024-09-01/automationrules"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/migration"
@@ -85,7 +84,7 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 			// We can't use the pluginsdk.SuppressJsonDiff here as the "condition_json" is always an array, while that function assume its input is an object.
 			// Once https://github.com/hashicorp/terraform-plugin-sdk/pull/1102 is merged, we can switch to pluginsdk.SuppressJsonDiff.
 			DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
-				return helpers.NormalizeJson(old) == helpers.NormalizeJson(new)
+				return pluginsdk.NormalizeJson(old) == pluginsdk.NormalizeJson(new)
 			},
 			ValidateFunc: validation.StringIsJSON,
 		},
@@ -458,7 +457,7 @@ func expandAutomationRuleActionIncident(input []interface{}) ([]automationrules.
 		}
 
 		var labelsPtr *[]automationrules.IncidentLabel
-		if labelStrsPtr := helpers.ExpandStringSlice(b["labels"].([]interface{})); labelStrsPtr != nil && len(*labelStrsPtr) > 0 {
+		if labelStrsPtr := pluginsdk.ExpandStringSlice(b["labels"].([]interface{})); labelStrsPtr != nil && len(*labelStrsPtr) > 0 {
 			labels := make([]automationrules.IncidentLabel, 0, len(*labelStrsPtr))
 			for _, label := range *labelStrsPtr {
 				labels = append(labels, automationrules.IncidentLabel{

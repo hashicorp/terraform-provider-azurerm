@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -129,7 +128,7 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Arguments() 
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
-									ValidateFunc: azValidate.ISO8601Duration,
+									ValidateFunc: validation.ISO8601Duration,
 								},
 							},
 						},
@@ -233,7 +232,7 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Arguments() 
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
-									ValidateFunc: azValidate.ISO8601Duration,
+									ValidateFunc: validation.ISO8601Duration,
 								},
 							},
 						},
