@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -801,7 +800,7 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("node_resource_group_id", nodeResourceGroupId.ID())
 
 			if accessProfile := props.ApiServerAccessProfile; accessProfile != nil {
-				if err := d.Set("api_server_authorized_ip_ranges", helpers.FlattenStringSlice(accessProfile.AuthorizedIPRanges)); err != nil {
+				if err := d.Set("api_server_authorized_ip_ranges", pluginsdk.FlattenSlice(accessProfile.AuthorizedIPRanges)); err != nil {
 					return fmt.Errorf("setting `api_server_authorized_ip_ranges`: %+v", err)
 				}
 
@@ -1184,46 +1183,6 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]managedcluster
 	}
 
 	for _, profile := range *input {
-		count := 0
-		if profile.Count != nil {
-			count = int(*profile.Count)
-		}
-
-		enableNodePublicIP := pointer.From(profile.EnableNodePublicIP)
-
-		minCount := 0
-		if profile.MinCount != nil {
-			minCount = int(*profile.MinCount)
-		}
-
-		maxCount := 0
-		if profile.MaxCount != nil {
-			maxCount = int(*profile.MaxCount)
-		}
-
-		enableAutoScaling := pointer.From(profile.EnableAutoScaling)
-
-		name := profile.Name
-
-		nodePublicIPPrefixID := profile.NodePublicIPPrefixID
-
-		osDiskSizeGb := 0
-		if profile.OsDiskSizeGB != nil {
-			osDiskSizeGb = int(*profile.OsDiskSizeGB)
-		}
-
-		vnetSubnetId := pointer.From(profile.VnetSubnetID)
-
-		orchestratorVersion := ""
-		if profile.OrchestratorVersion != nil && *profile.OrchestratorVersion != "" {
-			orchestratorVersion = *profile.OrchestratorVersion
-		}
-
-		maxPods := 0
-		if profile.MaxPods != nil {
-			maxPods = int(*profile.MaxPods)
-		}
-
 		nodeLabels := make(map[string]string)
 		if profile.NodeLabels != nil {
 			for k, v := range *profile.NodeLabels {
@@ -1235,36 +1194,27 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]managedcluster
 			}
 		}
 
-		nodeTaints := make([]string, 0)
-		if profile.NodeTaints != nil {
-			nodeTaints = *profile.NodeTaints
-		}
-
-		vmSize := profile.VMSize
-
-		out := map[string]interface{}{
-			"count":                    count,
-			"auto_scaling_enabled":     enableAutoScaling,
-			"node_public_ip_enabled":   enableNodePublicIP,
-			"max_count":                maxCount,
-			"max_pods":                 maxPods,
-			"min_count":                minCount,
-			"name":                     name,
+		agentPoolProfiles = append(agentPoolProfiles, map[string]interface{}{
+			"count":                    int(pointer.From(profile.Count)),
+			"auto_scaling_enabled":     pointer.From(profile.EnableAutoScaling),
+			"node_public_ip_enabled":   pointer.From(profile.EnableNodePublicIP),
+			"max_count":                int(pointer.From(profile.MaxCount)),
+			"max_pods":                 pointer.From(profile.MaxPods),
+			"min_count":                int(pointer.From(profile.MinCount)),
+			"name":                     profile.Name,
 			"node_labels":              nodeLabels,
-			"node_public_ip_prefix_id": nodePublicIPPrefixID,
-			"node_taints":              nodeTaints,
-			"orchestrator_version":     orchestratorVersion,
-			"os_disk_size_gb":          osDiskSizeGb,
-			"os_type":                  string(*profile.OsType),
+			"node_public_ip_prefix_id": profile.NodePublicIPPrefixID,
+			"node_taints":              pointer.From(profile.NodeTaints),
+			"orchestrator_version":     pointer.From(profile.OrchestratorVersion),
+			"os_disk_size_gb":          int(pointer.From(profile.OsDiskSizeGB)),
+			"os_type":                  pointer.FromEnum(profile.OsType),
 			"tags":                     tags.Flatten(profile.Tags),
-			"type":                     string(*profile.Type),
+			"type":                     pointer.FromEnum(profile.Type),
 			"upgrade_settings":         flattenKubernetesClusterDataSourceUpgradeSettings(profile.UpgradeSettings),
-			"vm_size":                  vmSize,
-			"vnet_subnet_id":           vnetSubnetId,
+			"vm_size":                  profile.VMSize,
+			"vnet_subnet_id":           pointer.From(profile.VnetSubnetID),
 			"zones":                    zones.FlattenUntyped(profile.AvailabilityZones),
-		}
-
-		agentPoolProfiles = append(agentPoolProfiles, out)
+		})
 	}
 
 	return agentPoolProfiles
@@ -1273,7 +1223,7 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]managedcluster
 func flattenKubernetesClusterDataSourceAzureActiveDirectoryRoleBasedAccessControl(input *managedclusters.ManagedClusterProperties) []interface{} {
 	results := make([]interface{}, 0)
 	if profile := input.AadProfile; profile != nil {
-		adminGroupObjectIds := helpers.FlattenStringSlice(profile.AdminGroupObjectIDs)
+		adminGroupObjectIds := pluginsdk.FlattenSlice(profile.AdminGroupObjectIDs)
 
 		azureRbacEnabled := pointer.From(profile.EnableAzureRBAC)
 

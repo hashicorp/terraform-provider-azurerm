@@ -19,9 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
@@ -208,19 +206,19 @@ func resourceIotHub() *pluginsdk.Resource {
 						"sas_ttl": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.ISO8601Duration,
+							ValidateFunc: validation.ISO8601Duration,
 							Default:      "PT1H",
 						},
 						"default_ttl": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.ISO8601Duration,
+							ValidateFunc: validation.ISO8601Duration,
 							Default:      "PT1H",
 						},
 						"lock_duration": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.ISO8601Duration,
+							ValidateFunc: validation.ISO8601Duration,
 							Default:      "PT1M",
 						},
 					},
@@ -498,7 +496,7 @@ func resourceIotHub() *pluginsdk.Resource {
 									"ip_mask": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: validate.CIDR,
+										ValidateFunc: validation.IsCIDRIPv4,
 									},
 									"action": {
 										Type:         pluginsdk.TypeString,
@@ -530,7 +528,7 @@ func resourceIotHub() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "PT1H",
-							ValidateFunc: validate.ISO8601DurationBetween("PT15M", "P2D"),
+							ValidateFunc: validation.ISO8601DurationBetween("PT15M", "P2D"),
 						},
 						"feedback": {
 							Type:     pluginsdk.TypeList,
@@ -541,7 +539,7 @@ func resourceIotHub() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Default:      "PT1H",
-										ValidateFunc: validate.ISO8601DurationBetween("PT15M", "P2D"),
+										ValidateFunc: validation.ISO8601DurationBetween("PT15M", "P2D"),
 									},
 									"max_delivery_count": {
 										Type:         pluginsdk.TypeInt,
@@ -553,7 +551,7 @@ func resourceIotHub() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Default:      "PT60S",
-										ValidateFunc: validate.ISO8601DurationBetween("PT5S", "PT300S"),
+										ValidateFunc: validation.ISO8601DurationBetween("PT5S", "PT300S"),
 									},
 								},
 							},
@@ -1119,7 +1117,7 @@ func expandIoTHubRoutes(d *pluginsdk.ResourceData) *[]devices.RouteProperties {
 			Name:          pointer.To(route["name"].(string)),
 			Source:        source,
 			Condition:     pointer.To(route["condition"].(string)),
-			EndpointNames: helpers.ExpandStringSlice(endpointNamesRaw),
+			EndpointNames: pluginsdk.ExpandStringSlice(endpointNamesRaw),
 			IsEnabled:     pointer.To(route["enabled"].(bool)),
 		})
 	}
@@ -1140,7 +1138,7 @@ func expandIoTHubEnrichments(d *pluginsdk.ResourceData) *[]devices.EnrichmentPro
 		enrichmentProperties = append(enrichmentProperties, devices.EnrichmentProperties{
 			Key:           pointer.To(enrichment["key"].(string)),
 			Value:         pointer.To(enrichment["value"].(string)),
-			EndpointNames: helpers.ExpandStringSlice(endpointNamesRaw),
+			EndpointNames: pluginsdk.ExpandStringSlice(endpointNamesRaw),
 		})
 	}
 
@@ -1342,7 +1340,7 @@ func expandIoTHubFallbackRoute(d *pluginsdk.ResourceData) *devices.FallbackRoute
 	return &devices.FallbackRouteProperties{
 		Source:        pointer.To(fallbackRouteMap["source"].(string)),
 		Condition:     pointer.To(fallbackRouteMap["condition"].(string)),
-		EndpointNames: helpers.ExpandStringSlice(fallbackRouteMap["endpoint_names"].([]interface{})),
+		EndpointNames: pluginsdk.ExpandStringSlice(fallbackRouteMap["endpoint_names"].([]interface{})),
 		IsEnabled:     pointer.To(fallbackRouteMap["enabled"].(bool)),
 	}
 }
@@ -1703,7 +1701,7 @@ func flattenIoTHubFallbackRoute(input *devices.RoutingProperties) []interface{} 
 		output["source"] = *source
 	}
 
-	output["endpoint_names"] = helpers.FlattenStringSlice(route.EndpointNames)
+	output["endpoint_names"] = pluginsdk.FlattenSlice(route.EndpointNames)
 
 	return []interface{}{output}
 }
