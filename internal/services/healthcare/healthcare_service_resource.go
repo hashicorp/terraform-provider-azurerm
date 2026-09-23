@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	service "github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/resource"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -91,7 +90,7 @@ func resourceHealthcareService() *pluginsdk.Resource {
 			"authentication_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -117,7 +116,7 @@ func resourceHealthcareService() *pluginsdk.Resource {
 			"cors_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -315,8 +314,7 @@ func resourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("kind", kind)
 		}
 
-		i := identity.FlattenSystemAssigned(m.Identity)
-		if err := d.Set("identity", i); err != nil {
+		if err := d.Set("identity", identity.FlattenSystemAssigned(m.Identity)); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
@@ -402,18 +400,16 @@ func expandCorsConfiguration(d *pluginsdk.ResourceData) *service.ServiceCorsConf
 
 	corsConfigAttr := corsConfigRaw[0].(map[string]interface{})
 
-	allowedOrigins := *helpers.ExpandStringSlice(corsConfigAttr["allowed_origins"].(*pluginsdk.Set).List())
-	allowedHeaders := *helpers.ExpandStringSlice(corsConfigAttr["allowed_headers"].(*pluginsdk.Set).List())
-	allowedMethods := *helpers.ExpandStringSlice(corsConfigAttr["allowed_methods"].([]interface{}))
-	maxAgeInSeconds := int64(corsConfigAttr["max_age_in_seconds"].(int))
-	allowCredentials := corsConfigAttr["allow_credentials"].(bool)
+	allowedOrigins := *pluginsdk.ExpandStringSlice(corsConfigAttr["allowed_origins"].(*pluginsdk.Set).List())
+	allowedHeaders := *pluginsdk.ExpandStringSlice(corsConfigAttr["allowed_headers"].(*pluginsdk.Set).List())
+	allowedMethods := *pluginsdk.ExpandStringSlice(corsConfigAttr["allowed_methods"].([]interface{}))
 
 	return &service.ServiceCorsConfigurationInfo{
 		Origins:          &allowedOrigins,
 		Headers:          &allowedHeaders,
 		Methods:          &allowedMethods,
-		MaxAge:           &maxAgeInSeconds,
-		AllowCredentials: &allowCredentials,
+		MaxAge:           pointer.To(int64(corsConfigAttr["max_age_in_seconds"].(int))),
+		AllowCredentials: pointer.To(corsConfigAttr["allow_credentials"].(bool)),
 	}
 }
 
@@ -425,14 +421,11 @@ func expandAuthentication(d *pluginsdk.ResourceData) *service.ServiceAuthenticat
 	}
 
 	authConfigAttr := authConfigRaw[0].(map[string]interface{})
-	authority := authConfigAttr["authority"].(string)
-	audience := authConfigAttr["audience"].(string)
-	smartProxyEnabled := authConfigAttr["smart_proxy_enabled"].(bool)
 
 	return &service.ServiceAuthenticationConfigurationInfo{
-		Authority:         &authority,
-		Audience:          &audience,
-		SmartProxyEnabled: &smartProxyEnabled,
+		Authority:         pointer.To(authConfigAttr["authority"].(string)),
+		Audience:          pointer.To(authConfigAttr["audience"].(string)),
+		SmartProxyEnabled: pointer.To(authConfigAttr["smart_proxy_enabled"].(bool)),
 	}
 }
 
@@ -492,9 +485,9 @@ func flattenCorsConfig(input *service.ServiceCorsConfigurationInfo) []interface{
 	return []interface{}{
 		map[string]interface{}{
 			"allow_credentials":  pointer.From(input.AllowCredentials),
-			"allowed_headers":    helpers.FlattenStringSlice(input.Headers),
-			"allowed_methods":    helpers.FlattenStringSlice(input.Methods),
-			"allowed_origins":    helpers.FlattenStringSlice(input.Origins),
+			"allowed_headers":    pluginsdk.FlattenSlice(input.Headers),
+			"allowed_methods":    pluginsdk.FlattenSlice(input.Methods),
+			"allowed_origins":    pluginsdk.FlattenSlice(input.Origins),
 			"max_age_in_seconds": maxAge,
 		},
 	}

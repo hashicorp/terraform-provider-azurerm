@@ -16,11 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/availabilitygrouplisteners"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachines"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
-	sqlValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -102,7 +98,7 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Arguments() map[st
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.PortNumber,
+			ValidateFunc: validation.IsPortNumber,
 		},
 
 		"load_balancer_configuration": {
@@ -131,7 +127,7 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Arguments() map[st
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validate.PortNumber,
+						ValidateFunc: validation.IsPortNumber,
 					},
 
 					"sql_virtual_machine_ids": {
@@ -195,7 +191,7 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Arguments() map[st
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: sqlValidate.SqlVirtualMachineID,
+						ValidateFunc: validation.AsGeneratedID(sqlvirtualmachines.ParseSqlVirtualMachineIDInsensitively),
 					},
 
 					"role": {
@@ -402,13 +398,13 @@ func expandMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfiguration
 
 		var parsedIds []interface{}
 		for _, sqlVmId := range lb.SqlVirtualMachineIds {
-			parsedId, err := parse.SqlVirtualMachineID(sqlVmId)
+			parsedId, err := sqlvirtualmachines.ParseSqlVirtualMachineID(sqlVmId)
 			if err != nil {
 				return nil, err
 			}
 			parsedIds = append(parsedIds, parsedId.ID())
 		}
-		lbConfig.SqlVirtualMachineInstances = helpers.ExpandStringSlice(parsedIds)
+		lbConfig.SqlVirtualMachineInstances = pluginsdk.ExpandStringSlice(parsedIds)
 
 		lbConfig.PrivateIPAddress = &availabilitygrouplisteners.PrivateIPAddress{
 			IPAddress:        pointer.To(lb.PrivateIpAddress),

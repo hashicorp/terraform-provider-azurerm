@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -70,7 +69,7 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 			"port": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ValidateFunc: validate.PortNumber,
+				ValidateFunc: validation.IsPortNumber,
 			},
 
 			"probe_threshold": {
@@ -98,12 +97,18 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 				Default:  2,
 			},
 
+			"no_healthy_backends_behavior": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(loadbalancers.ProbeNoHealthyBackendsBehaviorAllProbedDown),
+				ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForProbeNoHealthyBackendsBehavior(), false),
+			},
+
 			"load_balancer_rules": {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
+					Type: pluginsdk.TypeString,
 				},
 				Set: pluginsdk.HashString,
 			},
@@ -211,6 +216,7 @@ func resourceArmLoadBalancerProbeRead(d *pluginsdk.ResourceData, meta interface{
 			d.Set("protocol", string(props.Protocol))
 			d.Set("request_path", pointer.From(props.RequestPath))
 			d.Set("probe_threshold", int(pointer.From(props.ProbeThreshold)))
+			d.Set("no_healthy_backends_behavior", string(pointer.From(props.NoHealthyBackendsBehavior)))
 
 			// TODO: parse/make these consistent
 			var loadBalancerRules []string
@@ -289,6 +295,10 @@ func expandAzureRmLoadBalancerProbe(d *pluginsdk.ResourceData) *loadbalancers.Pr
 
 	if v, ok := d.GetOk("probe_threshold"); ok {
 		properties.ProbeThreshold = pointer.To(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("no_healthy_backends_behavior"); ok {
+		properties.NoHealthyBackendsBehavior = pointer.ToEnum[loadbalancers.ProbeNoHealthyBackendsBehavior](v.(string))
 	}
 
 	return &loadbalancers.Probe{

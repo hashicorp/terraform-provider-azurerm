@@ -42,8 +42,8 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_frontdoor":                            resourceFrontDoor(),
-		"azurerm_frontdoor_firewall_policy":            resourceFrontDoorFirewallPolicy(),
 		"azurerm_frontdoor_custom_https_configuration": resourceFrontDoorCustomHTTPSConfiguration(),
+		"azurerm_frontdoor_firewall_policy":            resourceFrontDoorFirewallPolicy(),
 		"azurerm_frontdoor_rules_engine":               resourceFrontDoorRulesEngine(),
 	}
 }

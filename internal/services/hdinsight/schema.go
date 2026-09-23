@@ -16,9 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/extensions"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -383,7 +381,7 @@ func SchemaHDInsightsHttpsEndpoints() *pluginsdk.Schema {
 				"destination_port": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					ValidateFunc: azValidate.PortNumber,
+					ValidateFunc: validation.IsPortNumber,
 				},
 
 				"disable_gateway_auth": {
@@ -405,14 +403,6 @@ func SchemaHDInsightsHttpsEndpoints() *pluginsdk.Schema {
 			},
 		},
 	}
-}
-
-type HttpEndpointModel struct {
-	AccessModes        []string `tfschema:"access_modes"`
-	DestinationPort    int64    `tfschema:"destination_port"`
-	DisableGatewayAuth bool     `tfschema:"disable_gateway_auth"`
-	PrivateIpAddress   string   `tfschema:"private_ip_address"`
-	SubDomainSuffix    string   `tfschema:"sub_domain_suffix"`
 }
 
 func ExpandHDInsightsRolesScriptActions(input []interface{}) *[]clusters.ScriptAction {
@@ -441,12 +431,10 @@ func ExpandHDInsightComputeIsolationProperties(input []interface{}) *clusters.Co
 	}
 
 	v := input[0].(map[string]interface{})
-	enableComputeIsolation := v["compute_isolation_enabled"].(bool)
-	hostSku := v["host_sku"].(string)
 
 	return &clusters.ComputeIsolationProperties{
-		EnableComputeIsolation: &enableComputeIsolation,
-		HostSku:                &hostSku,
+		EnableComputeIsolation: pointer.To(v["compute_isolation_enabled"].(bool)),
+		HostSku:                pointer.To(v["host_sku"].(string)),
 	}
 }
 
@@ -689,12 +677,11 @@ func flattenHDInsightPrivateLinkConfigurations(input *[]clusters.PrivateLinkConf
 	}
 
 	v := pointer.From(input)[0]
-	ipConfig := v.Properties.IPConfigurations[0]
 	return []interface{}{
 		map[string]interface{}{
 			"name":             v.Name,
 			"group_id":         v.Properties.GroupId,
-			"ip_configuration": flattenHDInsightPrivateLinkConfigurationIpConfigurationProperties(&ipConfig),
+			"ip_configuration": flattenHDInsightPrivateLinkConfigurationIpConfigurationProperties(pointer.To(v.Properties.IPConfigurations[0])),
 		},
 	}
 }
@@ -1017,13 +1004,11 @@ func ExpandHDInsightsDiskEncryptionProperties(input []interface{}) (*clusters.Di
 	v := input[0].(map[string]interface{})
 
 	encryptionAlgorithm := v["encryption_algorithm"].(string)
-	encryptionAtHost := v["encryption_at_host_enabled"].(bool)
-	keyVaultManagedIdentityId := v["key_vault_managed_identity_id"].(string)
 
 	diskEncryptionProps := &clusters.DiskEncryptionProperties{
 		EncryptionAlgorithm: pointer.ToEnum[clusters.JsonWebKeyEncryptionAlgorithm](encryptionAlgorithm),
-		EncryptionAtHost:    &encryptionAtHost,
-		MsiResourceId:       &keyVaultManagedIdentityId,
+		EncryptionAtHost:    pointer.To(v["encryption_at_host_enabled"].(bool)),
+		MsiResourceId:       pointer.To(v["key_vault_managed_identity_id"].(string)),
 	}
 
 	if id, ok := v["key_vault_key_id"]; ok && id.(string) != "" {
@@ -1682,7 +1667,7 @@ func ExpandHDInsightSecurityProfile(input []interface{}) *clusters.SecurityProfi
 	result := clusters.SecurityProfile{
 		DirectoryType:      pointer.To(clusters.DirectoryTypeActiveDirectory),
 		Domain:             pointer.To(v["domain_name"].(string)),
-		LdapsURLs:          helpers.ExpandStringSlice(v["ldaps_urls"].(*pluginsdk.Set).List()),
+		LdapsURLs:          pluginsdk.ExpandStringSlice(v["ldaps_urls"].(*pluginsdk.Set).List()),
 		DomainUsername:     pointer.To(v["domain_username"].(string)),
 		DomainUserPassword: pointer.To(v["domain_user_password"].(string)),
 		AaddsResourceId:    pointer.To(v["aadds_resource_id"].(string)),
@@ -1690,7 +1675,7 @@ func ExpandHDInsightSecurityProfile(input []interface{}) *clusters.SecurityProfi
 	}
 
 	if clusterUsersGroupDNS := v["cluster_users_group_dns"].(*pluginsdk.Set).List(); len(clusterUsersGroupDNS) != 0 {
-		result.ClusterUsersGroupDNs = helpers.ExpandStringSlice(clusterUsersGroupDNS)
+		result.ClusterUsersGroupDNs = pluginsdk.ExpandStringSlice(clusterUsersGroupDNS)
 	}
 
 	return &result
@@ -1813,7 +1798,7 @@ func findHDInsightConnectivityEndpoint(name string, input *[]clusters.Connectivi
 
 func FlattenHDInsightNodeAutoscaleDefinition(input *clusters.Autoscale) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	result := map[string]interface{}{}
@@ -1829,7 +1814,7 @@ func FlattenHDInsightNodeAutoscaleDefinition(input *clusters.Autoscale) []interf
 	if len(result) > 0 {
 		return []interface{}{result}
 	}
-	return nil
+	return []interface{}{}
 }
 
 func FlattenHDInsightAutoscaleCapacityDefinition(input *clusters.AutoscaleCapacity) []interface{} {
@@ -1888,11 +1873,11 @@ func flattenHDInsightSecurityProfile(input *clusters.SecurityProfile, d *plugins
 	return []interface{}{
 		map[string]interface{}{
 			"aadds_resource_id":       pointer.From(input.AaddsResourceId),
-			"cluster_users_group_dns": helpers.FlattenStringSlice(input.ClusterUsersGroupDNs),
+			"cluster_users_group_dns": pluginsdk.FlattenSlice(input.ClusterUsersGroupDNs),
 			"domain_name":             pointer.From(input.Domain),
 			"domain_username":         pointer.From(input.DomainUsername),
 			"domain_user_password":    d.Get("security_profile.0.domain_user_password"),
-			"ldaps_urls":              helpers.FlattenStringSlice(input.LdapsURLs),
+			"ldaps_urls":              pluginsdk.FlattenSlice(input.LdapsURLs),
 			"msi_resource_id":         pointer.From(input.MsiResourceId),
 		},
 	}
