@@ -279,7 +279,7 @@ func (r MonitorPipelineResource) Arguments() map[string]*pluginsdk.Schema {
 									Required: true,
 									ValidateFunc: validation.StringMatch(
 										regexp.MustCompile(`^dcr-[0-9a-fA-F]{32}$`),
-										"must be a Data Collection Rule immutable ID in the form `dcr-<guid>`",
+										"must start with `dcr-` followed by 32 hexadecimal characters",
 									),
 								},
 
@@ -581,10 +581,9 @@ func (r MonitorPipelineResource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								"private_key": {
-									Type:      pluginsdk.TypeList,
-									Required:  true,
-									MaxItems:  1,
-									Sensitive: true,
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MaxItems: 1,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"location": {

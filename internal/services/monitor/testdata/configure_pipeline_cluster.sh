@@ -13,13 +13,13 @@
 # KUBECONFIG and the other environment variables below are supplied by the calling
 # local-exec provisioner's environment.
 
-set -e
+set -euo pipefail
 
 mkdir -p "$HOME/go/bin"
 export PATH="$HOME/go/bin:$PATH"
 
 command -v kubectl >/dev/null || (
-  curl -sL -o "$HOME/go/bin/kubectl" "https://dl.k8s.io/release/$(curl -sL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+  curl -fsSL -o "$HOME/go/bin/kubectl" "https://dl.k8s.io/release/$(curl -fsSL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
   chmod +x "$HOME/go/bin/kubectl"
 )
 

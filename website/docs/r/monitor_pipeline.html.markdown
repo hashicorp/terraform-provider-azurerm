@@ -317,6 +317,8 @@ An `azure_monitor_workspace_log_exporter` block supports the following:
 
 * `persistence_maximum_storage_usage_in_gb` - (Optional) The maximum local storage the exporter is allowed to use, in gigabytes.
 
+-> **Note:** `persistence_maximum_storage_usage_in_gb` must be at least `1`.
+
 * `persistence_retention_period_in_minutes` - (Optional) The retention period for persisted data that has not yet been exported, in minutes. Possible values range between `1` and `2880`.
 
 ~> **Note:** `persistent_volume_name` must be set when `persistence_maximum_storage_usage_in_gb` or `persistence_retention_period_in_minutes` is configured.
@@ -343,17 +345,17 @@ An `execution_placement_constraint` block supports the following:
 
 * `values` - (Optional) A list of values to match against.
 
-~> **Note:** `values` is required when `operator` is `In` or `NotIn`, and must not be set when `operator` is `Exists` or `DoesNotExist`.
+~> **Note:** `values` must be non-empty when `operator` is `In` or `NotIn`, and empty or omitted when `operator` is `Exists` or `DoesNotExist`.
 
 ---
 
 A `certificate` block supports the following:
 
-* `location` - (Required) The location of the certificate source.
+* `location` - (Required) The location of the TLS certificate source.
 
-* `sub_location` - (Required) The sub-location within the certificate source.
+* `sub_location` - (Required) The sub-location within the TLS certificate source.
 
-* `type` - (Required) The type of certificate source. Possible values are `kubernetesConfigMap` and `kubernetesSecret`.
+* `type` - (Required) The type of the TLS certificate source. Possible values are `kubernetesConfigMap` and `kubernetesSecret`.
 
 ---
 
@@ -383,9 +385,15 @@ A `log_pipeline` block supports the following:
 
 * `exporters` - (Required) A list of exporter names referenced by this pipeline.
 
+-> **Note:** The items in the `exporters` list must be between 4 and 33 characters, contain only letters, numbers, and hyphens, and must not start or end with a hyphen.
+
 * `receivers` - (Required) A list of receiver names referenced by this pipeline.
 
+-> **Note:** The items in the `receivers` list must be between 4 and 33 characters, contain only letters, numbers, and hyphens, and must not start or end with a hyphen.
+
 * `processors` - (Optional) A list of processor names referenced by this pipeline.
+
+-> **Note:** The items in the `processors` list must be between 4 and 33 characters, contain only letters, numbers, and hyphens, and must not start or end with a hyphen.
 
 ---
 
@@ -417,7 +425,7 @@ An `otlp_receiver` block supports the following:
 
 * `tls_configuration_name` - (Optional) The name of the `tls_configuration` block to secure this receiver with. When not specified, the default TLS configuration is used.
 
-~> **Note:** `tls_configuration_name` must reference the `name` of a `tls_configuration` block defined on this resource.
+~> **Note:** `tls_configuration_name` must reference the `name` of a `tls_configuration` block defined on this resource. It must be between 4 and 33 characters, contain only letters, numbers, and hyphens, and must not start or end with a hyphen.
 
 ---
 
@@ -475,7 +483,7 @@ A `syslog_receiver` block supports the following:
 
 * `tls_configuration_name` - (Optional) The name of the `tls_configuration` block to secure this receiver with. When not specified, the default TLS configuration is used.
 
-~> **Note:** `tls_configuration_name` must reference the `name` of a `tls_configuration` block defined on this resource. It is not supported when `transport_protocol` is `udp`.
+~> **Note:** `tls_configuration_name` must reference the `name` of a `tls_configuration` block defined on this resource. It must be between 4 and 33 characters, contain only letters, numbers, and hyphens, and must not start or end with a hyphen. It is not supported when `transport_protocol` is `udp`.
 
 * `transport_protocol` - (Optional) The transport protocol used by the receiver. Possible values are `tcp` and `udp`. Defaults to `tcp`.
 
