@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -95,14 +96,7 @@ func resourceDnsTxtRecord() *pluginsdk.Resource {
 }
 
 func resourceDnsTxtRecordImporter(_ context.Context, d *pluginsdk.ResourceData, _ interface{}) ([]*pluginsdk.ResourceData, error) {
-	resourceId, err := recordsets.ParseRecordTypeID(d.Id())
-	if err != nil {
-		return []*pluginsdk.ResourceData{d}, err
-	}
-	if resourceId.RecordType != recordsets.RecordTypeTXT {
-		return []*pluginsdk.ResourceData{d}, fmt.Errorf("importing %s wrong type received: expected %s received %s", resourceId, recordsets.RecordTypeTXT, resourceId.RecordType)
-	}
-	return []*pluginsdk.ResourceData{d}, nil
+	return helper.ResourceDnsRecordImporter(nil, d, nil, recordsets.RecordTypeTXT)
 }
 
 func resourceDnsTxtRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

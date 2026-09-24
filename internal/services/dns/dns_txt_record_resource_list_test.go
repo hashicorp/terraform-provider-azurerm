@@ -5,6 +5,7 @@ package dns_test
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strconv"
 	"testing"
@@ -28,13 +29,13 @@ func TestAccDnsTxtRecord_listByDnsZoneID(t *testing.T) {
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		Steps: []resource.TestStep{
 			{
-				Config: r.basic(data),
+				Config: r.basicList(data),
 			},
 			{
 				Query:  true,
 				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_dns_txt_record.list", 1),
+					querycheck.ExpectLength("azurerm_dns_txt_record.list", 3),
 					querycheck.ExpectIdentity(
 						"azurerm_dns_txt_record.list",
 						map[string]knownvalue.Check{
@@ -49,6 +50,36 @@ func TestAccDnsTxtRecord_listByDnsZoneID(t *testing.T) {
 			},
 		},
 	})
+}
+
+func (DnsTxtRecordResource) basicList(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_dns_txt_record" "test" {
+  count = 3
+  name                = "myarecord%d${count.index}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
+  ttl                 = 300
+
+  record {
+    value = "Quick brown fox${count.index}"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (r DnsTxtRecordResource) basicQuery() string {
