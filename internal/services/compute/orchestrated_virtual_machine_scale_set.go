@@ -14,11 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -687,7 +685,7 @@ func OrchestratedVirtualMachineScaleSetTerminationNotificationSchema() *pluginsd
 				"timeout": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: azValidate.ISO8601DurationBetween("PT5M", "PT15M"),
+					ValidateFunc: validation.ISO8601DurationBetween("PT5M", "PT15M"),
 					Default:      "PT5M",
 				},
 			},
@@ -831,7 +829,7 @@ func validatePasswordComplexity(input interface{}, key string, min int, max int)
 	}
 
 	if slices.Contains(disallowedValues, password) {
-		errors = append(errors, fmt.Errorf("%q can not be one of %s, got %q", key, azure.QuotedStringSlice(disallowedValues), password))
+		errors = append(errors, fmt.Errorf("%q can not be one of %q, got %q", key, disallowedValues, password))
 		return warnings, errors
 	}
 

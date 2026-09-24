@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -141,7 +140,7 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 									"lookback_duration": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										ValidateFunc: validate.ISO8601Duration,
+										ValidateFunc: validation.ISO8601Duration,
 										Default:      "PT5M",
 									},
 									"reopen_closed_incidents": {
@@ -213,7 +212,7 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "PT5H",
-				ValidateFunc: validate.ISO8601DurationBetween("PT5M", "PT24H"),
+				ValidateFunc: validation.ISO8601DurationBetween("PT5M", "PT24H"),
 			},
 			"alert_details_override": {
 				Type:     pluginsdk.TypeList,

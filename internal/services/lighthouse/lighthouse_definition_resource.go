@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2022-10-01/registrationdefinitions"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -139,7 +138,7 @@ func resourceLighthouseDefinition() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Default:      "PT8H",
-										ValidateFunc: azValidate.ISO8601Duration,
+										ValidateFunc: validation.ISO8601Duration,
 									},
 
 									"approver": {

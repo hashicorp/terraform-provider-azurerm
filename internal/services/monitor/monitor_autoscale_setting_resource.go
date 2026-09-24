@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-10-01/autoscalesettings"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -97,7 +96,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 						"look_ahead_time": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.ISO8601DurationBetween("PT1M", "PT1H"),
+							ValidateFunc: validation.ISO8601DurationBetween("PT1M", "PT1H"),
 						},
 					},
 				},
@@ -163,7 +162,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 												"time_grain": {
 													Type:         pluginsdk.TypeString,
 													Required:     true,
-													ValidateFunc: validate.ISO8601Duration,
+													ValidateFunc: validation.ISO8601Duration,
 												},
 												"statistic": {
 													Type:     pluginsdk.TypeString,
@@ -178,7 +177,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 												"time_window": {
 													Type:         pluginsdk.TypeString,
 													Required:     true,
-													ValidateFunc: validate.ISO8601Duration,
+													ValidateFunc: validation.ISO8601Duration,
 												},
 												"time_aggregation": {
 													Type:         pluginsdk.TypeString,
@@ -264,7 +263,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 												"cooldown": {
 													Type:         pluginsdk.TypeString,
 													Required:     true,
-													ValidateFunc: validate.ISO8601Duration,
+													ValidateFunc: validation.ISO8601Duration,
 												},
 											},
 										},
