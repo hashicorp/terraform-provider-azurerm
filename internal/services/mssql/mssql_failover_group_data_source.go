@@ -169,11 +169,11 @@ func (d MsSqlFailoverGroupDataSource) Read() sdk.ResourceFunc {
 						state.ReadonlyEndpointFailurePolicyEnabled = true
 					}
 
+					readWriteEndpoint := props.ReadWriteEndpoint
 					state.ReadWriteEndpointFailurePolicy = []ReadWriteEndpointFailurePolicyDataSourceModel{{
-						Mode: string(props.ReadWriteEndpoint.FailoverPolicy),
+						Mode:         string(readWriteEndpoint.FailoverPolicy),
+						GraceMinutes: pointer.From(readWriteEndpoint.FailoverWithDataLossGracePeriodMinutes),
 					}}
-
-					state.ReadWriteEndpointFailurePolicy[0].GraceMinutes = pointer.From(props.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes)
 				}
 			}
 

@@ -12,10 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedbackupshorttermretentionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/manageddatabases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstancelongtermretentionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedbackupshorttermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/manageddatabases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstancelongtermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	miParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
@@ -89,6 +89,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 		"long_term_retention_policy": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			// NOTE: O+C - the API returns a default LTR policy during read/import even when this block is omitted.
 			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
@@ -122,8 +123,9 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 
 					// WeekOfYear - The week of year to take the yearly backup.
 					"week_of_year": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						// NOTE: O+C - the API defaults weekOfYear to 1 when yearly retention is configured without an explicit week.
 						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.IntBetween(0, 52),
 						AtLeastOneOf: atLeastOneOf,
