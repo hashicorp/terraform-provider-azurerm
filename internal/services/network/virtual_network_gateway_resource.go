@@ -727,7 +727,7 @@ func resourceVirtualNetworkGatewayCreate(d *pluginsdk.ResourceData, meta interfa
 
 	if expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{})); err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
-	} else if expandedIdentity.Type != identity.TypeNone {
+	} else {
 		gateway.Identity = expandedIdentity
 	}
 
@@ -941,7 +941,7 @@ func resourceVirtualNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interfa
 	if d.HasChange("identity") {
 		if expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{})); err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
-		} else if expandedIdentity.Type != identity.TypeNone {
+		} else {
 			payload.Identity = expandedIdentity
 		}
 	}

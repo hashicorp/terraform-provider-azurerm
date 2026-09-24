@@ -170,7 +170,9 @@ The following arguments are supported:
 
 * `vpn_type` - (Optional) The routing type of the Virtual Network Gateway. Valid options are `RouteBased` or `PolicyBased`. Defaults to `RouteBased`. Changing this forces a new resource to be created.
 
-* `identity` - (Optional) An `identity` block as defined below. `identity` block is only supported when `type` property is set as `Vpn` and `sku` property is not `Basic`.
+* `identity` - (Optional) An `identity` block as defined below.
+
+~> **Note:** `identity` block is only supported when `type` property is set as `Vpn` and `sku` property is not `Basic`.
 
 ---
 

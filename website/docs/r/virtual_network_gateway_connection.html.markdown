@@ -229,7 +229,7 @@ The following arguments are supported:
 
 * `shared_key` - (Optional) The shared IPSec key. A key could be provided if a Site-to-Site, VNet-to-VNet or ExpressRoute connection is created.
 
-~> **Note:** Exactly one of `shared_key` or `key_vault_certificate` can be specified.
+~> **Note:** `shared_key` and `key_vault_certificate` cannot be specified together.
 
 * `connection_mode` - (Optional) Connection mode to use. Possible values are `Default`, `InitiatorOnly` and `ResponderOnly`. Defaults to `Default`. Changing this value will force a resource to be created.
 
@@ -256,13 +256,13 @@ The following arguments are supported:
     Only a single policy can be defined for a connection. For details on
     custom policies refer to [the relevant section in the Azure documentation](https://docs.microsoft.com/azure/vpn-gateway/vpn-gateway-ipsecikepolicy-rm-powershell).
 
+* `key_vault_certificate` - (Optional) A `key_vault_certificate` block which is documented below.
+
+~> **Note:** `shared_key` and `key_vault_certificate` cannot be specified together.
+
 * `traffic_selector_policy` - (Optional) One or more `traffic_selector_policy` blocks which are documented below.
     A `traffic_selector_policy` allows to specify a traffic selector policy proposal to be used in a virtual network gateway connection.
     For details about traffic selectors refer to [the relevant section in the Azure documentation](https://docs.microsoft.com/azure/vpn-gateway/vpn-gateway-connect-multiple-policybased-rm-ps).
-
-* `key_vault_certificate` - (Optional) A `key_vault_certificate` block which is documented below.
-
-~> **Note:** Exactly one of `shared_key` or `key_vault_certificate` can be specified.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -297,21 +297,21 @@ The `ipsec_policy` block supports:
 
 ---
 
+The `key_vault_certificate` block supports:
+
+* `inbound_certificate_chains` - (Required) The inbound authentication certificate public keys.
+
+* `inbound_certificate_subject_name` - (Required) The inbound authentication certificate subject name.
+
+* `outbound_certificate_path` - (Required) Keyvault secret ID for outbound authentication certificate.
+
+---
+
 The `traffic_selector_policy` block supports:
 
 * `local_address_cidrs` - (Required) List of local CIDRs.
 
 * `remote_address_cidrs` - (Required) List of remote CIDRs.
-
----
-
-The `key_vault_certificate` block supports:
-
-* `inbound_certificate_chains` - (Required) The inbound authentication certificate public keys.
-
-* `inbound_certificate_subject_name`- (Required) The inbound authentication certificate subject name.
-
-* `outbound_certificate_path` - (Required) Keyvault secret ID for outbound authentication certificate.
 
 ## Attributes Reference
 
