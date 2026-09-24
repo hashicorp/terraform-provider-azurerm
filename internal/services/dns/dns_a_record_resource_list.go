@@ -64,8 +64,9 @@ func (DnsARecordListResource) List(ctx context.Context, request list.ListRequest
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing parent ID for `%s`", azurermDnsARecordResourceName), err)
 		return
 	}
+	zoneId := recordsets.NewZoneID(parentID.SubscriptionId, parentID.ResourceGroupName, parentID.DnsZoneName, recordsets.RecordTypeA)
 
-	resp, err := client.ListAllByDnsZoneComplete(ctx, *parentID, recordsets.DefaultListAllByDnsZoneOperationOptions())
+	resp, err := client.ListByTypeComplete(ctx, zoneId, recordsets.DefaultListByTypeOperationOptions())
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", azurermDnsARecordResourceName), err)
 		return
