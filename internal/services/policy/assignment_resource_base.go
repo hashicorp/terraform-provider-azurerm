@@ -682,7 +682,7 @@ func (br assignmentBaseResource) flattenSelectors(selectors *[]policyassignments
 		item := assignmentOverrideSelectorModel{
 			In:    pointer.From(s.In),
 			NotIn: pointer.From(s.NotIn),
-			Kind:  string(pointer.From(s.Kind)),
+			Kind:  pointer.FromEnum(s.Kind),
 		}
 		res = append(res, item)
 	}

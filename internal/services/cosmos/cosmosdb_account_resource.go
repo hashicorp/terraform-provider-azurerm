@@ -944,7 +944,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		backup = existing.Model.Properties.BackupPolicy
 		if d.HasChange("backup") {
 			if v, ok := d.GetOk("backup"); ok {
-				newBackup, err := expandCosmosdbAccountBackup(v.([]interface{}), d.HasChange("backup.0.type"), string(pointer.From(existing.Model.Properties.CreateMode)))
+				newBackup, err := expandCosmosdbAccountBackup(v.([]interface{}), d.HasChange("backup.0.type"), pointer.FromEnum(existing.Model.Properties.CreateMode))
 				if err != nil {
 					return fmt.Errorf("expanding `backup`: %+v", err)
 				}
@@ -960,7 +960,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 				}
 
 				backup = newBackup
-			} else if string(pointer.From(existing.Model.Properties.CreateMode)) != "" {
+			} else if pointer.FromEnum(existing.Model.Properties.CreateMode) != "" {
 				return fmt.Errorf("`create_mode` only works when `backup.type` is `Continuous`")
 			}
 		}

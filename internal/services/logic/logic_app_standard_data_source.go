@@ -258,7 +258,7 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 
 			clientCertMode := ""
 			if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
-				clientCertMode = string(pointer.From(props.ClientCertMode))
+				clientCertMode = pointer.FromEnum(props.ClientCertMode)
 			}
 			d.Set("client_certificate_mode", clientCertMode)
 
@@ -401,14 +401,14 @@ func flattenLogicAppStandardDataSourceSiteConfig(input *webapps.SiteConfig) []in
 
 	result["ip_restriction"] = flattenLogicAppStandardIpRestriction(input.IPSecurityRestrictions)
 
-	result["scm_type"] = string(pointer.From(input.ScmType))
-	result["scm_min_tls_version"] = string(pointer.From(input.ScmMinTlsVersion))
+	result["scm_type"] = pointer.FromEnum(input.ScmType)
+	result["scm_min_tls_version"] = pointer.FromEnum(input.ScmMinTlsVersion)
 	result["scm_ip_restriction"] = flattenLogicAppStandardIpRestriction(input.ScmIPSecurityRestrictions)
 	result["scm_ip_restriction_default_action"] = pointer.FromEnum(input.ScmIPSecurityRestrictionsDefaultAction)
 	result["scm_use_main_ip_restriction"] = pointer.From(input.ScmIPSecurityRestrictionsUseMain)
 
-	result["min_tls_version"] = string(pointer.From(input.MinTlsVersion))
-	result["ftps_state"] = string(pointer.From(input.FtpsState))
+	result["min_tls_version"] = pointer.FromEnum(input.MinTlsVersion)
+	result["ftps_state"] = pointer.FromEnum(input.FtpsState)
 
 	result["cors"] = flattenLogicAppStandardCorsSettings(input.Cors)
 
@@ -422,7 +422,7 @@ func flattenLogicAppStandardDataSourceSiteConfig(input *webapps.SiteConfig) []in
 
 	result["vnet_route_all_enabled"] = pointer.From(input.VnetRouteAllEnabled)
 
-	result["ip_restriction_default_action"] = string(pointer.From(input.IPSecurityRestrictionsDefaultAction))
+	result["ip_restriction_default_action"] = pointer.FromEnum(input.IPSecurityRestrictionsDefaultAction)
 
 	results = append(results, result)
 	return results

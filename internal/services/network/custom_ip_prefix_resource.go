@@ -646,7 +646,7 @@ func (r CustomIpPrefixResource) commissionedStateRefreshFunc(ctx context.Context
 			return nil, "", fmt.Errorf("polling for %s: `properties` was nil", id)
 		}
 
-		return res, string(pointer.From(res.Model.Properties.CommissionedState)), nil
+		return res, pointer.FromEnum(res.Model.Properties.CommissionedState), nil
 	}
 }
 
@@ -664,6 +664,6 @@ func (r CustomIpPrefixResource) provisioningStateRefreshFunc(ctx context.Context
 			return nil, "", fmt.Errorf("polling for %s: `properties` was nil", id)
 		}
 
-		return res, string(pointer.From(res.Model.Properties.ProvisioningState)), nil
+		return res, pointer.FromEnum(res.Model.Properties.ProvisioningState), nil
 	}
 }

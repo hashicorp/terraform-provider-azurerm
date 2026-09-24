@@ -187,7 +187,7 @@ func resourceArmDevTestPolicyRead(d *pluginsdk.ResourceData, meta interface{}) e
 		props := model.Properties
 		d.Set("description", props.Description)
 		d.Set("fact_data", props.FactData)
-		d.Set("evaluator_type", string(pointer.From(props.EvaluatorType)))
+		d.Set("evaluator_type", pointer.FromEnum(props.EvaluatorType))
 		d.Set("threshold", props.Threshold)
 
 		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {

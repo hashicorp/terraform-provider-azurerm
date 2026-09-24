@@ -454,7 +454,7 @@ func expandNotificationSettings(rule rolemanagementpolicies.RoleManagementPolicy
 
 func flattenNotificationSettings(rule rolemanagementpolicies.RoleManagementPolicyNotificationRule) *RoleManagementPolicyNotificationSettings {
 	return &RoleManagementPolicyNotificationSettings{
-		NotificationLevel:    string(pointer.From(rule.NotificationLevel)),
+		NotificationLevel:    pointer.FromEnum(rule.NotificationLevel),
 		DefaultRecipients:    pointer.From(rule.IsDefaultRecipientsEnabled),
 		AdditionalRecipients: pointer.From(rule.NotificationRecipients),
 	}

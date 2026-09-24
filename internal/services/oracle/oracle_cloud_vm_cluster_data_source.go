@@ -504,7 +504,7 @@ func (d CloudVmClusterDataSource) Read() sdk.ResourceFunc {
 					state.DataStorageSizeInTbs = pointer.From(props.DataStorageSizeInTbs)
 					state.DbNodeStorageSizeInGbs = pointer.From(props.DbNodeStorageSizeInGbs)
 					state.DbServers = pointer.From(props.DbServers)
-					state.DiskRedundancy = string(pointer.From(props.DiskRedundancy))
+					state.DiskRedundancy = pointer.FromEnum(props.DiskRedundancy)
 					state.DisplayName = props.DisplayName
 					state.Domain = pointer.From(props.Domain)
 					state.FileSystemConfiguration = FlattenFileSystemConfigurationDetails(props.FileSystemConfigurationDetails)
@@ -515,7 +515,7 @@ func (d CloudVmClusterDataSource) Read() sdk.ResourceFunc {
 					state.IsLocalBackupEnabled = pointer.From(props.IsLocalBackupEnabled)
 					state.IsSparseDiskgroupEnabled = pointer.From(props.IsSparseDiskgroupEnabled)
 					state.LastUpdateHistoryEntryId = pointer.From(props.LastUpdateHistoryEntryId)
-					state.LicenseModel = string(pointer.From(props.LicenseModel))
+					state.LicenseModel = pointer.FromEnum(props.LicenseModel)
 					state.LifecycleDetails = pointer.From(props.LifecycleDetails)
 					state.LifecycleState = string(*props.LifecycleState)
 					state.ListenerPort = pointer.From(props.ListenerPort)
@@ -561,8 +561,8 @@ func FlattenExadataIormConfig(input *cloudvmclusters.ExadataIormConfig) []Exadat
 		return append(output, ExadataIormConfigModel{
 			DbPlans:          dbIormConfigModel,
 			LifecycleDetails: pointer.From(input.LifecycleDetails),
-			LifecycleState:   string(pointer.From(input.LifecycleState)),
-			Objective:        string(pointer.From(input.Objective)),
+			LifecycleState:   pointer.FromEnum(input.LifecycleState),
+			Objective:        pointer.FromEnum(input.Objective),
 		})
 	}
 

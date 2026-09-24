@@ -411,7 +411,7 @@ func (r ManagedRedisResource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					state.CustomerManagedKey = flattenManagedRedisClusterCustomerManagedKey(props.Encryption)
-					state.HighAvailabilityEnabled = strings.EqualFold(string(pointer.From(props.HighAvailability)), string(redisenterprise.HighAvailabilityEnabled))
+					state.HighAvailabilityEnabled = strings.EqualFold(pointer.FromEnum(props.HighAvailability), string(redisenterprise.HighAvailabilityEnabled))
 					state.Hostname = pointer.From(props.HostName)
 					state.PublicNetworkAccess = string(props.PublicNetworkAccess)
 				}

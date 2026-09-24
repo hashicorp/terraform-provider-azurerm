@@ -262,11 +262,11 @@ func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta in
 				d.Set("eventhub_id", props.EventHubResourceId)
 				d.Set("eventhub_consumer_group_name", props.ConsumerGroup)
 				d.Set("skip_first_record", props.IgnoreFirstRecord)
-				d.Set("blob_storage_event_type", string(pointer.From(props.BlobStorageEventType)))
+				d.Set("blob_storage_event_type", pointer.FromEnum(props.BlobStorageEventType))
 				d.Set("table_name", props.TableName)
 				d.Set("mapping_rule_name", props.MappingRuleName)
-				d.Set("data_format", string(pointer.From(props.DataFormat)))
-				d.Set("database_routing_type", string(pointer.From(props.DatabaseRouting)))
+				d.Set("data_format", pointer.FromEnum(props.DataFormat))
+				d.Set("database_routing_type", pointer.FromEnum(props.DatabaseRouting))
 				d.Set("eventgrid_event_subscription_id", props.EventGridResourceId)
 
 				managedIdentityResourceId := ""

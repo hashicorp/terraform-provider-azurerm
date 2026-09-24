@@ -747,7 +747,7 @@ func flattenFirewallPolicyRuleCollection(input *[]firewallpolicyrulecollectiongr
 		case firewallpolicyrulecollectiongroups.FirewallPolicyFilterRuleCollection:
 			var action string
 			if rule.Action != nil {
-				action = string(pointer.From(rule.Action.Type))
+				action = pointer.FromEnum(rule.Action.Type)
 			}
 
 			result = map[string]interface{}{
@@ -787,10 +787,10 @@ func flattenFirewallPolicyRuleCollection(input *[]firewallpolicyrulecollectiongr
 			var action string
 			if rule.Action != nil {
 				// doing this because we hardcode Dnat for https://github.com/Azure/azure-rest-api-specs/issues/9986
-				if strings.EqualFold(string(pointer.From(rule.Action.Type)), "Dnat") {
+				if strings.EqualFold(pointer.FromEnum(rule.Action.Type), "Dnat") {
 					action = "Dnat"
 				} else {
-					action = string(pointer.From(rule.Action.Type))
+					action = pointer.FromEnum(rule.Action.Type)
 				}
 			}
 
@@ -833,7 +833,7 @@ func flattenFirewallPolicyRuleApplication(input *[]firewallpolicyrulecollectiong
 					port = int(*protocol.Port)
 				}
 				protocols = append(protocols, map[string]interface{}{
-					"type": string(pointer.From(protocol.ProtocolType)),
+					"type": pointer.FromEnum(protocol.ProtocolType),
 					"port": port,
 				})
 			}

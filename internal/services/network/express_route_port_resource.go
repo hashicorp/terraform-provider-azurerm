@@ -348,8 +348,8 @@ func resourceArmExpressRoutePortRead(d *pluginsdk.ResourceData, meta interface{}
 		if props := model.Properties; props != nil {
 			d.Set("peering_location", props.PeeringLocation)
 			d.Set("bandwidth_in_gbps", props.BandwidthInGbps)
-			d.Set("encapsulation", string(pointer.From(props.Encapsulation)))
-			d.Set("billing_type", string(pointer.From(props.BillingType)))
+			d.Set("encapsulation", pointer.FromEnum(props.Encapsulation))
+			d.Set("billing_type", pointer.FromEnum(props.BillingType))
 			link1, link2, err := flattenExpressRoutePortLinks(props.Links)
 			if err != nil {
 				return fmt.Errorf("flattening links: %v", err)
@@ -482,7 +482,7 @@ func flattenExpressRoutePortLink(link expressrouteports.ExpressRouteLink) []inte
 		if props.RackId != nil {
 			rackId = *props.RackId
 		}
-		connectorType = string(pointer.From(props.ConnectorType))
+		connectorType = pointer.FromEnum(props.ConnectorType)
 		adminState = pointer.From(props.AdminState) == expressrouteports.ExpressRouteLinkAdminStateEnabled
 		sciState = pointer.From(props.MacSecConfig.SciState) == expressrouteports.ExpressRouteLinkMacSecSciStateEnabled
 		if cfg := props.MacSecConfig; cfg != nil {
@@ -492,7 +492,7 @@ func flattenExpressRoutePortLink(link expressrouteports.ExpressRouteLink) []inte
 			if cfg.CakSecretIdentifier != nil {
 				cakSecretId = *cfg.CakSecretIdentifier
 			}
-			cipher = string(pointer.From(cfg.Cipher))
+			cipher = pointer.FromEnum(cfg.Cipher)
 		}
 	}
 
