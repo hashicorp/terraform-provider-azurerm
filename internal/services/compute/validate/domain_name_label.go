@@ -13,5 +13,5 @@ import (
 // Zones which causes a validation error in the RP. Updating the validation code to be artificially constrictive to account for the
 // RPs behaviour...
 func OrchestratedDomainNameLabel(v interface{}, k string) ([]string, []error) {
-	return validation.StringMatch(regexp.MustCompile(`^[a-z][a-z0-9-]{1,24}[a-z0-9]$`), "must be between 1 - 26 characters long, start with a lower case letter, end with a lower case letter or number and contains only a-z, 0-9 and hyphens")(v, k)
+	return validation.StringMatch(regexp.MustCompile(`^[a-z][a-z0-9-]{1,24}[a-z0-9]$`), "must be between 1 - 26 characters long, start with a lower case letter, end with a lower case letter or number and contain only a-z, 0-9 and hyphens")(v, k)
 }
