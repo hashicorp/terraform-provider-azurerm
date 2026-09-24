@@ -10,5 +10,5 @@ import (
 )
 
 func Duration(v interface{}, k string) ([]string, []error) {
-	return validation.StringMatch(regexp.MustCompile(`^(?:[0-9]{1,2}:)?[0-9]{2}:[0-9]{2}:[0-9]{2}$`), "must be in format DD:HH:MM:SS. If DD is 00, it has to be omit")(v, k)
+	return validation.StringMatch(regexp.MustCompile(`^(?:[0-9]{1,2}:)?[0-9]{2}:[0-9]{2}:[0-9]{2}$`), "must be in format DD:HH:MM:SS. If DD is 00, it must be omitted")(v, k)
 }
