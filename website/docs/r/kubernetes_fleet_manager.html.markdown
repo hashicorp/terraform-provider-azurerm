@@ -62,7 +62,7 @@ A `hub_profile` block supports the following:
 
 * `api_server_access_profile` - (Optional) An `api_server_access_profile` block as defined above. Changing this forces a new resource to be created.
 
-* `dns_prefix` - (Optional) DNS prefix used to create the FQDN for the Fleet hub. Changing this forces a new Kubernetes Fleet Manager to be created.
+* `dns_prefix` - (Optional) DNS prefix used to create the FQDN for the Fleet hub. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
