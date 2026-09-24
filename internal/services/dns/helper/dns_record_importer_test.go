@@ -1,7 +1,6 @@
 package helper
 
 import (
-	"context"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
@@ -82,7 +81,7 @@ func TestResourceDnsRecordImporter_DifferentRecordTypes(t *testing.T) {
 			d := schema.TestResourceDataRaw(t, map[string]*schema.Schema{}, map[string]interface{}{})
 			d.SetId(tt.idPath)
 
-			result, err := ResourceDnsRecordImporter(context.Background(), d, nil, tt.recordType)
+			result, err := ResourceDnsRecordImporter(d, tt.recordType)
 
 			if tt.expectErr && err == nil {
 				t.Errorf("Expected error but got none")

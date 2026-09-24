@@ -96,7 +96,7 @@ func resourceDnsTxtRecord() *pluginsdk.Resource {
 }
 
 func resourceDnsTxtRecordImporter(_ context.Context, d *pluginsdk.ResourceData, _ interface{}) ([]*pluginsdk.ResourceData, error) {
-	return helper.ResourceDnsRecordImporter(nil, d, nil, recordsets.RecordTypeTXT)
+	return helper.ResourceDnsRecordImporter(d, recordsets.RecordTypeTXT)
 }
 
 func resourceDnsTxtRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
