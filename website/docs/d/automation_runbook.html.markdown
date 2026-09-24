@@ -74,6 +74,8 @@ The `publish_content_link` block exports the following:
 
 * `hash` - A `hash` block as defined below.
 
+---
+
 The `draft` block supports:
 
 * `edit_mode_enabled` -  Whether the draft in edit mode.
