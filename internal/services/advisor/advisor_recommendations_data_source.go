@@ -182,10 +182,10 @@ func flattenAzureRmAdvisorRecommendations(recommends []getrecommendations.Resour
 		}
 
 		result = append(result, map[string]interface{}{
-			"category":               string(pointer.From(v.Category)),
+			"category":               pointer.FromEnum(v.Category),
 			"description":            description,
 			"id":                     pointer.From(r.Id),
-			"impact":                 string(pointer.From(v.Impact)),
+			"impact":                 pointer.FromEnum(v.Impact),
 			"recommendation_name":    pointer.From(r.Name),
 			"recommendation_type_id": pointer.From(v.RecommendationTypeId),
 			"resource_name":          pointer.From(v.ImpactedValue),

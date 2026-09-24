@@ -216,7 +216,7 @@ func resourceArmLoadBalancerProbeRead(d *pluginsdk.ResourceData, meta interface{
 			d.Set("protocol", string(props.Protocol))
 			d.Set("request_path", pointer.From(props.RequestPath))
 			d.Set("probe_threshold", int(pointer.From(props.ProbeThreshold)))
-			d.Set("no_healthy_backends_behavior", string(pointer.From(props.NoHealthyBackendsBehavior)))
+			d.Set("no_healthy_backends_behavior", pointer.FromEnum(props.NoHealthyBackendsBehavior))
 
 			// TODO: parse/make these consistent
 			var loadBalancerRules []string

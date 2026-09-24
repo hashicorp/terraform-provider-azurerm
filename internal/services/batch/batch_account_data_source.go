@@ -121,7 +121,7 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			if autoStorage := props.AutoStorage; autoStorage != nil {
 				d.Set("storage_account_id", autoStorage.StorageAccountId)
 			}
-			d.Set("pool_allocation_mode", string(pointer.From(props.PoolAllocationMode)))
+			d.Set("pool_allocation_mode", pointer.FromEnum(props.PoolAllocationMode))
 			poolAllocationMode := d.Get("pool_allocation_mode").(string)
 
 			if encryption := props.Encryption; encryption != nil {

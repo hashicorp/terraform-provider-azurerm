@@ -1067,7 +1067,7 @@ func flattenKubernetesAutomaticClusterServiceMeshProfile(profile *managedcluster
 				}
 			}
 		}
-		proxyRedirectMechanism = string(pointer.From(profile.Istio.Components.ProxyRedirectionMechanism))
+		proxyRedirectMechanism = pointer.FromEnum(profile.Istio.Components.ProxyRedirectionMechanism)
 	}
 
 	certificateAuthority := flattenKubernetesAutomaticClusterServiceMeshProfileCertificateAuthority(profile.Istio.CertificateAuthority)

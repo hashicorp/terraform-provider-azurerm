@@ -163,7 +163,7 @@ func dataSourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface
 				return fmt.Errorf("setting `idle_timeout_in_minutes`: %+v", err)
 			}
 
-			if err := d.Set("load_distribution", string(pointer.From(props.LoadDistribution))); err != nil {
+			if err := d.Set("load_distribution", pointer.FromEnum(props.LoadDistribution)); err != nil {
 				return fmt.Errorf("setting `load_distribution`: %+v", err)
 			}
 		}

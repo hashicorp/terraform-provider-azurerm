@@ -712,7 +712,7 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			apiType := string(pointer.From(props.Type))
+			apiType := pointer.FromEnum(props.Type)
 			if len(apiType) == 0 {
 				apiType = string(api.ApiTypeHTTP)
 			}

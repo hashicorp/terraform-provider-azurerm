@@ -243,7 +243,7 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if props := model.Properties; props != nil {
 			d.Set("name", id.ContainerName)
 			d.Set("storage_account_id", commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName).ID())
-			d.Set("container_access_type", containerAccessTypeConversionMap[string(pointer.From(props.PublicAccess))])
+			d.Set("container_access_type", containerAccessTypeConversionMap[pointer.FromEnum(props.PublicAccess)])
 			d.Set("default_encryption_scope", props.DefaultEncryptionScope)
 			d.Set("encryption_scope_override_enabled", !pointer.From(props.DenyEncryptionScopeOverride))
 			d.Set("metadata", FlattenMetaData(pointer.From(props.Metadata)))

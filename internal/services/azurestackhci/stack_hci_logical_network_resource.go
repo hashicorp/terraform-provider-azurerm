@@ -399,7 +399,7 @@ func flattenStackHCILogicalNetworkSubnet(input *[]logicalnetworks.Subnet) []Stac
 		if v.Properties != nil {
 			results = append(results, StackHCISubnetModel{
 				AddressPrefix:      pointer.From(v.Properties.AddressPrefix),
-				IpAllocationMethod: string(pointer.From(v.Properties.IPAllocationMethod)),
+				IpAllocationMethod: pointer.FromEnum(v.Properties.IPAllocationMethod),
 				IpPool:             flattenStackHCILogicalNetworkIPPool(v.Properties.IPPools),
 				Route:              flattenStackHCILogicalNetworkRouteTable(v.Properties.RouteTable),
 				VlanId:             pointer.From(v.Properties.Vlan),

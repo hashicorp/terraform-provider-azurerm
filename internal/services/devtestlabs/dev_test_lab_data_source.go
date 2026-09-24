@@ -104,7 +104,7 @@ func dataSourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		props := model.Properties
-		d.Set("storage_type", string(pointer.From(props.LabStorageType)))
+		d.Set("storage_type", pointer.FromEnum(props.LabStorageType))
 
 		// Computed fields
 		d.Set("artifacts_storage_account_id", props.ArtifactsStorageAccount)

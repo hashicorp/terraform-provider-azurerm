@@ -240,7 +240,7 @@ func dataSourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, me
 		d.Set("express_route_gateway_bypass", props.ExpressRouteGatewayBypass)
 		d.Set("private_link_fast_path_enabled", props.EnablePrivateLinkFastPath)
 		d.Set("type", string(props.ConnectionType))
-		d.Set("connection_protocol", string(pointer.From(props.ConnectionProtocol)))
+		d.Set("connection_protocol", pointer.FromEnum(props.ConnectionProtocol))
 		d.Set("routing_weight", props.RoutingWeight)
 
 		d.Set("virtual_network_gateway_id", props.VirtualNetworkGateway1.Id)

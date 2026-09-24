@@ -596,7 +596,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	if resp.Model != nil {
 		if key := resp.Model.Key; key != nil {
-			d.Set("key_type", string(pointer.From(key.Kty)))
+			d.Set("key_type", pointer.FromEnum(key.Kty))
 
 			if err := d.Set("key_opts", flattenKeyVaultKeyOptions(key.KeyOps)); err != nil {
 				return err
@@ -614,7 +614,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				d.Set("key_size", len(nBytes)*8)
 			}
 
-			d.Set("curve", string(pointer.From(key.Crv)))
+			d.Set("curve", pointer.FromEnum(key.Crv))
 		}
 
 		data, err := flattenKeyVaultKeyReleasePolicy(resp.Model.ReleasePolicy)

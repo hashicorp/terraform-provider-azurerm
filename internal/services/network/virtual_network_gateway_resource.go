@@ -740,7 +740,7 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 
 		d.Set("bgp_enabled", props.EnableBgp)
 
-		d.Set("type", string(pointer.From(props.GatewayType)))
+		d.Set("type", pointer.FromEnum(props.GatewayType))
 		d.Set("private_ip_address_enabled", props.EnablePrivateIPAddress)
 		d.Set("active_active", props.ActiveActive)
 		d.Set("bgp_route_translation_for_nat_enabled", props.EnableBgpRouteTranslationForNat)
@@ -748,10 +748,10 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("ip_sec_replay_protection_enabled", !*props.DisableIPSecReplayProtection)
 		d.Set("remote_vnet_traffic_enabled", props.AllowRemoteVnetTraffic)
 		d.Set("virtual_wan_traffic_enabled", props.AllowVirtualWanTraffic)
-		d.Set("generation", string(pointer.From(props.VpnGatewayGeneration)))
+		d.Set("generation", pointer.FromEnum(props.VpnGatewayGeneration))
 
 		if props.VpnType != nil {
-			d.Set("vpn_type", string(pointer.From(props.VpnType)))
+			d.Set("vpn_type", pointer.FromEnum(props.VpnType))
 		}
 
 		if props.GatewayDefaultSite != nil {
@@ -759,7 +759,7 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if props.Sku != nil {
-			d.Set("sku", string(pointer.From(props.Sku.Name)))
+			d.Set("sku", pointer.FromEnum(props.Sku.Name))
 		}
 
 		gatewayType := pointer.From(props.GatewayType)
@@ -981,7 +981,7 @@ func getVirtualNetworkGatewayProperties(id virtualnetworkgateways.VirtualNetwork
 	gatewayType := pointer.From(props.GatewayType)
 	vpnType := pointer.From(props.VpnType)
 	vpnGatewayGeneration := pointer.From(props.VpnGatewayGeneration)
-	skuName := string(pointer.From(props.Sku.Name))
+	skuName := pointer.FromEnum(props.Sku.Name)
 
 	// Sku validation for policy-based VPN gateways
 	if gatewayType == virtualnetworkgateways.VirtualNetworkGatewayTypeVpn && vpnType == virtualnetworkgateways.VpnTypePolicyBased {
@@ -1410,7 +1410,7 @@ func flattenVirtualNetworkGatewayIPConfigurations(ipConfigs *[]virtualnetworkgat
 			if name := cfg.Name; name != nil {
 				v["name"] = *name
 			}
-			v["private_ip_address_allocation"] = string(pointer.From(props.PrivateIPAllocationMethod))
+			v["private_ip_address_allocation"] = pointer.FromEnum(props.PrivateIPAllocationMethod)
 
 			if subnet := props.Subnet; subnet != nil {
 				if id := subnet.Id; id != nil {
@@ -1667,7 +1667,7 @@ func flattenVirtualNetworkGatewayPolicy(input []virtualnetworkgateways.VirtualNe
 	for _, item := range input {
 		results = append(results, map[string]interface{}{
 			"name":  pointer.From(item.Name),
-			"type":  string(pointer.From(item.AttributeType)),
+			"type":  pointer.FromEnum(item.AttributeType),
 			"value": pointer.From(item.AttributeValue),
 		})
 	}
