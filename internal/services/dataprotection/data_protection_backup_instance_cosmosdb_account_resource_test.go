@@ -19,7 +19,7 @@ import (
 
 type DataProtectionBackupInstanceCosmosdbAccountResource struct{}
 
-func TestAccDataProtectionBackupInstanceCosmosDBAccount_basic(t *testing.T) {
+func TestAccDataProtectionBackupInstanceCosmosdbAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_cosmosdb_account", "test")
 	r := DataProtectionBackupInstanceCosmosdbAccountResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -33,7 +33,7 @@ func TestAccDataProtectionBackupInstanceCosmosDBAccount_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataProtectionBackupInstanceCosmosDBAccount_requiresImport(t *testing.T) {
+func TestAccDataProtectionBackupInstanceCosmosdbAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_cosmosdb_account", "test")
 	r := DataProtectionBackupInstanceCosmosdbAccountResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -47,7 +47,7 @@ func TestAccDataProtectionBackupInstanceCosmosDBAccount_requiresImport(t *testin
 	})
 }
 
-func TestAccDataProtectionBackupInstanceCosmosDBAccount_complete(t *testing.T) {
+func TestAccDataProtectionBackupInstanceCosmosdbAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_cosmosdb_account", "test")
 	r := DataProtectionBackupInstanceCosmosdbAccountResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -61,7 +61,7 @@ func TestAccDataProtectionBackupInstanceCosmosDBAccount_complete(t *testing.T) {
 	})
 }
 
-func TestAccDataProtectionBackupInstanceCosmosDBAccount_update(t *testing.T) {
+func TestAccDataProtectionBackupInstanceCosmosdbAccount_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_cosmosdb_account", "test")
 	r := DataProtectionBackupInstanceCosmosdbAccountResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -142,7 +142,7 @@ resource "azurerm_role_assignment" "cosmos_operator" {
   role_definition_name = "Cosmos DB Operator"
   principal_id         = azurerm_data_protection_backup_vault.test.identity[0].principal_id
 }
-`, DataProtectionBackupPolicyCosmosDBAccountResource{}.basic(data), data.RandomInteger, data.RandomInteger)
+`, DataProtectionBackupPolicyCosmosdbAccountResource{}.basic(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r DataProtectionBackupInstanceCosmosdbAccountResource) basic(data acceptance.TestData) string {

@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccDataProtectionBackupInstanceCosmosDBAccount_list(t *testing.T) {
+func TestAccDataProtectionBackupInstanceCosmosdbAccount_list(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_cosmosdb_account", "test")
 	r := DataProtectionBackupInstanceCosmosdbAccountResource{}
 	listResourceAddress := "azurerm_data_protection_backup_instance_cosmosdb_account.list"
@@ -88,7 +88,7 @@ resource "azurerm_data_protection_backup_instance_cosmosdb_account" "test2" {
   name                              = "acctest-dbi-cosmos2-%d"
   location                          = azurerm_resource_group.test.location
   data_protection_backup_vault_id   = azurerm_data_protection_backup_vault.test.id
-  backup_policy_cosmosdb_account_id = azurerm_data_protection_backup_policy_cosmosdb_database_account.test.id
+  backup_policy_cosmosdb_account_id = azurerm_data_protection_backup_policy_cosmosdb_account.test.id
   cosmosdb_account_id               = azurerm_cosmosdb_account.test2.id
 
   depends_on = [

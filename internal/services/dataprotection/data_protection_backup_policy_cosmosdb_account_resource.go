@@ -23,16 +23,16 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_policy_cosmosdb_account -service-package-name dataprotection -properties "name" -compare-values "subscription_id:data_protection_backup_vault_id,resource_group_name:data_protection_backup_vault_id,backup_vault_name:data_protection_backup_vault_id"
 
-type BackupPolicyCosmosDBAccountModel struct {
+type BackupPolicyCosmosdbAccountModel struct {
 	Name                        string                                     `tfschema:"name"`
 	DataProtectionBackupVaultId string                                     `tfschema:"data_protection_backup_vault_id"`
 	BackupSchedule              []string                                   `tfschema:"backup_schedule"`
 	DefaultRetentionDuration    string                                     `tfschema:"default_retention_duration"`
-	RetentionRules              []BackupPolicyCosmosDBAccountRetentionRule `tfschema:"retention_rule"`
+	RetentionRules              []BackupPolicyCosmosdbAccountRetentionRule `tfschema:"retention_rule"`
 	TimeZone                    string                                     `tfschema:"time_zone"`
 }
 
-type BackupPolicyCosmosDBAccountRetentionRule struct {
+type BackupPolicyCosmosdbAccountRetentionRule struct {
 	Name                 string   `tfschema:"name"`
 	Duration             string   `tfschema:"duration"`
 	AbsoluteCriteria     string   `tfschema:"absolute_criteria"`
@@ -42,30 +42,30 @@ type BackupPolicyCosmosDBAccountRetentionRule struct {
 	WeeksOfMonth         []string `tfschema:"weeks_of_month"`
 }
 
-type DataProtectionBackupPolicyCosmosDBAccountResource struct{}
+type DataProtectionBackupPolicyCosmosdbAccountResource struct{}
 
 var (
-	_ sdk.Resource             = DataProtectionBackupPolicyCosmosDBAccountResource{}
-	_ sdk.ResourceWithIdentity = DataProtectionBackupPolicyCosmosDBAccountResource{}
+	_ sdk.Resource             = DataProtectionBackupPolicyCosmosdbAccountResource{}
+	_ sdk.ResourceWithIdentity = DataProtectionBackupPolicyCosmosdbAccountResource{}
 )
 
-func (r DataProtectionBackupPolicyCosmosDBAccountResource) Identity() resourceids.ResourceId {
+func (r DataProtectionBackupPolicyCosmosdbAccountResource) Identity() resourceids.ResourceId {
 	return &basebackuppolicyresources.BackupPolicyId{}
 }
 
-func (r DataProtectionBackupPolicyCosmosDBAccountResource) ResourceType() string {
+func (r DataProtectionBackupPolicyCosmosdbAccountResource) ResourceType() string {
 	return "azurerm_data_protection_backup_policy_cosmosdb_account"
 }
 
-func (r DataProtectionBackupPolicyCosmosDBAccountResource) ModelObject() interface{} {
-	return &BackupPolicyCosmosDBAccountModel{}
+func (r DataProtectionBackupPolicyCosmosdbAccountResource) ModelObject() interface{} {
+	return &BackupPolicyCosmosdbAccountModel{}
 }
 
-func (r DataProtectionBackupPolicyCosmosDBAccountResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r DataProtectionBackupPolicyCosmosdbAccountResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return basebackuppolicyresources.ValidateBackupPolicyID
 }
 
-func (r DataProtectionBackupPolicyCosmosDBAccountResource) Arguments() map[string]*pluginsdk.Schema {
+func (r DataProtectionBackupPolicyCosmosdbAccountResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -176,23 +176,23 @@ func (r DataProtectionBackupPolicyCosmosDBAccountResource) Arguments() map[strin
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.BackupPolicyCosmosDBAccountTimeZone(),
+			ValidateFunc: validate.BackupPolicyCosmosdbAccountTimeZone(),
 		},
 	}
 }
 
-func (r DataProtectionBackupPolicyCosmosDBAccountResource) Attributes() map[string]*pluginsdk.Schema {
+func (r DataProtectionBackupPolicyCosmosdbAccountResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r DataProtectionBackupPolicyCosmosDBAccountResource) Create() sdk.ResourceFunc {
+func (r DataProtectionBackupPolicyCosmosdbAccountResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataProtection.BackupPolicyClient20260601
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model BackupPolicyCosmosDBAccountModel
+			var model BackupPolicyCosmosdbAccountModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -223,9 +223,9 @@ func (r DataProtectionBackupPolicyCosmosDBAccountResource) Create() sdk.Resource
 			}
 
 			policyRules := make([]basebackuppolicyresources.BasePolicyRule, 0)
-			policyRules = append(policyRules, expandBackupPolicyCosmosDBAccountRetentionRules(model.RetentionRules)...)
-			policyRules = append(policyRules, expandBackupPolicyCosmosDBAccountDefaultRetentionRule(model.DefaultRetentionDuration))
-			policyRules = append(policyRules, expandBackupPolicyCosmosDBAccountBackupRules(model.BackupSchedule, model.TimeZone, expandBackupPolicyCosmosDBAccountTaggingCriteria(model.RetentionRules))...)
+			policyRules = append(policyRules, expandBackupPolicyCosmosdbAccountRetentionRules(model.RetentionRules)...)
+			policyRules = append(policyRules, expandBackupPolicyCosmosdbAccountDefaultRetentionRule(model.DefaultRetentionDuration))
+			policyRules = append(policyRules, expandBackupPolicyCosmosdbAccountBackupRules(model.BackupSchedule, model.TimeZone, expandBackupPolicyCosmosdbAccountTaggingCriteria(model.RetentionRules))...)
 
 			parameters := basebackuppolicyresources.BaseBackupPolicyResource{
 				Properties: &basebackuppolicyresources.BackupPolicy{
@@ -244,7 +244,7 @@ func (r DataProtectionBackupPolicyCosmosDBAccountResource) Create() sdk.Resource
 	}
 }
 
-func (r DataProtectionBackupPolicyCosmosDBAccountResource) Read() sdk.ResourceFunc {
+func (r DataProtectionBackupPolicyCosmosdbAccountResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -263,14 +263,14 @@ func (r DataProtectionBackupPolicyCosmosDBAccountResource) Read() sdk.ResourceFu
 			}
 
 			vaultId := basebackuppolicyresources.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
-			state := BackupPolicyCosmosDBAccountModel{
+			state := BackupPolicyCosmosdbAccountModel{
 				Name:                        id.BackupPolicyName,
 				DataProtectionBackupVaultId: vaultId.ID(),
 			}
 
 			if model := resp.Model; model != nil {
 				if properties, ok := model.Properties.(basebackuppolicyresources.BackupPolicy); ok {
-					state.DefaultRetentionDuration, state.RetentionRules, state.BackupSchedule, state.TimeZone = flattenBackupPolicyCosmosDBAccountPolicyRules(properties.PolicyRules)
+					state.DefaultRetentionDuration, state.RetentionRules, state.BackupSchedule, state.TimeZone = flattenBackupPolicyCosmosdbAccountPolicyRules(properties.PolicyRules)
 				}
 			}
 
@@ -282,7 +282,7 @@ func (r DataProtectionBackupPolicyCosmosDBAccountResource) Read() sdk.ResourceFu
 	}
 }
 
-func (r DataProtectionBackupPolicyCosmosDBAccountResource) Delete() sdk.ResourceFunc {
+func (r DataProtectionBackupPolicyCosmosdbAccountResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -299,29 +299,29 @@ func (r DataProtectionBackupPolicyCosmosDBAccountResource) Delete() sdk.Resource
 	}
 }
 
-func expandBackupPolicyCosmosDBAccountRetentionRules(input []BackupPolicyCosmosDBAccountRetentionRule) []basebackuppolicyresources.BasePolicyRule {
+func expandBackupPolicyCosmosdbAccountRetentionRules(input []BackupPolicyCosmosdbAccountRetentionRule) []basebackuppolicyresources.BasePolicyRule {
 	results := make([]basebackuppolicyresources.BasePolicyRule, 0)
 
 	for _, item := range input {
 		results = append(results, basebackuppolicyresources.AzureRetentionRule{
 			Name:       item.Name,
 			IsDefault:  pointer.To(false),
-			Lifecycles: expandBackupPolicyCosmosDBAccountLifeCycle(item.Duration),
+			Lifecycles: expandBackupPolicyCosmosdbAccountLifeCycle(item.Duration),
 		})
 	}
 
 	return results
 }
 
-func expandBackupPolicyCosmosDBAccountDefaultRetentionRule(duration string) basebackuppolicyresources.BasePolicyRule {
+func expandBackupPolicyCosmosdbAccountDefaultRetentionRule(duration string) basebackuppolicyresources.BasePolicyRule {
 	return basebackuppolicyresources.AzureRetentionRule{
 		Name:       "Default",
 		IsDefault:  pointer.To(true),
-		Lifecycles: expandBackupPolicyCosmosDBAccountLifeCycle(duration),
+		Lifecycles: expandBackupPolicyCosmosdbAccountLifeCycle(duration),
 	}
 }
 
-func expandBackupPolicyCosmosDBAccountBackupRules(input []string, timeZone string, taggingCriteria []basebackuppolicyresources.TaggingCriteria) []basebackuppolicyresources.BasePolicyRule {
+func expandBackupPolicyCosmosdbAccountBackupRules(input []string, timeZone string, taggingCriteria []basebackuppolicyresources.TaggingCriteria) []basebackuppolicyresources.BasePolicyRule {
 	results := make([]basebackuppolicyresources.BasePolicyRule, 0)
 
 	results = append(results, basebackuppolicyresources.AzureBackupRule{
@@ -345,7 +345,7 @@ func expandBackupPolicyCosmosDBAccountBackupRules(input []string, timeZone strin
 	return results
 }
 
-func expandBackupPolicyCosmosDBAccountLifeCycle(duration string) []basebackuppolicyresources.SourceLifeCycle {
+func expandBackupPolicyCosmosdbAccountLifeCycle(duration string) []basebackuppolicyresources.SourceLifeCycle {
 	// NOTE: currently only `VaultStore` is supported by the service team. When other options are supported
 	// in the future, export `data_store_type` as a schema field and use `VaultStore` as the default value.
 	return []basebackuppolicyresources.SourceLifeCycle{
@@ -362,7 +362,7 @@ func expandBackupPolicyCosmosDBAccountLifeCycle(duration string) []basebackuppol
 	}
 }
 
-func expandBackupPolicyCosmosDBAccountTaggingCriteria(input []BackupPolicyCosmosDBAccountRetentionRule) []basebackuppolicyresources.TaggingCriteria {
+func expandBackupPolicyCosmosdbAccountTaggingCriteria(input []BackupPolicyCosmosdbAccountRetentionRule) []basebackuppolicyresources.TaggingCriteria {
 	results := []basebackuppolicyresources.TaggingCriteria{
 		{
 			IsDefault:       true,
@@ -376,7 +376,7 @@ func expandBackupPolicyCosmosDBAccountTaggingCriteria(input []BackupPolicyCosmos
 
 	for i, item := range input {
 		result := basebackuppolicyresources.TaggingCriteria{
-			Criteria:        expandBackupPolicyCosmosDBAccountRetentionRuleCriteria(item),
+			Criteria:        expandBackupPolicyCosmosdbAccountRetentionRuleCriteria(item),
 			TaggingPriority: int64(i + 1),
 			TagInfo: basebackuppolicyresources.RetentionTag{
 				Id:      pointer.To(item.Name + "_"),
@@ -390,7 +390,7 @@ func expandBackupPolicyCosmosDBAccountTaggingCriteria(input []BackupPolicyCosmos
 	return results
 }
 
-func expandBackupPolicyCosmosDBAccountRetentionRuleCriteria(input BackupPolicyCosmosDBAccountRetentionRule) *[]basebackuppolicyresources.BackupCriteria {
+func expandBackupPolicyCosmosdbAccountRetentionRuleCriteria(input BackupPolicyCosmosdbAccountRetentionRule) *[]basebackuppolicyresources.BackupCriteria {
 	var absoluteCriteria []basebackuppolicyresources.AbsoluteMarker
 	if len(input.AbsoluteCriteria) > 0 {
 		absoluteCriteria = []basebackuppolicyresources.AbsoluteMarker{basebackuppolicyresources.AbsoluteMarker(input.AbsoluteCriteria)}
@@ -440,13 +440,13 @@ func expandBackupPolicyCosmosDBAccountRetentionRuleCriteria(input BackupPolicyCo
 	}
 }
 
-func flattenBackupPolicyCosmosDBAccountPolicyRules(input []basebackuppolicyresources.BasePolicyRule) (string, []BackupPolicyCosmosDBAccountRetentionRule, []string, string) {
+func flattenBackupPolicyCosmosdbAccountPolicyRules(input []basebackuppolicyresources.BasePolicyRule) (string, []BackupPolicyCosmosdbAccountRetentionRule, []string, string) {
 	var taggingCriteria []basebackuppolicyresources.TaggingCriteria
 	var nonDefaultRetentionRules []basebackuppolicyresources.AzureRetentionRule
 	var backupSchedule []string
 	var timeZone string
 	var defaultRetentionDuration string
-	retentionRules := make([]BackupPolicyCosmosDBAccountRetentionRule, 0)
+	retentionRules := make([]BackupPolicyCosmosdbAccountRetentionRule, 0)
 
 	for _, item := range input {
 		switch rule := item.(type) {
@@ -470,13 +470,13 @@ func flattenBackupPolicyCosmosDBAccountPolicyRules(input []basebackuppolicyresou
 	}
 
 	for _, rule := range nonDefaultRetentionRules {
-		result := BackupPolicyCosmosDBAccountRetentionRule{
+		result := BackupPolicyCosmosdbAccountRetentionRule{
 			Name: rule.Name,
 		}
 
 		for _, criteria := range taggingCriteria {
 			if strings.EqualFold(criteria.TagInfo.TagName, rule.Name) {
-				flattenBackupPolicyCosmosDBAccountCriteriaIntoRule(criteria.Criteria, &result)
+				flattenBackupPolicyCosmosdbAccountCriteriaIntoRule(criteria.Criteria, &result)
 				break
 			}
 		}
@@ -493,7 +493,7 @@ func flattenBackupPolicyCosmosDBAccountPolicyRules(input []basebackuppolicyresou
 	return defaultRetentionDuration, retentionRules, backupSchedule, timeZone
 }
 
-func flattenBackupPolicyCosmosDBAccountCriteriaIntoRule(input *[]basebackuppolicyresources.BackupCriteria, rule *BackupPolicyCosmosDBAccountRetentionRule) {
+func flattenBackupPolicyCosmosdbAccountCriteriaIntoRule(input *[]basebackuppolicyresources.BackupCriteria, rule *BackupPolicyCosmosdbAccountRetentionRule) {
 	if input == nil {
 		return
 	}

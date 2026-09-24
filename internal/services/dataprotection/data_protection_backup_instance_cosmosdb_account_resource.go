@@ -24,18 +24,18 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type BackupInstanceCosmosDBAccountModel struct {
+type BackupInstanceCosmosdbAccountModel struct {
 	Name                        string `tfschema:"name"`
 	DataProtectionBackupVaultId string `tfschema:"data_protection_backup_vault_id"`
 	Location                    string `tfschema:"location"`
 	BackupPolicyId              string `tfschema:"backup_policy_cosmosdb_account_id"`
-	CosmosDBAccountId           string `tfschema:"cosmosdb_account_id"`
+	CosmosdbAccountId           string `tfschema:"cosmosdb_account_id"`
 	ProtectionState             string `tfschema:"protection_state"`
 }
 
-type backupInstanceCosmosDBAccountFlattenModel struct {
+type backupInstanceCosmosdbAccountFlattenModel struct {
 	Location          *string
-	CosmosDBAccountId string
+	CosmosdbAccountId string
 	BackupPolicyId    string
 	ProtectionState   string
 }
@@ -44,30 +44,30 @@ const cosmosDBAccountDataSourceType = "Microsoft.DocumentDB/databaseAccounts"
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_instance_cosmosdb_account -service-package-name dataprotection -properties "name" -compare-values "subscription_id:data_protection_backup_vault_id,resource_group_name:data_protection_backup_vault_id,backup_vault_name:data_protection_backup_vault_id"
 
-type DataProtectionBackupInstanceCosmosDBAccountResource struct{}
+type DataProtectionBackupInstanceCosmosdbAccountResource struct{}
 
 var (
-	_ sdk.Resource             = DataProtectionBackupInstanceCosmosDBAccountResource{}
-	_ sdk.ResourceWithIdentity = DataProtectionBackupInstanceCosmosDBAccountResource{}
+	_ sdk.Resource             = DataProtectionBackupInstanceCosmosdbAccountResource{}
+	_ sdk.ResourceWithIdentity = DataProtectionBackupInstanceCosmosdbAccountResource{}
 )
 
-func (r DataProtectionBackupInstanceCosmosDBAccountResource) Identity() resourceids.ResourceId {
+func (r DataProtectionBackupInstanceCosmosdbAccountResource) Identity() resourceids.ResourceId {
 	return &backupinstanceresources.BackupInstanceId{}
 }
 
-func (r DataProtectionBackupInstanceCosmosDBAccountResource) ResourceType() string {
+func (r DataProtectionBackupInstanceCosmosdbAccountResource) ResourceType() string {
 	return "azurerm_data_protection_backup_instance_cosmosdb_account"
 }
 
-func (r DataProtectionBackupInstanceCosmosDBAccountResource) ModelObject() interface{} {
-	return &BackupInstanceCosmosDBAccountModel{}
+func (r DataProtectionBackupInstanceCosmosdbAccountResource) ModelObject() interface{} {
+	return &BackupInstanceCosmosdbAccountModel{}
 }
 
-func (r DataProtectionBackupInstanceCosmosDBAccountResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r DataProtectionBackupInstanceCosmosdbAccountResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return backupinstanceresources.ValidateBackupInstanceID
 }
 
-func (r DataProtectionBackupInstanceCosmosDBAccountResource) Arguments() map[string]*pluginsdk.Schema {
+func (r DataProtectionBackupInstanceCosmosdbAccountResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -86,7 +86,7 @@ func (r DataProtectionBackupInstanceCosmosDBAccountResource) Arguments() map[str
 	}
 }
 
-func (r DataProtectionBackupInstanceCosmosDBAccountResource) Attributes() map[string]*pluginsdk.Schema {
+func (r DataProtectionBackupInstanceCosmosdbAccountResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"protection_state": {
 			Type:     pluginsdk.TypeString,
@@ -95,11 +95,11 @@ func (r DataProtectionBackupInstanceCosmosDBAccountResource) Attributes() map[st
 	}
 }
 
-func (r DataProtectionBackupInstanceCosmosDBAccountResource) Create() sdk.ResourceFunc {
+func (r DataProtectionBackupInstanceCosmosdbAccountResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model BackupInstanceCosmosDBAccountModel
+			var model BackupInstanceCosmosdbAccountModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -126,7 +126,7 @@ func (r DataProtectionBackupInstanceCosmosDBAccountResource) Create() sdk.Resour
 				}
 			}
 
-			accountId, err := cosmosdb.ParseDatabaseAccountID(model.CosmosDBAccountId)
+			accountId, err := cosmosdb.ParseDatabaseAccountID(model.CosmosdbAccountId)
 			if err != nil {
 				return err
 			}
@@ -178,7 +178,7 @@ func (r DataProtectionBackupInstanceCosmosDBAccountResource) Create() sdk.Resour
 	}
 }
 
-func (r DataProtectionBackupInstanceCosmosDBAccountResource) Read() sdk.ResourceFunc {
+func (r DataProtectionBackupInstanceCosmosdbAccountResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -198,12 +198,12 @@ func (r DataProtectionBackupInstanceCosmosDBAccountResource) Read() sdk.Resource
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			var model *backupInstanceCosmosDBAccountFlattenModel
+			var model *backupInstanceCosmosdbAccountFlattenModel
 			if resp.Model != nil && resp.Model.Properties != nil {
 				props := resp.Model.Properties
-				model = &backupInstanceCosmosDBAccountFlattenModel{
+				model = &backupInstanceCosmosdbAccountFlattenModel{
 					Location:          props.DataSourceInfo.ResourceLocation,
-					CosmosDBAccountId: props.DataSourceInfo.ResourceID,
+					CosmosdbAccountId: props.DataSourceInfo.ResourceID,
 					BackupPolicyId:    props.PolicyInfo.PolicyId,
 					ProtectionState:   pointer.FromEnum(props.CurrentProtectionState),
 				}
@@ -214,8 +214,8 @@ func (r DataProtectionBackupInstanceCosmosDBAccountResource) Read() sdk.Resource
 	}
 }
 
-func (r DataProtectionBackupInstanceCosmosDBAccountResource) flatten(metadata sdk.ResourceMetaData, id *backupinstanceresources.BackupInstanceId, model *backupInstanceCosmosDBAccountFlattenModel) error {
-	state := BackupInstanceCosmosDBAccountModel{
+func (r DataProtectionBackupInstanceCosmosdbAccountResource) flatten(metadata sdk.ResourceMetaData, id *backupinstanceresources.BackupInstanceId, model *backupInstanceCosmosdbAccountFlattenModel) error {
+	state := BackupInstanceCosmosdbAccountModel{
 		Name:                        id.BackupInstanceName,
 		DataProtectionBackupVaultId: backupvaultresources.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName).ID(),
 	}
@@ -223,11 +223,11 @@ func (r DataProtectionBackupInstanceCosmosDBAccountResource) flatten(metadata sd
 	if model != nil {
 		state.Location = location.NormalizeNilable(model.Location)
 
-		accountId, err := cosmosdb.ParseDatabaseAccountIDInsensitively(model.CosmosDBAccountId)
+		accountId, err := cosmosdb.ParseDatabaseAccountIDInsensitively(model.CosmosdbAccountId)
 		if err != nil {
 			return err
 		}
-		state.CosmosDBAccountId = accountId.ID()
+		state.CosmosdbAccountId = accountId.ID()
 
 		backupPolicyId, err := basebackuppolicyresources.ParseBackupPolicyIDInsensitively(model.BackupPolicyId)
 		if err != nil {
@@ -244,7 +244,7 @@ func (r DataProtectionBackupInstanceCosmosDBAccountResource) flatten(metadata sd
 	return metadata.Encode(&state)
 }
 
-func (r DataProtectionBackupInstanceCosmosDBAccountResource) Update() sdk.ResourceFunc {
+func (r DataProtectionBackupInstanceCosmosdbAccountResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -255,7 +255,7 @@ func (r DataProtectionBackupInstanceCosmosDBAccountResource) Update() sdk.Resour
 				return err
 			}
 
-			var model BackupInstanceCosmosDBAccountModel
+			var model BackupInstanceCosmosdbAccountModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -301,7 +301,7 @@ func (r DataProtectionBackupInstanceCosmosDBAccountResource) Update() sdk.Resour
 	}
 }
 
-func (r DataProtectionBackupInstanceCosmosDBAccountResource) Delete() sdk.ResourceFunc {
+func (r DataProtectionBackupInstanceCosmosdbAccountResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

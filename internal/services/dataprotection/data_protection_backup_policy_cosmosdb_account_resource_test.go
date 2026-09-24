@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DataProtectionBackupPolicyCosmosDBAccountResource struct{}
+type DataProtectionBackupPolicyCosmosdbAccountResource struct{}
 
-func TestAccDataProtectionBackupPolicyCosmosDBAccount_basic(t *testing.T) {
+func TestAccDataProtectionBackupPolicyCosmosdbAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_cosmosdb_account", "test")
-	r := DataProtectionBackupPolicyCosmosDBAccountResource{}
+	r := DataProtectionBackupPolicyCosmosdbAccountResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -33,9 +33,9 @@ func TestAccDataProtectionBackupPolicyCosmosDBAccount_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataProtectionBackupPolicyCosmosDBAccount_requiresImport(t *testing.T) {
+func TestAccDataProtectionBackupPolicyCosmosdbAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_cosmosdb_account", "test")
-	r := DataProtectionBackupPolicyCosmosDBAccountResource{}
+	r := DataProtectionBackupPolicyCosmosdbAccountResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -47,9 +47,9 @@ func TestAccDataProtectionBackupPolicyCosmosDBAccount_requiresImport(t *testing.
 	})
 }
 
-func TestAccDataProtectionBackupPolicyCosmosDBAccount_complete(t *testing.T) {
+func TestAccDataProtectionBackupPolicyCosmosdbAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_cosmosdb_account", "test")
-	r := DataProtectionBackupPolicyCosmosDBAccountResource{}
+	r := DataProtectionBackupPolicyCosmosdbAccountResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -61,7 +61,7 @@ func TestAccDataProtectionBackupPolicyCosmosDBAccount_complete(t *testing.T) {
 	})
 }
 
-func (r DataProtectionBackupPolicyCosmosDBAccountResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DataProtectionBackupPolicyCosmosdbAccountResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := basebackuppolicyresources.ParseBackupPolicyID(state.ID)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (r DataProtectionBackupPolicyCosmosDBAccountResource) Exists(ctx context.Co
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r DataProtectionBackupPolicyCosmosDBAccountResource) template(data acceptance.TestData) string {
+func (r DataProtectionBackupPolicyCosmosdbAccountResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -102,7 +102,7 @@ resource "azurerm_data_protection_backup_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r DataProtectionBackupPolicyCosmosDBAccountResource) basic(data acceptance.TestData) string {
+func (r DataProtectionBackupPolicyCosmosdbAccountResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -116,7 +116,7 @@ resource "azurerm_data_protection_backup_policy_cosmosdb_account" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DataProtectionBackupPolicyCosmosDBAccountResource) requiresImport(data acceptance.TestData) string {
+func (r DataProtectionBackupPolicyCosmosdbAccountResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -130,7 +130,7 @@ resource "azurerm_data_protection_backup_policy_cosmosdb_account" "import" {
 `, r.basic(data))
 }
 
-func (r DataProtectionBackupPolicyCosmosDBAccountResource) complete(data acceptance.TestData) string {
+func (r DataProtectionBackupPolicyCosmosdbAccountResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

@@ -21,23 +21,23 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DataProtectionBackupInstanceCosmosDBAccountListResource struct{}
+type DataProtectionBackupInstanceCosmosdbAccountListResource struct{}
 
-type DataProtectionBackupInstanceCosmosDBAccountListModel struct {
+type DataProtectionBackupInstanceCosmosdbAccountListModel struct {
 	VaultId types.String `tfsdk:"data_protection_backup_vault_id"`
 }
 
-var _ sdk.FrameworkListWrappedResource = new(DataProtectionBackupInstanceCosmosDBAccountListResource)
+var _ sdk.FrameworkListWrappedResource = new(DataProtectionBackupInstanceCosmosdbAccountListResource)
 
-func (DataProtectionBackupInstanceCosmosDBAccountListResource) ResourceFunc() *pluginsdk.Resource {
-	return sdk.WrappedResource(DataProtectionBackupInstanceCosmosDBAccountResource{})
+func (DataProtectionBackupInstanceCosmosdbAccountListResource) ResourceFunc() *pluginsdk.Resource {
+	return sdk.WrappedResource(DataProtectionBackupInstanceCosmosdbAccountResource{})
 }
 
-func (DataProtectionBackupInstanceCosmosDBAccountListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = DataProtectionBackupInstanceCosmosDBAccountResource{}.ResourceType()
+func (DataProtectionBackupInstanceCosmosdbAccountListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+	response.TypeName = DataProtectionBackupInstanceCosmosdbAccountResource{}.ResourceType()
 }
 
-func (DataProtectionBackupInstanceCosmosDBAccountListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
+func (DataProtectionBackupInstanceCosmosdbAccountListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"data_protection_backup_vault_id": schema.StringAttribute{
@@ -52,10 +52,10 @@ func (DataProtectionBackupInstanceCosmosDBAccountListResource) ListResourceConfi
 	}
 }
 
-func (DataProtectionBackupInstanceCosmosDBAccountListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (DataProtectionBackupInstanceCosmosdbAccountListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.DataProtection.BackupInstancesClient20260601
 
-	var data DataProtectionBackupInstanceCosmosDBAccountListModel
+	var data DataProtectionBackupInstanceCosmosdbAccountListModel
 	diags := request.Config.Get(ctx, &data)
 	if diags.HasError() {
 		stream.Results = list.ListResultsStreamDiagnostics(diags)
@@ -70,11 +70,11 @@ func (DataProtectionBackupInstanceCosmosDBAccountListResource) List(ctx context.
 
 	resp, err := client.ListComplete(ctx, *vaultId)
 	if err != nil {
-		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", DataProtectionBackupInstanceCosmosDBAccountResource{}.ResourceType()), err)
+		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", DataProtectionBackupInstanceCosmosdbAccountResource{}.ResourceType()), err)
 		return
 	}
 
-	r := DataProtectionBackupInstanceCosmosDBAccountResource{}
+	r := DataProtectionBackupInstanceCosmosdbAccountResource{}
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, item := range resp.Items {
 			if item.Properties == nil || !strings.EqualFold(pointer.From(item.Properties.DataSourceInfo.ResourceType), cosmosDBAccountDataSourceType) {
@@ -93,9 +93,9 @@ func (DataProtectionBackupInstanceCosmosDBAccountListResource) List(ctx context.
 			rmd := sdk.NewResourceMetaData(metadata.Client, r)
 			rmd.SetID(id)
 
-			model := backupInstanceCosmosDBAccountFlattenModel{
+			model := backupInstanceCosmosdbAccountFlattenModel{
 				Location:          item.Properties.DataSourceInfo.ResourceLocation,
-				CosmosDBAccountId: item.Properties.DataSourceInfo.ResourceID,
+				CosmosdbAccountId: item.Properties.DataSourceInfo.ResourceID,
 				BackupPolicyId:    item.Properties.PolicyInfo.PolicyId,
 				ProtectionState:   pointer.FromEnum(item.Properties.CurrentProtectionState),
 			}

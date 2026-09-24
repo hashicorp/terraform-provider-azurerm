@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func BackupPolicyCosmosDBAccountTimeZone() pluginsdk.SchemaValidateFunc {
+func BackupPolicyCosmosdbAccountTimeZone() pluginsdk.SchemaValidateFunc {
 	// Output from [System.TimeZoneInfo]::GetSystemTimeZones()
 	candidates := []string{
 		"Afghanistan Standard Time",

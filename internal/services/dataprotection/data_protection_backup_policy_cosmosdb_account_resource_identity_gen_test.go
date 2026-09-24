@@ -12,9 +12,9 @@ import (
 	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
 )
 
-func TestAccDataProtectionBackupPolicyCosmosDBAccount_resourceIdentity(t *testing.T) {
+func TestAccDataProtectionBackupPolicyCosmosdbAccount_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_cosmosdb_account", "test")
-	r := DataProtectionBackupPolicyCosmosDBAccountResource{}
+	r := DataProtectionBackupPolicyCosmosdbAccountResource{}
 
 	checkedFields := map[string]struct{}{
 		"name":                {},

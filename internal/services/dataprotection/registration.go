@@ -14,7 +14,7 @@ type Registration struct{}
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
-		DataProtectionBackupInstanceCosmosDBAccountListResource{},
+		DataProtectionBackupInstanceCosmosdbAccountListResource{},
 	}
 }
 
@@ -85,12 +85,12 @@ func (r Registration) DataSources() []sdk.DataSource {
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		DataProtectionBackupInstanceCosmosDBAccountResource{},
+		DataProtectionBackupInstanceCosmosdbAccountResource{},
 		DataProtectionBackupInstanceDataLakeStorageResource{},
 		DataProtectionBackupInstanceKubernatesClusterResource{},
 		DataProtectionBackupInstanceMySQLFlexibleServerResource{},
 		DataProtectionBackupInstancePostgreSQLFlexibleServerResource{},
-		DataProtectionBackupPolicyCosmosDBAccountResource{},
+		DataProtectionBackupPolicyCosmosdbAccountResource{},
 		DataProtectionBackupPolicyDataLakeStorageResource{},
 		DataProtectionBackupPolicyKubernatesClusterResource{},
 		DataProtectionBackupPolicyMySQLFlexibleServerResource{},
