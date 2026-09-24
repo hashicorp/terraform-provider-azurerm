@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -23,19 +24,20 @@ type ServicePlanDataSource struct{}
 var _ sdk.DataSource = ServicePlanDataSource{}
 
 type ServicePlanDataSourceModel struct {
-	Name                      string            `tfschema:"name"`
-	ResourceGroup             string            `tfschema:"resource_group_name"`
-	Location                  string            `tfschema:"location"`
-	Kind                      string            `tfschema:"kind"`
-	OSType                    OSType            `tfschema:"os_type"`
-	Sku                       string            `tfschema:"sku_name"`
-	AppServiceEnvironmentId   string            `tfschema:"app_service_environment_id"`
-	PerSiteScaling            bool              `tfschema:"per_site_scaling_enabled"`
-	Reserved                  bool              `tfschema:"reserved"`
-	WorkerCount               int64             `tfschema:"worker_count"`
-	MaximumElasticWorkerCount int64             `tfschema:"maximum_elastic_worker_count"`
-	ZoneBalancing             bool              `tfschema:"zone_balancing_enabled"`
-	Tags                      map[string]string `tfschema:"tags"`
+	Name                        string            `tfschema:"name"`
+	ResourceGroup               string            `tfschema:"resource_group_name"`
+	Location                    string            `tfschema:"location"`
+	Kind                        string            `tfschema:"kind"`
+	OSType                      OSType            `tfschema:"os_type"`
+	Sku                         string            `tfschema:"sku_name"`
+	AppServiceEnvironmentId     string            `tfschema:"app_service_environment_id"`
+	PerSiteScaling              bool              `tfschema:"per_site_scaling_enabled"`
+	PremiumPlanAutoScaleEnabled bool              `tfschema:"premium_plan_auto_scale_enabled"`
+	Reserved                    bool              `tfschema:"reserved"`
+	WorkerCount                 int64             `tfschema:"worker_count"`
+	MaximumElasticWorkerCount   int64             `tfschema:"maximum_elastic_worker_count"`
+	ZoneBalancing               bool              `tfschema:"zone_balancing_enabled"`
+	Tags                        map[string]string `tfschema:"tags"`
 }
 
 func (r ServicePlanDataSource) ModelObject() interface{} {
@@ -78,6 +80,11 @@ func (r ServicePlanDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"per_site_scaling_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		"premium_plan_auto_scale_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
@@ -157,6 +164,10 @@ func (r ServicePlanDataSource) Read() sdk.ResourceFunc {
 
 					if props.HostingEnvironmentProfile != nil && props.HostingEnvironmentProfile.Id != nil {
 						servicePlan.AppServiceEnvironmentId = pointer.From(props.HostingEnvironmentProfile.Id)
+					}
+
+					if pointer.From(props.ElasticScaleEnabled) && servicePlan.Sku != "" && helpers.PlanIsPremium(servicePlan.Sku) {
+						servicePlan.PremiumPlanAutoScaleEnabled = pointer.From(props.ElasticScaleEnabled)
 					}
 
 					servicePlan.PerSiteScaling = pointer.From(props.PerSiteScaling)

@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2015-10-31/webhook"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/migration"
@@ -254,7 +253,7 @@ func resourceAutomationWebhookRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 			d.Set("run_on_worker_group", props.RunOn)
 
-			if err = d.Set("parameters", helpers.FlattenPtrMapStringString(props.Parameters)); err != nil {
+			if err = d.Set("parameters", pluginsdk.FlattenPtrMapStringString(props.Parameters)); err != nil {
 				return err
 			}
 		}
