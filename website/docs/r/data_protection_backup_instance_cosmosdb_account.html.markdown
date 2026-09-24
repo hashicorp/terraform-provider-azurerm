@@ -79,11 +79,11 @@ resource "azurerm_role_assignment" "cosmos_operator" {
 }
 
 resource "azurerm_data_protection_backup_instance_cosmosdb_account" "example" {
-  name                = "example-data-protection-backup-instance-cosmosdb-account"
-  location            = azurerm_resource_group.example.location
-  vault_id            = azurerm_data_protection_backup_vault.example.id
-  backup_policy_id    = azurerm_data_protection_backup_policy_cosmosdb_database_account.example.id
-  cosmosdb_account_id = azurerm_cosmosdb_account.example.id
+  name                              = "example-data-protection-backup-instance-cosmosdb-account"
+  location                          = azurerm_resource_group.example.location
+  data_protection_backup_vault_id   = azurerm_data_protection_backup_vault.example.id
+  backup_policy_cosmosdb_account_id = azurerm_data_protection_backup_policy_cosmosdb_database_account.example.id
+  cosmosdb_account_id               = azurerm_cosmosdb_account.example.id
 
   depends_on = [
     azurerm_role_assignment.reader,
@@ -98,11 +98,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Data Protection Backup Instance for the Cosmos DB Database Account. Changing this forces a new resource to be created.
 
-* `vault_id` - (Required) The ID of the Data Protection Backup Vault where the Backup Instance should exist. Changing this forces a new resource to be created.
+* `data_protection_backup_vault_id` - (Required) The ID of the Data Protection Backup Vault where the Backup Instance should exist. Changing this forces a new resource to be created.
 
 * `location` - (Required) The Azure Region of the Cosmos DB Database Account. Changing this forces a new resource to be created.
 
-* `backup_policy_id` - (Required) The ID of the Data Protection Backup Policy for Cosmos DB Database Accounts.
+* `backup_policy_cosmosdb_account_id` - (Required) The ID of the Data Protection Backup Policy for Cosmos DB Database Accounts.
 
 * `cosmosdb_account_id` - (Required) The ID of the Cosmos DB Database Account to protect. Changing this forces a new resource to be created.
 

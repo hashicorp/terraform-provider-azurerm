@@ -33,6 +33,15 @@ type BackupInstanceCosmosDBAccountModel struct {
 	ProtectionState             string `tfschema:"protection_state"`
 }
 
+type backupInstanceCosmosDBAccountFlattenModel struct {
+	Location          *string
+	CosmosDBAccountId string
+	BackupPolicyId    string
+	ProtectionState   string
+}
+
+const cosmosDBAccountDataSourceType = "Microsoft.DocumentDB/databaseAccounts"
+
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_instance_cosmosdb_account -service-package-name dataprotection -properties "name" -compare-values "subscription_id:data_protection_backup_vault_id,resource_group_name:data_protection_backup_vault_id,backup_vault_name:data_protection_backup_vault_id"
 
 type DataProtectionBackupInstanceCosmosDBAccountResource struct{}
@@ -130,12 +139,12 @@ func (r DataProtectionBackupInstanceCosmosDBAccountResource) Create() sdk.Resour
 			parameters := backupinstanceresources.BackupInstanceResource{
 				Properties: &backupinstanceresources.BackupInstance{
 					DataSourceInfo: backupinstanceresources.Datasource{
-						DatasourceType:   pointer.To("Microsoft.DocumentDB/databaseAccounts"),
+						DatasourceType:   pointer.To(cosmosDBAccountDataSourceType),
 						ObjectType:       pointer.To("Datasource"),
 						ResourceID:       accountId.ID(),
 						ResourceLocation: pointer.To(location.Normalize(model.Location)),
 						ResourceName:     pointer.To(accountId.DatabaseAccountName),
-						ResourceType:     pointer.To("Microsoft.DocumentDB/databaseAccounts"),
+						ResourceType:     pointer.To(cosmosDBAccountDataSourceType),
 						ResourceUri:      pointer.To(accountId.ID()),
 					},
 					FriendlyName: pointer.To(id.BackupInstanceName),
@@ -189,37 +198,44 @@ func (r DataProtectionBackupInstanceCosmosDBAccountResource) Read() sdk.Resource
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			return r.flatten(metadata, id, resp.Model)
+			var model *backupInstanceCosmosDBAccountFlattenModel
+			if resp.Model != nil && resp.Model.Properties != nil {
+				props := resp.Model.Properties
+				model = &backupInstanceCosmosDBAccountFlattenModel{
+					Location:          props.DataSourceInfo.ResourceLocation,
+					CosmosDBAccountId: props.DataSourceInfo.ResourceID,
+					BackupPolicyId:    props.PolicyInfo.PolicyId,
+					ProtectionState:   pointer.FromEnum(props.CurrentProtectionState),
+				}
+			}
+
+			return r.flatten(metadata, id, model)
 		},
 	}
 }
 
-// flatten is shared by Read and the list resource, which encodes state directly from
-// list API responses without a per-item BackupInstancesGet round trip.
-func (r DataProtectionBackupInstanceCosmosDBAccountResource) flatten(metadata sdk.ResourceMetaData, id *backupinstanceresources.BackupInstanceId, model *backupinstanceresources.BackupInstanceResource) error {
+func (r DataProtectionBackupInstanceCosmosDBAccountResource) flatten(metadata sdk.ResourceMetaData, id *backupinstanceresources.BackupInstanceId, model *backupInstanceCosmosDBAccountFlattenModel) error {
 	state := BackupInstanceCosmosDBAccountModel{
 		Name:                        id.BackupInstanceName,
 		DataProtectionBackupVaultId: backupvaultresources.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName).ID(),
 	}
 
 	if model != nil {
-		if props := model.Properties; props != nil {
-			state.Location = location.NormalizeNilable(props.DataSourceInfo.ResourceLocation)
+		state.Location = location.NormalizeNilable(model.Location)
 
-			accountId, err := cosmosdb.ParseDatabaseAccountIDInsensitively(props.DataSourceInfo.ResourceID)
-			if err != nil {
-				return err
-			}
-			state.CosmosDBAccountId = accountId.ID()
-
-			backupPolicyId, err := basebackuppolicyresources.ParseBackupPolicyIDInsensitively(props.PolicyInfo.PolicyId)
-			if err != nil {
-				return err
-			}
-			state.BackupPolicyId = backupPolicyId.ID()
-
-			state.ProtectionState = pointer.FromEnum(props.CurrentProtectionState)
+		accountId, err := cosmosdb.ParseDatabaseAccountIDInsensitively(model.CosmosDBAccountId)
+		if err != nil {
+			return err
 		}
+		state.CosmosDBAccountId = accountId.ID()
+
+		backupPolicyId, err := basebackuppolicyresources.ParseBackupPolicyIDInsensitively(model.BackupPolicyId)
+		if err != nil {
+			return err
+		}
+		state.BackupPolicyId = backupPolicyId.ID()
+
+		state.ProtectionState = model.ProtectionState
 	}
 
 	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {

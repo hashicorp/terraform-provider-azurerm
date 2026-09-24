@@ -23,7 +23,7 @@ data "azurerm_data_protection_backup_vault" "example" {
 list "azurerm_data_protection_backup_instance_cosmosdb_account" "example" {
   provider = azurerm
   config {
-    vault_id = data.azurerm_data_protection_backup_vault.example.id
+    data_protection_backup_vault_id = data.azurerm_data_protection_backup_vault.example.id
   }
 }
 ```
@@ -32,4 +32,4 @@ list "azurerm_data_protection_backup_instance_cosmosdb_account" "example" {
 
 This list resource supports the following arguments:
 
-* `vault_id` - (Required) The ID of the Data Protection Backup Vault to query.
+* `data_protection_backup_vault_id` - (Required) The ID of the Data Protection Backup Vault to query.

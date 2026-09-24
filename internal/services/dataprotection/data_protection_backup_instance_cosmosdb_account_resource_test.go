@@ -47,6 +47,20 @@ func TestAccDataProtectionBackupInstanceCosmosDBAccount_requiresImport(t *testin
 	})
 }
 
+func TestAccDataProtectionBackupInstanceCosmosDBAccount_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_cosmosdb_account", "test")
+	r := DataProtectionBackupInstanceCosmosdbAccountResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDataProtectionBackupInstanceCosmosDBAccount_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_cosmosdb_account", "test")
 	r := DataProtectionBackupInstanceCosmosdbAccountResource{}
@@ -142,11 +156,11 @@ func (r DataProtectionBackupInstanceCosmosdbAccountResource) basic(data acceptan
 %s
 
 resource "azurerm_data_protection_backup_instance_cosmosdb_account" "test" {
-  name                = "acctest-dbi-cosmos-%d"
-  location            = azurerm_resource_group.test.location
-  vault_id            = azurerm_data_protection_backup_vault.test.id
-  backup_policy_id    = azurerm_data_protection_backup_policy_cosmosdb_database_account.test.id
-  cosmosdb_account_id = azurerm_cosmosdb_account.test.id
+  name                              = "acctest-dbi-cosmos-%d"
+  location                          = azurerm_resource_group.test.location
+  data_protection_backup_vault_id   = azurerm_data_protection_backup_vault.test.id
+  backup_policy_cosmosdb_account_id = azurerm_data_protection_backup_policy_cosmosdb_database_account.test.id
+  cosmosdb_account_id               = azurerm_cosmosdb_account.test.id
 
   depends_on = [
     azurerm_role_assignment.reader,
@@ -161,11 +175,11 @@ func (r DataProtectionBackupInstanceCosmosdbAccountResource) requiresImport(data
 %s
 
 resource "azurerm_data_protection_backup_instance_cosmosdb_account" "import" {
-  name                = azurerm_data_protection_backup_instance_cosmosdb_account.test.name
-  location            = azurerm_data_protection_backup_instance_cosmosdb_account.test.location
-  vault_id            = azurerm_data_protection_backup_instance_cosmosdb_account.test.vault_id
-  backup_policy_id    = azurerm_data_protection_backup_instance_cosmosdb_account.test.backup_policy_id
-  cosmosdb_account_id = azurerm_data_protection_backup_instance_cosmosdb_account.test.cosmosdb_account_id
+  name                              = azurerm_data_protection_backup_instance_cosmosdb_account.test.name
+  location                          = azurerm_data_protection_backup_instance_cosmosdb_account.test.location
+  data_protection_backup_vault_id   = azurerm_data_protection_backup_instance_cosmosdb_account.test.data_protection_backup_vault_id
+  backup_policy_cosmosdb_account_id = azurerm_data_protection_backup_instance_cosmosdb_account.test.backup_policy_cosmosdb_account_id
+  cosmosdb_account_id               = azurerm_data_protection_backup_instance_cosmosdb_account.test.cosmosdb_account_id
 }
 `, r.basic(data))
 }
@@ -175,11 +189,30 @@ func (r DataProtectionBackupInstanceCosmosdbAccountResource) update(data accepta
 %s
 
 resource "azurerm_data_protection_backup_instance_cosmosdb_account" "test" {
-  name                = "acctest-dbi-cosmos-%d"
-  location            = azurerm_resource_group.test.location
-  vault_id            = azurerm_data_protection_backup_vault.test.id
-  backup_policy_id    = azurerm_data_protection_backup_policy_cosmosdb_database_account.another.id
-  cosmosdb_account_id = azurerm_cosmosdb_account.test.id
+  name                              = "acctest-dbi-cosmos-%d"
+  location                          = azurerm_resource_group.test.location
+  data_protection_backup_vault_id   = azurerm_data_protection_backup_vault.test.id
+  backup_policy_cosmosdb_account_id = azurerm_data_protection_backup_policy_cosmosdb_account.test.id
+  cosmosdb_account_id               = azurerm_cosmosdb_account.test.id
+
+  depends_on = [
+    azurerm_role_assignment.reader,
+    azurerm_role_assignment.cosmos_operator,
+  ]
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r DataProtectionBackupInstanceCosmosdbAccountResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_protection_backup_instance_cosmosdb_account" "test" {
+  name                              = "acctest-dbi-cosmos-%d"
+  location                          = azurerm_resource_group.test.location
+  data_protection_backup_vault_id   = azurerm_data_protection_backup_vault.test.id
+  backup_policy_cosmosdb_account_id = azurerm_data_protection_backup_policy_cosmosdb_account.test.id
+  cosmosdb_account_id               = azurerm_cosmosdb_account.test.id
 
   depends_on = [
     azurerm_role_assignment.reader,
