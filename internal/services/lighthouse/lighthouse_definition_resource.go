@@ -14,13 +14,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2022-10-01/registrationdefinitions"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLighthouseDefinition() *pluginsdk.Resource {
@@ -140,7 +138,7 @@ func resourceLighthouseDefinition() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Default:      "PT8H",
-										ValidateFunc: azValidate.ISO8601Duration,
+										ValidateFunc: validation.ISO8601Duration,
 									},
 
 									"approver": {
@@ -178,7 +176,7 @@ func resourceLighthouseDefinition() *pluginsdk.Resource {
 			"lighthouse_definition_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
@@ -344,16 +342,11 @@ func resourceLighthouseDefinitionDelete(d *pluginsdk.ResourceData, meta interfac
 func flattenLighthouseDefinitionAuthorization(input []registrationdefinitions.Authorization) []interface{} {
 	results := make([]interface{}, 0)
 	for _, item := range input {
-		principalIDDisplayName := ""
-		if item.PrincipalIdDisplayName != nil {
-			principalIDDisplayName = *item.PrincipalIdDisplayName
-		}
-
 		results = append(results, map[string]interface{}{
 			"role_definition_id":            item.RoleDefinitionId,
 			"principal_id":                  item.PrincipalId,
-			"principal_display_name":        principalIDDisplayName,
-			"delegated_role_definition_ids": utils.FlattenStringSlice(item.DelegatedRoleDefinitionIds),
+			"principal_display_name":        pointer.From(item.PrincipalIdDisplayName),
+			"delegated_role_definition_ids": pluginsdk.FlattenSlice(item.DelegatedRoleDefinitionIds),
 		})
 	}
 
@@ -364,7 +357,7 @@ func expandLighthouseDefinitionAuthorization(input []interface{}) []registration
 	results := make([]registrationdefinitions.Authorization, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		delegatedRoleDefinitionIds := utils.ExpandStringSlice(v["delegated_role_definition_ids"].(*pluginsdk.Set).List())
+		delegatedRoleDefinitionIds := pluginsdk.ExpandStringSlice(v["delegated_role_definition_ids"].(*pluginsdk.Set).List())
 		result := registrationdefinitions.Authorization{
 			RoleDefinitionId:           v["role_definition_id"].(string),
 			PrincipalId:                v["principal_id"].(string),
@@ -476,7 +469,7 @@ func expandLighthouseDefinitionApprover(input []interface{}) *[]registrationdefi
 
 func flattenLighthouseDefinitionEligibleAuthorization(input *[]registrationdefinitions.EligibleAuthorization) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	results := make([]interface{}, 0, len(*input))
@@ -502,7 +495,7 @@ func flattenLighthouseDefinitionEligibleAuthorization(input *[]registrationdefin
 
 func flattenLighthouseDefinitionJustInTimeAccessPolicy(input *registrationdefinitions.JustInTimeAccessPolicy) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	var results []interface{}
@@ -528,7 +521,7 @@ func flattenLighthouseDefinitionJustInTimeAccessPolicy(input *registrationdefini
 
 func flattenLighthouseDefinitionApprover(input *[]registrationdefinitions.EligibleApprover) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	results := make([]interface{}, 0, len(*input))

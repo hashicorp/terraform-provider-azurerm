@@ -6,15 +6,6 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/configurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/firewallrules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/replicas"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/serveradministrators"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/serversecurityalertpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/virtualnetworkrules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2020-01-01/serverkeys"
 	flexibleserveradministrators "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/administratormicrosoftentras"
 	backupsautomaticandondemand "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/backupautomaticandondemands"
 	flexibleserverconfigurations "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/configurations"
@@ -27,20 +18,11 @@ import (
 
 type Client struct {
 	BackupsClient                       *backupsautomaticandondemand.BackupAutomaticAndOnDemandsClient
-	ConfigurationsClient                *configurations.ConfigurationsClient
-	DatabasesClient                     *databases.DatabasesClient
-	FirewallRulesClient                 *firewallrules.FirewallRulesClient
 	FlexibleServersClient               *flexibleservers.ServersClient
 	FlexibleServersConfigurationsClient *flexibleserverconfigurations.ConfigurationsClient
 	FlexibleServerFirewallRuleClient    *flexibleserverfirewallrules.FirewallRulesClient
 	FlexibleServerDatabaseClient        *flexibleserverdatabases.DatabasesClient
 	FlexibleServerAdministratorsClient  *flexibleserveradministrators.AdministratorMicrosoftEntrasClient
-	ServersClient                       *servers.ServersClient
-	ServerKeysClient                    *serverkeys.ServerKeysClient
-	ServerSecurityAlertPoliciesClient   *serversecurityalertpolicies.ServerSecurityAlertPoliciesClient
-	VirtualNetworkRulesClient           *virtualnetworkrules.VirtualNetworkRulesClient
-	ServerAdministratorsClient          *serveradministrators.ServerAdministratorsClient
-	ReplicasClient                      *replicas.ReplicasClient
 	VirtualEndpointClient               *flexibleservervirtualendpoints.VirtualEndpointsClient
 }
 
@@ -50,60 +32,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Backups client: %+v", err)
 	}
 	o.Configure(backupsClient.Client, o.Authorizers.ResourceManager)
-
-	configurationsClient, err := configurations.NewConfigurationsClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building Configurations client: %+v", err)
-	}
-	o.Configure(configurationsClient.Client, o.Authorizers.ResourceManager)
-
-	databasesClient, err := databases.NewDatabasesClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building Databases client: %+v", err)
-	}
-	o.Configure(databasesClient.Client, o.Authorizers.ResourceManager)
-
-	firewallRulesClient, err := firewallrules.NewFirewallRulesClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building FirewallRules client: %+v", err)
-	}
-	o.Configure(firewallRulesClient.Client, o.Authorizers.ResourceManager)
-
-	serversClient, err := servers.NewServersClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building Servers client: %+v", err)
-	}
-	o.Configure(serversClient.Client, o.Authorizers.ResourceManager)
-
-	serverKeysClient, err := serverkeys.NewServerKeysClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building ServerKeys client: %+v", err)
-	}
-	o.Configure(serverKeysClient.Client, o.Authorizers.ResourceManager)
-
-	serverSecurityAlertPoliciesClient, err := serversecurityalertpolicies.NewServerSecurityAlertPoliciesClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building ServerSecurityAlertPolicies client: %+v", err)
-	}
-	o.Configure(serverSecurityAlertPoliciesClient.Client, o.Authorizers.ResourceManager)
-
-	virtualNetworkRulesClient, err := virtualnetworkrules.NewVirtualNetworkRulesClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building VirtualNetworkRules client: %+v", err)
-	}
-	o.Configure(virtualNetworkRulesClient.Client, o.Authorizers.ResourceManager)
-
-	serverAdministratorsClient, err := serveradministrators.NewServerAdministratorsClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building ServerAdministrators client: %+v", err)
-	}
-	o.Configure(serverAdministratorsClient.Client, o.Authorizers.ResourceManager)
-
-	replicasClient, err := replicas.NewReplicasClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building Replicas client: %+v", err)
-	}
-	o.Configure(replicasClient.Client, o.Authorizers.ResourceManager)
 
 	flexibleServersClient, err := flexibleservers.NewServersClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -143,20 +71,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	return &Client{
 		BackupsClient:                       backupsClient,
-		ConfigurationsClient:                configurationsClient,
-		DatabasesClient:                     databasesClient,
-		FirewallRulesClient:                 firewallRulesClient,
 		FlexibleServersConfigurationsClient: flexibleServerConfigurationsClient,
 		FlexibleServersClient:               flexibleServersClient,
 		FlexibleServerFirewallRuleClient:    flexibleServerFirewallRuleClient,
 		FlexibleServerDatabaseClient:        flexibleServerDatabaseClient,
 		FlexibleServerAdministratorsClient:  flexibleServerAdministratorsClient,
-		ServersClient:                       serversClient,
-		ServerKeysClient:                    serverKeysClient,
-		ServerSecurityAlertPoliciesClient:   serverSecurityAlertPoliciesClient,
-		VirtualNetworkRulesClient:           virtualNetworkRulesClient,
-		ServerAdministratorsClient:          serverAdministratorsClient,
-		ReplicasClient:                      replicasClient,
 		VirtualEndpointClient:               virtualEndpointClient,
 	}, nil
 }

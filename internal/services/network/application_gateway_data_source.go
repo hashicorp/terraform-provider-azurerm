@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/webapplicationfirewallpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -75,24 +75,6 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 						"affinity_cookie_name": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
-						},
-
-						"authentication_certificate": {
-							Type:     pluginsdk.TypeList,
-							Computed: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"name": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-
-									"id": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-								},
-							},
 						},
 
 						"certificate_chain_validation_enabled": {
@@ -850,24 +832,6 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 				},
 			},
 
-			"authentication_certificate": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
 			"trusted_root_certificate": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -1560,10 +1524,6 @@ func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{
 		}
 
 		if props := model.Properties; props != nil {
-			if err = d.Set("authentication_certificate", flattenApplicationGatewayAuthenticationCertificates(props.AuthenticationCertificates, d)); err != nil {
-				return fmt.Errorf("setting `authentication_certificate`: %+v", err)
-			}
-
 			if err = d.Set("trusted_root_certificate", flattenApplicationGatewayTrustedRootCertificates(props.TrustedRootCertificates, d)); err != nil {
 				return fmt.Errorf("setting `trusted_root_certificate`: %+v", err)
 			}
@@ -1668,8 +1628,7 @@ func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{
 				return fmt.Errorf("setting `redirect_configuration`: %+v", setErr)
 			}
 
-			rewriteRuleSets := flattenApplicationGatewayRewriteRuleSets(props.RewriteRuleSets)
-			if setErr := d.Set("rewrite_rule_set", rewriteRuleSets); setErr != nil {
+			if setErr := d.Set("rewrite_rule_set", flattenApplicationGatewayRewriteRuleSets(props.RewriteRuleSets)); setErr != nil {
 				return fmt.Errorf("setting `rewrite_rule_set`: %+v", setErr)
 			}
 

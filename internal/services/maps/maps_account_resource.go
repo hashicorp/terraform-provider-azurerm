@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMapsAccount() *pluginsdk.Resource {
@@ -58,14 +57,10 @@ func resourceMapsAccount() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"sku_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(accounts.NameSZero),
-					string(accounts.NameSOne),
-					string(accounts.NameGTwo),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(accounts.PossibleValuesForName(), false),
 			},
 
 			"cors": {
@@ -349,7 +344,7 @@ func expandCors(input []interface{}) *accounts.CorsRules {
 	corsRule := make([]accounts.CorsRule, 0)
 
 	corsRule = append(corsRule, accounts.CorsRule{
-		AllowedOrigins: pointer.From(utils.ExpandStringSlice(cors["allowed_origins"].([]interface{}))),
+		AllowedOrigins: pointer.From(pluginsdk.ExpandStringSlice(cors["allowed_origins"].([]interface{}))),
 	})
 
 	return &accounts.CorsRules{

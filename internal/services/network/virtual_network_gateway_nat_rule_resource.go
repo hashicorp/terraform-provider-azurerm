@@ -11,7 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -36,7 +37,7 @@ func resourceVirtualNetworkGatewayNatRule() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := virtualnetworkgateways.ParseVirtualNetworkGatewayNatRuleID(id)
+			_, err := networkgateways.ParseVirtualNetworkGatewayNatRuleID(id)
 			return err
 		}),
 
@@ -98,25 +99,19 @@ func resourceVirtualNetworkGatewayNatRule() *pluginsdk.Resource {
 			},
 
 			"mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(virtualnetworkgateways.VpnNatRuleModeEgressSnat),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualnetworkgateways.VpnNatRuleModeEgressSnat),
-					string(virtualnetworkgateways.VpnNatRuleModeIngressSnat),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(networkgateways.VpnNatRuleModeEgressSnat),
+				ValidateFunc: validation.StringInSlice(networkgateways.PossibleValuesForVpnNatRuleMode(), false),
 			},
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(virtualnetworkgateways.VpnNatRuleTypeStatic),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualnetworkgateways.VpnNatRuleTypeStatic),
-					string(virtualnetworkgateways.VpnNatRuleTypeDynamic),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(networkgateways.VpnNatRuleTypeStatic),
+				ValidateFunc: validation.StringInSlice(networkgateways.PossibleValuesForVpnNatRuleType(), false),
 			},
 
 			"ip_configuration_id": {
@@ -130,7 +125,7 @@ func resourceVirtualNetworkGatewayNatRule() *pluginsdk.Resource {
 
 func resourceVirtualNetworkGatewayNatRuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).Network.VirtualNetworkGateways
+	client := meta.(*clients.Client).Network.NetworkGateways
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -139,7 +134,7 @@ func resourceVirtualNetworkGatewayNatRuleCreate(d *pluginsdk.ResourceData, meta 
 		return err
 	}
 
-	id := virtualnetworkgateways.NewVirtualNetworkGatewayNatRuleID(subscriptionId, d.Get("resource_group_name").(string), vnetGatewayId.VirtualNetworkGatewayName, d.Get("name").(string))
+	id := networkgateways.NewVirtualNetworkGatewayNatRuleID(subscriptionId, d.Get("resource_group_name").(string), vnetGatewayId.VirtualNetworkGatewayName, d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.VirtualNetworkGatewayNatRulesGet(ctx, id)
@@ -153,13 +148,13 @@ func resourceVirtualNetworkGatewayNatRuleCreate(d *pluginsdk.ResourceData, meta 
 		}
 	}
 
-	props := virtualnetworkgateways.VirtualNetworkGatewayNatRule{
+	props := networkgateways.VirtualNetworkGatewayNatRule{
 		Name: pointer.To(d.Get("name").(string)),
-		Properties: &virtualnetworkgateways.VirtualNetworkGatewayNatRuleProperties{
+		Properties: &networkgateways.VirtualNetworkGatewayNatRuleProperties{
 			ExternalMappings: expandVirtualNetworkGatewayNatRuleMappings(d.Get("external_mapping").([]interface{})),
 			InternalMappings: expandVirtualNetworkGatewayNatRuleMappings(d.Get("internal_mapping").([]interface{})),
-			Mode:             pointer.To(virtualnetworkgateways.VpnNatRuleMode(d.Get("mode").(string))),
-			Type:             pointer.To(virtualnetworkgateways.VpnNatRuleType(d.Get("type").(string))),
+			Mode:             pointer.ToEnum[networkgateways.VpnNatRuleMode](d.Get("mode").(string)),
+			Type:             pointer.ToEnum[networkgateways.VpnNatRuleType](d.Get("type").(string)),
 		},
 	}
 
@@ -176,11 +171,11 @@ func resourceVirtualNetworkGatewayNatRuleCreate(d *pluginsdk.ResourceData, meta 
 }
 
 func resourceVirtualNetworkGatewayNatRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VirtualNetworkGateways
+	client := meta.(*clients.Client).Network.NetworkGateways
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := virtualnetworkgateways.ParseVirtualNetworkGatewayNatRuleID(d.Id())
+	id, err := networkgateways.ParseVirtualNetworkGatewayNatRuleID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -220,22 +215,22 @@ func resourceVirtualNetworkGatewayNatRuleRead(d *pluginsdk.ResourceData, meta in
 }
 
 func resourceVirtualNetworkGatewayNatRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VirtualNetworkGateways
+	client := meta.(*clients.Client).Network.NetworkGateways
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := virtualnetworkgateways.ParseVirtualNetworkGatewayNatRuleID(d.Id())
+	id, err := networkgateways.ParseVirtualNetworkGatewayNatRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	props := virtualnetworkgateways.VirtualNetworkGatewayNatRule{
+	props := networkgateways.VirtualNetworkGatewayNatRule{
 		Name: pointer.To(d.Get("name").(string)),
-		Properties: &virtualnetworkgateways.VirtualNetworkGatewayNatRuleProperties{
+		Properties: &networkgateways.VirtualNetworkGatewayNatRuleProperties{
 			ExternalMappings: expandVirtualNetworkGatewayNatRuleMappings(d.Get("external_mapping").([]interface{})),
 			InternalMappings: expandVirtualNetworkGatewayNatRuleMappings(d.Get("internal_mapping").([]interface{})),
-			Mode:             pointer.To(virtualnetworkgateways.VpnNatRuleMode(d.Get("mode").(string))),
-			Type:             pointer.To(virtualnetworkgateways.VpnNatRuleType(d.Get("type").(string))),
+			Mode:             pointer.ToEnum[networkgateways.VpnNatRuleMode](d.Get("mode").(string)),
+			Type:             pointer.ToEnum[networkgateways.VpnNatRuleType](d.Get("type").(string)),
 		},
 	}
 
@@ -251,11 +246,11 @@ func resourceVirtualNetworkGatewayNatRuleUpdate(d *pluginsdk.ResourceData, meta 
 }
 
 func resourceVirtualNetworkGatewayNatRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VirtualNetworkGateways
+	client := meta.(*clients.Client).Network.NetworkGateways
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := virtualnetworkgateways.ParseVirtualNetworkGatewayNatRuleID(d.Id())
+	id, err := networkgateways.ParseVirtualNetworkGatewayNatRuleID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -267,13 +262,13 @@ func resourceVirtualNetworkGatewayNatRuleDelete(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func expandVirtualNetworkGatewayNatRuleMappings(input []interface{}) *[]virtualnetworkgateways.VpnNatRuleMapping {
-	results := make([]virtualnetworkgateways.VpnNatRuleMapping, 0)
+func expandVirtualNetworkGatewayNatRuleMappings(input []interface{}) *[]networkgateways.VpnNatRuleMapping {
+	results := make([]networkgateways.VpnNatRuleMapping, 0)
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
 
-		result := virtualnetworkgateways.VpnNatRuleMapping{
+		result := networkgateways.VpnNatRuleMapping{
 			AddressSpace: pointer.To(v["address_space"].(string)),
 		}
 
@@ -287,26 +282,16 @@ func expandVirtualNetworkGatewayNatRuleMappings(input []interface{}) *[]virtualn
 	return &results
 }
 
-func flattenVirtualNetworkGatewayNatRuleMappings(input *[]virtualnetworkgateways.VpnNatRuleMapping) []interface{} {
+func flattenVirtualNetworkGatewayNatRuleMappings(input *[]networkgateways.VpnNatRuleMapping) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		var addressSpace string
-		if item.AddressSpace != nil {
-			addressSpace = *item.AddressSpace
-		}
-
-		var portRange string
-		if item.PortRange != nil {
-			portRange = *item.PortRange
-		}
-
 		results = append(results, map[string]interface{}{
-			"address_space": addressSpace,
-			"port_range":    portRange,
+			"address_space": pointer.From(item.AddressSpace),
+			"port_range":    pointer.From(item.PortRange),
 		})
 	}
 

@@ -46,15 +46,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the storage blob. Must be unique within the storage container the blob is located. Changing this forces a new resource to be created.
 
-* `storage_account_name` - (Optional) Specifies the storage account in which to create the storage container. Changing this forces a new resource to be created.
-
-~> **Note:** This property is deprecated in favour of `storage_container_id` and will be removed in version 5.0 of the AzureRM Provider.
-
-* `storage_container_name` - (Optional) The name of the storage container in which this blob should be created. Changing this forces a new resource to be created.
-
-~> **Note:** This property is deprecated in favour of `storage_container_id` and will be removed in version 5.0 of the AzureRM Provider.
-
-* `storage_container_id` - (Optional) The ID of the storage container in which this blob should be created. Changing this forces a new resource to be created.
+* `storage_container_id` - (Required) The ID of the storage container in which this blob should be created. Changing this forces a new resource to be created.
 
 * `type` - (Required) The type of the storage blob to be created. Possible values are `Append`, `Block` or `Page`. Changing this forces a new resource to be created.
 
@@ -82,7 +74,7 @@ The following arguments are supported:
 
 * `parallelism` - (Optional) The number of workers per CPU core to run for concurrent uploads. Defaults to `8`. Changing this forces a new resource to be created.
 
-~> **Note:** `parallelism` is only applicable for Page blobs - support for [Block Blobs is blocked on the upstream issue](https://github.com/jackofallops/giovanni/issues/15).
+~> **Note:** `parallelism` is only applicable for Page blobs - support for [Block Blobs is blocked on the upstream issue](https://github.com/tombuildsstuff/giovanni/issues/15).
 
 * `metadata` - (Optional) A map of custom blob metadata.
 

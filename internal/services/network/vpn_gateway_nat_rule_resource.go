@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -103,25 +103,19 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 			},
 
 			"mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(virtualwans.VpnNatRuleModeEgressSnat),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualwans.VpnNatRuleModeEgressSnat),
-					string(virtualwans.VpnNatRuleModeIngressSnat),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(virtualwans.VpnNatRuleModeEgressSnat),
+				ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForVpnNatRuleMode(), false),
 			},
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(virtualwans.VpnNatRuleTypeStatic),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualwans.VpnNatRuleTypeStatic),
-					string(virtualwans.VpnNatRuleTypeDynamic),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(virtualwans.VpnNatRuleTypeStatic),
+				ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForVpnNatRuleType(), false),
 			},
 		},
 	}
@@ -155,8 +149,8 @@ func resourceVPNGatewayNatRuleCreate(d *pluginsdk.ResourceData, meta interface{}
 	props := virtualwans.VpnGatewayNatRule{
 		Name: pointer.To(d.Get("name").(string)),
 		Properties: &virtualwans.VpnGatewayNatRuleProperties{
-			Mode: pointer.To(virtualwans.VpnNatRuleMode(d.Get("mode").(string))),
-			Type: pointer.To(virtualwans.VpnNatRuleType(d.Get("type").(string))),
+			Mode: pointer.ToEnum[virtualwans.VpnNatRuleMode](d.Get("mode").(string)),
+			Type: pointer.ToEnum[virtualwans.VpnNatRuleType](d.Get("type").(string)),
 		},
 	}
 
@@ -250,8 +244,8 @@ func resourceVPNGatewayNatRuleUpdate(d *pluginsdk.ResourceData, meta interface{}
 	props := virtualwans.VpnGatewayNatRule{
 		Name: pointer.To(d.Get("name").(string)),
 		Properties: &virtualwans.VpnGatewayNatRuleProperties{
-			Mode:             pointer.To(virtualwans.VpnNatRuleMode(d.Get("mode").(string))),
-			Type:             pointer.To(virtualwans.VpnNatRuleType(d.Get("type").(string))),
+			Mode:             pointer.ToEnum[virtualwans.VpnNatRuleMode](d.Get("mode").(string)),
+			Type:             pointer.ToEnum[virtualwans.VpnNatRuleType](d.Get("type").(string)),
 			ExternalMappings: existing.Model.Properties.ExternalMappings,
 			InternalMappings: existing.Model.Properties.InternalMappings,
 		},
@@ -320,19 +314,9 @@ func flattenVpnGatewayNatRuleMappings(input *[]virtualwans.VpnNatRuleMapping) []
 	}
 
 	for _, item := range *input {
-		var addressSpace string
-		if item.AddressSpace != nil {
-			addressSpace = *item.AddressSpace
-		}
-
-		var portRange string
-		if item.PortRange != nil {
-			portRange = *item.PortRange
-		}
-
 		results = append(results, map[string]interface{}{
-			"address_space": addressSpace,
-			"port_range":    portRange,
+			"address_space": pointer.From(item.AddressSpace),
+			"port_range":    pointer.From(item.PortRange),
 		})
 	}
 

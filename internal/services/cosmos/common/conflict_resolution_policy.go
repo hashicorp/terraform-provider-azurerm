@@ -14,9 +14,8 @@ func ExpandCosmosDbConflicResolutionPolicy(inputs []interface{}) *openapis.Confl
 	}
 
 	input := inputs[0].(map[string]interface{})
-	conflictResolutionMode := openapis.ConflictResolutionMode(input["mode"].(string))
 	conflict := &openapis.ConflictResolutionPolicy{
-		Mode: &conflictResolutionMode,
+		Mode: pointer.ToEnum[openapis.ConflictResolutionMode](input["mode"].(string)),
 	}
 
 	if conflictResolutionPath, ok := input["conflict_resolution_path"].(string); ok {

@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationsecuritygroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/privateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -218,10 +218,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Read() sdk.R
 			}
 			if !ASGInPE {
 				log.Printf("ApplicationSecurityGroup %q does not exist in %q, removing from state.", ASGId, privateEndpointId)
-				err := metadata.MarkAsGone(resourceId)
-				if err != nil {
-					return err
-				}
+				return metadata.MarkAsGone(resourceId)
 			}
 
 			state := PrivateEndpointApplicationSecurityGroupAssociationModel{
@@ -285,8 +282,6 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Delete() sdk
 				return fmt.Errorf("ApplicationSecurityGroup %q does not exist", ASGId)
 			}
 
-			resourceId := parse.NewPrivateEndpointApplicationSecurityGroupAssociationId(*privateEndpointId, *ASGId)
-
 			// flag: application security group exists in private endpoint configuration
 			ASGInPE := false
 
@@ -313,7 +308,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Delete() sdk
 				return fmt.Errorf("creating %s: %+v", privateEndpointId, err)
 			}
 
-			metadata.SetID(resourceId)
+			metadata.SetID(parse.NewPrivateEndpointApplicationSecurityGroupAssociationId(*privateEndpointId, *ASGId))
 			return nil
 		},
 		Timeout: 30 * time.Minute,

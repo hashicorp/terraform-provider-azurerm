@@ -12,11 +12,11 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type deleteAndPurgeNestedItem interface {
@@ -34,7 +34,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 
 	log.Printf("[DEBUG] Deleting %s..", description)
 	if resp, err := helper.DeleteNestedItem(ctx); err != nil {
-		if utils.ResponseWasNotFound(resp) {
+		if response.WasNotFound(resp.Response) {
 			return nil
 		}
 
@@ -47,7 +47,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 		Refresh: func() (interface{}, string, error) {
 			item, err := helper.NestedItemHasBeenDeleted(ctx)
 			if err != nil {
-				if utils.ResponseWasNotFound(item) {
+				if response.WasNotFound(item.Response) {
 					return item, "NotFound", nil
 				}
 
@@ -71,7 +71,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 	}
 
 	log.Printf("[DEBUG] Purging %s..", description)
-	err := pluginsdk.Retry(time.Until(timeout), func() *pluginsdk.RetryError {
+	if err := pluginsdk.Retry(time.Until(timeout), func() *pluginsdk.RetryError {
 		_, err := helper.PurgeNestedItem(ctx)
 		if err == nil {
 			return nil
@@ -80,8 +80,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 			return pluginsdk.RetryableError(fmt.Errorf("%s is currently being deleted, retrying", description))
 		}
 		return pluginsdk.NonRetryableError(fmt.Errorf("purging of %s : %+v", description, err))
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
 
@@ -92,7 +91,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 		Refresh: func() (interface{}, string, error) {
 			item, err := helper.NestedItemHasBeenPurged(ctx)
 			if err != nil {
-				if utils.ResponseWasNotFound(item) {
+				if response.WasNotFound(item.Response) {
 					return item, "NotFound", nil
 				}
 
@@ -113,7 +112,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 	return nil
 }
 
-func keyVaultChildItemRefreshFunc(secretUri string) pluginsdk.StateRefreshFunc {
+func keyVaultChildItemRefreshFunc(ctx context.Context, secretUri string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Checking to see if KeyVault Secret %q is available..", secretUri)
 
@@ -123,7 +122,12 @@ func keyVaultChildItemRefreshFunc(secretUri string) pluginsdk.StateRefreshFunc {
 			Transport: PTransport,
 		}
 
-		conn, err := client.Get(secretUri)
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, secretUri, nil)
+		if err != nil {
+			return nil, "pending", fmt.Errorf("building request to check secret at %q: %s", secretUri, err)
+		}
+
+		conn, err := client.Do(req)
 		if err != nil {
 			log.Printf("[DEBUG] Didn't find KeyVault secret at %q", secretUri)
 			return nil, "pending", fmt.Errorf("checking secret at %q: %s", secretUri, err)

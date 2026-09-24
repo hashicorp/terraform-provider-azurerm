@@ -346,7 +346,7 @@ func expandResource(input []Resource) *openapis.PrivilegeResource {
 func flattenResource(input *openapis.PrivilegeResource) []Resource {
 	var result []Resource
 	if input == nil {
-		return result
+		return []Resource{}
 	}
 
 	resource := Resource{

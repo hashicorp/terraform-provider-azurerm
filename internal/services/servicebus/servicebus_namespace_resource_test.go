@@ -10,11 +10,10 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -234,31 +233,6 @@ func TestAccAzureRMServiceBusNamespace_publicNetworkAccessUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceBusNamespace_minimumTLSUpdate(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skipf("Skipping since the only possible value in 5.0 for `minimum_tls_version` is `1.2`, we can not test updating it.")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	r := ServicebusNamespaceResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.2"),
-			),
-		},
-		{
-			Config: r.minimumTLSUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.1"),
-			),
-		},
-	})
-}
-
 func TestAccAzureRMServiceBusNamespace_endpoint(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
 	r := ServicebusNamespaceResource{}
@@ -303,6 +277,29 @@ func TestAccAzureRMServiceBusNamespace_networkRuleSet(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMServiceBusNamespace_minimumTLSUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	r := ServicebusNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.minimumTLS(data, "1.3"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.3"),
+			),
+		},
 	})
 }
 
@@ -684,27 +681,6 @@ resource "azurerm_servicebus_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ServicebusNamespaceResource) minimumTLSUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  minimum_tls_version = "1.1"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
 func (ServicebusNamespaceResource) networkRuleSet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -730,7 +706,9 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["172.17.0.0/24"]
 
-  service_endpoints = ["Microsoft.ServiceBus"]
+  service_endpoint {
+    service = "Microsoft.ServiceBus"
+  }
 }
 
 resource "azurerm_servicebus_namespace" "test" {
@@ -778,7 +756,9 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["172.17.0.0/24"]
 
-  service_endpoints = ["Microsoft.ServiceBus"]
+  service_endpoint {
+    service = "Microsoft.ServiceBus"
+  }
 }
 
 resource "azurerm_servicebus_namespace" "test" {
@@ -829,7 +809,9 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["172.17.0.0/24"]
 
-  service_endpoints = ["Microsoft.ServiceBus"]
+  service_endpoint {
+    service = "Microsoft.ServiceBus"
+  }
 }
 
 resource "azurerm_servicebus_namespace" "test" {
@@ -843,4 +825,25 @@ resource "azurerm_servicebus_namespace" "test" {
   network_rule_set {}
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (ServicebusNamespaceResource) minimumTLS(data acceptance.TestData, tlsVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                = "acctestservicebusnamespace-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+  minimum_tls_version = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, tlsVersion)
 }

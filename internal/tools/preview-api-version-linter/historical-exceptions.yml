@@ -1,3 +1,6 @@
+# Copyright IBM Corp. 2014, 2026
+# SPDX-License-Identifier: MPL-2.0
+
 # Exceptions for historical uses of preview API before the linter tool is setup
 # DO NOT ADD NEW ENTRY
 
@@ -8,10 +11,6 @@
 - module: github.com/Azure/azure-sdk-for-go
   service: security
   version: v3.0
-
-- module: github.com/Azure/azure-sdk-for-go
-  service: securityinsight
-  version: 2021-09-01-preview
 
 - module: github.com/Azure/azure-sdk-for-go
   service: sql
@@ -44,10 +43,6 @@
 - module: github.com/hashicorp/go-azure-sdk/resource-manager
   service: blueprints
   version: 2018-11-01-preview
-
-- module: github.com/hashicorp/go-azure-sdk/resource-manager
-  service: codesigning
-  version: 2024-09-30-preview
 
 - module: github.com/hashicorp/go-azure-sdk/resource-manager
   service: containerregistry
@@ -132,10 +127,6 @@
 - module: github.com/jackofallops/kermit/sdk
   service: iothub
   version: 2022-04-30-preview
-
-- module: github.com/jackofallops/kermit/sdk
-  service: securityinsights
-  version: 2022-10-01-preview
 
 - module: github.com/jackofallops/kermit/sdk
   service: synapse

@@ -60,24 +60,15 @@ func resourceCosmosDbSQLTrigger() *pluginsdk.Resource {
 			},
 
 			"operation": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(openapis.TriggerOperationAll),
-					string(openapis.TriggerOperationCreate),
-					string(openapis.TriggerOperationUpdate),
-					string(openapis.TriggerOperationDelete),
-					string(openapis.TriggerOperationReplace),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(openapis.PossibleValuesForTriggerOperation(), false),
 			},
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(openapis.TriggerTypePre),
-					string(openapis.TriggerTypePost),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(openapis.PossibleValuesForTriggerType(), false),
 			},
 		},
 	}

@@ -11,12 +11,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -639,7 +637,7 @@ func TestAccMsSqlDatabase_threatDetectionPolicy(t *testing.T) {
 				check.That(data.ResourceName).Key("threat_detection_policy.0.state").HasValue("Enabled"),
 				check.That(data.ResourceName).Key("threat_detection_policy.0.retention_days").HasValue("15"),
 				check.That(data.ResourceName).Key("threat_detection_policy.0.disabled_alerts.#").HasValue("1"),
-				check.That(data.ResourceName).Key("threat_detection_policy.0.email_account_admins").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("threat_detection_policy.0.email_account_admins_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
@@ -2164,12 +2162,12 @@ resource "azurerm_mssql_database" "test" {
   sku_name     = "GP_Gen5_2"
 
   threat_detection_policy {
-    retention_days             = 15
-    state                      = "%[3]s"
-    disabled_alerts            = ["Sql_Injection"]
-    email_account_admins       = "Enabled"
-    storage_account_access_key = azurerm_storage_account.test.primary_access_key
-    storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+    retention_days               = 15
+    state                        = "%[3]s"
+    disabled_alerts              = ["Sql_Injection"]
+    email_account_admins_enabled = true
+    storage_account_access_key   = azurerm_storage_account.test.primary_access_key
+    storage_endpoint             = azurerm_storage_account.test.primary_blob_endpoint
   }
 
   tags = {
@@ -2193,10 +2191,10 @@ resource "azurerm_mssql_database" "test" {
   sku_name     = "GP_Gen5_2"
 
   threat_detection_policy {
-    retention_days       = 15
-    state                = "Enabled"
-    disabled_alerts      = ["Sql_Injection"]
-    email_account_admins = "Enabled"
+    retention_days               = 15
+    state                        = "Enabled"
+    disabled_alerts              = ["Sql_Injection"]
+    email_account_admins_enabled = true
   }
 
   tags = {
@@ -2464,58 +2462,6 @@ resource "azurerm_mssql_database" "test" {
 }
 
 func (r MssqlDatabaseResource) bacpac(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%[1]s
-
-resource "azurerm_storage_account" "test" {
-  name                     = "accsa%d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "bacpac"
-  storage_account_id    = azurerm_storage_account.test.id
-  container_access_type = "private"
-}
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "test.bacpac"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source                 = "testdata/sql_import.bacpac"
-}
-
-resource "azurerm_mssql_firewall_rule" "test" {
-  name             = "allowazure"
-  server_id        = azurerm_mssql_server.test.id
-  start_ip_address = "0.0.0.0"
-  end_ip_address   = "0.0.0.0"
-}
-
-resource "azurerm_mssql_database" "test" {
-  name      = "acctest-db-%[2]d"
-  server_id = azurerm_mssql_server.test.id
-
-  import {
-    storage_uri                  = azurerm_storage_blob.test.url
-    storage_key                  = azurerm_storage_account.test.primary_access_key
-    storage_key_type             = "StorageAccessKey"
-    administrator_login          = azurerm_mssql_server.test.administrator_login
-    administrator_login_password = azurerm_mssql_server.test.administrator_login_password
-    authentication_type          = "Sql"
-  }
-
-  timeouts {
-    create = "10h"
-  }
-}
-`, r.template(data), data.RandomInteger)
-	}
 	return fmt.Sprintf(`
 	%[1]s
 

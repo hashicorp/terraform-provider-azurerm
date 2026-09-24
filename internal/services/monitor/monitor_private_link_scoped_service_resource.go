@@ -151,8 +151,7 @@ func resourceMonitorPrivateLinkScopedServiceDelete(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
@@ -165,16 +164,16 @@ func normalizeLinkedResourceId(input *string) *string {
 	}
 
 	if resourceId, err := components.ParseComponentIDInsensitively(*input); err == nil {
-		nomalizedId := resourceId.ID()
-		return &nomalizedId
+		normalizedId := resourceId.ID()
+		return &normalizedId
 	}
 	if resourceId, err := workspaces.ParseWorkspaceIDInsensitively(*input); err == nil {
-		nomalizedId := resourceId.ID()
-		return &nomalizedId
+		normalizedId := resourceId.ID()
+		return &normalizedId
 	}
 	if resourceId, err := datacollectionendpoints.ParseDataCollectionEndpointIDInsensitively(*input); err == nil {
-		nomalizedId := resourceId.ID()
-		return &nomalizedId
+		normalizedId := resourceId.ID()
+		return &normalizedId
 	}
 
 	return input

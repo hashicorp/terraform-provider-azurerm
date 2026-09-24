@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceKustoIotHubDataConnection() *pluginsdk.Resource {
@@ -138,7 +137,7 @@ func resourceKustoIotHubDataConnection() *pluginsdk.Resource {
 			"retrieval_start_date": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 		},
@@ -220,7 +219,7 @@ func resourceKustoIotHubDataConnectionRead(d *pluginsdk.ResourceData, meta inter
 				d.Set("data_format", string(pointer.From(props.DataFormat)))
 				d.Set("database_routing_type", string(pointer.From(props.DatabaseRouting)))
 				d.Set("shared_access_policy_name", props.SharedAccessPolicyName)
-				d.Set("event_system_properties", utils.FlattenStringSlice(props.EventSystemProperties))
+				d.Set("event_system_properties", pluginsdk.FlattenSlice(props.EventSystemProperties))
 				d.Set("retrieval_start_date", pointer.From(props.RetrievalStartDate))
 			}
 		}
@@ -270,8 +269,7 @@ func resourceKustoIotHubDataConnectionUpdate(d *pluginsdk.ResourceData, meta int
 		Properties: props,
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, *id, dataConnection)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, dataConnection); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -288,8 +286,7 @@ func resourceKustoIotHubDataConnectionDelete(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
@@ -312,17 +309,15 @@ func expandKustoIotHubDataConnectionProperties(d *pluginsdk.ResourceData) *datac
 	}
 
 	if df, ok := d.GetOk("data_format"); ok {
-		dataFormat := dataconnections.IotHubDataFormat(df.(string))
-		iotHubDataConnectionProperties.DataFormat = &dataFormat
+		iotHubDataConnectionProperties.DataFormat = pointer.ToEnum[dataconnections.IotHubDataFormat](df.(string))
 	}
 
 	if databaseRouting, ok := d.GetOk("database_routing_type"); ok {
-		dbRoutingType := dataconnections.DatabaseRouting(databaseRouting.(string))
-		iotHubDataConnectionProperties.DatabaseRouting = &dbRoutingType
+		iotHubDataConnectionProperties.DatabaseRouting = pointer.ToEnum[dataconnections.DatabaseRouting](databaseRouting.(string))
 	}
 
 	if eventSystemProperties, ok := d.GetOk("event_system_properties"); ok {
-		iotHubDataConnectionProperties.EventSystemProperties = utils.ExpandStringSlice(eventSystemProperties.(*pluginsdk.Set).List())
+		iotHubDataConnectionProperties.EventSystemProperties = pluginsdk.ExpandStringSlice(eventSystemProperties.(*pluginsdk.Set).List())
 	}
 
 	if retrievalStartDate, ok := d.GetOk("retrieval_start_date"); ok {

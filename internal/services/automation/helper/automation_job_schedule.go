@@ -41,15 +41,13 @@ func ExpandAutomationJobSchedule(input []interface{}, runBookName string) (*map[
 		if v, ok := js["parameters"]; ok {
 			jsParameters := make(map[string]string)
 			for k, v := range v.(map[string]interface{}) {
-				value := v.(string)
-				jsParameters[k] = value
+				jsParameters[k] = v.(string)
 			}
 			jobScheduleCreateParameters.Properties.Parameters = &jsParameters
 		}
 
 		if v, ok := js["run_on"]; ok && v.(string) != "" {
-			value := v.(string)
-			jobScheduleCreateParameters.Properties.RunOn = &value
+			jobScheduleCreateParameters.Properties.RunOn = pointer.To(v.(string))
 		}
 		res[ResourceAutomationJobScheduleDigest(jobScheduleCreateParameters.Properties)] = jobScheduleCreateParameters
 	}

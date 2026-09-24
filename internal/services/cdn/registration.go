@@ -35,7 +35,6 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
-// lintignore:AZNR005
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		// CDN
@@ -62,11 +61,11 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		CdnFrontDoorBatchRuleSetResource{},
+		CdnFrontDoorRuleResource{},
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
-// lintignore:AZNR005
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		// CDN
@@ -83,7 +82,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_cdn_frontdoor_origin_group":              resourceCdnFrontDoorOriginGroup(),
 		"azurerm_cdn_frontdoor_profile":                   resourceCdnFrontDoorProfile(),
 		"azurerm_cdn_frontdoor_route":                     resourceCdnFrontDoorRoute(),
-		"azurerm_cdn_frontdoor_rule":                      resourceCdnFrontDoorRule(),
 		"azurerm_cdn_frontdoor_rule_set":                  resourceCdnFrontDoorRuleSet(),
 		"azurerm_cdn_frontdoor_secret":                    resourceCdnFrontDoorSecret(),
 		"azurerm_cdn_frontdoor_security_policy":           resourceCdnFrontDoorSecurityPolicy(),
@@ -111,5 +109,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
 		CdnFrontDoorBatchRuleSetListResource{},
+		CdnFrontDoorOriginGroupListResource{},
+		CdnFrontDoorOriginListResource{},
 	}
 }

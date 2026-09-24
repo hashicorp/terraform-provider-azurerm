@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
@@ -46,7 +45,7 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 			"role_definition_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
@@ -61,14 +60,11 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 			},
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(openapis.RoleDefinitionTypeCustomRole),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(openapis.RoleDefinitionTypeBuiltInRole),
-					string(openapis.RoleDefinitionTypeCustomRole),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(openapis.RoleDefinitionTypeCustomRole),
+				ValidateFunc: validation.StringInSlice(openapis.PossibleValuesForRoleDefinitionType(), false),
 			},
 
 			"assignable_scopes": {
@@ -140,7 +136,7 @@ func resourceCosmosDbSQLRoleDefinitionCreate(d *pluginsdk.ResourceData, meta int
 	parameters := openapis.SqlRoleDefinitionCreateUpdateParameters{
 		Properties: &openapis.SqlRoleDefinitionResource{
 			RoleName:         pointer.To(d.Get("name").(string)),
-			AssignableScopes: utils.ExpandStringSlice(d.Get("assignable_scopes").(*pluginsdk.Set).List()),
+			AssignableScopes: pluginsdk.ExpandStringSlice(d.Get("assignable_scopes").(*pluginsdk.Set).List()),
 			Permissions:      expandSqlRoleDefinitionPermissions(d.Get("permissions").(*pluginsdk.Set).List()),
 			Type:             pointer.ToEnum[openapis.RoleDefinitionType](d.Get("type").(string)),
 		},
@@ -181,7 +177,7 @@ func resourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta inter
 
 	if resp.Model != nil {
 		if props := resp.Model.Properties; props != nil {
-			d.Set("assignable_scopes", utils.FlattenStringSlice(props.AssignableScopes))
+			d.Set("assignable_scopes", pluginsdk.FlattenSlice(props.AssignableScopes))
 			d.Set("name", props.RoleName)
 			d.Set("type", pointer.FromEnum(props.Type))
 
@@ -226,7 +222,7 @@ func resourceCosmosDbSQLRoleDefinitionUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("assignable_scopes") {
-		parameters.Properties.AssignableScopes = utils.ExpandStringSlice(d.Get("assignable_scopes").(*pluginsdk.Set).List())
+		parameters.Properties.AssignableScopes = pluginsdk.ExpandStringSlice(d.Get("assignable_scopes").(*pluginsdk.Set).List())
 	}
 
 	if d.HasChange("name") {
@@ -272,7 +268,7 @@ func expandSqlRoleDefinitionPermissions(input []interface{}) *[]openapis.Permiss
 		v := item.(map[string]interface{})
 
 		results = append(results, openapis.Permission{
-			DataActions: utils.ExpandStringSlice(v["data_actions"].(*pluginsdk.Set).List()),
+			DataActions: pluginsdk.ExpandStringSlice(v["data_actions"].(*pluginsdk.Set).List()),
 		})
 	}
 
@@ -287,7 +283,7 @@ func flattenSqlRoleDefinitionPermissions(input *[]openapis.Permission) []interfa
 
 	for _, item := range *input {
 		results = append(results, map[string]interface{}{
-			"data_actions": utils.FlattenStringSlice(item.DataActions),
+			"data_actions": pluginsdk.FlattenSlice(item.DataActions),
 		})
 	}
 
