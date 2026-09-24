@@ -787,7 +787,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     pointer.ToEnum[openapis.DatabaseAccountKind](d.Get("kind").(string)),
 		Identity: expandedIdentity,
-		Properties: cosmosdb.DatabaseAccountCreateUpdateProperties{
+		Properties: openapis.DatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:           openapis.DatabaseAccountOfferType(d.Get("offer_type").(string)),
 			IPRules:                            common.CosmosDBIpRangeFilterToIpRules(*pluginsdk.ExpandStringSlice(d.Get("ip_range_filter").(*pluginsdk.Set).List())),
 			IsVirtualNetworkFilterEnabled:      pointer.To(d.Get("is_virtual_network_filter_enabled").(bool)),

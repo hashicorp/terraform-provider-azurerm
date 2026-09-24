@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/sqldedicatedgateway"
@@ -102,7 +101,7 @@ func (r CosmosDbSqlDedicatedGatewayResource) Create() sdk.ResourceFunc {
 
 			parameters := &sqldedicatedgateway.ServiceResourceCreateUpdateParameters{
 				Properties: &sqldedicatedgateway.BaseServiceResourceCreateUpdatePropertiesImpl{
-					ServiceType:   pointer.To(sqldedicatedgateway.ServiceTypeSqlDedicatedGateway),
+					ServiceType:   sqldedicatedgateway.ServiceTypeSqlDedicatedGateway,
 					InstanceCount: &model.InstanceCount,
 					InstanceSize:  &model.InstanceSize,
 				},
@@ -146,7 +145,7 @@ func (r CosmosDbSqlDedicatedGatewayResource) Update() sdk.ResourceFunc {
 
 			parameters := &sqldedicatedgateway.ServiceResourceCreateUpdateParameters{
 				Properties: &sqldedicatedgateway.BaseServiceResourceCreateUpdatePropertiesImpl{
-					ServiceType:   pointer.To(sqldedicatedgateway.ServiceTypeSqlDedicatedGateway),
+					ServiceType:   sqldedicatedgateway.ServiceTypeSqlDedicatedGateway,
 					InstanceCount: &model.InstanceCount,
 					InstanceSize:  &model.InstanceSize,
 				},
