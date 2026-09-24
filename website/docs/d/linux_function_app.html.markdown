@@ -59,6 +59,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `connection_string` -  A `connection_string` blocks as defined below.
 
+* `container_app_environment_id` - The ID of the Container App Environment within which this Function App has been created.
+
+-> **Note:** For Container Apps-hosted Function Apps, this data source reads the Site, SiteConfig and application settings. App Service-only publishing credentials, connection strings, sticky settings, authentication settings, backup and logging configuration are not retrieved; their empty/default outputs do not describe Container Apps configuration.
+
 * `content_share_force_disabled` - Are the settings for linking the Function App to storage suppressed?
 
 * `custom_domain_verification_id` - The identifier used by App Service to perform domain ownership verification via DNS TXT record.
@@ -91,7 +95,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `public_network_access_enabled` - Is Public Network Access enabled for this Linux Function App.
 
-* `service_plan_id` - The ID of the App Service Plan within which this Function App has been created.
+* `service_plan_id` - The ID of the App Service Plan within which this Function App has been created. This will not be set if the Function App is hosted on a Container App Environment - see `container_app_environment_id` instead.
 
 * `site_config` -  A `site_config` block as defined below.
 
