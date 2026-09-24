@@ -34,8 +34,9 @@ type StorageMoverTargetEndpointModel struct {
 type StorageMoverTargetEndpointResource struct{}
 
 var (
-	_ sdk.ResourceWithIdentity = StorageMoverTargetEndpointResource{}
-	_ sdk.ResourceWithUpdate   = StorageMoverTargetEndpointResource{}
+	_ sdk.ResourceWithIdentity       = StorageMoverTargetEndpointResource{}
+	_ sdk.ResourceWithUpdate         = StorageMoverTargetEndpointResource{}
+	_ sdk.ResourceWithCustomImporter = StorageMoverTargetEndpointResource{}
 )
 
 func (r StorageMoverTargetEndpointResource) Identity() resourceids.ResourceId {
@@ -52,6 +53,10 @@ func (r StorageMoverTargetEndpointResource) ModelObject() interface{} {
 
 func (r StorageMoverTargetEndpointResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return endpoints.ValidateEndpointID
+}
+
+func (r StorageMoverTargetEndpointResource) CustomImporter() sdk.ResourceRunFunc {
+	return r.Read().Func
 }
 
 func (r StorageMoverTargetEndpointResource) Arguments() map[string]*pluginsdk.Schema {
@@ -173,8 +178,8 @@ func (r StorageMoverTargetEndpointResource) Update() sdk.ResourceFunc {
 			}
 
 			properties := resp.Model
-			if properties == nil {
-				return fmt.Errorf("retrieving %s: model was nil", *id)
+			if err := r.checkEndpointType(*id, properties); err != nil {
+				return err
 			}
 
 			if metadata.ResourceData.HasChange("description") {
@@ -219,6 +224,10 @@ func (r StorageMoverTargetEndpointResource) Read() sdk.ResourceFunc {
 }
 
 func (r StorageMoverTargetEndpointResource) flatten(metadata sdk.ResourceMetaData, id *endpoints.EndpointId, model *endpoints.Endpoint) error {
+	if err := r.checkEndpointType(*id, model); err != nil {
+		return err
+	}
+
 	state := StorageMoverTargetEndpointModel{
 		Name:           id.EndpointName,
 		StorageMoverId: storagemovers.NewStorageMoverID(id.SubscriptionId, id.ResourceGroupName, id.StorageMoverName).ID(),
@@ -251,6 +260,17 @@ func (r StorageMoverTargetEndpointResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(existing.HttpResponse) {
+					return nil
+				}
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+			if err := r.checkEndpointType(*id, existing.Model); err != nil {
+				return err
+			}
+
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
@@ -258,4 +278,14 @@ func (r StorageMoverTargetEndpointResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func (r StorageMoverTargetEndpointResource) checkEndpointType(id endpoints.EndpointId, model *endpoints.Endpoint) error {
+	if model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if _, ok := model.Properties.(endpoints.AzureStorageBlobContainerEndpointProperties); !ok {
+		return fmt.Errorf("retrieving %s: expected a Blob Container endpoint, got %T", id, model.Properties)
+	}
+	return nil
 }
