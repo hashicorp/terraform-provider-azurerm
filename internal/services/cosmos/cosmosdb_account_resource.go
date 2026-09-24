@@ -11,6 +11,7 @@ import (
 	"math"
 	"net/http"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -24,7 +25,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/restorables"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -215,27 +215,22 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 
 			// resource fields
 			"offer_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cosmosdb.DatabaseAccountOfferTypeStandard),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForDatabaseAccountOfferType(), false),
 			},
 
 			"analytical_storage": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"schema_type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cosmosdb.AnalyticalStorageSchemaTypeWellDefined),
-								string(cosmosdb.AnalyticalStorageSchemaTypeFullFidelity),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForAnalyticalStorageSchemaType(), false),
 						},
 					},
 				},
@@ -244,7 +239,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"capacity": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -268,18 +263,15 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"create_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cosmosdb.CreateModeDefault),
-					string(cosmosdb.CreateModeRestore),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForCreateMode(), false),
 			},
 
 			// Per Documentation: "The default identity needs to be explicitly set by the users." This should not be optional without a default anymore.
-			// DOC: https://learn.microsoft.com/en-us/java/api/com.azure.resourcemanager.cosmos.models.databaseaccountupdateparameters?view=azure-java-stable#method-details
+			// DOC: https://learn.microsoft.com/java/api/com.azure.resourcemanager.cosmos.models.databaseaccountupdateparameters?view=azure-java-stable#method-details
 			"default_identity_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -294,15 +286,11 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"kind": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(cosmosdb.DatabaseAccountKindGlobalDocumentDB),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cosmosdb.DatabaseAccountKindGlobalDocumentDB),
-					string(cosmosdb.DatabaseAccountKindMongoDB),
-					string(cosmosdb.DatabaseAccountKindParse),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(cosmosdb.DatabaseAccountKindGlobalDocumentDB),
+				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForDatabaseAccountKind(), false),
 			},
 
 			"ip_range_filter": {
@@ -353,15 +341,9 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"consistency_level": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cosmosdb.DefaultConsistencyLevelBoundedStaleness),
-								string(cosmosdb.DefaultConsistencyLevelConsistentPrefix),
-								string(cosmosdb.DefaultConsistencyLevelEventual),
-								string(cosmosdb.DefaultConsistencyLevelSession),
-								string(cosmosdb.DefaultConsistencyLevelStrong),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForDefaultConsistencyLevel(), false),
 						},
 
 						// This value can only change if the 'consistency_level' is set to 'BoundedStaleness'
@@ -416,7 +398,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"capabilities": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -491,7 +473,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"mongo_server_version": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForServerVersion(), false),
 			},
 
@@ -530,50 +512,43 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"backup": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cosmosdb.BackupPolicyTypeContinuous),
-								string(cosmosdb.BackupPolicyTypePeriodic),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForBackupPolicyType(), false),
 						},
 
 						// Though `tier` has the default value `Continuous30Days` but `tier` is only for the backup type `Continuous`. So the default value isn't added in the property schema.
 						"tier": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForContinuousTier(), false),
 						},
 
 						"interval_in_minutes": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.IntBetween(60, 1440),
 						},
 
 						"retention_in_hours": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.IntBetween(8, 720),
 						},
 
 						"storage_redundancy": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cosmosdb.BackupStorageRedundancyGeo),
-								string(cosmosdb.BackupStorageRedundancyLocal),
-								string(cosmosdb.BackupStorageRedundancyZone),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
+							ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForBackupStorageRedundancy(), false),
 						},
 					},
 				},
@@ -815,7 +790,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Identity: expandedIdentity,
 		Properties: cosmosdb.DatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:           cosmosdb.DatabaseAccountOfferType(d.Get("offer_type").(string)),
-			IPRules:                            common.CosmosDBIpRangeFilterToIpRules(*helpers.ExpandStringSlice(d.Get("ip_range_filter").(*pluginsdk.Set).List())),
+			IPRules:                            common.CosmosDBIpRangeFilterToIpRules(*pluginsdk.ExpandStringSlice(d.Get("ip_range_filter").(*pluginsdk.Set).List())),
 			IsVirtualNetworkFilterEnabled:      pointer.To(d.Get("is_virtual_network_filter_enabled").(bool)),
 			EnableFreeTier:                     pointer.To(d.Get("free_tier_enabled").(bool)),
 			EnableAutomaticFailover:            pointer.To(d.Get("automatic_failover_enabled").(bool)),
@@ -832,7 +807,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			Cors:                               common.ExpandCosmosCorsRule(d.Get("cors_rule").([]interface{})),
 			DisableKeyBasedMetadataWriteAccess: pointer.To(!d.Get("access_key_metadata_writes_enabled").(bool)),
 			NetworkAclBypass:                   expandCosmosdbAccountNetworkBypass(d.Get("network_acl_bypass_for_azure_services").(bool)),
-			NetworkAclBypassResourceIds:        helpers.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
+			NetworkAclBypassResourceIds:        pluginsdk.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
 			DisableLocalAuth:                   pointer.To(!d.Get("local_authentication_enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -1029,7 +1004,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Kind:     pointer.ToEnum[cosmosdb.DatabaseAccountKind](d.Get("kind").(string)),
 		Properties: cosmosdb.DatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:           cosmosdb.DatabaseAccountOfferType(d.Get("offer_type").(string)),
-			IPRules:                            common.CosmosDBIpRangeFilterToIpRules(*helpers.ExpandStringSlice(d.Get("ip_range_filter").(*pluginsdk.Set).List())),
+			IPRules:                            common.CosmosDBIpRangeFilterToIpRules(*pluginsdk.ExpandStringSlice(d.Get("ip_range_filter").(*pluginsdk.Set).List())),
 			IsVirtualNetworkFilterEnabled:      pointer.To(d.Get("is_virtual_network_filter_enabled").(bool)),
 			EnableFreeTier:                     existing.Model.Properties.EnableFreeTier,
 			EnableAutomaticFailover:            pointer.To(d.Get("automatic_failover_enabled").(bool)),
@@ -1045,7 +1020,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			Cors:                               common.ExpandCosmosCorsRule(d.Get("cors_rule").([]interface{})),
 			DisableKeyBasedMetadataWriteAccess: pointer.To(!d.Get("access_key_metadata_writes_enabled").(bool)),
 			NetworkAclBypass:                   expandCosmosdbAccountNetworkBypass(d.Get("network_acl_bypass_for_azure_services").(bool)),
-			NetworkAclBypassResourceIds:        helpers.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
+			NetworkAclBypassResourceIds:        pluginsdk.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
 			DisableLocalAuth:                   pointer.To(!d.Get("local_authentication_enabled").(bool)),
 			BackupPolicy:                       backup,
 			EnablePartitionMerge:               pointer.To(d.Get("partition_merge_enabled").(bool)),
@@ -1337,7 +1312,7 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 
 			d.Set("network_acl_bypass_for_azure_services", pointer.From(props.NetworkAclBypass) == cosmosdb.NetworkAclBypassAzureServices)
-			d.Set("network_acl_bypass_ids", helpers.FlattenStringSlice(props.NetworkAclBypassResourceIds))
+			d.Set("network_acl_bypass_ids", pluginsdk.FlattenSlice(props.NetworkAclBypassResourceIds))
 			d.Set("local_authentication_enabled", !pointer.From(props.DisableLocalAuth))
 
 			policy, err := flattenCosmosdbAccountBackup(props.BackupPolicy)
@@ -1609,7 +1584,7 @@ func expandAzureRmCosmosDBAccountGeoLocations(d *pluginsdk.ResourceData) ([]cosm
 		name := *location.LocationName
 
 		if _, ok := byPriorities[priority]; ok {
-			return nil, fmt.Errorf("each `geo_location` needs to have a unique failover_prioroty. Multiple instances of '%d' found", priority)
+			return nil, fmt.Errorf("each `geo_location` needs to have a unique failover_priority. Multiple instances of '%d' found", priority)
 		}
 
 		if _, ok := byName[name]; ok {
@@ -1964,7 +1939,7 @@ func expandCosmosdbAccountRestoreParameters(input []interface{}) *cosmosdb.Resto
 	restoreParameters.SetRestoreTimestampInUtcAsTime(restoreTimestampInUtc)
 
 	if tablesToRestore := v["tables_to_restore"].([]interface{}); len(tablesToRestore) > 0 {
-		restoreParameters.TablesToRestore = helpers.ExpandStringSlice(tablesToRestore)
+		restoreParameters.TablesToRestore = pluginsdk.ExpandStringSlice(tablesToRestore)
 	}
 
 	return &restoreParameters
@@ -1978,7 +1953,7 @@ func expandCosmosdbAccountDatabasesToRestore(input []interface{}) *[]cosmosdb.Da
 
 		results = append(results, cosmosdb.DatabaseRestoreResource{
 			DatabaseName:    pointer.To(v["name"].(string)),
-			CollectionNames: helpers.ExpandStringSlice(v["collection_names"].(*pluginsdk.Set).List()),
+			CollectionNames: pluginsdk.ExpandStringSlice(v["collection_names"].(*pluginsdk.Set).List()),
 		})
 	}
 	return &results
@@ -1992,7 +1967,7 @@ func expandCosmosdbAccountGremlinDatabasesToRestore(input []interface{}) *[]cosm
 
 		results = append(results, cosmosdb.GremlinDatabaseRestoreResource{
 			DatabaseName: pointer.To(v["name"].(string)),
-			GraphNames:   helpers.ExpandStringSlice(v["graph_names"].([]interface{})),
+			GraphNames:   pluginsdk.ExpandStringSlice(v["graph_names"].([]interface{})),
 		})
 	}
 
@@ -2031,7 +2006,7 @@ func flattenCosmosdbAccountDatabasesToRestore(input *[]cosmosdb.DatabaseRestoreR
 		databaseName := pointer.From(item.DatabaseName)
 
 		results = append(results, map[string]interface{}{
-			"collection_names": helpers.FlattenStringSlice(item.CollectionNames),
+			"collection_names": pluginsdk.FlattenSlice(item.CollectionNames),
 			"name":             databaseName,
 		})
 	}
@@ -2046,7 +2021,7 @@ func flattenCosmosdbAccountGremlinDatabasesToRestore(input *[]cosmosdb.GremlinDa
 
 	for _, item := range *input {
 		results = append(results, map[string]interface{}{
-			"graph_names": helpers.FlattenStringSlice(item.GraphNames),
+			"graph_names": pluginsdk.FlattenSlice(item.GraphNames),
 			"name":        pointer.From(item.DatabaseName),
 		})
 	}
@@ -2131,12 +2106,12 @@ func checkCapabilitiesCanBeUpdated(kind string, oldCapabilities *[]cosmosdb.Capa
 		}
 
 		// first check if this is supported
-		if isSupported := helpers.SliceContainsValue(supportedKindsForCapability.([]string), strings.ToLower(kind)); !isSupported {
+		if isSupported := slices.Contains(supportedKindsForCapability.([]string), strings.ToLower(kind)); !isSupported {
 			return false
 		}
 
 		// then check if it can be added via an update
-		if !helpers.SliceContainsValue(canBeAddedCaps, strings.ToLower(*capability.Name)) {
+		if !slices.Contains(canBeAddedCaps, strings.ToLower(*capability.Name)) {
 			return false
 		}
 	}
@@ -2153,7 +2128,7 @@ func checkCapabilitiesCanBeUpdated(kind string, oldCapabilities *[]cosmosdb.Capa
 			continue
 		}
 
-		if !helpers.SliceContainsValue(canBeRemovedCaps, strings.ToLower(*capability.Name)) {
+		if !slices.Contains(canBeRemovedCaps, strings.ToLower(*capability.Name)) {
 			return false
 		}
 	}

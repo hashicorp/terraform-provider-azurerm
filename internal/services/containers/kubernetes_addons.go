@@ -9,11 +9,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/applicationgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
-	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -122,6 +121,11 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
+					"retina_flow_logs_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
 					"oms_agent_identity": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
@@ -182,7 +186,7 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 							"ingress_application_gateway.0.subnet_cidr",
 							"ingress_application_gateway.0.subnet_id",
 						},
-						ValidateFunc: commonValidate.CIDR,
+						ValidateFunc: validation.IsCIDRIPv4,
 					},
 					"subnet_id": {
 						Type:     pluginsdk.TypeString,
@@ -281,9 +285,7 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 }
 
 func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interface{}, env environments.Environment) (*map[string]managedclusters.ManagedClusterAddonProfile, error) {
-	disabled := managedclusters.ManagedClusterAddonProfile{
-		Enabled: false,
-	}
+	disabled := managedclusters.ManagedClusterAddonProfile{}
 
 	addonProfiles := map[string]managedclusters.ManagedClusterAddonProfile{}
 
@@ -325,6 +327,10 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 
 		if useAADAuth, ok := value["msi_auth_for_monitoring_enabled"].(bool); ok {
 			config["useAADAuth"] = fmt.Sprintf("%t", useAADAuth)
+		}
+
+		if retinaFlowLogsEnabled, ok := value["retina_flow_logs_enabled"].(bool); ok {
+			config["enableRetinaNetworkFlags"] = fmt.Sprintf("%t", retinaFlowLogsEnabled)
 		}
 
 		addonProfiles[omsAgentKey] = managedclusters.ManagedClusterAddonProfile{
@@ -393,7 +399,6 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 	if ok := d.HasChange("open_service_mesh_enabled"); ok {
 		addonProfiles[openServiceMeshKey] = managedclusters.ManagedClusterAddonProfile{
 			Enabled: input["open_service_mesh_enabled"].(bool),
-			Config:  nil,
 		}
 	}
 
@@ -496,6 +501,7 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 	if enabled := omsAgent.Enabled; enabled {
 		workspaceID := ""
 		useAADAuth := false
+		retinaFlowLogsEnabled := false
 
 		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != "" {
 			if lawid, err := workspaces.ParseWorkspaceIDInsensitively(v); err == nil {
@@ -507,11 +513,16 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 			useAADAuth = true
 		}
 
+		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "enableRetinaNetworkFlags"); v == "true" {
+			retinaFlowLogsEnabled = true
+		}
+
 		omsAgentIdentity := flattenKubernetesClusterAddOnIdentityProfile(omsAgent.Identity)
 
 		omsAgents = append(omsAgents, map[string]interface{}{
 			"log_analytics_workspace_id":      workspaceID,
 			"msi_auth_for_monitoring_enabled": useAADAuth,
+			"retina_flow_logs_enabled":        retinaFlowLogsEnabled,
 			"oms_agent_identity":              omsAgentIdentity,
 		})
 	}

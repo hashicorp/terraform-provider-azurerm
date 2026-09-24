@@ -6,7 +6,6 @@ package monitor
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -28,7 +27,7 @@ func expandMonitorScheduledQueryRulesCommonSource(d *pluginsdk.ResourceData) sch
 	dataSourceID := d.Get("data_source_id").(string)
 
 	source := scheduledqueryrules.Source{
-		AuthorizedResources: helpers.ExpandStringSlice(authorizedResourceIDs),
+		AuthorizedResources: pluginsdk.ExpandStringSlice(authorizedResourceIDs),
 		DataSourceId:        dataSourceID,
 	}
 

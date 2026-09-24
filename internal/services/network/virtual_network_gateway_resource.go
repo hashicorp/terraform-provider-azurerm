@@ -16,9 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/localnetworkgateways"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgateways"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/localnetworkgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -73,14 +72,11 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 			},
 
 			"vpn_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(virtualnetworkgateways.VpnTypeRouteBased),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualnetworkgateways.VpnTypeRouteBased),
-					string(virtualnetworkgateways.VpnTypePolicyBased),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(virtualnetworkgateways.VpnTypeRouteBased),
+				ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForVpnType(), false),
 			},
 
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
@@ -100,7 +96,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 			"active_active": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"sku": {
@@ -119,15 +115,11 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 			},
 
 			"generation": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualnetworkgateways.VpnGatewayGenerationGenerationOne),
-					string(virtualnetworkgateways.VpnGatewayGenerationGenerationTwo),
-					string(virtualnetworkgateways.VpnGatewayGenerationNone),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForVpnGatewayGeneration(), false),
 			},
 
 			"ip_configuration": {
@@ -148,13 +140,10 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 						},
 
 						"private_ip_address_allocation": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(virtualnetworkgateways.IPAllocationMethodStatic),
-								string(virtualnetworkgateways.IPAllocationMethodDynamic),
-							}, false),
-							Default: string(virtualnetworkgateways.IPAllocationMethodDynamic),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForIPAllocationMethod(), false),
+							Default:      string(virtualnetworkgateways.IPAllocationMethodDynamic),
 						},
 
 						"subnet_id": {
@@ -196,13 +185,9 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 									},
 
 									"type": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(virtualnetworkgateways.VpnPolicyMemberAttributeTypeAADGroupId),
-											string(virtualnetworkgateways.VpnPolicyMemberAttributeTypeCertificateGroupId),
-											string(virtualnetworkgateways.VpnPolicyMemberAttributeTypeRadiusAzureGroupId),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForVpnPolicyMemberAttributeType(), false),
 									},
 
 									"value": {
@@ -308,90 +293,39 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"dh_group": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(virtualnetworkgateways.DhGroupDHGroupOne),
-											string(virtualnetworkgateways.DhGroupDHGroupOneFour),
-											string(virtualnetworkgateways.DhGroupDHGroupTwo),
-											string(virtualnetworkgateways.DhGroupDHGroupTwoZeroFourEight),
-											string(virtualnetworkgateways.DhGroupDHGroupTwoFour),
-											string(virtualnetworkgateways.DhGroupECPTwoFiveSix),
-											string(virtualnetworkgateways.DhGroupECPThreeEightFour),
-											string(virtualnetworkgateways.DhGroupNone),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForDhGroup(), false),
 									},
 
 									"ike_encryption": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(virtualnetworkgateways.IkeEncryptionAESOneTwoEight),
-											string(virtualnetworkgateways.IkeEncryptionAESOneNineTwo),
-											string(virtualnetworkgateways.IkeEncryptionAESTwoFiveSix),
-											string(virtualnetworkgateways.IkeEncryptionDES),
-											string(virtualnetworkgateways.IkeEncryptionDESThree),
-											string(virtualnetworkgateways.IkeEncryptionGCMAESOneTwoEight),
-											string(virtualnetworkgateways.IkeEncryptionGCMAESTwoFiveSix),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForIkeEncryption(), false),
 									},
 
 									"ike_integrity": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(virtualnetworkgateways.IkeIntegrityGCMAESOneTwoEight),
-											string(virtualnetworkgateways.IkeIntegrityGCMAESTwoFiveSix),
-											string(virtualnetworkgateways.IkeIntegrityMDFive),
-											string(virtualnetworkgateways.IkeIntegritySHAOne),
-											string(virtualnetworkgateways.IkeIntegritySHATwoFiveSix),
-											string(virtualnetworkgateways.IkeIntegritySHAThreeEightFour),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForIkeIntegrity(), false),
 									},
 
 									"ipsec_encryption": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(virtualnetworkgateways.IPsecEncryptionAESOneTwoEight),
-											string(virtualnetworkgateways.IPsecEncryptionAESOneNineTwo),
-											string(virtualnetworkgateways.IPsecEncryptionAESTwoFiveSix),
-											string(virtualnetworkgateways.IPsecEncryptionDES),
-											string(virtualnetworkgateways.IPsecEncryptionDESThree),
-											string(virtualnetworkgateways.IPsecEncryptionGCMAESOneTwoEight),
-											string(virtualnetworkgateways.IPsecEncryptionGCMAESOneNineTwo),
-											string(virtualnetworkgateways.IPsecEncryptionGCMAESTwoFiveSix),
-											string(virtualnetworkgateways.IPsecEncryptionNone),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForIPsecEncryption(), false),
 									},
 
 									"ipsec_integrity": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(virtualnetworkgateways.IPsecIntegrityGCMAESOneTwoEight),
-											string(virtualnetworkgateways.IPsecIntegrityGCMAESOneNineTwo),
-											string(virtualnetworkgateways.IPsecIntegrityGCMAESTwoFiveSix),
-											string(virtualnetworkgateways.IPsecIntegrityMDFive),
-											string(virtualnetworkgateways.IPsecIntegritySHAOne),
-											string(virtualnetworkgateways.IPsecIntegritySHATwoFiveSix),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForIPsecIntegrity(), false),
 									},
 
 									"pfs_group": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(virtualnetworkgateways.PfsGroupECPTwoFiveSix),
-											string(virtualnetworkgateways.PfsGroupECPThreeEightFour),
-											string(virtualnetworkgateways.PfsGroupNone),
-											string(virtualnetworkgateways.PfsGroupPFSOne),
-											string(virtualnetworkgateways.PfsGroupPFSOneFour),
-											string(virtualnetworkgateways.PfsGroupPFSTwo),
-											string(virtualnetworkgateways.PfsGroupPFSTwoZeroFourEight),
-											string(virtualnetworkgateways.PfsGroupPFSTwoFour),
-											string(virtualnetworkgateways.PfsGroupPFSMM),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForPfsGroup(), false),
 									},
 
 									"sa_lifetime_in_seconds": {
@@ -494,29 +428,21 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 						"vpn_auth_types": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 3,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(virtualnetworkgateways.VpnAuthenticationTypeCertificate),
-									string(virtualnetworkgateways.VpnAuthenticationTypeAAD),
-									string(virtualnetworkgateways.VpnAuthenticationTypeRadius),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForVpnAuthenticationType(), false),
 							},
 						},
 
 						"vpn_client_protocols": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(virtualnetworkgateways.VpnClientProtocolIkeVTwo),
-									string(virtualnetworkgateways.VpnClientProtocolOpenVPN),
-									string(virtualnetworkgateways.VpnClientProtocolSSTP),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(virtualnetworkgateways.PossibleValuesForVpnClientProtocol(), false),
 							},
 						},
 					},
@@ -526,7 +452,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 			"bgp_settings": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -551,16 +477,16 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 						// lintignore:XS003
 						"peering_addresses": {
 							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							Optional: true,
 							MinItems: 1,
 							MaxItems: 2,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"ip_configuration_name": {
-										Type: pluginsdk.TypeString,
-										// In case there is only one `ip_configuration` in root level. This property can be deduced from the that.
-										Optional:     true,
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										// Note: O+C In case there is only one `ip_configuration` in root level. This property can be deduced from the that.
 										Computed:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
@@ -642,7 +568,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 			"maximum_scale_unit": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.IntBetween(1, 40),
 				RequiredWith: []string{"maximum_scale_unit", "minimum_scale_unit"},
 			},
@@ -650,7 +576,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 			"minimum_scale_unit": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.IntBetween(1, 40),
 				RequiredWith: []string{"maximum_scale_unit", "minimum_scale_unit"},
 			},
@@ -1149,7 +1075,7 @@ func expandVirtualNetworkGatewayBgpPeeringAddresses(id virtualnetworkgateways.Vi
 		ipConfigId := parse.NewVirtualNetworkGatewayIpConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkGatewayName, ipConfigName)
 		result = append(result, virtualnetworkgateways.IPConfigurationBgpPeeringAddress{
 			IPconfigurationId:    pointer.To(ipConfigId.ID()),
-			CustomBgpIPAddresses: helpers.ExpandStringSlice(b["apipa_addresses"].([]interface{})),
+			CustomBgpIPAddresses: pluginsdk.ExpandStringSlice(b["apipa_addresses"].([]interface{})),
 		})
 	}
 
@@ -1162,8 +1088,6 @@ func expandVirtualNetworkGatewayIPConfigurations(d *pluginsdk.ResourceData) *[]v
 
 	for _, c := range configs {
 		conf := c.(map[string]interface{})
-
-		name := conf["name"].(string)
 
 		props := &virtualnetworkgateways.VirtualNetworkGatewayIPConfigurationPropertiesFormat{
 			PrivateIPAllocationMethod: pointer.ToEnum[virtualnetworkgateways.IPAllocationMethod](conf["private_ip_address_allocation"].(string)),
@@ -1182,7 +1106,7 @@ func expandVirtualNetworkGatewayIPConfigurations(d *pluginsdk.ResourceData) *[]v
 		}
 
 		ipConfig := virtualnetworkgateways.VirtualNetworkGatewayIPConfiguration{
-			Name:       &name,
+			Name:       pointer.To(conf["name"].(string)),
 			Properties: props,
 		}
 
@@ -1281,7 +1205,7 @@ func expandVirtualNetworkGatewayAddressSpace(input []interface{}) *virtualnetwor
 	}
 	v := input[0].(map[string]interface{})
 	return &virtualnetworkgateways.AddressSpace{
-		AddressPrefixes: helpers.ExpandStringSlice(v["address_prefixes"].(*pluginsdk.Set).List()),
+		AddressPrefixes: pluginsdk.ExpandStringSlice(v["address_prefixes"].(*pluginsdk.Set).List()),
 	}
 }
 
@@ -1466,9 +1390,9 @@ func flattenVirtualNetworkGatewayBgpPeeringAddresses(input *[]virtualnetworkgate
 
 		output = append(output, map[string]interface{}{
 			"ip_configuration_name": ipConfigName,
-			"apipa_addresses":       helpers.FlattenStringSlice(e.CustomBgpIPAddresses),
-			"default_addresses":     helpers.FlattenStringSlice(e.DefaultBgpIPAddresses),
-			"tunnel_ip_addresses":   helpers.FlattenStringSlice(e.TunnelIPAddresses),
+			"apipa_addresses":       pluginsdk.FlattenSlice(e.CustomBgpIPAddresses),
+			"default_addresses":     pluginsdk.FlattenSlice(e.DefaultBgpIPAddresses),
+			"tunnel_ip_addresses":   pluginsdk.FlattenSlice(e.TunnelIPAddresses),
 		})
 	}
 
@@ -1526,7 +1450,7 @@ func flattenVirtualNetworkGatewayVpnClientConfig(cfg *virtualnetworkgateways.Vpn
 	flat["virtual_network_gateway_client_connection"] = connection
 
 	if pool := cfg.VpnClientAddressPool; pool != nil {
-		flat["address_space"] = helpers.FlattenStringSlice(pool.AddressPrefixes)
+		flat["address_space"] = pluginsdk.FlattenSlice(pool.AddressPrefixes)
 	} else {
 		flat["address_space"] = []interface{}{}
 	}
@@ -1666,7 +1590,7 @@ func flattenVirtualNetworkGatewayAddressSpace(input *virtualnetworkgateways.Addr
 
 	return []interface{}{
 		map[string]interface{}{
-			"address_prefixes": helpers.FlattenStringSlice(input.AddressPrefixes),
+			"address_prefixes": pluginsdk.FlattenSlice(input.AddressPrefixes),
 		},
 	}
 }

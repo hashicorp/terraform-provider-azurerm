@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstancelongtermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	miParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
@@ -63,7 +62,7 @@ func (r MsSqlManagedDatabaseResource) ModelObject() interface{} {
 }
 
 func (r MsSqlManagedDatabaseResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ManagedDatabaseID
+	return commonids.ValidateSqlManagedInstanceDatabaseID
 }
 
 func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
@@ -84,13 +83,13 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ManagedInstanceID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlManagedInstanceIDInsensitively),
 		},
 
 		"long_term_retention_policy": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -99,7 +98,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "PT0S",
-						ValidateFunc: helperValidate.ISO8601Duration,
+						ValidateFunc: validation.ISO8601Duration,
 						AtLeastOneOf: atLeastOneOf,
 					},
 
@@ -108,7 +107,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "PT0S",
-						ValidateFunc: helperValidate.ISO8601Duration,
+						ValidateFunc: validation.ISO8601Duration,
 						AtLeastOneOf: atLeastOneOf,
 					},
 
@@ -117,7 +116,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "PT0S",
-						ValidateFunc: helperValidate.ISO8601Duration,
+						ValidateFunc: validation.ISO8601Duration,
 						AtLeastOneOf: atLeastOneOf,
 					},
 
@@ -125,7 +124,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 					"week_of_year": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.IntBetween(0, 52),
 						AtLeastOneOf: atLeastOneOf,
 					},
@@ -158,7 +157,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         schema.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.Any(validate.ManagedDatabaseID, validate.RestorableDatabaseID),
+						ValidateFunc: validation.Any(validation.AsGeneratedID(commonids.ParseSqlManagedInstanceDatabaseIDInsensitively), validate.RestorableDatabaseID),
 					},
 				},
 			},

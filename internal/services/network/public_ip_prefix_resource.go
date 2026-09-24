@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/customipprefixes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/customipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -92,14 +92,11 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 			},
 
 			"ip_version": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(publicipprefixes.IPVersionIPvFour),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(publicipprefixes.IPVersionIPvFour),
-					string(publicipprefixes.IPVersionIPvSix),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(publicipprefixes.IPVersionIPvFour),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(publicipprefixes.PossibleValuesForIPVersion(), false),
 			},
 
 			"zones": commonschema.ZonesMultipleOptionalForceNew(),

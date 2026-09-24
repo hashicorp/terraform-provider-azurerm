@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/localnetworkgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/localnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -60,12 +60,12 @@ func dataSourceLocalNetworkGateway() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"asn": {
 							Type:     pluginsdk.TypeInt,
-							Required: true,
+							Computed: true,
 						},
 
 						"bgp_peering_address": {
 							Type:     pluginsdk.TypeString,
-							Required: true,
+							Computed: true,
 						},
 
 						"peer_weight": {
@@ -113,8 +113,7 @@ func dataSourceLocalNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 		if lnas := props.LocalNetworkAddressSpace; lnas != nil {
 			d.Set("address_space", lnas.AddressPrefixes)
 		}
-		flattenedSettings := flattenLocalNetworkGatewayDataSourceBGPSettings(props.BgpSettings)
-		if err := d.Set("bgp_settings", flattenedSettings); err != nil {
+		if err := d.Set("bgp_settings", flattenLocalNetworkGatewayDataSourceBGPSettings(props.BgpSettings)); err != nil {
 			return err
 		}
 

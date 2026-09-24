@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/connectedregistries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/tokens"
-	tfvalidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
@@ -88,13 +87,13 @@ func (r ContainerConnectedRegistryResource) Arguments() map[string]*pluginsdk.Sc
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "P1D",
-			ValidateFunc: tfvalidate.ISO8601DurationBetween("P1D", "P90D"),
+			ValidateFunc: validation.ISO8601DurationBetween("P1D", "P90D"),
 		},
 
 		"sync_window": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: tfvalidate.ISO8601DurationBetween("PT3H", "P7D"),
+			ValidateFunc: validation.ISO8601DurationBetween("PT3H", "P7D"),
 		},
 
 		"mode": {
@@ -103,12 +102,7 @@ func (r ContainerConnectedRegistryResource) Arguments() map[string]*pluginsdk.Sc
 			ForceNew: true,
 			Default:  string(connectedregistries.ConnectedRegistryModeReadWrite),
 			ValidateFunc: validation.StringInSlice(
-				[]string{
-					string(connectedregistries.ConnectedRegistryModeMirror),
-					string(connectedregistries.ConnectedRegistryModeReadOnly),
-					string(connectedregistries.ConnectedRegistryModeReadWrite),
-					string(connectedregistries.ConnectedRegistryModeRegistry),
-				},
+				connectedregistries.PossibleValuesForConnectedRegistryMode(),
 				false,
 			),
 		},
@@ -160,13 +154,7 @@ func (r ContainerConnectedRegistryResource) Arguments() map[string]*pluginsdk.Sc
 			Optional: true,
 			Default:  connectedregistries.LogLevelNone,
 			ValidateFunc: validation.StringInSlice(
-				[]string{
-					string(connectedregistries.LogLevelNone),
-					string(connectedregistries.LogLevelDebug),
-					string(connectedregistries.LogLevelInformation),
-					string(connectedregistries.LogLevelWarning),
-					string(connectedregistries.LogLevelError),
-				},
+				connectedregistries.PossibleValuesForLogLevel(),
 				false,
 			),
 		},

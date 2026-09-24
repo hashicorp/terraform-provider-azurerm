@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
@@ -102,7 +101,7 @@ func resourceArmIotHubEnrichmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	iothub, err := client.Get(ctx, resourceGroup, iothubName)
 	if err != nil {
-		if utils.ResponseWasNotFound(iothub.Response) {
+		if response.WasNotFound(iothub.Response.Response) {
 			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iothubName, resourceGroup)
 		}
 
@@ -116,7 +115,7 @@ func resourceArmIotHubEnrichmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 	enrichment := devices.EnrichmentProperties{
 		Key:           &enrichmentKey,
 		Value:         &enrichmentValue,
-		EndpointNames: helpers.ExpandStringSlice(endpointNamesRaw),
+		EndpointNames: pluginsdk.ExpandStringSlice(endpointNamesRaw),
 	}
 
 	routing := iothub.Properties.Routing
@@ -182,7 +181,7 @@ func resourceArmIotHubEnrichmentRead(d *pluginsdk.ResourceData, meta interface{}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[DEBUG] IoTHub %q was not found in Resource Group %q (so Enrichment cannot exist) - removing from state", id.IotHubName, id.ResourceGroup)
 			d.SetId("")
 			return nil
@@ -232,7 +231,7 @@ func resourceArmIotHubEnrichmentDelete(d *pluginsdk.ResourceData, meta interface
 
 	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
-		if utils.ResponseWasNotFound(iothub.Response) {
+		if response.WasNotFound(iothub.Response.Response) {
 			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", id.IotHubName, id.ResourceGroup)
 		}
 		return fmt.Errorf("retrieving IotHub %q (Resource Group %q): %+v", id.IotHubName, id.ResourceGroup, err)

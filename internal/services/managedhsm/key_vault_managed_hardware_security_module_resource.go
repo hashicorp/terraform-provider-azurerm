@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/deletedmanagedhsms"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -121,25 +120,19 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 			"network_acls": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"default_action": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(managedhsms.NetworkRuleActionAllow),
-								string(managedhsms.NetworkRuleActionDeny),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(managedhsms.PossibleValuesForNetworkRuleAction(), false),
 						},
 						"bypass": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(managedhsms.NetworkRuleBypassOptionsNone),
-								string(managedhsms.NetworkRuleBypassOptionsAzureServices),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(managedhsms.PossibleValuesForNetworkRuleBypassOptions(), false),
 						},
 					},
 				},
@@ -203,7 +196,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 	hsm := managedhsms.ManagedHsm{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &managedhsms.ManagedHsmProperties{
-			InitialAdminObjectIds:     helpers.ExpandStringSlice(d.Get("admin_object_ids").(*pluginsdk.Set).List()),
+			InitialAdminObjectIds:     pluginsdk.ExpandStringSlice(d.Get("admin_object_ids").(*pluginsdk.Set).List()),
 			CreateMode:                pointer.To(managedhsms.CreateModeDefault),
 			EnableSoftDelete:          pointer.To(true),
 			SoftDeleteRetentionInDays: pointer.To(int64(d.Get("soft_delete_retention_days").(int))),
@@ -347,7 +340,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceD
 
 		if props := model.Properties; props != nil {
 			d.Set("tenant_id", pointer.From(props.TenantId))
-			d.Set("admin_object_ids", helpers.FlattenStringSlice(props.InitialAdminObjectIds))
+			d.Set("admin_object_ids", pluginsdk.FlattenSlice(props.InitialAdminObjectIds))
 			d.Set("hsm_uri", props.HsmUri)
 			d.Set("soft_delete_retention_days", props.SoftDeleteRetentionInDays)
 			d.Set("purge_protection_enabled", props.EnablePurgeProtection)

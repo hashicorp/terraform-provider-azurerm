@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/securityrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/securityrules"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -67,16 +67,9 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 			},
 
 			"protocol": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(securityrules.SecurityRuleProtocolAny),
-					string(securityrules.SecurityRuleProtocolTcp),
-					string(securityrules.SecurityRuleProtocolUdp),
-					string(securityrules.SecurityRuleProtocolIcmp),
-					string(securityrules.SecurityRuleProtocolAh),
-					string(securityrules.SecurityRuleProtocolEsp),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(securityrules.PossibleValuesForSecurityRuleProtocol(), false),
 			},
 
 			"source_port_range": {
@@ -162,12 +155,9 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 			},
 
 			"access": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(securityrules.SecurityRuleAccessAllow),
-					string(securityrules.SecurityRuleAccessDeny),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(securityrules.PossibleValuesForSecurityRuleAccess(), false),
 			},
 
 			"priority": {
@@ -177,12 +167,9 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 			},
 
 			"direction": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(securityrules.SecurityRuleDirectionInbound),
-					string(securityrules.SecurityRuleDirectionOutbound),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(securityrules.PossibleValuesForSecurityRuleDirection(), false),
 			},
 		},
 	}
@@ -224,8 +211,7 @@ func resourceNetworkSecurityRuleCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("description"); ok {
-		description := v.(string)
-		rule.Properties.Description = &description
+		rule.Properties.Description = pointer.To(v.(string))
 	}
 
 	if r, ok := d.GetOk("source_port_ranges"); ok {

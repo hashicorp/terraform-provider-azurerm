@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/linkedstorageaccounts"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
@@ -48,16 +47,10 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"data_source_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(linkedstorageaccounts.DataSourceTypeCustomLogs),
-					string(linkedstorageaccounts.DataSourceTypeAzureWatson),
-					string(linkedstorageaccounts.DataSourceTypeQuery),
-					string(linkedstorageaccounts.DataSourceTypeAlerts),
-					string(linkedstorageaccounts.DataSourceTypeIngestion),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(linkedstorageaccounts.PossibleValuesForDataSourceType(), false),
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -110,7 +103,7 @@ func resourceLogAnalyticsLinkedStorageAccountCreateUpdate(d *pluginsdk.ResourceD
 
 	parameters := linkedstorageaccounts.LinkedStorageAccountsResource{
 		Properties: linkedstorageaccounts.LinkedStorageAccountsProperties{
-			StorageAccountIds: helpers.ExpandStringSlice(d.Get("storage_account_ids").(*pluginsdk.Set).List()),
+			StorageAccountIds: pluginsdk.ExpandStringSlice(d.Get("storage_account_ids").(*pluginsdk.Set).List()),
 		},
 	}
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {

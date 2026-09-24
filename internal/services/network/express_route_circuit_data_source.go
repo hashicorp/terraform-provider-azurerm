@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressroutecircuits"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuits"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -146,13 +146,11 @@ func dataSourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
-		sku := flattenExpressRouteCircuitSku(model.Sku)
-		if err := d.Set("sku", sku); err != nil {
+		if err := d.Set("sku", flattenExpressRouteCircuitSku(model.Sku)); err != nil {
 			return fmt.Errorf("setting `sku`: %+v", err)
 		}
 		if props := model.Properties; props != nil {
-			peerings := flattenExpressRouteCircuitPeerings(props.Peerings)
-			if err := d.Set("peerings", peerings); err != nil {
+			if err := d.Set("peerings", flattenExpressRouteCircuitPeerings(props.Peerings)); err != nil {
 				return err
 			}
 

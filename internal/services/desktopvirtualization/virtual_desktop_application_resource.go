@@ -42,8 +42,6 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 			return err
 		}),
 
-		SchemaVersion: 0,
-
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:     pluginsdk.TypeString,
@@ -85,13 +83,9 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 			},
 
 			"command_line_argument_policy": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(application.CommandLineSettingAllow),
-					string(application.CommandLineSettingDoNotAllow),
-					string(application.CommandLineSettingRequire),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(application.PossibleValuesForCommandLineSetting(), false),
 			},
 
 			"command_line_arguments": {

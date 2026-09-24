@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -66,12 +65,9 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 			},
 
 			"mode": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(waf.PolicyModeDetection),
-					string(waf.PolicyModePrevention),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(waf.PossibleValuesForPolicyMode(), false),
 			},
 
 			"enabled": {
@@ -80,27 +76,21 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			// NOTE: 'js challenge expiration' is always
-			// enabled no matter what and cannot be disabled for Premium_AzureFrontDoor
-			// and is not supported in Standard_AzureFrontDoor...
 			"js_challenge_cookie_expiration_in_minutes": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because 'js challenge expiration' is always
+				// enabled no matter what and cannot be disabled for Premium_AzureFrontDoor
+				// and is not supported in Standard_AzureFrontDoor...
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(5, 1440),
 			},
 
-			// NOTE: 'captcha expiration' is always
-			// enabled no matter what and cannot be disabled for Premium_AzureFrontDoor
-			// and is not supported in Standard_AzureFrontDoor...
-
-			// NOTE: This field is Optional + Computed because:
-			//  * Optional: Users can override the Azure default value (e.g., 30 minutes)
-			//  * Computed: Azure automatically enables CAPTCHA policy with a default of 30 minutes on the Premium_AzureFrontDoor SKU,
-			//    so the value is defined by Azure even when not explicitly set by the user
 			"captcha_cookie_expiration_in_minutes": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because Azure automatically enables CAPTCHA policy with a default of 30 minutes on the Premium_AzureFrontDoor SKU
+				// but it cannot be defined for Standard_AzureFrontDoor
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(5, 1440),
 			},
@@ -170,12 +160,9 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 						},
 
 						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(waf.RuleTypeMatchRule),
-								string(waf.RuleTypeRateLimitRule),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(waf.PossibleValuesForRuleType(), false),
 						},
 
 						"rate_limit_duration_in_minutes": {
@@ -210,19 +197,9 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"match_variable": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(waf.MatchVariableCookies),
-											string(waf.MatchVariablePostArgs),
-											string(waf.MatchVariableQueryString),
-											string(waf.MatchVariableRemoteAddr),
-											string(waf.MatchVariableRequestBody),
-											string(waf.MatchVariableRequestHeader),
-											string(waf.MatchVariableRequestMethod),
-											string(waf.MatchVariableRequestUri),
-											string(waf.MatchVariableSocketAddr),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(waf.PossibleValuesForMatchVariable(), false),
 									},
 
 									"match_values": {
@@ -236,22 +213,9 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 									},
 
 									"operator": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(waf.OperatorAny),
-											string(waf.OperatorBeginsWith),
-											string(waf.OperatorContains),
-											string(waf.OperatorEndsWith),
-											string(waf.OperatorEqual),
-											string(waf.OperatorGeoMatch),
-											string(waf.OperatorGreaterThan),
-											string(waf.OperatorGreaterThanOrEqual),
-											string(waf.OperatorIPMatch),
-											string(waf.OperatorLessThan),
-											string(waf.OperatorLessThanOrEqual),
-											string(waf.OperatorRegEx),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(waf.PossibleValuesForOperator(), false),
 									},
 
 									"selector": {
@@ -271,15 +235,8 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 										Optional: true,
 										MaxItems: 5,
 										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												string(waf.TransformTypeLowercase),
-												string(waf.TransformTypeRemoveNulls),
-												string(waf.TransformTypeTrim),
-												string(waf.TransformTypeUppercase),
-												string(waf.TransformTypeURLDecode),
-												string(waf.TransformTypeURLEncode),
-											}, false),
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice(waf.PossibleValuesForTransformType(), false),
 										},
 									},
 								},
@@ -325,26 +282,14 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"match_variable": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(waf.ManagedRuleExclusionMatchVariableQueryStringArgNames),
-											string(waf.ManagedRuleExclusionMatchVariableRequestBodyPostArgNames),
-											string(waf.ManagedRuleExclusionMatchVariableRequestCookieNames),
-											string(waf.ManagedRuleExclusionMatchVariableRequestHeaderNames),
-											string(waf.ManagedRuleExclusionMatchVariableRequestBodyJsonArgNames),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(waf.PossibleValuesForManagedRuleExclusionMatchVariable(), false),
 									},
 									"operator": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(waf.ManagedRuleExclusionSelectorMatchOperatorContains),
-											string(waf.ManagedRuleExclusionSelectorMatchOperatorEndsWith),
-											string(waf.ManagedRuleExclusionSelectorMatchOperatorEquals),
-											string(waf.ManagedRuleExclusionSelectorMatchOperatorEqualsAny),
-											string(waf.ManagedRuleExclusionSelectorMatchOperatorStartsWith),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(waf.PossibleValuesForManagedRuleExclusionSelectorMatchOperator(), false),
 									},
 									"selector": {
 										Type:         pluginsdk.TypeString,
@@ -374,26 +319,14 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"match_variable": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(waf.ManagedRuleExclusionMatchVariableQueryStringArgNames),
-														string(waf.ManagedRuleExclusionMatchVariableRequestBodyPostArgNames),
-														string(waf.ManagedRuleExclusionMatchVariableRequestCookieNames),
-														string(waf.ManagedRuleExclusionMatchVariableRequestHeaderNames),
-														string(waf.ManagedRuleExclusionMatchVariableRequestBodyJsonArgNames),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(waf.PossibleValuesForManagedRuleExclusionMatchVariable(), false),
 												},
 												"operator": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(waf.ManagedRuleExclusionSelectorMatchOperatorContains),
-														string(waf.ManagedRuleExclusionSelectorMatchOperatorEndsWith),
-														string(waf.ManagedRuleExclusionSelectorMatchOperatorEquals),
-														string(waf.ManagedRuleExclusionSelectorMatchOperatorEqualsAny),
-														string(waf.ManagedRuleExclusionSelectorMatchOperatorStartsWith),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(waf.PossibleValuesForManagedRuleExclusionSelectorMatchOperator(), false),
 												},
 												"selector": {
 													Type:         pluginsdk.TypeString,
@@ -429,26 +362,14 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 													Elem: &pluginsdk.Resource{
 														Schema: map[string]*pluginsdk.Schema{
 															"match_variable": {
-																Type:     pluginsdk.TypeString,
-																Required: true,
-																ValidateFunc: validation.StringInSlice([]string{
-																	string(waf.ManagedRuleExclusionMatchVariableQueryStringArgNames),
-																	string(waf.ManagedRuleExclusionMatchVariableRequestBodyPostArgNames),
-																	string(waf.ManagedRuleExclusionMatchVariableRequestCookieNames),
-																	string(waf.ManagedRuleExclusionMatchVariableRequestHeaderNames),
-																	string(waf.ManagedRuleExclusionMatchVariableRequestBodyJsonArgNames),
-																}, false),
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringInSlice(waf.PossibleValuesForManagedRuleExclusionMatchVariable(), false),
 															},
 															"operator": {
-																Type:     pluginsdk.TypeString,
-																Required: true,
-																ValidateFunc: validation.StringInSlice([]string{
-																	string(waf.ManagedRuleExclusionSelectorMatchOperatorContains),
-																	string(waf.ManagedRuleExclusionSelectorMatchOperatorEndsWith),
-																	string(waf.ManagedRuleExclusionSelectorMatchOperatorEquals),
-																	string(waf.ManagedRuleExclusionSelectorMatchOperatorEqualsAny),
-																	string(waf.ManagedRuleExclusionSelectorMatchOperatorStartsWith),
-																}, false),
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringInSlice(waf.PossibleValuesForManagedRuleExclusionSelectorMatchOperator(), false),
 															},
 															"selector": {
 																Type:         pluginsdk.TypeString,
@@ -1024,13 +945,12 @@ func expandCdnFrontDoorFirewallMatchConditions(input []interface{}) []waf.MatchC
 		matchVariable := match["match_variable"].(string)
 		selector := match["selector"].(string)
 		operator := match["operator"].(string)
-		negateCondition := match["negation_condition"].(bool)
-		matchValues := helpers.ExpandStringSlice(match["match_values"].([]interface{}))
+		matchValues := pluginsdk.ExpandStringSlice(match["match_values"].([]interface{}))
 		transforms := match["transforms"].([]interface{})
 
 		matchCondition := waf.MatchCondition{
 			Operator:        waf.Operator(operator),
-			NegateCondition: &negateCondition,
+			NegateCondition: pointer.To(match["negation_condition"].(bool)),
 			MatchValue:      *matchValues,
 			Transforms:      expandCdnFrontDoorFirewallTransforms(transforms),
 		}
@@ -1240,12 +1160,12 @@ func expandCdnFrontDoorFirewallScrubbingRules(input []interface{}) (*[]waf.WebAp
 		v := rule.(map[string]interface{})
 		var item waf.WebApplicationFirewallScrubbingRules
 
-		enalbed := waf.ScrubbingRuleEntryStateDisabled
+		enabled := waf.ScrubbingRuleEntryStateDisabled
 		if value := v["enabled"].(bool); value {
-			enalbed = waf.ScrubbingRuleEntryStateEnabled
+			enabled = waf.ScrubbingRuleEntryStateEnabled
 		}
 
-		item.State = pointer.To(enalbed)
+		item.State = pointer.To(enabled)
 		item.MatchVariable = waf.ScrubbingRuleEntryMatchVariable(v["match_variable"].(string))
 		item.SelectorMatchOperator = waf.ScrubbingRuleEntryMatchOperator(v["operator"].(string))
 

@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -553,22 +552,20 @@ func expandUpstreamSettings(input []interface{}) *signalr.ServerlessUpstreamSett
 
 	for _, upstreamSetting := range input {
 		setting := upstreamSetting.(map[string]interface{})
-		authTypeNone := signalr.UpstreamAuthTypeNone
-		authTypeManagedIdentity := signalr.UpstreamAuthTypeManagedIdentity
 		auth := signalr.UpstreamAuthSettings{
-			Type: &authTypeNone,
+			Type: pointer.To(signalr.UpstreamAuthTypeNone),
 		}
 		upstreamTemplate := signalr.UpstreamTemplate{
-			HubPattern:      pointer.To(strings.Join(*helpers.ExpandStringSlice(setting["hub_pattern"].([]interface{})), ",")),
-			EventPattern:    pointer.To(strings.Join(*helpers.ExpandStringSlice(setting["event_pattern"].([]interface{})), ",")),
-			CategoryPattern: pointer.To(strings.Join(*helpers.ExpandStringSlice(setting["category_pattern"].([]interface{})), ",")),
+			HubPattern:      pointer.To(strings.Join(*pluginsdk.ExpandStringSlice(setting["hub_pattern"].([]interface{})), ",")),
+			EventPattern:    pointer.To(strings.Join(*pluginsdk.ExpandStringSlice(setting["event_pattern"].([]interface{})), ",")),
+			CategoryPattern: pointer.To(strings.Join(*pluginsdk.ExpandStringSlice(setting["category_pattern"].([]interface{})), ",")),
 			UrlTemplate:     setting["url_template"].(string),
 			Auth:            &auth,
 		}
 
 		if setting["user_assigned_identity_id"].(string) != "" {
 			upstreamTemplate.Auth = &signalr.UpstreamAuthSettings{
-				Type: &authTypeManagedIdentity,
+				Type: pointer.To(signalr.UpstreamAuthTypeManagedIdentity),
 				ManagedIdentity: &signalr.ManagedIdentitySettings{
 					Resource: pointer.To(setting["user_assigned_identity_id"].(string)),
 				},
@@ -593,19 +590,19 @@ func flattenUpstreamSettings(upstreamSettings *signalr.ServerlessUpstreamSetting
 		categoryPattern := make([]interface{}, 0)
 		if settings.CategoryPattern != nil {
 			categoryPatterns := strings.Split(*settings.CategoryPattern, ",")
-			categoryPattern = helpers.FlattenStringSlice(&categoryPatterns)
+			categoryPattern = pluginsdk.FlattenSlice(&categoryPatterns)
 		}
 
 		eventPattern := make([]interface{}, 0)
 		if settings.EventPattern != nil {
 			eventPatterns := strings.Split(*settings.EventPattern, ",")
-			eventPattern = helpers.FlattenStringSlice(&eventPatterns)
+			eventPattern = pluginsdk.FlattenSlice(&eventPatterns)
 		}
 
 		hubPattern := make([]interface{}, 0)
 		if settings.HubPattern != nil {
 			hubPatterns := strings.Split(*settings.HubPattern, ",")
-			hubPattern = helpers.FlattenStringSlice(&hubPatterns)
+			hubPattern = pluginsdk.FlattenSlice(&hubPatterns)
 		}
 
 		var managedIdentityId string
@@ -875,11 +872,11 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"live_trace_enabled": {
+		"live_trace_enabled": { // azignore:AZS006 - deprecated in favor of `live_trace` and not added to the data source
 			Type:       pluginsdk.TypeBool,
 			Optional:   true,
 			Default:    false,
-			Deprecated: "`live_trace_enabled` has been deprecated in favor of `live_trace` and will be removed in 4.0.",
+			Deprecated: "`live_trace_enabled` has been deprecated in favour of `live_trace` and will be removed in 4.0.",
 		},
 
 		"live_trace": {
@@ -1006,7 +1003,7 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 		"cors": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"allowed_origins": {

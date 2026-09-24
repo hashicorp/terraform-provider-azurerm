@@ -56,8 +56,9 @@ func resourceApiManagementApiOperationPolicy() *pluginsdk.Resource {
 			"operation_id": schemaz.SchemaApiManagementChildName(),
 
 			"xml_content": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C because when `xml_link` is provided the API downloads it into `xml_content`
 				Computed:         true,
 				ConflictsWith:    []string{"xml_link"},
 				DiffSuppressFunc: XmlWithDotNetInterpolationsDiffSuppress,
@@ -136,10 +137,6 @@ func resourceApiManagementAPIOperationPolicyRead(d *pluginsdk.ResourceData, meta
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroupName
-	serviceName := id.ServiceName
-	apiName := getApiName(id.ApiId)
-	operationName := id.OperationId
 
 	resp, err := client.Get(ctx, *id, apioperationpolicy.GetOperationOptions{Format: pointer.To(apioperationpolicy.PolicyExportFormatXml)})
 	if err != nil {
@@ -152,10 +149,10 @@ func resourceApiManagementAPIOperationPolicyRead(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("making Read request for %s: %+v", *id, err)
 	}
 
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("api_management_name", serviceName)
-	d.Set("api_name", apiName)
-	d.Set("operation_id", operationName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("api_management_name", id.ServiceName)
+	d.Set("api_name", getApiName(id.ApiId))
+	d.Set("operation_id", id.OperationId)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {

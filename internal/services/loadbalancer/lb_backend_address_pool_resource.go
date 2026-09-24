@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -85,11 +85,7 @@ func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice(
-								[]string{
-									string(loadbalancers.GatewayLoadBalancerTunnelInterfaceTypeNone),
-									string(loadbalancers.GatewayLoadBalancerTunnelInterfaceTypeInternal),
-									string(loadbalancers.GatewayLoadBalancerTunnelInterfaceTypeExternal),
-								},
+								loadbalancers.PossibleValuesForGatewayLoadBalancerTunnelInterfaceType(),
 								false,
 							),
 						},
@@ -98,11 +94,7 @@ func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice(
-								[]string{
-									string(loadbalancers.GatewayLoadBalancerTunnelProtocolNone),
-									string(loadbalancers.GatewayLoadBalancerTunnelProtocolNative),
-									string(loadbalancers.GatewayLoadBalancerTunnelProtocolVXLAN),
-								},
+								loadbalancers.PossibleValuesForGatewayLoadBalancerTunnelProtocol(),
 								false,
 							),
 						},
