@@ -10,8 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -142,7 +141,7 @@ func resourceVirtualHubRouteTableRouteCreate(d *pluginsdk.ResourceData, meta int
 		result := virtualwans.HubRoute{
 			Name:            d.Get("name").(string),
 			DestinationType: d.Get("destinations_type").(string),
-			Destinations:    pointer.From(helpers.ExpandStringSlice(d.Get("destinations").(*pluginsdk.Set).List())),
+			Destinations:    pointer.From(pluginsdk.ExpandStringSlice(d.Get("destinations").(*pluginsdk.Set).List())),
 			NextHopType:     d.Get("next_hop_type").(string),
 			NextHop:         d.Get("next_hop").(string),
 		}
@@ -203,7 +202,7 @@ func resourceVirtualHubRouteTableRouteUpdate(d *pluginsdk.ResourceData, meta int
 				routes[i].DestinationType = d.Get("destinations_type").(string)
 			}
 			if d.HasChange("destinations") {
-				routes[i].Destinations = pointer.From(helpers.ExpandStringSlice(d.Get("destinations").(*pluginsdk.Set).List()))
+				routes[i].Destinations = pointer.From(pluginsdk.ExpandStringSlice(d.Get("destinations").(*pluginsdk.Set).List()))
 			}
 			if d.HasChange("next_hop_type") {
 				routes[i].NextHopType = d.Get("next_hop_type").(string)

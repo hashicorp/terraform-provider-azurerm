@@ -13,9 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2022-10-01/registrationdefinitions"
 	"github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -140,7 +138,7 @@ func resourceLighthouseDefinition() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Default:      "PT8H",
-										ValidateFunc: azValidate.ISO8601Duration,
+										ValidateFunc: validation.ISO8601Duration,
 									},
 
 									"approver": {
@@ -348,7 +346,7 @@ func flattenLighthouseDefinitionAuthorization(input []registrationdefinitions.Au
 			"role_definition_id":            item.RoleDefinitionId,
 			"principal_id":                  item.PrincipalId,
 			"principal_display_name":        pointer.From(item.PrincipalIdDisplayName),
-			"delegated_role_definition_ids": helpers.FlattenStringSlice(item.DelegatedRoleDefinitionIds),
+			"delegated_role_definition_ids": pluginsdk.FlattenSlice(item.DelegatedRoleDefinitionIds),
 		})
 	}
 
@@ -359,7 +357,7 @@ func expandLighthouseDefinitionAuthorization(input []interface{}) []registration
 	results := make([]registrationdefinitions.Authorization, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		delegatedRoleDefinitionIds := helpers.ExpandStringSlice(v["delegated_role_definition_ids"].(*pluginsdk.Set).List())
+		delegatedRoleDefinitionIds := pluginsdk.ExpandStringSlice(v["delegated_role_definition_ids"].(*pluginsdk.Set).List())
 		result := registrationdefinitions.Authorization{
 			RoleDefinitionId:           v["role_definition_id"].(string),
 			PrincipalId:                v["principal_id"].(string),
