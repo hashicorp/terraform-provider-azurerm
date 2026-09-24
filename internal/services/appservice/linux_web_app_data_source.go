@@ -66,6 +66,7 @@ type LinuxWebAppDataSourceModel struct {
 	VirtualNetworkBackupRestoreEnabled      bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
 	VirtualNetworkApplicationTrafficEnabled bool                                       `tfschema:"virtual_network_application_traffic_enabled"`
 	VirtualNetworkSubnetID                  string                                     `tfschema:"virtual_network_subnet_id"`
+	VirtualNetworkImagePullEnabled          bool                                       `tfschema:"virtual_network_image_pull_enabled"`
 }
 
 var _ sdk.DataSource = LinuxWebAppDataSource{}
@@ -259,6 +260,11 @@ func (r LinuxWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
+		"virtual_network_image_pull_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
 	}
 }
 
@@ -380,6 +386,8 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 					webApp.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
 					webApp.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					webApp.DefaultHostname = pointer.From(props.DefaultHostName)
+					webApp.VirtualNetworkImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
+
 					if props.Enabled != nil {
 						webApp.Enabled = *props.Enabled
 					}

@@ -28,7 +28,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -204,7 +203,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "PT1H30M",
-				ValidateFunc: validate.ISO8601DurationBetween("PT15M", "PT2H"),
+				ValidateFunc: validation.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
 			// whilst the Swagger defines multiple at this time only UAI is supported
