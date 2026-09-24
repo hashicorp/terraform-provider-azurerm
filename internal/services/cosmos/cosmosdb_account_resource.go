@@ -72,6 +72,32 @@ func tableConnectionStringAttribute(input cosmosdb.DatabaseAccountConnectionStri
 	return ""
 }
 
+// flattenCosmosDBAccountConnectionStrings maps the entries returned by `listConnectionStrings`
+// to the attributes shared by the resource and the data source. The four Table attributes are
+// always returned, empty when no matching entry comes back, so a connection string that stops
+// being returned does not linger in state. SQL and MongoDB attributes are only returned when
+// matched, as before.
+func flattenCosmosDBAccountConnectionStrings(input *[]cosmosdb.DatabaseAccountConnectionString) map[string]string {
+	output := map[string]string{
+		"primary_table_connection_string":            "",
+		"secondary_table_connection_string":          "",
+		"primary_readonly_table_connection_string":   "",
+		"secondary_readonly_table_connection_string": "",
+	}
+
+	for _, v := range pointer.From(input) {
+		if attribute, ok := connStringPropertyMap[pointer.From(v.Description)]; ok {
+			output[attribute] = pointer.From(v.ConnectionString)
+		}
+
+		if attribute := tableConnectionStringAttribute(v); attribute != "" {
+			output[attribute] = pointer.From(v.ConnectionString)
+		}
+	}
+
+	return output
+}
+
 type databaseAccountCapabilities string
 
 const (
@@ -1425,18 +1451,9 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 				return fmt.Errorf("listing connection strings for %s: %w", id, err)
 			}
 
-			var connStrings []string
-			if connStringResp.Model.ConnectionStrings != nil {
-				connStrings = make([]string, len(*connStringResp.Model.ConnectionStrings))
-				for i, v := range *connStringResp.Model.ConnectionStrings {
-					connStrings[i] = *v.ConnectionString
-					if propertyName, propertyExists := connStringPropertyMap[*v.Description]; propertyExists {
-						d.Set(propertyName, v.ConnectionString) // lintignore:R001
-					}
-
-					if propertyName := tableConnectionStringAttribute(v); propertyName != "" {
-						d.Set(propertyName, v.ConnectionString) // lintignore:R001
-					}
+			if model := connStringResp.Model; model != nil {
+				for attribute, value := range flattenCosmosDBAccountConnectionStrings(model.ConnectionStrings) {
+					d.Set(attribute, value) // lintignore:R001
 				}
 			}
 		}

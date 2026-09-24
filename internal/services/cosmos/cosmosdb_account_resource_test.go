@@ -700,10 +700,6 @@ func TestAccCosmosDBAccount_capabilities_EnableGremlin(t *testing.T) {
 }
 
 func TestAccCosmosDBAccount_capabilities_EnableTable(t *testing.T) {
-	testAccCosmosDBAccount_capabilitiesWith(t, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableTable"})
-}
-
-func TestAccCosmosDBAccount_tableConnectionStrings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
@@ -711,6 +707,7 @@ func TestAccCosmosDBAccount_tableConnectionStrings(t *testing.T) {
 		{
 			Config: r.capabilities(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableTable"}),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelStrong, 1),
 				checkAccCosmosDBAccount_table(data),
 			),
 		},
@@ -2666,11 +2663,13 @@ func checkAccCosmosDBAccount_sql(data acceptance.TestData) acceptance.TestCheckF
 }
 
 func checkAccCosmosDBAccount_table(data acceptance.TestData) acceptance.TestCheckFunc {
+	// a Table API connection string carries a TableEndpoint, which the account's SQL one does not
+	tableEndpoint := regexp.MustCompile("TableEndpoint=")
 	return acceptance.ComposeTestCheckFunc(
-		check.That(data.ResourceName).Key("primary_table_connection_string").Exists(),
-		check.That(data.ResourceName).Key("secondary_table_connection_string").Exists(),
-		check.That(data.ResourceName).Key("primary_readonly_table_connection_string").Exists(),
-		check.That(data.ResourceName).Key("secondary_readonly_table_connection_string").Exists(),
+		check.That(data.ResourceName).Key("primary_table_connection_string").MatchesRegex(tableEndpoint),
+		check.That(data.ResourceName).Key("secondary_table_connection_string").MatchesRegex(tableEndpoint),
+		check.That(data.ResourceName).Key("primary_readonly_table_connection_string").MatchesRegex(tableEndpoint),
+		check.That(data.ResourceName).Key("secondary_readonly_table_connection_string").MatchesRegex(tableEndpoint),
 	)
 }
 
