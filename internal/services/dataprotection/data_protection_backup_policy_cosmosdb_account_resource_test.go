@@ -107,11 +107,11 @@ func (r DataProtectionBackupPolicyCosmosDBAccountResource) basic(data acceptance
 %s
 
 resource "azurerm_data_protection_backup_policy_cosmosdb_account" "test" {
-  name                             = "acctest-dbp-cosmos-%d"
-  data_protection_backup_vault_id  = azurerm_data_protection_backup_vault.test.id
-  backup_schedule                  = ["R/2026-02-08T10:00:00+00:00/P1W"]
-  default_retention_duration       = "P10Y"
-  time_zone                        = "UTC"
+  name                            = "acctest-dbp-cosmos-%d"
+  data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
+  backup_schedule                 = ["R/2026-02-08T10:00:00+00:00/P1W"]
+  default_retention_duration      = "P10Y"
+  time_zone                       = "UTC"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -121,11 +121,11 @@ func (r DataProtectionBackupPolicyCosmosDBAccountResource) requiresImport(data a
 %s
 
 resource "azurerm_data_protection_backup_policy_cosmosdb_account" "import" {
-  name                             = azurerm_data_protection_backup_policy_cosmosdb_account.test.name
-  data_protection_backup_vault_id  = azurerm_data_protection_backup_policy_cosmosdb_account.test.data_protection_backup_vault_id
-  backup_schedule                  = azurerm_data_protection_backup_policy_cosmosdb_account.test.backup_schedule
-  default_retention_duration       = azurerm_data_protection_backup_policy_cosmosdb_account.test.default_retention_duration
-  time_zone                        = azurerm_data_protection_backup_policy_cosmosdb_account.test.time_zone
+  name                            = azurerm_data_protection_backup_policy_cosmosdb_account.test.name
+  data_protection_backup_vault_id = azurerm_data_protection_backup_policy_cosmosdb_account.test.data_protection_backup_vault_id
+  backup_schedule                 = azurerm_data_protection_backup_policy_cosmosdb_account.test.backup_schedule
+  default_retention_duration      = azurerm_data_protection_backup_policy_cosmosdb_account.test.default_retention_duration
+  time_zone                       = azurerm_data_protection_backup_policy_cosmosdb_account.test.time_zone
 }
 `, r.basic(data))
 }
@@ -135,11 +135,11 @@ func (r DataProtectionBackupPolicyCosmosDBAccountResource) complete(data accepta
 %s
 
 resource "azurerm_data_protection_backup_policy_cosmosdb_account" "test" {
-  name                             = "acctest-dbp-cosmos-%d"
-  data_protection_backup_vault_id  = azurerm_data_protection_backup_vault.test.id
-  backup_schedule                  = ["R/2026-02-08T10:00:00+00:00/P1W"]
-  default_retention_duration       = "P10Y"
-  time_zone                        = "UTC"
+  name                            = "acctest-dbp-cosmos-%d"
+  data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
+  backup_schedule                 = ["R/2026-02-08T10:00:00+00:00/P1W"]
+  default_retention_duration      = "P10Y"
+  time_zone                       = "UTC"
 
   retention_rule {
     name              = "Monthly"

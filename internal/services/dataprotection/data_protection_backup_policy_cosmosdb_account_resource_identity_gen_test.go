@@ -5,6 +5,7 @@ package dataprotection_test
 
 import (
 	"testing"
+
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -16,10 +17,10 @@ func TestAccDataProtectionBackupPolicyCosmosDBAccount_resourceIdentity(t *testin
 	r := DataProtectionBackupPolicyCosmosDBAccountResource{}
 
 	checkedFields := map[string]struct{}{
-		"name": {},
-		"backup_vault_name": {},
+		"name":                {},
+		"backup_vault_name":   {},
 		"resource_group_name": {},
-		"subscription_id": {},
+		"subscription_id":     {},
 	}
 
 	data.ResourceIdentityTest(t, []acceptance.TestStep{

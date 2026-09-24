@@ -16,20 +16,20 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/basebackuppolicyresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/validate"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_policy_cosmosdb_account -service-package-name dataprotection -properties "name" -compare-values "subscription_id:data_protection_backup_vault_id,resource_group_name:data_protection_backup_vault_id,backup_vault_name:data_protection_backup_vault_id"
 
 type BackupPolicyCosmosDBAccountModel struct {
-	Name                        string                                             `tfschema:"name"`
-	DataProtectionBackupVaultId string                                             `tfschema:"data_protection_backup_vault_id"`
-	BackupSchedule              []string                                           `tfschema:"backup_schedule"`
-	DefaultRetentionDuration    string                                             `tfschema:"default_retention_duration"`
+	Name                        string                                     `tfschema:"name"`
+	DataProtectionBackupVaultId string                                     `tfschema:"data_protection_backup_vault_id"`
+	BackupSchedule              []string                                   `tfschema:"backup_schedule"`
+	DefaultRetentionDuration    string                                     `tfschema:"default_retention_duration"`
 	RetentionRules              []BackupPolicyCosmosDBAccountRetentionRule `tfschema:"retention_rule"`
-	TimeZone                    string                                             `tfschema:"time_zone"`
+	TimeZone                    string                                     `tfschema:"time_zone"`
 }
 
 type BackupPolicyCosmosDBAccountRetentionRule struct {

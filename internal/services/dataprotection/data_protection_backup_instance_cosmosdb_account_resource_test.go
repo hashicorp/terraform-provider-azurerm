@@ -123,18 +123,12 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 }
 
-resource "azurerm_data_protection_backup_policy_cosmosdb_database_account" "another" {
+resource "azurerm_data_protection_backup_policy_cosmosdb_account" "another" {
   name                            = "acctest-dbp-cosmos-other-%d"
-  vault_id                        = azurerm_data_protection_backup_vault.test.id
-  backup_repeating_time_intervals = ["R/2026-02-09T10:00:00+00:00/P1W"]
+  data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
+  backup_schedule                 = ["R/2026-02-09T10:00:00+00:00/P1W"]
+  default_retention_duration      = "P5Y"
   time_zone                       = "UTC"
-
-  default_retention_rule {
-    life_cycle {
-      duration        = "P5Y"
-      data_store_type = "VaultStore"
-    }
-  }
 }
 
 resource "azurerm_role_assignment" "reader" {
@@ -159,7 +153,7 @@ resource "azurerm_data_protection_backup_instance_cosmosdb_account" "test" {
   name                              = "acctest-dbi-cosmos-%d"
   location                          = azurerm_resource_group.test.location
   data_protection_backup_vault_id   = azurerm_data_protection_backup_vault.test.id
-  backup_policy_cosmosdb_account_id = azurerm_data_protection_backup_policy_cosmosdb_database_account.test.id
+  backup_policy_cosmosdb_account_id = azurerm_data_protection_backup_policy_cosmosdb_account.test.id
   cosmosdb_account_id               = azurerm_cosmosdb_account.test.id
 
   depends_on = [
@@ -192,7 +186,7 @@ resource "azurerm_data_protection_backup_instance_cosmosdb_account" "test" {
   name                              = "acctest-dbi-cosmos-%d"
   location                          = azurerm_resource_group.test.location
   data_protection_backup_vault_id   = azurerm_data_protection_backup_vault.test.id
-  backup_policy_cosmosdb_account_id = azurerm_data_protection_backup_policy_cosmosdb_account.test.id
+  backup_policy_cosmosdb_account_id = azurerm_data_protection_backup_policy_cosmosdb_account.another.id
   cosmosdb_account_id               = azurerm_cosmosdb_account.test.id
 
   depends_on = [
