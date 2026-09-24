@@ -5,6 +5,7 @@ package dns_test
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strconv"
 	"testing"
@@ -18,7 +19,7 @@ import (
 )
 
 func TestAccDnsARecord_listByDnsZoneID(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dns_a_record", "testlist1")
+	data := acceptance.BuildTestData(t, "azurerm_dns_a_record", "list")
 	r := DnsARecordResource{}
 
 	resource.Test(t, resource.TestCase{
@@ -32,9 +33,9 @@ func TestAccDnsARecord_listByDnsZoneID(t *testing.T) {
 			},
 			{
 				Query:  true,
-				Config: r.basicQuery(),
+				Config: r.basicList(data),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_dns_a_record.list", 1),
+					querycheck.ExpectLength("azurerm_dns_a_record.list", 3),
 					querycheck.ExpectIdentity(
 						"azurerm_dns_a_record.list",
 						map[string]knownvalue.Check{
@@ -49,6 +50,33 @@ func TestAccDnsARecord_listByDnsZoneID(t *testing.T) {
 			},
 		},
 	})
+}
+
+func (DnsARecordResource) basicList(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_dns_a_record" "test" {
+  count = 3
+  name                = "myarecord%d${count.index}"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
+  ttl                 = 300
+  records             = ["1.2.3.${count.index}"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (r DnsARecordResource) basicQuery() string {
