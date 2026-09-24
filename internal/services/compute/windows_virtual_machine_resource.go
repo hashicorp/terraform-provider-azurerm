@@ -107,6 +107,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				RequiredWith: []string{"admin_password_wo"},
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"admin_username": {

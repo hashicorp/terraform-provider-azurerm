@@ -113,7 +113,9 @@ The following arguments are supported:
 
 ~> **Note:** One of `admin_password` or the `admin_password_wo`/`admin_password_wo_version` pair must be specified when not using an existing OS Managed Disk.
 
-* `admin_password_wo_version` - (Optional) An integer value used to trigger replacement when `admin_password_wo` changes. This property should be incremented when replacing the Virtual Machine with an updated `admin_password_wo`. Changing this forces a new resource to be created.
+* `admin_password_wo_version` - (Optional) An integer value of at least `1` used to trigger replacement when `admin_password_wo` changes. This property should be incremented when replacing the Virtual Machine with an updated `admin_password_wo`. Changing this forces a new resource to be created.
+
+~> **Note:** Changing `admin_password_wo` without changing `admin_password_wo_version` does not update the password. Switching between `admin_password` and the write-only password pair also forces a new resource to be created.
 
 * `admin_username` - (Optional) The username of the local administrator used for the Virtual Machine. Changing this forces a new resource to be created.
 
