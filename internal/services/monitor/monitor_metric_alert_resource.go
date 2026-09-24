@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"maps"
 	"net/http"
 	"time"
 
@@ -20,7 +21,6 @@ import (
 	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -82,14 +82,14 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 			"target_resource_type": {
 				Type:        pluginsdk.TypeString,
 				Optional:    true,
-				Computed:    true,
+				Computed:    true, // azignore:AZS007 - pre-existing violation
 				Description: `The resource type (e.g. Microsoft.Compute/virtualMachines) of the target pluginsdk. Required when using subscription, resource group scope or multiple scopes.`,
 			},
 
 			"target_resource_location": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				StateFunc:        location.StateFunc,
 				DiffSuppressFunc: location.DiffSuppressFunc,
 				Description:      `The location of the target pluginsdk. Required when using subscription, resource group scope or multiple scopes.`,
@@ -177,7 +177,7 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MinItems: 1,
-				// Curently, it allows to define only one dynamic criteria in one metric alert.
+				// Currently, it allows to define only one dynamic criteria in one metric alert.
 				MaxItems:     1,
 				ExactlyOneOf: []string{"criteria", "dynamic_criteria", "application_insights_web_test_location_availability_criteria"},
 				Elem: &pluginsdk.Resource{
@@ -449,7 +449,7 @@ func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			TargetResourceType:   pointer.To(targetResourceType),
 			TargetResourceRegion: pointer.To(targetResourceLocation),
 		},
-		Tags: helpers.ExpandPtrMapStringString(t),
+		Tags: pluginsdk.ExpandPtrMapStringString(t),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -557,7 +557,7 @@ func resourceMonitorMetricAlertFlatten(d *pluginsdk.ResourceData, id *metricaler
 		d.Set("target_resource_type", props.TargetResourceType)
 		d.Set("target_resource_location", props.TargetResourceRegion)
 
-		if err := d.Set("tags", helpers.FlattenPtrMapStringString(model.Tags)); err != nil {
+		if err := d.Set("tags", pluginsdk.FlattenPtrMapStringString(model.Tags)); err != nil {
 			return err
 		}
 	}
@@ -733,13 +733,13 @@ func flattenMonitorMetricAlertCriteria(input metricalerts.MetricAlertCriteria) [
 	case metricalerts.WebtestLocationAvailabilityCriteria:
 		return flattenMonitorMetricAlertWebtestLocAvailCriteria(&criteria)
 	default:
-		return nil
+		return []interface{}{}
 	}
 }
 
 func flattenMonitorMetricAlertSingleResourceMultiMetricCriteria(input *[]metricalerts.MetricCriteria) []interface{} {
 	if input == nil || len(*input) == 0 {
-		return nil
+		return []interface{}{}
 	}
 	criteria := (*input)[0]
 	metricName := criteria.MetricName
@@ -777,7 +777,7 @@ func flattenMonitorMetricAlertSingleResourceMultiMetricCriteria(input *[]metrica
 
 func flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(input *[]metricalerts.MultiMetricCriteria) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 	result := make([]interface{}, 0)
 
@@ -856,7 +856,7 @@ func flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(input *[]metrical
 
 func flattenMonitorMetricAlertWebtestLocAvailCriteria(input *metricalerts.WebtestLocationAvailabilityCriteria) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	return []interface{}{
@@ -882,9 +882,7 @@ func flattenMonitorMetricAlertAction(input *[]metricalerts.MetricAlertAction) (r
 
 		props := make(map[string]string)
 		if action.WebHookProperties != nil {
-			for pk, pv := range *action.WebHookProperties {
-				props[pk] = pv
-			}
+			maps.Copy(props, *action.WebHookProperties)
 		}
 		v["webhook_properties"] = props
 

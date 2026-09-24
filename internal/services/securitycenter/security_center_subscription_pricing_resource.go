@@ -49,12 +49,9 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"tier": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(security.PricingTierFree),
-					string(security.PricingTierStandard),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInEnumSlice(security.PossiblePricingTierValues(), false),
 			},
 
 			"resource_type": {

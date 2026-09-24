@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -15,7 +16,9 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 var packagesUsingAlias = map[string]struct{}{
@@ -128,8 +131,7 @@ func parseServicePackageName(relativePath string) (*string, error) {
 		return nil, fmt.Errorf("not enough segments")
 	}
 
-	servicePackageName := segments[serviceIndex+1]
-	return &servicePackageName, nil
+	return pointer.To(segments[serviceIndex+1]), nil
 }
 
 func convertToSnakeCase(input string) string {
@@ -217,7 +219,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 			toCamelCase := func(input string) string {
 				// lazy but it works
 				out := make([]rune, 0)
-				for i, char := range azure.TitleCase(input) {
+				for i, char := range cases.Title(language.English, cases.NoLower).String(input) {
 					if i == 0 {
 						out = append(out, unicode.ToLower(char))
 						continue
@@ -230,7 +232,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 
 			rewritten := fmt.Sprintf("%sName", key)
 			segment := ResourceIdSegment{
-				FieldName:    azure.TitleCase(rewritten),
+				FieldName:    cases.Title(language.English, cases.NoLower).String(rewritten),
 				ArgumentName: toCamelCase(rewritten),
 				SegmentKey:   key,
 				SegmentValue: value,
@@ -252,8 +254,8 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 				// TODO: in time this could be worth a series of overrides
 
 				// handles "GallerieName" and `DataFactoriesName`
-				if strings.HasSuffix(key, "ies") {
-					key = strings.TrimSuffix(key, "ies")
+				if before, ok := strings.CutSuffix(key, "ies"); ok {
+					key = before
 					key = fmt.Sprintf("%sy", key)
 				}
 				switch {
@@ -275,7 +277,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 				} else {
 					// remove {Thing}s and make that {Thing}Name
 					rewritten = fmt.Sprintf("%sName", key)
-					segment.FieldName = azure.TitleCase(rewritten)
+					segment.FieldName = cases.Title(language.English, cases.NoLower).String(rewritten)
 					segment.ArgumentName = toCamelCase(rewritten)
 				}
 			}
@@ -1107,14 +1109,14 @@ func (f GolangCodeFormatter) Format(input string) (*string, error) {
 }
 
 func (f GolangCodeFormatter) runGoFmt(filePath string) {
-	cmd := exec.Command("gofmt", "-w", filePath)
+	cmd := exec.CommandContext(context.Background(), "gofmt", "-w", filePath)
 	// intentionally not using these errors since the exit codes are kinda uninteresting
 	_ = cmd.Start()
 	_ = cmd.Wait()
 }
 
 func (f GolangCodeFormatter) runGoImports(filePath string) {
-	cmd := exec.Command("goimports", "-w", filePath)
+	cmd := exec.CommandContext(context.Background(), "goimports", "-w", filePath)
 	// intentionally not using these errors since the exit codes are kinda uninteresting
 	_ = cmd.Start()
 	_ = cmd.Wait()
@@ -1126,6 +1128,5 @@ func (f GolangCodeFormatter) readFileContents(filePath string) (*string, error) 
 		return nil, err
 	}
 
-	contents := string(data)
-	return &contents, nil
+	return pointer.To(string(data)), nil
 }

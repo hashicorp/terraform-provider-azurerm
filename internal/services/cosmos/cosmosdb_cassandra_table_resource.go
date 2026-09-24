@@ -76,7 +76,7 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 			"throughput": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validate.CosmosThroughput,
 			},
 
@@ -362,7 +362,7 @@ func flattenTableSchema(input *cosmosdb.CassandraSchema) []interface{} {
 
 func flattenTableSchemaColumns(input *[]cosmosdb.Column) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	columns := make([]interface{}, 0)
@@ -381,7 +381,7 @@ func flattenTableSchemaColumns(input *[]cosmosdb.Column) []interface{} {
 
 func flattenTableSchemaPartitionKeys(input *[]cosmosdb.CassandraPartitionKey) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	keys := make([]interface{}, 0)
@@ -397,7 +397,7 @@ func flattenTableSchemaPartitionKeys(input *[]cosmosdb.CassandraPartitionKey) []
 
 func flattenTableSchemaClusterKeys(input *[]cosmosdb.ClusterKey) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	keys := make([]interface{}, 0)

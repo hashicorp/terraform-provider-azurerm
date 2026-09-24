@@ -367,17 +367,11 @@ func expandDpsAccessRights(input dpsAccessRights) string {
 }
 
 func flattenDpsAccessRights(r iotdpsresource.AccessRightsDescription) dpsAccessRights {
-	rights := dpsAccessRights{
-		enrollmentRead:    false,
-		enrollmentWrite:   false,
-		registrationRead:  false,
-		registrationWrite: false,
-		serviceConfig:     false,
-	}
+	rights := dpsAccessRights{}
 
-	actualAccessRights := strings.Split(string(r), ",")
+	actualAccessRights := strings.SplitSeq(string(r), ",")
 
-	for _, right := range actualAccessRights {
+	for right := range actualAccessRights {
 		switch strings.ToLower(strings.Trim(right, " ")) {
 		case "enrollmentread":
 			rights.enrollmentRead = true

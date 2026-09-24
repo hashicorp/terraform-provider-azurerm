@@ -189,8 +189,7 @@ func resourceDataFactoryLinkedServiceOdbcCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		odbcLinkedService.Annotations = &annotations
+		odbcLinkedService.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -251,13 +250,11 @@ func resourceDataFactoryLinkedServiceOdbcRead(d *pluginsdk.ResourceData, meta in
 	d.Set("additional_properties", odbc.AdditionalProperties)
 	d.Set("description", odbc.Description)
 
-	annotations := flattenDataFactoryAnnotations(odbc.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(odbc.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenLinkedServiceParameters(odbc.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(odbc.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 

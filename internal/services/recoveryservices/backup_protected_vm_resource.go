@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2024-10-01/protectionpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -213,11 +212,11 @@ func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, me
 
 				if v := vm.ExtendedProperties; v != nil && v.DiskExclusionProperties != nil {
 					if *v.DiskExclusionProperties.IsInclusionList {
-						if err := d.Set("include_disk_luns", helpers.FlattenInt64Slice(v.DiskExclusionProperties.DiskLunList)); err != nil {
+						if err := d.Set("include_disk_luns", pluginsdk.FlattenSlice(v.DiskExclusionProperties.DiskLunList)); err != nil {
 							return fmt.Errorf("setting include_disk_luns: %+v", err)
 						}
 					} else {
-						if err := d.Set("exclude_disk_luns", helpers.FlattenInt64Slice(v.DiskExclusionProperties.DiskLunList)); err != nil {
+						if err := d.Set("exclude_disk_luns", pluginsdk.FlattenSlice(v.DiskExclusionProperties.DiskLunList)); err != nil {
 							return fmt.Errorf("setting exclude_disk_luns: %+v", err)
 						}
 					}
@@ -352,7 +351,7 @@ func expandDiskExclusion(d *pluginsdk.ResourceData) *protecteditems.ExtendedProp
 
 		return &protecteditems.ExtendedProperties{
 			DiskExclusionProperties: &protecteditems.DiskExclusionProperties{
-				DiskLunList:     helpers.ExpandInt64Slice(diskLun),
+				DiskLunList:     pluginsdk.ExpandInt64Slice(diskLun),
 				IsInclusionList: pointer.To(true),
 			},
 		}
@@ -363,7 +362,7 @@ func expandDiskExclusion(d *pluginsdk.ResourceData) *protecteditems.ExtendedProp
 
 		return &protecteditems.ExtendedProperties{
 			DiskExclusionProperties: &protecteditems.DiskExclusionProperties{
-				DiskLunList:     helpers.ExpandInt64Slice(diskLun),
+				DiskLunList:     pluginsdk.ExpandInt64Slice(diskLun),
 				IsInclusionList: pointer.To(false),
 			},
 		}
@@ -424,7 +423,7 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 		"source_vm_id": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 			ValidateFunc: validation.Any(
 				validation.StringIsEmpty,

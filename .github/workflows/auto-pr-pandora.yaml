@@ -20,11 +20,13 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+        with:
+          persist-credentials: false
 
       - name: "open a pull request"
         id: open-pr
         run: |
-          # this runs everytime the PR gets pushed too, whilst you can only create a PR a single time
+          # this runs every time the PR gets pushed too, whilst you can only create a PR a single time
           # so we should be smarter, but piping this to /dev/null is a fine workaround for MVP
           gh pr create --title "$PR_TITLE" --body "$PR_BODY" -B "$PR_TARGET" > /dev/null
 

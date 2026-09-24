@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressrouteports"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressrouteports"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -27,10 +27,10 @@ import (
 )
 
 var expressRoutePortSchema = &pluginsdk.Schema{
-	Type: pluginsdk.TypeList,
-	// Service will always create a pair of links automatically. Users can't add or remove link, but only manipulate existing ones.
-	// This is because the link is actually a map to the physical pair of ports on the MS edge device.
+	Type:     pluginsdk.TypeList,
 	Optional: true,
+	// Note: O+C because the service will always create a pair of links automatically. Users can't add or remove link, but only manipulate existing ones.
+	// This is because the link is actually a map to the physical pair of ports on the MS edge device.
 	Computed: true,
 	MinItems: 1,
 	MaxItems: 1,
@@ -445,7 +445,7 @@ func expandExpressRoutePortLink(idx int, input []interface{}) *expressrouteports
 
 func flattenExpressRoutePortLinks(links *[]expressrouteports.ExpressRouteLink) ([]interface{}, []interface{}, error) {
 	if links == nil {
-		return nil, nil, nil
+		return []interface{}{}, []interface{}{}, nil
 	}
 	length := len(*links)
 	if length != 2 {

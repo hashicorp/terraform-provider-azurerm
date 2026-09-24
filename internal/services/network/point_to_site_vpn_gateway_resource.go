@@ -14,10 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -91,7 +89,7 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 										Required: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
-											ValidateFunc: validate.CIDR,
+											ValidateFunc: validation.IsCIDRIPv4,
 										},
 									},
 								},
@@ -101,7 +99,7 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 						"route": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -224,7 +222,7 @@ func resourcePointToSiteVPNGatewayCreate(d *pluginsdk.ResourceData, meta interfa
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
-	customDNSServers := helpers.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
+	customDNSServers := pluginsdk.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
 	if len(*customDNSServers) != 0 {
 		parameters.Properties.CustomDnsServers = customDNSServers
 	}
@@ -270,7 +268,7 @@ func resourcePointToSiteVPNGatewayUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if d.HasChange("dns_servers") {
-		customDNSServers := helpers.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
+		customDNSServers := pluginsdk.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
 		if len(*customDNSServers) != 0 {
 			props.CustomDnsServers = customDNSServers
 		}
@@ -318,9 +316,8 @@ func resourcePointToSiteVPNGatewayRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
-			d.Set("dns_servers", helpers.FlattenStringSlice(props.CustomDnsServers))
-			flattenedConfigurations := flattenPointToSiteVPNGatewayConnectionConfiguration(props.P2SConnectionConfigurations)
-			if err := d.Set("connection_configuration", flattenedConfigurations); err != nil {
+			d.Set("dns_servers", pluginsdk.FlattenSlice(props.CustomDnsServers))
+			if err := d.Set("connection_configuration", flattenPointToSiteVPNGatewayConnectionConfiguration(props.P2SConnectionConfigurations)); err != nil {
 				return fmt.Errorf("setting `connection_configuration`: %+v", err)
 			}
 
@@ -436,7 +433,7 @@ func expandPointToSiteVPNGatewayConnectionRouteConfigurationPropagatedRouteTable
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	idRaws := helpers.ExpandStringSlice(v["ids"].([]interface{}))
+	idRaws := pluginsdk.ExpandStringSlice(v["ids"].([]interface{}))
 	ids := make([]virtualwans.SubResource, len(*idRaws))
 	for i, item := range *idRaws {
 		ids[i] = virtualwans.SubResource{
@@ -444,7 +441,7 @@ func expandPointToSiteVPNGatewayConnectionRouteConfigurationPropagatedRouteTable
 		}
 	}
 	return &virtualwans.PropagatedRouteTable{
-		Labels: helpers.ExpandStringSlice(v["labels"].(*pluginsdk.Set).List()),
+		Labels: pluginsdk.ExpandStringSlice(v["labels"].(*pluginsdk.Set).List()),
 		Ids:    &ids,
 	}
 }
@@ -540,7 +537,7 @@ func flattenPointToSiteVPNGatewayConnectionRouteConfigurationPropagatedRouteTabl
 	return []interface{}{
 		map[string]interface{}{
 			"ids":    ids,
-			"labels": helpers.FlattenStringSlice(input.Labels),
+			"labels": pluginsdk.FlattenSlice(input.Labels),
 		},
 	}
 }

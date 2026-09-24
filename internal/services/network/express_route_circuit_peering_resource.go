@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/routefilters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressroutecircuitconnections"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressroutecircuitpeerings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuitconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuitpeerings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routefilters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -95,7 +95,7 @@ func resourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 			"peer_asn": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"microsoft_peering_config": {
@@ -512,8 +512,7 @@ func resourceExpressRouteCircuitPeeringRead(d *pluginsdk.ResourceData, meta inte
 			}
 			d.Set("route_filter_id", routeFilterId)
 
-			config := flattenExpressRouteCircuitPeeringMicrosoftConfig(props.MicrosoftPeeringConfig)
-			if err := d.Set("microsoft_peering_config", config); err != nil {
+			if err := d.Set("microsoft_peering_config", flattenExpressRouteCircuitPeeringMicrosoftConfig(props.MicrosoftPeeringConfig)); err != nil {
 				return fmt.Errorf("setting `microsoft_peering_config`: %+v", err)
 			}
 			if err := d.Set("ipv6", flattenExpressRouteCircuitIpv6PeeringConfig(props.IPv6PeeringConfig)); err != nil {

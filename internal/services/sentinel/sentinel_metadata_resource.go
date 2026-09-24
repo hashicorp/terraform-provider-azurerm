@@ -15,7 +15,6 @@ import (
 	sentinelmetadata "github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/metadata"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -238,13 +237,13 @@ func (a MetadataResource) Arguments() map[string]*pluginsdk.Schema {
 		"first_publish_date": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validate.ISO8601DateTime,
+			ValidateFunc: validation.ISO8601DateTime,
 		},
 
 		"last_publish_date": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validate.ISO8601DateTime,
+			ValidateFunc: validation.ISO8601DateTime,
 		},
 
 		"content_schema_version": {
@@ -582,8 +581,7 @@ func (a MetadataResource) Update() sdk.ResourceFunc {
 			}
 
 			if plan.Kind != "" {
-				kind := sentinelmetadata.Kind(plan.Kind)
-				update.Properties.Kind = &kind
+				update.Properties.Kind = pointer.ToEnum[sentinelmetadata.Kind](plan.Kind)
 			}
 
 			if plan.ParentId != "" {
@@ -802,15 +800,13 @@ func expandMetadataDependencies(input interface{}) (dependencies *sentinelmetada
 			dependencies.ContentId = pointer.To(v.(string))
 		}
 		if v, ok := j["kind"]; ok {
-			kind := sentinelmetadata.Kind(v.(string))
-			dependencies.Kind = &kind
+			dependencies.Kind = pointer.ToEnum[sentinelmetadata.Kind](v.(string))
 		}
 		if v, ok := j["version"]; ok {
 			dependencies.Version = pointer.To(v.(string))
 		}
 		if v, ok := j["operator"]; ok {
-			op := sentinelmetadata.Operator(v.(string))
-			dependencies.Operator = &op
+			dependencies.Operator = pointer.ToEnum[sentinelmetadata.Operator](v.(string))
 		}
 		if v, ok := j["criteria"]; ok {
 			if array, ok := v.([]interface{}); ok {

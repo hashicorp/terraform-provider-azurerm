@@ -22,11 +22,13 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimages"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -38,6 +40,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+const azureWindowsVirtualMachineResourceName = "azurerm_windows_virtual_machine"
+
+//go:generate go run ../../tools/generator-tests resourceidentity -test-name authPassword
+
 func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceWindowsVirtualMachineCreate,
@@ -45,10 +51,11 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 		Update: resourceWindowsVirtualMachineUpdate,
 		Delete: resourceWindowsVirtualMachineDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := commonids.ParseVirtualMachineID(id)
-			return err
-		}, importVirtualMachine(virtualmachines.OperatingSystemTypesWindows, "azurerm_windows_virtual_machine")),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&virtualmachines.VirtualMachineId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentityThen(&virtualmachines.VirtualMachineId{}, importVirtualMachine(virtualmachines.OperatingSystemTypesWindows, azureWindowsVirtualMachineResourceName)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(45 * time.Minute),
@@ -126,12 +133,12 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"os_disk": virtualMachineOSDiskSchema(),
 
 			"os_managed_disk_id": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
 				// Note: O+C as this is the same value as `os_disk.0.id` - which gains a value from implicit
 				// disk creation with a VM when an existing disk is not specified here. This is a top-level property
 				// to enable schema validation to guard against any values for `OsProfile` being set, as these are
 				// incompatible with specifying an existing disk. i.e. the OsProfile becomes unmanageable.
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: commonids.ValidateManagedDiskID,
@@ -155,7 +162,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"allow_extension_operations": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"availability_set_id": {
@@ -200,8 +207,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"computer_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-
-				// Computed since we reuse the VM name if one's not specified
+				// Note: O+C since we reuse the VM name if one's not specified
 				Computed: true,
 				ForceNew: true,
 
@@ -249,7 +255,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"disk_controller_type": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForDiskControllerTypes(), false),
 			},
 
@@ -258,7 +264,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"automatic_updates_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true, // updating this is not allowed "Changing property 'windowsConfiguration.enableAutomaticUpdates' is not allowed." Target="windowsConfiguration.enableAutomaticUpdates"
 				ConflictsWith: []string{
 					"os_managed_disk_id",
@@ -282,7 +288,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "PT1H30M",
-				ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
+				ValidateFunc: validation.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
 			"gallery_application": VirtualMachineGalleryApplicationSchema(),
@@ -316,7 +322,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"patch_mode": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForWindowsVMGuestPatchMode(), false),
 				ConflictsWith: []string{
 					"os_managed_disk_id",
@@ -326,7 +332,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"patch_assessment_mode": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForWindowsPatchAssessmentMode(), false),
 				ConflictsWith: []string{
 					"os_managed_disk_id",
@@ -336,7 +342,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"hotpatching_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ConflictsWith: []string{
 					"os_managed_disk_id",
 				},
@@ -358,7 +364,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"provision_vm_agent": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 				ConflictsWith: []string{
 					"os_managed_disk_id",
@@ -404,8 +410,8 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.Any(
 					images.ValidateImageID,
-					computeValidate.SharedImageID,
-					computeValidate.SharedImageVersionID,
+					validation.AsGeneratedID(galleryimages.ParseGalleryImageIDInsensitively),
+					validation.AsGeneratedID(galleryimageversions.ParseImageVersionIDInsensitively),
 					computeValidate.CommunityGalleryImageID,
 					computeValidate.CommunityGalleryImageVersionID,
 					computeValidate.SharedGalleryImageID,
@@ -550,7 +556,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_windows_virtual_machine", id.ID())
+			return tf.ImportAsExistsError(azureWindowsVirtualMachineResourceName, id.ID())
 		}
 	}
 
@@ -926,20 +932,22 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, params, virtualmachines.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDCallback(meta, &id, d)); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, params, virtualmachines.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating Windows %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceWindowsVirtualMachineRead(d, meta)
 }
 
 func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Compute.VirtualMachinesClient
-	disksClient := meta.(*clients.Client).Compute.DisksClient
-	networkInterfacesClient := meta.(*clients.Client).Network.NetworkInterfacesClient
-	publicIPAddressesClient := meta.(*clients.Client).Network.PublicIPAddresses
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	metaClient := meta.(*clients.Client)
+	client := metaClient.Compute.VirtualMachinesClient
+	ctx, cancel := timeouts.ForRead(metaClient.StopContext, d)
 	defer cancel()
 
 	id, err := virtualmachines.ParseVirtualMachineID(d.Id())
@@ -960,10 +968,18 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving Windows %s: %+v", id, err)
 	}
 
+	return resourceWindowsVirtualMachineFlatten(ctx, metaClient, d, id, resp.Model, true)
+}
+
+func resourceWindowsVirtualMachineFlatten(ctx context.Context, metaClient *clients.Client, d *pluginsdk.ResourceData, id *virtualmachines.VirtualMachineId, model *virtualmachines.VirtualMachine, includeResource bool) error {
+	disksClient := metaClient.Compute.DisksClient
+	networkInterfacesClient := metaClient.Network.NetworkInterfacesClient
+	publicIPAddressesClient := metaClient.Network.PublicIPAddresses
+
 	d.Set("name", id.VirtualMachineName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 		d.Set("edge_zone", flattenEdgeZone(model.ExtendedLocation))
 
@@ -1126,14 +1142,16 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 			if profile := props.StorageProfile; profile != nil {
 				d.Set("disk_controller_type", pointer.From(props.StorageProfile.DiskControllerType))
 
-				// the storage_account_type isn't returned so we need to look it up
-				flattenedOSDisk, err := flattenVirtualMachineOSDisk(ctx, disksClient, profile.OsDisk)
-				if err != nil {
-					return fmt.Errorf("flattening `os_disk`: %+v", err)
-				}
+				if includeResource {
+					// the storage_account_type isn't returned so we need to look it up
+					flattenedOSDisk, err := flattenVirtualMachineOSDisk(ctx, disksClient, profile.OsDisk)
+					if err != nil {
+						return fmt.Errorf("flattening `os_disk`: %+v", err)
+					}
 
-				if err := d.Set("os_disk", flattenedOSDisk); err != nil {
-					return fmt.Errorf("settings `os_disk`: %+v", err)
+					if err := d.Set("os_disk", flattenedOSDisk); err != nil {
+						return fmt.Errorf("settings `os_disk`: %+v", err)
+					}
 				}
 				osManagedDiskId := ""
 				if profile.OsDisk != nil && profile.OsDisk.ManagedDisk != nil && profile.OsDisk.ManagedDisk.Id != nil {
@@ -1191,19 +1209,20 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 			d.Set("secure_boot_enabled", secureBootEnabled)
 			d.Set("user_data", props.UserData)
 
-			connectionInfo := retrieveConnectionInformation(ctx, networkInterfacesClient, publicIPAddressesClient, props)
-			d.Set("private_ip_address", connectionInfo.primaryPrivateAddress)
-			d.Set("private_ip_addresses", connectionInfo.privateAddresses)
-			d.Set("public_ip_address", connectionInfo.primaryPublicAddress)
-			d.Set("public_ip_addresses", connectionInfo.publicAddresses)
-			isWindows := false
-			setConnectionInformation(d, connectionInfo, isWindows)
+			if includeResource {
+				connectionInfo := retrieveConnectionInformation(ctx, networkInterfacesClient, publicIPAddressesClient, props)
+				d.Set("private_ip_address", connectionInfo.primaryPrivateAddress)
+				d.Set("private_ip_addresses", connectionInfo.privateAddresses)
+				d.Set("public_ip_address", connectionInfo.primaryPublicAddress)
+				d.Set("public_ip_addresses", connectionInfo.publicAddresses)
+				setConnectionInformation(d, connectionInfo, false)
+			}
 		}
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

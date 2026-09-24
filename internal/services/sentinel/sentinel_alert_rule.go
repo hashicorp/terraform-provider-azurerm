@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -150,8 +149,7 @@ func expandAlertRuleEventGroupingSetting(input []interface{}) *alertrules.EventG
 	result := alertrules.EventGroupingSettings{}
 
 	if aggregationKind := v["aggregation_method"].(string); aggregationKind != "" {
-		kind := alertrules.EventGroupingAggregationKind(aggregationKind)
-		result.AggregationKind = &kind
+		result.AggregationKind = pointer.ToEnum[alertrules.EventGroupingAggregationKind](aggregationKind)
 	}
 
 	return &result
@@ -197,7 +195,7 @@ func expandAlertRuleGrouping(input []interface{}, withGroupPrefix bool) *alertru
 	if withGroupPrefix {
 		key = "group_" + key
 	}
-	output.GroupByCustomDetails = helpers.ExpandStringSlice(raw[key].([]interface{}))
+	output.GroupByCustomDetails = pluginsdk.ExpandStringSlice(raw[key].([]interface{}))
 
 	return output
 }
@@ -325,9 +323,8 @@ func expandAlertRuleAlertDynamicProperties(input []interface{}) *[]alertrules.Al
 	output := make([]alertrules.AlertPropertyMapping, 0, len(input))
 	for _, v := range input {
 		b := v.(map[string]interface{})
-		property := alertrules.AlertProperty(b["name"].(string))
 		output = append(output, alertrules.AlertPropertyMapping{
-			AlertProperty: &property,
+			AlertProperty: pointer.ToEnum[alertrules.AlertProperty](b["name"].(string)),
 			Value:         pointer.To(b["value"].(string)),
 		})
 	}
@@ -363,9 +360,8 @@ func expandAlertRuleEntityMapping(input []interface{}) *[]alertrules.EntityMappi
 	result := make([]alertrules.EntityMapping, 0, len(input))
 	for _, e := range input {
 		b := e.(map[string]interface{})
-		mappingType := alertrules.EntityMappingType(b["entity_type"].(string))
 		result = append(result, alertrules.EntityMapping{
-			EntityType:    &mappingType,
+			EntityType:    pointer.ToEnum[alertrules.EntityMappingType](b["entity_type"].(string)),
 			FieldMappings: expandAlertRuleFieldMapping(b["field_mapping"].([]interface{})),
 		})
 	}
