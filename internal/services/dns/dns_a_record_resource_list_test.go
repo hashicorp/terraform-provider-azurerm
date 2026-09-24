@@ -69,7 +69,7 @@ resource "azurerm_dns_zone" "test" {
 }
 
 resource "azurerm_dns_a_record" "test" {
-  count = 3
+  count               = 3
   name                = "myarecord%d${count.index}"
   resource_group_name = azurerm_resource_group.test.name
   zone_name           = azurerm_dns_zone.test.name
