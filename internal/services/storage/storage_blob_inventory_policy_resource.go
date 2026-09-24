@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/blobinventorypolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
@@ -288,7 +287,7 @@ func expandBlobInventoryPolicyRules(input []interface{}) ([]blobinventorypolicie
 				Format:       blobinventorypolicies.Format(v["format"].(string)),
 				Schedule:     blobinventorypolicies.Schedule(v["schedule"].(string)),
 				ObjectType:   blobinventorypolicies.ObjectType(v["scope"].(string)),
-				SchemaFields: *helpers.ExpandStringSlice(v["schema_fields"].([]interface{})),
+				SchemaFields: *pluginsdk.ExpandStringSlice(v["schema_fields"].([]interface{})),
 				Filters:      filters,
 			},
 		})
@@ -302,9 +301,9 @@ func expandBlobInventoryPolicyFilter(input []interface{}, objectType string) (*b
 	}
 	v := input[0].(map[string]interface{})
 	policyFilter := &blobinventorypolicies.BlobInventoryPolicyFilter{
-		PrefixMatch:         helpers.ExpandStringSlice(v["prefix_match"].(*pluginsdk.Set).List()),
-		ExcludePrefix:       helpers.ExpandStringSlice(v["exclude_prefixes"].(*pluginsdk.Set).List()),
-		BlobTypes:           helpers.ExpandStringSlice(v["blob_types"].(*pluginsdk.Set).List()),
+		PrefixMatch:         pluginsdk.ExpandStringSlice(v["prefix_match"].(*pluginsdk.Set).List()),
+		ExcludePrefix:       pluginsdk.ExpandStringSlice(v["exclude_prefixes"].(*pluginsdk.Set).List()),
+		BlobTypes:           pluginsdk.ExpandStringSlice(v["blob_types"].(*pluginsdk.Set).List()),
 		IncludeBlobVersions: pointer.To(v["include_blob_versions"].(bool)),
 		IncludeDeleted:      pointer.To(v["include_deleted"].(bool)),
 		IncludeSnapshots:    pointer.To(v["include_snapshots"].(bool)),
@@ -354,12 +353,12 @@ func flattenBlobInventoryPolicyFilter(input *blobinventorypolicies.BlobInventory
 
 	return []interface{}{
 		map[string]interface{}{
-			"blob_types":            helpers.FlattenStringSlice(input.BlobTypes),
+			"blob_types":            pluginsdk.FlattenSlice(input.BlobTypes),
 			"include_blob_versions": pointer.From(input.IncludeBlobVersions),
 			"include_deleted":       pointer.From(input.IncludeDeleted),
 			"include_snapshots":     pointer.From(input.IncludeSnapshots),
-			"prefix_match":          helpers.FlattenStringSlice(input.PrefixMatch),
-			"exclude_prefixes":      helpers.FlattenStringSlice(input.ExcludePrefix),
+			"prefix_match":          pluginsdk.FlattenSlice(input.PrefixMatch),
+			"exclude_prefixes":      pluginsdk.FlattenSlice(input.ExcludePrefix),
 		},
 	}
 }

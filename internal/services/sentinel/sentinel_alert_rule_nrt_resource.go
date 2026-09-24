@@ -12,9 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -142,7 +140,7 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 									"lookback_duration": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
-										ValidateFunc: validate.ISO8601Duration,
+										ValidateFunc: validation.ISO8601Duration,
 										Default:      "PT5M",
 									},
 									"reopen_closed_incidents": {
@@ -214,7 +212,7 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "PT5H",
-				ValidateFunc: validate.ISO8601DurationBetween("PT5M", "PT24H"),
+				ValidateFunc: validation.ISO8601DurationBetween("PT5M", "PT24H"),
 			},
 			"alert_details_override": {
 				Type:     pluginsdk.TypeList,
@@ -376,7 +374,7 @@ func resourceSentinelAlertRuleNrtCreateUpdate(d *pluginsdk.ResourceData, meta in
 		param.Properties.AlertDetailsOverride = expandAlertRuleAlertDetailsOverride(v.([]interface{}))
 	}
 	if v, ok := d.GetOk("custom_details"); ok {
-		param.Properties.CustomDetails = helpers.ExpandPtrMapStringString(v.(map[string]interface{}))
+		param.Properties.CustomDetails = pluginsdk.ExpandPtrMapStringString(v.(map[string]interface{}))
 	}
 
 	entityMappingCount := 0
@@ -480,7 +478,7 @@ func resourceSentinelAlertRuleNrtRead(d *pluginsdk.ResourceData, meta interface{
 				if err := d.Set("alert_details_override", flattenAlertRuleAlertDetailsOverride(prop.AlertDetailsOverride)); err != nil {
 					return fmt.Errorf("setting `alert_details_override`: %+v", err)
 				}
-				if err := d.Set("custom_details", helpers.FlattenPtrMapStringString(prop.CustomDetails)); err != nil {
+				if err := d.Set("custom_details", pluginsdk.FlattenPtrMapStringString(prop.CustomDetails)); err != nil {
 					return fmt.Errorf("setting `custom_details`: %+v", err)
 				}
 				if err := d.Set("entity_mapping", flattenAlertRuleEntityMapping(prop.EntityMappings)); err != nil {
