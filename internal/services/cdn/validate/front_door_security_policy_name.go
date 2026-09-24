@@ -6,11 +6,11 @@ package validate
 import (
 	"fmt"
 
-	validatehelper "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func FrontDoorSecurityPolicyName(i interface{}, k string) (_ []string, errors []error) {
-	if m, regexErrs := validatehelper.RegExHelper(i, k, `^[\da-zA-Z](?:[-\da-zA-Z]*[\da-zA-Z])?$`); !m {
+	if m, regexErrs := validation.RegExHelper(i, k, `^[\da-zA-Z](?:[-\da-zA-Z]*[\da-zA-Z])?$`); !m {
 		return nil, append(regexErrs, fmt.Errorf("%q must begin and end with an alphanumeric character, and may contain only alphanumeric characters and hyphens", k))
 	}
 

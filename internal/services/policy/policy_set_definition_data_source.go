@@ -10,7 +10,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -198,7 +197,7 @@ func dataSourcePolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interface
 
 	definitionBytes, err := json.Marshal(setDefinition.PolicyDefinitions)
 	if err != nil {
-		return fmt.Errorf("flattening JSON for `policy_defintions`: %+v", err)
+		return fmt.Errorf("flattening JSON for `policy_definitions`: %+v", err)
 	}
 	d.Set("policy_definitions", string(definitionBytes))
 
@@ -245,7 +244,7 @@ func flattenAzureRMPolicySetDefinitionPolicyDefinitionsTrack1(input *[]policy.De
 			"policy_definition_id": policyDefinitionID,
 			"parameter_values":     parameterValues,
 			"reference_id":         policyDefinitionReference,
-			"policy_group_names":   helpers.FlattenStringSlice(definition.GroupNames),
+			"policy_group_names":   pluginsdk.FlattenSlice(definition.GroupNames),
 		})
 	}
 	return result, nil

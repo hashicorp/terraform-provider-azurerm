@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package containers_test
 
 // NOTE: this file is generated - manual changes will be overwritten.
