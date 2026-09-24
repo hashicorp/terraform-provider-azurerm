@@ -37,21 +37,6 @@ func SystemCenterVirtualMachineManagerVirtualMachineInstanceID(input string) (*S
 	return &id, nil
 }
 
-func SystemCenterVirtualMachineManagerVirtualMachineInstanceIDInsensitively(input string) (*SystemCenterVirtualMachineManagerVirtualMachineInstanceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(&SystemCenterVirtualMachineManagerVirtualMachineInstanceId{})
-	parsed, err := parser.Parse(input, true)
-	if err != nil {
-		return nil, fmt.Errorf("parsing %q: %+v", input, err)
-	}
-
-	id := SystemCenterVirtualMachineManagerVirtualMachineInstanceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
-		return nil, err
-	}
-
-	return &id, nil
-}
-
 func (id *SystemCenterVirtualMachineManagerVirtualMachineInstanceId) FromParseResult(input resourceids.ParseResult) error {
 	var ok bool
 

@@ -6,6 +6,7 @@ package firewall
 import (
 	"fmt"
 	"log"
+	"slices"
 	"strings"
 	"time"
 
@@ -16,11 +17,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/firewallpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualwans"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/azurefirewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/azurefirewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/firewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -277,11 +277,11 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("parsing Azure Firewall Management IP Configurations: %+v", err)
 		}
 
-		if !helpers.SliceContainsValue(*subnetToLock, (*mgmtSubnetName)[0]) {
+		if !slices.Contains(*subnetToLock, (*mgmtSubnetName)[0]) {
 			*subnetToLock = append(*subnetToLock, (*mgmtSubnetName)[0])
 		}
 
-		if !helpers.SliceContainsValue(*vnetToLock, (*mgmtVirtualNetworkName)[0]) {
+		if !slices.Contains(*vnetToLock, (*mgmtVirtualNetworkName)[0]) {
 			*vnetToLock = append(*vnetToLock, (*mgmtVirtualNetworkName)[0])
 		}
 		if *mgmtIPConfig != nil {
@@ -376,7 +376,7 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.IsNewResource() {
-		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, azurefirewalls.DefaultCreateOrUpdateOperationOptions(), sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 
@@ -385,7 +385,7 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return err
 		}
 	} else {
-		if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, azurefirewalls.DefaultCreateOrUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 	}
@@ -515,11 +515,11 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 						return err2
 					}
 
-					if !helpers.SliceContainsValue(subnetNamesToLock, parsedSubnetID.SubnetName) {
+					if !slices.Contains(subnetNamesToLock, parsedSubnetID.SubnetName) {
 						subnetNamesToLock = append(subnetNamesToLock, parsedSubnetID.SubnetName)
 					}
 
-					if !helpers.SliceContainsValue(virtualNetworkNamesToLock, parsedSubnetID.VirtualNetworkName) {
+					if !slices.Contains(virtualNetworkNamesToLock, parsedSubnetID.VirtualNetworkName) {
 						virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, parsedSubnetID.VirtualNetworkName)
 					}
 				}
@@ -532,11 +532,11 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 						return err2
 					}
 
-					if !helpers.SliceContainsValue(subnetNamesToLock, parsedSubnetID.SubnetName) {
+					if !slices.Contains(subnetNamesToLock, parsedSubnetID.SubnetName) {
 						subnetNamesToLock = append(subnetNamesToLock, parsedSubnetID.SubnetName)
 					}
 
-					if !helpers.SliceContainsValue(virtualNetworkNamesToLock, parsedSubnetID.VirtualNetworkName) {
+					if !slices.Contains(virtualNetworkNamesToLock, parsedSubnetID.VirtualNetworkName) {
 						virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, parsedSubnetID.VirtualNetworkName)
 					}
 				}
@@ -608,11 +608,11 @@ func expandFirewallIPConfigurations(configs []interface{}) (*[]azurefirewalls.Az
 				return nil, nil, nil, err
 			}
 
-			if !helpers.SliceContainsValue(subnetNamesToLock, subnetID.SubnetName) {
+			if !slices.Contains(subnetNamesToLock, subnetID.SubnetName) {
 				subnetNamesToLock = append(subnetNamesToLock, subnetID.SubnetName)
 			}
 
-			if !helpers.SliceContainsValue(virtualNetworkNamesToLock, subnetID.VirtualNetworkName) {
+			if !slices.Contains(virtualNetworkNamesToLock, subnetID.VirtualNetworkName) {
 				virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, subnetID.VirtualNetworkName)
 			}
 
@@ -690,7 +690,7 @@ func flattenFirewallAdditionalProperty(input *map[string]string) (enabled interf
 	}
 
 	if serversPtr, ok := (*input)["Network.DNS.Servers"]; ok {
-		for _, val := range strings.Split(serversPtr, ",") {
+		for val := range strings.SplitSeq(serversPtr, ",") {
 			servers = append(servers, val)
 		}
 	}
@@ -702,7 +702,7 @@ func expandFirewallPrivateIpRange(input []interface{}) map[string]string {
 		return nil
 	}
 
-	rangeSlice := *helpers.ExpandStringSlice(input)
+	rangeSlice := *pluginsdk.ExpandStringSlice(input)
 	if len(rangeSlice) == 0 {
 		return nil
 	}
@@ -723,7 +723,7 @@ func flattenFirewallPrivateIpRange(input *map[string]string) []interface{} {
 	if privateIpRanges := attrs["Network.SNAT.PrivateRanges"]; privateIpRanges != "" {
 		rangeSlice = strings.Split(attrs["Network.SNAT.PrivateRanges"], ",")
 	}
-	return helpers.FlattenStringSlice(&rangeSlice)
+	return pluginsdk.FlattenSlice(&rangeSlice)
 }
 
 func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, input []interface{}) (vhub *azurefirewalls.SubResource, ipAddresses *azurefirewalls.HubIPAddresses, ok bool) {
@@ -753,7 +753,7 @@ func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, inp
 						// In case of scale down, keep the first new "Count" addresses.
 						if oldCount > newCount {
 							keptAddresses := make([]azurefirewalls.AzureFirewallPublicIPAddress, newCount)
-							for i := 0; i < newCount; i++ {
+							for i := range newCount {
 								keptAddresses[i] = (*addresses)[i]
 							}
 							addresses = &keptAddresses

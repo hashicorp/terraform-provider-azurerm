@@ -16,14 +16,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/serviceendpointpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ipampools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecuritygroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routetables"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/ipampools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routetables"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/serviceendpointpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/subnets"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -405,7 +404,7 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subnet := subnets.Subnet{
 		Name: pointer.To(id.SubnetName),
 		Properties: &subnets.SubnetPropertiesFormat{
-			AddressPrefixes:                   helpers.ExpandStringSlice(d.Get("address_prefixes").([]any)),
+			AddressPrefixes:                   pluginsdk.ExpandStringSlice(d.Get("address_prefixes").([]any)),
 			DefaultOutboundAccess:             pointer.To(d.Get("default_outbound_access_enabled").(bool)),
 			Delegations:                       expandSubnetDelegation(d.Get("delegation").([]interface{})),
 			IPamPoolPrefixAllocations:         expandSubnetIPAddressPool(d.Get("ip_address_pool").([]interface{})),
@@ -561,7 +560,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			props.AddressPrefix = nil
 			props.AddressPrefixes = nil
 		default:
-			props.AddressPrefixes = helpers.ExpandStringSlice(addressPrefixesRaw)
+			props.AddressPrefixes = pluginsdk.ExpandStringSlice(addressPrefixesRaw)
 			props.AddressPrefix = nil
 		}
 	}

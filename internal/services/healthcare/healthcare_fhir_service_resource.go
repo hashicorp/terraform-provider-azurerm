@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/fhirservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2024-03-31/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
@@ -369,8 +368,6 @@ func expandOciArtifacts(input []interface{}) *[]fhirservices.ServiceOciArtifactE
 
 		artifact := fhirservices.ServiceOciArtifactEntry{
 			LoginServer: pointer.To(artifactRaw["login_server"].(string)),
-			ImageName:   nil,
-			Digest:      nil,
 		}
 		if image := artifactRaw["image_name"].(string); image != "" {
 			artifact.ImageName = &image
@@ -506,9 +503,9 @@ func expandFhirCorsConfiguration(input []interface{}) *fhirservices.FhirServiceC
 
 	block := input[0].(map[string]interface{})
 
-	allowedOrigins := *helpers.ExpandStringSlice(block["allowed_origins"].(*pluginsdk.Set).List())
-	allowedHeaders := *helpers.ExpandStringSlice(block["allowed_headers"].(*pluginsdk.Set).List())
-	allowedMethods := *helpers.ExpandStringSlice(block["allowed_methods"].(*pluginsdk.Set).List())
+	allowedOrigins := *pluginsdk.ExpandStringSlice(block["allowed_origins"].(*pluginsdk.Set).List())
+	allowedHeaders := *pluginsdk.ExpandStringSlice(block["allowed_headers"].(*pluginsdk.Set).List())
+	allowedMethods := *pluginsdk.ExpandStringSlice(block["allowed_methods"].(*pluginsdk.Set).List())
 
 	cors := &fhirservices.FhirServiceCorsConfiguration{
 		Origins:          &allowedOrigins,
@@ -605,9 +602,9 @@ func flattenFhirCorsConfiguration(corsConfig *fhirservices.FhirServiceCorsConfig
 	return []interface{}{
 		map[string]interface{}{
 			"credentials_allowed": pointer.From(corsConfig.AllowCredentials),
-			"allowed_headers":     helpers.FlattenStringSlice(corsConfig.Headers),
-			"allowed_methods":     helpers.FlattenStringSlice(corsConfig.Methods),
-			"allowed_origins":     helpers.FlattenStringSlice(corsConfig.Origins),
+			"allowed_headers":     pluginsdk.FlattenSlice(corsConfig.Headers),
+			"allowed_methods":     pluginsdk.FlattenSlice(corsConfig.Methods),
+			"allowed_origins":     pluginsdk.FlattenSlice(corsConfig.Origins),
 			"max_age_in_seconds":  maxAge,
 		},
 	}

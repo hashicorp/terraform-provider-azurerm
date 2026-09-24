@@ -215,7 +215,7 @@ The `vpn_client_configuration` block supports:
 * `aad_tenant` - (Optional) AzureAD Tenant URL
 
 * `aad_audience` - (Optional) The client id of the Azure VPN application.
-    See [Create an Active Directory (AD) tenant for P2S OpenVPN protocol connections](https://docs.microsoft.com/en-gb/azure/vpn-gateway/openvpn-azure-ad-tenant-multi-app) for values
+    See [Create an Active Directory (AD) tenant for P2S OpenVPN protocol connections](https://docs.microsoft.com/azure/vpn-gateway/openvpn-azure-ad-tenant-multi-app) for values
 
 * `aad_issuer` - (Optional) The STS url for your tenant
 
@@ -368,4 +368,4 @@ terraform import azurerm_virtual_network_gateway.exampleGateway /subscriptions/0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

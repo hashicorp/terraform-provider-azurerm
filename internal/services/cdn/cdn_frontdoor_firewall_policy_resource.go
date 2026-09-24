@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -946,7 +945,7 @@ func expandCdnFrontDoorFirewallMatchConditions(input []interface{}) []waf.MatchC
 		matchVariable := match["match_variable"].(string)
 		selector := match["selector"].(string)
 		operator := match["operator"].(string)
-		matchValues := helpers.ExpandStringSlice(match["match_values"].([]interface{}))
+		matchValues := pluginsdk.ExpandStringSlice(match["match_values"].([]interface{}))
 		transforms := match["transforms"].([]interface{})
 
 		matchCondition := waf.MatchCondition{
@@ -1161,12 +1160,12 @@ func expandCdnFrontDoorFirewallScrubbingRules(input []interface{}) (*[]waf.WebAp
 		v := rule.(map[string]interface{})
 		var item waf.WebApplicationFirewallScrubbingRules
 
-		enalbed := waf.ScrubbingRuleEntryStateDisabled
+		enabled := waf.ScrubbingRuleEntryStateDisabled
 		if value := v["enabled"].(bool); value {
-			enalbed = waf.ScrubbingRuleEntryStateEnabled
+			enabled = waf.ScrubbingRuleEntryStateEnabled
 		}
 
-		item.State = pointer.To(enalbed)
+		item.State = pointer.To(enabled)
 		item.MatchVariable = waf.ScrubbingRuleEntryMatchVariable(v["match_variable"].(string))
 		item.SelectorMatchOperator = waf.ScrubbingRuleEntryMatchOperator(v["operator"].(string))
 

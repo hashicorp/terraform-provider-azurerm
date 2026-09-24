@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperation"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -284,15 +283,14 @@ func ExpandApiManagementOperationParameterContract(d *pluginsdk.ResourceData, sc
 		}
 
 		output := apioperation.ParameterContract{
-			Name:         name,
-			Description:  pointer.To(description),
-			Type:         paramType,
-			Required:     pointer.To(required),
-			DefaultValue: nil,
-			Values:       helpers.ExpandStringSlice(valuesRaw),
-			SchemaId:     pointer.To(schemaId),
-			TypeName:     pointer.To(typeName),
-			Examples:     pointer.To(examples),
+			Name:        name,
+			Description: pointer.To(description),
+			Type:        paramType,
+			Required:    pointer.To(required),
+			Values:      pluginsdk.ExpandStringSlice(valuesRaw),
+			SchemaId:    pointer.To(schemaId),
+			TypeName:    pointer.To(typeName),
+			Examples:    pointer.To(examples),
 		}
 
 		// DefaultValue must be included in Values, else it returns error
@@ -321,7 +319,7 @@ func FlattenApiManagementOperationParameterContract(input *[]apioperation.Parame
 		output["type"] = v.Type
 		output["required"] = pointer.From(v.Required)
 		output["default_value"] = pointer.From(v.DefaultValue)
-		output["values"] = pluginsdk.NewSet(pluginsdk.HashString, helpers.FlattenStringSlice(v.Values))
+		output["values"] = pluginsdk.NewSet(pluginsdk.HashString, pluginsdk.FlattenSlice(v.Values))
 
 		if v.Examples != nil {
 			example, err := FlattenApiManagementOperationParameterExampleContract(*v.Examples)
