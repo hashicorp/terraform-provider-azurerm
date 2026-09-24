@@ -8,7 +8,7 @@ import (
 	"regexp"
 )
 
-func Duration(v interface{}, k string) (warnings []string, errors []error) {
+func Duration(v any, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^(?:[0-9]{1,2}:)?[0-9]{2}:[0-9]{2}:[0-9]{2}$`).Match([]byte(value)) {

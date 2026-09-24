@@ -7,6 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/resources/batch_account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/resources/batch_application"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/resources/batch_job"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/resources/batch_pool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -36,18 +40,18 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_batch_account":     dataSourceBatchAccount(),
-		"azurerm_batch_application": dataSourceBatchApplication(),
-		"azurerm_batch_pool":        dataSourceBatchPool(),
+		"azurerm_batch_account":     batch_account.DataSource(),
+		"azurerm_batch_application": batch_application.DataSource(),
+		"azurerm_batch_pool":        batch_pool.DataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_batch_account":     resourceBatchAccount(),
-		"azurerm_batch_application": resourceBatchApplication(),
-		"azurerm_batch_pool":        resourceBatchPool(),
+		"azurerm_batch_account":     batch_account.Resource(),
+		"azurerm_batch_application": batch_application.Resource(),
+		"azurerm_batch_pool":        batch_pool.Resource(),
 	}
 }
 
@@ -57,7 +61,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		BatchJobResource{},
+		batch_job.Resource{},
 	}
 }
 
@@ -79,7 +83,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
-		BatchAccountListResource{},
-		BatchApplicationListResource{},
+		batch_account.ListResource{},
+		batch_application.ListResource{},
 	}
 }
