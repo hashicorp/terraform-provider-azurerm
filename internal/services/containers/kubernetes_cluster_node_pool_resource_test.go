@@ -1539,6 +1539,7 @@ func TestAccKubernetesClusterNodePool_updateWindowsNodePoolTags(t *testing.T) {
 			Config: r.windowsNodePoolWithTags(data, "dev"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.Environment").HasValue("dev"),
 			),
 		},
 		data.ImportStep(),
@@ -1546,6 +1547,7 @@ func TestAccKubernetesClusterNodePool_updateWindowsNodePoolTags(t *testing.T) {
 			Config: r.windowsNodePoolWithTags(data, "prod"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.Environment").HasValue("prod"),
 			),
 		},
 		data.ImportStep(),
@@ -4245,58 +4247,28 @@ resource "azurerm_kubernetes_cluster_node_pool" "pool2" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (KubernetesClusterNodePoolResource) windowsNodePoolWithTags(data acceptance.TestData, tagValue string) string {
+func (r KubernetesClusterNodePoolResource) windowsNodePoolWithTags(data acceptance.TestData, tagValue string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%[2]d"
-  location = "%[1]s"
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%[2]d"
-
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_a2_v2"
-    upgrade_settings {
-      max_surge = "10%%"
-    }
-  }
-
-  node_provisioning_profile {
-    mode               = "Manual"
-    default_node_pools = "Auto"
-  }
-
-  network_profile {
-    network_plugin = "azure"
-  }
-  identity {
-    type = "SystemAssigned"
-  }
-}
+%s
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "pool1"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_a2_v2"
+  vm_size               = "Standard_DS2_v2"
   os_type               = "Windows"
+  os_sku                = "Windows2022"
   node_count            = 1
   upgrade_settings {
     max_surge = "10%%"
   }
 
   tags = {
-    Environment = "%[3]s"
+    Environment = %q
   }
 }
-`, data.Locations.Primary, data.RandomInteger, tagValue)
+`, r.templateWindowsConfig(data), tagValue)
 }
