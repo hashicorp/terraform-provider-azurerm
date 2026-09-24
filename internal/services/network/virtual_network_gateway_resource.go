@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/localnetworkgateways"
@@ -593,6 +594,8 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -652,6 +655,27 @@ func resourceVirtualNetworkGatewayCustomizeDiff(ctx context.Context, d *pluginsd
 		}
 	}
 
+	if rawIdentityType, ok := d.GetOk("identity.0.type"); ok {
+		if gatewayType != string(virtualnetworkgateways.VirtualNetworkGatewayTypeVpn) {
+			return fmt.Errorf("`identity` property is only supported for `type` property of `%s`", virtualnetworkgateways.VirtualNetworkGatewayTypeVpn)
+		}
+
+		if sku == string(virtualnetworkgateways.VirtualNetworkGatewaySkuNameBasic) {
+			return fmt.Errorf("`identity` property is not supported for `sku` property of `%s`", virtualnetworkgateways.VirtualNetworkGatewaySkuNameBasic)
+		}
+
+		identityType := identity.Type(rawIdentityType.(string))
+		switch identityType {
+		case identity.TypeSystemAssigned, identity.TypeSystemAssignedUserAssigned:
+			return fmt.Errorf("`identity.0.type` property of `%s` and `%s` are not supported", identity.TypeSystemAssigned, identity.TypeSystemAssignedUserAssigned)
+		case identity.TypeUserAssigned:
+			identityIds := d.GetRawConfig().AsValueMap()["identity"].AsValueSlice()[0].AsValueMap()["identity_ids"]
+			if identityIds.IsNull() || identityIds.LengthInt() == 0 {
+				return fmt.Errorf("`identity.0.identity_ids` property must be specified when `identity.0.type` property is set to `%s`", identity.TypeUserAssigned)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -701,6 +725,12 @@ func resourceVirtualNetworkGatewayCreate(d *pluginsdk.ResourceData, meta interfa
 		Properties:       *properties,
 	}
 
+	if expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{})); err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	} else if expandedIdentity.Type != identity.TypeNone {
+		gateway.Identity = expandedIdentity
+	}
+
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, gateway, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -735,6 +765,14 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		d.Set("edge_zone", flattenEdgeZoneModel(model.ExtendedLocation))
+
+		flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", flattenedIdentity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
 
 		props := model.Properties
 
@@ -898,6 +936,14 @@ func resourceVirtualNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interfa
 	// autoscale changes while the gateway stays on the ErGwScale SKU.
 	if d.HasChanges("minimum_scale_unit", "maximum_scale_unit") {
 		payload.Properties.AutoScaleConfiguration = expandVirtualNetworkGatewayAutoScaleConfiguration(d)
+	}
+
+	if d.HasChange("identity") {
+		if expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{})); err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		} else if expandedIdentity.Type != identity.TypeNone {
+			payload.Identity = expandedIdentity
+		}
 	}
 
 	if d.HasChange("tags") {

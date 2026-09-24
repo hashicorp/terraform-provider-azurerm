@@ -170,6 +170,8 @@ The following arguments are supported:
 
 * `vpn_type` - (Optional) The routing type of the Virtual Network Gateway. Valid options are `RouteBased` or `PolicyBased`. Defaults to `RouteBased`. Changing this forces a new resource to be created.
 
+* `identity` - (Optional) An `identity` block as defined below. `identity` block is only supported when `type` property is set as `Vpn` and `sku` property is not `Basic`.
+
 ---
 
 The `ip_configuration` block supports:
@@ -324,6 +326,16 @@ The `virtual_network_gateway_client_connection` block supports:
 * `policy_group_names` - (Required) A list of names of Virtual Network Gateway Policy Groups.
 
 * `address_prefixes` - (Required) A list of address prefixes for P2S VPN Client.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Virtual Network Gateway instance. Possible value is `UserAssigned`.
+
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Virtual Network Gateway instance.
+
+~> **Note:** This is required when `type` is set to `UserAssigned`.
 
 ## Attributes Reference
 
