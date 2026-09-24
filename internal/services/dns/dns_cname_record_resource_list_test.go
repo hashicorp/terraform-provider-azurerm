@@ -35,7 +35,7 @@ func TestAccDnsCNameRecord_listByDnsZoneID(t *testing.T) {
 				Query:  true,
 				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_dns_cname_record.list", 3),
+					querycheck.ExpectLength("azurerm_dns_cname_record.list", 3),
 					querycheck.ExpectIdentity(
 						"azurerm_dns_cname_record.list",
 						map[string]knownvalue.Check{
