@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/azurefirewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -198,8 +198,8 @@ func firewallDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 			d.Set("threat_intel_mode", string(pointer.From(props.ThreatIntelMode)))
 
-			dnsProxyEnabeld, dnsServers := flattenFirewallAdditionalProperty(props.AdditionalProperties)
-			if err := d.Set("dns_proxy_enabled", dnsProxyEnabeld); err != nil {
+			dnsProxyEnabled, dnsServers := flattenFirewallAdditionalProperty(props.AdditionalProperties)
+			if err := d.Set("dns_proxy_enabled", dnsProxyEnabled); err != nil {
 				return fmt.Errorf("setting `dns_proxy_enabled`: %+v", err)
 			}
 			if err := d.Set("dns_servers", dnsServers); err != nil {

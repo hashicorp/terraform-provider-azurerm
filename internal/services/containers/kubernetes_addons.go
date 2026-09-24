@@ -9,11 +9,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/applicationgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
-	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -187,7 +186,7 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 							"ingress_application_gateway.0.subnet_cidr",
 							"ingress_application_gateway.0.subnet_id",
 						},
-						ValidateFunc: commonValidate.CIDR,
+						ValidateFunc: validation.IsCIDRIPv4,
 					},
 					"subnet_id": {
 						Type:     pluginsdk.TypeString,
@@ -286,9 +285,7 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 }
 
 func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interface{}, env environments.Environment) (*map[string]managedclusters.ManagedClusterAddonProfile, error) {
-	disabled := managedclusters.ManagedClusterAddonProfile{
-		Enabled: false,
-	}
+	disabled := managedclusters.ManagedClusterAddonProfile{}
 
 	addonProfiles := map[string]managedclusters.ManagedClusterAddonProfile{}
 
@@ -402,7 +399,6 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 	if ok := d.HasChange("open_service_mesh_enabled"); ok {
 		addonProfiles[openServiceMeshKey] = managedclusters.ManagedClusterAddonProfile{
 			Enabled: input["open_service_mesh_enabled"].(bool),
-			Config:  nil,
 		}
 	}
 

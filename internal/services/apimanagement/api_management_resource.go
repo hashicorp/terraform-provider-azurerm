@@ -33,7 +33,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/custompollers"
@@ -496,7 +495,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 					"validation_key": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validate.Base64EncodedString,
+						ValidateFunc: validation.StringIsBase64,
 						Sensitive:    true,
 					},
 				},
@@ -1047,9 +1046,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if d.HasChange("min_api_version") {
-		props.ApiVersionConstraint = &apimanagementservice.ApiVersionConstraint{
-			MinApiVersion: nil,
-		}
+		props.ApiVersionConstraint = &apimanagementservice.ApiVersionConstraint{}
 
 		if v, ok := d.GetOk("min_api_version"); ok {
 			props.ApiVersionConstraint.MinApiVersion = pointer.To(v.(string))

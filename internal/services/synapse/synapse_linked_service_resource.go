@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"maps"
 	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/migration"
@@ -73,7 +73,7 @@ func resourceSynapseLinkedService() *pluginsdk.Resource {
 			"type_properties_json": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
-				StateFunc:        helpers.NormalizeJson,
+				StateFunc:        pluginsdk.NormalizeJson,
 				DiffSuppressFunc: suppressJsonOrderingDifference,
 			},
 
@@ -193,9 +193,7 @@ func resourceSynapseLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	additionalProperties := d.Get("additional_properties").(map[string]interface{})
-	for k, v := range additionalProperties {
-		props[k] = v
-	}
+	maps.Copy(props, additionalProperties)
 
 	jsonData, err := json.Marshal(map[string]interface{}{
 		"properties": props,
@@ -432,7 +430,7 @@ func flattenSynapseLinkedServiceIntegrationRuntimeV2(input *artifacts.Integratio
 }
 
 func suppressJsonOrderingDifference(_, old, new string, _ *pluginsdk.ResourceData) bool {
-	return helpers.NormalizeJson(old) == helpers.NormalizeJson(new)
+	return pluginsdk.NormalizeJson(old) == pluginsdk.NormalizeJson(new)
 }
 
 func checkLinkedServiceResponse(response *http.Response) error {

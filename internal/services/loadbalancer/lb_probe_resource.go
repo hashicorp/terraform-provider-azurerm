@@ -10,9 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -70,7 +69,7 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 			"port": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ValidateFunc: validate.PortNumber,
+				ValidateFunc: validation.IsPortNumber,
 			},
 
 			"probe_threshold": {
@@ -109,8 +108,7 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
+					Type: pluginsdk.TypeString,
 				},
 				Set: pluginsdk.HashString,
 			},
