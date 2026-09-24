@@ -15,7 +15,7 @@ updates:
         patterns:
           - "*"
 
-  # the provider's own dependencies. Security updates are not scheduled as dependabot opens a PR as soon as an advisory lands. 
+  # the provider's own dependencies. Security updates are not scheduled as dependabot opens a PR as soon as an advisory lands.
   # Routine version bumps only arrive quarterly, batched into one PR.
   - package-ecosystem: "gomod"
     directory: "/"
@@ -28,7 +28,7 @@ updates:
         patterns:
           - "*"
 
-  # go dev tools (golangci-lint, terrafmt, gofumpt, ...) pinned in .tools/go.mod, built by make into .tools/bin; 
+  # go dev tools (golangci-lint, terrafmt, gofumpt, ...) pinned in .tools/go.mod, built by make into .tools/bin;
   # tools should move slowly so only check quarterly
   - package-ecosystem: "gomod"
     directory: "/.tools"
