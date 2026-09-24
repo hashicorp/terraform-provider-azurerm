@@ -84,7 +84,7 @@ func TestResourceDnsRecordImporter_DifferentRecordTypes(t *testing.T) {
 			d := schema.TestResourceDataRaw(t, map[string]*schema.Schema{}, map[string]interface{}{})
 			d.SetId(tt.idPath)
 
-			result, err := ResourceDnsRecordImporter(d, tt.recordType)
+			result, err := ResourceDnsRecordImporter(tt.recordType)(nil, d, nil)
 
 			if tt.expectErr && err == nil {
 				t.Errorf("Expected error but got none")

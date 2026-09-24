@@ -4,7 +4,6 @@
 package dns
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -44,7 +43,7 @@ func resourceDnsTxtRecord() *pluginsdk.Resource {
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&recordsets.RecordTypeId{}),
 		},
-		Importer: pluginsdk.ImporterValidatingIdentityThen(&recordsets.RecordTypeId{}, resourceDnsTxtRecordImporter),
+		Importer: pluginsdk.ImporterValidatingIdentityThen(&recordsets.RecordTypeId{}, helper.ResourceDnsRecordImporter(recordsets.RecordTypeTXT)),
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -93,10 +92,6 @@ func resourceDnsTxtRecord() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-}
-
-func resourceDnsTxtRecordImporter(_ context.Context, d *pluginsdk.ResourceData, _ interface{}) ([]*pluginsdk.ResourceData, error) {
-	return helper.ResourceDnsRecordImporter(d, recordsets.RecordTypeTXT)
 }
 
 func resourceDnsTxtRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
