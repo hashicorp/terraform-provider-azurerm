@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkmanagers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 )
@@ -41,7 +41,7 @@ func (p networkManagerDeploymentPoller) Poll(ctx context.Context) (*pollers.Poll
 	}
 
 	networkManagerId := networkmanagers.NewNetworkManagerID(p.id.SubscriptionId, p.id.ResourceGroup, p.id.NetworkManagerName)
-	resp, err := p.client.NetworkManagerDeploymentStatusList(ctx, networkManagerId, payload)
+	resp, err := p.client.NetworkManagerDeploymentStatusList(ctx, networkManagerId, payload, networkmanagers.DefaultNetworkManagerDeploymentStatusListOperationOptions())
 	if err != nil {
 		result.Status = pollers.PollingStatusFailed
 		return result, pollers.PollingFailedError{

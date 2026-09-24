@@ -11,9 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -76,14 +75,14 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			"frontend_port": {
 				Type:          pluginsdk.TypeInt,
 				Optional:      true,
-				ValidateFunc:  validate.PortNumberOrZero,
+				ValidateFunc:  validation.IsPortNumberOrZero,
 				ConflictsWith: []string{"frontend_port_start", "frontend_port_end", "backend_address_pool_id"},
 			},
 
 			"backend_port": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ValidateFunc: validate.PortNumberOrZero,
+				ValidateFunc: validation.IsPortNumberOrZero,
 			},
 
 			"frontend_ip_configuration_name": {
@@ -114,7 +113,7 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			"frontend_port_start": {
 				Type:          pluginsdk.TypeInt,
 				Optional:      true,
-				ValidateFunc:  validate.PortNumber,
+				ValidateFunc:  validation.IsPortNumber,
 				RequiredWith:  []string{"backend_address_pool_id", "frontend_port_end"},
 				ConflictsWith: []string{"frontend_port"},
 			},
@@ -122,7 +121,7 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			"frontend_port_end": {
 				Type:          pluginsdk.TypeInt,
 				Optional:      true,
-				ValidateFunc:  validate.PortNumber,
+				ValidateFunc:  validation.IsPortNumber,
 				RequiredWith:  []string{"backend_address_pool_id", "frontend_port_start"},
 				ConflictsWith: []string{"frontend_port"},
 			},
