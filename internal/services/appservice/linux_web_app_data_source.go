@@ -379,10 +379,10 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 				webApp.Location = location.Normalize(model.Location)
 				webApp.Tags = pointer.From(model.Tags)
 				if props := model.Properties; props != nil {
-					webApp.Availability = string(pointer.From(props.AvailabilityState))
+					webApp.Availability = pointer.FromEnum(props.AvailabilityState)
 					webApp.ClientAffinityEnabled = pointer.From(props.ClientAffinityEnabled)
 					webApp.ClientCertEnabled = pointer.From(props.ClientCertEnabled)
-					webApp.ClientCertMode = string(pointer.From(props.ClientCertMode))
+					webApp.ClientCertMode = pointer.FromEnum(props.ClientCertMode)
 					webApp.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
 					webApp.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					webApp.DefaultHostname = pointer.From(props.DefaultHostName)
@@ -402,7 +402,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 					webApp.OutboundIPAddressList = strings.Split(webApp.OutboundIPAddresses, ",")
 					webApp.PossibleOutboundIPAddresses = pointer.From(props.PossibleOutboundIPAddresses)
 					webApp.PossibleOutboundIPAddressList = strings.Split(webApp.PossibleOutboundIPAddresses, ",")
-					webApp.Usage = string(pointer.From(props.UsageState))
+					webApp.Usage = pointer.FromEnum(props.UsageState)
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						webApp.HostingEnvId = pointer.From(hostingEnv.Id)
 					}

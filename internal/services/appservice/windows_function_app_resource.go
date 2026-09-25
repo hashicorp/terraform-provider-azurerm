@@ -779,7 +779,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					state.Enabled = pointer.From(props.Enabled)
-					state.ClientCertMode = string(pointer.From(props.ClientCertMode))
+					state.ClientCertMode = pointer.FromEnum(props.ClientCertMode)
 					state.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
 					state.DailyMemoryTimeQuota = pointer.From(props.DailyMemoryTimeQuota)
 					state.StickySettings = helpers.FlattenStickySettings(stickySettings.Model.Properties)

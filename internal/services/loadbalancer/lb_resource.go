@@ -314,8 +314,8 @@ func resourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("location", location.NormalizeNilable(model.Location))
 		d.Set("edge_zone", flattenEdgeZone(model.ExtendedLocation))
 		if sku := model.Sku; sku != nil {
-			d.Set("sku", string(pointer.From(sku.Name)))
-			d.Set("sku_tier", string(pointer.From(sku.Tier)))
+			d.Set("sku", pointer.FromEnum(sku.Name))
+			d.Set("sku_tier", pointer.FromEnum(sku.Tier))
 		}
 
 		if props := model.Properties; props != nil {
@@ -493,7 +493,7 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]loadbalancers.Front
 		privateIpAddress := ""
 
 		if props := config.Properties; props != nil {
-			privateIPAllocationMethod = string(pointer.From(props.PrivateIPAllocationMethod))
+			privateIPAllocationMethod = pointer.FromEnum(props.PrivateIPAllocationMethod)
 
 			if props.GatewayLoadBalancer != nil {
 				gatewayLoadBalancerId = pointer.From(props.GatewayLoadBalancer.Id)
@@ -503,7 +503,7 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]loadbalancers.Front
 				subnetId = pointer.From(subnet.Id)
 			}
 			privateIpAddress = pointer.From(props.PrivateIPAddress)
-			privateIpAddressVersion = string(pointer.From(props.PrivateIPAddressVersion))
+			privateIpAddressVersion = pointer.FromEnum(props.PrivateIPAddressVersion)
 
 			if pip := props.PublicIPAddress; pip != nil {
 				publicIpAddressId = pointer.From(pip.Id)

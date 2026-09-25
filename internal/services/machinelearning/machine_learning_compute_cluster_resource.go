@@ -294,7 +294,7 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("description", computeCluster.Description)
 	if props := computeCluster.Properties; props != nil {
 		d.Set("vm_size", props.VMSize)
-		d.Set("vm_priority", string(pointer.From(props.VMPriority)))
+		d.Set("vm_priority", pointer.FromEnum(props.VMPriority))
 		d.Set("scale_settings", flattenScaleSettings(props.ScaleSettings))
 		d.Set("ssh", flattenUserAccountCredentials(props.UserAccountCredentials))
 		enableNodePublicIP := true

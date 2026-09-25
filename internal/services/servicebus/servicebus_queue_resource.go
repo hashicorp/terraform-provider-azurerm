@@ -394,7 +394,7 @@ func resourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.Set("max_message_size_in_kilobytes", props.MaxMessageSizeInKilobytes)
 			d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 			d.Set("requires_session", props.RequiresSession)
-			d.Set("status", string(pointer.From(props.Status)))
+			d.Set("status", pointer.FromEnum(props.Status))
 
 			d.Set("batched_operations_enabled", props.EnableBatchedOperations)
 			d.Set("express_enabled", props.EnableExpress)

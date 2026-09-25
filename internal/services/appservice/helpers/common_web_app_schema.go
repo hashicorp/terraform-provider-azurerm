@@ -1187,10 +1187,10 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 		applicationLog := ApplicationLog{}
 
 		if appLogs.FileSystem != nil {
-			applicationLog.FileSystemLevel = string(pointer.From(appLogs.FileSystem.Level))
+			applicationLog.FileSystemLevel = pointer.FromEnum(appLogs.FileSystem.Level)
 			if appLogs.AzureBlobStorage != nil && appLogs.AzureBlobStorage.SasURL != nil {
 				blobStorage := AzureBlobStorage{
-					Level: string(pointer.From(appLogs.AzureBlobStorage.Level)),
+					Level: pointer.FromEnum(appLogs.AzureBlobStorage.Level),
 				}
 
 				blobStorage.SasURL = pointer.From(appLogs.AzureBlobStorage.SasURL)
@@ -1213,7 +1213,7 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 					}
 				},
 			*/
-			if !strings.EqualFold(string(pointer.From(appLogs.FileSystem.Level)), string(webapps.LogLevelOff)) || len(applicationLog.AzureBlobStorage) > 0 {
+			if !strings.EqualFold(pointer.FromEnum(appLogs.FileSystem.Level), string(webapps.LogLevelOff)) || len(applicationLog.AzureBlobStorage) > 0 {
 				logs.ApplicationLogs = []ApplicationLog{applicationLog}
 			}
 		}
@@ -1303,7 +1303,7 @@ func FlattenStorageAccounts(appStorageAccounts *webapps.AzureStoragePropertyDict
 	for k, v := range *appStorageAccounts.Properties {
 		storageAccount := StorageAccount{
 			Name: k,
-			Type: string(pointer.From(v.Type)),
+			Type: pointer.FromEnum(v.Type),
 		}
 		if v.AccountName != nil {
 			storageAccount.AccountName = *v.AccountName

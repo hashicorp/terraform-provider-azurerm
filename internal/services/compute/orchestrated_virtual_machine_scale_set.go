@@ -1568,7 +1568,7 @@ func FlattenOrchestratedVirtualMachineScaleSetIPConfiguration(input virtualmachi
 			publicIPAddresses = append(publicIPAddresses, FlattenOrchestratedVirtualMachineScaleSetPublicIPAddress(*props.PublicIPAddressConfiguration))
 		}
 
-		version = string(pointer.From(props.PrivateIPAddressVersion))
+		version = pointer.FromEnum(props.PrivateIPAddressVersion)
 
 		applicationGatewayBackendAddressPoolIds = flattenSubResourcesToIDs(props.ApplicationGatewayBackendAddressPools)
 		applicationSecurityGroupIds = flattenSubResourcesToIDs(props.ApplicationSecurityGroups)
@@ -1626,7 +1626,7 @@ func FlattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input virtualmachi
 		}
 
 		if props.PublicIPAddressVersion != nil {
-			version = string(pointer.From(props.PublicIPAddressVersion))
+			version = pointer.FromEnum(props.PublicIPAddressVersion)
 		}
 
 		if input.Sku != nil && input.Sku.Name != nil && input.Sku.Tier != nil {
@@ -1777,11 +1777,11 @@ func FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(input *[]virtualm
 		var ipConfigurations []interface{}
 		if props := v.Properties; props != nil {
 			if props.AuxiliaryMode != nil && *props.AuxiliaryMode != virtualmachinescalesets.NetworkInterfaceAuxiliaryModeNone {
-				auxiliaryMode = string(pointer.From(props.AuxiliaryMode))
+				auxiliaryMode = pointer.FromEnum(props.AuxiliaryMode)
 			}
 
 			if props.AuxiliarySku != nil && *props.AuxiliarySku != virtualmachinescalesets.NetworkInterfaceAuxiliarySkuNone {
-				auxiliarySku = string(pointer.From(props.AuxiliarySku))
+				auxiliarySku = pointer.FromEnum(props.AuxiliarySku)
 			}
 
 			if props.NetworkSecurityGroup != nil && props.NetworkSecurityGroup.Id != nil {
@@ -1843,7 +1843,7 @@ func FlattenOrchestratedVirtualMachineScaleSetDataDisk(input *[]virtualmachinesc
 		storageAccountType := ""
 		diskEncryptionSetId := ""
 		if v.ManagedDisk != nil {
-			storageAccountType = string(pointer.From(v.ManagedDisk.StorageAccountType))
+			storageAccountType = pointer.FromEnum(v.ManagedDisk.StorageAccountType)
 			if v.ManagedDisk.DiskEncryptionSet != nil && v.ManagedDisk.DiskEncryptionSet.Id != nil {
 				diskEncryptionSetId = *v.ManagedDisk.DiskEncryptionSet.Id
 			}
@@ -1931,7 +1931,7 @@ func FlattenOrchestratedVirtualMachineScaleSetOSDisk(input *virtualmachinescales
 	storageAccountType := ""
 	diskEncryptionSetId := ""
 	if input.ManagedDisk != nil {
-		storageAccountType = string(pointer.From(input.ManagedDisk.StorageAccountType))
+		storageAccountType = pointer.FromEnum(input.ManagedDisk.StorageAccountType)
 		if input.ManagedDisk.DiskEncryptionSet != nil && input.ManagedDisk.DiskEncryptionSet.Id != nil {
 			diskEncryptionSetId = *input.ManagedDisk.DiskEncryptionSet.Id
 		}

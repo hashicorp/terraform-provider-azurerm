@@ -917,8 +917,14 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 				return fmt.Errorf("setting `high_availability`: %+v", err)
 			}
 
-			if err := d.Set("cluster", flattenFlexibleServerCluster(props.Cluster)); err != nil {
-				return fmt.Errorf("setting `cluster`: %+v", err)
+			if pointer.From(props.SourceServerResourceId) == "" {
+				if err := d.Set("cluster", flattenFlexibleServerCluster(props.Cluster)); err != nil {
+					return fmt.Errorf("setting `cluster`: %+v", err)
+				}
+			} else {
+				if err := d.Set("cluster", []interface{}{}); err != nil {
+					return fmt.Errorf("setting `cluster`: %+v", err)
+				}
 			}
 
 			if props.AuthConfig != nil {

@@ -339,7 +339,7 @@ func resourceEventGridTopicRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		if props := model.Properties; props != nil {
 			d.Set("endpoint", props.Endpoint)
-			d.Set("input_schema", string(pointer.From(props.InputSchema)))
+			d.Set("input_schema", pointer.FromEnum(props.InputSchema))
 
 			if err := d.Set("input_mapping_fields", flattenTopicInputMapping(props.InputSchemaMapping)); err != nil {
 				return fmt.Errorf("setting `input_schema_mapping_fields`: %+v", err)

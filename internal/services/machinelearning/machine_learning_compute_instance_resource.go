@@ -309,7 +309,7 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if props.Properties != nil {
 		d.Set("virtual_machine_size", props.Properties.VMSize)
-		d.Set("authorization_type", string(pointer.From(props.Properties.ComputeInstanceAuthorizationType)))
+		d.Set("authorization_type", pointer.FromEnum(props.Properties.ComputeInstanceAuthorizationType))
 		d.Set("ssh", flattenComputeSSHSetting(props.Properties.SshSettings))
 		d.Set("assign_to_user", flattenComputePersonalComputeInstanceSetting(props.Properties.PersonalComputeInstanceSettings))
 

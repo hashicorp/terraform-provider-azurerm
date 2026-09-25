@@ -322,7 +322,7 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 					}
 					functionApp.ServicePlanId = servicePlanId.ID()
 					functionApp.Enabled = pointer.From(props.Enabled)
-					functionApp.ClientCertMode = string(pointer.From(props.ClientCertMode))
+					functionApp.ClientCertMode = pointer.FromEnum(props.ClientCertMode)
 					functionApp.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
 					functionApp.DailyMemoryTimeQuota = pointer.From(props.DailyMemoryTimeQuota)
 					functionApp.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
