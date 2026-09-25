@@ -132,7 +132,7 @@ A `virtual_hub` block supports the following:
 
 * `virtual_hub_id` - (Required) Specifies the ID of the Virtual Hub where the Firewall resides in.
 
-* `public_ip_count` - (Optional) Specifies the number of public IPs to assign to the Firewall. Defaults to `1`.
+* `public_ip_count` - (Optional) Specifies the number of public IPs to assign to the Firewall. Can be set to `0` to support forced-tunneling deployments where the secured hub Firewall has no data-plane public IPs. Defaults to `1`.
 
 ## Attributes Reference
 
