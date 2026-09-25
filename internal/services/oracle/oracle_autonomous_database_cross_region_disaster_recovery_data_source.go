@@ -458,11 +458,23 @@ func (d AutonomousDatabaseCrossRegionDisasterRecoveryDataSource) Read() sdk.Reso
 					return fmt.Errorf("%s was not of type `CrossRegionDisasterRecovery`", id)
 				}
 
+				if adbsProps.RemoteDisasterRecoveryType != autonomousdatabases.DisasterRecoveryTypeAdg {
+					return fmt.Errorf("%s expected disaster recovery type `%s`, got `%s`", id, autonomousdatabases.DisasterRecoveryTypeAdg, adbsProps.RemoteDisasterRecoveryType)
+				}
+
 				state.ReplicateAutomaticBackupsEnabled = pointer.From(adbsProps.IsReplicateAutomaticBackups)
 				state.RemoteDisasterRecoveryType = string(adbsProps.RemoteDisasterRecoveryType)
 				state.DataBaseType = string(adbsProps.DataBaseType)
 				state.Source = string(adbsProps.Source)
-				state.SourceAutonomousDatabaseId = adbsProps.SourceId
+
+				if adbsProps.SourceId != "" {
+					sourceDatabaseID, err := autonomousdatabases.ParseAutonomousDatabaseIDInsensitively(adbsProps.SourceId)
+					if err != nil {
+						return err
+					}
+					state.SourceAutonomousDatabaseId = sourceDatabaseID.ID()
+				}
+
 				state.SourceLocation = location.NormalizeNilable(adbsProps.SourceLocation)
 				state.SourceOcid = pointer.From(adbsProps.SourceOcid)
 				state.ActualUsedDataStorageSizeInTb = pointer.From(adbsProps.ActualUsedDataStorageSizeInTbs)
@@ -502,7 +514,15 @@ func (d AutonomousDatabaseCrossRegionDisasterRecoveryDataSource) Read() sdk.Reso
 				state.RemoteDataGuardEnabled = pointer.From(adbsProps.IsRemoteDataGuardEnabled)
 				state.ServiceConsoleUrl = pointer.From(adbsProps.ServiceConsoleURL)
 				state.SqlWebDeveloperUrl = pointer.From(adbsProps.SqlWebDeveloperURL)
-				state.SubnetId = pointer.From(adbsProps.SubnetId)
+
+				if adbsProps.SubnetId != nil {
+					subnetID, err := commonids.ParseSubnetIDInsensitively(*adbsProps.SubnetId)
+					if err != nil {
+						return err
+					}
+					state.SubnetId = subnetID.ID()
+				}
+
 				state.TimeCreatedInUtc = pointer.From(adbsProps.TimeCreated)
 				state.TimeDataGuardRoleChangedInUtc = pointer.From(adbsProps.TimeDataGuardRoleChanged)
 				state.TimeDeletionOfFreeAutonomousDatabaseInUtc = pointer.From(adbsProps.TimeDeletionOfFreeAutonomousDatabase)
@@ -516,10 +536,11 @@ func (d AutonomousDatabaseCrossRegionDisasterRecoveryDataSource) Read() sdk.Reso
 				state.TimeReclamationOfFreeAutonomousDatabaseInUtc = pointer.From(adbsProps.TimeReclamationOfFreeAutonomousDatabase)
 				state.UsedDataStorageSizeInGb = pointer.From(adbsProps.UsedDataStorageSizeInGbs)
 				state.UsedDataStorageSizeInTb = pointer.From(adbsProps.UsedDataStorageSizeInTbs)
+
 				if vnetIdRaw := pointer.From(adbsProps.VnetId); vnetIdRaw != "" {
 					vnetId, err := commonids.ParseVirtualNetworkIDInsensitively(vnetIdRaw)
 					if err != nil {
-						return fmt.Errorf("parsing `virtual_network_id`: %+v", err)
+						return err
 					}
 					state.VnetId = vnetId.ID()
 				}

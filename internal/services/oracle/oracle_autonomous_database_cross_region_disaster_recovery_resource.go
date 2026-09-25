@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.Resource = AutonomousDatabaseCrossRegionDisasterRecoveryResource{}
+var _ sdk.ResourceWithCustomImporter = AutonomousDatabaseCrossRegionDisasterRecoveryResource{}
 
 type AutonomousDatabaseCrossRegionDisasterRecoveryResource struct{}
 
@@ -174,12 +174,14 @@ func (r AutonomousDatabaseCrossRegionDisasterRecoveryResource) Create() sdk.Reso
 				model.ResourceGroupName,
 				model.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			sourceId, err := autonomousdatabases.ParseAutonomousDatabaseID(model.SourceAutonomousDatabaseId)
@@ -242,7 +244,7 @@ func (r AutonomousDatabaseCrossRegionDisasterRecoveryResource) Create() sdk.Reso
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -282,7 +284,15 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Read() sdk.Resource
 
 				state.ReplicateAutomaticBackupsEnabled = pointer.From(props.IsReplicateAutomaticBackups)
 				state.RemoteDisasterRecoveryType = string(props.RemoteDisasterRecoveryType)
-				state.SourceAutonomousDatabaseId = props.SourceId
+
+				if props.SourceId != "" {
+					sourceDatabaseID, err := autonomousdatabases.ParseAutonomousDatabaseIDInsensitively(props.SourceId)
+					if err != nil {
+						return err
+					}
+					state.SourceAutonomousDatabaseId = sourceDatabaseID.ID()
+				}
+
 				state.AutoScalingEnabled = pointer.From(props.IsAutoScalingEnabled)
 				state.BackupRetentionPeriodInDays = pointer.From(props.BackupRetentionPeriodInDays)
 				state.AutoScalingForStorageEnabled = pointer.From(props.IsAutoScalingForStorageEnabled)
@@ -296,8 +306,17 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Read() sdk.Resource
 				state.DisplayName = pointer.From(props.DisplayName)
 				state.LicenseModel = pointer.FromEnum(props.LicenseModel)
 				state.Location = location.Normalize(model.Location)
+				state.MtlsConnectionRequired = pointer.From(props.IsMtlsConnectionRequired)
 				state.NationalCharacterSet = pointer.From(props.NcharacterSet)
-				state.SubnetId = pointer.From(props.SubnetId)
+
+				if props.SubnetId != nil {
+					subnetID, err := commonids.ParseSubnetIDInsensitively(*props.SubnetId)
+					if err != nil {
+						return err
+					}
+					state.SubnetId = subnetID.ID()
+				}
+
 				state.Tags = pointer.From(model.Tags)
 			}
 			return metadata.Encode(&state)
@@ -327,4 +346,33 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Delete() sdk.Resour
 
 func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return autonomousdatabases.ValidateAutonomousDatabaseID
+}
+
+func (r AutonomousDatabaseCrossRegionDisasterRecoveryResource) CustomImporter() sdk.ResourceRunFunc {
+	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+		id, err := autonomousdatabases.ParseAutonomousDatabaseID(metadata.ResourceData.Id())
+		if err != nil {
+			return err
+		}
+
+		resp, err := metadata.Client.Oracle.OracleClient.AutonomousDatabases.Get(ctx, *id)
+		if err != nil {
+			return fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+
+		if resp.Model == nil || resp.Model.Properties == nil {
+			return fmt.Errorf("retrieving %s: unable to determine disaster recovery type", id)
+		}
+
+		db, ok := resp.Model.Properties.(autonomousdatabases.AutonomousDatabaseCrossRegionDisasterRecoveryProperties)
+		if !ok {
+			return fmt.Errorf("retrieving %s: was not of type `%s`", id, autonomousdatabases.DataBaseTypeCrossRegionDisasterRecovery)
+		}
+
+		if db.RemoteDisasterRecoveryType != autonomousdatabases.DisasterRecoveryTypeAdg {
+			return fmt.Errorf("importing %s: expected disaster recovery type `%s`, got `%s`", id, autonomousdatabases.DisasterRecoveryTypeAdg, db.RemoteDisasterRecoveryType)
+		}
+
+		return nil
+	}
 }
