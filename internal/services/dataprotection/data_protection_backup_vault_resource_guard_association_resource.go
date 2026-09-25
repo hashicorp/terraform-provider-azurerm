@@ -83,15 +83,17 @@ func (r DataProtectionBackupVaultResourceGuardAssociationResource) Create() sdk.
 
 			id := resourceguardproxy.NewBackupResourceGuardProxyID(vaultId.SubscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, dataProtectionBackupVaultResourceGuardAssociationProxyName)
 
-			existing, err := client.DppResourceGuardProxyGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.DppResourceGuardProxyGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			proxy := resourceguardproxy.ResourceGuardProxyBaseResource{
@@ -188,8 +190,12 @@ func (DataProtectionBackupVaultResourceGuardAssociationResource) flatten(metadat
 		DataProtectionBackupVaultId: vaultId.ID(),
 	}
 
-	if model != nil && model.Properties != nil {
-		state.DataProtectionResourceGuardId = pointer.From(model.Properties.ResourceGuardResourceId)
+	if model != nil && model.Properties != nil && model.Properties.ResourceGuardResourceId != nil {
+		guardId, err := resourceguardresources.ParseResourceGuardIDInsensitively(*model.Properties.ResourceGuardResourceId)
+		if err != nil {
+			return err
+		}
+		state.DataProtectionResourceGuardId = guardId.ID()
 	}
 
 	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
