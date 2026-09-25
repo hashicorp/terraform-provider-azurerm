@@ -293,6 +293,42 @@ func TestAccContainerGroup_linuxBasic(t *testing.T) {
 	})
 }
 
+func TestAccContainerGroup_linuxBasicUpdateConfigMap(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.linuxBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.linuxBasicWithConfigMap(data, "foo"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.linuxBasicWithConfigMap(data, "bar"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.linuxBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccContainerGroup_exposedPort(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 	r := ContainerGroupResource{}
@@ -1142,6 +1178,45 @@ resource "azurerm_container_group" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ContainerGroupResource) linuxBasicWithConfigMap(data acceptance.TestData, v string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "Public"
+  os_type             = "Linux"
+
+  container {
+    name   = "hw"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "0.5"
+    ports {
+      port     = 80
+      protocol = "TCP"
+    }
+    config_map = {
+      key = "%s"
+    }
+  }
+
+  tags = {
+    environment = "Testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, v)
 }
 
 func (ContainerGroupResource) exposedPort(data acceptance.TestData) string {
