@@ -96,6 +96,8 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 
 				return nil
 			}),
+
+			pluginsdk.CustomizeDiffShim(virtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff),
 		),
 	}
 }
@@ -441,7 +443,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		props.Properties.SpotRestorePolicy = spotRestorePolicy
 	}
 
-	props.Properties.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(d.Get("resilient_vm_creation_enabled").(bool), d.Get("resilient_vm_deletion_enabled").(bool))
+	props.Properties.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(d.Get("automatic_zone_rebalancing_enabled").(bool), d.Get("resilient_vm_creation_enabled").(bool), d.Get("resilient_vm_deletion_enabled").(bool))
 
 	if len(zones) > 0 {
 		props.Zones = &zones
@@ -714,12 +716,6 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		}
 	}
 
-	if d.HasChanges("resilient_vm_creation_enabled", "resilient_vm_deletion_enabled") {
-		resilientVMCreationEnabled := d.Get("resilient_vm_creation_enabled").(bool)
-		resilientVMDeletionEnabled := d.Get("resilient_vm_deletion_enabled").(bool)
-		updateProps.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(resilientVMCreationEnabled, resilientVMDeletionEnabled)
-	}
-
 	if d.HasChange("termination_notification") {
 		notificationRaw := d.Get("termination_notification").([]interface{})
 		updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
@@ -834,6 +830,21 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		OSType:                       virtualmachinescalesets.OperatingSystemTypesWindows,
 	}
 
+	if d.HasChanges("automatic_zone_rebalancing_enabled", "resilient_vm_creation_enabled", "resilient_vm_deletion_enabled") {
+		// a health extension or health_probe_id must be set when automatic_zone_rebalancing_enabled is true,
+		// so when the properties changes in the same update we apply it first, then set the resiliency policy.
+		automaticZoneRebalancingEnabled := d.Get("automatic_zone_rebalancing_enabled").(bool)
+		if automaticZoneRebalancingEnabled && d.HasChanges("extension", "health_probe_id") {
+			if err := metaData.performUpdate(ctx, update); err != nil {
+				return err
+			}
+			metaData.UpdateInstances = false
+		}
+		resilientVMCreationEnabled := d.Get("resilient_vm_creation_enabled").(bool)
+		resilientVMDeletionEnabled := d.Get("resilient_vm_deletion_enabled").(bool)
+		updateProps.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled)
+	}
+
 	if err := metaData.performUpdate(ctx, update); err != nil {
 		return err
 	}
@@ -924,7 +935,8 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 				d.Set("spot_restore", FlattenVirtualMachineScaleSetSpotRestorePolicy(props.SpotRestorePolicy))
 			}
 
-			resilientVMCreationEnabled, resilientVMDeletionEnabled := FlattenVirtualMachineScaleSetResiliency(props.ResiliencyPolicy)
+			automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled := FlattenVirtualMachineScaleSetResiliency(props.ResiliencyPolicy)
+			d.Set("automatic_zone_rebalancing_enabled", automaticZoneRebalancingEnabled)
 			d.Set("resilient_vm_creation_enabled", resilientVMCreationEnabled)
 			d.Set("resilient_vm_deletion_enabled", resilientVMDeletionEnabled)
 
@@ -1206,6 +1218,12 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"automatic_os_upgrade_policy": VirtualMachineScaleSetAutomatedOSUpgradePolicySchema(),
 
 		"automatic_instance_repair": VirtualMachineScaleSetAutomaticRepairsPolicySchema(),
+
+		"automatic_zone_rebalancing_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 
 		"boot_diagnostics": bootDiagnosticsSchema(),
 
