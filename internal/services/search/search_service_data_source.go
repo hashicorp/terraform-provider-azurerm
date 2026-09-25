@@ -128,7 +128,7 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) er
 			endpoint := ""
 
 			if props.EncryptionWithCmk != nil {
-				d.Set("customer_managed_key_encryption_compliance_status", string(pointer.From(props.EncryptionWithCmk.EncryptionComplianceStatus)))
+				d.Set("customer_managed_key_encryption_compliance_status", pointer.FromEnum(props.EncryptionWithCmk.EncryptionComplianceStatus))
 			}
 
 			if count := props.PartitionCount; count != nil {
@@ -140,7 +140,7 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 
 			if props.PublicNetworkAccess != nil {
-				publicNetworkAccess = strings.EqualFold(string(pointer.From(props.PublicNetworkAccess)), string(services.PublicNetworkAccessEnabled))
+				publicNetworkAccess = strings.EqualFold(pointer.FromEnum(props.PublicNetworkAccess), string(services.PublicNetworkAccessEnabled))
 			}
 
 			if props.Endpoint != nil {

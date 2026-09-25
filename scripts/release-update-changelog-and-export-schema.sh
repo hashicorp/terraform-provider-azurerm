@@ -9,7 +9,7 @@ echo "Preparing changelog for release..."
 
 echo "Generating changelog..."
 # shellcheck disable=SC2086 # debug is intentionally unquoted for command prefix pattern
-output="$(${debug}changeloggy generate)"
+output="$(${debug}./.tools/bin/changeloggy generate)"
 echo "${output}"
 
 RELEASE="$(echo "${output}" | sed -E -n 's/^Generated v?([0-9][0-9.]*) .*/\1/p')"

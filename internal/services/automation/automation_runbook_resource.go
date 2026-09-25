@@ -400,7 +400,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 	if props := model.Properties; props != nil {
 		d.Set("log_verbose", props.LogVerbose)
 		d.Set("log_progress", props.LogProgress)
-		d.Set("runbook_type", string(pointer.From(props.RunbookType)))
+		d.Set("runbook_type", pointer.FromEnum(props.RunbookType))
 		d.Set("description", props.Description)
 		d.Set("log_activity_trace_level", props.LogActivityTrace)
 		d.Set("runtime_environment_name", pointer.From(props.RuntimeEnvironment))

@@ -336,7 +336,7 @@ func flattenSharedImageGallerySharing(input *galleries.SharingProfile) []interfa
 
 	permission := ""
 	if v := input.Permissions; v != nil {
-		permission = string(pointer.From(v))
+		permission = pointer.FromEnum(v)
 	}
 
 	return []interface{}{

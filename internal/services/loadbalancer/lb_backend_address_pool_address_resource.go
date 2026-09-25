@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
@@ -511,7 +511,7 @@ func loadbalacnerProvisioningStatusRefreshFunc(ctx context.Context, client *load
 		}
 		if model := lbClient.Model; model != nil {
 			if props := model.Properties; props != nil {
-				return lbClient, string(pointer.From(props.ProvisioningState)), nil
+				return lbClient, pointer.FromEnum(props.ProvisioningState), nil
 			}
 		}
 		return lbClient, "", nil

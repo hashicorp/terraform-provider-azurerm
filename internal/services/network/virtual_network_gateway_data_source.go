@@ -12,8 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgateways"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -272,14 +271,14 @@ func dataSourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interfa
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		props := model.Properties
-		d.Set("type", string(pointer.From(props.GatewayType)))
+		d.Set("type", pointer.FromEnum(props.GatewayType))
 		d.Set("bgp_enabled", props.EnableBgp)
 		d.Set("private_ip_address_enabled", props.EnablePrivateIPAddress)
 		d.Set("active_active", props.ActiveActive)
-		d.Set("generation", string(pointer.From(props.VpnGatewayGeneration)))
+		d.Set("generation", pointer.FromEnum(props.VpnGatewayGeneration))
 
 		if props.VpnType != nil {
-			d.Set("vpn_type", string(pointer.From(props.VpnType)))
+			d.Set("vpn_type", pointer.FromEnum(props.VpnType))
 		}
 
 		if props.GatewayDefaultSite != nil {
@@ -287,7 +286,7 @@ func dataSourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		if props.Sku != nil {
-			d.Set("sku", string(pointer.From(props.Sku.Name)))
+			d.Set("sku", pointer.FromEnum(props.Sku.Name))
 		}
 
 		if err := d.Set("ip_configuration", flattenVirtualNetworkGatewayDataSourceIPConfigurations(props.IPConfigurations)); err != nil {
@@ -327,7 +326,7 @@ func flattenVirtualNetworkGatewayDataSourceIPConfigurations(ipConfigs *[]virtual
 			if name := cfg.Name; name != nil {
 				v["name"] = *name
 			}
-			v["private_ip_address_allocation"] = string(pointer.From(props.PrivateIPAllocationMethod))
+			v["private_ip_address_allocation"] = pointer.FromEnum(props.PrivateIPAllocationMethod)
 
 			if subnet := props.Subnet; subnet != nil {
 				if id := subnet.Id; id != nil {
@@ -356,7 +355,7 @@ func flattenVirtualNetworkGatewayDataSourceVpnClientConfig(cfg *virtualnetworkga
 	flat := make(map[string]interface{})
 
 	if pool := cfg.VpnClientAddressPool; pool != nil {
-		flat["address_space"] = helpers.FlattenStringSlice(pool.AddressPrefixes)
+		flat["address_space"] = pluginsdk.FlattenSlice(pool.AddressPrefixes)
 	} else {
 		flat["address_space"] = []interface{}{}
 	}

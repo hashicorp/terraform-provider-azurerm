@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redhatopenshift/2025-07-25/openshiftclusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -318,13 +317,13 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: commonValidate.CIDR,
+						ValidateFunc: validation.IsCIDRIPv4,
 					},
 					"service_cidr": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: commonValidate.CIDR,
+						ValidateFunc: validation.IsCIDRIPv4,
 					},
 					"load_balancer_profile": {
 						Type:     pluginsdk.TypeList,
@@ -940,7 +939,7 @@ func flattenOpenShiftNetworkProfile(profile *openshiftclusters.NetworkProfile) [
 
 	return []NetworkProfile{
 		{
-			OutboundType:                             string(pointer.From(profile.OutboundType)),
+			OutboundType:                             pointer.FromEnum(profile.OutboundType),
 			PodCidr:                                  pointer.From(profile.PodCidr),
 			ServiceCidr:                              pointer.From(profile.ServiceCidr),
 			PreconfiguredNetworkSecurityGroupEnabled: preconfiguredNetworkSecurityGroupEnabled,
@@ -1143,7 +1142,7 @@ func flattenOpenShiftAPIServerProfile(profile *openshiftclusters.APIServerProfil
 
 	return []ApiServerProfile{
 		{
-			Visibility: string(pointer.From(profile.Visibility)),
+			Visibility: pointer.FromEnum(profile.Visibility),
 			Url:        pointer.From(profile.Url),
 			IpAddress:  pointer.From(profile.IP),
 		},
@@ -1176,7 +1175,7 @@ func flattenOpenShiftIngressProfiles(profiles *[]openshiftclusters.IngressProfil
 
 	for _, profile := range *profiles {
 		results = append(results, IngressProfile{
-			Visibility: string(pointer.From(profile.Visibility)),
+			Visibility: pointer.FromEnum(profile.Visibility),
 			IpAddress:  pointer.From(profile.IP),
 			Name:       pointer.From(profile.Name),
 		})

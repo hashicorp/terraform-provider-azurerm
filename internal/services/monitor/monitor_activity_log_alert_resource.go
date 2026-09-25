@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2020-10-01/activitylogalertsapis"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -470,7 +469,7 @@ func resourceMonitorActivityLogAlertCreateUpdate(d *pluginsdk.ResourceData, meta
 			Condition:   expandMonitorActivityLogAlertCriteria(criteriaRaw),
 			Actions:     expandMonitorActivityLogAlertAction(actionRaw),
 		},
-		Tags: helpers.ExpandPtrMapStringString(t),
+		Tags: pluginsdk.ExpandPtrMapStringString(t),
 	}
 
 	if _, err := client.ActivityLogAlertsCreateOrUpdate(ctx, id, parameters); err != nil {
@@ -521,7 +520,7 @@ func resourceMonitorActivityLogAlertFlatten(d *pluginsdk.ResourceData, id *activ
 
 			var scopes []interface{}
 			if props.Scopes != nil {
-				scopes = helpers.FlattenStringSlice(&props.Scopes)
+				scopes = pluginsdk.FlattenSlice(&props.Scopes)
 			}
 			if err := d.Set("scopes", scopes); err != nil {
 				return fmt.Errorf("setting `scopes`: %+v", err)
@@ -534,7 +533,7 @@ func resourceMonitorActivityLogAlertFlatten(d *pluginsdk.ResourceData, id *activ
 				return fmt.Errorf("setting `action`: %+v", err)
 			}
 		}
-		if err := d.Set("tags", helpers.FlattenPtrMapStringString(model.Tags)); err != nil {
+		if err := d.Set("tags", pluginsdk.FlattenPtrMapStringString(model.Tags)); err != nil {
 			return err
 		}
 	}
@@ -787,7 +786,7 @@ func expandServiceHealth(serviceHealth []interface{}, conditions []activitylogal
 		if len(rv.List()) > 0 {
 			conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 				Field:       pointer.To("properties.impactedServices[*].ImpactedRegions[*].RegionName"),
-				ContainsAny: helpers.ExpandStringSlice(rv.List()),
+				ContainsAny: pluginsdk.ExpandStringSlice(rv.List()),
 			})
 		}
 
@@ -810,7 +809,7 @@ func expandServiceHealth(serviceHealth []interface{}, conditions []activitylogal
 		if len(sv.List()) > 0 {
 			conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 				Field:       pointer.To("properties.impactedServices[*].ServiceName"),
-				ContainsAny: helpers.ExpandStringSlice(sv.List()),
+				ContainsAny: pluginsdk.ExpandStringSlice(sv.List()),
 			})
 		}
 	}

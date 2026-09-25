@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/customipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/customipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -646,7 +646,7 @@ func (r CustomIpPrefixResource) commissionedStateRefreshFunc(ctx context.Context
 			return nil, "", fmt.Errorf("polling for %s: `properties` was nil", id)
 		}
 
-		return res, string(pointer.From(res.Model.Properties.CommissionedState)), nil
+		return res, pointer.FromEnum(res.Model.Properties.CommissionedState), nil
 	}
 }
 
@@ -664,6 +664,6 @@ func (r CustomIpPrefixResource) provisioningStateRefreshFunc(ctx context.Context
 			return nil, "", fmt.Errorf("polling for %s: `properties` was nil", id)
 		}
 
-		return res, string(pointer.From(res.Model.Properties.ProvisioningState)), nil
+		return res, pointer.FromEnum(res.Model.Properties.ProvisioningState), nil
 	}
 }

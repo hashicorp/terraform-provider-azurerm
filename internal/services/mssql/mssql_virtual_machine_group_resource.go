@@ -235,7 +235,7 @@ func (r MsSqlVirtualMachineGroupResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					state.SqlImageOffer = pointer.From(props.SqlImageOffer)
-					state.SqlImageSku = string(pointer.From(props.SqlImageSku))
+					state.SqlImageSku = pointer.FromEnum(props.SqlImageSku)
 
 					var oldModel MsSqlVirtualMachineGroupModel
 					if err = metadata.Decode(&oldModel); err != nil {
@@ -347,7 +347,7 @@ func flattenMsSqlVirtualMachineGroupWsfcDomainProfile(domainProfile *sqlvirtualm
 			ClusterOperatorAccountName:  pointer.From(domainProfile.ClusterOperatorAccount),
 			SqlServiceAccountName:       pointer.From(domainProfile.SqlServiceAccount),
 			StorageAccountUrl:           pointer.From(domainProfile.StorageAccountURL),
-			ClusterSubnetType:           string(pointer.From(domainProfile.ClusterSubnetType)),
+			ClusterSubnetType:           pointer.FromEnum(domainProfile.ClusterSubnetType),
 			StorageAccountPrimaryKey:    storageAccountPrimaryKey,
 		},
 	}

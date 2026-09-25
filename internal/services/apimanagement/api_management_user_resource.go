@@ -187,7 +187,7 @@ func resourceApiManagementUserRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("last_name", pointer.From(props.LastName))
 			d.Set("email", pointer.From(props.Email))
 			d.Set("note", pointer.From(props.Note))
-			d.Set("state", string(pointer.From(props.State)))
+			d.Set("state", pointer.FromEnum(props.State))
 		}
 	}
 
