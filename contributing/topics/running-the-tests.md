@@ -30,3 +30,23 @@ The following Environment Variables must be set in your shell prior to running a
 * `ARM_TEST_LOCATION_ALT2`
 
 > **Note:** Acceptance tests create real resources in Azure which often cost money to run.
+
+## Private Kubernetes Fleet hub
+
+`TestAccKubernetesFleetManager_privateHub` also requires `ARM_TEST_FLEET_SUBNET_ID`.
+Set it to a dedicated, disposable subnet in the test subscription and
+`ARM_TEST_LOCATION`. The Fleet resource provider's service principal must already
+have `Network Contributor` on that subnet. The test skips when this variable is
+absent; a skipped run does not verify private-hub support.
+Confirm the current tenant, subscription, subnet, role assignment and permission
+to use them before running this test; a previous successful run is not evidence
+that its prerequisites still exist.
+
+The test creates one private Fleet hub using `Standard_D2as_v7`, checks its
+resource and data-source state, imports it without ignored fields, and updates
+tags with both optional hub profiles omitted. Private hubs must omit `dns_prefix`.
+The test harness destroys the Fleet and its test resource group. It does not
+create or delete the supplied subnet or its role assignment; the prerequisite
+owner must retain them until Fleet teardown completes and then clean them up.
+No Kubernetes private-endpoint connectivity or workload is required by this
+control-plane test.

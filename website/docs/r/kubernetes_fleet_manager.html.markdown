@@ -34,13 +34,53 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group within which this Kubernetes Fleet Manager should exist. Changing this forces a new Kubernetes Fleet Manager to be created.
 
+* `hub_profile` - (Optional) A `hub_profile` block as defined below. Changing this forces a new Kubernetes Fleet Manager to be created.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Kubernetes Fleet Manager.
+
+---
+
+An `agent_profile` block supports the following:
+
+* `subnet_id` - (Optional) The ID of the subnet which the Fleet hub node will join on startup. Changing this forces a new resource to be created.
+
+~> **Note:** Custom subnets are supported only for private Fleet hubs. The Fleet resource provider's service principal must have the `Network Contributor` role on the subnet.
+
+* `virtual_machine_size` - (Optional) The virtual machine size of the Fleet hub. Changing this forces a new resource to be created.
+
+---
+
+An `api_server_access_profile` block supports the following:
+
+* `enable_private_cluster` - (Optional) Whether to create the Fleet hub as a private cluster. When set to `true`, `agent_profile.subnet_id` must be specified. Changing this forces a new resource to be created.
+
+---
+
+A `hub_profile` block supports the following:
+
+* `agent_profile` - (Optional) An `agent_profile` block as defined above. Changing this forces a new resource to be created.
+
+* `api_server_access_profile` - (Optional) An `api_server_access_profile` block as defined above. Changing this forces a new resource to be created.
+
+* `dns_prefix` - (Optional) DNS prefix used to create the FQDN for the Fleet hub. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Kubernetes Fleet Manager.
+
+* `hub_profile` - A `hub_profile` block as defined below.
+
+---
+
+A `hub_profile` block exports the following:
+
+* `fqdn` - The FQDN of the Fleet hub.
+
+* `kubernetes_version` - The Kubernetes version of the Fleet hub.
+
+* `portal_fqdn` - The Azure Portal FQDN of the Fleet hub.
 
 ## Timeouts
 
