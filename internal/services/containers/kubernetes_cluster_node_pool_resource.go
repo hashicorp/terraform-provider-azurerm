@@ -5,6 +5,7 @@ package containers
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"regexp"
@@ -416,6 +417,13 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
+
+		// lintignore:AZBP001 // Free-form text is base64-encoded; empty input is omitted.
+		"message_of_the_day": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
 	}
 }
 
@@ -624,6 +632,11 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 	if capacityReservationGroupId := d.Get("capacity_reservation_group_id").(string); capacityReservationGroupId != "" {
 		profile.CapacityReservationGroupID = pointer.To(capacityReservationGroupId)
+	}
+
+	if messageOfTheDay := d.Get("message_of_the_day").(string); messageOfTheDay != "" {
+		encoded := base64.StdEncoding.EncodeToString([]byte(messageOfTheDay))
+		profile.MessageOfTheDay = pointer.To(encoded)
 	}
 
 	maxCount := d.Get("max_count").(int)
@@ -1188,6 +1201,14 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("vm_size", props.VMSize)
 		d.Set("host_group_id", props.HostGroupID)
 		d.Set("capacity_reservation_group_id", props.CapacityReservationGroupID)
+
+		messageOfTheDay := ""
+		if props.MessageOfTheDay != nil {
+			if decoded, err := base64.StdEncoding.DecodeString(*props.MessageOfTheDay); err == nil {
+				messageOfTheDay = string(decoded)
+			}
+		}
+		d.Set("message_of_the_day", messageOfTheDay)
 
 		if err := d.Set("upgrade_settings", flattenAgentPoolUpgradeSettings(props.UpgradeSettings)); err != nil {
 			return fmt.Errorf("setting `upgrade_settings`: %+v", err)
