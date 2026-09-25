@@ -36,6 +36,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		ContainerAppEnvironmentCertificateDataSource{},
 		ContainerAppEnvironmentDataSource{},
 		ContainerAppEnvironmentStorageDataSource{},
+		ContainerAppJobDataSource{},
 	}
 }
 
