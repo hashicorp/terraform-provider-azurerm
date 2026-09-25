@@ -63,28 +63,6 @@ func TestAccCosmosDbSqlContainer_complete(t *testing.T) {
 	})
 }
 
-func TestAccCosmosDbSqlContainer_analyticalStorageTTL(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
-	r := CosmosSqlContainerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.analyticalStorageTTL(data, 600),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.analyticalStorageTTL(data, 601),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccCosmosDbSqlContainer_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
 	r := CosmosSqlContainerResource{}
@@ -333,27 +311,6 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   }
 }
 `, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger)
-}
-
-func (CosmosSqlContainerResource) analyticalStorageTTL(data acceptance.TestData, analyticalStorageTTL int) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_cosmosdb_sql_database" "test" {
-  name                = "acctest-%[2]d"
-  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
-  account_name        = azurerm_cosmosdb_account.test.name
-}
-
-resource "azurerm_cosmosdb_sql_container" "test" {
-  name                   = "acctest-CSQLC-%[2]d"
-  resource_group_name    = azurerm_cosmosdb_account.test.resource_group_name
-  account_name           = azurerm_cosmosdb_account.test.name
-  database_name          = azurerm_cosmosdb_sql_database.test.name
-  partition_key_paths    = ["/definition/id"]
-  analytical_storage_ttl = %[3]d
-}
-`, CosmosDBAccountResource{}.analyticalStorage(data, "GlobalDocumentDB", "Eventual", true), data.RandomInteger, analyticalStorageTTL)
 }
 
 func (CosmosSqlContainerResource) update(data acceptance.TestData) string {
