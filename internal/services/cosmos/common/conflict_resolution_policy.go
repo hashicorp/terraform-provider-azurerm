@@ -5,17 +5,17 @@ package common
 
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 )
 
-func ExpandCosmosDbConflicResolutionPolicy(inputs []interface{}) *cosmosdb.ConflictResolutionPolicy {
+func ExpandCosmosDbConflicResolutionPolicy(inputs []interface{}) *openapis.ConflictResolutionPolicy {
 	if len(inputs) == 0 || inputs[0] == nil {
 		return nil
 	}
 
 	input := inputs[0].(map[string]interface{})
-	conflict := &cosmosdb.ConflictResolutionPolicy{
-		Mode: pointer.ToEnum[cosmosdb.ConflictResolutionMode](input["mode"].(string)),
+	conflict := &openapis.ConflictResolutionPolicy{
+		Mode: pointer.ToEnum[openapis.ConflictResolutionMode](input["mode"].(string)),
 	}
 
 	if conflictResolutionPath, ok := input["conflict_resolution_path"].(string); ok {
@@ -29,7 +29,7 @@ func ExpandCosmosDbConflicResolutionPolicy(inputs []interface{}) *cosmosdb.Confl
 	return conflict
 }
 
-func FlattenCosmosDbConflictResolutionPolicy(input *cosmosdb.ConflictResolutionPolicy) []interface{} {
+func FlattenCosmosDbConflictResolutionPolicy(input *openapis.ConflictResolutionPolicy) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}

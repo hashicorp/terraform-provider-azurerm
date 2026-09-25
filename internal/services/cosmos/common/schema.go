@@ -4,7 +4,7 @@
 package common
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -109,10 +109,10 @@ func CosmosDbIndexingPolicySchema() *pluginsdk.Schema {
 				"indexing_mode": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Default:  cosmosdb.IndexingModeConsistent,
+					Default:  openapis.IndexingModeConsistent,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(cosmosdb.IndexingModeConsistent),
-						string(cosmosdb.IndexingModeNone),
+						string(openapis.IndexingModeConsistent),
+						string(openapis.IndexingModeNone),
 					}, false),
 				},
 
@@ -162,7 +162,7 @@ func ConflictResolutionPolicy() *pluginsdk.Schema {
 				"mode": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForConflictResolutionMode(), false),
+					ValidateFunc: validation.StringInSlice(openapis.PossibleValuesForConflictResolutionMode(), false),
 				},
 
 				"conflict_resolution_path": {
@@ -204,7 +204,7 @@ func CosmosDbIndexingPolicyCompositeIndexSchema() *pluginsdk.Schema {
 								Required: true,
 								// Workaround for Azure/azure-rest-api-specs#11222
 								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc:     validation.StringInSlice(cosmosdb.PossibleValuesForCompositePathSortOrder(), true),
+								ValidateFunc:     validation.StringInSlice(openapis.PossibleValuesForCompositePathSortOrder(), true),
 							},
 						},
 					},

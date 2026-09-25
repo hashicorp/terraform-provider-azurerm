@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -31,7 +31,7 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 		Delete: resourceCosmosDbSQLContainerDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := cosmosdb.ParseContainerID(id)
+			_, err := openapis.ParseContainerID(id)
 			return err
 		}),
 
@@ -86,10 +86,10 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(cosmosdb.PartitionKindHash),
+				Default:  string(openapis.PartitionKindHash),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(cosmosdb.PartitionKindHash),
-					string(cosmosdb.PartitionKindMultiHash),
+					string(openapis.PartitionKindHash),
+					string(openapis.PartitionKindMultiHash),
 				}, false),
 			},
 
@@ -158,12 +158,12 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 }
 
 func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := cosmosdb.NewContainerID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("database_name").(string), d.Get("name").(string))
+	id := openapis.NewContainerID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("database_name").(string), d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.SqlResourcesGetSqlContainer(ctx, id)
@@ -182,19 +182,19 @@ func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("validating `indexing_policy`: %w", err)
 	}
 
-	db := cosmosdb.SqlContainerCreateUpdateParameters{
-		Properties: cosmosdb.SqlContainerCreateUpdateProperties{
-			Resource: cosmosdb.SqlContainerResource{
+	db := openapis.SqlContainerCreateUpdateParameters{
+		Properties: openapis.SqlContainerCreateUpdateProperties{
+			Resource: openapis.SqlContainerResource{
 				Id:                       id.ContainerName,
 				IndexingPolicy:           indexingPolicy,
 				ConflictResolutionPolicy: common.ExpandCosmosDbConflicResolutionPolicy(d.Get("conflict_resolution_policy").([]interface{})),
 			},
-			Options: &cosmosdb.CreateUpdateOptions{},
+			Options: &openapis.CreateUpdateOptions{},
 		},
 	}
 
-	db.Properties.Resource.PartitionKey = &cosmosdb.ContainerPartitionKey{
-		Kind: pointer.ToEnum[cosmosdb.PartitionKind](d.Get("partition_key_kind").(string)),
+	db.Properties.Resource.PartitionKey = &openapis.ContainerPartitionKey{
+		Kind: pointer.ToEnum[openapis.PartitionKind](d.Get("partition_key_kind").(string)),
 	}
 
 	if v, ok := d.GetOk("partition_key_paths"); ok {
@@ -206,7 +206,7 @@ func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if keys := expandCosmosSQLContainerUniqueKeys(d.Get("unique_key").(*pluginsdk.Set)); keys != nil {
-		db.Properties.Resource.UniqueKeyPolicy = &cosmosdb.UniqueKeyPolicy{
+		db.Properties.Resource.UniqueKeyPolicy = &openapis.UniqueKeyPolicy{
 			UniqueKeys: keys,
 		}
 	}
@@ -239,11 +239,11 @@ func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interfac
 }
 
 func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseContainerID(d.Id())
+	id, err := openapis.ParseContainerID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -257,18 +257,18 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("validating `indexing_policy`: %w", err)
 	}
 
-	db := cosmosdb.SqlContainerCreateUpdateParameters{
-		Properties: cosmosdb.SqlContainerCreateUpdateProperties{
-			Resource: cosmosdb.SqlContainerResource{
+	db := openapis.SqlContainerCreateUpdateParameters{
+		Properties: openapis.SqlContainerCreateUpdateProperties{
+			Resource: openapis.SqlContainerResource{
 				Id:             id.ContainerName,
 				IndexingPolicy: indexingPolicy,
 			},
-			Options: &cosmosdb.CreateUpdateOptions{},
+			Options: &openapis.CreateUpdateOptions{},
 		},
 	}
 
-	db.Properties.Resource.PartitionKey = &cosmosdb.ContainerPartitionKey{
-		Kind: pointer.ToEnum[cosmosdb.PartitionKind](d.Get("partition_key_kind").(string)),
+	db.Properties.Resource.PartitionKey = &openapis.ContainerPartitionKey{
+		Kind: pointer.ToEnum[openapis.PartitionKind](d.Get("partition_key_kind").(string)),
 	}
 
 	if v, ok := d.GetOk("partition_key_paths"); ok {
@@ -280,7 +280,7 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if keys := expandCosmosSQLContainerUniqueKeys(d.Get("unique_key").(*pluginsdk.Set)); keys != nil {
-		db.Properties.Resource.UniqueKeyPolicy = &cosmosdb.UniqueKeyPolicy{
+		db.Properties.Resource.UniqueKeyPolicy = &openapis.UniqueKeyPolicy{
 			UniqueKeys: keys,
 		}
 	}
@@ -307,12 +307,12 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 }
 
 func resourceCosmosDbSQLContainerRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseContainerID(d.Id())
+	id, err := openapis.ParseContainerID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -358,7 +358,7 @@ func resourceCosmosDbSQLContainerRead(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	databaseAccountID := cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
+	databaseAccountID := openapis.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
 	accResp, err := client.DatabaseAccountsGet(ctx, databaseAccountID)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", databaseAccountID, err)
@@ -383,12 +383,12 @@ func resourceCosmosDbSQLContainerRead(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceCosmosDbSQLContainerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	client := meta.(*clients.Client).Cosmos.OpenapisClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := cosmosdb.ParseContainerID(d.Id())
+	id, err := openapis.ParseContainerID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -400,13 +400,13 @@ func resourceCosmosDbSQLContainerDelete(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func expandCosmosSQLContainerUniqueKeys(s *pluginsdk.Set) *[]cosmosdb.UniqueKey {
+func expandCosmosSQLContainerUniqueKeys(s *pluginsdk.Set) *[]openapis.UniqueKey {
 	i := s.List()
 	if len(i) == 0 || i[0] == nil {
 		return nil
 	}
 
-	keys := make([]cosmosdb.UniqueKey, 0)
+	keys := make([]openapis.UniqueKey, 0)
 	for _, k := range i {
 		key := k.(map[string]interface{})
 
@@ -415,7 +415,7 @@ func expandCosmosSQLContainerUniqueKeys(s *pluginsdk.Set) *[]cosmosdb.UniqueKey 
 			continue
 		}
 
-		keys = append(keys, cosmosdb.UniqueKey{
+		keys = append(keys, openapis.UniqueKey{
 			Paths: pluginsdk.ExpandStringSlice(paths),
 		})
 	}
@@ -423,7 +423,7 @@ func expandCosmosSQLContainerUniqueKeys(s *pluginsdk.Set) *[]cosmosdb.UniqueKey 
 	return &keys
 }
 
-func flattenCosmosSQLContainerUniqueKeys(keys *[]cosmosdb.UniqueKey) *[]map[string]interface{} {
+func flattenCosmosSQLContainerUniqueKeys(keys *[]openapis.UniqueKey) *[]map[string]interface{} {
 	if keys == nil {
 		return nil
 	}
