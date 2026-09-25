@@ -5,7 +5,6 @@ package helpers
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
@@ -100,9 +99,14 @@ func WorkloadProfileSchema() *pluginsdk.Schema {
 	}
 }
 
+// isConsumptionProfileType returns true for all consumption-based Workload Profile types (including the GPU variants),
+// which don't support `minimum_count` and `maximum_count`
 func isConsumptionProfileType(workloadProfileType string) bool {
-	return strings.EqualFold(workloadProfileType, string(WorkloadProfileSkuConsumption)) ||
-		strings.HasPrefix(strings.ToLower(workloadProfileType), "consumption-gpu")
+	switch WorkloadProfileSku(workloadProfileType) {
+	case WorkloadProfileSkuConsumption, WorkloadProfileSkuConsumptionGpuNc24A100, WorkloadProfileSkuConsumptionGpuNc8AsT4:
+		return true
+	}
+	return false
 }
 
 // ValidateWorkloadProfileCounts returns an error if `minimum_count` or `maximum_count` is set on a Consumption workload profile,

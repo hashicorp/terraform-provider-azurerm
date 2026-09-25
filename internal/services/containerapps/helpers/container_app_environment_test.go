@@ -13,10 +13,10 @@ func TestIsConsumptionProfileType(t *testing.T) {
 		Expected bool
 	}{
 		{Input: "Consumption", Expected: true},
-		{Input: "consumption", Expected: true},
 		{Input: "Consumption-GPU-NC8as-T4", Expected: true},
 		{Input: "Consumption-GPU-NC24-A100", Expected: true},
-		{Input: "consumption-gpu-nc8as-t4", Expected: true},
+		{Input: "consumption", Expected: false},
+		{Input: "Consumption-GPU-Unknown", Expected: false},
 		{Input: "D4", Expected: false},
 		{Input: "E4", Expected: false},
 		{Input: "NC24-A100", Expected: false},
@@ -112,6 +112,15 @@ func TestExpandWorkloadProfiles_ConsumptionGPU(t *testing.T) {
 	profiles := *result
 	if len(profiles) != 3 {
 		t.Fatalf("expected 3 profiles, got %d", len(profiles))
+	}
+
+	for i, v := range input {
+		if profiles[i].Name != v.Name {
+			t.Errorf("expected Name %q, got %q", v.Name, profiles[i].Name)
+		}
+		if profiles[i].WorkloadProfileType != v.WorkloadProfileType {
+			t.Errorf("expected WorkloadProfileType %q for %q, got %q", v.WorkloadProfileType, v.Name, profiles[i].WorkloadProfileType)
+		}
 	}
 
 	// Consumption profile should not have MinimumCount/MaximumCount
