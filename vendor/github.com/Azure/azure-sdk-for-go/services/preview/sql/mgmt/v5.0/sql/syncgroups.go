@@ -626,7 +626,7 @@ func (client SyncGroupsClient) ListHubSchemasComplete(ctx context.Context, resou
 // endTime - get logs generated before this time.
 // typeParameter - the types of logs to retrieve.
 // continuationToken - the continuation token for this operation.
-func (client SyncGroupsClient) ListLogs(ctx context.Context, resourceGroupName string, serverName string, databaseName string, syncGroupName string, startTime string, endTime string, typeParameter string, continuationToken string) (result SyncGroupLogListResultPage, err error) {
+func (client SyncGroupsClient) ListLogs(ctx context.Context, resourceGroupName string, serverName string, databaseName string, syncGroupName string, startTime string, endTime string, typeParameter SyncGroupsType, continuationToken string) (result SyncGroupLogListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SyncGroupsClient.ListLogs")
 		defer func() {
@@ -665,7 +665,7 @@ func (client SyncGroupsClient) ListLogs(ctx context.Context, resourceGroupName s
 }
 
 // ListLogsPreparer prepares the ListLogs request.
-func (client SyncGroupsClient) ListLogsPreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, syncGroupName string, startTime string, endTime string, typeParameter string, continuationToken string) (*http.Request, error) {
+func (client SyncGroupsClient) ListLogsPreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, syncGroupName string, startTime string, endTime string, typeParameter SyncGroupsType, continuationToken string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"databaseName":      autorest.Encode("path", databaseName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -733,7 +733,7 @@ func (client SyncGroupsClient) listLogsNextResults(ctx context.Context, lastResu
 }
 
 // ListLogsComplete enumerates all values, automatically crossing page boundaries as required.
-func (client SyncGroupsClient) ListLogsComplete(ctx context.Context, resourceGroupName string, serverName string, databaseName string, syncGroupName string, startTime string, endTime string, typeParameter string, continuationToken string) (result SyncGroupLogListResultIterator, err error) {
+func (client SyncGroupsClient) ListLogsComplete(ctx context.Context, resourceGroupName string, serverName string, databaseName string, syncGroupName string, startTime string, endTime string, typeParameter SyncGroupsType, continuationToken string) (result SyncGroupLogListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SyncGroupsClient.ListLogs")
 		defer func() {

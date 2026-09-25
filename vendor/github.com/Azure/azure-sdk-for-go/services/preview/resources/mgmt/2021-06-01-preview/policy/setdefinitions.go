@@ -583,7 +583,7 @@ func (client SetDefinitionsClient) GetBuiltInResponder(resp *http.Response) (res
 
 // List this operation retrieves a list of all the policy set definitions in a given subscription that match the
 // optional given $filter. Valid values for $filter are: 'atExactScope()', 'policyType -eq {value}' or 'category eq
-// '{value}''. If $filter is not provided, the unfiltered list includes all policy set definitions associated with the
+// '{value}”. If $filter is not provided, the unfiltered list includes all policy set definitions associated with the
 // subscription, including those that apply directly or from management groups that contain the given subscription. If
 // $filter=atExactScope() is provided, the returned list only includes all policy set definitions that at the given
 // subscription. If $filter='policyType -eq {value}' is provided, the returned list only includes all policy set
@@ -592,7 +592,7 @@ func (client SetDefinitionsClient) GetBuiltInResponder(resp *http.Response) (res
 // category match the {value}.
 // Parameters:
 // filter - the filter to apply on the operation. Valid values for $filter are: 'atExactScope()', 'policyType
-// -eq {value}' or 'category eq '{value}''. If $filter is not provided, no filtering is performed. If
+// -eq {value}' or 'category eq '{value}”. If $filter is not provided, no filtering is performed. If
 // $filter=atExactScope() is provided, the returned list only includes all policy set definitions that at the
 // given scope. If $filter='policyType -eq {value}' is provided, the returned list only includes all policy set
 // definitions whose type match the {value}. Possible policyType values are NotSpecified, BuiltIn, Custom, and
@@ -731,7 +731,7 @@ func (client SetDefinitionsClient) ListComplete(ctx context.Context, filter stri
 // definitions whose category match the {value}.
 // Parameters:
 // filter - the filter to apply on the operation. Valid values for $filter are: 'atExactScope()', 'policyType
-// -eq {value}' or 'category eq '{value}''. If $filter is not provided, no filtering is performed. If
+// -eq {value}' or 'category eq '{value}”. If $filter is not provided, no filtering is performed. If
 // $filter=atExactScope() is provided, the returned list only includes all policy set definitions that at the
 // given scope. If $filter='policyType -eq {value}' is provided, the returned list only includes all policy set
 // definitions whose type match the {value}. Possible policyType values are NotSpecified, BuiltIn, Custom, and
@@ -863,7 +863,7 @@ func (client SetDefinitionsClient) ListBuiltInComplete(ctx context.Context, filt
 
 // ListByManagementGroup this operation retrieves a list of all the policy set definitions in a given management group
 // that match the optional given $filter. Valid values for $filter are: 'atExactScope()', 'policyType -eq {value}' or
-// 'category eq '{value}''. If $filter is not provided, the unfiltered list includes all policy set definitions
+// 'category eq '{value}”. If $filter is not provided, the unfiltered list includes all policy set definitions
 // associated with the management group, including those that apply directly or from management groups that contain the
 // given management group. If $filter=atExactScope() is provided, the returned list only includes all policy set
 // definitions that at the given management group. If $filter='policyType -eq {value}' is provided, the returned list
@@ -873,7 +873,7 @@ func (client SetDefinitionsClient) ListBuiltInComplete(ctx context.Context, filt
 // Parameters:
 // managementGroupID - the ID of the management group.
 // filter - the filter to apply on the operation. Valid values for $filter are: 'atExactScope()', 'policyType
-// -eq {value}' or 'category eq '{value}''. If $filter is not provided, no filtering is performed. If
+// -eq {value}' or 'category eq '{value}”. If $filter is not provided, no filtering is performed. If
 // $filter=atExactScope() is provided, the returned list only includes all policy set definitions that at the
 // given scope. If $filter='policyType -eq {value}' is provided, the returned list only includes all policy set
 // definitions whose type match the {value}. Possible policyType values are NotSpecified, BuiltIn, Custom, and

@@ -81,7 +81,7 @@ func (client RestorableDroppedManagedDatabasesClient) GetPreparer(ctx context.Co
 		"subscriptionId":              autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-02-01-preview"
+	const APIVersion = "2021-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -163,7 +163,7 @@ func (client RestorableDroppedManagedDatabasesClient) ListByInstancePreparer(ctx
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2021-02-01-preview"
+	const APIVersion = "2021-05-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -21,23 +21,25 @@ type JitNetworkAccessPoliciesClient struct {
 }
 
 // NewJitNetworkAccessPoliciesClient creates an instance of the JitNetworkAccessPoliciesClient client.
-func NewJitNetworkAccessPoliciesClient(subscriptionID string, ascLocation string) JitNetworkAccessPoliciesClient {
-	return NewJitNetworkAccessPoliciesClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewJitNetworkAccessPoliciesClient(subscriptionID string) JitNetworkAccessPoliciesClient {
+	return NewJitNetworkAccessPoliciesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewJitNetworkAccessPoliciesClientWithBaseURI creates an instance of the JitNetworkAccessPoliciesClient client using
 // a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
 // clouds, Azure stack).
-func NewJitNetworkAccessPoliciesClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) JitNetworkAccessPoliciesClient {
-	return JitNetworkAccessPoliciesClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewJitNetworkAccessPoliciesClientWithBaseURI(baseURI string, subscriptionID string) JitNetworkAccessPoliciesClient {
+	return JitNetworkAccessPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // CreateOrUpdate create a policy for protecting resources using Just-in-Time access control
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
+// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
+// locations
 // jitNetworkAccessPolicyName - name of a Just-in-Time access configuration policy.
-func (client JitNetworkAccessPoliciesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, jitNetworkAccessPolicyName string, body JitNetworkAccessPolicy) (result JitNetworkAccessPolicy, err error) {
+func (client JitNetworkAccessPoliciesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, ascLocation string, jitNetworkAccessPolicyName string, body JitNetworkAccessPolicy) (result JitNetworkAccessPolicy, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/JitNetworkAccessPoliciesClient.CreateOrUpdate")
 		defer func() {
@@ -61,7 +63,7 @@ func (client JitNetworkAccessPoliciesClient) CreateOrUpdate(ctx context.Context,
 		return result, validation.NewError("security.JitNetworkAccessPoliciesClient", "CreateOrUpdate", err.Error())
 	}
 
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, jitNetworkAccessPolicyName, body)
+	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, ascLocation, jitNetworkAccessPolicyName, body)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.JitNetworkAccessPoliciesClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
@@ -84,9 +86,9 @@ func (client JitNetworkAccessPoliciesClient) CreateOrUpdate(ctx context.Context,
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client JitNetworkAccessPoliciesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, jitNetworkAccessPolicyName string, body JitNetworkAccessPolicy) (*http.Request, error) {
+func (client JitNetworkAccessPoliciesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, ascLocation string, jitNetworkAccessPolicyName string, body JitNetworkAccessPolicy) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":                autorest.Encode("path", client.AscLocation),
+		"ascLocation":                autorest.Encode("path", ascLocation),
 		"jitNetworkAccessPolicyName": autorest.Encode("path", jitNetworkAccessPolicyName),
 		"resourceGroupName":          autorest.Encode("path", resourceGroupName),
 		"subscriptionId":             autorest.Encode("path", client.SubscriptionID),
@@ -133,8 +135,10 @@ func (client JitNetworkAccessPoliciesClient) CreateOrUpdateResponder(resp *http.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
+// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
+// locations
 // jitNetworkAccessPolicyName - name of a Just-in-Time access configuration policy.
-func (client JitNetworkAccessPoliciesClient) Delete(ctx context.Context, resourceGroupName string, jitNetworkAccessPolicyName string) (result autorest.Response, err error) {
+func (client JitNetworkAccessPoliciesClient) Delete(ctx context.Context, resourceGroupName string, ascLocation string, jitNetworkAccessPolicyName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/JitNetworkAccessPoliciesClient.Delete")
 		defer func() {
@@ -155,7 +159,7 @@ func (client JitNetworkAccessPoliciesClient) Delete(ctx context.Context, resourc
 		return result, validation.NewError("security.JitNetworkAccessPoliciesClient", "Delete", err.Error())
 	}
 
-	req, err := client.DeletePreparer(ctx, resourceGroupName, jitNetworkAccessPolicyName)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, ascLocation, jitNetworkAccessPolicyName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.JitNetworkAccessPoliciesClient", "Delete", nil, "Failure preparing request")
 		return
@@ -178,9 +182,9 @@ func (client JitNetworkAccessPoliciesClient) Delete(ctx context.Context, resourc
 }
 
 // DeletePreparer prepares the Delete request.
-func (client JitNetworkAccessPoliciesClient) DeletePreparer(ctx context.Context, resourceGroupName string, jitNetworkAccessPolicyName string) (*http.Request, error) {
+func (client JitNetworkAccessPoliciesClient) DeletePreparer(ctx context.Context, resourceGroupName string, ascLocation string, jitNetworkAccessPolicyName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":                autorest.Encode("path", client.AscLocation),
+		"ascLocation":                autorest.Encode("path", ascLocation),
 		"jitNetworkAccessPolicyName": autorest.Encode("path", jitNetworkAccessPolicyName),
 		"resourceGroupName":          autorest.Encode("path", resourceGroupName),
 		"subscriptionId":             autorest.Encode("path", client.SubscriptionID),
@@ -220,8 +224,10 @@ func (client JitNetworkAccessPoliciesClient) DeleteResponder(resp *http.Response
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
+// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
+// locations
 // jitNetworkAccessPolicyName - name of a Just-in-Time access configuration policy.
-func (client JitNetworkAccessPoliciesClient) Get(ctx context.Context, resourceGroupName string, jitNetworkAccessPolicyName string) (result JitNetworkAccessPolicy, err error) {
+func (client JitNetworkAccessPoliciesClient) Get(ctx context.Context, resourceGroupName string, ascLocation string, jitNetworkAccessPolicyName string) (result JitNetworkAccessPolicy, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/JitNetworkAccessPoliciesClient.Get")
 		defer func() {
@@ -242,7 +248,7 @@ func (client JitNetworkAccessPoliciesClient) Get(ctx context.Context, resourceGr
 		return result, validation.NewError("security.JitNetworkAccessPoliciesClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, jitNetworkAccessPolicyName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, ascLocation, jitNetworkAccessPolicyName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.JitNetworkAccessPoliciesClient", "Get", nil, "Failure preparing request")
 		return
@@ -265,9 +271,9 @@ func (client JitNetworkAccessPoliciesClient) Get(ctx context.Context, resourceGr
 }
 
 // GetPreparer prepares the Get request.
-func (client JitNetworkAccessPoliciesClient) GetPreparer(ctx context.Context, resourceGroupName string, jitNetworkAccessPolicyName string) (*http.Request, error) {
+func (client JitNetworkAccessPoliciesClient) GetPreparer(ctx context.Context, resourceGroupName string, ascLocation string, jitNetworkAccessPolicyName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":                autorest.Encode("path", client.AscLocation),
+		"ascLocation":                autorest.Encode("path", ascLocation),
 		"jitNetworkAccessPolicyName": autorest.Encode("path", jitNetworkAccessPolicyName),
 		"resourceGroupName":          autorest.Encode("path", resourceGroupName),
 		"subscriptionId":             autorest.Encode("path", client.SubscriptionID),
@@ -308,8 +314,10 @@ func (client JitNetworkAccessPoliciesClient) GetResponder(resp *http.Response) (
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
+// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
+// locations
 // jitNetworkAccessPolicyName - name of a Just-in-Time access configuration policy.
-func (client JitNetworkAccessPoliciesClient) Initiate(ctx context.Context, resourceGroupName string, jitNetworkAccessPolicyName string, body JitNetworkAccessPolicyInitiateRequest) (result JitNetworkAccessRequest, err error) {
+func (client JitNetworkAccessPoliciesClient) Initiate(ctx context.Context, resourceGroupName string, ascLocation string, jitNetworkAccessPolicyName string, body JitNetworkAccessPolicyInitiateRequest) (result JitNetworkAccessRequest, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/JitNetworkAccessPoliciesClient.Initiate")
 		defer func() {
@@ -332,7 +340,7 @@ func (client JitNetworkAccessPoliciesClient) Initiate(ctx context.Context, resou
 		return result, validation.NewError("security.JitNetworkAccessPoliciesClient", "Initiate", err.Error())
 	}
 
-	req, err := client.InitiatePreparer(ctx, resourceGroupName, jitNetworkAccessPolicyName, body)
+	req, err := client.InitiatePreparer(ctx, resourceGroupName, ascLocation, jitNetworkAccessPolicyName, body)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.JitNetworkAccessPoliciesClient", "Initiate", nil, "Failure preparing request")
 		return
@@ -355,9 +363,9 @@ func (client JitNetworkAccessPoliciesClient) Initiate(ctx context.Context, resou
 }
 
 // InitiatePreparer prepares the Initiate request.
-func (client JitNetworkAccessPoliciesClient) InitiatePreparer(ctx context.Context, resourceGroupName string, jitNetworkAccessPolicyName string, body JitNetworkAccessPolicyInitiateRequest) (*http.Request, error) {
+func (client JitNetworkAccessPoliciesClient) InitiatePreparer(ctx context.Context, resourceGroupName string, ascLocation string, jitNetworkAccessPolicyName string, body JitNetworkAccessPolicyInitiateRequest) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":                        autorest.Encode("path", client.AscLocation),
+		"ascLocation":                        autorest.Encode("path", ascLocation),
 		"jitNetworkAccessPolicyInitiateType": autorest.Encode("path", "initiate"),
 		"jitNetworkAccessPolicyName":         autorest.Encode("path", jitNetworkAccessPolicyName),
 		"resourceGroupName":                  autorest.Encode("path", resourceGroupName),
@@ -517,7 +525,10 @@ func (client JitNetworkAccessPoliciesClient) ListComplete(ctx context.Context) (
 }
 
 // ListByRegion policies for protecting resources using Just-in-Time access control for the subscription, location
-func (client JitNetworkAccessPoliciesClient) ListByRegion(ctx context.Context) (result JitNetworkAccessPoliciesListPage, err error) {
+// Parameters:
+// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
+// locations
+func (client JitNetworkAccessPoliciesClient) ListByRegion(ctx context.Context, ascLocation string) (result JitNetworkAccessPoliciesListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/JitNetworkAccessPoliciesClient.ListByRegion")
 		defer func() {
@@ -535,7 +546,7 @@ func (client JitNetworkAccessPoliciesClient) ListByRegion(ctx context.Context) (
 	}
 
 	result.fn = client.listByRegionNextResults
-	req, err := client.ListByRegionPreparer(ctx)
+	req, err := client.ListByRegionPreparer(ctx, ascLocation)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.JitNetworkAccessPoliciesClient", "ListByRegion", nil, "Failure preparing request")
 		return
@@ -562,9 +573,9 @@ func (client JitNetworkAccessPoliciesClient) ListByRegion(ctx context.Context) (
 }
 
 // ListByRegionPreparer prepares the ListByRegion request.
-func (client JitNetworkAccessPoliciesClient) ListByRegionPreparer(ctx context.Context) (*http.Request, error) {
+func (client JitNetworkAccessPoliciesClient) ListByRegionPreparer(ctx context.Context, ascLocation string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":    autorest.Encode("path", client.AscLocation),
+		"ascLocation":    autorest.Encode("path", ascLocation),
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -621,7 +632,7 @@ func (client JitNetworkAccessPoliciesClient) listByRegionNextResults(ctx context
 }
 
 // ListByRegionComplete enumerates all values, automatically crossing page boundaries as required.
-func (client JitNetworkAccessPoliciesClient) ListByRegionComplete(ctx context.Context) (result JitNetworkAccessPoliciesListIterator, err error) {
+func (client JitNetworkAccessPoliciesClient) ListByRegionComplete(ctx context.Context, ascLocation string) (result JitNetworkAccessPoliciesListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/JitNetworkAccessPoliciesClient.ListByRegion")
 		defer func() {
@@ -632,7 +643,7 @@ func (client JitNetworkAccessPoliciesClient) ListByRegionComplete(ctx context.Co
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByRegion(ctx)
+	result.page, err = client.ListByRegion(ctx, ascLocation)
 	return
 }
 
@@ -769,7 +780,9 @@ func (client JitNetworkAccessPoliciesClient) ListByResourceGroupComplete(ctx con
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
-func (client JitNetworkAccessPoliciesClient) ListByResourceGroupAndRegion(ctx context.Context, resourceGroupName string) (result JitNetworkAccessPoliciesListPage, err error) {
+// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
+// locations
+func (client JitNetworkAccessPoliciesClient) ListByResourceGroupAndRegion(ctx context.Context, resourceGroupName string, ascLocation string) (result JitNetworkAccessPoliciesListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/JitNetworkAccessPoliciesClient.ListByResourceGroupAndRegion")
 		defer func() {
@@ -791,7 +804,7 @@ func (client JitNetworkAccessPoliciesClient) ListByResourceGroupAndRegion(ctx co
 	}
 
 	result.fn = client.listByResourceGroupAndRegionNextResults
-	req, err := client.ListByResourceGroupAndRegionPreparer(ctx, resourceGroupName)
+	req, err := client.ListByResourceGroupAndRegionPreparer(ctx, resourceGroupName, ascLocation)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.JitNetworkAccessPoliciesClient", "ListByResourceGroupAndRegion", nil, "Failure preparing request")
 		return
@@ -818,9 +831,9 @@ func (client JitNetworkAccessPoliciesClient) ListByResourceGroupAndRegion(ctx co
 }
 
 // ListByResourceGroupAndRegionPreparer prepares the ListByResourceGroupAndRegion request.
-func (client JitNetworkAccessPoliciesClient) ListByResourceGroupAndRegionPreparer(ctx context.Context, resourceGroupName string) (*http.Request, error) {
+func (client JitNetworkAccessPoliciesClient) ListByResourceGroupAndRegionPreparer(ctx context.Context, resourceGroupName string, ascLocation string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":       autorest.Encode("path", client.AscLocation),
+		"ascLocation":       autorest.Encode("path", ascLocation),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
@@ -878,7 +891,7 @@ func (client JitNetworkAccessPoliciesClient) listByResourceGroupAndRegionNextRes
 }
 
 // ListByResourceGroupAndRegionComplete enumerates all values, automatically crossing page boundaries as required.
-func (client JitNetworkAccessPoliciesClient) ListByResourceGroupAndRegionComplete(ctx context.Context, resourceGroupName string) (result JitNetworkAccessPoliciesListIterator, err error) {
+func (client JitNetworkAccessPoliciesClient) ListByResourceGroupAndRegionComplete(ctx context.Context, resourceGroupName string, ascLocation string) (result JitNetworkAccessPoliciesListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/JitNetworkAccessPoliciesClient.ListByResourceGroupAndRegion")
 		defer func() {
@@ -889,6 +902,6 @@ func (client JitNetworkAccessPoliciesClient) ListByResourceGroupAndRegionComplet
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByResourceGroupAndRegion(ctx, resourceGroupName)
+	result.page, err = client.ListByResourceGroupAndRegion(ctx, resourceGroupName, ascLocation)
 	return
 }

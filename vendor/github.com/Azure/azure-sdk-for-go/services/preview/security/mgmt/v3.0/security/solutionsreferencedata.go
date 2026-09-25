@@ -21,15 +21,15 @@ type SolutionsReferenceDataClient struct {
 }
 
 // NewSolutionsReferenceDataClient creates an instance of the SolutionsReferenceDataClient client.
-func NewSolutionsReferenceDataClient(subscriptionID string, ascLocation string) SolutionsReferenceDataClient {
-	return NewSolutionsReferenceDataClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewSolutionsReferenceDataClient(subscriptionID string) SolutionsReferenceDataClient {
+	return NewSolutionsReferenceDataClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewSolutionsReferenceDataClientWithBaseURI creates an instance of the SolutionsReferenceDataClient client using a
 // custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
 // Azure stack).
-func NewSolutionsReferenceDataClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) SolutionsReferenceDataClient {
-	return SolutionsReferenceDataClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewSolutionsReferenceDataClientWithBaseURI(baseURI string, subscriptionID string) SolutionsReferenceDataClient {
+	return SolutionsReferenceDataClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // List gets a list of all supported Security Solutions for the subscription.
@@ -110,7 +110,10 @@ func (client SolutionsReferenceDataClient) ListResponder(resp *http.Response) (r
 }
 
 // ListByHomeRegion gets list of all supported Security Solutions for subscription and location.
-func (client SolutionsReferenceDataClient) ListByHomeRegion(ctx context.Context) (result SolutionsReferenceDataList, err error) {
+// Parameters:
+// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
+// locations
+func (client SolutionsReferenceDataClient) ListByHomeRegion(ctx context.Context, ascLocation string) (result SolutionsReferenceDataList, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SolutionsReferenceDataClient.ListByHomeRegion")
 		defer func() {
@@ -127,7 +130,7 @@ func (client SolutionsReferenceDataClient) ListByHomeRegion(ctx context.Context)
 		return result, validation.NewError("security.SolutionsReferenceDataClient", "ListByHomeRegion", err.Error())
 	}
 
-	req, err := client.ListByHomeRegionPreparer(ctx)
+	req, err := client.ListByHomeRegionPreparer(ctx, ascLocation)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SolutionsReferenceDataClient", "ListByHomeRegion", nil, "Failure preparing request")
 		return
@@ -150,9 +153,9 @@ func (client SolutionsReferenceDataClient) ListByHomeRegion(ctx context.Context)
 }
 
 // ListByHomeRegionPreparer prepares the ListByHomeRegion request.
-func (client SolutionsReferenceDataClient) ListByHomeRegionPreparer(ctx context.Context) (*http.Request, error) {
+func (client SolutionsReferenceDataClient) ListByHomeRegionPreparer(ctx context.Context, ascLocation string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":    autorest.Encode("path", client.AscLocation),
+		"ascLocation":    autorest.Encode("path", ascLocation),
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 

@@ -21,23 +21,25 @@ type DiscoveredSecuritySolutionsClient struct {
 }
 
 // NewDiscoveredSecuritySolutionsClient creates an instance of the DiscoveredSecuritySolutionsClient client.
-func NewDiscoveredSecuritySolutionsClient(subscriptionID string, ascLocation string) DiscoveredSecuritySolutionsClient {
-	return NewDiscoveredSecuritySolutionsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewDiscoveredSecuritySolutionsClient(subscriptionID string) DiscoveredSecuritySolutionsClient {
+	return NewDiscoveredSecuritySolutionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewDiscoveredSecuritySolutionsClientWithBaseURI creates an instance of the DiscoveredSecuritySolutionsClient client
 // using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
 // clouds, Azure stack).
-func NewDiscoveredSecuritySolutionsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) DiscoveredSecuritySolutionsClient {
-	return DiscoveredSecuritySolutionsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewDiscoveredSecuritySolutionsClientWithBaseURI(baseURI string, subscriptionID string) DiscoveredSecuritySolutionsClient {
+	return DiscoveredSecuritySolutionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // Get gets a specific discovered Security Solution.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
+// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
+// locations
 // discoveredSecuritySolutionName - name of a discovered security solution.
-func (client DiscoveredSecuritySolutionsClient) Get(ctx context.Context, resourceGroupName string, discoveredSecuritySolutionName string) (result DiscoveredSecuritySolution, err error) {
+func (client DiscoveredSecuritySolutionsClient) Get(ctx context.Context, resourceGroupName string, ascLocation string, discoveredSecuritySolutionName string) (result DiscoveredSecuritySolution, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DiscoveredSecuritySolutionsClient.Get")
 		defer func() {
@@ -58,7 +60,7 @@ func (client DiscoveredSecuritySolutionsClient) Get(ctx context.Context, resourc
 		return result, validation.NewError("security.DiscoveredSecuritySolutionsClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, discoveredSecuritySolutionName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, ascLocation, discoveredSecuritySolutionName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.DiscoveredSecuritySolutionsClient", "Get", nil, "Failure preparing request")
 		return
@@ -81,9 +83,9 @@ func (client DiscoveredSecuritySolutionsClient) Get(ctx context.Context, resourc
 }
 
 // GetPreparer prepares the Get request.
-func (client DiscoveredSecuritySolutionsClient) GetPreparer(ctx context.Context, resourceGroupName string, discoveredSecuritySolutionName string) (*http.Request, error) {
+func (client DiscoveredSecuritySolutionsClient) GetPreparer(ctx context.Context, resourceGroupName string, ascLocation string, discoveredSecuritySolutionName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":                    autorest.Encode("path", client.AscLocation),
+		"ascLocation":                    autorest.Encode("path", ascLocation),
 		"discoveredSecuritySolutionName": autorest.Encode("path", discoveredSecuritySolutionName),
 		"resourceGroupName":              autorest.Encode("path", resourceGroupName),
 		"subscriptionId":                 autorest.Encode("path", client.SubscriptionID),
@@ -240,7 +242,10 @@ func (client DiscoveredSecuritySolutionsClient) ListComplete(ctx context.Context
 }
 
 // ListByHomeRegion gets a list of discovered Security Solutions for the subscription and location.
-func (client DiscoveredSecuritySolutionsClient) ListByHomeRegion(ctx context.Context) (result DiscoveredSecuritySolutionListPage, err error) {
+// Parameters:
+// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
+// locations
+func (client DiscoveredSecuritySolutionsClient) ListByHomeRegion(ctx context.Context, ascLocation string) (result DiscoveredSecuritySolutionListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DiscoveredSecuritySolutionsClient.ListByHomeRegion")
 		defer func() {
@@ -258,7 +263,7 @@ func (client DiscoveredSecuritySolutionsClient) ListByHomeRegion(ctx context.Con
 	}
 
 	result.fn = client.listByHomeRegionNextResults
-	req, err := client.ListByHomeRegionPreparer(ctx)
+	req, err := client.ListByHomeRegionPreparer(ctx, ascLocation)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.DiscoveredSecuritySolutionsClient", "ListByHomeRegion", nil, "Failure preparing request")
 		return
@@ -285,9 +290,9 @@ func (client DiscoveredSecuritySolutionsClient) ListByHomeRegion(ctx context.Con
 }
 
 // ListByHomeRegionPreparer prepares the ListByHomeRegion request.
-func (client DiscoveredSecuritySolutionsClient) ListByHomeRegionPreparer(ctx context.Context) (*http.Request, error) {
+func (client DiscoveredSecuritySolutionsClient) ListByHomeRegionPreparer(ctx context.Context, ascLocation string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":    autorest.Encode("path", client.AscLocation),
+		"ascLocation":    autorest.Encode("path", ascLocation),
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -344,7 +349,7 @@ func (client DiscoveredSecuritySolutionsClient) listByHomeRegionNextResults(ctx 
 }
 
 // ListByHomeRegionComplete enumerates all values, automatically crossing page boundaries as required.
-func (client DiscoveredSecuritySolutionsClient) ListByHomeRegionComplete(ctx context.Context) (result DiscoveredSecuritySolutionListIterator, err error) {
+func (client DiscoveredSecuritySolutionsClient) ListByHomeRegionComplete(ctx context.Context, ascLocation string) (result DiscoveredSecuritySolutionListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DiscoveredSecuritySolutionsClient.ListByHomeRegion")
 		defer func() {
@@ -355,6 +360,6 @@ func (client DiscoveredSecuritySolutionsClient) ListByHomeRegionComplete(ctx con
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByHomeRegion(ctx)
+	result.page, err = client.ListByHomeRegion(ctx, ascLocation)
 	return
 }

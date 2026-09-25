@@ -10,6 +10,10 @@ import (
 // HTTPMiddleware intercepts and records all incoming requests and the server's response
 func (rec *Recorder) HTTPMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		rec.debug("server request received",
+			"method", r.Method,
+			"url", r.URL,
+		)
 		ww := newPassthrough(w)
 
 		// Tee the body so it can be read by the next handler and by the recorder

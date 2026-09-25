@@ -21,21 +21,23 @@ type AdaptiveApplicationControlsClient struct {
 }
 
 // NewAdaptiveApplicationControlsClient creates an instance of the AdaptiveApplicationControlsClient client.
-func NewAdaptiveApplicationControlsClient(subscriptionID string, ascLocation string) AdaptiveApplicationControlsClient {
-	return NewAdaptiveApplicationControlsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewAdaptiveApplicationControlsClient(subscriptionID string) AdaptiveApplicationControlsClient {
+	return NewAdaptiveApplicationControlsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewAdaptiveApplicationControlsClientWithBaseURI creates an instance of the AdaptiveApplicationControlsClient client
 // using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
 // clouds, Azure stack).
-func NewAdaptiveApplicationControlsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) AdaptiveApplicationControlsClient {
-	return AdaptiveApplicationControlsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewAdaptiveApplicationControlsClientWithBaseURI(baseURI string, subscriptionID string) AdaptiveApplicationControlsClient {
+	return AdaptiveApplicationControlsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // Delete delete an application control machine group
 // Parameters:
+// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
+// locations
 // groupName - name of an application control machine group
-func (client AdaptiveApplicationControlsClient) Delete(ctx context.Context, groupName string) (result autorest.Response, err error) {
+func (client AdaptiveApplicationControlsClient) Delete(ctx context.Context, ascLocation string, groupName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AdaptiveApplicationControlsClient.Delete")
 		defer func() {
@@ -52,7 +54,7 @@ func (client AdaptiveApplicationControlsClient) Delete(ctx context.Context, grou
 		return result, validation.NewError("security.AdaptiveApplicationControlsClient", "Delete", err.Error())
 	}
 
-	req, err := client.DeletePreparer(ctx, groupName)
+	req, err := client.DeletePreparer(ctx, ascLocation, groupName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AdaptiveApplicationControlsClient", "Delete", nil, "Failure preparing request")
 		return
@@ -75,9 +77,9 @@ func (client AdaptiveApplicationControlsClient) Delete(ctx context.Context, grou
 }
 
 // DeletePreparer prepares the Delete request.
-func (client AdaptiveApplicationControlsClient) DeletePreparer(ctx context.Context, groupName string) (*http.Request, error) {
+func (client AdaptiveApplicationControlsClient) DeletePreparer(ctx context.Context, ascLocation string, groupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":    autorest.Encode("path", client.AscLocation),
+		"ascLocation":    autorest.Encode("path", ascLocation),
 		"groupName":      autorest.Encode("path", groupName),
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
@@ -114,8 +116,10 @@ func (client AdaptiveApplicationControlsClient) DeleteResponder(resp *http.Respo
 
 // Get gets an application control VM/server group.
 // Parameters:
+// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
+// locations
 // groupName - name of an application control machine group
-func (client AdaptiveApplicationControlsClient) Get(ctx context.Context, groupName string) (result AdaptiveApplicationControlGroup, err error) {
+func (client AdaptiveApplicationControlsClient) Get(ctx context.Context, ascLocation string, groupName string) (result AdaptiveApplicationControlGroup, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AdaptiveApplicationControlsClient.Get")
 		defer func() {
@@ -132,7 +136,7 @@ func (client AdaptiveApplicationControlsClient) Get(ctx context.Context, groupNa
 		return result, validation.NewError("security.AdaptiveApplicationControlsClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, groupName)
+	req, err := client.GetPreparer(ctx, ascLocation, groupName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AdaptiveApplicationControlsClient", "Get", nil, "Failure preparing request")
 		return
@@ -155,9 +159,9 @@ func (client AdaptiveApplicationControlsClient) Get(ctx context.Context, groupNa
 }
 
 // GetPreparer prepares the Get request.
-func (client AdaptiveApplicationControlsClient) GetPreparer(ctx context.Context, groupName string) (*http.Request, error) {
+func (client AdaptiveApplicationControlsClient) GetPreparer(ctx context.Context, ascLocation string, groupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":    autorest.Encode("path", client.AscLocation),
+		"ascLocation":    autorest.Encode("path", ascLocation),
 		"groupName":      autorest.Encode("path", groupName),
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
@@ -281,8 +285,10 @@ func (client AdaptiveApplicationControlsClient) ListResponder(resp *http.Respons
 
 // Put update an application control machine group
 // Parameters:
+// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
+// locations
 // groupName - name of an application control machine group
-func (client AdaptiveApplicationControlsClient) Put(ctx context.Context, groupName string, body AdaptiveApplicationControlGroup) (result AdaptiveApplicationControlGroup, err error) {
+func (client AdaptiveApplicationControlsClient) Put(ctx context.Context, ascLocation string, groupName string, body AdaptiveApplicationControlGroup) (result AdaptiveApplicationControlGroup, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AdaptiveApplicationControlsClient.Put")
 		defer func() {
@@ -301,7 +307,7 @@ func (client AdaptiveApplicationControlsClient) Put(ctx context.Context, groupNa
 		return result, validation.NewError("security.AdaptiveApplicationControlsClient", "Put", err.Error())
 	}
 
-	req, err := client.PutPreparer(ctx, groupName, body)
+	req, err := client.PutPreparer(ctx, ascLocation, groupName, body)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AdaptiveApplicationControlsClient", "Put", nil, "Failure preparing request")
 		return
@@ -324,9 +330,9 @@ func (client AdaptiveApplicationControlsClient) Put(ctx context.Context, groupNa
 }
 
 // PutPreparer prepares the Put request.
-func (client AdaptiveApplicationControlsClient) PutPreparer(ctx context.Context, groupName string, body AdaptiveApplicationControlGroup) (*http.Request, error) {
+func (client AdaptiveApplicationControlsClient) PutPreparer(ctx context.Context, ascLocation string, groupName string, body AdaptiveApplicationControlGroup) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":    autorest.Encode("path", client.AscLocation),
+		"ascLocation":    autorest.Encode("path", ascLocation),
 		"groupName":      autorest.Encode("path", groupName),
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
