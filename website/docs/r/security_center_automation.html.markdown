@@ -84,7 +84,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Security Center Automation should exist. Changing this forces a new Security Center Automation to be created.
 
-* `scopes` - (Required) A list of scopes on which the automation logic is applied, at least one is required. Supported scopes are a subscription (in this format `/subscriptions/00000000-0000-0000-0000-000000000000`) or a resource group under that subscription (in the format `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example`). The automation will only apply on defined scopes.
+* `scopes` - (Required) A list containing a single scope on which the automation logic is applied. The supported scope is a subscription (in this format `/subscriptions/00000000-0000-0000-0000-000000000000`) or a resource group under that subscription (in the format `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example`). Create a separate Security Center Automation for each additional scope.
 
 * `source` - (Required) One or more `source` blocks as defined below. A `source` defines what data types will be processed and a set of rules to filter that data.
 
