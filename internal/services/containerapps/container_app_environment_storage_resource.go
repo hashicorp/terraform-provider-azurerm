@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironmentsstorages"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -25,6 +26,7 @@ type ContainerAppEnvironmentStorageModel struct {
 	ContainerAppEnvironmentId string `tfschema:"container_app_environment_id"`
 	AccountName               string `tfschema:"account_name"`
 	AccessKey                 string `tfschema:"access_key"`
+	AccessKeyWOVersion        int64  `tfschema:"access_key_wo_version"`
 	ShareName                 string `tfschema:"share_name"`
 	AccessMode                string `tfschema:"access_mode"`
 	NfsServer                 string `tfschema:"nfs_server_url"`
@@ -67,18 +69,38 @@ func (r ContainerAppEnvironmentStorageResource) Arguments() map[string]*pluginsd
 			Optional:      true,
 			ForceNew:      true,
 			ValidateFunc:  storageValidate.StorageAccountName,
-			RequiredWith:  []string{"access_key"},
 			ConflictsWith: []string{"nfs_server_url"},
 			Description:   "The Azure Storage Account in which the Share to be used is located.",
 		},
 
 		"access_key": {
-			Type:         pluginsdk.TypeString,
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Sensitive:     true,
+			ValidateFunc:  validation.StringIsNotEmpty,
+			RequiredWith:  []string{"account_name"},
+			AtLeastOneOf:  []string{"access_key", "access_key_wo", "nfs_server_url"},
+			ConflictsWith: []string{"access_key_wo", "nfs_server_url"},
+			Description:   "The Storage Account Access Key.",
+		},
+
+		"access_key_wo": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			WriteOnly:     true,
+			ValidateFunc:  validation.StringIsNotEmpty,
+			RequiredWith:  []string{"account_name", "access_key_wo_version"},
+			AtLeastOneOf:  []string{"access_key", "access_key_wo", "nfs_server_url"},
+			ConflictsWith: []string{"access_key", "nfs_server_url"},
+			Description:   "The Storage Account Access Key.",
+		},
+
+		"access_key_wo_version": {
+			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Sensitive:    true,
-			ValidateFunc: validation.StringIsNotEmpty,
-			RequiredWith: []string{"account_name"},
-			Description:  "The Storage Account Access Key.",
+			RequiredWith: []string{"access_key_wo"},
+			ValidateFunc: validation.IntAtLeast(1),
+			Description:  "An integer value used to trigger an update for `access_key_wo`. This property should be incremented when updating `access_key_wo`.",
 		},
 
 		"share_name": {
@@ -101,7 +123,8 @@ func (r ContainerAppEnvironmentStorageResource) Arguments() map[string]*pluginsd
 			Optional:      true,
 			ForceNew:      true,
 			ValidateFunc:  validation.StringIsNotEmpty,
-			ConflictsWith: []string{"account_name"},
+			AtLeastOneOf:  []string{"access_key", "access_key_wo", "nfs_server_url"},
+			ConflictsWith: []string{"account_name", "access_key", "access_key_wo"},
 		},
 	}
 }
@@ -153,6 +176,15 @@ func (r ContainerAppEnvironmentStorageResource) Create() sdk.ResourceFunc {
 					},
 				}
 			} else {
+				woAccessKey, err := pluginsdk.GetWriteOnly(metadata.ResourceData, "access_key_wo", cty.String)
+				if err != nil {
+					return err
+				}
+
+				if !woAccessKey.IsNull() {
+					storage.AccessKey = woAccessKey.AsString()
+				}
+
 				managedEnvironmentStorage.Properties = &managedenvironmentsstorages.ManagedEnvironmentStorageProperties{
 					AzureFile: &managedenvironmentsstorages.AzureFileProperties{
 						AccessMode:  &accessMode,
@@ -219,6 +251,8 @@ func (r ContainerAppEnvironmentStorageResource) Read() sdk.ResourceFunc {
 				state.AccessKey = keyFromConfig.(string)
 			}
 
+			state.AccessKeyWOVersion = int64(metadata.ResourceData.Get("access_key_wo_version").(int))
+
 			return metadata.Encode(&state)
 		},
 	}
@@ -269,8 +303,17 @@ func (r ContainerAppEnvironmentStorageResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("could not update %s: existing resource is missing `AzureFile` properties", *id)
 			}
 
+			woAccessKey, err := pluginsdk.GetWriteOnly(metadata.ResourceData, "access_key_wo", cty.String)
+			if err != nil {
+				return err
+			}
+
+			if !woAccessKey.IsNull() {
+				storage.AccessKey = woAccessKey.AsString()
+			}
+
 			// This *must* be sent, and is currently the only updatable property on the resource.
-			existing.Model.Properties.AzureFile.AccountKey = pointer.To(metadata.ResourceData.Get("access_key").(string))
+			existing.Model.Properties.AzureFile.AccountKey = pointer.To(storage.AccessKey)
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)

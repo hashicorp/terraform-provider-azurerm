@@ -11,9 +11,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironmentsstorages"
+	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -68,6 +72,59 @@ func TestAccContainerAppEnvironmentStorage_update(t *testing.T) {
 			),
 		},
 		data.ImportStep("access_key"),
+	})
+}
+
+func TestAccContainerAppEnvironmentStorage_writeOnlyAccessKey(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment_storage", "test")
+	r := ContainerAppEnvironmentStorageResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.writeOnlyAccessKey(data, "primary_access_key", 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("access_key_wo_version"),
+			{
+				Config: r.writeOnlyAccessKey(data, "secondary_access_key", 2),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("access_key_wo_version"),
+		},
+	})
+}
+
+func TestAccContainerAppEnvironmentStorage_updateToWriteOnlyAccessKey(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment_storage", "test")
+	r := ContainerAppEnvironmentStorageResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.basic(data),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("access_key"),
+			{
+				Config: r.writeOnlyAccessKey(data, "primary_access_key", 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("access_key", "access_key_wo_version"),
+			{
+				Config: r.basic(data),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("access_key"),
+		},
 	})
 }
 
@@ -160,6 +217,30 @@ resource "azurerm_container_app_environment_storage" "test" {
   access_mode                  = "ReadWrite"
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppEnvironmentStorageResource) writeOnlyAccessKey(data acceptance.TestData, accessKeyProperty string, version int) string {
+	secret := fmt.Sprintf("${azurerm_storage_account.test.%s}", accessKeyProperty)
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+%[2]s
+
+resource "azurerm_container_app_environment_storage" "test" {
+  name                         = "testacc-caes-%[3]d"
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  account_name                 = azurerm_storage_account.test.name
+  access_key_wo                = ephemeral.azurerm_key_vault_secret.test.value
+  access_key_wo_version        = %[4]d
+  share_name                   = azurerm_storage_share.test.name
+  access_mode                  = "ReadWrite"
+}
+`, r.template(data), acceptance.WriteOnlyKeyVaultSecretTemplate(data, secret), data.RandomInteger, version)
 }
 
 func (r ContainerAppEnvironmentStorageResource) requiresImport(data acceptance.TestData) string {
