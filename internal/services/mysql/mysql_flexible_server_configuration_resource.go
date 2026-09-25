@@ -4,8 +4,10 @@
 package mysql
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -75,12 +77,6 @@ func resourceMySQLFlexibleServerConfigurationCreate(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	payload := configurations.Configuration{
-		Properties: &configurations.ConfigurationProperties{
-			Value: pointer.To(d.Get("value").(string)),
-		},
-	}
-
 	// NOTE: this resource intentionally doesn't support Requires Import
 	//       since a fallback route is created by default
 
@@ -89,8 +85,22 @@ func resourceMySQLFlexibleServerConfigurationCreate(d *pluginsdk.ResourceData, m
 	locks.ByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
 	defer locks.UnlockByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
 
-	if err := client.UpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
-		return fmt.Errorf("creating %s: %v", id, err)
+	updateCallback := sdk.SetIDAndIdentityCallback(meta, &id, d)
+
+	if strings.EqualFold(id.ConfigurationName, "gtid_mode") {
+		if err := mysqlFlexibleServerConfigurationUpdateGITDMode(ctx, client, id, d.Get("value").(string), updateCallback); err != nil {
+			return fmt.Errorf("creating GTID mode: %v", err)
+		}
+	} else {
+		payload := configurations.Configuration{
+			Properties: &configurations.ConfigurationProperties{
+				Value: pointer.To(d.Get("value").(string)),
+			},
+		}
+
+		if err := client.UpdateCallbackThenPoll(ctx, id, payload, updateCallback); err != nil {
+			return fmt.Errorf("creating %s: %v", id, err)
+		}
 	}
 
 	d.SetId(id.ID())
@@ -114,14 +124,20 @@ func resourceMySQLFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, m
 	locks.ByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
 	defer locks.UnlockByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
 
-	payload := configurations.Configuration{
-		Properties: &configurations.ConfigurationProperties{
-			Value: pointer.To(d.Get("value").(string)),
-		},
-	}
+	if strings.EqualFold(id.ConfigurationName, "gtid_mode") {
+		if err := mysqlFlexibleServerConfigurationUpdateGITDMode(ctx, client, *id, d.Get("value").(string), nil); err != nil {
+			return fmt.Errorf("updating GTID mode: %v", err)
+		}
+	} else {
+		payload := configurations.Configuration{
+			Properties: &configurations.ConfigurationProperties{
+				Value: pointer.To(d.Get("value").(string)),
+			},
+		}
 
-	if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
-		return fmt.Errorf("updating %s: %v", id, err)
+		if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
+			return fmt.Errorf("updating %s: %v", id, err)
+		}
 	}
 
 	return resourceMySQLFlexibleServerConfigurationRead(d, meta)
@@ -195,6 +211,52 @@ func resourceMySQLFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, m
 
 	if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
 		return fmt.Errorf("resetting %s to it's default value: %+v", *id, err)
+	}
+
+	return nil
+}
+
+// GTID can only be updated in a specific order: OFF -> OFF_PERMISSIVE -> ON_PERMISSIVE -> ON.
+// This function ensures that the GTID mode is updated in the correct order by checking the current value and updating it step by step until it reaches the desired value.
+func mysqlFlexibleServerConfigurationUpdateGITDMode(ctx context.Context,
+	client *configurations.ConfigurationsClient,
+	id configurations.ConfigurationId,
+	value string,
+	updateCallback func() error,
+) error {
+	gtidSeq := []string{"OFF", "OFF_PERMISSIVE", "ON_PERMISSIVE", "ON"}
+	currentValue := "OFF"
+	resp, _ := client.Get(ctx, id)
+	if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.Value != nil {
+		currentValue = pointer.From(resp.Model.Properties.Value)
+	}
+
+	curIdx, toIdx := 0, -1
+	for idx, v := range gtidSeq {
+		if v == currentValue {
+			curIdx = idx
+		}
+
+		if v == value {
+			toIdx = idx
+		}
+	}
+
+	if toIdx < curIdx {
+		return fmt.Errorf("cannot set `gtid_mode` from %s to %s", currentValue, value)
+	}
+
+	for _, v := range gtidSeq[curIdx+1 : toIdx+1] {
+		payload := configurations.Configuration{
+			Properties: &configurations.ConfigurationProperties{
+				Value: pointer.To(v),
+			},
+		}
+
+		log.Printf("[DEBUG] updating `gtid_mode` of %s to %s", id, v)
+		if err := client.UpdateCallbackThenPoll(ctx, id, payload, updateCallback); err != nil {
+			return fmt.Errorf("updating `gtid_mode` of %s: %v", id, err)
+		}
 	}
 
 	return nil
