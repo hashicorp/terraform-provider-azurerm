@@ -19,13 +19,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/legacy/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -175,7 +174,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "PT0S",
-							ValidateFunc: validate.ISO8601Duration,
+							ValidateFunc: validation.ISO8601Duration,
 						},
 					},
 				},
@@ -980,8 +979,8 @@ func resourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interfac
 
 			if profile := props.VirtualMachineProfile; profile != nil {
 				d.Set("license_type", profile.LicenseType)
-				d.Set("priority", string(pointer.From(profile.Priority)))
-				d.Set("eviction_policy", string(pointer.From(profile.EvictionPolicy)))
+				d.Set("priority", pointer.FromEnum(profile.Priority))
+				d.Set("eviction_policy", pointer.FromEnum(profile.EvictionPolicy))
 
 				if err := d.Set("os_profile", flattenAzureRMVirtualMachineScaleSetOsProfile(d, profile.OsProfile)); err != nil {
 					return fmt.Errorf("[DEBUG] setting `os_profile`: %#v", err)
@@ -1356,7 +1355,7 @@ func flattenAzureRMVirtualMachineScaleSetOsProfile(d *pluginsdk.ResourceData, pr
 		result["custom_data"] = *profile.CustomData
 	} else {
 		// look up the current custom data
-		result["custom_data"] = helpers.Base64EncodeIfNot(d.Get("os_profile.0.custom_data").(string))
+		result["custom_data"] = base64.EncodeIfNot(d.Get("os_profile.0.custom_data").(string))
 	}
 
 	return []interface{}{result}
@@ -1382,7 +1381,7 @@ func flattenAzureRmVirtualMachineScaleSetStorageProfileOSDisk(profile *virtualma
 	result["vhd_containers"] = pluginsdk.NewSet(pluginsdk.HashString, containers)
 
 	if profile.ManagedDisk != nil {
-		result["managed_disk_type"] = string(pointer.From(profile.ManagedDisk.StorageAccountType))
+		result["managed_disk_type"] = pointer.FromEnum(profile.ManagedDisk.StorageAccountType)
 	}
 
 	result["caching"] = profile.Caching
@@ -1397,11 +1396,11 @@ func flattenAzureRmVirtualMachineScaleSetStorageProfileDataDisk(disks *[]virtual
 	for i, disk := range *disks {
 		l := make(map[string]interface{})
 		if disk.ManagedDisk != nil {
-			l["managed_disk_type"] = string(pointer.From(disk.ManagedDisk.StorageAccountType))
+			l["managed_disk_type"] = pointer.FromEnum(disk.ManagedDisk.StorageAccountType)
 		}
 
 		l["create_option"] = disk.CreateOption
-		l["caching"] = string(pointer.From(disk.Caching))
+		l["caching"] = pointer.FromEnum(disk.Caching)
 		if disk.DiskSizeGB != nil {
 			l["disk_size_gb"] = *disk.DiskSizeGB
 		}
@@ -1848,7 +1847,7 @@ func expandAzureRMVirtualMachineScaleSetsOsProfile(d *pluginsdk.ResourceData) *v
 	}
 
 	if customData != "" {
-		customData = helpers.Base64EncodeIfNot(customData)
+		customData = base64.EncodeIfNot(customData)
 		osProfile.CustomData = &customData
 	}
 

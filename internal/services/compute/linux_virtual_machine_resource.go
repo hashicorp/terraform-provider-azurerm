@@ -28,7 +28,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -265,7 +264,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "PT1H30M",
-				ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
+				ValidateFunc: validation.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
 			"gallery_application": VirtualMachineGalleryApplicationSchema(),
@@ -1029,7 +1028,7 @@ func resourceLinuxVirtualMachineFlatten(ctx context.Context, clientsClient *clie
 						}
 						if patchSettings.AutomaticByPlatformSettings != nil {
 							bypassPlatformSafetyChecksOnUserScheduleEnabled = pointer.From(patchSettings.AutomaticByPlatformSettings.BypassPlatformSafetyChecksOnUserSchedule)
-							rebootSetting = string(pointer.From(patchSettings.AutomaticByPlatformSettings.RebootSetting))
+							rebootSetting = pointer.FromEnum(patchSettings.AutomaticByPlatformSettings.RebootSetting)
 						}
 					}
 				}
@@ -1058,7 +1057,7 @@ func resourceLinuxVirtualMachineFlatten(ctx context.Context, clientsClient *clie
 			d.Set("proximity_placement_group_id", proximityPlacementGroupId)
 
 			if profile := props.StorageProfile; profile != nil {
-				d.Set("disk_controller_type", string(pointer.From(props.StorageProfile.DiskControllerType)))
+				d.Set("disk_controller_type", pointer.FromEnum(props.StorageProfile.DiskControllerType))
 
 				if includeResource {
 					// the storage_account_type isn't returned so we need to look it up

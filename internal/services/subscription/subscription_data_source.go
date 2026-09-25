@@ -93,11 +93,11 @@ func dataSourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("subscription_id", model.SubscriptionId)
 		d.Set("display_name", model.DisplayName)
 		d.Set("tenant_id", model.TenantId)
-		d.Set("state", string(pointer.From(model.State)))
+		d.Set("state", pointer.FromEnum(model.State))
 		if props := model.SubscriptionPolicies; props != nil {
 			d.Set("location_placement_id", props.LocationPlacementId)
 			d.Set("quota_id", props.QuotaId)
-			d.Set("spending_limit", string(pointer.From(props.SpendingLimit)))
+			d.Set("spending_limit", pointer.FromEnum(props.SpendingLimit))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {

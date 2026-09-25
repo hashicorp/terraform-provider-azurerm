@@ -110,7 +110,7 @@ func dataSourceDataShareRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("kind", string(pointer.From(props.ShareKind)))
+			d.Set("kind", pointer.FromEnum(props.ShareKind))
 			d.Set("description", props.Description)
 			d.Set("terms", props.Terms)
 		}

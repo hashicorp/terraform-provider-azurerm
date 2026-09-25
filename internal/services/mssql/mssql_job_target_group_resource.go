@@ -321,7 +321,7 @@ func flattenJobTargets(input []jobtargetgroups.JobTarget) []MsSqlJobTarget {
 		t := MsSqlJobTarget{
 			DatabaseName:    pointer.From(v.DatabaseName),
 			ElasticPoolName: pointer.From(v.ElasticPoolName),
-			MembershipType:  string(pointer.From(v.MembershipType)),
+			MembershipType:  pointer.FromEnum(v.MembershipType),
 			JobCredentialId: pointer.From(v.RefreshCredential),
 			ServerName:      pointer.From(v.ServerName),
 			Type:            string(v.Type),

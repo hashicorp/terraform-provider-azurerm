@@ -156,7 +156,7 @@ func resourceWebPubsubSharedPrivateLinkServiceRead(d *pluginsdk.ResourceData, me
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("request_message", props.RequestMessage)
-			d.Set("status", string(pointer.From(props.Status)))
+			d.Set("status", pointer.FromEnum(props.Status))
 			d.Set("subresource_name", props.GroupId)
 			d.Set("target_resource_id", props.PrivateLinkResourceId)
 		}

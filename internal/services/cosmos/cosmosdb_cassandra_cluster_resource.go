@@ -233,7 +233,7 @@ func resourceCassandraClusterRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 		if props := model.Properties; props != nil {
 			d.Set("delegated_management_subnet_id", props.DelegatedManagementSubnetId)
-			d.Set("authentication_method", string(pointer.From(props.AuthenticationMethod)))
+			d.Set("authentication_method", pointer.FromEnum(props.AuthenticationMethod))
 			d.Set("repair_enabled", props.RepairEnabled)
 			d.Set("version", props.CassandraVersion)
 			d.Set("hours_between_backups", props.HoursBetweenBackups)

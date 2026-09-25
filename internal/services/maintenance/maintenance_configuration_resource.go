@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/maintenanceconfigurations"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/migration"
@@ -385,8 +384,8 @@ func resourceMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta interf
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("scope", string(pointer.From(props.MaintenanceScope)))
-			d.Set("visibility", string(pointer.From(props.Visibility)))
+			d.Set("scope", pointer.FromEnum(props.MaintenanceScope))
+			d.Set("visibility", pointer.FromEnum(props.Visibility))
 
 			properties := flattenExtensionProperties(props.ExtensionProperties)
 			if properties["InGuestPatchMode"] != nil {
@@ -537,13 +536,13 @@ func expandMaintenanceConfigurationInstallPatchesWindows(input []interface{}) *m
 	}
 	windowsInput := maintenanceconfigurations.InputWindowsParameters{}
 	if v, ok := v["classifications_to_include"]; ok {
-		windowsInput.ClassificationsToInclude = helpers.ExpandStringSlice(v.([]interface{}))
+		windowsInput.ClassificationsToInclude = pluginsdk.ExpandStringSlice(v.([]interface{}))
 	}
 	if v, ok := v["kb_numbers_to_exclude"]; ok {
-		windowsInput.KbNumbersToExclude = helpers.ExpandStringSlice(v.([]interface{}))
+		windowsInput.KbNumbersToExclude = pluginsdk.ExpandStringSlice(v.([]interface{}))
 	}
 	if v, ok := v["kb_numbers_to_include"]; ok {
-		windowsInput.KbNumbersToInclude = helpers.ExpandStringSlice(v.([]interface{}))
+		windowsInput.KbNumbersToInclude = pluginsdk.ExpandStringSlice(v.([]interface{}))
 	}
 	return &windowsInput
 }
@@ -555,15 +554,15 @@ func flattenMaintenanceConfigurationInstallPatchesWindows(input *maintenanceconf
 		output := make(map[string]interface{})
 
 		if classificationsToInclude := v.ClassificationsToInclude; classificationsToInclude != nil {
-			output["classifications_to_include"] = helpers.FlattenStringSlice(classificationsToInclude)
+			output["classifications_to_include"] = pluginsdk.FlattenSlice(classificationsToInclude)
 		}
 
 		if kbNumbersToExclude := v.KbNumbersToExclude; kbNumbersToExclude != nil {
-			output["kb_numbers_to_exclude"] = helpers.FlattenStringSlice(kbNumbersToExclude)
+			output["kb_numbers_to_exclude"] = pluginsdk.FlattenSlice(kbNumbersToExclude)
 		}
 
 		if kbNumbersToInclude := v.KbNumbersToInclude; kbNumbersToInclude != nil {
-			output["kb_numbers_to_include"] = helpers.FlattenStringSlice(kbNumbersToInclude)
+			output["kb_numbers_to_include"] = pluginsdk.FlattenSlice(kbNumbersToInclude)
 		}
 
 		results = append(results, output)
@@ -583,13 +582,13 @@ func expandMaintenanceConfigurationInstallPatchesLinux(input []interface{}) *mai
 	}
 	linuxParameters := maintenanceconfigurations.InputLinuxParameters{}
 	if v, ok := v["classifications_to_include"]; ok {
-		linuxParameters.ClassificationsToInclude = helpers.ExpandStringSlice(v.([]interface{}))
+		linuxParameters.ClassificationsToInclude = pluginsdk.ExpandStringSlice(v.([]interface{}))
 	}
 	if v, ok := v["package_names_mask_to_exclude"]; ok {
-		linuxParameters.PackageNameMasksToExclude = helpers.ExpandStringSlice(v.([]interface{}))
+		linuxParameters.PackageNameMasksToExclude = pluginsdk.ExpandStringSlice(v.([]interface{}))
 	}
 	if v, ok := v["package_names_mask_to_include"]; ok {
-		linuxParameters.PackageNameMasksToInclude = helpers.ExpandStringSlice(v.([]interface{}))
+		linuxParameters.PackageNameMasksToInclude = pluginsdk.ExpandStringSlice(v.([]interface{}))
 	}
 	return &linuxParameters
 }
@@ -600,15 +599,15 @@ func flattenMaintenanceConfigurationInstallPatchesLinux(input *maintenanceconfig
 	if input != nil {
 		classificationsToInclude := make([]interface{}, 0)
 		if input.ClassificationsToInclude != nil {
-			classificationsToInclude = helpers.FlattenStringSlice(input.ClassificationsToInclude)
+			classificationsToInclude = pluginsdk.FlattenSlice(input.ClassificationsToInclude)
 		}
 		packageNamesMaskToExclude := make([]interface{}, 0)
 		if input.PackageNameMasksToExclude != nil {
-			packageNamesMaskToExclude = helpers.FlattenStringSlice(input.PackageNameMasksToExclude)
+			packageNamesMaskToExclude = pluginsdk.FlattenSlice(input.PackageNameMasksToExclude)
 		}
 		packageNamesMaskToInclude := make([]interface{}, 0)
 		if input.PackageNameMasksToInclude != nil {
-			packageNamesMaskToInclude = helpers.FlattenStringSlice(input.PackageNameMasksToInclude)
+			packageNamesMaskToInclude = pluginsdk.FlattenSlice(input.PackageNameMasksToInclude)
 		}
 
 		results = append(results, map[string]interface{}{

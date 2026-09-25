@@ -551,7 +551,7 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 			d.Set("purge_enabled", props.EnablePurge)
 			d.Set("uri", props.Uri)
 			d.Set("data_ingestion_uri", props.DataIngestionUri)
-			d.Set("public_ip_type", string(pointer.From(props.PublicIPType)))
+			d.Set("public_ip_type", pointer.FromEnum(props.PublicIPType))
 
 			d.Set("language_extension", flattenKustoClusterLanguageExtensionList(props.LanguageExtensions))
 		}

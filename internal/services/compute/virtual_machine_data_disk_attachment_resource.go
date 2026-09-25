@@ -296,7 +296,7 @@ func resourceVirtualMachineDataDiskAttachmentRead(d *pluginsdk.ResourceData, met
 	}
 
 	d.Set("virtual_machine_id", virtualMachineId.ID())
-	d.Set("caching", string(pointer.From(disk.Caching)))
+	d.Set("caching", pointer.FromEnum(disk.Caching))
 	d.Set("create_option", string(disk.CreateOption))
 	d.Set("write_accelerator_enabled", disk.WriteAcceleratorEnabled)
 

@@ -14,11 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -322,7 +320,7 @@ func VirtualMachineScaleSetSpotRestorePolicySchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      "PT1H",
 					ForceNew:     true,
-					ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
+					ValidateFunc: validation.ISO8601DurationBetween("PT15M", "PT2H"),
 				},
 			},
 		},
@@ -698,7 +696,7 @@ func ExpandVirtualMachineScaleSetNetworkInterface(input []interface{}) (*[]virtu
 	for _, v := range input {
 		raw := v.(map[string]interface{})
 
-		dnsServers := helpers.ExpandStringSlice(raw["dns_servers"].([]interface{}))
+		dnsServers := pluginsdk.ExpandStringSlice(raw["dns_servers"].([]interface{}))
 
 		ipConfigurations := make([]virtualmachinescalesets.VirtualMachineScaleSetIPConfiguration, 0)
 		ipConfigurationsRaw := raw["ip_configuration"].([]interface{})
@@ -835,7 +833,7 @@ func ExpandVirtualMachineScaleSetNetworkInterfaceUpdate(input []interface{}) (*[
 	for _, v := range input {
 		raw := v.(map[string]interface{})
 
-		dnsServers := helpers.ExpandStringSlice(raw["dns_servers"].([]interface{}))
+		dnsServers := pluginsdk.ExpandStringSlice(raw["dns_servers"].([]interface{}))
 
 		ipConfigurations := make([]virtualmachinescalesets.VirtualMachineScaleSetUpdateIPConfiguration, 0)
 		ipConfigurationsRaw := raw["ip_configuration"].([]interface{})
@@ -966,10 +964,10 @@ func FlattenVirtualMachineScaleSetNetworkInterface(input *[]virtualmachinescales
 		var dnsServers, ipConfigurations []interface{}
 		if props := v.Properties; props != nil {
 			if props.AuxiliaryMode != nil && *props.AuxiliaryMode != virtualmachinescalesets.NetworkInterfaceAuxiliaryModeNone {
-				auxiliaryMode = string(pointer.From(props.AuxiliaryMode))
+				auxiliaryMode = pointer.FromEnum(props.AuxiliaryMode)
 			}
 			if props.AuxiliarySku != nil && *props.AuxiliarySku != virtualmachinescalesets.NetworkInterfaceAuxiliarySkuNone {
-				auxiliarySku = string(pointer.From(props.AuxiliarySku))
+				auxiliarySku = pointer.FromEnum(props.AuxiliarySku)
 			}
 			if props.NetworkSecurityGroup != nil && props.NetworkSecurityGroup.Id != nil {
 				networkSecurityGroupId = *props.NetworkSecurityGroup.Id
@@ -985,7 +983,7 @@ func FlattenVirtualMachineScaleSetNetworkInterface(input *[]virtualmachinescales
 			}
 
 			if settings := props.DnsSettings; settings != nil {
-				dnsServers = helpers.FlattenStringSlice(props.DnsSettings.DnsServers)
+				dnsServers = pluginsdk.FlattenSlice(props.DnsSettings.DnsServers)
 			}
 
 			for _, configRaw := range props.IPConfigurations {
@@ -1038,7 +1036,7 @@ func flattenVirtualMachineScaleSetIPConfiguration(input virtualmachinescalesets.
 			"primary":           primary,
 			"public_ip_address": publicIPAddresses,
 			"subnet_id":         subnetId,
-			"version":           string(pointer.From(props.PrivateIPAddressVersion)),
+			"version":           pointer.FromEnum(props.PrivateIPAddressVersion),
 			"application_gateway_backend_address_pool_ids": applicationGatewayBackendAddressPoolIds,
 			"application_security_group_ids":               applicationSecurityGroupIds,
 			"load_balancer_backend_address_pool_ids":       loadBalancerBackendAddressPoolIds,
@@ -1081,7 +1079,7 @@ func flattenVirtualMachineScaleSetPublicIPAddress(input virtualmachinescalesets.
 		}
 
 		if props.PublicIPAddressVersion != nil {
-			version = string(pointer.From(props.PublicIPAddressVersion))
+			version = pointer.FromEnum(props.PublicIPAddressVersion)
 		}
 
 		if props.IdleTimeoutInMinutes != nil {
@@ -1256,7 +1254,7 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]virtualmachinescalesets.Virt
 		storageAccountType := ""
 		diskEncryptionSetId := ""
 		if v.ManagedDisk != nil {
-			storageAccountType = string(pointer.From(v.ManagedDisk.StorageAccountType))
+			storageAccountType = pointer.FromEnum(v.ManagedDisk.StorageAccountType)
 			if v.ManagedDisk.DiskEncryptionSet != nil && v.ManagedDisk.DiskEncryptionSet.Id != nil {
 				diskEncryptionSetId = *v.ManagedDisk.DiskEncryptionSet.Id
 			}
@@ -1479,8 +1477,8 @@ func FlattenVirtualMachineScaleSetOSDisk(input *virtualmachinescalesets.VirtualM
 	diffDiskSettings := make([]interface{}, 0)
 	if input.DiffDiskSettings != nil {
 		diffDiskSettings = append(diffDiskSettings, map[string]interface{}{
-			"option":    string(pointer.From(input.DiffDiskSettings.Option)),
-			"placement": string(pointer.From(input.DiffDiskSettings.Placement)),
+			"option":    pointer.FromEnum(input.DiffDiskSettings.Option),
+			"placement": pointer.FromEnum(input.DiffDiskSettings.Placement),
 		})
 	}
 
@@ -1494,13 +1492,13 @@ func FlattenVirtualMachineScaleSetOSDisk(input *virtualmachinescalesets.VirtualM
 	secureVMDiskEncryptionSetId := ""
 	securityEncryptionType := ""
 	if input.ManagedDisk != nil {
-		storageAccountType = string(pointer.From(input.ManagedDisk.StorageAccountType))
+		storageAccountType = pointer.FromEnum(input.ManagedDisk.StorageAccountType)
 		if input.ManagedDisk.DiskEncryptionSet != nil && input.ManagedDisk.DiskEncryptionSet.Id != nil {
 			diskEncryptionSetId = *input.ManagedDisk.DiskEncryptionSet.Id
 		}
 
 		if securityProfile := input.ManagedDisk.SecurityProfile; securityProfile != nil {
-			securityEncryptionType = string(pointer.From(securityProfile.SecurityEncryptionType))
+			securityEncryptionType = pointer.FromEnum(securityProfile.SecurityEncryptionType)
 			if securityProfile.DiskEncryptionSet != nil && securityProfile.DiskEncryptionSet.Id != nil {
 				secureVMDiskEncryptionSetId = *securityProfile.DiskEncryptionSet.Id
 			}
@@ -1511,7 +1509,7 @@ func FlattenVirtualMachineScaleSetOSDisk(input *virtualmachinescalesets.VirtualM
 
 	return []interface{}{
 		map[string]interface{}{
-			"caching":                          string(pointer.From(input.Caching)),
+			"caching":                          pointer.FromEnum(input.Caching),
 			"disk_size_gb":                     diskSizeGb,
 			"diff_disk_settings":               diffDiskSettings,
 			"storage_account_type":             storageAccountType,
@@ -1597,7 +1595,7 @@ func VirtualMachineScaleSetRollingUpgradePolicySchema() *pluginsdk.Schema {
 				"pause_time_between_batches": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: azValidate.ISO8601Duration,
+					ValidateFunc: validation.ISO8601Duration,
 				},
 				"prioritize_unhealthy_instances_enabled": {
 					Type:     pluginsdk.TypeBool,
@@ -1701,7 +1699,7 @@ func VirtualMachineScaleSetTerminationNotificationSchema() *pluginsdk.Schema {
 				"timeout": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: azValidate.ISO8601DurationBetween("PT5M", "PT15M"),
+					ValidateFunc: validation.ISO8601DurationBetween("PT5M", "PT15M"),
 					Default:      "PT5M",
 				},
 			},
@@ -1763,7 +1761,7 @@ func VirtualMachineScaleSetAutomaticRepairsPolicySchema() *pluginsdk.Schema {
 					Optional: true,
 					// NOTE: O+C 'grace_period' and 'action' will always return a value once they've been set.
 					Computed:     true,
-					ValidateFunc: azValidate.ISO8601DurationBetween("PT10M", "PT90M"),
+					ValidateFunc: validation.ISO8601DurationBetween("PT10M", "PT90M"),
 				},
 				"action": {
 					Type:         pluginsdk.TypeString,
@@ -1963,7 +1961,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfi
 			TypeHandlerVersion:       pointer.To(extensionRaw["type_handler_version"].(string)),
 			AutoUpgradeMinorVersion:  pointer.To(extensionRaw["auto_upgrade_minor_version"].(bool)),
 			EnableAutomaticUpgrade:   pointer.To(extensionRaw["automatic_upgrade_enabled"].(bool)),
-			ProvisionAfterExtensions: helpers.ExpandStringSlice(extensionRaw["provision_after_extensions"].([]interface{})),
+			ProvisionAfterExtensions: pluginsdk.ExpandStringSlice(extensionRaw["provision_after_extensions"].([]interface{})),
 		}
 
 		if extensionType == "ApplicationHealthLinux" || extensionType == "ApplicationHealthWindows" {
@@ -2065,7 +2063,7 @@ func flattenVirtualMachineScaleSetExtensions(input *virtualmachinescalesets.Virt
 			}
 
 			if props.ProvisionAfterExtensions != nil {
-				provisionAfterExtension = helpers.FlattenStringSlice(props.ProvisionAfterExtensions)
+				provisionAfterExtension = pluginsdk.FlattenSlice(props.ProvisionAfterExtensions)
 			}
 
 			if props.Settings != nil {

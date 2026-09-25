@@ -681,7 +681,7 @@ func flattenVirtualMachineRunCommandInstanceView(input *virtualmachineruncommand
 	return []VirtualMachineRunCommandInstanceViewSchema{
 		{
 			ExitCode:         pointer.From(input.ExitCode),
-			executionState:   string(pointer.From(input.ExecutionState)),
+			executionState:   pointer.FromEnum(input.ExecutionState),
 			executionMessage: pointer.From(input.ExecutionMessage),
 			output:           pointer.From(input.Output),
 			errorMessage:     pointer.From(input.Error),

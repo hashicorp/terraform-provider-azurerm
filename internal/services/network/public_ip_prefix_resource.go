@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/customipprefixes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/customipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -228,8 +228,8 @@ func resourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("location", location.NormalizeNilable(model.Location))
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 		if sku := model.Sku; sku != nil {
-			d.Set("sku", string(pointer.From(sku.Name)))
-			d.Set("sku_tier", string(pointer.From(sku.Tier)))
+			d.Set("sku", pointer.FromEnum(sku.Name))
+			d.Set("sku_tier", pointer.FromEnum(sku.Tier))
 		}
 		if props := model.Properties; props != nil {
 			d.Set("prefix_length", props.PrefixLength)

@@ -574,7 +574,7 @@ func resourceMssqlServerSetFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 			if v := props.MinimalTlsVersion; v == nil || *v == "None" {
 				d.Set("minimum_tls_version", "Disabled")
 			} else {
-				d.Set("minimum_tls_version", string(pointer.From(props.MinimalTlsVersion)))
+				d.Set("minimum_tls_version", pointer.FromEnum(props.MinimalTlsVersion))
 			}
 
 			d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == servers.ServerPublicNetworkAccessFlagEnabled)

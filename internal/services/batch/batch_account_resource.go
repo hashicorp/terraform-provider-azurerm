@@ -337,7 +337,7 @@ func resourceBatchAccountFlatten(ctx context.Context, client *batchaccount.Batch
 			d.Set("account_endpoint", props.AccountEndpoint)
 			if autoStorage := props.AutoStorage; autoStorage != nil {
 				d.Set("storage_account_id", autoStorage.StorageAccountId)
-				d.Set("storage_account_authentication_mode", string(pointer.From(autoStorage.AuthenticationMode)))
+				d.Set("storage_account_authentication_mode", pointer.FromEnum(autoStorage.AuthenticationMode))
 
 				if autoStorage.NodeIdentityReference != nil {
 					d.Set("storage_account_node_identity", autoStorage.NodeIdentityReference.ResourceId)
@@ -355,7 +355,7 @@ func resourceBatchAccountFlatten(ctx context.Context, client *batchaccount.Batch
 				return fmt.Errorf("setting `network_profile`: %+v", err)
 			}
 
-			d.Set("pool_allocation_mode", string(pointer.From(props.PoolAllocationMode)))
+			d.Set("pool_allocation_mode", pointer.FromEnum(props.PoolAllocationMode))
 
 			if err := d.Set("encryption", flattenEncryption(props.Encryption)); err != nil {
 				return fmt.Errorf("setting `encryption`: %+v", err)
