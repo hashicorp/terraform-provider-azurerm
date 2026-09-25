@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/queues"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
@@ -21,6 +22,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "subscription_id:namespace_id,resource_group_name:namespace_id,namespace_name:namespace_id"
+
+const serviceBusQueueResourceName = "azurerm_servicebus_queue"
+
 func resourceServiceBusQueue() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceServiceBusQueueCreateUpdate,
@@ -28,10 +33,11 @@ func resourceServiceBusQueue() *pluginsdk.Resource {
 		Update: resourceServiceBusQueueCreateUpdate,
 		Delete: resourceServiceBusQueueDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := queues.ParseQueueID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&queues.QueueId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&queues.QueueId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -205,7 +211,7 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_servicebus_queue", id.ID())
+				return tf.ImportAsExistsError(serviceBusQueueResourceName, id.ID())
 			}
 		}
 	}
@@ -333,6 +339,9 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	if d.IsNewResource() {
 		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
 	} else {
 		// wait for property update, api issue is being tracked:https://github.com/Azure/azure-rest-api-specs/issues/21445
 		log.Printf("[DEBUG] Waiting for %s status to become ready", id)
@@ -376,12 +385,16 @@ func resourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourceServiceBusQueueFlatten(ctx, meta.(*clients.Client).ServiceBus.NamespacesClient, d, id, resp.Model, true)
+}
+
+func resourceServiceBusQueueFlatten(ctx context.Context, client *namespaces.NamespacesClient, d *pluginsdk.ResourceData, id *queues.QueueId, model *queues.SBQueue, includeResource bool) error {
 	namespaceId := namespaces.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 
 	d.Set("name", id.QueueName)
 	d.Set("namespace_id", namespaceId.ID())
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)
 			d.Set("dead_lettering_on_message_expiration", props.DeadLetteringOnMessageExpiration)
@@ -405,9 +418,8 @@ func resourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 				// If the queue is NOT in a premium namespace (ie. it is Basic or Standard) and partitioning is enabled
 				// then the max size returned by the API will be 16 times greater than the value set.
-				if *props.EnablePartitioning {
-					namespacesClient := meta.(*clients.Client).ServiceBus.NamespacesClient
-					namespace, err := namespacesClient.Get(ctx, namespaceId)
+				if includeResource && *props.EnablePartitioning {
+					namespace, err := client.Get(ctx, namespaceId)
 					if err != nil {
 						return err
 					}
@@ -422,7 +434,7 @@ func resourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceServiceBusQueueDelete(d *pluginsdk.ResourceData, meta interface{}) error {
