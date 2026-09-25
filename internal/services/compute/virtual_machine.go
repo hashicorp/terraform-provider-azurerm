@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -315,7 +314,7 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 		}
 
 		diffDiskSettings = append(diffDiskSettings, map[string]interface{}{
-			"option":    string(pointer.From(input.DiffDiskSettings.Option)),
+			"option":    pointer.FromEnum(input.DiffDiskSettings.Option),
 			"placement": placement,
 		})
 	}
@@ -334,7 +333,7 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 	osDiskId := ""
 
 	if input.ManagedDisk != nil {
-		storageAccountType = string(pointer.From(input.ManagedDisk.StorageAccountType))
+		storageAccountType = pointer.FromEnum(input.ManagedDisk.StorageAccountType)
 
 		if input.ManagedDisk.Id != nil {
 			id, err := commonids.ParseManagedDiskIDInsensitively(*input.ManagedDisk.Id)
@@ -375,7 +374,7 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 		}
 
 		if securityProfile := input.ManagedDisk.SecurityProfile; securityProfile != nil {
-			securityEncryptionType = string(pointer.From(securityProfile.SecurityEncryptionType))
+			securityEncryptionType = pointer.FromEnum(securityProfile.SecurityEncryptionType)
 			if securityProfile.DiskEncryptionSet != nil && securityProfile.DiskEncryptionSet.Id != nil {
 				secureVMDiskEncryptionSetId = *securityProfile.DiskEncryptionSet.Id
 			}
@@ -385,7 +384,7 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 	writeAcceleratorEnabled := pointer.From(input.WriteAcceleratorEnabled)
 	return []interface{}{
 		map[string]interface{}{
-			"caching":                          string(pointer.From(input.Caching)),
+			"caching":                          pointer.FromEnum(input.Caching),
 			"diff_disk_settings":               diffDiskSettings,
 			"disk_encryption_set_id":           diskEncryptionSetId,
 			"disk_size_gb":                     diskSizeGb,
@@ -434,7 +433,7 @@ func virtualMachineTerminationNotificationSchema() *pluginsdk.Schema {
 				"timeout": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: azValidate.ISO8601DurationBetween("PT5M", "PT15M"),
+					ValidateFunc: validation.ISO8601DurationBetween("PT5M", "PT15M"),
 					Default:      "PT5M",
 				},
 			},

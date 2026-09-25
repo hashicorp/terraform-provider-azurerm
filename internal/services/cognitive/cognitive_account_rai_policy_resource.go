@@ -256,7 +256,7 @@ func (r CognitiveAccountRaiPolicyResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.BasePolicyName = pointer.From(props.BasePolicyName)
 					state.ContentFilter = flattenRaiPolicyContentFilters(props.ContentFilters)
-					state.Mode = string(pointer.From(props.Mode))
+					state.Mode = pointer.FromEnum(props.Mode)
 				}
 			}
 
@@ -385,8 +385,8 @@ func flattenRaiPolicyContentFilters(filters *[]raipolicies.RaiPolicyContentFilte
 			Name:              pointer.From(filter.Name),
 			FilterEnabled:     pointer.From(filter.Enabled),
 			BlockEnabled:      pointer.From(filter.Blocking),
-			SeverityThreshold: string(pointer.From(filter.SeverityThreshold)),
-			Source:            string(pointer.From(filter.Source)),
+			SeverityThreshold: pointer.FromEnum(filter.SeverityThreshold),
+			Source:            pointer.FromEnum(filter.Source),
 		})
 	}
 	return contentFilters

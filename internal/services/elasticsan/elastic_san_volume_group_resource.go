@@ -270,11 +270,11 @@ func (r ElasticSANVolumeGroupResource) Read() sdk.ResourceFunc {
 				schema.Identity = *flattenedIdentity
 
 				if model.Properties != nil {
-					schema.EncryptionType = string(pointer.From(model.Properties.Encryption))
+					schema.EncryptionType = pointer.FromEnum(model.Properties.Encryption)
 					schema.NetworkRule = FlattenVolumeGroupNetworkRules(model.Properties.NetworkAcls)
 
 					if model.Properties.ProtocolType != nil {
-						schema.ProtocolType = string(pointer.From(model.Properties.ProtocolType))
+						schema.ProtocolType = pointer.FromEnum(model.Properties.ProtocolType)
 					}
 
 					schema.Encryption, err = FlattenVolumeGroupEncryption(model.Properties.EncryptionProperties)
@@ -465,7 +465,7 @@ func FlattenVolumeGroupNetworkRules(input *volumegroups.NetworkRuleSet) []Elasti
 	for _, rule := range *input.VirtualNetworkRules {
 		networkRules = append(networkRules, ElasticSANVolumeGroupResourceNetworkRuleModel{
 			SubnetId: rule.Id,
-			Action:   string(pointer.From(rule.Action)),
+			Action:   pointer.FromEnum(rule.Action),
 		})
 	}
 

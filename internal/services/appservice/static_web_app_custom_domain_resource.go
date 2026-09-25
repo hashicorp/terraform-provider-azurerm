@@ -148,7 +148,7 @@ func (r StaticWebAppCustomDomainResource) Create() sdk.ResourceFunc {
 						if domain.Model == nil || domain.Model.Properties == nil {
 							return nil, "Failed", fmt.Errorf("`properties` was missing from the response")
 						}
-						return domain, string(pointer.From(domain.Model.Properties.Status)), nil
+						return domain, pointer.FromEnum(domain.Model.Properties.Status), nil
 					},
 				}
 

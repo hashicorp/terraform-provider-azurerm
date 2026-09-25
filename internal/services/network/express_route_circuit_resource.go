@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressrouteports"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressroutecircuits"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuits"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressrouteports"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -380,7 +380,7 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 				d.Set("express_route_port_id", portID.ID())
 			}
 
-			d.Set("service_provider_provisioning_state", string(pointer.From(props.ServiceProviderProvisioningState)))
+			d.Set("service_provider_provisioning_state", pointer.FromEnum(props.ServiceProviderProvisioningState))
 			d.Set("service_key", props.ServiceKey)
 			d.Set("allow_classic_operations", props.AllowClassicOperations)
 			d.Set("rate_limiting_enabled", props.EnableDirectPortRateLimit)
@@ -437,8 +437,8 @@ func flattenExpressRouteCircuitSku(sku *expressroutecircuits.ExpressRouteCircuit
 
 	return []interface{}{
 		map[string]interface{}{
-			"tier":   string(pointer.From(sku.Tier)),
-			"family": string(pointer.From(sku.Family)),
+			"tier":   pointer.FromEnum(sku.Tier),
+			"family": pointer.FromEnum(sku.Family),
 		},
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/capacitypools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -159,7 +159,7 @@ func expandNetAppVolumeGroupSAPHanaVolumes(input []netAppModels.NetAppVolumeGrou
 
 		if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil &&
 			dataProtectionReplication.Replication.EndpointType != nil &&
-			strings.EqualFold(string(pointer.From(dataProtectionReplication.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
+			strings.EqualFold(pointer.FromEnum(dataProtectionReplication.Replication.EndpointType), string(volumegroups.EndpointTypeDst)) {
 			volumeProperties.Properties.VolumeType = pointer.To("DataProtection")
 		}
 
@@ -228,7 +228,7 @@ func expandNetAppVolumeGroupOracleVolumes(input []netAppModels.NetAppVolumeGroup
 
 		if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil &&
 			dataProtectionReplication.Replication.EndpointType != nil &&
-			strings.EqualFold(string(pointer.From(dataProtectionReplication.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
+			strings.EqualFold(pointer.FromEnum(dataProtectionReplication.Replication.EndpointType), string(volumegroups.EndpointTypeDst)) {
 			volumeProperties.Properties.VolumeType = pointer.To("DataProtection")
 		}
 
@@ -478,15 +478,15 @@ func flattenNetAppVolumeGroupSAPHanaVolumes(ctx context.Context, input *[]volume
 		props := item.Properties
 		volumeGroupVolume.Name = getUserDefinedVolumeName(item.Name)
 		volumeGroupVolume.VolumePath = props.CreationToken
-		volumeGroupVolume.ServiceLevel = string(pointer.From(props.ServiceLevel))
+		volumeGroupVolume.ServiceLevel = pointer.FromEnum(props.ServiceLevel)
 		volumeGroupVolume.SubnetId = props.SubnetId
 		volumeGroupVolume.CapacityPoolId = pointer.From(props.CapacityPoolResourceId)
 		volumeGroupVolume.Protocols = pointer.From(props.ProtocolTypes)
-		volumeGroupVolume.SecurityStyle = string(pointer.From(props.SecurityStyle))
+		volumeGroupVolume.SecurityStyle = pointer.FromEnum(props.SecurityStyle)
 		volumeGroupVolume.SnapshotDirectoryVisible = pointer.From(props.SnapshotDirectoryVisible)
 		volumeGroupVolume.ThroughputInMibps = pointer.From(props.ThroughputMibps)
 		volumeGroupVolume.Tags = pointer.From(item.Tags)
-		volumeGroupVolume.NetworkFeatures = string(pointer.From(props.NetworkFeatures))
+		volumeGroupVolume.NetworkFeatures = pointer.FromEnum(props.NetworkFeatures)
 
 		if props.ProximityPlacementGroup != nil {
 			volumeGroupVolume.ProximityPlacementGroupId = pointer.From(props.ProximityPlacementGroup)
@@ -560,15 +560,15 @@ func flattenNetAppVolumeGroupOracleVolumes(ctx context.Context, input *[]volumeg
 		props := item.Properties
 		volumeGroupVolume.Name = getUserDefinedVolumeName(item.Name)
 		volumeGroupVolume.VolumePath = props.CreationToken
-		volumeGroupVolume.ServiceLevel = string(pointer.From(props.ServiceLevel))
+		volumeGroupVolume.ServiceLevel = pointer.FromEnum(props.ServiceLevel)
 		volumeGroupVolume.SubnetId = props.SubnetId
 		volumeGroupVolume.CapacityPoolId = pointer.From(props.CapacityPoolResourceId)
 		volumeGroupVolume.Protocols = pointer.From(props.ProtocolTypes)
-		volumeGroupVolume.SecurityStyle = string(pointer.From(props.SecurityStyle))
+		volumeGroupVolume.SecurityStyle = pointer.FromEnum(props.SecurityStyle)
 		volumeGroupVolume.SnapshotDirectoryVisible = pointer.From(props.SnapshotDirectoryVisible)
 		volumeGroupVolume.ThroughputInMibps = pointer.From(props.ThroughputMibps)
 		volumeGroupVolume.Tags = pointer.From(item.Tags)
-		volumeGroupVolume.NetworkFeatures = string(pointer.From(props.NetworkFeatures))
+		volumeGroupVolume.NetworkFeatures = pointer.FromEnum(props.NetworkFeatures)
 
 		if props.ProximityPlacementGroup != nil {
 			volumeGroupVolume.ProximityPlacementGroupId = pointer.From(props.ProximityPlacementGroup)
@@ -673,18 +673,18 @@ func flattenNetAppVolumeGroupVolumesDPReplication(input *volumes.ReplicationObje
 	if input == nil {
 		return []netAppModels.DataProtectionReplication{}
 	}
-	if string(pointer.From(input.EndpointType)) == "" || !strings.EqualFold(string(pointer.From(input.EndpointType)), string(volumes.EndpointTypeDst)) {
+	if pointer.FromEnum(input.EndpointType) == "" || !strings.EqualFold(pointer.FromEnum(input.EndpointType), string(volumes.EndpointTypeDst)) {
 		return []netAppModels.DataProtectionReplication{}
 	}
 
 	replicationFrequency := ""
 	if input.ReplicationSchedule != nil {
-		replicationFrequency = translateSDKSchedule(strings.ToLower(string(pointer.From(input.ReplicationSchedule))))
+		replicationFrequency = translateSDKSchedule(strings.ToLower(pointer.FromEnum(input.ReplicationSchedule)))
 	}
 
 	return []netAppModels.DataProtectionReplication{
 		{
-			EndpointType:           strings.ToLower(string(pointer.From(input.EndpointType))),
+			EndpointType:           strings.ToLower(pointer.FromEnum(input.EndpointType)),
 			RemoteVolumeLocation:   pointer.From(input.RemoteVolumeRegion),
 			RemoteVolumeResourceId: pointer.From(input.RemoteVolumeResourceId),
 			ReplicationFrequency:   replicationFrequency,
@@ -739,7 +739,7 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 		if err != nil {
 			return err
 		}
-		if dataProtectionReplication.Replication.EndpointType != nil && !strings.EqualFold(string(pointer.From(dataProtectionReplication.Replication.EndpointType)), string(volumes.EndpointTypeDst)) {
+		if dataProtectionReplication.Replication.EndpointType != nil && !strings.EqualFold(pointer.FromEnum(dataProtectionReplication.Replication.EndpointType), string(volumes.EndpointTypeDst)) {
 			// This is the case where primary volume started the deletion, in this case, to be consistent we will remove replication from secondary
 			replicaVolumeId, err = volumes.ParseVolumeID(pointer.From(dataProtectionReplication.Replication.RemoteVolumeResourceId))
 			if err != nil {
@@ -751,7 +751,7 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 		if res, err := client.ReplicationStatus(ctx, pointer.From(replicaVolumeId)); err == nil {
 			// Wait for replication state = "mirrored"
 			if model := res.Model; model != nil {
-				if model.MirrorState != nil && strings.ToLower(string(pointer.From(model.MirrorState))) == "uninitialized" {
+				if model.MirrorState != nil && strings.ToLower(pointer.FromEnum(model.MirrorState)) == "uninitialized" {
 					if err := waitForReplMirrorState(ctx, client, pointer.From(replicaVolumeId), "mirrored"); err != nil {
 						return fmt.Errorf("waiting for replica %s to become 'mirrored': %+v", pointer.From(replicaVolumeId), err)
 					}
@@ -1053,7 +1053,7 @@ func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *
 		// Possible Mirror States to be used as desiredStates:
 		// mirrored, broken or uninitialized
 
-		if !helpers.SliceContainsValue(validStates, strings.ToLower(desiredState)) {
+		if !slices.Contains(validStates, strings.ToLower(desiredState)) {
 			return nil, "", fmt.Errorf("invalid desired mirror state was passed to check mirror replication state (%s), possible values: (%+v)", desiredState, volumes.PossibleValuesForMirrorState())
 		}
 
@@ -1155,7 +1155,7 @@ func authorizeVolumeReplication(ctx context.Context, volumeList *[]volumegroups.
 		if volume.Properties.DataProtection != nil && volume.Properties.DataProtection.Replication != nil {
 			replication := volume.Properties.DataProtection.Replication
 			if replication.EndpointType != nil &&
-				strings.EqualFold(string(pointer.From(replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
+				strings.EqualFold(pointer.FromEnum(replication.EndpointType), string(volumegroups.EndpointTypeDst)) {
 				// Get the capacity pool for this volume
 				capacityPoolId, err := capacitypools.ParseCapacityPoolID(*volume.Properties.CapacityPoolResourceId)
 				if err != nil {
@@ -1190,7 +1190,7 @@ func authorizeVolumeReplication(ctx context.Context, volumeList *[]volumegroups.
 	// Wait for volume replication authorization to complete for all destination volumes
 	for _, volume := range pointer.From(volumeList) {
 		if volume.Properties.DataProtection != nil && volume.Properties.DataProtection.Replication != nil &&
-			strings.EqualFold(string(pointer.From(volume.Properties.DataProtection.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
+			strings.EqualFold(pointer.FromEnum(volume.Properties.DataProtection.Replication.EndpointType), string(volumegroups.EndpointTypeDst)) {
 			// Get the capacity pool for this volume
 			capacityPoolId, err := capacitypools.ParseCapacityPoolID(*volume.Properties.CapacityPoolResourceId)
 			if err != nil {

@@ -23,9 +23,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkinterfaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -33,6 +32,7 @@ import (
 	compute2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	intStor "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -47,7 +47,7 @@ func userDataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) boo
 func userDataStateFunc(v interface{}) string {
 	switch s := v.(type) {
 	case string:
-		s = helpers.Base64EncodeIfNot(s)
+		s = base64.EncodeIfNot(s)
 		hash := sha1.Sum([]byte(s))
 		return hex.EncodeToString(hash[:])
 	default:
@@ -1186,13 +1186,13 @@ func flattenAzureRmVirtualMachineDataDisk(disks *[]virtualmachines.DataDisk, dis
 			l["vhd_uri"] = *disk.Vhd.Uri
 		}
 		if disk.ManagedDisk != nil {
-			l["managed_disk_type"] = string(pointer.From(disk.ManagedDisk.StorageAccountType))
+			l["managed_disk_type"] = pointer.FromEnum(disk.ManagedDisk.StorageAccountType)
 			if disk.ManagedDisk.Id != nil {
 				l["managed_disk_id"] = *disk.ManagedDisk.Id
 			}
 		}
 		l["create_option"] = disk.CreateOption
-		l["caching"] = string(pointer.From(disk.Caching))
+		l["caching"] = pointer.FromEnum(disk.Caching)
 		if disk.DiskSizeGB != nil {
 			l["disk_size_gb"] = *disk.DiskSizeGB
 		}
@@ -1244,7 +1244,7 @@ func flattenAzureRmVirtualMachineOsProfileWindowsConfiguration(config *virtualma
 	if config.WinRM != nil && config.WinRM.Listeners != nil {
 		for _, i := range *config.WinRM.Listeners {
 			listener := make(map[string]interface{})
-			listener["protocol"] = string(pointer.From(i.Protocol))
+			listener["protocol"] = pointer.FromEnum(i.Protocol)
 
 			if i.CertificateURL != nil {
 				listener["certificate_url"] = *i.CertificateURL
@@ -1260,9 +1260,9 @@ func flattenAzureRmVirtualMachineOsProfileWindowsConfiguration(config *virtualma
 	if config.AdditionalUnattendContent != nil {
 		for _, i := range *config.AdditionalUnattendContent {
 			c := make(map[string]interface{})
-			c["pass"] = string(pointer.From(i.PassName))
-			c["component"] = string(pointer.From(i.ComponentName))
-			c["setting_name"] = string(pointer.From(i.SettingName))
+			c["pass"] = pointer.FromEnum(i.PassName)
+			c["component"] = pointer.FromEnum(i.ComponentName)
+			c["setting_name"] = pointer.FromEnum(i.SettingName)
 
 			if i.Content != nil {
 				c["content"] = *i.Content
@@ -1321,7 +1321,7 @@ func flattenAzureRmVirtualMachineOsDisk(disk *virtualmachines.OSDisk, diskInfo *
 		result["image_uri"] = *disk.Image.Uri
 	}
 	if disk.ManagedDisk != nil {
-		result["managed_disk_type"] = string(pointer.From(disk.ManagedDisk.StorageAccountType))
+		result["managed_disk_type"] = pointer.FromEnum(disk.ManagedDisk.StorageAccountType)
 		if disk.ManagedDisk.Id != nil {
 			result["managed_disk_id"] = *disk.ManagedDisk.Id
 		}
@@ -1331,7 +1331,7 @@ func flattenAzureRmVirtualMachineOsDisk(disk *virtualmachines.OSDisk, diskInfo *
 	if disk.DiskSizeGB != nil {
 		result["disk_size_gb"] = *disk.DiskSizeGB
 	}
-	result["os_type"] = string(pointer.From(disk.OsType))
+	result["os_type"] = pointer.FromEnum(disk.OsType)
 
 	if v := disk.WriteAcceleratorEnabled; v != nil {
 		result["write_accelerator_enabled"] = *disk.WriteAcceleratorEnabled
@@ -1345,7 +1345,7 @@ func flattenAzureRmVirtualMachineOsDisk(disk *virtualmachines.OSDisk, diskInfo *
 func flattenAzureRmVirtualMachineReviseDiskInfo(result map[string]interface{}, diskInfo *disks.Disk) {
 	if diskInfo != nil {
 		if diskInfo.Sku != nil {
-			result["managed_disk_type"] = string(pointer.From(diskInfo.Sku.Name))
+			result["managed_disk_type"] = pointer.FromEnum(diskInfo.Sku.Name)
 		}
 		if diskInfo.Properties != nil && diskInfo.Properties.DiskSizeGB != nil {
 			result["disk_size_gb"] = *diskInfo.Properties.DiskSizeGB
@@ -1410,7 +1410,7 @@ func expandAzureRmVirtualMachineOsProfile(d *pluginsdk.ResourceData) (*virtualma
 	}
 
 	if v := osProfile["custom_data"].(string); v != "" {
-		v = helpers.Base64EncodeIfNot(v)
+		v = base64.EncodeIfNot(v)
 		profile.CustomData = &v
 	}
 

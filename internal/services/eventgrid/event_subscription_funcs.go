@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/eventsubscriptions"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -491,40 +490,40 @@ func flattenEventSubscriptionAdvancedFilter(input *eventsubscriptions.EventSubsc
 		case eventsubscriptions.NumberLessThanOrEqualsAdvancedFilter:
 			numberLessThanOrEquals = append(numberLessThanOrEquals, flattenValue(f.Key, pointer.To(interface{}(f.Value))))
 		case eventsubscriptions.NumberInAdvancedFilter:
-			v := helpers.FlattenFloatSlice(f.Values)
+			v := pluginsdk.FlattenSlice(f.Values)
 			numberIn = append(numberIn, flattenValues(f.Key, &v))
 		case eventsubscriptions.NumberNotInAdvancedFilter:
-			v := helpers.FlattenFloatSlice(f.Values)
+			v := pluginsdk.FlattenSlice(f.Values)
 			numberNotIn = append(numberNotIn, flattenValues(f.Key, &v))
 		case eventsubscriptions.StringBeginsWithAdvancedFilter:
-			v := helpers.FlattenStringSlice(f.Values)
+			v := pluginsdk.FlattenSlice(f.Values)
 			stringBeginsWith = append(stringBeginsWith, flattenValues(f.Key, &v))
 		case eventsubscriptions.StringNotBeginsWithAdvancedFilter:
-			v := helpers.FlattenStringSlice(f.Values)
+			v := pluginsdk.FlattenSlice(f.Values)
 			stringNotBeginsWith = append(stringNotBeginsWith, flattenValues(f.Key, &v))
 		case eventsubscriptions.StringEndsWithAdvancedFilter:
-			v := helpers.FlattenStringSlice(f.Values)
+			v := pluginsdk.FlattenSlice(f.Values)
 			stringEndsWith = append(stringEndsWith, flattenValues(f.Key, &v))
 		case eventsubscriptions.StringNotEndsWithAdvancedFilter:
-			v := helpers.FlattenStringSlice(f.Values)
+			v := pluginsdk.FlattenSlice(f.Values)
 			stringNotEndsWith = append(stringNotEndsWith, flattenValues(f.Key, &v))
 		case eventsubscriptions.StringContainsAdvancedFilter:
-			v := helpers.FlattenStringSlice(f.Values)
+			v := pluginsdk.FlattenSlice(f.Values)
 			stringContains = append(stringContains, flattenValues(f.Key, &v))
 		case eventsubscriptions.StringNotContainsAdvancedFilter:
-			v := helpers.FlattenStringSlice(f.Values)
+			v := pluginsdk.FlattenSlice(f.Values)
 			stringNotContains = append(stringNotContains, flattenValues(f.Key, &v))
 		case eventsubscriptions.StringInAdvancedFilter:
-			v := helpers.FlattenStringSlice(f.Values)
+			v := pluginsdk.FlattenSlice(f.Values)
 			stringIn = append(stringIn, flattenValues(f.Key, &v))
 		case eventsubscriptions.StringNotInAdvancedFilter:
-			v := helpers.FlattenStringSlice(f.Values)
+			v := pluginsdk.FlattenSlice(f.Values)
 			stringNotIn = append(stringNotIn, flattenValues(f.Key, &v))
 		case eventsubscriptions.NumberInRangeAdvancedFilter:
-			v := helpers.FlattenFloatRangeSlice(f.Values)
+			v := pluginsdk.FlattenFloatRangeSlice(f.Values)
 			numberInRange = append(numberInRange, flattenRangeValues(f.Key, &v))
 		case eventsubscriptions.NumberNotInRangeAdvancedFilter:
-			v := helpers.FlattenFloatRangeSlice(f.Values)
+			v := pluginsdk.FlattenFloatRangeSlice(f.Values)
 			numberNotInRange = append(numberNotInRange, flattenRangeValues(f.Key, &v))
 		case eventsubscriptions.IsNotNullAdvancedFilter:
 			isNotNull = append(isNotNull, flattenKey(f.Key))
@@ -576,7 +575,7 @@ func expandEventSubscriptionFilter(d *pluginsdk.ResourceData) (*eventsubscriptio
 	filter := &eventsubscriptions.EventSubscriptionFilter{}
 
 	if includedEvents, ok := d.GetOk("included_event_types"); ok {
-		filter.IncludedEventTypes = helpers.ExpandStringSlice(includedEvents.([]interface{}))
+		filter.IncludedEventTypes = pluginsdk.ExpandStringSlice(includedEvents.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("subject_filter"); ok {
@@ -640,61 +639,61 @@ func expandEventSubscriptionAdvancedFilter(operatorType string, config map[strin
 			Value: pointer.To(config["value"].(float64)),
 		}, nil
 	case "number_in":
-		v := helpers.ExpandFloatSlice(config["values"].([]interface{}))
+		v := pluginsdk.ExpandFloatSlice(config["values"].([]interface{}))
 		return eventsubscriptions.NumberInAdvancedFilter{
 			Key:    &k,
 			Values: v,
 		}, nil
 	case "number_not_in":
-		v := helpers.ExpandFloatSlice(config["values"].([]interface{}))
+		v := pluginsdk.ExpandFloatSlice(config["values"].([]interface{}))
 		return eventsubscriptions.NumberNotInAdvancedFilter{
 			Key:    &k,
 			Values: v,
 		}, nil
 	case "string_begins_with":
-		v := helpers.ExpandStringSlice(config["values"].([]interface{}))
+		v := pluginsdk.ExpandStringSlice(config["values"].([]interface{}))
 		return eventsubscriptions.StringBeginsWithAdvancedFilter{
 			Key:    &k,
 			Values: v,
 		}, nil
 	case "string_not_begins_with":
-		v := helpers.ExpandStringSlice(config["values"].([]interface{}))
+		v := pluginsdk.ExpandStringSlice(config["values"].([]interface{}))
 		return eventsubscriptions.StringNotBeginsWithAdvancedFilter{
 			Key:    &k,
 			Values: v,
 		}, nil
 	case "string_ends_with":
-		v := helpers.ExpandStringSlice(config["values"].([]interface{}))
+		v := pluginsdk.ExpandStringSlice(config["values"].([]interface{}))
 		return eventsubscriptions.StringEndsWithAdvancedFilter{
 			Key:    &k,
 			Values: v,
 		}, nil
 	case "string_not_ends_with":
-		v := helpers.ExpandStringSlice(config["values"].([]interface{}))
+		v := pluginsdk.ExpandStringSlice(config["values"].([]interface{}))
 		return eventsubscriptions.StringNotEndsWithAdvancedFilter{
 			Key:    &k,
 			Values: v,
 		}, nil
 	case "string_contains":
-		v := helpers.ExpandStringSlice(config["values"].([]interface{}))
+		v := pluginsdk.ExpandStringSlice(config["values"].([]interface{}))
 		return eventsubscriptions.StringContainsAdvancedFilter{
 			Key:    &k,
 			Values: v,
 		}, nil
 	case "string_not_contains":
-		v := helpers.ExpandStringSlice(config["values"].([]interface{}))
+		v := pluginsdk.ExpandStringSlice(config["values"].([]interface{}))
 		return eventsubscriptions.StringNotContainsAdvancedFilter{
 			Key:    &k,
 			Values: v,
 		}, nil
 	case "string_in":
-		v := helpers.ExpandStringSlice(config["values"].([]interface{}))
+		v := pluginsdk.ExpandStringSlice(config["values"].([]interface{}))
 		return eventsubscriptions.StringInAdvancedFilter{
 			Key:    &k,
 			Values: v,
 		}, nil
 	case "string_not_in":
-		v := helpers.ExpandStringSlice(config["values"].([]interface{}))
+		v := pluginsdk.ExpandStringSlice(config["values"].([]interface{}))
 		return eventsubscriptions.StringNotInAdvancedFilter{
 			Key:    &k,
 			Values: v,
@@ -708,13 +707,13 @@ func expandEventSubscriptionAdvancedFilter(operatorType string, config map[strin
 			Key: &k,
 		}, nil
 	case "number_in_range":
-		v := helpers.ExpandFloatRangeSlice(config["values"].([]interface{}))
+		v := pluginsdk.ExpandFloatRangeSlice(config["values"].([]interface{}))
 		return eventsubscriptions.NumberInRangeAdvancedFilter{
 			Key:    &k,
 			Values: v,
 		}, nil
 	case "number_not_in_range":
-		v := helpers.ExpandFloatRangeSlice(config["values"].([]interface{}))
+		v := pluginsdk.ExpandFloatRangeSlice(config["values"].([]interface{}))
 		return eventsubscriptions.NumberNotInRangeAdvancedFilter{
 			Key:    &k,
 			Values: v,

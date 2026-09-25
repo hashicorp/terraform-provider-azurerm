@@ -153,7 +153,7 @@ func resourceStorageSyncFlatten(ctx context.Context, d *pluginsdk.ResourceData, 
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
-			d.Set("incoming_traffic_policy", string(pointer.From(props.IncomingTrafficPolicy)))
+			d.Set("incoming_traffic_policy", pointer.FromEnum(props.IncomingTrafficPolicy))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {

@@ -226,7 +226,7 @@ func (d DBServersDataSource) Read() sdk.ResourceFunc {
 							DisplayName:                 pointer.From(props.DisplayName),
 							ExadataInfrastructureId:     pointer.From(props.ExadataInfrastructureId),
 							LifecycleDetails:            pointer.From(props.LifecycleDetails),
-							LifecycleState:              string(pointer.From(props.LifecycleState)),
+							LifecycleState:              pointer.FromEnum(props.LifecycleState),
 							MaxCPUCount:                 pointer.From(props.MaxCPUCount),
 							MaxDbNodeStorageInGbs:       pointer.From(props.MaxDbNodeStorageInGbs),
 							MaxMemoryInGbs:              pointer.From(props.MaxMemoryInGbs),
