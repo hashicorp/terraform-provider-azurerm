@@ -16,10 +16,15 @@
 
 #include "textflag.h"
 
-#define NOP64 WORD $0x1f2003d5; WORD $0x1f2003d5;
+// Keep this 16 KiB padding in sync with writeIsolationSize in
+// write_darwin_arm64.go. It separates write's executable body from adjacent Go
+// text by one supported page; larger runtime page sizes are rejected in Go
+// before any page protection is changed.
+#define NOP8 WORD $0x1f2003d5; WORD $0x1f2003d5;
+#define NOP64 NOP8; NOP8; NOP8; NOP8; NOP8; NOP8; NOP8; NOP8;
 #define NOP512 NOP64; NOP64; NOP64; NOP64; NOP64; NOP64; NOP64; NOP64;
 #define NOP4096 NOP512; NOP512; NOP512; NOP512; NOP512; NOP512; NOP512; NOP512;
-#define NOP16384 NOP4096; NOP4096; NOP4096; NOP4096; NOP4096; NOP4096; NOP4096; NOP4096;
+#define NOP16384 NOP4096; NOP4096; NOP4096; NOP4096;
 
 #define protRW $(0x1|0x2|0x10)
 #define mProtect $(0x2000000+74)
@@ -56,6 +61,11 @@ PROTECT_OK:
     MOVD    pageSize+32(FP), R1
     MOVD    oriProt+40(FP), R2
     SVC     $0x80
+    MOVD    R0, R27           // Save return value of mprotect
+    MOVD    target+0(FP), R0  // Arg1: start address
+    MOVD    len+16(FP), R1    // Arg2: length
+    CALL    sys_icache_invalidate(SB)
+    MOVD    R27, R0           // Restore return value
     B       RETURN
     NOP16384
 RETURN:

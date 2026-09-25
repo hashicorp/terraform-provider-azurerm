@@ -21,15 +21,15 @@ type AlertsSuppressionRulesClient struct {
 }
 
 // NewAlertsSuppressionRulesClient creates an instance of the AlertsSuppressionRulesClient client.
-func NewAlertsSuppressionRulesClient(subscriptionID string, ascLocation string) AlertsSuppressionRulesClient {
-	return NewAlertsSuppressionRulesClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewAlertsSuppressionRulesClient(subscriptionID string) AlertsSuppressionRulesClient {
+	return NewAlertsSuppressionRulesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewAlertsSuppressionRulesClientWithBaseURI creates an instance of the AlertsSuppressionRulesClient client using a
 // custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
 // Azure stack).
-func NewAlertsSuppressionRulesClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) AlertsSuppressionRulesClient {
-	return AlertsSuppressionRulesClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewAlertsSuppressionRulesClientWithBaseURI(baseURI string, subscriptionID string) AlertsSuppressionRulesClient {
+	return AlertsSuppressionRulesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // Delete delete dismiss alert rule for this subscription.

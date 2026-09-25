@@ -20,14 +20,14 @@ type SubAssessmentsClient struct {
 }
 
 // NewSubAssessmentsClient creates an instance of the SubAssessmentsClient client.
-func NewSubAssessmentsClient(subscriptionID string, ascLocation string) SubAssessmentsClient {
-	return NewSubAssessmentsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewSubAssessmentsClient(subscriptionID string) SubAssessmentsClient {
+	return NewSubAssessmentsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewSubAssessmentsClientWithBaseURI creates an instance of the SubAssessmentsClient client using a custom endpoint.
 // Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewSubAssessmentsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) SubAssessmentsClient {
-	return SubAssessmentsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewSubAssessmentsClientWithBaseURI(baseURI string, subscriptionID string) SubAssessmentsClient {
+	return SubAssessmentsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // Get get a security sub-assessment on your scanned resource

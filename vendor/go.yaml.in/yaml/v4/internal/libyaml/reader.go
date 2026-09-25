@@ -1,123 +1,33 @@
-//
-// Copyright (c) 2011-2019 Canonical Ltd
-// Copyright (c) 2006-2010 Kirill Simonov
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy of
-// this software and associated documentation files (the "Software"), to deal in
-// the Software without restriction, including without limitation the rights to
-// use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
-// of the Software, and to permit persons to whom the Software is furnished to do
-// so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+// Copyright 2006-2010 Kirill Simonov
+// Copyright 2011-2019 Canonical Ltd
+// Copyright 2025 The go-yaml Project Contributors
+// SPDX-License-Identifier: Apache-2.0 AND MIT
+
+// Input reader with encoding detection and buffering.
+// Handles BOM detection, UTF-8/UTF-16 conversion, and provides buffered input
+// for the scanner.
 
 package libyaml
 
 import (
+	"errors"
+	"fmt"
 	"io"
 )
-
-// Set the reader error and return 0.
-func (parser *Parser) setReaderError(problem string, offset int, value int) bool {
-	parser.ErrorType = READER_ERROR
-	parser.Problem = problem
-	parser.ProblemOffset = offset
-	parser.ProblemValue = value
-	return false
-}
-
-// Byte order marks.
-const (
-	bom_UTF8    = "\xef\xbb\xbf"
-	bom_UTF16LE = "\xff\xfe"
-	bom_UTF16BE = "\xfe\xff"
-)
-
-// Determine the input stream encoding by checking the BOM symbol. If no BOM is
-// found, the UTF-8 encoding is assumed. Return 1 on success, 0 on failure.
-func (parser *Parser) determineEncoding() bool {
-	// Ensure that we had enough bytes in the raw buffer.
-	for !parser.eof && len(parser.raw_buffer)-parser.raw_buffer_pos < 3 {
-		if !parser.updateRawBuffer() {
-			return false
-		}
-	}
-
-	// Determine the encoding.
-	buf := parser.raw_buffer
-	pos := parser.raw_buffer_pos
-	avail := len(buf) - pos
-	if avail >= 2 && buf[pos] == bom_UTF16LE[0] && buf[pos+1] == bom_UTF16LE[1] {
-		parser.encoding = UTF16LE_ENCODING
-		parser.raw_buffer_pos += 2
-		parser.offset += 2
-	} else if avail >= 2 && buf[pos] == bom_UTF16BE[0] && buf[pos+1] == bom_UTF16BE[1] {
-		parser.encoding = UTF16BE_ENCODING
-		parser.raw_buffer_pos += 2
-		parser.offset += 2
-	} else if avail >= 3 && buf[pos] == bom_UTF8[0] && buf[pos+1] == bom_UTF8[1] && buf[pos+2] == bom_UTF8[2] {
-		parser.encoding = UTF8_ENCODING
-		parser.raw_buffer_pos += 3
-		parser.offset += 3
-	} else {
-		parser.encoding = UTF8_ENCODING
-	}
-	return true
-}
-
-// Update the raw buffer.
-func (parser *Parser) updateRawBuffer() bool {
-	size_read := 0
-
-	// Return if the raw buffer is full.
-	if parser.raw_buffer_pos == 0 && len(parser.raw_buffer) == cap(parser.raw_buffer) {
-		return true
-	}
-
-	// Return on EOF.
-	if parser.eof {
-		return true
-	}
-
-	// Move the remaining bytes in the raw buffer to the beginning.
-	if parser.raw_buffer_pos > 0 && parser.raw_buffer_pos < len(parser.raw_buffer) {
-		copy(parser.raw_buffer, parser.raw_buffer[parser.raw_buffer_pos:])
-	}
-	parser.raw_buffer = parser.raw_buffer[:len(parser.raw_buffer)-parser.raw_buffer_pos]
-	parser.raw_buffer_pos = 0
-
-	// Call the read handler to fill the buffer.
-	size_read, err := parser.read_handler(parser, parser.raw_buffer[len(parser.raw_buffer):cap(parser.raw_buffer)])
-	parser.raw_buffer = parser.raw_buffer[:len(parser.raw_buffer)+size_read]
-	if err == io.EOF {
-		parser.eof = true
-	} else if err != nil {
-		return parser.setReaderError("input error: "+err.Error(), parser.offset, -1)
-	}
-	return true
-}
 
 // Ensure that the buffer contains at least `length` characters.
 // Return true on success, false on failure.
 //
 // The length is supposed to be significantly less that the buffer size.
-func (parser *Parser) updateBuffer(length int) bool {
+func (parser *Parser) updateBuffer(length int) error {
 	if parser.read_handler == nil {
 		panic("read handler must be set")
 	}
 
-	// [Go] This function was changed to guarantee the requested length size at EOF.
-	// The fact we need to do this is pretty awful, but the description above implies
-	// for that to be the case, and there are tests
+	// [Go] This function was changed to guarantee the requested length
+	// size at EOF.
+	// The fact we need to do this is pretty awful, but the description
+	// above implies for that to be the case, and there are tests
 
 	// If the EOF flag is set and the raw buffer is empty, do nothing.
 	//
@@ -133,13 +43,13 @@ func (parser *Parser) updateBuffer(length int) bool {
 
 	// Return if the buffer contains enough characters.
 	if parser.unread >= length {
-		return true
+		return nil
 	}
 
 	// Determine the input encoding if it is not known yet.
 	if parser.encoding == ANY_ENCODING {
-		if !parser.determineEncoding() {
-			return false
+		if err := parser.determineEncoding(); err != nil {
+			return err
 		}
 	}
 
@@ -163,9 +73,9 @@ func (parser *Parser) updateBuffer(length int) bool {
 
 		// Fill the raw buffer if necessary.
 		if !first || parser.raw_buffer_pos == len(parser.raw_buffer) {
-			if !parser.updateRawBuffer() {
+			if err := parser.updateRawBuffer(); err != nil {
 				parser.buffer = parser.buffer[:buffer_len]
-				return false
+				return err
 			}
 		}
 		first = false
@@ -212,17 +122,17 @@ func (parser *Parser) updateBuffer(length int) bool {
 					width = 4
 				default:
 					// The leading octet is invalid.
-					return parser.setReaderError(
-						"invalid leading UTF-8 octet",
-						parser.offset, int(octet))
+					return formatReaderError(
+						fmt.Sprintf("invalid leading UTF-8 octet (value: %d)", octet),
+						Mark{Index: parser.offset})
 				}
 
 				// Check if the raw buffer contains an incomplete character.
 				if width > raw_unread {
 					if parser.eof {
-						return parser.setReaderError(
+						return formatReaderError(
 							"incomplete UTF-8 octet sequence",
-							parser.offset, -1)
+							Mark{Index: parser.offset})
 					}
 					break inner
 				}
@@ -247,9 +157,9 @@ func (parser *Parser) updateBuffer(length int) bool {
 
 					// Check if the octet is valid.
 					if (octet & 0xC0) != 0x80 {
-						return parser.setReaderError(
-							"invalid trailing UTF-8 octet",
-							parser.offset+k, int(octet))
+						return formatReaderError(
+							fmt.Sprintf("invalid trailing UTF-8 octet (value: %d)", octet),
+							Mark{Index: parser.offset + k})
 					}
 
 					// Decode the octet.
@@ -263,16 +173,16 @@ func (parser *Parser) updateBuffer(length int) bool {
 				case width == 3 && value >= 0x800:
 				case width == 4 && value >= 0x10000:
 				default:
-					return parser.setReaderError(
+					return formatReaderError(
 						"invalid length of a UTF-8 sequence",
-						parser.offset, -1)
+						Mark{Index: parser.offset})
 				}
 
 				// Check the range of the value.
 				if value >= 0xD800 && value <= 0xDFFF || value > 0x10FFFF {
-					return parser.setReaderError(
-						"invalid Unicode character",
-						parser.offset, int(value))
+					return formatReaderError(
+						fmt.Sprintf("invalid Unicode character (value: %d)", value),
+						Mark{Index: parser.offset})
 				}
 
 			case UTF16LE_ENCODING, UTF16BE_ENCODING:
@@ -310,9 +220,9 @@ func (parser *Parser) updateBuffer(length int) bool {
 				// Check for incomplete UTF-16 character.
 				if raw_unread < 2 {
 					if parser.eof {
-						return parser.setReaderError(
+						return formatReaderError(
 							"incomplete UTF-16 character",
-							parser.offset, -1)
+							Mark{Index: parser.offset})
 					}
 					break inner
 				}
@@ -323,9 +233,9 @@ func (parser *Parser) updateBuffer(length int) bool {
 
 				// Check for unexpected low surrogate area.
 				if value&0xFC00 == 0xDC00 {
-					return parser.setReaderError(
-						"unexpected low surrogate area",
-						parser.offset, int(value))
+					return formatReaderError(
+						fmt.Sprintf("unexpected low surrogate area (value: %d)", value),
+						Mark{Index: parser.offset})
 				}
 
 				// Check for a high surrogate area.
@@ -335,9 +245,9 @@ func (parser *Parser) updateBuffer(length int) bool {
 					// Check for incomplete surrogate pair.
 					if raw_unread < 4 {
 						if parser.eof {
-							return parser.setReaderError(
+							return formatReaderError(
 								"incomplete UTF-16 surrogate pair",
-								parser.offset, -1)
+								Mark{Index: parser.offset})
 						}
 						break inner
 					}
@@ -348,9 +258,9 @@ func (parser *Parser) updateBuffer(length int) bool {
 
 					// Check for a low surrogate area.
 					if value2&0xFC00 != 0xDC00 {
-						return parser.setReaderError(
-							"expected low surrogate area",
-							parser.offset+2, int(value2))
+						return formatReaderError(
+							fmt.Sprintf("expected low surrogate area (value: %d)", value2),
+							Mark{Index: parser.offset + 2})
 					}
 
 					// Generate the value of the surrogate pair.
@@ -363,23 +273,36 @@ func (parser *Parser) updateBuffer(length int) bool {
 				panic("impossible")
 			}
 
+			// YAML 1.2 compatible character sets
 			// Check if the character is in the allowed range:
-			//      #x9 | #xA | #xD | [#x20-#x7E]               (8 bit)
-			//      | #x85 | [#xA0-#xD7FF] | [#xE000-#xFFFD]    (16 bit)
-			//      | [#x10000-#x10FFFF]                        (32 bit)
+			// For JSON compatibility in quoted scalars, we must allow all
+			// non-C0 characters. This includes ASCII DEL (0x7F) and the
+			// C1 control block [#x80-#x9F].
+			// ref: https://yaml.org/spec/1.2.2/#51-character-set
 			switch {
+			// 8 bit set
+			// Tab (\t)
 			case value == 0x09:
+			// Line feed (LF \n)
 			case value == 0x0A:
+			// Carriage Return (CR \r)
 			case value == 0x0D:
+			// 16 bit set
+			// Printable ASCII
 			case value >= 0x20 && value <= 0x7E:
-			case value == 0x85:
+			// DEL, C1 control
+			// incompatible with YAML versions <= 1.1
+			case value >= 0x7F && value <= 0x9F:
+			// and Basic Multilingual Plane (BMP),
 			case value >= 0xA0 && value <= 0xD7FF:
+			// Additional Unicode Areas
 			case value >= 0xE000 && value <= 0xFFFD:
+			// 32 bit set
 			case value >= 0x10000 && value <= 0x10FFFF:
 			default:
-				return parser.setReaderError(
-					"control characters are not allowed",
-					parser.offset, int(value))
+				return formatReaderError(
+					fmt.Sprintf("control characters are not allowed (value: %d)", value),
+					Mark{Index: parser.offset})
 			}
 
 			// Move the raw pointers.
@@ -432,5 +355,92 @@ func (parser *Parser) updateBuffer(length int) bool {
 		buffer_len++
 	}
 	parser.buffer = parser.buffer[:buffer_len]
-	return true
+	return nil
+}
+
+// Byte order marks for UTF-8, UTF-16LE, and UTF-16BE encodings.
+const (
+	bom_UTF8    = "\xef\xbb\xbf"
+	bom_UTF16LE = "\xff\xfe"
+	bom_UTF16BE = "\xfe\xff"
+)
+
+// Determine the input stream encoding by checking the BOM symbol.
+// If no BOM is found, the UTF-8 encoding is assumed.
+// Return 1 on success, 0 on failure.
+func (parser *Parser) determineEncoding() error {
+	// Ensure that we had enough bytes in the raw buffer.
+	for !parser.eof && len(parser.raw_buffer)-parser.raw_buffer_pos < 3 {
+		if err := parser.updateRawBuffer(); err != nil {
+			return err
+		}
+	}
+
+	// Determine the encoding.
+	buf := parser.raw_buffer
+	pos := parser.raw_buffer_pos
+	avail := len(buf) - pos
+	if avail >= 2 && buf[pos] == bom_UTF16LE[0] && buf[pos+1] == bom_UTF16LE[1] {
+		parser.encoding = UTF16LE_ENCODING
+		parser.raw_buffer_pos += 2
+		parser.offset += 2
+	} else if avail >= 2 && buf[pos] == bom_UTF16BE[0] && buf[pos+1] == bom_UTF16BE[1] {
+		parser.encoding = UTF16BE_ENCODING
+		parser.raw_buffer_pos += 2
+		parser.offset += 2
+	} else if avail >= 3 && buf[pos] == bom_UTF8[0] && buf[pos+1] == bom_UTF8[1] && buf[pos+2] == bom_UTF8[2] {
+		parser.encoding = UTF8_ENCODING
+		parser.raw_buffer_pos += 3
+		parser.offset += 3
+	} else {
+		parser.encoding = UTF8_ENCODING
+	}
+	return nil
+}
+
+// Update the raw buffer.
+func (parser *Parser) updateRawBuffer() error {
+	size_read := 0
+
+	// Return if the raw buffer is full.
+	if parser.raw_buffer_pos == 0 && len(parser.raw_buffer) == cap(parser.raw_buffer) {
+		return nil
+	}
+
+	// Return on EOF.
+	if parser.eof {
+		return nil
+	}
+
+	// Move the remaining bytes in the raw buffer to the beginning.
+	if parser.raw_buffer_pos > 0 && parser.raw_buffer_pos < len(parser.raw_buffer) {
+		copy(parser.raw_buffer, parser.raw_buffer[parser.raw_buffer_pos:])
+	}
+	parser.raw_buffer = parser.raw_buffer[:len(parser.raw_buffer)-parser.raw_buffer_pos]
+	parser.raw_buffer_pos = 0
+
+	// Call the read handler to fill the buffer.
+	size_read, err := parser.read_handler(parser, parser.raw_buffer[len(parser.raw_buffer):cap(parser.raw_buffer)])
+	parser.raw_buffer = parser.raw_buffer[:len(parser.raw_buffer)+size_read]
+	if err == io.EOF {
+		parser.eof = true
+	} else if err != nil {
+		return &LoadError{
+			Stage:   ReaderStage,
+			Message: fmt.Sprintf("input error: %v", err),
+			Mark:    Mark{Index: parser.offset},
+			err:     err,
+		}
+	}
+	return nil
+}
+
+// formatReaderError creates a LoadError for reader-stage errors.
+func formatReaderError(message string, mark Mark) *LoadError {
+	return &LoadError{
+		Stage:   ReaderStage,
+		Message: message,
+		Mark:    mark,
+		err:     errors.New(message),
+	}
 }

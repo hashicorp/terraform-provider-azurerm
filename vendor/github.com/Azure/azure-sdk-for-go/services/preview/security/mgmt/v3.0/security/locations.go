@@ -21,18 +21,21 @@ type LocationsClient struct {
 }
 
 // NewLocationsClient creates an instance of the LocationsClient client.
-func NewLocationsClient(subscriptionID string, ascLocation string) LocationsClient {
-	return NewLocationsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewLocationsClient(subscriptionID string) LocationsClient {
+	return NewLocationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewLocationsClientWithBaseURI creates an instance of the LocationsClient client using a custom endpoint.  Use this
 // when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewLocationsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) LocationsClient {
-	return LocationsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewLocationsClientWithBaseURI(baseURI string, subscriptionID string) LocationsClient {
+	return LocationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // Get details of a specific location
-func (client LocationsClient) Get(ctx context.Context) (result AscLocation, err error) {
+// Parameters:
+// ascLocation - the location where ASC stores the data of the subscription. can be retrieved from Get
+// locations
+func (client LocationsClient) Get(ctx context.Context, ascLocation string) (result AscLocation, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LocationsClient.Get")
 		defer func() {
@@ -49,7 +52,7 @@ func (client LocationsClient) Get(ctx context.Context) (result AscLocation, err 
 		return result, validation.NewError("security.LocationsClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx)
+	req, err := client.GetPreparer(ctx, ascLocation)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.LocationsClient", "Get", nil, "Failure preparing request")
 		return
@@ -72,9 +75,9 @@ func (client LocationsClient) Get(ctx context.Context) (result AscLocation, err 
 }
 
 // GetPreparer prepares the Get request.
-func (client LocationsClient) GetPreparer(ctx context.Context) (*http.Request, error) {
+func (client LocationsClient) GetPreparer(ctx context.Context, ascLocation string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":    autorest.Encode("path", client.AscLocation),
+		"ascLocation":    autorest.Encode("path", ascLocation),
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 

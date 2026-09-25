@@ -39,13 +39,13 @@ func NewLedgerDigestUploadsClientWithBaseURI(baseURI string, subscriptionID stri
 // from the Azure Resource Manager API or the portal.
 // serverName - the name of the server.
 // databaseName - the name of the database.
-func (client LedgerDigestUploadsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serverName string, databaseName string, parameters LedgerDigestUploads) (result LedgerDigestUploads, err error) {
+func (client LedgerDigestUploadsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serverName string, databaseName string, parameters LedgerDigestUploads) (result LedgerDigestUploadsCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LedgerDigestUploadsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -56,16 +56,9 @@ func (client LedgerDigestUploadsClient) CreateOrUpdate(ctx context.Context, reso
 		return
 	}
 
-	resp, err := client.CreateOrUpdateSender(req)
+	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "sql.LedgerDigestUploadsClient", "CreateOrUpdate", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.CreateOrUpdateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.LedgerDigestUploadsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "sql.LedgerDigestUploadsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -99,8 +92,18 @@ func (client LedgerDigestUploadsClient) CreateOrUpdatePreparer(ctx context.Conte
 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client LedgerDigestUploadsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client LedgerDigestUploadsClient) CreateOrUpdateSender(req *http.Request) (future LedgerDigestUploadsCreateOrUpdateFuture, err error) {
+	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -121,13 +124,13 @@ func (client LedgerDigestUploadsClient) CreateOrUpdateResponder(resp *http.Respo
 // from the Azure Resource Manager API or the portal.
 // serverName - the name of the server.
 // databaseName - the name of the database.
-func (client LedgerDigestUploadsClient) Disable(ctx context.Context, resourceGroupName string, serverName string, databaseName string) (result LedgerDigestUploads, err error) {
+func (client LedgerDigestUploadsClient) Disable(ctx context.Context, resourceGroupName string, serverName string, databaseName string) (result LedgerDigestUploadsDisableFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LedgerDigestUploadsClient.Disable")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.FutureAPI != nil && result.FutureAPI.Response() != nil {
+				sc = result.FutureAPI.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -138,16 +141,9 @@ func (client LedgerDigestUploadsClient) Disable(ctx context.Context, resourceGro
 		return
 	}
 
-	resp, err := client.DisableSender(req)
+	result, err = client.DisableSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "sql.LedgerDigestUploadsClient", "Disable", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.DisableResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.LedgerDigestUploadsClient", "Disable", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "sql.LedgerDigestUploadsClient", "Disable", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -179,8 +175,18 @@ func (client LedgerDigestUploadsClient) DisablePreparer(ctx context.Context, res
 
 // DisableSender sends the Disable request. The method will close the
 // http.Response Body if it receives an error.
-func (client LedgerDigestUploadsClient) DisableSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client LedgerDigestUploadsClient) DisableSender(req *http.Request) (future LedgerDigestUploadsDisableFuture, err error) {
+	var resp *http.Response
+	future.FutureAPI = &azure.Future{}
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	var azf azure.Future
+	azf, err = azure.NewFutureFromResponse(resp)
+	future.FutureAPI = &azf
+	future.Result = future.result
+	return
 }
 
 // DisableResponder handles the response to the Disable request. The method always

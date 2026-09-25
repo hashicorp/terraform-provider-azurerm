@@ -21,15 +21,15 @@ type SoftwareInventoriesClient struct {
 }
 
 // NewSoftwareInventoriesClient creates an instance of the SoftwareInventoriesClient client.
-func NewSoftwareInventoriesClient(subscriptionID string, ascLocation string) SoftwareInventoriesClient {
-	return NewSoftwareInventoriesClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+func NewSoftwareInventoriesClient(subscriptionID string) SoftwareInventoriesClient {
+	return NewSoftwareInventoriesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewSoftwareInventoriesClientWithBaseURI creates an instance of the SoftwareInventoriesClient client using a custom
 // endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
 // stack).
-func NewSoftwareInventoriesClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) SoftwareInventoriesClient {
-	return SoftwareInventoriesClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+func NewSoftwareInventoriesClientWithBaseURI(baseURI string, subscriptionID string) SoftwareInventoriesClient {
+	return SoftwareInventoriesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // Get gets a single software data of the virtual machine.
