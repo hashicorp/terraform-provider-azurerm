@@ -32,6 +32,60 @@ func TestIsConsumptionProfileType(t *testing.T) {
 	}
 }
 
+func TestValidateWorkloadProfileCounts(t *testing.T) {
+	cases := []struct {
+		Name        string
+		Input       []WorkloadProfileModel
+		ExpectError bool
+	}{
+		{
+			Name: "consumption without counts",
+			Input: []WorkloadProfileModel{
+				{Name: "Consumption", WorkloadProfileType: "Consumption"},
+			},
+		},
+		{
+			Name: "gpu consumption without counts",
+			Input: []WorkloadProfileModel{
+				{Name: "Consump-GPU-T4", WorkloadProfileType: "Consumption-GPU-NC8as-T4"},
+			},
+		},
+		{
+			Name: "dedicated with counts",
+			Input: []WorkloadProfileModel{
+				{Name: "E4-01", WorkloadProfileType: "E4", MinimumCount: 1, MaximumCount: 3},
+			},
+		},
+		{
+			Name: "consumption with minimum_count",
+			Input: []WorkloadProfileModel{
+				{Name: "Consumption", WorkloadProfileType: "Consumption", MinimumCount: 1},
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "gpu consumption with maximum_count",
+			Input: []WorkloadProfileModel{
+				{Name: "E4-01", WorkloadProfileType: "E4", MinimumCount: 1, MaximumCount: 3},
+				{Name: "Consump-GPU-A100", WorkloadProfileType: "Consumption-GPU-NC24-A100", MaximumCount: 2},
+			},
+			ExpectError: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			err := ValidateWorkloadProfileCounts(tc.Input)
+			if tc.ExpectError && err == nil {
+				t.Fatal("expected an error but didn't get one")
+			}
+			if !tc.ExpectError && err != nil {
+				t.Fatalf("expected no error but got: %+v", err)
+			}
+		})
+	}
+}
+
 func TestExpandWorkloadProfiles_ConsumptionGPU(t *testing.T) {
 	input := []WorkloadProfileModel{
 		{

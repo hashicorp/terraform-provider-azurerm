@@ -4,6 +4,7 @@
 package helpers
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -102,6 +103,18 @@ func WorkloadProfileSchema() *pluginsdk.Schema {
 func isConsumptionProfileType(workloadProfileType string) bool {
 	return strings.EqualFold(workloadProfileType, string(WorkloadProfileSkuConsumption)) ||
 		strings.HasPrefix(strings.ToLower(workloadProfileType), "consumption-gpu")
+}
+
+// ValidateWorkloadProfileCounts returns an error if `minimum_count` or `maximum_count` is set on a Consumption workload profile,
+// since the API doesn't support them there and they would otherwise be silently discarded, causing a perpetual diff.
+func ValidateWorkloadProfileCounts(input []WorkloadProfileModel) error {
+	for _, v := range input {
+		if isConsumptionProfileType(v.WorkloadProfileType) && (v.MinimumCount != 0 || v.MaximumCount != 0) {
+			return fmt.Errorf("`minimum_count` and `maximum_count` cannot be set for `workload_profile` %q as they are not supported for the `workload_profile_type` %q", v.Name, v.WorkloadProfileType)
+		}
+	}
+
+	return nil
 }
 
 func ExpandWorkloadProfiles(input []WorkloadProfileModel) *[]managedenvironments.WorkloadProfile {

@@ -578,6 +578,10 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
+			if err := helpers.ValidateWorkloadProfileCounts(model.WorkloadProfiles); err != nil {
+				return err
+			}
+
 			if metadata.ResourceDiff.HasChanges("logs_destination", "log_analytics_workspace_id") {
 				logsDestination := metadata.ResourceDiff.Get("logs_destination").(string)
 				logAnalyticsWorkspaceID := metadata.ResourceDiff.Get("log_analytics_workspace_id").(string)
