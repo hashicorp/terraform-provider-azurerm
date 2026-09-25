@@ -78,7 +78,7 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 			Description: "Scope for this role assignment, should be a valid resource ID",
 			ValidateFunc: validation.Any(
 				// Elevated access for a global admin is needed to assign roles in this scope:
-				// https://docs.microsoft.com/en-us/azure/role-based-access-control/elevate-access-global-admin#azure-cli
+				// https://docs.microsoft.com/azure/role-based-access-control/elevate-access-global-admin#azure-cli
 				// It seems only user account is allowed to be elevated access.
 				validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Subscription.*"), "Subscription scope is invalid"),
 
@@ -108,7 +108,7 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 		"justification": {
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
-			Computed:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ForceNew:    true,
 			Description: "The justification for this role assignment",
 		},
@@ -117,14 +117,14 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 			Type:        pluginsdk.TypeList,
 			MaxItems:    1,
 			Optional:    true,
-			Computed:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ForceNew:    true,
 			Description: "The schedule details for this role assignment",
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"start_date_time": { // defaults to now
 						Optional:    true,
-						Computed:    true,
+						Computed:    true, // azignore:AZS007 - pre-existing violation
 						ForceNew:    true,
 						Type:        pluginsdk.TypeString,
 						Description: "The start date/time of the role assignment",
@@ -138,7 +138,7 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 							Schema: map[string]*pluginsdk.Schema{
 								"duration_days": {
 									Optional: true,
-									Computed: true,
+									Computed: true, // azignore:AZS007 - pre-existing violation
 									ForceNew: true,
 									Type:     pluginsdk.TypeInt,
 									ConflictsWith: []string{
@@ -151,7 +151,7 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 								"duration_hours": {
 									Type:     pluginsdk.TypeInt,
 									Optional: true,
-									Computed: true,
+									Computed: true, // azignore:AZS007 - pre-existing violation
 									ForceNew: true,
 									ConflictsWith: []string{
 										"schedule.0.expiration.0.duration_days",
@@ -162,7 +162,7 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 
 								"end_date_time": {
 									Optional: true,
-									Computed: true,
+									Computed: true, // azignore:AZS007 - pre-existing violation
 									ForceNew: true,
 									Type:     pluginsdk.TypeString,
 									ConflictsWith: []string{
@@ -182,7 +182,7 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 			Type:        pluginsdk.TypeList,
 			MaxItems:    1,
 			Optional:    true,
-			Computed:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ForceNew:    true,
 			Description: "Ticket details relating to the assignment",
 			Elem: &pluginsdk.Resource{
@@ -395,7 +395,7 @@ func (r PimActiveRoleAssignmentResource) Read() sdk.ResourceFunc {
 				// A request is still present and was found, so populate from the request
 				state.Justification = pointer.From(request.Properties.Justification)
 				state.PrincipalId = request.Properties.PrincipalId
-				state.PrincipalType = string(pointer.From(request.Properties.PrincipalType))
+				state.PrincipalType = pointer.FromEnum(request.Properties.PrincipalType)
 				state.RoleDefinitionId = request.Properties.RoleDefinitionId
 
 				if ticketInfo := request.Properties.TicketInfo; ticketInfo != nil {
@@ -461,7 +461,7 @@ func (r PimActiveRoleAssignmentResource) Read() sdk.ResourceFunc {
 			} else if props := schedule.Properties; props != nil {
 				// The request has likely expired, so populate from the schedule (not all fields will be available)
 				state.PrincipalId = pointer.From(props.PrincipalId)
-				state.PrincipalType = string(pointer.From(props.PrincipalType))
+				state.PrincipalType = pointer.FromEnum(props.PrincipalType)
 				state.RoleDefinitionId = pointer.From(props.RoleDefinitionId)
 
 				if props.StartDateTime != nil {

@@ -12,11 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/monitor/2023-04-03/azuremonitorworkspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 type WorkspaceResourceModel struct {
 	Name                            string            `tfschema:"name"`
@@ -31,7 +34,14 @@ type WorkspaceResourceModel struct {
 
 type WorkspaceResource struct{}
 
-var _ sdk.ResourceWithUpdate = WorkspaceResource{}
+var (
+	_ sdk.ResourceWithIdentity = WorkspaceResource{}
+	_ sdk.ResourceWithUpdate   = WorkspaceResource{}
+)
+
+func (r WorkspaceResource) Identity() resourceids.ResourceId {
+	return &azuremonitorworkspaces.AccountId{}
+}
 
 func (r WorkspaceResource) ResourceType() string {
 	return "azurerm_monitor_workspace"
@@ -126,7 +136,7 @@ func (r WorkspaceResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 	}
 }
@@ -203,40 +213,48 @@ func (r WorkspaceResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := WorkspaceResourceModel{
-				Name:              id.AccountName,
-				ResourceGroupName: id.ResourceGroupName,
-			}
-
-			if model := resp.Model; model != nil {
-				state.Tags = pointer.From(model.Tags)
-				state.Location = location.Normalize(model.Location)
-
-				if properties := model.Properties; properties != nil {
-					publicNetworkAccess := true
-					if properties.PublicNetworkAccess != nil {
-						publicNetworkAccess = azuremonitorworkspaces.PublicNetworkAccessEnabled == *properties.PublicNetworkAccess
-					}
-					state.PublicNetworkAccessEnabled = publicNetworkAccess
-
-					if properties.Metrics != nil && properties.Metrics.PrometheusQueryEndpoint != nil {
-						state.QueryEndpoint = *properties.Metrics.PrometheusQueryEndpoint
-					}
-
-					if properties.DefaultIngestionSettings != nil {
-						if properties.DefaultIngestionSettings.DataCollectionEndpointResourceId != nil {
-							state.DefaultDataCollectionEndpointId = *properties.DefaultIngestionSettings.DataCollectionEndpointResourceId
-						}
-						if properties.DefaultIngestionSettings.DataCollectionRuleResourceId != nil {
-							state.DefaultDataCollectionRuleId = *properties.DefaultIngestionSettings.DataCollectionRuleResourceId
-						}
-					}
-				}
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r WorkspaceResource) flatten(metadata sdk.ResourceMetaData, id *azuremonitorworkspaces.AccountId, model *azuremonitorworkspaces.AzureMonitorWorkspaceResource) error {
+	state := WorkspaceResourceModel{
+		Name:              id.AccountName,
+		ResourceGroupName: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		state.Tags = pointer.From(model.Tags)
+		state.Location = location.Normalize(model.Location)
+
+		if properties := model.Properties; properties != nil {
+			publicNetworkAccess := true
+			if properties.PublicNetworkAccess != nil {
+				publicNetworkAccess = azuremonitorworkspaces.PublicNetworkAccessEnabled == *properties.PublicNetworkAccess
+			}
+			state.PublicNetworkAccessEnabled = publicNetworkAccess
+
+			if properties.Metrics != nil && properties.Metrics.PrometheusQueryEndpoint != nil {
+				state.QueryEndpoint = *properties.Metrics.PrometheusQueryEndpoint
+			}
+
+			if properties.DefaultIngestionSettings != nil {
+				if properties.DefaultIngestionSettings.DataCollectionEndpointResourceId != nil {
+					state.DefaultDataCollectionEndpointId = *properties.DefaultIngestionSettings.DataCollectionEndpointResourceId
+				}
+				if properties.DefaultIngestionSettings.DataCollectionRuleResourceId != nil {
+					state.DefaultDataCollectionRuleId = *properties.DefaultIngestionSettings.DataCollectionRuleResourceId
+				}
+			}
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r WorkspaceResource) Delete() sdk.ResourceFunc {

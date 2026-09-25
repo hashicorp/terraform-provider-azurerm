@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
@@ -75,6 +74,7 @@ type LinuxFunctionAppSlotModel struct {
 	StorageAccounts                    []helpers.StorageAccount                   `tfschema:"storage_account"`
 	Identity                           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	VnetImagePullEnabled               bool                                       `tfschema:"vnet_image_pull_enabled"`
+	EndToEndTLSEncryptionEnabled       bool                                       `tfschema:"end_to_end_tls_encryption_enabled"`
 }
 
 var _ sdk.ResourceWithUpdate = LinuxFunctionAppSlotResource{}
@@ -94,7 +94,7 @@ func (r LinuxFunctionAppSlotResource) IDValidationFunc() pluginsdk.SchemaValidat
 }
 
 func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -168,7 +168,7 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			Description: "A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.",
+			Description: "A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.",
 		},
 
 		"auth_settings": helpers.AuthSettingsSchema(),
@@ -248,7 +248,7 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		"key_vault_reference_identity_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 			Description:  "The User Assigned Identity to use for Key Vault access.",
 		},
@@ -257,6 +257,12 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
+		},
+
+		"end_to_end_tls_encryption_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"webdeploy_publish_basic_authentication_enabled": {
@@ -295,12 +301,6 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
 		},
 	}
-
-	if !features.FivePointOh() {
-		args["storage_key_vault_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
-	}
-
-	return args
 }
 
 func (r LinuxFunctionAppSlotResource) Attributes() map[string]*pluginsdk.Schema {
@@ -535,16 +535,17 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				Tags:     pointer.To(functionAppSlot.Tags),
 				Identity: expandedIdentity,
 				Properties: &webapps.SiteProperties{
-					ServerFarmId:             pointer.To(servicePlanId.ID()),
-					Enabled:                  pointer.To(functionAppSlot.Enabled),
-					HTTPSOnly:                pointer.To(functionAppSlot.HttpsOnly),
-					SiteConfig:               siteConfig,
-					ClientCertEnabled:        pointer.To(functionAppSlot.ClientCertEnabled),
-					ClientCertMode:           pointer.To(webapps.ClientCertMode(functionAppSlot.ClientCertMode)),
-					DailyMemoryTimeQuota:     pointer.To(functionAppSlot.DailyMemoryTimeQuota),
-					VnetBackupRestoreEnabled: pointer.To(functionAppSlot.VirtualNetworkBackupRestoreEnabled),
-					VnetImagePullEnabled:     pointer.To(functionAppSlot.VnetImagePullEnabled),
-					VnetRouteAllEnabled:      siteConfig.VnetRouteAllEnabled, // (@jackofallops) - Value appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
+					ServerFarmId:              pointer.To(servicePlanId.ID()),
+					Enabled:                   pointer.To(functionAppSlot.Enabled),
+					HTTPSOnly:                 pointer.To(functionAppSlot.HttpsOnly),
+					SiteConfig:                siteConfig,
+					ClientCertEnabled:         pointer.To(functionAppSlot.ClientCertEnabled),
+					ClientCertMode:            pointer.ToEnum[webapps.ClientCertMode](functionAppSlot.ClientCertMode),
+					DailyMemoryTimeQuota:      pointer.To(functionAppSlot.DailyMemoryTimeQuota),
+					VnetBackupRestoreEnabled:  pointer.To(functionAppSlot.VirtualNetworkBackupRestoreEnabled),
+					VnetImagePullEnabled:      pointer.To(functionAppSlot.VnetImagePullEnabled),
+					VnetRouteAllEnabled:       siteConfig.VnetRouteAllEnabled, // (@jackofallops) - Value appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
+					EndToEndEncryptionEnabled: pointer.To(functionAppSlot.EndToEndTLSEncryptionEnabled),
 				},
 			}
 
@@ -577,9 +578,7 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 
 			if !functionAppSlot.PublishingDeployBasicAuthEnabled {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{},
 				}
 				if _, err := client.UpdateScmAllowedSlot(ctx, id, sitePolicy); err != nil {
 					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
@@ -588,9 +587,7 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 
 			if !functionAppSlot.PublishingFTPBasicAuthEnabled {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
-					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
-						Allow: false,
-					},
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{},
 				}
 				if _, err := client.UpdateFtpAllowedSlot(ctx, id, sitePolicy); err != nil {
 					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
@@ -755,7 +752,7 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					state.Enabled = pointer.From(props.Enabled)
-					state.ClientCertMode = string(pointer.From(props.ClientCertMode))
+					state.ClientCertMode = pointer.FromEnum(props.ClientCertMode)
 					state.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
 					state.DailyMemoryTimeQuota = pointer.From(props.DailyMemoryTimeQuota)
 					state.KeyVaultReferenceIdentityID = pointer.From(props.KeyVaultReferenceIdentity)
@@ -764,6 +761,7 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
 					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
+					state.EndToEndTLSEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						state.HostingEnvId = pointer.From(hostingEnv.Id)
@@ -915,7 +913,7 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
-				model.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(state.ClientCertMode))
+				model.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](state.ClientCertMode)
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
@@ -953,6 +951,10 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				} else {
 					model.Properties.VirtualNetworkSubnetId = pointer.To(subnetId)
 				}
+			}
+
+			if metadata.ResourceData.HasChange("end_to_end_tls_encryption_enabled") {
+				model.Properties.EndToEndEncryptionEnabled = pointer.To(state.EndToEndTLSEncryptionEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") {
@@ -1160,7 +1162,7 @@ func (m *LinuxFunctionAppSlotModel) unpackLinuxFunctionAppSettings(input webapps
 		case "DOCKER_REGISTRY_SERVER_PASSWORD":
 			dockerSettings.RegistryPassword = v
 
-		// case "WEBSITES_ENABLE_APP_SERVICE_STORAGE": // TODO - Support this as a configurable bool, default `false` - Ref: https://docs.microsoft.com/en-us/azure/app-service/faq-app-service-linux#i-m-using-my-own-custom-container--i-want-the-platform-to-mount-an-smb-share-to-the---home---directory-
+		// case "WEBSITES_ENABLE_APP_SERVICE_STORAGE": // TODO - Support this as a configurable bool, default `false` - Ref: https://docs.microsoft.com/azure/app-service/faq-app-service-linux#i-m-using-my-own-custom-container--i-want-the-platform-to-mount-an-smb-share-to-the---home---directory-
 
 		case "APPINSIGHTS_INSTRUMENTATIONKEY":
 			m.SiteConfig[0].AppInsightsInstrumentationKey = v
@@ -1170,8 +1172,7 @@ func (m *LinuxFunctionAppSlotModel) unpackLinuxFunctionAppSettings(input webapps
 
 		case "AzureWebJobsStorage":
 			if strings.HasPrefix(v, "@Microsoft.KeyVault") {
-				trimmed := strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(SecretUri=")
-				m.StorageKeyVaultSecretID = trimmed
+				m.StorageKeyVaultSecretID = strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(SecretUri=")
 			} else {
 				m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
 			}

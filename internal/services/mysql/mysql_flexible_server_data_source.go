@@ -199,7 +199,7 @@ func dataSourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface
 		if props := model.Properties; props != nil {
 			d.Set("administrator_login", props.AdministratorLogin)
 			d.Set("zone", props.AvailabilityZone)
-			d.Set("version", string(pointer.From(props.Version)))
+			d.Set("version", pointer.FromEnum(props.Version))
 			d.Set("fqdn", props.FullyQualifiedDomainName)
 
 			if network := props.Network; network != nil {
@@ -224,7 +224,7 @@ func dataSourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface
 			if err := d.Set("high_availability", flattenDataSourceFlexibleServerHighAvailability(props.HighAvailability)); err != nil {
 				return fmt.Errorf("setting `high_availability`: %+v", err)
 			}
-			d.Set("replication_role", string(pointer.From(props.ReplicationRole)))
+			d.Set("replication_role", pointer.FromEnum(props.ReplicationRole))
 			d.Set("replica_capacity", props.ReplicaCapacity)
 		}
 
@@ -289,23 +289,11 @@ func flattenDataSourceArmServerMaintenanceWindow(input *servers.MaintenanceWindo
 		return make([]interface{}, 0)
 	}
 
-	var dayOfWeek int64
-	if input.DayOfWeek != nil {
-		dayOfWeek = *input.DayOfWeek
-	}
-	var startHour int64
-	if input.StartHour != nil {
-		startHour = *input.StartHour
-	}
-	var startMinute int64
-	if input.StartMinute != nil {
-		startMinute = *input.StartMinute
-	}
 	return []interface{}{
 		map[string]interface{}{
-			"day_of_week":  dayOfWeek,
-			"start_hour":   startHour,
-			"start_minute": startMinute,
+			"day_of_week":  pointer.From(input.DayOfWeek),
+			"start_hour":   pointer.From(input.StartHour),
+			"start_minute": pointer.From(input.StartMinute),
 		},
 	}
 }
@@ -315,15 +303,10 @@ func flattenDataSourceFlexibleServerHighAvailability(ha *servers.HighAvailabilit
 		return []interface{}{}
 	}
 
-	var zone string
-	if ha.StandbyAvailabilityZone != nil {
-		zone = *ha.StandbyAvailabilityZone
-	}
-
 	return []interface{}{
 		map[string]interface{}{
 			"mode":                      string(*ha.Mode),
-			"standby_availability_zone": zone,
+			"standby_availability_zone": pointer.From(ha.StandbyAvailabilityZone),
 		},
 	}
 }

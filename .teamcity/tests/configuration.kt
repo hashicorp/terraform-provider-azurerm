@@ -24,6 +24,9 @@ class ConfigurationTests {
     fun buildShouldHaveGoTestFeature() {
         val project = AzureRM("public", TestConfiguration())
         project.buildTypes.forEach{ bt ->
+            if (bt.type == jetbrains.buildServer.configs.kotlin.BuildTypeSettings.Type.COMPOSITE || bt.id.toString().contains("CACHE")) {
+                return@forEach
+            }
             var exists = false
             bt.features.items.forEach { f ->
                 if (f.type == "golang") {
@@ -63,6 +66,9 @@ class ConfigurationTests {
     fun buildShouldHaveGoTestFeatureBetaVersion() {
         val project = AzureRMBetaVersion("public", TestConfiguration())
         project.buildTypes.forEach{ bt ->
+            if (bt.type == jetbrains.buildServer.configs.kotlin.BuildTypeSettings.Type.COMPOSITE || bt.id.toString().contains("CACHE")) {
+                return@forEach
+            }
             var exists = false
             bt.features.items.forEach { f ->
                 if (f.type == "golang") {
@@ -125,5 +131,33 @@ class ConfigurationTests {
                 betaFlag == "false"
             )
         }
+    }
+
+    @Test
+    fun buildChainShouldBeCompositeAndHaveDependencies() {
+        val config = TestConfiguration()
+        val project = AzureRM("public", config)
+        
+        val buildChain = project.buildTypes.find { it.name.contains("All Services Build Chain") }
+        assertTrue("Build chain must exist", buildChain != null)
+        assertTrue("Build chain must be a COMPOSITE build", buildChain!!.type == jetbrains.buildServer.configs.kotlin.BuildTypeSettings.Type.COMPOSITE)
+        assertTrue("Build chain must have snapshot dependencies", buildChain.dependencies.items.isNotEmpty())
+        
+        val isNightlyParam = buildChain.params.findRawParam("reverse.dep.*.env.IS_NIGHTLY_RUN")?.value
+        assertTrue("Build chain must pass down reverse.dep.*.env.IS_NIGHTLY_RUN parameter", isNightlyParam == "true")
+    }
+
+    @Test
+    fun betaBuildChainShouldBeCompositeAndHaveDependencies() {
+        val config = TestConfiguration()
+        val project = AzureRMBetaVersion("public", config)
+        
+        val buildChain = project.buildTypes.find { it.name.contains("All Services Build Chain") }
+        assertTrue("Beta Build chain must exist", buildChain != null)
+        assertTrue("Beta Build chain must be a COMPOSITE build", buildChain!!.type == jetbrains.buildServer.configs.kotlin.BuildTypeSettings.Type.COMPOSITE)
+        assertTrue("Beta Build chain must have snapshot dependencies", buildChain.dependencies.items.isNotEmpty())
+        
+        val isNightlyParam = buildChain.params.findRawParam("reverse.dep.*.env.IS_NIGHTLY_RUN")?.value
+        assertTrue("Beta Build chain must pass down reverse.dep.*.env.IS_NIGHTLY_RUN parameter", isNightlyParam == "true")
     }
 }

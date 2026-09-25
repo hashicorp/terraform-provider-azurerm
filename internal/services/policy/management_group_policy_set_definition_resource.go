@@ -73,7 +73,7 @@ func (r ManagementGroupPolicySetDefinitionResource) Arguments() map[string]*plug
 		"metadata": {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			Computed:         true,
+			Computed:         true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc:     validation.StringIsJSON,
 			DiffSuppressFunc: policySetDefinitionsMetadataDiffSuppressFunc,
 		},
@@ -137,7 +137,7 @@ func (r ManagementGroupPolicySetDefinitionResource) Create() sdk.ResourceFunc {
 				Properties: &policysetdefinitions.PolicySetDefinitionProperties{
 					Description: pointer.To(model.Description),
 					DisplayName: pointer.To(model.DisplayName),
-					PolicyType:  pointer.To(policysetdefinitions.PolicyType(model.PolicyType)),
+					PolicyType:  pointer.ToEnum[policysetdefinitions.PolicyType](model.PolicyType),
 				},
 			}
 			props := parameters.Properties
@@ -212,7 +212,7 @@ func (r ManagementGroupPolicySetDefinitionResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.Description = pointer.From(props.Description)
 					state.DisplayName = pointer.From(props.DisplayName)
-					state.PolicyType = string(pointer.From(props.PolicyType))
+					state.PolicyType = pointer.FromEnum(props.PolicyType)
 
 					if v, ok := pointer.From(props.Metadata).(map[string]interface{}); ok {
 						flattenedMetadata, err := pluginsdk.FlattenJsonToString(v)

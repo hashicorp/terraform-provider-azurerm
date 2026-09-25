@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the EventHub resource. Changing this forces a new resource to be created.
 
-* `namespace_id` - (Optional) Specifies the ID of the EventHub Namespace.
+* `namespace_id` - (Required) Specifies the ID of the EventHub Namespace. Changing this forces a new resource to be created.
 
 * `partition_count` - (Required) Specifies the current number of shards on the Event Hub.
 
@@ -61,6 +61,8 @@ The following arguments are supported:
 * `capture_description` - (Optional) A `capture_description` block as defined below.
 
 * `status` - (Optional) Specifies the status of the Event Hub resource. Possible values are `Active`, `Disabled` and `SendDisabled`. Defaults to `Active`.
+
+~> **Note:** `status` cannot be set to `SendDisabled` when creating an Event Hub - the Event Hub must be created with a `status` of `Active` or `Disabled` and can then be updated to `SendDisabled`.
 
 ---
 

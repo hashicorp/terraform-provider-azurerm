@@ -22,6 +22,7 @@ func StaticWebAppName(v interface{}, k string) (warnings []string, errors []erro
 	return warnings, errors
 }
 
+// lintignore:V011 // the length check is combined with password complexity rules
 func StaticWebAppPassword(v interface{}, k string) (warnings []string, errs []error) {
 	value, ok := v.(string)
 	if !ok {
@@ -47,10 +48,6 @@ func StaticWebAppPassword(v interface{}, k string) (warnings []string, errs []er
 
 	if matched := regexp.MustCompile(`[0-9]`).Match([]byte(value)); !matched {
 		errs = append(errs, errors.New("the password must contain at least one number"))
-	}
-
-	if matched := regexp.MustCompile(`[!@#$%^&*(),.?":{}|<>]`).Match([]byte(value)); !matched {
-		errs = append(errs, errors.New("the password must contain at least one symbol"))
 	}
 
 	return

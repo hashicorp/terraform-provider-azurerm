@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -129,7 +129,7 @@ func dataSourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		if sku := model.Sku; sku != nil {
-			d.Set("sku", string(pointer.From(sku.Name)))
+			d.Set("sku", pointer.FromEnum(sku.Name))
 		}
 
 		privateIpAddress := ""
@@ -172,15 +172,9 @@ func flattenLoadBalancerDataSourceFrontendIpConfiguration(ipConfigs *[]loadbalan
 	}
 
 	for _, config := range *ipConfigs {
-		name := ""
-		if config.Name != nil {
-			name = *config.Name
-		}
+		name := pointer.From(config.Name)
 
-		id := ""
-		if config.Id != nil {
-			id = *config.Id
-		}
+		id := pointer.From(config.Id)
 
 		privateIpAddress := ""
 		privateIpAddressAllocation := ""
@@ -188,14 +182,14 @@ func flattenLoadBalancerDataSourceFrontendIpConfiguration(ipConfigs *[]loadbalan
 		publicIpAddressId := ""
 		subnetId := ""
 		if props := config.Properties; props != nil {
-			privateIpAddressAllocation = string(pointer.From(props.PrivateIPAllocationMethod))
+			privateIpAddressAllocation = pointer.FromEnum(props.PrivateIPAllocationMethod)
 
 			if subnet := props.Subnet; subnet != nil {
 				subnetId = pointer.From(subnet.Id)
 			}
 
 			privateIpAddress = pointer.From(props.PrivateIPAddress)
-			privateIpAddressVersion = string(pointer.From(props.PrivateIPAddressVersion))
+			privateIpAddressVersion = pointer.FromEnum(props.PrivateIPAddressVersion)
 
 			if pip := props.PublicIPAddress; pip != nil {
 				publicIpAddressId = pointer.From(pip.Id)

@@ -11,9 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/azurefirewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
@@ -21,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceFirewallApplicationRuleCollection() *pluginsdk.Resource {
@@ -66,12 +64,9 @@ func resourceFirewallApplicationRuleCollection() *pluginsdk.Resource {
 			},
 
 			"action": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(azurefirewalls.AzureFirewallRCActionTypeAllow),
-					string(azurefirewalls.AzureFirewallRCActionTypeDeny),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(azurefirewalls.PossibleValuesForAzureFirewallRCActionType(), false),
 			},
 
 			"rule": {
@@ -116,18 +111,14 @@ func resourceFirewallApplicationRuleCollection() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"type": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(azurefirewalls.AzureFirewallApplicationRuleProtocolTypeHTTP),
-											string(azurefirewalls.AzureFirewallApplicationRuleProtocolTypeHTTPS),
-											string(azurefirewalls.AzureFirewallApplicationRuleProtocolTypeMssql),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(azurefirewalls.PossibleValuesForAzureFirewallApplicationRuleProtocolType(), false),
 									},
 									"port": {
 										Type:         pluginsdk.TypeInt,
 										Required:     true,
-										ValidateFunc: validate.PortNumber,
+										ValidateFunc: validation.IsPortNumber,
 									},
 								},
 							},
@@ -182,7 +173,7 @@ func resourceFirewallApplicationRuleCollectionCreateUpdate(d *pluginsdk.Resource
 		Name: pointer.To(name),
 		Properties: &azurefirewalls.AzureFirewallApplicationRuleCollectionPropertiesFormat{
 			Action: &azurefirewalls.AzureFirewallRCAction{
-				Type: pointer.To(azurefirewalls.AzureFirewallRCActionType(d.Get("action").(string))),
+				Type: pointer.ToEnum[azurefirewalls.AzureFirewallRCActionType](d.Get("action").(string)),
 			},
 			Priority: pointer.To(int64(priority)),
 			Rules:    applicationRules,
@@ -226,7 +217,7 @@ func resourceFirewallApplicationRuleCollectionCreateUpdate(d *pluginsdk.Resource
 	firewall.Model.Properties.ApplicationRuleCollections = &ruleCollections
 
 	// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
-	if err = client.CreateOrUpdateThenPoll(ctx, firewallId, *firewall.Model); err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, firewallId, *firewall.Model, azurefirewalls.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating/updating Application Rule Collection %q in %s: %+v", name, firewallId, err)
 	}
 
@@ -322,15 +313,14 @@ func resourceFirewallApplicationRuleCollectionRead(d *pluginsdk.ResourceData, me
 
 	if props := rule.Properties; props != nil {
 		if action := props.Action; action != nil {
-			d.Set("action", string(pointer.From(action.Type)))
+			d.Set("action", pointer.FromEnum(action.Type))
 		}
 
 		if priority := props.Priority; priority != nil {
 			d.Set("priority", int(*priority))
 		}
 
-		flattenedRules := flattenFirewallApplicationRuleCollectionRules(props.Rules)
-		if err := d.Set("rule", flattenedRules); err != nil {
+		if err := d.Set("rule", flattenFirewallApplicationRuleCollectionRules(props.Rules)); err != nil {
 			return fmt.Errorf("setting `rule`: %+v", err)
 		}
 	}
@@ -387,7 +377,7 @@ func resourceFirewallApplicationRuleCollectionDelete(d *pluginsdk.ResourceData, 
 	}
 	props.ApplicationRuleCollections = &applicationRules
 
-	if err := client.CreateOrUpdateThenPoll(ctx, firewallId, *firewall.Model); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, firewallId, *firewall.Model, azurefirewalls.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("deleting Application Rule Collection %q from Firewall %q (Resource Group %q): %+v", id.ApplicationRuleCollectionName, id.AzureFirewallName, id.ResourceGroup, err)
 	}
 
@@ -410,10 +400,10 @@ func expandFirewallApplicationRules(inputs []interface{}) (*[]azurefirewalls.Azu
 		output := azurefirewalls.AzureFirewallApplicationRule{
 			Name:            pointer.To(ruleName),
 			Description:     pointer.To(ruleDescription),
-			SourceAddresses: utils.ExpandStringSlice(ruleSourceAddresses),
-			SourceIPGroups:  utils.ExpandStringSlice(ruleSourceIpGroups),
-			FqdnTags:        utils.ExpandStringSlice(ruleFqdnTags),
-			TargetFqdns:     utils.ExpandStringSlice(ruleTargetFqdns),
+			SourceAddresses: pluginsdk.ExpandStringSlice(ruleSourceAddresses),
+			SourceIPGroups:  pluginsdk.ExpandStringSlice(ruleSourceIpGroups),
+			FqdnTags:        pluginsdk.ExpandStringSlice(ruleFqdnTags),
+			TargetFqdns:     pluginsdk.ExpandStringSlice(ruleTargetFqdns),
 		}
 
 		ruleProtocols := make([]azurefirewalls.AzureFirewallApplicationRuleProtocol, 0)
@@ -422,7 +412,7 @@ func expandFirewallApplicationRules(inputs []interface{}) (*[]azurefirewalls.Azu
 			port := protocol["port"].(int)
 			ruleProtocol := azurefirewalls.AzureFirewallApplicationRuleProtocol{
 				Port:         pointer.To(int64(port)),
-				ProtocolType: pointer.To(azurefirewalls.AzureFirewallApplicationRuleProtocolType(protocol["type"].(string))),
+				ProtocolType: pointer.ToEnum[azurefirewalls.AzureFirewallApplicationRuleProtocolType](protocol["type"].(string)),
 			}
 			ruleProtocols = append(ruleProtocols, ruleProtocol)
 		}
@@ -457,16 +447,16 @@ func flattenFirewallApplicationRuleCollectionRules(rules *[]azurefirewalls.Azure
 			output["description"] = *ruleDescription
 		}
 		if ruleSourceAddresses := rule.SourceAddresses; ruleSourceAddresses != nil {
-			output["source_addresses"] = utils.FlattenStringSlice(ruleSourceAddresses)
+			output["source_addresses"] = pluginsdk.FlattenSlice(ruleSourceAddresses)
 		}
 		if ruleSourceIpGroups := rule.SourceIPGroups; ruleSourceIpGroups != nil {
-			output["source_ip_groups"] = utils.FlattenStringSlice(ruleSourceIpGroups)
+			output["source_ip_groups"] = pluginsdk.FlattenSlice(ruleSourceIpGroups)
 		}
 		if ruleFqdnTags := rule.FqdnTags; ruleFqdnTags != nil {
-			output["fqdn_tags"] = utils.FlattenStringSlice(ruleFqdnTags)
+			output["fqdn_tags"] = pluginsdk.FlattenSlice(ruleFqdnTags)
 		}
 		if ruleTargetFqdns := rule.TargetFqdns; ruleTargetFqdns != nil {
-			output["target_fqdns"] = utils.FlattenStringSlice(ruleTargetFqdns)
+			output["target_fqdns"] = pluginsdk.FlattenSlice(ruleTargetFqdns)
 		}
 		protocols := make([]map[string]interface{}, 0)
 		if ruleProtocols := rule.Protocols; ruleProtocols != nil {
@@ -475,7 +465,7 @@ func flattenFirewallApplicationRuleCollectionRules(rules *[]azurefirewalls.Azure
 				if port := p.Port; port != nil {
 					protocol["port"] = int(*port)
 				}
-				protocol["type"] = string(pointer.From(p.ProtocolType))
+				protocol["type"] = pointer.FromEnum(p.ProtocolType)
 				protocols = append(protocols, protocol)
 			}
 		}

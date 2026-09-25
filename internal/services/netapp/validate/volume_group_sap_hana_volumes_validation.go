@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumegroups"
 )
 
 type VolumeSpecNameSAPHana string
@@ -97,14 +97,14 @@ func ValidateNetAppVolumeGroupSAPHanaVolumes(volumeList *[]volumegroups.VolumeGr
 		if strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameSAPHanaLog)) &&
 			volume.Properties.DataProtection != nil &&
 			volume.Properties.DataProtection.Replication != nil &&
-			strings.EqualFold(string(pointer.From(volume.Properties.DataProtection.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
+			strings.EqualFold(pointer.FromEnum(volume.Properties.DataProtection.Replication.EndpointType), string(volumegroups.EndpointTypeDst)) {
 			errors = append(errors, fmt.Errorf("'log volume spec type cannot be DataProtection type for %v on volume %v'", applicationType, pointer.From(volume.Name)))
 		}
 
 		// Validating that snapshot policies are not being created in a data protection volume
 		if volume.Properties.DataProtection != nil &&
 			volume.Properties.DataProtection.Snapshot != nil &&
-			(volume.Properties.DataProtection.Replication != nil && strings.EqualFold(string(pointer.From(volume.Properties.DataProtection.Replication.EndpointType)), string(volumegroups.EndpointTypeDst))) {
+			(volume.Properties.DataProtection.Replication != nil && strings.EqualFold(pointer.FromEnum(volume.Properties.DataProtection.Replication.EndpointType), string(volumegroups.EndpointTypeDst))) {
 			errors = append(errors, fmt.Errorf("'snapshot policy cannot be enabled on a data protection volume for %v on volume %v'", applicationType, pointer.From(volume.Name)))
 		}
 
@@ -158,12 +158,12 @@ func ValidateNetAppVolumeGroupSAPHanaVolumes(volumeList *[]volumegroups.VolumeGr
 
 		// Getting the first EncryptionKeySource for validations, all volumes must have the same EncryptionKeySource
 		if expectedEncryptionKeySource == "" && volume.Properties.EncryptionKeySource != nil {
-			expectedEncryptionKeySource = string(pointer.From(volume.Properties.EncryptionKeySource))
+			expectedEncryptionKeySource = pointer.FromEnum(volume.Properties.EncryptionKeySource)
 		}
 
 		// Validating that all volumes have the same EncryptionKeySource
-		if volume.Properties.EncryptionKeySource != nil && string(pointer.From(volume.Properties.EncryptionKeySource)) != expectedEncryptionKeySource {
-			errors = append(errors, fmt.Errorf("'encryption_key_source must be the same on all volumes of this volume group, volume %v encryption_key_source is %v'", pointer.From(volume.Name), string(pointer.From(volume.Properties.EncryptionKeySource))))
+		if volume.Properties.EncryptionKeySource != nil && pointer.FromEnum(volume.Properties.EncryptionKeySource) != expectedEncryptionKeySource {
+			errors = append(errors, fmt.Errorf("'encryption_key_source must be the same on all volumes of this volume group, volume %v encryption_key_source is %v'", pointer.From(volume.Name), pointer.FromEnum(volume.Properties.EncryptionKeySource)))
 		}
 
 		// Validating that data-backup and log-backup don't have PPG defined

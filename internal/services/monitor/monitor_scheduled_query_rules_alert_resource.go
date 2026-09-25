@@ -24,10 +24,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name monitor_scheduled_query_rules_alert -service-package-name monitor -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name "AlertingActionConfigComplete"
+//go:generate go run ../../tools/generator-tests resourceidentity -test-name "AlertingActionConfigComplete"
 
 func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -262,7 +261,7 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_monitor_scheduled_query_rules_alert", id.ID())
+				return tf.ImportAsExistsError(monitorScheduledQueryRulesAlertResourceName, id.ID())
 			}
 		}
 	}
@@ -292,7 +291,7 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 			Action:       action,
 			AutoMitigate: pointer.To(autoMitigate),
 		},
-		Tags: utils.ExpandPtrMapStringString(t),
+		Tags: pluginsdk.ExpandPtrMapStringString(t),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -327,10 +326,14 @@ func resourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("getting Monitor %s: %+v", *id, err)
 	}
 
+	return resourceMonitorScheduledQueryRulesAlertFlatten(d, id, resp.Model)
+}
+
+func resourceMonitorScheduledQueryRulesAlertFlatten(d *pluginsdk.ResourceData, id *scheduledqueryrules.ScheduledQueryRuleId, model *scheduledqueryrules.LogSearchRuleResource) error {
 	d.Set("name", id.ScheduledQueryRuleName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
 		props := model.Properties
@@ -346,7 +349,7 @@ func resourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, meta
 		if !ok {
 			return fmt.Errorf("wrong action type in %s: %T", *id, props.Action)
 		}
-		if err = d.Set("action", flattenAzureRmScheduledQueryRulesAlertAction(action.AznsAction)); err != nil {
+		if err := d.Set("action", flattenAzureRmScheduledQueryRulesAlertAction(action.AznsAction)); err != nil {
 			return fmt.Errorf("setting `action`: %+v", err)
 		}
 		severity, err := strconv.Atoi(string(action.Severity))
@@ -364,12 +367,12 @@ func resourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, meta
 			d.Set("time_window", schedule.TimeWindowInMinutes)
 		}
 
-		d.Set("authorized_resource_ids", utils.FlattenStringSlice(props.Source.AuthorizedResources))
+		d.Set("authorized_resource_ids", pluginsdk.FlattenSlice(props.Source.AuthorizedResources))
 		d.Set("data_source_id", props.Source.DataSourceId)
 		d.Set("query", props.Source.Query)
-		d.Set("query_type", string(pointer.From(props.Source.QueryType)))
+		d.Set("query_type", pointer.FromEnum(props.Source.QueryType))
 
-		if err = d.Set("tags", utils.FlattenPtrMapStringString(model.Tags)); err != nil {
+		if err = d.Set("tags", pluginsdk.FlattenPtrMapStringString(model.Tags)); err != nil {
 			return err
 		}
 	}
@@ -434,7 +437,7 @@ func expandMonitorScheduledQueryRulesAlertAction(input []interface{}) *scheduled
 			continue
 		}
 		actionGroups := v["action_group"].(*pluginsdk.Set).List()
-		result.ActionGroup = utils.ExpandStringSlice(actionGroups)
+		result.ActionGroup = pluginsdk.ExpandStringSlice(actionGroups)
 		result.EmailSubject = pointer.To(v["email_subject"].(string))
 		if v := v["custom_webhook_payload"].(string); v != "" {
 			result.CustomWebhookPayload = pointer.To(v)
@@ -458,9 +461,9 @@ func expandMonitorScheduledQueryRulesAlertMetricTrigger(input []interface{}) *sc
 		if !ok {
 			continue
 		}
-		result.ThresholdOperator = pointer.To(scheduledqueryrules.ConditionalOperator(v["operator"].(string)))
+		result.ThresholdOperator = pointer.ToEnum[scheduledqueryrules.ConditionalOperator](v["operator"].(string))
 		result.Threshold = pointer.To(v["threshold"].(float64))
-		result.MetricTriggerType = pointer.To(scheduledqueryrules.MetricTriggerType(v["metric_trigger_type"].(string)))
+		result.MetricTriggerType = pointer.ToEnum[scheduledqueryrules.MetricTriggerType](v["metric_trigger_type"].(string))
 		result.MetricColumn = pointer.To(v["metric_column"].(string))
 	}
 

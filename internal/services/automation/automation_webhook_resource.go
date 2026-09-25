@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceAutomationWebhook() *pluginsdk.Resource {
@@ -254,7 +253,7 @@ func resourceAutomationWebhookRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 			d.Set("run_on_worker_group", props.RunOn)
 
-			if err = d.Set("parameters", utils.FlattenPtrMapStringString(props.Parameters)); err != nil {
+			if err = d.Set("parameters", pluginsdk.FlattenPtrMapStringString(props.Parameters)); err != nil {
 				return err
 			}
 		}

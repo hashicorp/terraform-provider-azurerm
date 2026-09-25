@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // TODO: @tombuildsstuff: this wants a state migration to move the ID to `{id1}|{id2}` to match other resources
@@ -339,7 +338,7 @@ func expandArmObjectReplicationRuleArray(input []interface{}) *[]objectreplicati
 		}
 
 		if f, ok := v["filter_out_blobs_with_prefix"]; ok {
-			result.Filters.PrefixMatch = utils.ExpandStringSlice(f.(*pluginsdk.Set).List())
+			result.Filters.PrefixMatch = pluginsdk.ExpandStringSlice(f.(*pluginsdk.Set).List())
 		}
 
 		results = append(results, result)
@@ -368,10 +367,7 @@ func flattenObjectReplicationRules(input *[]objectreplicationpolicyoperationgrou
 		destinationContainer := item.DestinationContainer
 		sourceContainer := item.SourceContainer
 
-		var ruleId string
-		if item.RuleId != nil {
-			ruleId = *item.RuleId
-		}
+		ruleId := pointer.From(item.RuleId)
 
 		var minCreationTime string
 		if item.Filters != nil && item.Filters.MinCreationTime != nil {
@@ -380,7 +376,7 @@ func flattenObjectReplicationRules(input *[]objectreplicationpolicyoperationgrou
 
 		var prefix []interface{}
 		if item.Filters != nil && item.Filters.PrefixMatch != nil {
-			prefix = utils.FlattenStringSlice(item.Filters.PrefixMatch)
+			prefix = pluginsdk.FlattenSlice(item.Filters.PrefixMatch)
 		}
 
 		v := map[string]interface{}{

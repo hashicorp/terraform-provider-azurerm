@@ -9,26 +9,25 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/natgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/natgateways"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name nat_gateway -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 var natGatewayResourceName = "azurerm_nat_gateway"
 
@@ -146,7 +145,7 @@ func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 			IdleTimeoutInMinutes: pointer.To(int64(d.Get("idle_timeout_in_minutes").(int))),
 		},
 		Sku: &natgateways.NatGatewaySku{
-			Name: pointer.To(natgateways.NatGatewaySkuName(d.Get("sku_name").(string))),
+			Name: pointer.ToEnum[natgateways.NatGatewaySkuName](d.Get("sku_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -217,7 +216,7 @@ func resourceNatGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	if d.HasChange("sku_name") {
 		payload.Sku = &natgateways.NatGatewaySku{
-			Name: pointer.To(natgateways.NatGatewaySkuName(d.Get("sku_name").(string))),
+			Name: pointer.ToEnum[natgateways.NatGatewaySkuName](d.Get("sku_name").(string)),
 		}
 	}
 
@@ -262,7 +261,7 @@ func resourceNatGatewayFlatten(d *pluginsdk.ResourceData, id *natgateways.NatGat
 		d.Set("location", location.NormalizeNilable(model.Location))
 		sku := ""
 		if model.Sku != nil {
-			sku = string(pointer.From(model.Sku.Name))
+			sku = pointer.FromEnum(model.Sku.Name)
 		}
 		d.Set("sku_name", sku)
 		d.Set("zones", zones.FlattenUntyped(model.Zones))

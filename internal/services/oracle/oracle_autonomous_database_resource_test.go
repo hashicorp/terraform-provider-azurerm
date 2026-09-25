@@ -102,7 +102,7 @@ func TestAdbsRegularResource_updateBackupSchedule(t *testing.T) {
 	})
 }
 
-func TestAdbsRegularResource_updatePublicAcces(t *testing.T) {
+func TestAdbsRegularResource_updatePublicAccess(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularResource{}.ResourceType(), "test")
 	r := AdbsRegularResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

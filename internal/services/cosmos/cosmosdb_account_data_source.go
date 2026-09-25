@@ -22,7 +22,7 @@ import (
 )
 
 func dataSourceCosmosDbAccount() *pluginsdk.Resource {
-	dataSource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceCosmosDbAccountRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -52,8 +52,11 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"ip_range_filter": {
-				Type:     pluginsdk.TypeString,
+				Type:     pluginsdk.TypeList,
 				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
 			},
 
 			"free_tier_enabled": {
@@ -247,8 +250,6 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return dataSource
 }
 
 func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -275,11 +276,11 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("resource_group_name", id.ResourceGroupName)
 
 		d.Set("location", location.NormalizeNilable(model.Location))
-		d.Set("kind", string(pointer.From(model.Kind)))
+		d.Set("kind", pointer.FromEnum(model.Kind))
 
 		if props := model.Properties; props != nil {
-			d.Set("offer_type", string(pointer.From(props.DatabaseAccountOfferType)))
-			d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilterDataSource(props.IPRules))
+			d.Set("offer_type", pointer.FromEnum(props.DatabaseAccountOfferType))
+			d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilter(props.IPRules))
 			d.Set("endpoint", props.DocumentEndpoint)
 			d.Set("is_virtual_network_filter_enabled", props.IsVirtualNetworkFilterEnabled)
 			d.Set("free_tier_enabled", props.EnableFreeTier)

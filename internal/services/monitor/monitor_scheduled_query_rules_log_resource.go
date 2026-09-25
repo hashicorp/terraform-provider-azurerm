@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMonitorScheduledQueryRulesLog() *pluginsdk.Resource {
@@ -179,7 +178,7 @@ func resourceMonitorScheduledQueryRulesLogCreateUpdate(d *pluginsdk.ResourceData
 			Source:      source,
 			Action:      action,
 		},
-		Tags: utils.ExpandPtrMapStringString(t),
+		Tags: pluginsdk.ExpandPtrMapStringString(t),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -236,12 +235,12 @@ func resourceMonitorScheduledQueryRulesLogRead(d *pluginsdk.ResourceData, meta i
 		}
 
 		if props.Source.AuthorizedResources != nil {
-			d.Set("authorized_resource_ids", utils.FlattenStringSlice(props.Source.AuthorizedResources))
+			d.Set("authorized_resource_ids", pluginsdk.FlattenSlice(props.Source.AuthorizedResources))
 		}
 
 		d.Set("data_source_id", props.Source.DataSourceId)
 
-		if err = d.Set("tags", utils.FlattenPtrMapStringString(model.Tags)); err != nil {
+		if err = d.Set("tags", pluginsdk.FlattenPtrMapStringString(model.Tags)); err != nil {
 			return err
 		}
 	}

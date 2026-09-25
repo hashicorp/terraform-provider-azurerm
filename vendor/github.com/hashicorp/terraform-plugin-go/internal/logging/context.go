@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2020, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package logging
@@ -105,6 +105,15 @@ func ActionContext(ctx context.Context, action string) context.Context {
 	ctx = tfsdklog.SetField(ctx, KeyActionType, action)
 	ctx = tfsdklog.SubsystemSetField(ctx, SubsystemProto, KeyActionType, action)
 	ctx = tflog.SetField(ctx, KeyActionType, action)
+
+	return ctx
+}
+
+// StateStoreContext injects the state store type into logger contexts.
+func StateStoreContext(ctx context.Context, stateStore string) context.Context {
+	ctx = tfsdklog.SetField(ctx, KeyStateStoreType, stateStore)
+	ctx = tfsdklog.SubsystemSetField(ctx, SubsystemProto, KeyStateStoreType, stateStore)
+	ctx = tflog.SetField(ctx, KeyStateStoreType, stateStore)
 
 	return ctx
 }
