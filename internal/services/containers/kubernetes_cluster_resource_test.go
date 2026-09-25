@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -1448,4 +1450,106 @@ resource "azurerm_kubernetes_cluster" "test" {
     object_id                 = azurerm_user_assigned_identity.aks_kubelet.principal_id
   }
 }`, r.networkIsolatedBootstrapProfileTemplate(data), data.RandomInteger)
+}
+
+func TestAccKubernetesCluster_nodeResourceGroupRestrictionLevel(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nodeResourceGroupRestrictionLevel(data, "Unrestricted"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_resource_group_restriction_level").HasValue("Unrestricted"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.nodeResourceGroupRestrictionLevel(data, "ReadOnly"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_resource_group_restriction_level").HasValue("ReadOnly"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.nodeResourceGroupRestrictionLevel(data, "Unrestricted"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_resource_group_restriction_level").HasValue("Unrestricted"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:             r.nodeResourceGroupRestrictionLevel(data, ""),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: true,
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PostApplyPreRefresh: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionDestroyBeforeCreate),
+				},
+			},
+		},
+	})
+}
+
+func TestAccKubernetesCluster_nodeResourceGroupRestrictionLevelOmitted(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nodeResourceGroupRestrictionLevel(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_resource_group_restriction_level").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (KubernetesClusterResource) nodeResourceGroupRestrictionLevel(data acceptance.TestData, restrictionLevel string) string {
+	restriction := ""
+	if restrictionLevel != "" {
+		restriction = fmt.Sprintf("node_resource_group_restriction_level = %q", restrictionLevel)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]d"
+
+  %[3]s
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_a2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, restriction)
 }
