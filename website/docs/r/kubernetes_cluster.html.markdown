@@ -403,6 +403,12 @@ A `default_node_pool` block supports the following:
 
 * `linux_os_config` - (Optional) A `linux_os_config` block as defined below. `temporary_name_for_rotation` must be specified when changing this block.
 
+* `local_dns_profile` - (Optional) A `local_dns_profile` block as defined below.
+
+~> **Note:** The `local_dns_profile` block requires that the `vm_size` has at least `4` cores.
+
+~> **Note:** The Azure API enforces strict validation rules for LocalDNS configurations. For example, `serve_stale` cannot be `Verify` when `protocol` is `ForceTCP`, and the `.` and `cluster.local` domains have restricted forward destinations. See the [Azure LocalDNS validation rules](https://learn.microsoft.com/azure/aks/localdns-custom#configuration-validation-rules) for the full list of restrictions.
+
 * `fips_enabled` - (Optional) Should the nodes in this Node Pool have Federal Information Processing Standard enabled? `temporary_name_for_rotation` must be specified when changing this block.
 
 * `kubelet_disk_type` - (Optional) The type of disk used by kubelet. Possible values are `OS` and `Temporary`. `temporary_name_for_rotation` must be specified when changing this block.
@@ -550,6 +556,40 @@ A `linux_os_config` block supports the following:
 * `transparent_huge_page_defrag` - (Optional) specifies the defrag configuration for Transparent Huge Page. Possible values are `always`, `defer`, `defer+madvise`, `madvise` and `never`.
 
 * `transparent_huge_page` - (Optional) Specifies the Transparent Huge Page configuration. Possible values are `always`, `madvise` and `never`.
+
+---
+
+A `local_dns_profile` block supports the following:
+
+* `mode` - (Required) The mode of the Local DNS Profile. Possible values are `Required` and `Preferred`.
+
+~> **Note:** To disable the Local DNS Profile, remove the `local_dns_profile` block entirely from the configuration.
+
+* `kube_dns_override` - (Optional) One or more `kube_dns_override` blocks as defined below.
+
+* `vnet_dns_override` - (Optional) One or more `vnet_dns_override` blocks as defined below.
+
+---
+
+A `kube_dns_override` or `vnet_dns_override` block supports the following:
+
+* `domain` - (Required) The domain to override.
+
+* `cache_duration_in_seconds` - (Optional) The cache duration in seconds. Defaults to `0`.
+
+* `forward_destination` - (Optional) The forward destination. Possible values are `ClusterCoreDNS` and `VnetDNS`.
+
+* `forward_policy` - (Optional) The forward policy. Possible values are `Random`, `RoundRobin`, and `Sequential`.
+
+* `max_concurrent` - (Optional) The maximum number of concurrent queries. Defaults to `0`.
+
+* `protocol` - (Optional) The protocol. Possible values are `ForceTCP` and `PreferUDP`.
+
+* `query_logging` - (Optional) The query logging configuration. Possible values are `Log`, `Error`, and `None`.
+
+* `serve_stale` - (Optional) The serve stale configuration. Possible values are `Immediate`, `Verify`, and `Disable`.
+
+* `serve_stale_duration_in_seconds` - (Optional) The serve stale duration in seconds. Defaults to `0`.
 
 ---
 
