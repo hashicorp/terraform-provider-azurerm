@@ -727,7 +727,8 @@ func resourceVirtualNetworkGatewayCreate(d *pluginsdk.ResourceData, meta interfa
 
 	if expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{})); err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
-	} else {
+	} else if expandedIdentity.Type != identity.TypeNone {
+		// Do not assign default `TypeNone` identity when `identity` block is not specified in Terraform configuration to avoid error as identity is supported when `type` is set to `Vpn`
 		gateway.Identity = expandedIdentity
 	}
 
@@ -939,9 +940,11 @@ func resourceVirtualNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if d.HasChange("identity") {
+		payload.Identity = nil
 		if expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{})); err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
-		} else {
+		} else if expandedIdentity.Type != identity.TypeNone {
+			// Do not assign default `TypeNone` identity when `identity` block is not specified in Terraform configuration to avoid error as identity is supported when `type` is set to `Vpn`
 			payload.Identity = expandedIdentity
 		}
 	}
