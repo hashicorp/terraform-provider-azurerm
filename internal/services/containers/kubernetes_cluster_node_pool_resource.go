@@ -296,6 +296,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			// Note: O+C because defaults to Ubuntu if using Linux
 			Computed: true,
 			ValidateFunc: validation.StringInSlice([]string{
+				string(agentpools.OSSKUAzureContainerLinux),
 				string(agentpools.OSSKUAzureLinux),
 				string(agentpools.OSSKUAzureLinuxThree),
 				string(agentpools.OSSKUUbuntu),
