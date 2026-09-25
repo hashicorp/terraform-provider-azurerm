@@ -29,6 +29,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/edgezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -557,7 +558,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 
 	params := virtualmachines.VirtualMachine{
 		Name:             pointer.To(id.VirtualMachineName),
-		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		ExtendedLocation: edgezones.Expand(d.Get("edge_zone").(string)),
 		Location:         location.Normalize(d.Get("location").(string)),
 		Identity:         identityExpanded,
 		Plan:             plan,
@@ -926,7 +927,7 @@ func resourceWindowsVirtualMachineFlatten(ctx context.Context, metaClient *clien
 
 	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
-		d.Set("edge_zone", flattenEdgeZone(model.ExtendedLocation))
+		d.Set("edge_zone", edgezones.Flatten(model.ExtendedLocation))
 
 		zone := ""
 		if model.Zones != nil {
