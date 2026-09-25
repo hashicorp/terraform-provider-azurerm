@@ -813,12 +813,12 @@ func validatePasswordComplexity(input interface{}, key string, min int, max int)
 	}
 
 	if complexityMatch < 3 {
-		errors = append(errors, fmt.Errorf("%q did not meet minimum password complexity requirements. A password must contain at least 3 of the 4 following conditions: a lower case character, a upper case character, a digit and/or a special character. Got %q", key, password))
+		errors = append(errors, fmt.Errorf("%q did not meet minimum password complexity requirements. A password must contain at least 3 of the 4 following conditions: a lower case character, a upper case character, a digit and/or a special character", key))
 		return warnings, errors
 	}
 
 	if len(password) < min || len(password) > max {
-		errors = append(errors, fmt.Errorf("%q must be at least 6 characters long and less than 72 characters long. Got %q(%d characters)", key, password, len(password)))
+		errors = append(errors, fmt.Errorf("%q must be at least %d characters long and no more than %d characters long, got %d characters", key, min, max, len(password)))
 		return warnings, errors
 	}
 
@@ -829,7 +829,7 @@ func validatePasswordComplexity(input interface{}, key string, min int, max int)
 	}
 
 	if slices.Contains(disallowedValues, password) {
-		errors = append(errors, fmt.Errorf("%q can not be one of %q, got %q", key, disallowedValues, password))
+		errors = append(errors, fmt.Errorf("%q can not be one of %q", key, disallowedValues))
 		return warnings, errors
 	}
 
