@@ -286,7 +286,7 @@ func resourceDevTestLabSchedulesRead(d *pluginsdk.ResourceData, meta interface{}
 		props := model.Properties
 		d.Set("time_zone_id", props.TimeZoneId)
 		d.Set("task_type", props.TaskType)
-		d.Set("status", string(pointer.From(props.Status)))
+		d.Set("status", pointer.FromEnum(props.Status))
 
 		if err := d.Set("weekly_recurrence", flattenAzureRmDevTestLabScheduleRecurrenceWeekly(props.WeeklyRecurrence)); err != nil {
 			return fmt.Errorf("setting `weeklyRecurrence`: %#v", err)

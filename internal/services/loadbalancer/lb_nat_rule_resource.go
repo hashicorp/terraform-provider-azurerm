@@ -278,7 +278,7 @@ func resourceArmLoadBalancerNatRuleRead(d *pluginsdk.ResourceData, meta interfac
 			d.Set("frontend_port_start", int(pointer.From(props.FrontendPortRangeStart)))
 			d.Set("frontend_port_end", int(pointer.From(props.FrontendPortRangeEnd)))
 			d.Set("idle_timeout_in_minutes", int(pointer.From(props.IdleTimeoutInMinutes)))
-			d.Set("protocol", string(pointer.From(props.Protocol)))
+			d.Set("protocol", pointer.FromEnum(props.Protocol))
 		}
 	}
 	return nil

@@ -527,7 +527,7 @@ func flattenAfdDomainHttpsParameters(input *afddomains.AFDDomainHTTPSParameters,
 
 	minTlsVersion := ""
 	if input.MinimumTlsVersion != nil {
-		minTlsVersion = string(pointer.From(input.MinimumTlsVersion))
+		minTlsVersion = pointer.FromEnum(input.MinimumTlsVersion)
 	}
 
 	// Azure omits `minimumTlsVersion` when the value is `TLS12`, so we default the field to
@@ -539,7 +539,7 @@ func flattenAfdDomainHttpsParameters(input *afddomains.AFDDomainHTTPSParameters,
 	customCiphers := flattenAfdCustomizedCipherSuiteSet(input.CustomizedCipherSuiteSet)
 	cipherSuiteType := ""
 	if input.CipherSuiteSetType != nil {
-		cipherSuiteType = string(pointer.From(input.CipherSuiteSetType))
+		cipherSuiteType = pointer.FromEnum(input.CipherSuiteSetType)
 	}
 
 	// Azure always returns the default `TLS12_2022` cipher suite even when users never

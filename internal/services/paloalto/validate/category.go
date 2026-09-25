@@ -4,8 +4,7 @@
 package validate
 
 import (
-	"fmt"
-	"strings"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var categoryList = []string{
@@ -84,20 +83,6 @@ var categoryList = []string{
 	"web-hosting",
 }
 
-func CategoryNames(input interface{}, k string) (warnings []string, errors []error) {
-	v, ok := input.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected %s to be of type string", k))
-		return
-	}
-
-	for _, c := range categoryList {
-		if strings.EqualFold(v, c) {
-			return
-		}
-	}
-
-	errors = append(errors, fmt.Errorf("%q is not a valid category name", v))
-
-	return
+func CategoryNames(input interface{}, k string) ([]string, []error) {
+	return validation.StringInSlice(categoryList, true)(input, k)
 }

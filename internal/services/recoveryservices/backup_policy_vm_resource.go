@@ -241,7 +241,7 @@ func resourceBackupProtectionPolicyVMFlatten(d *pluginsdk.ResourceData, id *prot
 
 			policyType := string(protectionpolicies.IAASVMPolicyTypeVOne)
 			if pointer.From(properties.PolicyType) != "" {
-				policyType = string(pointer.From(properties.PolicyType))
+				policyType = pointer.FromEnum(properties.PolicyType)
 			}
 			d.Set("policy_type", policyType)
 
@@ -775,7 +775,7 @@ func flattenBackupProtectionPolicyVMResourceGroup(rpDetail protectionpolicies.In
 func flattenBackupProtectionPolicyVMSchedule(schedule protectionpolicies.SimpleSchedulePolicy) []interface{} {
 	block := map[string]interface{}{}
 
-	block["frequency"] = string(pointer.From(schedule.ScheduleRunFrequency))
+	block["frequency"] = pointer.FromEnum(schedule.ScheduleRunFrequency)
 
 	if times := schedule.ScheduleRunTimes; times != nil && len(*times) > 0 {
 		policyTime, _ := time.Parse(time.RFC3339, (*times)[0])
@@ -980,13 +980,13 @@ func flattenBackupProtectionPolicyVMArchivedRP(input protectionpolicies.TieringP
 	results := make([]interface{}, 0)
 
 	result := map[string]interface{}{
-		"mode":     string(pointer.From(input.TieringMode)),
+		"mode":     pointer.FromEnum(input.TieringMode),
 		"duration": int(pointer.From(input.Duration)),
 	}
 
 	durationType := ""
 	if v := input.DurationType; v != nil && pointer.From(v) != protectionpolicies.RetentionDurationTypeInvalid {
-		durationType = string(pointer.From(v))
+		durationType = pointer.FromEnum(v)
 	}
 	result["duration_type"] = durationType
 

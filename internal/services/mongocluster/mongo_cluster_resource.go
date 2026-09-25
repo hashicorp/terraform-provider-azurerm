@@ -681,10 +681,10 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 					}
 
 					if v := props.HighAvailability; v != nil {
-						state.HighAvailabilityMode = string(pointer.From(v.TargetMode))
+						state.HighAvailabilityMode = pointer.FromEnum(v.TargetMode)
 					}
 					state.CosmosDBNetworkBypassEnabled = pointer.From(props.NetworkBypassMode) == mongoclusters.NetworkBypassModeAzureCosmosDB
-					state.PublicNetworkAccess = string(pointer.From(props.PublicNetworkAccess))
+					state.PublicNetworkAccess = pointer.FromEnum(props.PublicNetworkAccess)
 
 					if v := props.Storage; v != nil {
 						state.StorageSizeInGb = pointer.From(v.SizeGb)

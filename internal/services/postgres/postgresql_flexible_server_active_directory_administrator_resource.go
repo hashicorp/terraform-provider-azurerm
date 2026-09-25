@@ -151,7 +151,7 @@ func resourcePostgresqlFlexibleServerAdministratorRead(d *pluginsdk.ResourceData
 		props := model.Properties
 		d.Set("object_id", props.ObjectId)
 		d.Set("principal_name", props.PrincipalName)
-		d.Set("principal_type", string(pointer.From(props.PrincipalType)))
+		d.Set("principal_type", pointer.FromEnum(props.PrincipalType))
 		d.Set("tenant_id", props.TenantId)
 	}
 

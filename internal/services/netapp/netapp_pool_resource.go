@@ -279,7 +279,7 @@ func resourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			qosType = string(*poolProperties.QosType)
 		}
 		d.Set("qos_type", qosType)
-		d.Set("encryption_type", string(pointer.From(poolProperties.EncryptionType)))
+		d.Set("encryption_type", pointer.FromEnum(poolProperties.EncryptionType))
 		d.Set("cool_access_enabled", pointer.From(poolProperties.CoolAccess))
 		d.Set("custom_throughput_mibps", int(pointer.From(poolProperties.CustomThroughputMibps)))
 

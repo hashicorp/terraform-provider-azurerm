@@ -731,8 +731,8 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisRead(d *pluginsdk.ResourceDat
 		}
 
 		if ssisProps := runTime.TypeProperties.SsisProperties; ssisProps != nil {
-			d.Set("edition", string(pointer.From(ssisProps.Edition)))
-			d.Set("license_type", string(pointer.From(ssisProps.LicenseType)))
+			d.Set("edition", pointer.FromEnum(ssisProps.Edition))
+			d.Set("license_type", pointer.FromEnum(ssisProps.LicenseType))
 
 			if err := d.Set("catalog_info", flattenDataFactoryIntegrationRuntimeAzureSsisCatalogInfo(ssisProps.CatalogInfo, d)); err != nil {
 				return fmt.Errorf("setting `catalog_info`: %+v", err)
@@ -1088,9 +1088,9 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisCatalogInfo(ssisProperties *in
 	var administratorPassword string
 
 	var pricingTier, elasticPoolName string
-	elasticPoolName, elasticPoolNameMatched := parseDataFactoryIntegrationRuntimeElasticPool(string(pointer.From(ssisProperties.CatalogPricingTier)))
+	elasticPoolName, elasticPoolNameMatched := parseDataFactoryIntegrationRuntimeElasticPool(pointer.FromEnum(ssisProperties.CatalogPricingTier))
 	if !elasticPoolNameMatched {
-		pricingTier = string(pointer.From(ssisProperties.CatalogPricingTier))
+		pricingTier = pointer.FromEnum(ssisProperties.CatalogPricingTier)
 	}
 
 	// read back

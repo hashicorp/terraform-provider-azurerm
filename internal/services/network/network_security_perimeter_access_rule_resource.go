@@ -283,7 +283,7 @@ func (NetworkSecurityPerimeterAccessRuleResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					state.AddressPrefixes = pointer.From(props.AddressPrefixes)
-					state.Direction = string(pointer.From(props.Direction))
+					state.Direction = pointer.FromEnum(props.Direction)
 					state.FullyQualifiedDomainNames = pointer.From(props.FullyQualifiedDomainNames)
 					state.ServiceTags = pointer.From(props.ServiceTags)
 					state.Subscriptions = flattenAccessRuleSubscriptionIDs(props.Subscriptions)

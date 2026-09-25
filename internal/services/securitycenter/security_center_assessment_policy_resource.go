@@ -219,9 +219,9 @@ func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, me
 			d.Set("description", pointer.From(props.Description))
 			d.Set("display_name", props.DisplayName)
 			d.Set("severity", string(props.Severity))
-			d.Set("implementation_effort", string(pointer.From(props.ImplementationEffort)))
+			d.Set("implementation_effort", pointer.FromEnum(props.ImplementationEffort))
 			d.Set("remediation_description", pointer.From(props.RemediationDescription))
-			d.Set("user_impact", string(pointer.From(props.UserImpact)))
+			d.Set("user_impact", pointer.FromEnum(props.UserImpact))
 
 			categories := make([]string, 0)
 			if props.Categories != nil {

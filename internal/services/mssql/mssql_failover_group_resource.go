@@ -377,7 +377,7 @@ func (r MsSqlFailoverGroupResource) flattenPartnerServers(input []failovergroups
 	for _, partner := range input {
 		model := PartnerServerModel{
 			Location: location.NormalizeNilable(partner.Location),
-			Role:     string(pointer.From(partner.ReplicationRole)),
+			Role:     pointer.FromEnum(partner.ReplicationRole),
 			ID:       partner.Id,
 		}
 

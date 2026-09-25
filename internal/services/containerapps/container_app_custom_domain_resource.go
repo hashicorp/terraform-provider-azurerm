@@ -245,7 +245,7 @@ func (a ContainerAppCustomDomainResource) Read() sdk.ResourceFunc {
 							}
 						}
 
-						state.BindingType = string(pointer.From(v.BindingType))
+						state.BindingType = pointer.FromEnum(v.BindingType)
 					}
 				}
 			}

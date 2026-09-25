@@ -192,10 +192,10 @@ func resourceFirewallPolicySetFlatten(d *pluginsdk.ResourceData, id *firewallpol
 			}
 			d.Set("base_policy_id", basePolicyID)
 
-			d.Set("threat_intelligence_mode", string(pointer.From(props.ThreatIntelMode)))
+			d.Set("threat_intelligence_mode", pointer.FromEnum(props.ThreatIntelMode))
 
 			if sku := props.Sku; sku != nil {
-				d.Set("sku", string(pointer.From(sku.Tier)))
+				d.Set("sku", pointer.FromEnum(sku.Tier))
 			}
 
 			if err := d.Set("threat_intelligence_allowlist", flattenFirewallPolicyThreatIntelWhitelist(props.ThreatIntelWhitelist)); err != nil {
@@ -477,7 +477,7 @@ func flattenFirewallPolicyIntrusionDetection(input *firewallpolicies.FirewallPol
 	if input.Configuration == nil {
 		return []interface{}{
 			map[string]interface{}{
-				"mode":                string(pointer.From(input.Mode)),
+				"mode":                pointer.FromEnum(input.Mode),
 				"signature_overrides": signatureOverrides,
 				"traffic_bypass":      trafficBypass,
 			},
@@ -488,7 +488,7 @@ func flattenFirewallPolicyIntrusionDetection(input *firewallpolicies.FirewallPol
 		for _, override := range *overrides {
 			signatureOverrides = append(signatureOverrides, map[string]interface{}{
 				"id":    pointer.From(override.Id),
-				"state": string(pointer.From(override.Mode)),
+				"state": pointer.FromEnum(override.Mode),
 			})
 		}
 	}
@@ -513,7 +513,7 @@ func flattenFirewallPolicyIntrusionDetection(input *firewallpolicies.FirewallPol
 			trafficBypass = append(trafficBypass, map[string]interface{}{
 				"name":                  pointer.From(bypass.Name),
 				"description":           pointer.From(bypass.Description),
-				"protocol":              string(pointer.From(bypass.Protocol)),
+				"protocol":              pointer.FromEnum(bypass.Protocol),
 				"source_addresses":      pointer.From(bypass.SourceAddresses),
 				"destination_addresses": pointer.From(bypass.DestinationAddresses),
 				"destination_ports":     destinationPorts,
@@ -525,7 +525,7 @@ func flattenFirewallPolicyIntrusionDetection(input *firewallpolicies.FirewallPol
 
 	return []interface{}{
 		map[string]interface{}{
-			"mode":                string(pointer.From(input.Mode)),
+			"mode":                pointer.FromEnum(input.Mode),
 			"signature_overrides": signatureOverrides,
 			"traffic_bypass":      trafficBypass,
 			"private_ranges":      pointer.From(input.Configuration.PrivateRanges),
