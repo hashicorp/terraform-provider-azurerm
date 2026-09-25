@@ -6,6 +6,7 @@ package apimanagement_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -13,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -64,18 +66,14 @@ func TestAccApiManagementAPIPolicy_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("xml_link"),
 		{
 			Config: r.customPolicy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			ResourceName:            data.ResourceName,
-			ImportState:             true,
-			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"xml_link"},
-		},
+		r.importStep(data, r.customPolicyXml()),
 	})
 }
 
@@ -90,13 +88,67 @@ func TestAccApiManagementAPIPolicy_customPolicy(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			ResourceName:            data.ResourceName,
-			ImportState:             true,
-			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"xml_link"},
-		},
+		r.importStep(data, r.customPolicyXml()),
 	})
+}
+
+func TestAccApiManagementAPIPolicy_rawXmlUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_policy", "test")
+	r := ApiManagementApiPolicyResource{}
+
+	policy, err := os.ReadFile("testdata/api_management_api_policy_raw.xml")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	updatedPolicy, err := os.ReadFile("testdata/api_management_api_policy_raw_updated.xml")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.rawXml(data, "api_management_api_policy_raw.xml"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("xml_content").HasValue(string(policy)),
+			),
+		},
+		r.importStep(data, string(policy)),
+		{
+			Config: r.rawXml(data, "api_management_api_policy_raw_updated.xml"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("xml_content").HasValue(string(updatedPolicy)),
+			),
+		},
+		r.importStep(data, string(updatedPolicy)),
+		{
+			Config: r.rawXml(data, "api_management_api_policy_raw.xml"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("xml_content").HasValue(string(policy)),
+			),
+		},
+		r.importStep(data, string(policy)),
+	})
+}
+
+func (ApiManagementApiPolicyResource) importStep(data acceptance.TestData, policyContent string) acceptance.TestStep {
+	step := data.ImportStep("xml_content", "xml_link")
+	step.ImportStateCheck = func(states []*pluginsdk.InstanceState) error {
+		if len(states) != 1 {
+			return fmt.Errorf("expected one imported policy, got %d", len(states))
+		}
+
+		importedContent := states[0].Attributes["xml_content"]
+		if !apimanagement.XmlWithDotNetInterpolationsDiffSuppress("xml_content", policyContent, importedContent, nil) {
+			return fmt.Errorf("imported xml_content differs from the expected policy: expected %q, got %q", policyContent, importedContent)
+		}
+
+		return nil
+	}
+	return step
 }
 
 func (ApiManagementApiPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -165,7 +217,7 @@ resource "azurerm_api_management_api_policy" "import" {
 `, r.basic(data))
 }
 
-func (ApiManagementApiPolicyResource) customPolicy(data acceptance.TestData) string {
+func (r ApiManagementApiPolicyResource) customPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -201,14 +253,31 @@ resource "azurerm_api_management_api_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   xml_content = <<XML
-<policies>
+%s
+XML
+
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, r.customPolicyXml())
+}
+
+func (ApiManagementApiPolicyResource) customPolicyXml() string {
+	return `<policies>
   <inbound>
     <set-variable name="abc" value="@(context.Request.Headers.GetValueOrDefault("X-Header-Name", ""))" />
     <find-and-replace from="xyz" to="abc" />
   </inbound>
-</policies>
-XML
-
+</policies>`
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+
+func (ApiManagementApiPolicyResource) rawXml(data acceptance.TestData, policyFile string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api_policy" "test" {
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  xml_content         = file("testdata/%s")
+}
+`, ApiManagementApiResource{}.basic(data), policyFile)
 }
