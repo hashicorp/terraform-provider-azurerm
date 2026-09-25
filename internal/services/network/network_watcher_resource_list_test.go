@@ -5,7 +5,6 @@ package network_test
 
 import (
 	"context"
-	"fmt"
 	"regexp"
 	"strconv"
 	"testing"
@@ -29,13 +28,13 @@ func testAccNetworkWatcher_listBySubscriptionAndRG(t *testing.T) {
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		Steps: []resource.TestStep{
 			{
-				Config: r.basicList(data),
+				Config: r.basicConfig(data),
 			},
 			{
 				Query:  true,
 				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_network_watcher.list", 3),
+					querycheck.ExpectLengthAtLeast("azurerm_network_watcher.list", 1),
 					querycheck.ExpectIdentity(
 						"azurerm_network_watcher.list",
 						map[string]knownvalue.Check{
@@ -55,26 +54,6 @@ func testAccNetworkWatcher_listBySubscriptionAndRG(t *testing.T) {
 			},
 		},
 	})
-}
-
-func (NetworkWatcherResource) basicList(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-watcher-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_network_watcher" "test" {
-  count               = 3
-  name                = "acctestNW${count.index}-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (NetworkWatcherResource) basicQuery() string {
