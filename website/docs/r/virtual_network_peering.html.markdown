@@ -174,13 +174,13 @@ The following arguments are supported:
 
 * `allow_gateway_transit` - (Optional) Controls gatewayLinks can be used in the remote virtual network’s link to the local virtual network. Defaults to `false`.
 
-* `local_subnet_names` - (Optional) A list of local Subnet names that are Subnet peered with remote Virtual Network.
+* `local_subnet_names` - (Optional) A list of local Subnet names that are Subnet peered with remote Virtual Network. Adding this to a peering that has none, or removing it entirely, changes the peering between a complete Virtual Network peering and a Subnet peering and forces a new resource to be created.
 
 * `only_ipv6_peering_enabled` - (Optional) Specifies whether only IPv6 address space is peered for Subnet peering. Changing this forces a new resource to be created.
 
 * `peer_complete_virtual_networks_enabled` - (Optional) Specifies whether complete Virtual Network address space is peered. Defaults to `true`. Changing this forces a new resource to be created.
 
-* `remote_subnet_names` - (Optional) A list of remote Subnet names from remote Virtual Network that are Subnet peered.
+* `remote_subnet_names` - (Optional) A list of remote Subnet names from remote Virtual Network that are Subnet peered. Adding this to a peering that has none, or removing it entirely, changes the peering between a complete Virtual Network peering and a Subnet peering and forces a new resource to be created.
 
 * `use_remote_gateways` - (Optional) Controls if remote gateways can be used on the local virtual network. If the flag is set to `true`, and `allow_gateway_transit` on the remote peering is also `true`, virtual network will use gateways of remote virtual network for transit. Only one peering can have this flag set to `true`. This flag cannot be set if virtual network already has a gateway. Defaults to `false`.
 
