@@ -6,10 +6,10 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/domains"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/emailservices"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/senderusernames"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/communicationservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/domains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/emailservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/senderusernames"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
