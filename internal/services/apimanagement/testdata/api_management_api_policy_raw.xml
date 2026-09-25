@@ -1,0 +1,17 @@
+<policies>
+    <inbound>
+        <base />
+        <ip-filter action="allow">
+            <address>192.0.2.10</address>
+        </ip-filter>
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+    </outbound>
+    <on-error>
+        <base />
+    </on-error>
+</policies>
