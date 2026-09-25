@@ -248,6 +248,30 @@ func dataSourceCosmosDbAccount() *pluginsdk.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
+
+			"primary_table_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_table_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"primary_readonly_table_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_readonly_table_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }
@@ -395,15 +419,8 @@ func dataSourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	} else {
 		if model := connStringResp.Model; model != nil {
-			var connStrings []string
-			if model.ConnectionStrings != nil {
-				connStrings = make([]string, len(*model.ConnectionStrings))
-				for i, v := range *model.ConnectionStrings {
-					connStrings[i] = *v.ConnectionString
-					if propertyName, propertyExists := connStringPropertyMap[*v.Description]; propertyExists {
-						d.Set(propertyName, v.ConnectionString) // lintignore:R001
-					}
-				}
+			for attribute, value := range flattenCosmosDBAccountConnectionStrings(model.ConnectionStrings) {
+				d.Set(attribute, value) // lintignore:R001
 			}
 		}
 	}
