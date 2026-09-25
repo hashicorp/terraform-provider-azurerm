@@ -184,7 +184,7 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyRead(d *pluginsdk.ResourceData
 		if params := model.Properties.Parameters; params != nil {
 			if encryption := params.Encryption; encryption != nil {
 				if value := encryption.Value; value != nil {
-					if strings.EqualFold(string(pointer.From(value.KeySource)), string(workspaces.KeySourceDefault)) && value.Keyvaulturi == nil && value.KeyName == nil {
+					if strings.EqualFold(pointer.FromEnum(value.KeySource), string(workspaces.KeySourceDefault)) && value.Keyvaulturi == nil && value.KeyName == nil {
 						d.SetId("")
 						return nil
 					}

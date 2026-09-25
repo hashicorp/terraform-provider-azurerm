@@ -216,7 +216,7 @@ func (r ExtendedLocationCustomLocationResource) Read() sdk.ResourceFunc {
 					ClusterExtensionIds: pointer.From(props.ClusterExtensionIds),
 					DisplayName:         pointer.From(props.DisplayName),
 					HostResourceId:      pointer.From(props.HostResourceId),
-					HostType:            string(pointer.From(props.HostType)),
+					HostType:            pointer.FromEnum(props.HostType),
 					Namespace:           pointer.From(props.Namespace),
 				}
 

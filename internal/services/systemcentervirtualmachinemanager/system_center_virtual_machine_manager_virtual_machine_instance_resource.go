@@ -928,9 +928,9 @@ func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterf
 		result = append(result, NetworkInterface{
 			Name:             pointer.From(v.Name),
 			VirtualNetworkId: pointer.From(v.VirtualNetworkId),
-			Ipv4AddressType:  string(pointer.From(v.IPv4AddressType)),
-			Ipv6AddressType:  string(pointer.From(v.IPv6AddressType)),
-			MacAddressType:   string(pointer.From(v.MacAddressType)),
+			Ipv4AddressType:  pointer.FromEnum(v.IPv4AddressType),
+			Ipv6AddressType:  pointer.FromEnum(v.IPv6AddressType),
+			MacAddressType:   pointer.FromEnum(v.MacAddressType),
 		})
 	}
 

@@ -342,7 +342,7 @@ func flattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input *virtualmach
 		}
 
 		if props.PublicIPAddressVersion != nil {
-			version = string(pointer.From(props.PublicIPAddressVersion))
+			version = pointer.FromEnum(props.PublicIPAddressVersion)
 		}
 
 		if props.IdleTimeoutInMinutes != nil {
@@ -381,7 +381,7 @@ func flattenVirtualMachineScaleSetSkuProfileForDataSource(input *virtualmachines
 	}
 
 	return []VirtualMachineScaleSetSkuProfile{{
-		AllocationStrategy: string(pointer.From(input.AllocationStrategy)),
+		AllocationStrategy: pointer.FromEnum(input.AllocationStrategy),
 		VirtualMachineSize: vmSizes,
 	}}
 }

@@ -339,7 +339,7 @@ func (r LoadTestResource) mapLoadTestPropertiesToLoadTestResourceSchema(input lo
 			})
 
 			if encryptionIdentity.Type != nil {
-				output.Encryption[0].Identity[0].Type = string(pointer.From(encryptionIdentity.Type))
+				output.Encryption[0].Identity[0].Type = pointer.FromEnum(encryptionIdentity.Type)
 			}
 		}
 	}

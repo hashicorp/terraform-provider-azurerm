@@ -97,7 +97,7 @@ func resourceArmDataSourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData
 
 		if props := model.Properties; props != nil {
 			d.Set("enabled", props.Enabled)
-			d.Set("namespace_type", string(pointer.From(props.NamespaceType)))
+			d.Set("namespace_type", pointer.FromEnum(props.NamespaceType))
 			d.Set("servicebus_endpoint", props.ServiceBusEndpoint)
 		}
 

@@ -24,7 +24,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/replications"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -190,7 +189,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 									"ip_range": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: validate.CIDR,
+										ValidateFunc: validation.IsCIDRIPv4,
 									},
 								},
 							},
@@ -789,7 +788,7 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		d.Set("sku", string(pointer.From(model.Sku.Tier)))
+		d.Set("sku", pointer.FromEnum(model.Sku.Tier))
 
 		if props := model.Properties; props != nil {
 			d.Set("admin_enabled", props.AdminUserEnabled)
@@ -807,8 +806,8 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("anonymous_pull_enabled", props.AnonymousPullEnabled)
 			d.Set("data_endpoint_enabled", props.DataEndpointEnabled)
 			d.Set("data_endpoint_host_names", props.DataEndpointHostNames)
-			d.Set("network_rule_bypass_option", string(pointer.From(props.NetworkRuleBypassOptions)))
-			d.Set("role_assignment_mode", string(pointer.From(props.RoleAssignmentMode)))
+			d.Set("network_rule_bypass_option", pointer.FromEnum(props.NetworkRuleBypassOptions))
+			d.Set("role_assignment_mode", pointer.FromEnum(props.RoleAssignmentMode))
 			d.Set("network_rule_bypass_for_tasks_enabled", pointer.From(props.NetworkRuleBypassAllowedForTasks))
 
 			if policies := props.Policies; policies != nil {

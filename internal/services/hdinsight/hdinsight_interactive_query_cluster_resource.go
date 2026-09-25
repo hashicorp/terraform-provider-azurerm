@@ -349,7 +349,7 @@ func resourceHDInsightInteractiveQueryClusterRead(d *pluginsdk.ResourceData, met
 
 		// storage_account isn't returned so I guess we just leave it ¯\_(ツ)_/¯
 		if props := model.Properties; props != nil {
-			d.Set("tier", string(pointer.From(props.Tier)))
+			d.Set("tier", pointer.FromEnum(props.Tier))
 			d.Set("cluster_version", props.ClusterVersion)
 			d.Set("tls_min_version", props.MinSupportedTlsVersion)
 

@@ -106,7 +106,7 @@ func (r NetAppVolumeQuotaRuleDataSource) Read() sdk.ResourceFunc {
 			state.Location = location.Normalize(model.Location)
 			state.QuotaSizeInKiB = pointer.From(model.Properties.QuotaSizeInKiBs)
 			state.QuotaTarget = pointer.From(model.Properties.QuotaTarget)
-			state.QuotaType = string(pointer.From(model.Properties.QuotaType))
+			state.QuotaType = pointer.FromEnum(model.Properties.QuotaType)
 
 			metadata.SetID(id)
 

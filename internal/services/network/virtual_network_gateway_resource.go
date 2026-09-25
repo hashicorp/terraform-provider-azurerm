@@ -16,9 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/localnetworkgateways"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgateways"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/localnetworkgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -741,7 +740,7 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 
 		d.Set("bgp_enabled", props.EnableBgp)
 
-		d.Set("type", string(pointer.From(props.GatewayType)))
+		d.Set("type", pointer.FromEnum(props.GatewayType))
 		d.Set("private_ip_address_enabled", props.EnablePrivateIPAddress)
 		d.Set("active_active", props.ActiveActive)
 		d.Set("bgp_route_translation_for_nat_enabled", props.EnableBgpRouteTranslationForNat)
@@ -749,10 +748,10 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("ip_sec_replay_protection_enabled", !*props.DisableIPSecReplayProtection)
 		d.Set("remote_vnet_traffic_enabled", props.AllowRemoteVnetTraffic)
 		d.Set("virtual_wan_traffic_enabled", props.AllowVirtualWanTraffic)
-		d.Set("generation", string(pointer.From(props.VpnGatewayGeneration)))
+		d.Set("generation", pointer.FromEnum(props.VpnGatewayGeneration))
 
 		if props.VpnType != nil {
-			d.Set("vpn_type", string(pointer.From(props.VpnType)))
+			d.Set("vpn_type", pointer.FromEnum(props.VpnType))
 		}
 
 		if props.GatewayDefaultSite != nil {
@@ -760,7 +759,7 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if props.Sku != nil {
-			d.Set("sku", string(pointer.From(props.Sku.Name)))
+			d.Set("sku", pointer.FromEnum(props.Sku.Name))
 		}
 
 		gatewayType := pointer.From(props.GatewayType)
@@ -982,7 +981,7 @@ func getVirtualNetworkGatewayProperties(id virtualnetworkgateways.VirtualNetwork
 	gatewayType := pointer.From(props.GatewayType)
 	vpnType := pointer.From(props.VpnType)
 	vpnGatewayGeneration := pointer.From(props.VpnGatewayGeneration)
-	skuName := string(pointer.From(props.Sku.Name))
+	skuName := pointer.FromEnum(props.Sku.Name)
 
 	// Sku validation for policy-based VPN gateways
 	if gatewayType == virtualnetworkgateways.VirtualNetworkGatewayTypeVpn && vpnType == virtualnetworkgateways.VpnTypePolicyBased {
@@ -1076,7 +1075,7 @@ func expandVirtualNetworkGatewayBgpPeeringAddresses(id virtualnetworkgateways.Vi
 		ipConfigId := parse.NewVirtualNetworkGatewayIpConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkGatewayName, ipConfigName)
 		result = append(result, virtualnetworkgateways.IPConfigurationBgpPeeringAddress{
 			IPconfigurationId:    pointer.To(ipConfigId.ID()),
-			CustomBgpIPAddresses: helpers.ExpandStringSlice(b["apipa_addresses"].([]interface{})),
+			CustomBgpIPAddresses: pluginsdk.ExpandStringSlice(b["apipa_addresses"].([]interface{})),
 		})
 	}
 
@@ -1206,7 +1205,7 @@ func expandVirtualNetworkGatewayAddressSpace(input []interface{}) *virtualnetwor
 	}
 	v := input[0].(map[string]interface{})
 	return &virtualnetworkgateways.AddressSpace{
-		AddressPrefixes: helpers.ExpandStringSlice(v["address_prefixes"].(*pluginsdk.Set).List()),
+		AddressPrefixes: pluginsdk.ExpandStringSlice(v["address_prefixes"].(*pluginsdk.Set).List()),
 	}
 }
 
@@ -1391,9 +1390,9 @@ func flattenVirtualNetworkGatewayBgpPeeringAddresses(input *[]virtualnetworkgate
 
 		output = append(output, map[string]interface{}{
 			"ip_configuration_name": ipConfigName,
-			"apipa_addresses":       helpers.FlattenStringSlice(e.CustomBgpIPAddresses),
-			"default_addresses":     helpers.FlattenStringSlice(e.DefaultBgpIPAddresses),
-			"tunnel_ip_addresses":   helpers.FlattenStringSlice(e.TunnelIPAddresses),
+			"apipa_addresses":       pluginsdk.FlattenSlice(e.CustomBgpIPAddresses),
+			"default_addresses":     pluginsdk.FlattenSlice(e.DefaultBgpIPAddresses),
+			"tunnel_ip_addresses":   pluginsdk.FlattenSlice(e.TunnelIPAddresses),
 		})
 	}
 
@@ -1411,7 +1410,7 @@ func flattenVirtualNetworkGatewayIPConfigurations(ipConfigs *[]virtualnetworkgat
 			if name := cfg.Name; name != nil {
 				v["name"] = *name
 			}
-			v["private_ip_address_allocation"] = string(pointer.From(props.PrivateIPAllocationMethod))
+			v["private_ip_address_allocation"] = pointer.FromEnum(props.PrivateIPAllocationMethod)
 
 			if subnet := props.Subnet; subnet != nil {
 				if id := subnet.Id; id != nil {
@@ -1451,7 +1450,7 @@ func flattenVirtualNetworkGatewayVpnClientConfig(cfg *virtualnetworkgateways.Vpn
 	flat["virtual_network_gateway_client_connection"] = connection
 
 	if pool := cfg.VpnClientAddressPool; pool != nil {
-		flat["address_space"] = helpers.FlattenStringSlice(pool.AddressPrefixes)
+		flat["address_space"] = pluginsdk.FlattenSlice(pool.AddressPrefixes)
 	} else {
 		flat["address_space"] = []interface{}{}
 	}
@@ -1591,7 +1590,7 @@ func flattenVirtualNetworkGatewayAddressSpace(input *virtualnetworkgateways.Addr
 
 	return []interface{}{
 		map[string]interface{}{
-			"address_prefixes": helpers.FlattenStringSlice(input.AddressPrefixes),
+			"address_prefixes": pluginsdk.FlattenSlice(input.AddressPrefixes),
 		},
 	}
 }
@@ -1668,7 +1667,7 @@ func flattenVirtualNetworkGatewayPolicy(input []virtualnetworkgateways.VirtualNe
 	for _, item := range input {
 		results = append(results, map[string]interface{}{
 			"name":  pointer.From(item.Name),
-			"type":  string(pointer.From(item.AttributeType)),
+			"type":  pointer.FromEnum(item.AttributeType),
 			"value": pointer.From(item.AttributeValue),
 		})
 	}

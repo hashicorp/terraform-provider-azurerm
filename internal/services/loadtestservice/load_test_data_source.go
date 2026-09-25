@@ -158,7 +158,7 @@ func (r LoadTestDataSource) Read() sdk.ResourceFunc {
 						})
 
 						if encryptionIdentity.Type != nil {
-							loadTest.Encryption[0].Identity[0].Type = string(pointer.From(encryptionIdentity.Type))
+							loadTest.Encryption[0].Identity[0].Type = pointer.FromEnum(encryptionIdentity.Type)
 						}
 					}
 				}

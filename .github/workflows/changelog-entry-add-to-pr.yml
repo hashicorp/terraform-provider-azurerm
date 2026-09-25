@@ -94,6 +94,11 @@ jobs:
             fi
           done < <(tail -n +2 artifacts/comment-body)
 
+          if (( count == 0 )); then
+            echo "::error::No changelog entries found. Add at least one entry in the format '[type] description' on a new line after /changelog."
+            exit 1
+          fi
+
       - name: Commit and push changelog entries to PR branch
         env:
           PR_NUMBER: ${{ steps.meta.outputs.pr-number }}
