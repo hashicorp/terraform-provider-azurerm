@@ -656,7 +656,7 @@ func TestAccHDInsightHadoopCluster_updateMonitor(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHDInsightHadoopCluster_autoscaleWithSchedule(t *testing.T) {
+func TestAccHDInsightHadoopCluster_autoscaleWithSchedule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
 	r := HDInsightHadoopClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -693,7 +693,7 @@ func TestAccAzureRMHDInsightHadoopCluster_autoscaleWithSchedule(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHDInsightHadoopCluster_autoscaleWithCapacity(t *testing.T) {
+func TestAccHDInsightHadoopCluster_autoscaleWithCapacity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
 	r := HDInsightHadoopClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

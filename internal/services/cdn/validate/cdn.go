@@ -34,6 +34,7 @@ func RuleActionUrlRedirectPath() pluginsdk.SchemaValidateFunc {
 }
 
 func RuleActionUrlRedirectQueryString() pluginsdk.SchemaValidateFunc {
+	// lintignore:V011,V001 // false positive - this validates each key=value segment of a query string with two tailored errors; the len() check skips empty segments, there is no length rule
 	return func(i interface{}, s string) ([]string, []error) {
 		querystring := i.(string)
 
@@ -43,8 +44,8 @@ func RuleActionUrlRedirectQueryString() pluginsdk.SchemaValidateFunc {
 		}
 
 		kvre := regexp.MustCompile("^[^?&]+=[^?&]+$")
-		kvs := strings.Split(querystring, "&")
-		for _, kv := range kvs {
+		kvs := strings.SplitSeq(querystring, "&")
+		for kv := range kvs {
 			if len(kv) > 0 && !kvre.MatchString(kv) {
 				return nil, []error{errors.New("the Url Query String must be in <key>=<value> format and separated by an ampersand")}
 			}

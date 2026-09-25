@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -80,7 +79,7 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) IDValidation
 }
 
 func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Arguments() map[string]*pluginsdk.Schema {
-	arguments := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -129,7 +128,7 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Arguments() 
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
-									ValidateFunc: azValidate.ISO8601Duration,
+									ValidateFunc: validation.ISO8601Duration,
 								},
 							},
 						},
@@ -233,7 +232,7 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Arguments() 
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
-									ValidateFunc: azValidate.ISO8601Duration,
+									ValidateFunc: validation.ISO8601Duration,
 								},
 							},
 						},
@@ -255,7 +254,6 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Arguments() 
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
-	return arguments
 }
 
 func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Attributes() map[string]*pluginsdk.Schema {
@@ -454,7 +452,6 @@ func expandBackupPolicyPostgreSQLFlexibleServerLifeCycle(input []BackupPolicyPos
 func expandBackupPolicyPostgreSQLFlexibleServerTaggingCriteria(input []BackupPolicyPostgreSQLFlexibleServerRetentionRule) []basebackuppolicyresources.TaggingCriteria {
 	results := []basebackuppolicyresources.TaggingCriteria{
 		{
-			Criteria:        nil,
 			IsDefault:       true,
 			TaggingPriority: 99,
 			TagInfo: basebackuppolicyresources.RetentionTag{
@@ -466,7 +463,6 @@ func expandBackupPolicyPostgreSQLFlexibleServerTaggingCriteria(input []BackupPol
 
 	for _, item := range input {
 		result := basebackuppolicyresources.TaggingCriteria{
-			IsDefault:       false,
 			Criteria:        expandBackupPolicyPostgreSQLFlexibleServerCriteria(item.Criteria),
 			TaggingPriority: item.Priority,
 			TagInfo: basebackuppolicyresources.RetentionTag{
@@ -525,7 +521,6 @@ func expandBackupPolicyPostgreSQLFlexibleServerCriteria(input []BackupPolicyPost
 
 		results = append(results, basebackuppolicyresources.ScheduleBasedBackupCriteria{
 			AbsoluteCriteria: pointer.To(absoluteCriteria),
-			DaysOfMonth:      nil,
 			DaysOfTheWeek:    pointer.To(daysOfWeek),
 			MonthsOfYear:     pointer.To(monthsOfYear),
 			ScheduleTimes:    pointer.To(scheduleTimes),
@@ -593,13 +588,13 @@ func flattenBackupPolicyPostgreSQLFlexibleServerDefaultRetentionRule(input []bas
 
 func flattenBackupPolicyPostgreSQLFlexibleServerRetentionRules(input []basebackuppolicyresources.BasePolicyRule) []BackupPolicyPostgreSQLFlexibleServerRetentionRule {
 	results := make([]BackupPolicyPostgreSQLFlexibleServerRetentionRule, 0)
-	var taggingCriterias []basebackuppolicyresources.TaggingCriteria
+	var taggingCriteriaList []basebackuppolicyresources.TaggingCriteria
 
 	for _, item := range input {
 		if backupRule, ok := item.(basebackuppolicyresources.AzureBackupRule); ok {
 			if trigger, ok := backupRule.Trigger.(basebackuppolicyresources.ScheduleBasedTriggerContext); ok {
 				if trigger.TaggingCriteria != nil {
-					taggingCriterias = trigger.TaggingCriteria
+					taggingCriteriaList = trigger.TaggingCriteria
 				}
 			}
 		}
@@ -614,7 +609,7 @@ func flattenBackupPolicyPostgreSQLFlexibleServerRetentionRules(input []basebacku
 			if !pointer.From(retentionRule.IsDefault) {
 				name = retentionRule.Name
 
-				for _, criteria := range taggingCriterias {
+				for _, criteria := range taggingCriteriaList {
 					if strings.EqualFold(criteria.TagInfo.TagName, name) {
 						taggingPriority = criteria.TaggingPriority
 						taggingCriteria = flattenBackupPolicyPostgreSQLFlexibleServerBackupCriteria(criteria.Criteria)

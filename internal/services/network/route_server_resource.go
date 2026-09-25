@@ -10,19 +10,18 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -90,14 +89,10 @@ func resourceRouteServer() *pluginsdk.Resource {
 			},
 
 			"hub_routing_preference": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(virtualwans.HubRoutingPreferenceExpressRoute),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualwans.HubRoutingPreferenceASPath),
-					string(virtualwans.HubRoutingPreferenceExpressRoute),
-					string(virtualwans.HubRoutingPreferenceVpnGateway),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(virtualwans.HubRoutingPreferenceExpressRoute),
+				ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForHubRoutingPreference(), false),
 			},
 
 			"virtual_router_ips": {
@@ -151,7 +146,7 @@ func resourceRouteServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Properties: &virtualwans.VirtualHubProperties{
 			Sku:                        pointer.To(d.Get("sku").(string)),
 			AllowBranchToBranchTraffic: pointer.To(d.Get("branch_to_branch_traffic_enabled").(bool)),
-			HubRoutingPreference:       pointer.To(virtualwans.HubRoutingPreference(d.Get("hub_routing_preference").(string))),
+			HubRoutingPreference:       pointer.ToEnum[virtualwans.HubRoutingPreference](d.Get("hub_routing_preference").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -232,7 +227,7 @@ func resourceRouteServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("hub_routing_preference") {
-		payload.Properties.HubRoutingPreference = pointer.To(virtualwans.HubRoutingPreference(d.Get("hub_routing_preference").(string)))
+		payload.Properties.HubRoutingPreference = pointer.ToEnum[virtualwans.HubRoutingPreference](d.Get("hub_routing_preference").(string))
 	}
 
 	if d.HasChange("tags") {
@@ -301,7 +296,7 @@ func resourceRouteServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			if props.VirtualRouterAsn != nil {
 				d.Set("virtual_router_asn", props.VirtualRouterAsn)
 			}
-			d.Set("routing_state", string(pointer.From(props.RoutingState)))
+			d.Set("routing_state", pointer.FromEnum(props.RoutingState))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -397,7 +392,7 @@ func routeServerCreateRefreshFunc(ctx context.Context, client *virtualwans.Virtu
 		}
 
 		if resp.Model != nil && resp.Model.Properties != nil {
-			return resp, string(pointer.From(resp.Model.Properties.ProvisioningState)), nil
+			return resp, pointer.FromEnum(resp.Model.Properties.ProvisioningState), nil
 		}
 		return nil, "", fmt.Errorf("unable to read the provisioning state of this %s", id)
 	}

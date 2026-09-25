@@ -4,15 +4,16 @@
 package loadbalancer
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -21,6 +22,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "load_balancer_name:loadbalancer_id,resource_group_name:loadbalancer_id,subscription_id:loadbalancer_id"
+
+const azureLoadBalancerProbeResourceName = "azurerm_lb_probe"
+
 func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceArmLoadBalancerProbeCreateUpdate,
@@ -28,15 +33,11 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 		Update: resourceArmLoadBalancerProbeCreateUpdate,
 		Delete: resourceArmLoadBalancerProbeDelete,
 
-		Importer: loadBalancerSubResourceImporter(func(input string) (*loadbalancers.LoadBalancerId, error) {
-			id, err := loadbalancers.ParseProbeID(input)
-			if err != nil {
-				return nil, err
-			}
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&loadbalancers.ProbeId{}),
+		},
 
-			lbId := loadbalancers.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroupName, id.LoadBalancerName)
-			return &lbId, nil
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentityThen(&loadbalancers.ProbeId{}, loadBalancerProbeResourceImporter),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -61,20 +62,16 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 			},
 
 			"protocol": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(loadbalancers.ProbeProtocolTcp),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(loadbalancers.ProbeProtocolHTTP),
-					string(loadbalancers.ProbeProtocolHTTPS),
-					string(loadbalancers.ProbeProtocolTcp),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(loadbalancers.ProbeProtocolTcp),
+				ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForProbeProtocol(), false),
 			},
 
 			"port": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ValidateFunc: validate.PortNumber,
+				ValidateFunc: validation.IsPortNumber,
 			},
 
 			"probe_threshold": {
@@ -102,17 +99,35 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 				Default:  2,
 			},
 
+			"no_healthy_backends_behavior": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(loadbalancers.ProbeNoHealthyBackendsBehaviorAllProbedDown),
+				ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForProbeNoHealthyBackendsBehavior(), false),
+			},
+
 			"load_balancer_rules": {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
+					Type: pluginsdk.TypeString,
 				},
 				Set: pluginsdk.HashString,
 			},
 		},
 	}
+}
+
+func loadBalancerProbeResourceImporter(_ context.Context, d *pluginsdk.ResourceData, _ interface{}) ([]*pluginsdk.ResourceData, error) {
+	id, err := loadbalancers.ParseProbeID(d.Id())
+	if err != nil {
+		return nil, err
+	}
+
+	lbId := loadbalancers.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroupName, id.LoadBalancerName)
+	d.Set("loadbalancer_id", lbId.ID())
+
+	return []*pluginsdk.ResourceData{d}, nil
 }
 
 func resourceArmLoadBalancerProbeCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -150,7 +165,7 @@ func resourceArmLoadBalancerProbeCreateUpdate(d *pluginsdk.ResourceData, meta in
 				if id.ProbeName == *existingProbe.Name {
 					if d.IsNewResource() {
 						if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-							return tf.ImportAsExistsError("azurerm_lb_probe", *existingProbe.Id)
+							return tf.ImportAsExistsError(azureLoadBalancerProbeResourceName, *existingProbe.Id)
 						}
 					}
 
@@ -162,7 +177,7 @@ func resourceArmLoadBalancerProbeCreateUpdate(d *pluginsdk.ResourceData, meta in
 			props.Probes = &probes
 
 			if d.IsNewResource() {
-				if err := client.CreateOrUpdateCallbackThenPoll(ctx, plbId, *model, sdk.SetIDCallback(meta, &id, d)); err != nil {
+				if err := client.CreateOrUpdateCallbackThenPoll(ctx, plbId, *model, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 					return fmt.Errorf("creating %s: %+v", id, err)
 				}
 				d.SetId(id.ID())
@@ -198,23 +213,32 @@ func resourceArmLoadBalancerProbeRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("retrieving %s: %+v", plbId, err)
 	}
 
+	var config *loadbalancers.Probe
 	if model := loadBalancer.Model; model != nil {
-		config, _, exists := FindLoadBalancerProbeByName(model, id.ProbeName)
+		var exists bool
+		config, _, exists = FindLoadBalancerProbeByName(model, id.ProbeName)
 		if !exists {
 			d.SetId("")
 			log.Printf("[INFO] Load Balancer Probe %q not found. Removing from state", id.ProbeName)
 			return nil
 		}
+	}
 
-		d.Set("name", config.Name)
+	return resourceArmLoadBalancerProbeFlatten(d, id, config)
+}
 
-		if props := config.Properties; props != nil {
+func resourceArmLoadBalancerProbeFlatten(d *pluginsdk.ResourceData, id *loadbalancers.ProbeId, model *loadbalancers.Probe) error {
+	d.Set("name", model.Name)
+
+	if model != nil {
+		if props := model.Properties; props != nil {
 			d.Set("interval_in_seconds", int(pointer.From(props.IntervalInSeconds)))
 			d.Set("number_of_probes", int(pointer.From(props.NumberOfProbes)))
 			d.Set("port", int(props.Port))
 			d.Set("protocol", string(props.Protocol))
 			d.Set("request_path", pointer.From(props.RequestPath))
 			d.Set("probe_threshold", int(pointer.From(props.ProbeThreshold)))
+			d.Set("no_healthy_backends_behavior", pointer.FromEnum(props.NoHealthyBackendsBehavior))
 
 			// TODO: parse/make these consistent
 			var loadBalancerRules []string
@@ -230,7 +254,7 @@ func resourceArmLoadBalancerProbeRead(d *pluginsdk.ResourceData, meta interface{
 			}
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceArmLoadBalancerProbeDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -268,8 +292,7 @@ func resourceArmLoadBalancerProbeDelete(d *pluginsdk.ResourceData, meta interfac
 			probes = append(probes[:index], probes[index+1:]...)
 			props.Probes = &probes
 
-			err := client.CreateOrUpdateThenPoll(ctx, plbId, *model)
-			if err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, plbId, *model); err != nil {
 				return fmt.Errorf("updating Load Balancer %q (Resource Group %q) for deletion of Probe %q: %+v", id.LoadBalancerName, id.ResourceGroupName, id.ProbeName, err)
 			}
 		}
@@ -294,6 +317,10 @@ func expandAzureRmLoadBalancerProbe(d *pluginsdk.ResourceData) *loadbalancers.Pr
 
 	if v, ok := d.GetOk("probe_threshold"); ok {
 		properties.ProbeThreshold = pointer.To(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("no_healthy_backends_behavior"); ok {
+		properties.NoHealthyBackendsBehavior = pointer.ToEnum[loadbalancers.ProbeNoHealthyBackendsBehavior](v.(string))
 	}
 
 	return &loadbalancers.Probe{

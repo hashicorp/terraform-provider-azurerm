@@ -81,7 +81,7 @@ func dataSourceStorageEncryptionScopeRead(d *pluginsdk.ResourceData, meta interf
 			}
 			d.Set("key_vault_key_id", keyVaultKeyUri)
 
-			d.Set("source", string(pointer.From(props.Source)))
+			d.Set("source", pointer.FromEnum(props.Source))
 		}
 	}
 

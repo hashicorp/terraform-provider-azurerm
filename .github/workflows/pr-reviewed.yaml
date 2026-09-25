@@ -22,11 +22,15 @@ jobs:
         shell: bash
         run: |
           mkdir -p wr_actions
-          echo ${{ github.owner }} > wr_actions/ghowner.txt
-          echo ${{ github.repository }} > wr_actions/ghrepo.txt
+          echo ${{ github.repository_owner }} > wr_actions/ghowner.txt
+          echo "${GITHUB_EVENT_REPOSITORY_NAME}" > wr_actions/ghrepo.txt
           echo ${{ github.event.pull_request.number }} > wr_actions/prnumber.txt
-          echo ${{ github.event.review.user.login }} > wr_actions/reviewer.txt
-          echo ${{ github.event.review.state }} > wr_actions/reviewstate.txt
+          echo "${GITHUB_EVENT_REVIEW_USER_LOGIN}" > wr_actions/reviewer.txt
+          echo "${GITHUB_EVENT_REVIEW_STATE}" > wr_actions/reviewstate.txt
+        env:
+          GITHUB_EVENT_REPOSITORY_NAME: ${{ github.event.repository.name }}
+          GITHUB_EVENT_REVIEW_USER_LOGIN: ${{ github.event.review.user.login }}
+          GITHUB_EVENT_REVIEW_STATE: ${{ github.event.review.state }}
       - name: "Set Artifacts for add-waiting-response"
         if: github.event.review.state != 'approved' && github.actor != github.event.pull_request.user.login
         shell: bash
@@ -38,7 +42,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p wr_actions
-          echo "remove-waiting-response" > wr_actions/action.txt                
+          echo "remove-waiting-response" > wr_actions/action.txt
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: artifact

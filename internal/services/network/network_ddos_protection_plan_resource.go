@@ -6,9 +6,8 @@ package network
 import (
 	"fmt"
 	"log"
+	"slices"
 	"time"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -16,14 +15,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ddosprotectionplans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/ddosprotectionplans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -test-name basicConfigIdentity
@@ -198,8 +197,7 @@ func resourceNetworkDDoSProtectionPlanFlatten(d *pluginsdk.ResourceData, id *ddo
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
-			vNetIDs := flattenNetworkDDoSProtectionPlanVirtualNetworkIDs(props.VirtualNetworks)
-			if err := d.Set("virtual_network_ids", vNetIDs); err != nil {
+			if err := d.Set("virtual_network_ids", flattenNetworkDDoSProtectionPlanVirtualNetworkIDs(props.VirtualNetworks)); err != nil {
 				return fmt.Errorf("setting `virtual_network_ids`: %+v", err)
 			}
 		}
@@ -261,7 +259,7 @@ func expandNetworkDDoSProtectionPlanVnetIDs(input []interface{}) (*[]string, err
 			return nil, err
 		}
 
-		if !utils.SliceContainsValue(vnetIDs, vnetResourceID.ID()) {
+		if !slices.Contains(vnetIDs, vnetResourceID.ID()) {
 			vnetIDs = append(vnetIDs, vnetResourceID.ID())
 		}
 	}
@@ -299,7 +297,7 @@ func extractVnetIDs(input *[]ddosprotectionplans.SubResource) (*[]string, error)
 				return nil, err
 			}
 
-			if !utils.SliceContainsValue(vnetIDs, id.ID()) {
+			if !slices.Contains(vnetIDs, id.ID()) {
 				vnetIDs = append(vnetIDs, id.ID())
 			}
 		}

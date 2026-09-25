@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementNamedValue() *pluginsdk.Resource {
@@ -143,7 +142,7 @@ func resourceApiManagementNamedValueCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if tags, ok := d.GetOk("tags"); ok {
-		parameters.Properties.Tags = utils.ExpandStringSlice(tags.([]interface{}))
+		parameters.Properties.Tags = pluginsdk.ExpandStringSlice(tags.([]interface{}))
 	}
 
 	if d.IsNewResource() {

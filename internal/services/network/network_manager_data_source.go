@@ -11,12 +11,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkmanagers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagerDataSource struct{}
@@ -161,7 +160,7 @@ func (r ManagerDataSource) Read() sdk.ResourceFunc {
 				ResourceGroupName: id.ResourceGroupName,
 				ScopeAccesses:     ScopeAccesses,
 				Scope:             scope,
-				Tags:              utils.FlattenPtrMapStringString(existing.Model.Tags),
+				Tags:              pluginsdk.FlattenPtrMapStringString(existing.Model.Tags),
 			}
 
 			metadata.SetID(id)

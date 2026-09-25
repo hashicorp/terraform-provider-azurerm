@@ -45,14 +45,7 @@ func TestAccLinuxVirtualMachineScaleSet_imagesDisableAutomaticUpdate(t *testing.
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.imagesDisableAutomaticUpdate(data, "0001-com-ubuntu-server-focal", "20_04-lts"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.imagesDisableAutomaticUpdate(data, "0001-com-ubuntu-server-jammy", "22_04-lts"),
+			Config: r.imagesDisableAutomaticUpdate(data, "ubuntu-24_04-lts", "server"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -300,7 +293,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
+  sku                 = "Standard_F2s_v2"
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"

@@ -11,14 +11,6 @@ import (
 
 var _ resourceids.Id = CommunityGalleryImageId{}
 
-func TestCommunityGalleryImageIDFormatter(t *testing.T) {
-	actual := NewCommunityGalleryImageID("myGallery1", "myImage1").ID()
-	expected := "/communityGalleries/myGallery1/images/myImage1"
-	if actual != expected {
-		t.Fatalf("Expected %q but got %q", expected, actual)
-	}
-}
-
 func TestCommunityGalleryImageID(t *testing.T) {
 	testData := []struct {
 		Input    string

@@ -125,8 +125,7 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Create() sdk.Resour
 				IdentityType: pointer.To(backupvaultresources.IdentityTypeSystemAssigned),
 			}
 
-			err = client.BackupVaultsCreateOrUpdateCallbackThenPoll(ctx, *id, *payload, backupvaultresources.DefaultBackupVaultsCreateOrUpdateOperationOptions(), metadata.SetIDAndIdentityCallback(id))
-			if err != nil {
+			if err = client.BackupVaultsCreateOrUpdateCallbackThenPoll(ctx, *id, *payload, backupvaultresources.DefaultBackupVaultsCreateOrUpdateOperationOptions(), metadata.SetIDAndIdentityCallback(id)); err != nil {
 				return fmt.Errorf("creating Customer Managed Key for %s: %+v", *id, err)
 			}
 
@@ -234,8 +233,7 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Update() sdk.Resour
 				}
 			}
 
-			err = client.BackupVaultsCreateOrUpdateThenPoll(ctx, *id, *payload, backupvaultresources.DefaultBackupVaultsCreateOrUpdateOperationOptions())
-			if err != nil {
+			if err = client.BackupVaultsCreateOrUpdateThenPoll(ctx, *id, *payload, backupvaultresources.DefaultBackupVaultsCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("updating Customer Managed Key for %s: %+v", *id, err)
 			}
 

@@ -98,7 +98,7 @@ func resourceAppServicePublicCertificateCreate(d *pluginsdk.ResourceData, meta i
 
 	certificate := webapps.PublicCertificate{
 		Properties: &webapps.PublicCertificateProperties{
-			PublicCertificateLocation: pointer.To(webapps.PublicCertificateLocation(certificateLocation)),
+			PublicCertificateLocation: pointer.ToEnum[webapps.PublicCertificateLocation](certificateLocation),
 		},
 	}
 
@@ -201,7 +201,7 @@ func resourceAppServicePublicCertificateRead(d *pluginsdk.ResourceData, meta int
 	if cert, ok := resp.(webapps.GetPublicCertificateOperationResponse); ok {
 		if model := cert.Model; model != nil {
 			if properties := model.Properties; properties != nil {
-				d.Set("certificate_location", string(pointer.From(properties.PublicCertificateLocation)))
+				d.Set("certificate_location", pointer.FromEnum(properties.PublicCertificateLocation))
 				d.Set("blob", pointer.From(properties.Blob))
 				d.Set("thumbprint", pointer.From(properties.Thumbprint))
 			}

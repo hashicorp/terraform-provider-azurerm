@@ -90,13 +90,10 @@ func (StackHCIVirtualHardDiskResource) Arguments() map[string]*pluginsdk.Schema 
 		},
 
 		"disk_file_format": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(virtualharddisks.DiskFileFormatVhd),
-				string(virtualharddisks.DiskFileFormatVhdx),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(virtualharddisks.PossibleValuesForDiskFileFormat(), false),
 		},
 
 		"dynamic_enabled": {
@@ -107,13 +104,10 @@ func (StackHCIVirtualHardDiskResource) Arguments() map[string]*pluginsdk.Schema 
 		},
 
 		"hyperv_generation": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(virtualharddisks.HyperVGenerationVOne),
-				string(virtualharddisks.HyperVGenerationVTwo),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(virtualharddisks.PossibleValuesForHyperVGeneration(), false),
 		},
 
 		"logical_sector_in_bytes": {
@@ -192,11 +186,11 @@ func (r StackHCIVirtualHardDiskResource) Create() sdk.ResourceFunc {
 			}
 
 			if config.DiskFileFormat != "" {
-				payload.Properties.DiskFileFormat = pointer.To(virtualharddisks.DiskFileFormat(config.DiskFileFormat))
+				payload.Properties.DiskFileFormat = pointer.ToEnum[virtualharddisks.DiskFileFormat](config.DiskFileFormat)
 			}
 
 			if config.HypervGeneration != "" {
-				payload.Properties.HyperVGeneration = pointer.To(virtualharddisks.HyperVGeneration(config.HypervGeneration))
+				payload.Properties.HyperVGeneration = pointer.ToEnum[virtualharddisks.HyperVGeneration](config.HypervGeneration)
 			}
 
 			if config.LogicalSectorInBytes != 0 {
@@ -258,10 +252,10 @@ func (r StackHCIVirtualHardDiskResource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					schema.BlockSizeInBytes = pointer.From(props.BlockSizeBytes)
-					schema.DiskFileFormat = string(pointer.From(props.DiskFileFormat))
+					schema.DiskFileFormat = pointer.FromEnum(props.DiskFileFormat)
 					schema.DiskSizeInGB = pointer.From(props.DiskSizeGB)
 					schema.DynamicEnabled = pointer.From(props.Dynamic)
-					schema.HypervGeneration = string(pointer.From(props.HyperVGeneration))
+					schema.HypervGeneration = pointer.FromEnum(props.HyperVGeneration)
 					schema.LogicalSectorInBytes = pointer.From(props.LogicalSectorBytes)
 					schema.PhysicalSectorInBytes = pointer.From(props.PhysicalSectorBytes)
 					schema.StoragePathId = pointer.From(props.ContainerId)

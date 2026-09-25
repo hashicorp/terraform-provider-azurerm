@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -168,8 +168,8 @@ func TestAccPublicIpPrefix_prefixLength31(t *testing.T) {
 func TestAccPublicIpPrefix_prefixLength24(t *testing.T) {
 	// NOTE: This test will fail unless the subscription is updated
 	//        to accept a minimum PrefixLength of 24
-	// more detail about [public ip limits](https://learn.microsoft.com/en-us/azure/virtual-network/ip-services/public-ip-addresses#limits)
-	// you can submit a support request to increase the limit in [Azure Portal](https://learn.microsoft.com/en-us/azure/networking/check-usage-against-limits#azure-portal)
+	// more detail about [public ip limits](https://learn.microsoft.com/azure/virtual-network/ip-services/public-ip-addresses#limits)
+	// you can submit a support request to increase the limit in [Azure Portal](https://learn.microsoft.com/azure/networking/check-usage-against-limits#azure-portal)
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
 	r := PublicIpPrefixResource{}
 

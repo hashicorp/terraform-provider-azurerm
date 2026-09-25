@@ -135,7 +135,7 @@ func dataSourceSubscriptionsRead(d *pluginsdk.ResourceData, meta interface{}) er
 			"location_placement_id": locationPlacementId,
 			"quota_id":              quotaId,
 			"spending_limit":        spendingLimit,
-			"state":                 string(pointer.From(item.State)),
+			"state":                 pointer.FromEnum(item.State),
 			"subscription_id":       pointer.From(item.SubscriptionId),
 			"tags":                  tags.Flatten(item.Tags),
 			"tenant_id":             pointer.From(item.TenantId),

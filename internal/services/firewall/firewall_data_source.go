@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/azurefirewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -120,7 +120,7 @@ func firewallDataSource() *pluginsdk.Resource {
 			"dns_proxy_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"virtual_hub": {
@@ -196,10 +196,10 @@ func firewallDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				return fmt.Errorf("setting `management_ip_configuration`: %+v", err)
 			}
 
-			d.Set("threat_intel_mode", string(pointer.From(props.ThreatIntelMode)))
+			d.Set("threat_intel_mode", pointer.FromEnum(props.ThreatIntelMode))
 
-			dnsProxyEnabeld, dnsServers := flattenFirewallAdditionalProperty(props.AdditionalProperties)
-			if err := d.Set("dns_proxy_enabled", dnsProxyEnabeld); err != nil {
+			dnsProxyEnabled, dnsServers := flattenFirewallAdditionalProperty(props.AdditionalProperties)
+			if err := d.Set("dns_proxy_enabled", dnsProxyEnabled); err != nil {
 				return fmt.Errorf("setting `dns_proxy_enabled`: %+v", err)
 			}
 			if err := d.Set("dns_servers", dnsServers); err != nil {
@@ -211,8 +211,8 @@ func firewallDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 
 			if sku := props.Sku; sku != nil {
-				d.Set("sku_name", string(pointer.From(sku.Name)))
-				d.Set("sku_tier", string(pointer.From(sku.Tier)))
+				d.Set("sku_name", pointer.FromEnum(sku.Name))
+				d.Set("sku_tier", pointer.FromEnum(sku.Tier))
 			}
 
 			if err := d.Set("virtual_hub", flattenFirewallVirtualHubSetting(props)); err != nil {

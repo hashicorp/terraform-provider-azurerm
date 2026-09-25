@@ -48,7 +48,7 @@ func (r SourceControlResource) Arguments() map[string]*pluginsdk.Schema {
 		"repo_url": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			RequiredWith: []string{
@@ -60,7 +60,7 @@ func (r SourceControlResource) Arguments() map[string]*pluginsdk.Schema {
 		"branch": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			RequiredWith: []string{
@@ -255,7 +255,7 @@ func (r SourceControlResource) Read() sdk.ResourceFunc {
 				props := model.Properties
 				state = SourceControlModel{
 					AppID:                     id.ID(),
-					SCMType:                   string(pointer.From(siteConfig.Model.Properties.ScmType)),
+					SCMType:                   pointer.FromEnum(siteConfig.Model.Properties.ScmType),
 					RepoURL:                   pointer.From(props.RepoURL),
 					Branch:                    pointer.From(props.Branch),
 					ManualIntegration:         pointer.From(props.IsManualIntegration),

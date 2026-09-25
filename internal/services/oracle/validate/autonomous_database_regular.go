@@ -5,82 +5,48 @@ package validate
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"unicode"
-	"unicode/utf8"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/autonomousdatabases"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func AutonomousDatabaseName(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		return []string{}, append(errors, fmt.Errorf("expected type of %s to be string", k))
-	}
-
-	firstChar, _ := utf8.DecodeRuneInString(v)
-	if !unicode.IsLetter(firstChar) {
-		return []string{}, append(errors, fmt.Errorf("%v must start with a letter", k))
-	}
-
-	for _, r := range v {
-		if !unicode.IsLetter(r) && !unicode.IsNumber(r) {
-			return []string{}, append(errors, fmt.Errorf("%v must contain only letters and numbers", k))
-		}
-	}
-
-	if len(v) > 30 {
-		return []string{}, append(errors, fmt.Errorf("%v must be 30 characters max", k))
-	}
-
-	return []string{}, []error{}
+func AutonomousDatabaseName(i interface{}, k string) ([]string, []error) {
+	return validation.All(
+		validation.StringMatch(regexp.MustCompile(`^\p{L}`), "must start with a letter"),
+		validation.StringMatch(regexp.MustCompile(`^[\p{L}\p{N}]*$`), "must contain only letters and numbers"),
+		validation.StringLenBetween(0, 30),
+	)(i, k)
 }
 
-func AutonomousDatabasePassword(i interface{}, k string) (warnings []string, errors []error) {
+// AutonomousDatabasePassword checks the password rules one at a time and never puts the value
+// itself in an error, since validation errors end up in logs.
+func AutonomousDatabasePassword(i interface{}, k string) ([]string, []error) {
 	v, ok := i.(string)
 	if !ok {
-		return []string{}, append(errors, fmt.Errorf("expected type of %s to be string", k))
+		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
 	}
 
-	if len(v) < 12 || len(v) > 30 {
-		return []string{}, append(errors, fmt.Errorf("%v must be 12 to 30 characters", k))
+	rules := []struct {
+		ok  bool
+		msg string
+	}{
+		{len(v) >= 12 && len(v) <= 30, "must be 12 to 30 characters"},
+		{!strings.Contains(v, `"`), `must not contain the double quote (") character`},
+		{strings.ContainsFunc(v, unicode.IsUpper), "must contain at least one uppercase letter"},
+		{strings.ContainsFunc(v, unicode.IsLower), "must contain at least one lowercase letter"},
+		{strings.ContainsFunc(v, unicode.IsNumber), "must contain at least one number"},
+		{!strings.Contains(v, "admin"), `must not contain the username "admin"`},
+	}
+	for _, r := range rules {
+		if !r.ok {
+			return nil, []error{fmt.Errorf("%q %s", k, r.msg)}
+		}
 	}
 
-	hasUpper := false
-	hasLower := false
-	hasNumber := false
-	hasDoubleQuote := false
-	for _, r := range v {
-		if r == '"' {
-			hasDoubleQuote = true
-		}
-		if unicode.IsUpper(r) {
-			hasUpper = true
-		}
-		if unicode.IsLower(r) {
-			hasLower = true
-		}
-		if unicode.IsNumber(r) {
-			hasNumber = true
-		}
-	}
-	if hasDoubleQuote {
-		return []string{}, append(errors, fmt.Errorf("%v must not contain the double quote (\") character", k))
-	}
-	if !hasUpper {
-		return []string{}, append(errors, fmt.Errorf("%v must contain at least one uppercase letter", k))
-	}
-	if !hasLower {
-		return []string{}, append(errors, fmt.Errorf("%v must contain at least one lowercase letter", k))
-	}
-	if !hasNumber {
-		return []string{}, append(errors, fmt.Errorf("%v must contain at least one number", k))
-	}
-	if strings.Contains(v, "admin") {
-		return []string{}, append(errors, fmt.Errorf("%v must not contain the username \"admin\"", k))
-	}
-
-	return []string{}, []error{}
+	return nil, nil
 }
 
 func AdbsComputeModel(i interface{}, k string) (warnings []string, errors []error) {

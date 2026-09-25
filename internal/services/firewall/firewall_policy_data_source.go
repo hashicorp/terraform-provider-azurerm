@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/firewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/firewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -167,7 +167,7 @@ func FirewallDataSourcePolicyRead(d *pluginsdk.ResourceData, meta interface{}) e
 			if err := d.Set("rule_collection_groups", flattenNetworkSubResourceID(props.RuleCollectionGroups)); err != nil {
 				return fmt.Errorf(`setting "rule_collection_groups": %+v`, err)
 			}
-			d.Set("threat_intelligence_mode", string(pointer.From(props.ThreatIntelMode)))
+			d.Set("threat_intelligence_mode", pointer.FromEnum(props.ThreatIntelMode))
 			if err := d.Set("threat_intelligence_allowlist", flattenFirewallPolicyThreatIntelWhitelist(props.ThreatIntelWhitelist)); err != nil {
 				return fmt.Errorf(`setting "threat_intelligence_allowlist": %+v`, err)
 			}

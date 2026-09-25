@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -106,24 +105,6 @@ func (r MachineLearningDataStoreFileShare) Exists(ctx context.Context, client *c
 }
 
 func (r MachineLearningDataStoreFileShare) fileShareAccountKey(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
-
-resource "azurerm_storage_share" "test" {
-  name                 = "accfs%[2]d"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 1
-}
-
-resource "azurerm_machine_learning_datastore_fileshare" "test" {
-  name                 = "accdatastore%[2]d"
-  workspace_id         = azurerm_machine_learning_workspace.test.id
-  storage_fileshare_id = azurerm_storage_share.test.resource_manager_id
-  account_key          = azurerm_storage_account.test.primary_access_key
-}
-`, r.template(data), data.RandomInteger)
-	}
 	return fmt.Sprintf(`
 	%s
 
@@ -143,59 +124,6 @@ resource "azurerm_machine_learning_datastore_fileshare" "test" {
 }
 
 func (r MachineLearningDataStoreFileShare) fileShareSas(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-		%s
-
-resource "azurerm_storage_share" "test" {
-  name                 = "accfs%[2]d"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 1
-}
-
-data "azurerm_storage_account_sas" "test" {
-  connection_string = azurerm_storage_account.test.primary_connection_string
-  https_only        = true
-  signed_version    = "2019-10-10"
-
-  resource_types {
-    service   = true
-    container = true
-    object    = true
-  }
-
-  services {
-    blob  = true
-    queue = false
-    table = false
-    file  = true
-  }
-
-  start  = "2022-01-01T06:17:07Z"
-  expiry = "2024-12-23T06:17:07Z"
-
-  permissions {
-    read    = true
-    write   = true
-    delete  = false
-    list    = false
-    add     = true
-    create  = true
-    update  = false
-    process = false
-    tag     = false
-    filter  = false
-  }
-}
-
-resource "azurerm_machine_learning_datastore_fileshare" "test" {
-  name                    = "accdatastore%[2]d"
-  workspace_id            = azurerm_machine_learning_workspace.test.id
-  storage_fileshare_id    = azurerm_storage_share.test.resource_manager_id
-  shared_access_signature = data.azurerm_storage_account_sas.test.sas
-}
-`, r.template(data), data.RandomInteger)
-	}
 	return fmt.Sprintf(`
 	%s
 

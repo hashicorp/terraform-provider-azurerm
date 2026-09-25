@@ -112,7 +112,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 						Username: model.Username,
 						Password: model.Password,
 					},
-					ProvisioningAction: pointer.To(guestagents.ProvisioningAction(model.ProvisioningAction)),
+					ProvisioningAction: pointer.ToEnum[guestagents.ProvisioningAction](model.ProvisioningAction),
 				},
 			}
 
@@ -156,7 +156,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 						state.Password = metadata.ResourceData.Get("password").(string)
 					}
 
-					state.ProvisioningAction = string(pointer.From(props.ProvisioningAction))
+					state.ProvisioningAction = pointer.FromEnum(props.ProvisioningAction)
 				}
 			}
 

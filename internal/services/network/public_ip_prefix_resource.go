@@ -10,19 +10,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/customipprefixes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/customipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -93,14 +92,11 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 			},
 
 			"ip_version": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(publicipprefixes.IPVersionIPvFour),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(publicipprefixes.IPVersionIPvFour),
-					string(publicipprefixes.IPVersionIPvSix),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(publicipprefixes.IPVersionIPvFour),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(publicipprefixes.PossibleValuesForIPVersion(), false),
 			},
 
 			"zones": commonschema.ZonesMultipleOptionalForceNew(),
@@ -149,12 +145,12 @@ func resourcePublicIpPrefixCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	publicIpPrefix := publicipprefixes.PublicIPPrefix{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Sku: &publicipprefixes.PublicIPPrefixSku{
-			Name: pointer.To(publicipprefixes.PublicIPPrefixSkuName(d.Get("sku").(string))),
-			Tier: pointer.To(publicipprefixes.PublicIPPrefixSkuTier(d.Get("sku_tier").(string))),
+			Name: pointer.ToEnum[publicipprefixes.PublicIPPrefixSkuName](d.Get("sku").(string)),
+			Tier: pointer.ToEnum[publicipprefixes.PublicIPPrefixSkuTier](d.Get("sku_tier").(string)),
 		},
 		Properties: &publicipprefixes.PublicIPPrefixPropertiesFormat{
 			PrefixLength:           pointer.To(int64(d.Get("prefix_length").(int))),
-			PublicIPAddressVersion: pointer.To(publicipprefixes.IPVersion(d.Get("ip_version").(string))),
+			PublicIPAddressVersion: pointer.ToEnum[publicipprefixes.IPVersion](d.Get("ip_version").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -232,8 +228,8 @@ func resourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("location", location.NormalizeNilable(model.Location))
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 		if sku := model.Sku; sku != nil {
-			d.Set("sku", string(pointer.From(sku.Name)))
-			d.Set("sku_tier", string(pointer.From(sku.Tier)))
+			d.Set("sku", pointer.FromEnum(sku.Name))
+			d.Set("sku_tier", pointer.FromEnum(sku.Tier))
 		}
 		if props := model.Properties; props != nil {
 			d.Set("prefix_length", props.PrefixLength)

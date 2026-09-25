@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name databricks_virtual_network_peering -service-package-name databricks -properties "name" -compare-values "subscription_id:workspace_id,resource_group_name:workspace_id,workspace_name:workspace_id"
@@ -161,8 +160,8 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 	allowVirtualNetworkAccess := d.Get("allow_virtual_network_access").(bool)
 	useRemoteGateways := d.Get("use_remote_gateways").(bool)
 	remoteVirtualNetwork := d.Get("remote_virtual_network_id").(string)
-	databricksAddressSpace := utils.ExpandStringSlice(d.Get("address_space_prefixes").([]interface{}))
-	remoteAddressSpace := utils.ExpandStringSlice(d.Get("remote_address_space_prefixes").([]interface{}))
+	databricksAddressSpace := pluginsdk.ExpandStringSlice(d.Get("address_space_prefixes").([]interface{}))
+	remoteAddressSpace := pluginsdk.ExpandStringSlice(d.Get("remote_address_space_prefixes").([]interface{}))
 
 	props := vnetpeering.VirtualNetworkPeeringPropertiesFormat{
 		DatabricksAddressSpace: &vnetpeering.AddressSpace{
@@ -250,11 +249,7 @@ func resourceDatabricksVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta
 		}
 		d.Set("virtual_network_id", databricksVirtualNetworkId)
 
-		remoteVirtualNetworkId := ""
-		if model.Properties.RemoteVirtualNetwork.Id != nil {
-			remoteVirtualNetworkId = *model.Properties.RemoteVirtualNetwork.Id
-		}
-		d.Set("remote_virtual_network_id", remoteVirtualNetworkId)
+		d.Set("remote_virtual_network_id", pointer.From(model.Properties.RemoteVirtualNetwork.Id))
 	}
 
 	return pluginsdk.SetResourceIdentityData(d, id)

@@ -91,14 +91,13 @@ func resourceArmDataSourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(&model.Location))
-		sku := flattenNotificationHubDataSourceNamespacesSku(&model.Sku)
-		if err := d.Set("sku", sku); err != nil {
+		if err := d.Set("sku", flattenNotificationHubDataSourceNamespacesSku(&model.Sku)); err != nil {
 			return fmt.Errorf("setting `sku`: %+v", err)
 		}
 
 		if props := model.Properties; props != nil {
 			d.Set("enabled", props.Enabled)
-			d.Set("namespace_type", string(pointer.From(props.NamespaceType)))
+			d.Set("namespace_type", pointer.FromEnum(props.NamespaceType))
 			d.Set("servicebus_endpoint", props.ServiceBusEndpoint)
 		}
 

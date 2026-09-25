@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity
@@ -260,7 +259,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 						// lintignore:XS003
 						"resource_health": {
 							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							Optional: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
@@ -322,7 +321,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 						// lintignore:XS003
 						"service_health": {
 							Type:     pluginsdk.TypeList,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							Optional: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
@@ -470,7 +469,7 @@ func resourceMonitorActivityLogAlertCreateUpdate(d *pluginsdk.ResourceData, meta
 			Condition:   expandMonitorActivityLogAlertCriteria(criteriaRaw),
 			Actions:     expandMonitorActivityLogAlertAction(actionRaw),
 		},
-		Tags: utils.ExpandPtrMapStringString(t),
+		Tags: pluginsdk.ExpandPtrMapStringString(t),
 	}
 
 	if _, err := client.ActivityLogAlertsCreateOrUpdate(ctx, id, parameters); err != nil {
@@ -521,7 +520,7 @@ func resourceMonitorActivityLogAlertFlatten(d *pluginsdk.ResourceData, id *activ
 
 			var scopes []interface{}
 			if props.Scopes != nil {
-				scopes = utils.FlattenStringSlice(&props.Scopes)
+				scopes = pluginsdk.FlattenSlice(&props.Scopes)
 			}
 			if err := d.Set("scopes", scopes); err != nil {
 				return fmt.Errorf("setting `scopes`: %+v", err)
@@ -534,7 +533,7 @@ func resourceMonitorActivityLogAlertFlatten(d *pluginsdk.ResourceData, id *activ
 				return fmt.Errorf("setting `action`: %+v", err)
 			}
 		}
-		if err := d.Set("tags", utils.FlattenPtrMapStringString(model.Tags)); err != nil {
+		if err := d.Set("tags", pluginsdk.FlattenPtrMapStringString(model.Tags)); err != nil {
 			return err
 		}
 	}
@@ -787,7 +786,7 @@ func expandServiceHealth(serviceHealth []interface{}, conditions []activitylogal
 		if len(rv.List()) > 0 {
 			conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 				Field:       pointer.To("properties.impactedServices[*].ImpactedRegions[*].RegionName"),
-				ContainsAny: utils.ExpandStringSlice(rv.List()),
+				ContainsAny: pluginsdk.ExpandStringSlice(rv.List()),
 			})
 		}
 
@@ -810,7 +809,7 @@ func expandServiceHealth(serviceHealth []interface{}, conditions []activitylogal
 		if len(sv.List()) > 0 {
 			conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 				Field:       pointer.To("properties.impactedServices[*].ServiceName"),
-				ContainsAny: utils.ExpandStringSlice(sv.List()),
+				ContainsAny: pluginsdk.ExpandStringSlice(sv.List()),
 			})
 		}
 	}

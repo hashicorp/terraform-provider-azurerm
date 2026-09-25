@@ -259,13 +259,13 @@ func dataSourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{})
 
 		if props := model.Properties; props != nil {
 			if dataPlaneProxy := props.DataPlaneProxy; dataPlaneProxy != nil {
-				d.Set("data_plane_proxy_authentication_mode", string(pointer.From(dataPlaneProxy.AuthenticationMode)))
+				d.Set("data_plane_proxy_authentication_mode", pointer.FromEnum(dataPlaneProxy.AuthenticationMode))
 				d.Set("data_plane_proxy_private_link_delegation_enabled", pointer.From(dataPlaneProxy.PrivateLinkDelegation) == configurationstores.PrivateLinkDelegationEnabled)
 			}
 
 			d.Set("endpoint", props.Endpoint)
 			d.Set("encryption", flattenAppConfigurationEncryption(props.Encryption))
-			d.Set("public_network_access", string(pointer.From(props.PublicNetworkAccess)))
+			d.Set("public_network_access", pointer.FromEnum(props.PublicNetworkAccess))
 			d.Set("soft_delete_retention_days", props.SoftDeleteRetentionInDays)
 
 			localAuthEnabled := true
@@ -274,11 +274,7 @@ func dataSourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{})
 			}
 
 			d.Set("local_auth_enabled", localAuthEnabled)
-			purgeProtectionEnabled := false
-			if props.EnablePurgeProtection != nil {
-				purgeProtectionEnabled = *props.EnablePurgeProtection
-			}
-			d.Set("purge_protection_enabled", purgeProtectionEnabled)
+			d.Set("purge_protection_enabled", pointer.From(props.EnablePurgeProtection))
 		}
 
 		accessKeys := flattenAppConfigurationAccessKeys(resultPage.Items)
