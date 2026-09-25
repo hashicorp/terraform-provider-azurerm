@@ -23,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -parent-id "namespace_id"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 const serviceBusQueueResourceName = "azurerm_servicebus_queue"
 
