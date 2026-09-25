@@ -49,7 +49,7 @@ func (StorageAccountNetworkRulesListResource) List(ctx context.Context, request 
 	case !data.ResourceGroupName.IsNull():
 		resp, err := client.ListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, "listing azurerm_storage_account_network_rules", err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing %s", azurermStorageAccountNetworkRulesResource), err)
 			return
 		}
 		results = resp.Items

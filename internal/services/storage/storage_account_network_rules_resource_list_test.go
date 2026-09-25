@@ -114,10 +114,6 @@ resource "azurerm_storage_account_network_rules" "test" {
   ip_rules                   = ["127.0.0.1"]
   virtual_network_subnet_ids = [azurerm_subnet.test.id]
 }
-
-
-
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString)
 }
 
